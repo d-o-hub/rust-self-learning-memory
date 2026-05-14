@@ -2,7 +2,10 @@
 
 use super::*;
 use do_memory_core::StorageBackend;
+use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_core::{Episode, TaskContext, TaskType};
 use tempfile::tempdir;
+use uuid::Uuid;
 
 async fn create_test_storage() -> Result<RedbStorage> {
     let dir = tempdir().unwrap();
@@ -11,20 +14,20 @@ async fn create_test_storage() -> Result<RedbStorage> {
 }
 
 #[tokio::test]
-async fn test_storage_creation() {
+pub async fn test_storage_creation() {
     let storage = create_test_storage().await;
     assert!(storage.is_ok());
 }
 
 #[tokio::test]
-async fn test_health_check() {
+pub async fn test_health_check() {
     let storage = create_test_storage().await.unwrap();
     let healthy = storage.health_check().await.unwrap();
     assert!(healthy);
 }
 
 #[tokio::test]
-async fn test_statistics() {
+pub async fn test_statistics() {
     let storage = create_test_storage().await.unwrap();
     let stats = storage.get_statistics().await.unwrap();
     assert_eq!(stats.episode_count, 0);
@@ -33,7 +36,7 @@ async fn test_statistics() {
 }
 
 #[tokio::test]
-async fn test_clear_all() {
+pub async fn test_clear_all() {
     let storage = create_test_storage().await.unwrap();
     let result = storage.clear_all().await;
     assert!(result.is_ok());
@@ -42,7 +45,7 @@ async fn test_clear_all() {
 // ========== Embedding Storage Tests ==========
 
 #[tokio::test]
-async fn test_store_and_get_embedding() {
+pub async fn test_store_and_get_embedding() {
     let storage = create_test_storage().await.unwrap();
 
     let id = "test_embedding_1";
@@ -61,7 +64,7 @@ async fn test_store_and_get_embedding() {
 }
 
 #[tokio::test]
-async fn test_get_nonexistent_embedding() {
+pub async fn test_get_nonexistent_embedding() {
     let storage = create_test_storage().await.unwrap();
 
     let retrieved = storage.get_embedding("nonexistent").await.unwrap();
@@ -69,7 +72,7 @@ async fn test_get_nonexistent_embedding() {
 }
 
 #[tokio::test]
-async fn test_delete_embedding() {
+pub async fn test_delete_embedding() {
     let storage = create_test_storage().await.unwrap();
 
     let id = "test_embedding_delete";
@@ -95,7 +98,7 @@ async fn test_delete_embedding() {
 }
 
 #[tokio::test]
-async fn test_delete_nonexistent_embedding() {
+pub async fn test_delete_nonexistent_embedding() {
     let storage = create_test_storage().await.unwrap();
 
     let deleted = storage.delete_embedding("nonexistent").await.unwrap();
@@ -103,7 +106,7 @@ async fn test_delete_nonexistent_embedding() {
 }
 
 #[tokio::test]
-async fn test_store_embeddings_batch() {
+pub async fn test_store_embeddings_batch() {
     let storage = create_test_storage().await.unwrap();
 
     let embeddings = vec![
@@ -127,7 +130,7 @@ async fn test_store_embeddings_batch() {
 }
 
 #[tokio::test]
-async fn test_get_embeddings_batch() {
+pub async fn test_get_embeddings_batch() {
     let storage = create_test_storage().await.unwrap();
 
     let embeddings = vec![
@@ -168,7 +171,7 @@ async fn test_get_embeddings_batch() {
 }
 
 #[tokio::test]
-async fn test_different_embedding_dimensions() {
+pub async fn test_different_embedding_dimensions() {
     let storage = create_test_storage().await.unwrap();
 
     // Test different dimensions (384, 1024, 1536)
@@ -198,7 +201,7 @@ async fn test_different_embedding_dimensions() {
 }
 
 #[tokio::test]
-async fn test_update_existing_embedding() {
+pub async fn test_update_existing_embedding() {
     let storage = create_test_storage().await.unwrap();
 
     let id = "update_test";
@@ -227,7 +230,7 @@ async fn test_update_existing_embedding() {
 }
 
 #[tokio::test]
-async fn test_empty_embeddings_batch() {
+pub async fn test_empty_embeddings_batch() {
     let storage = create_test_storage().await.unwrap();
 
     // Store empty batch
@@ -239,7 +242,7 @@ async fn test_empty_embeddings_batch() {
 }
 
 #[tokio::test]
-async fn test_embedding_size_limit() {
+pub async fn test_embedding_size_limit() {
     let storage = create_test_storage().await.unwrap();
 
     // Test that embeddings larger than MAX_EMBEDDING_SIZE (1MB) are rejected
@@ -249,4 +252,138 @@ async fn test_embedding_size_limit() {
 
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("exceeds maximum"));
+}
+
+#[tokio::test]
+pub async fn test_find_similar_episodes_extended() {
+    let storage = create_test_storage().await.unwrap();
+    let episode_id_1 = Uuid::new_v4();
+    let episode_id_2 = Uuid::new_v4();
+    let episode_id_3 = Uuid::new_v4();
+
+    // 1. Arrange: Create episodes and embeddings
+    let mut ep1 = Episode::new(
+        "episode 1".to_string(),
+        TaskContext::default(),
+        TaskType::Other,
+    );
+    ep1.episode_id = episode_id_1;
+
+    let mut ep2 = Episode::new(
+        "episode 2".to_string(),
+        TaskContext::default(),
+        TaskType::Other,
+    );
+    ep2.episode_id = episode_id_2;
+
+    // ep3 will be "missing" (embedding exists, but no episode)
+
+    storage.store_episode(&ep1).await.unwrap();
+    storage.store_episode(&ep2).await.unwrap();
+
+    // Store embeddings with known similarities
+    storage
+        .store_episode_embedding(episode_id_1, vec![1.0, 0.0])
+        .await
+        .unwrap();
+    storage
+        .store_episode_embedding(episode_id_2, vec![-1.0, 0.0])
+        .await
+        .unwrap();
+    storage
+        .store_episode_embedding(episode_id_3, vec![0.5, 0.0])
+        .await
+        .unwrap();
+
+    let query = vec![1.0, 0.0];
+
+    // 2. Act: Search with threshold pruning
+    let results = storage
+        .find_similar_episodes(query.clone(), 10, 0.8)
+        .await
+        .unwrap();
+
+    // 3. Assert: ep1 should be found, ep3 skipped (missing), ep2 skipped (threshold)
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].item.episode_id, episode_id_1);
+    assert!((results[0].similarity - 1.0).abs() < f32::EPSILON);
+
+    // 4. Act: Search with exact limit
+    let results = storage.find_similar_episodes(query, 1, 0.0).await.unwrap();
+    assert_eq!(results.len(), 1);
+}
+
+#[tokio::test]
+pub async fn test_deterministic_tie_breaking() {
+    let storage = create_test_storage().await.unwrap();
+
+    // Create two episodes with SAME similarity
+    let id_a = Uuid::parse_str("00000000-0000-0000-0000-00000000000a").unwrap();
+    let id_b = Uuid::parse_str("00000000-0000-0000-0000-00000000000b").unwrap();
+
+    let mut ep_a = Episode::new("A".to_string(), TaskContext::default(), TaskType::Other);
+    ep_a.episode_id = id_a;
+
+    let mut ep_b = Episode::new("B".to_string(), TaskContext::default(), TaskType::Other);
+    ep_b.episode_id = id_b;
+
+    storage.store_episode(&ep_a).await.unwrap();
+    storage.store_episode(&ep_b).await.unwrap();
+
+    // Same embedding -> same similarity
+    let vec = vec![1.0, 0.0];
+    storage
+        .store_episode_embedding(id_a, vec.clone())
+        .await
+        .unwrap();
+    storage
+        .store_episode_embedding(id_b, vec.clone())
+        .await
+        .unwrap();
+
+    // Search with limit 2
+    let results = storage.find_similar_episodes(vec, 2, 0.0).await.unwrap();
+
+    assert_eq!(results.len(), 2);
+    // Should be ordered by ID: A then B
+    assert_eq!(results[0].item.episode_id, id_a);
+    assert_eq!(results[1].item.episode_id, id_b);
+}
+
+#[tokio::test]
+pub async fn test_find_similar_episodes_exact_limit() {
+    let storage = create_test_storage().await.unwrap();
+
+    // Create 5 episodes
+    for i in 0..5 {
+        let id = Uuid::new_v4();
+        let mut ep = Episode::new(format!("ep {}", i), TaskContext::default(), TaskType::Other);
+        ep.episode_id = id;
+        storage.store_episode(&ep).await.unwrap();
+        storage
+            .store_episode_embedding(id, vec![i as f32, 0.0])
+            .await
+            .unwrap();
+    }
+
+    // Search with limit 3 (less than available)
+    let results = storage
+        .find_similar_episodes(vec![10.0, 0.0], 3, 0.0)
+        .await
+        .unwrap();
+    assert_eq!(results.len(), 3);
+
+    // Search with limit 5 (equal to available)
+    let results = storage
+        .find_similar_episodes(vec![10.0, 0.0], 5, 0.0)
+        .await
+        .unwrap();
+    assert_eq!(results.len(), 5);
+
+    // Search with limit 10 (more than available)
+    let results = storage
+        .find_similar_episodes(vec![10.0, 0.0], 10, 0.0)
+        .await
+        .unwrap();
+    assert_eq!(results.len(), 5);
 }

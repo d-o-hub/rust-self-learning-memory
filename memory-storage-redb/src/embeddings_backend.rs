@@ -9,6 +9,7 @@ use do_memory_core::embeddings::{
     EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult, cosine_similarity,
 };
 use do_memory_core::episode::PatternId;
+use do_memory_core::search::select_top_k;
 use do_memory_core::{Episode, Error, Pattern, Result};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
@@ -71,7 +72,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .open_table(EPISODES_TABLE)
                 .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
 
-            let mut results = Vec::new();
+            let mut matched_ids = Vec::new();
             let iter = embeddings_table
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?;
@@ -98,40 +99,50 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract episode ID from key
                     let episode_id_str = &key[8..]; // Remove "episode_" prefix
-                    if let Ok(_episode_id) = Uuid::parse_str(episode_id_str) {
-                        // Try to get the episode
-                        if let Some(episode_bytes) = episodes_table
-                            .get(episode_id_str)
-                            .map_err(|e| Error::Storage(format!("Failed to get episode: {}", e)))?
-                        {
-                            let episode: Episode = postcard::from_bytes(episode_bytes.value())
-                                .map_err(|e| {
-                                    Error::Storage(format!("Failed to deserialize episode: {}", e))
-                                })?;
 
-                            results.push(SimilaritySearchResult {
-                                item: episode,
-                                similarity,
-                                metadata: SimilarityMetadata {
-                                    embedding_model: "unknown".to_string(),
-                                    embedding_timestamp: None,
-                                    context: serde_json::json!({}),
-                                },
-                            });
-                        }
+                    // Verify existence to avoid "missing backing row" issue
+                    if episodes_table
+                        .get(episode_id_str)
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to check episode existence: {}", e))
+                        })?
+                        .is_some()
+                    {
+                        matched_ids.push((episode_id_str.to_string(), similarity));
                     }
                 }
             }
 
-            // Sort by similarity (highest first)
-            results.sort_by(|a, b| {
-                b.similarity
-                    .partial_cmp(&a.similarity)
+            // Optimization: select top-k matches before full deserialization
+            let top_matches = select_top_k(&mut matched_ids, limit, |a, b| {
+                b.1.partial_cmp(&a.1)
                     .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.0.cmp(&b.0))
             });
 
-            // Limit results
-            results.truncate(limit);
+            let mut results = Vec::with_capacity(top_matches.len());
+            for (episode_id_str, similarity) in top_matches {
+                // Try to get the episode
+                if let Some(episode_bytes) = episodes_table
+                    .get(episode_id_str.as_str())
+                    .map_err(|e| Error::Storage(format!("Failed to get episode: {}", e)))?
+                {
+                    let episode: Episode =
+                        postcard::from_bytes(episode_bytes.value()).map_err(|e| {
+                            Error::Storage(format!("Failed to deserialize episode: {}", e))
+                        })?;
+
+                    results.push(SimilaritySearchResult {
+                        item: episode,
+                        similarity,
+                        metadata: SimilarityMetadata {
+                            embedding_model: "unknown".to_string(),
+                            embedding_timestamp: None,
+                            context: serde_json::json!({}),
+                        },
+                    });
+                }
+            }
 
             Ok(results)
         })
@@ -165,7 +176,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .open_table(PATTERNS_TABLE)
                 .map_err(|e| Error::Storage(format!("Failed to open patterns table: {}", e)))?;
 
-            let mut results = Vec::new();
+            let mut matched_ids = Vec::new();
             let iter = embeddings_table
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?;
@@ -192,40 +203,50 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract pattern ID from key
                     let pattern_id_str = &key[8..]; // Remove "pattern_" prefix
-                    if let Ok(_pattern_id) = PatternId::parse_str(pattern_id_str) {
-                        // Try to get the pattern
-                        if let Some(pattern_bytes) = patterns_table
-                            .get(pattern_id_str)
-                            .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
-                        {
-                            let pattern: Pattern = postcard::from_bytes(pattern_bytes.value())
-                                .map_err(|e| {
-                                    Error::Storage(format!("Failed to deserialize pattern: {}", e))
-                                })?;
 
-                            results.push(SimilaritySearchResult {
-                                item: pattern,
-                                similarity,
-                                metadata: SimilarityMetadata {
-                                    embedding_model: "unknown".to_string(),
-                                    embedding_timestamp: None,
-                                    context: serde_json::json!({}),
-                                },
-                            });
-                        }
+                    // Verify existence to avoid "missing backing row" issue
+                    if patterns_table
+                        .get(pattern_id_str)
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to check pattern existence: {}", e))
+                        })?
+                        .is_some()
+                    {
+                        matched_ids.push((pattern_id_str.to_string(), similarity));
                     }
                 }
             }
 
-            // Sort by similarity (highest first)
-            results.sort_by(|a, b| {
-                b.similarity
-                    .partial_cmp(&a.similarity)
+            // Optimization: select top-k matches before full deserialization
+            let top_matches = select_top_k(&mut matched_ids, limit, |a, b| {
+                b.1.partial_cmp(&a.1)
                     .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.0.cmp(&b.0))
             });
 
-            // Limit results
-            results.truncate(limit);
+            let mut results = Vec::with_capacity(top_matches.len());
+            for (pattern_id_str, similarity) in top_matches {
+                // Try to get the pattern
+                if let Some(pattern_bytes) = patterns_table
+                    .get(pattern_id_str.as_str())
+                    .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
+                {
+                    let pattern: Pattern =
+                        postcard::from_bytes(pattern_bytes.value()).map_err(|e| {
+                            Error::Storage(format!("Failed to deserialize pattern: {}", e))
+                        })?;
+
+                    results.push(SimilaritySearchResult {
+                        item: pattern,
+                        similarity,
+                        metadata: SimilarityMetadata {
+                            embedding_model: "unknown".to_string(),
+                            embedding_timestamp: None,
+                            context: serde_json::json!({}),
+                        },
+                    });
+                }
+            }
 
             Ok(results)
         })

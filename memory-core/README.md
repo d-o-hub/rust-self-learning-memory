@@ -63,7 +63,7 @@ do-memory-core = { version = "0.1", features = ["embeddings-full"] }
 - Pattern similarity matching for relevant experience retrieval
 - Reward-based pattern learning and improvement
 - Frequency and success rate tracking
-- **Pattern Ranking**: Uses the Schwartzian Transform to calculate pattern scores exactly once per item, reducing complexity from O(N log N) to O(N).
+- **Pattern Ranking**: Uses the Schwartzian Transform to cache scores before sorting (O(N) calculations), while the sorting step maintains an overall O(N log N) time complexity.
 
 ### Semantic Search (Optional)
 - Multi-provider embeddings: OpenAI, Mistral, local CPU-based

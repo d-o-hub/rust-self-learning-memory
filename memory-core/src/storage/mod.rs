@@ -16,6 +16,7 @@ use crate::memory::attribution::{
 };
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// Default limit for query operations (when not specified)
@@ -414,4 +415,9 @@ pub trait StorageBackend: Send + Sync {
         let _ = policy;
         Ok(0)
     }
+
+    /// Set an optional event emitter for this backend.
+    ///
+    /// This allows the backend to emit its own lifecycle events (e.g. EpisodeStored).
+    fn set_event_emitter(&self, _emitter: Arc<dyn crate::types::event::EventEmitter>) {}
 }

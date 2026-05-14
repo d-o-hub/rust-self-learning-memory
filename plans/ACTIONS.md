@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
+- **Last Updated**: 2026-05-01 (WG-134 complete, WG-131 partial, ADR-054)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -131,7 +131,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
    - Action: Build `CascadeRetriever` with tiers: BM25 → HDC → ConceptGraph → API embedding; track `api_calls` metric per query; add integration tests proving zero-API-call paths for exact matches
    - Dependencies: ACT-117, ACT-118, ACT-119
-   - Status: 🔵 Planned
+   - Status: 🟡 Partial — CSM path complete (BM25 + HDC + merge + API fallback, 20+ tests). Tier 3 (ConceptGraph expansion) returns empty results — requires curated ontology JSON.
 
 ### Phase 2: Research-Inspired Retrieval Upgrades (Parallel with Phase 1)
 
@@ -219,7 +219,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-134
    - Action: Adapt arXiv:2602.22398 DAG-based conversation state approach for episode context assembly; target 20-86% token reduction
    - Paper: arXiv:2602.22398
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — ~1,320 LOC in `memory-core/src/context/dag/`, 24 tests, ADR-054
 
 - **ACT-128**: Evaluate federated HDC for multi-agent memory
    - Goal: WG-135

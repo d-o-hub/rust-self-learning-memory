@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-30 (v0.1.31 release verified)
+**Last Updated**: 2026-05-01 (WG-134 complete, ADR-054, plans sync)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -50,7 +50,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
 | WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
 | WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
-| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | ✅ Complete (732 LOC, 20+ tests) | 131 |
+| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🟡 Partial (CSM path complete, Tier 3 ConceptGraph placeholder) | 131 |
 
 ### Phase 2: Token Efficiency
 
@@ -83,7 +83,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | 🔵 Backlog | 127 |
 | WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | 🔵 Backlog | 132 |
 | WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | 🔵 Backlog | 133 |
-| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | 🔵 Backlog | 134 |
+| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | ✅ Complete (~1,320 LOC, 24 tests, ADR-054) | 134 |
 | WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
 | WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
 | WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |

@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-30 (v0.1.31 release verified, metrics sync)
+- **Last Updated**: 2026-05-01 (WG-134 implemented, ADR-054 created, plans sync)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
@@ -83,8 +83,16 @@
 | Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
 | LottaLoRA local classifier | WG-132 | 🔵 Planned | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | 🔵 Planned | agents-update | Anatomy of Agentic Memory |
-| DAG-based state management | WG-134 | 🔵 Planned | feature-implement | arXiv:2602.22398 |
+| DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |
 | Federated HDC multi-agent memory | WG-135 | 🔵 Planned | feature-implement | arXiv:2603.20037 |
+
+### WG-131 CascadeRetriever Status (Updated 2026-05-01)
+
+The CascadeRetriever has a full CSM implementation behind the `csm` feature flag
+(BM25 Tier 1, HDC Tier 2, Merge logic, API fallback Tier 4). Only Tier 3 (ConceptGraph
+expansion) remains a placeholder requiring curated ontology.
+
+**Status**: 🟡 Partial — CSM path complete, ConceptGraph tier pending.
 
 ### Phase 4: Housekeeping (Parallel)
 

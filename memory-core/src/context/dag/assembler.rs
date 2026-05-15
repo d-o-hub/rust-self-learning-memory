@@ -15,6 +15,35 @@ use crate::episode::Episode;
 use std::fmt::Write;
 use std::sync::Arc;
 
+// ── Token estimation heuristics ──
+// These constants calibrate the approximate token cost of various context
+// elements.  They are intentionally simple heuristics, not precise counters;
+// the goal is to guide deduplication decisions, not to match a specific
+// tokenizer byte-for-byte.
+
+/// Approximate characters per token (English text, ~4 chars/token).
+const CHARS_PER_TOKEN: usize = 4;
+
+/// Base overhead tokens for a single episode's context fields
+/// (language, domain, task_type, complexity, etc.).
+const DEFAULT_CONTEXT_TOKENS: usize = 20;
+
+/// Estimated tokens consumed by a single tag.
+const TOKENS_PER_TAG: usize = 3;
+
+/// Extra tokens added to the shared-context block header in token-optimized
+/// format.
+const TOKEN_OPTIMIZED_HEADER_TOKENS: usize = 5;
+
+/// Base tokens for one shared-context item (compact / full format).
+const SHARED_ITEM_BASE_TOKENS: usize = 2;
+
+/// Base tokens for one shared-context item in token-optimised format.
+const SHARED_ITEM_TOKEN_OPT_BASE: usize = 3;
+
+/// Per-episode overhead tokens for the unique-context section.
+const UNIQUE_ITEM_OVERHEAD_TOKENS: usize = 2;
+
 /// Configuration for DAG context assembly.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DagAssemblyConfig {
@@ -299,15 +328,22 @@ impl DagContextAssembler {
                 items.len()
             }
             AssemblyFormat::Full => {
-                // Full values: ~5 tokens per item
-                items.iter().map(|i| i.value.len() / 4 + 2).sum()
+                // Full values: base tokens + value-chars estimate per item
+                items
+                    .iter()
+                    .map(|i| i.value.len() / CHARS_PER_TOKEN + SHARED_ITEM_BASE_TOKENS)
+                    .sum()
             }
             AssemblyFormat::TokenOptimized => {
                 if items.is_empty() {
                     return 0;
                 }
                 // One shared block: type + value per item + header overhead
-                items.iter().map(|i| i.value.len() / 4 + 3).sum::<usize>() + 5
+                items
+                    .iter()
+                    .map(|i| i.value.len() / CHARS_PER_TOKEN + SHARED_ITEM_TOKEN_OPT_BASE)
+                    .sum::<usize>()
+                    + TOKEN_OPTIMIZED_HEADER_TOKENS
             }
         }
     }
@@ -317,22 +353,29 @@ impl DagContextAssembler {
         items
             .iter()
             .map(|i| {
-                let desc_tokens = i.task_description.len() / 4;
-                let unique_tokens = i.unique_aspects.len() * 3;
-                desc_tokens + unique_tokens + 2 // overhead
+                let desc_tokens = i.task_description.len() / CHARS_PER_TOKEN;
+                let unique_tokens = i.unique_aspects.len() * TOKENS_PER_TAG;
+                desc_tokens + unique_tokens + UNIQUE_ITEM_OVERHEAD_TOKENS
             })
             .sum()
     }
 
     /// Estimate original tokens (without deduplication).
+    ///
+    /// Uses the heuristics defined in the module-level constants
+    /// (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
+    /// approximate the token cost of representing every episode's full context
+    /// without any sharing.
     fn estimate_original_tokens(&self, episodes: &[Arc<Episode>]) -> usize {
         episodes
             .iter()
             .map(|ep| {
-                // Full context per episode
-                let context_tokens = 20; // language, domain, task_type, etc.
-                let desc_tokens = ep.task_description.len() / 4;
-                let tag_tokens = ep.context.tags.len() * 3;
+                // Full context per episode: see
+                //   Episode.context.language, .domain, .task_type, .complexity,
+                //   .tags, .task_description
+                let context_tokens = DEFAULT_CONTEXT_TOKENS;
+                let desc_tokens = ep.task_description.len() / CHARS_PER_TOKEN;
+                let tag_tokens = ep.context.tags.len() * TOKENS_PER_TAG;
                 context_tokens + desc_tokens + tag_tokens
             })
             .sum()

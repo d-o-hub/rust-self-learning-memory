@@ -27,7 +27,7 @@ async fn benchmark_statistical_analysis() {
             let series: Vec<f64> = (0..size)
                 .map(|x| f64::from(x) + f64::from(i) * 0.1)
                 .collect();
-            data.insert(format!("var_{}", i), series);
+            data.insert(format!("var_{i}"), series);
         }
 
         let input = AdvancedPatternAnalysisInput {
@@ -44,7 +44,7 @@ async fn benchmark_statistical_analysis() {
         let result = tool.execute(input).await;
         let duration = start.elapsed();
 
-        assert!(result.is_ok(), "Analysis should succeed for size {}", size);
+        assert!(result.is_ok(), "Analysis should succeed for size {size}");
 
         let output = result.unwrap();
         println!(

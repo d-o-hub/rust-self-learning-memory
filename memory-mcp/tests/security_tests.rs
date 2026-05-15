@@ -169,7 +169,7 @@ async fn test_error_information_leakage() {
         };
 
         let result = tool.execute(input).await;
-        assert!(result.is_err(), "Case {} should fail", case_name);
+        assert!(result.is_err(), "Case {case_name} should fail");
 
         let error = result.unwrap_err();
         let error_msg = error.to_string();
@@ -220,7 +220,7 @@ async fn test_timeout_protection() {
     let large_series: Vec<f64> = (0..1000).map(f64::from).collect();
 
     for i in 0..20 {
-        data.insert(format!("var_{}", i), large_series.clone());
+        data.insert(format!("var_{i}"), large_series.clone());
     }
 
     let input = AdvancedPatternAnalysisInput {

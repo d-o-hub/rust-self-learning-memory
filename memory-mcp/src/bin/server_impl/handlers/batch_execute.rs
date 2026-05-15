@@ -195,7 +195,7 @@ pub async fn handle_batch_execute(
                 "test_agentfs_connection" => {
                     handle_test_agentfs_connection(&mut server, Some(arguments)).await
                 }
-                _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_name)),
+                _ => Err(anyhow::anyhow!("Unknown tool: {tool_name}")),
             };
 
             // Convert result to expected format (Content array -> JSON Value)
@@ -204,7 +204,7 @@ pub async fn handle_batch_execute(
                     // Serialize Content array to JSON Value
                     match serde_json::to_value(&content_vec) {
                         Ok(value) => Ok(value),
-                        Err(e) => Err((-32603, format!("Failed to serialize result: {}", e))),
+                        Err(e) => Err((-32603, format!("Failed to serialize result: {e}"))),
                     }
                 }
                 Err(e) => Err((-32000, e.to_string())),

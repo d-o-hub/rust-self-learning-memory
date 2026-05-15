@@ -254,7 +254,10 @@ impl MemoryConfig {
     /// * `MEMORY_MAX_CLUSTERS` - Maximum temporal clusters to search (default: `5`)
     ///
     /// ## External Eventing (WG-149)
-    /// * `MEMORY_EVENT_EMITTER` - CloudEvents emitter mode: `"noop"` or `"log"` (default: `noop`)
+    /// * `MEMORY_EVENT_EMITTER` - CloudEvents emitter mode: `"noop"`, `"log"`, or `"http"`
+    ///   (default: `noop`; `http` requires the `http-emitter` feature)
+    /// * `MEMORY_EVENT_EMITTER_URL` - Webhook URL when using `http` mode
+    ///   (default: `http://localhost:8080/events`)
     ///
     /// # Examples
     ///
@@ -371,6 +374,23 @@ impl MemoryConfig {
             config.event_emitter_mode = match mode.to_lowercase().as_str() {
                 "log" | "logging" => crate::types::emitter::EventEmitterMode::Log,
                 "noop" | "none" => crate::types::emitter::EventEmitterMode::NoOp,
+                #[cfg(feature = "http-emitter")]
+                "http" | "webhook" => {
+                    let url = std::env::var("MEMORY_EVENT_EMITTER_URL").unwrap_or_else(|_| {
+                        tracing::warn!(
+                            "MEMORY_EVENT_EMITTER_URL not set, using default http://localhost:8080/events"
+                        );
+                        "http://localhost:8080/events".to_string()
+                    });
+                    crate::types::emitter::EventEmitterMode::Http { url }
+                }
+                #[cfg(not(feature = "http-emitter"))]
+                "http" | "webhook" => {
+                    tracing::warn!(
+                        "MEMORY_EVENT_EMITTER=http requires the `http-emitter` feature. Using default NoOp."
+                    );
+                    crate::types::emitter::EventEmitterMode::NoOp
+                }
                 _ => {
                     tracing::warn!(
                         "Invalid MEMORY_EVENT_EMITTER '{}', using default NoOp",

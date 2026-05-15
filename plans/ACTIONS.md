@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-05-01 (WG-134 complete, WG-131 partial, ADR-054)
+- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -131,7 +131,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
    - Action: Build `CascadeRetriever` with tiers: BM25 → HDC → ConceptGraph → API embedding; track `api_calls` metric per query; add integration tests proving zero-API-call paths for exact matches
    - Dependencies: ACT-117, ACT-118, ACT-119
-   - Status: 🟡 Partial — CSM path complete (BM25 + HDC + merge + API fallback, 20+ tests). Tier 3 (ConceptGraph expansion) returns empty results — requires curated ontology JSON.
+   - Status: ✅ Complete — all 4 tiers (BM25 + HDC + ConceptGraph with curated ontology + API fallback), 30 tests passing
 
 ### Phase 2: Research-Inspired Retrieval Upgrades (Parallel with Phase 1)
 
@@ -207,19 +207,26 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-132
    - Action: Read arXiv:2604.08749; prototype frozen-random-backbone + LoRA for episode-type classification (CPU-only, no API)
    - Paper: LottaLoRA (arXiv:2604.08749, Apr 2026)
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — evaluation document at `plans/WG-132_LottaLoRA_Evaluation.md`
 
 - **ACT-126**: Align memory architecture with agentic memory taxonomy
    - Goal: WG-133
    - Action: Map current episodic/semantic/pattern types to arXiv:2602.19320's 4-structure taxonomy; update architecture docs
    - Paper: Anatomy of Agentic Memory (arXiv:2602.19320)
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — evaluation document at `plans/WG-133_AgenticMemoryTaxonomy_Evaluation.md`
 
 - **ACT-127**: Evaluate DAG-based state management
    - Goal: WG-134
    - Action: Adapt arXiv:2602.22398 DAG-based conversation state approach for episode context assembly; target 20-86% token reduction
    - Paper: arXiv:2602.22398
    - Status: ✅ Complete — ~1,320 LOC in `memory-core/src/context/dag/`, 24 tests, ADR-054
+
+- **ACT-129**: Implement CloudEvents EventEmitter
+   - Goal: WG-149
+   - Skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
+   - Action: Add CloudEvent struct (1.0 spec), EventEmitter trait, MemoryEventMapping, LogEmitter, NoOpEmitter, HttpEmitter (http-emitter feature), EventEmitterMode enum, wired into SelfLearningMemory, Environment variable support (MEMORY_EVENT_EMITTER, MEMORY_EVENT_EMITTER_URL)
+   - Dependencies: None
+   - Status: ✅ Complete — 13 emitter tests pass, all 1050 core tests pass
 
 - **ACT-128**: Evaluate federated HDC for multi-agent memory
    - Goal: WG-135

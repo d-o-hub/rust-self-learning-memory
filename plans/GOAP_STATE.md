@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-01 (WG-134 implemented, ADR-054 created, plans sync)
+- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed; plans sync)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
@@ -81,18 +81,19 @@
 | Reconstructive retrieval windows | WG-120 | ✅ Complete | feature-implement | E-mem (arXiv:2601.21714) - 462 LOC, 30+ tests |
 | Execution-signature retrieval | WG-121 | ✅ Complete | feature-implement | APEX-EM (arXiv:2603.29093) - 593 LOC, 30+ tests |
 | Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
-| LottaLoRA local classifier | WG-132 | 🔵 Planned | feature-implement | LottaLoRA |
-| Agentic memory taxonomy alignment | WG-133 | 🔵 Planned | agents-update | Anatomy of Agentic Memory |
+| LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
+| Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |
 | Federated HDC multi-agent memory | WG-135 | 🔵 Planned | feature-implement | arXiv:2603.20037 |
+| CloudEvents EventEmitter | WG-149 | ✅ Complete | feature-implement | ADR-054 — CloudEvents 1.0 spec
 
 ### WG-131 CascadeRetriever Status (Updated 2026-05-01)
 
 The CascadeRetriever has a full CSM implementation behind the `csm` feature flag
-(BM25 Tier 1, HDC Tier 2, Merge logic, API fallback Tier 4). Only Tier 3 (ConceptGraph
-expansion) remains a placeholder requiring curated ontology.
+(BM25 Tier 1, HDC Tier 2, ConceptGraph Tier 3 with curated ontology, API fallback Tier 4).
+All 4 tiers are now implemented and tested.
 
-**Status**: 🟡 Partial — CSM path complete, ConceptGraph tier pending.
+**Status**: ✅ Complete — CSM path complete with ConceptGraph ontology, 30 tests passing.
 
 ### Phase 4: Housekeeping (Parallel)
 

@@ -22,6 +22,9 @@ pub use emitter::{CloudEvent, EventEmitter, EventEmitterMode, MemoryEventMapping
 pub use enums::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
 pub use event::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryEvent, unix_now_secs};
 pub use sinks::{LogEmitter, NoOpEmitter};
+
+#[cfg(feature = "http-emitter")]
+pub use sinks::HttpEmitter;
 pub use structs::{DualRewardScore, Evidence, OutcomeStats, Reflection, RewardScore, TaskContext};
 
 pub use crate::memory::step_buffer::BatchConfig;

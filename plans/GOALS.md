@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-01 (WG-134 implemented, ADR-054 created)
+- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
 - **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
@@ -91,6 +91,7 @@
     - Owner: feature-implement
     - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
     - Target: Route queries through cheapest tier first; API calls as fallback only
+    - Result: ✅ Complete — all 4 tiers (BM25 + HDC + ConceptGraph + API fallback), 30 tests
     - Dependencies: WG-128, WG-129, WG-130
 
 ### Phase 2: Token Efficiency
@@ -163,15 +164,17 @@
     - Owner: feature-implement
     - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
 
-22. **WG-132**: Evaluate LottaLoRA-inspired local classifier for episode types
+22. **WG-132**: ✅ Complete — Evaluate LottaLoRA-inspired local classifier for episode types
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2604.08749 (Apr 2026) — random scaffolds + LoRA adapters, reservoir computing + HDC
+    - Result: Evaluation document at `plans/WG-132_LottaLoRA_Evaluation.md`
 
-23. **WG-133**: Align memory architecture with Anatomy of Agentic Memory taxonomy
+23. **WG-133**: ✅ Complete — Align memory architecture with Anatomy of Agentic Memory taxonomy
     - Priority: P3
     - Owner: agents-update
     - Paper: arXiv:2602.19320 — structured taxonomy of 4 memory structures for LLM agents
+    - Result: Evaluation document at `plans/WG-133_AgenticMemoryTaxonomy_Evaluation.md`
 
 24. **WG-134**: ✅ Complete — DAG-based state management for episode context (86% token reduction)
     - Priority: P2 → Complete
@@ -204,11 +207,12 @@
     - Owner: agents-update
     - Target: Rerun all metrics against current v0.1.30 codebase
 
-30. **WG-149**: Implement CloudEvents EventEmitter
+30. **WG-149**: ✅ Complete — Implement CloudEvents EventEmitter
     - Priority: P1
     - Owner: feature-implement
     - GOAP skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
     - Target: Standardized event emission for external interoperability via CloudEvents 1.0
+    - Result: CloudEvent struct (1.0 spec), EventEmitter trait, LogEmitter, NoOpEmitter, HttpEmitter (http-emitter feature), EventEmitterMode enum + config env vars
     - Dependencies: None
 
 ---

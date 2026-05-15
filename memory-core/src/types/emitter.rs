@@ -235,22 +235,30 @@ pub trait EventEmitter: Send + Sync {
 /// // Log events via tracing
 /// let log_mode = EventEmitterMode::Log;
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum EventEmitterMode {
     /// No operation — events are silently discarded (default, zero overhead).
     #[default]
     NoOp,
     /// Log events via the `tracing` crate at INFO level.
     Log,
+    /// Send events to an HTTP webhook endpoint (requires `http-emitter` feature).
+    #[cfg(feature = "http-emitter")]
+    Http {
+        /// Webhook endpoint URL for CloudEvents delivery.
+        url: String,
+    },
 }
 
 impl EventEmitterMode {
     /// Construct the appropriate `EventEmitter` for this mode.
     #[must_use]
-    pub fn build(self) -> std::sync::Arc<dyn EventEmitter> {
+    pub fn build(&self) -> std::sync::Arc<dyn EventEmitter> {
         match self {
             Self::NoOp => std::sync::Arc::new(super::sinks::NoOpEmitter),
             Self::Log => std::sync::Arc::new(super::sinks::LogEmitter),
+            #[cfg(feature = "http-emitter")]
+            Self::Http { url } => std::sync::Arc::new(super::sinks::HttpEmitter::new(url)),
         }
     }
 }

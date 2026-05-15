@@ -325,4 +325,38 @@ mod csm_tests {
         let sim_diff = vec1.cosine_similarity(&vec3);
         assert!(sim_diff < sim_same);
     }
+
+    // ── ConceptGraph end-to-end cascade integration test ──
+    // Unit tests for ConceptGraph are in concept_graph.rs
+
+    #[test]
+    fn test_concept_graph_e2e_cascade_tier3() {
+        let config = CascadeConfig {
+            top_k: 5,
+            bm25_threshold: 0.5,
+            hdc_threshold: 0.6,
+            concept_graph_threshold: 0.1,
+            merge_results: true,
+            min_results: 1,
+            enable_concept_expansion: true,
+        };
+        let mut retriever = CascadeRetriever::new(config);
+
+        // Add episodes that use domain-specific terminology
+        retriever.add_episode("ep-1", "implement JWT authentication flow");
+        retriever.add_episode("ep-2", "fix database connection pool timeout");
+        retriever.add_episode("ep-3", "add rate limiting middleware");
+        retriever.add_episode("ep-4", "optimize build artifact caching");
+        retriever.add_episode("ep-5", "refactor error handling patterns");
+
+        // Query with abbreviated terms that need expansion
+        let result = retriever.retrieve("fix auth bug").unwrap();
+
+        // Should find results via concept graph expansion ("auth" → authentication domain)
+        assert!(!result.episode_ids.is_empty());
+        // Should include the concept_graph tier or bm25 tier
+        assert!(!result.contributing_tiers.is_empty());
+        // Should have 0 API calls (CPU-local tier satisfied the query)
+        assert_eq!(result.api_calls, 0);
+    }
 }

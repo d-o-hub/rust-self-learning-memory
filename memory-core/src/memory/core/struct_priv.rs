@@ -6,6 +6,7 @@ use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship};
 use crate::pattern::PatternId;
 use crate::storage::StorageBackend;
+use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent, TaskContext, DEFAULT_EVENT_CHANNEL_CAPACITY};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -85,4 +86,7 @@ pub struct SelfLearningMemory {
     pub(super) audit_logger: crate::security::audit::AuditLogger,
     /// Event broadcast channel sender for lifecycle notifications
     pub(super) event_sender: broadcast::Sender<MemoryEvent>,
+    /// External event emitter for CloudEvents interoperability (WG-149)
+    #[allow(dead_code)] // WG-149: unused in core variant until wired
+    pub(super) event_emitter: Arc<dyn EventEmitter>,
 }

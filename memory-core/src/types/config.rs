@@ -185,6 +185,10 @@ pub struct MemoryConfig {
     // Security - Audit logging
     /// Audit logging configuration
     pub audit_config: AuditConfig,
+
+    // External eventing (WG-149)
+    /// CloudEvents emitter mode (default: NoOp for zero overhead)
+    pub event_emitter_mode: crate::types::emitter::EventEmitterMode,
 }
 
 impl Default for MemoryConfig {
@@ -220,6 +224,9 @@ impl Default for MemoryConfig {
 
             // Security - Audit logging (disabled by default for development)
             audit_config: AuditConfig::default(),
+
+            // External eventing (WG-149) - NoOp by default
+            event_emitter_mode: crate::types::emitter::EventEmitterMode::NoOp,
         }
     }
 }
@@ -245,6 +252,12 @@ impl MemoryConfig {
     /// * `MEMORY_DIVERSITY_LAMBDA` - MMR lambda parameter (0.0-1.0, default: `0.7`)
     /// * `MEMORY_TEMPORAL_BIAS` - Temporal bias weight (0.0-1.0, default: `0.3`)
     /// * `MEMORY_MAX_CLUSTERS` - Maximum temporal clusters to search (default: `5`)
+    ///
+    /// ## External Eventing (WG-149)
+    /// * `MEMORY_EVENT_EMITTER` - CloudEvents emitter mode: `"noop"`, `"log"`, or `"http"`
+    ///   (default: `noop`; `http` requires the `http-emitter` feature)
+    /// * `MEMORY_EVENT_EMITTER_URL` - Webhook URL when using `http` mode
+    ///   (default: `http://localhost:8080/events`)
     ///
     /// # Examples
     ///
@@ -355,6 +368,38 @@ impl MemoryConfig {
 
         // Security - Audit logging configuration from environment
         config.audit_config = AuditConfig::from_env();
+
+        // External eventing (WG-149) - EventEmitter mode from environment
+        if let Ok(mode) = std::env::var("MEMORY_EVENT_EMITTER") {
+            config.event_emitter_mode = match mode.to_lowercase().as_str() {
+                "log" | "logging" => crate::types::emitter::EventEmitterMode::Log,
+                "noop" | "none" => crate::types::emitter::EventEmitterMode::NoOp,
+                #[cfg(feature = "http-emitter")]
+                "http" | "webhook" => {
+                    let url = std::env::var("MEMORY_EVENT_EMITTER_URL").unwrap_or_else(|_| {
+                        tracing::warn!(
+                            "MEMORY_EVENT_EMITTER_URL not set, using default http://localhost:8080/events"
+                        );
+                        "http://localhost:8080/events".to_string()
+                    });
+                    crate::types::emitter::EventEmitterMode::Http { url }
+                }
+                #[cfg(not(feature = "http-emitter"))]
+                "http" | "webhook" => {
+                    tracing::warn!(
+                        "MEMORY_EVENT_EMITTER=http requires the `http-emitter` feature. Using default NoOp."
+                    );
+                    crate::types::emitter::EventEmitterMode::NoOp
+                }
+                _ => {
+                    tracing::warn!(
+                        "Invalid MEMORY_EVENT_EMITTER '{}', using default NoOp",
+                        mode
+                    );
+                    crate::types::emitter::EventEmitterMode::NoOp
+                }
+            };
+        }
 
         config
     }

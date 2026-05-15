@@ -11,6 +11,9 @@
 
 use anyhow::Result;
 
+mod concept_graph;
+pub use concept_graph::ConceptGraph;
+
 /// Configuration for the cascading retrieval pipeline.
 #[derive(Debug, Clone)]
 pub struct CascadeConfig {
@@ -102,6 +105,9 @@ pub struct CascadeRetriever {
     config: CascadeConfig,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
+    /// Concept graph for ontology-based term expansion (Tier 3).
+    #[allow(dead_code)] // Only used under csm feature; kept for non-csm config parity
+    concept_graph: ConceptGraph,
     #[cfg(feature = "csm")]
     bm25_index: super::Bm25Index,
     #[cfg(feature = "csm")]
@@ -116,6 +122,7 @@ impl CascadeRetriever {
         Self {
             config,
             episode_data: Vec::new(),
+            concept_graph: ConceptGraph::from_embedded(),
             #[cfg(feature = "csm")]
             bm25_index: super::Bm25Index::new(),
             #[cfg(feature = "csm")]
@@ -356,16 +363,65 @@ impl CascadeRetriever {
 
     /// ConceptGraph expansion search (Tier 3).
     ///
-    /// Currently a placeholder that returns empty results.
-    /// Full implementation requires ontology configuration.
+    /// Uses the embedded coding-agent domain ontology to expand query terms
+    /// and match against indexed episode data using expanded terminology.
+    ///
+    /// # How it works
+    ///
+    /// 1. Expand query terms using the ontology (e.g., "auth" → "authentication")
+    /// 2. Match expanded terms against episode text
+    /// 3. Score results based on term overlap density
     #[cfg(feature = "csm")]
-    fn retrieve_concept_graph(&self, _query: &str) -> TierResult {
-        // Placeholder - ConceptGraph requires curated ontology
-        // which is not yet configured in this implementation
+    fn retrieve_concept_graph(&self, query: &str) -> TierResult {
+        // Expand query terms using the ontology
+        let expanded_terms = self.concept_graph.expand_terms(query);
+
+        if expanded_terms.is_empty() {
+            return TierResult {
+                tier: "concept_graph".to_string(),
+                results: Vec::new(),
+                sufficient: false,
+            };
+        }
+
+        // Match expanded terms against episode data
+        let mut scored: Vec<(String, f32)> = self
+            .episode_data
+            .iter()
+            .map(|(id, text)| {
+                let text_lower = text.to_lowercase();
+                let match_count = expanded_terms
+                    .iter()
+                    .filter(|term| text_lower.split_whitespace().any(|w| w == term.as_str()))
+                    .count();
+
+                // Score based on term overlap density
+                let score = if expanded_terms.is_empty() {
+                    0.0
+                } else {
+                    match_count as f32 / expanded_terms.len() as f32
+                };
+
+                (id.clone(), score)
+            })
+            .filter(|(_, s)| *s >= self.config.concept_graph_threshold)
+            .collect();
+
+        // Select top-k by score using the shared select_top_k utility
+        // (consistent with the HDC tier's approach)
+        let top_k = self.config.top_k;
+        let scored = crate::search::select_top_k(&mut scored, top_k, |a, b| {
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
+
+        let sufficient = scored.len() >= self.config.min_results;
+
         TierResult {
             tier: "concept_graph".to_string(),
-            results: Vec::new(),
-            sufficient: false,
+            results: scored,
+            sufficient,
         }
     }
 

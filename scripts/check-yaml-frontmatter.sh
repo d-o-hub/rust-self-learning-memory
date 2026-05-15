@@ -23,10 +23,16 @@ check_file() {
         
         [[ $in_frontmatter -eq 0 ]] && continue
         
-        # Check description field for unquoted colon-space
         # Check if line has a key: value pattern in YAML frontmatter
         if [[ "$line" =~ ^[a-zA-Z_-]+: ]]; then
             local key="${line%%:*}"
+            
+            # Skip if line doesn't have a value after the colon (key-only lines like 'capabilities:' for lists)
+            if [[ "$line" != *": "* ]]; then
+                continue
+            fi
+            
+            # Extract the value after 'key: '
             local value="${line#*: }"
             
             # Skip blank values, numeric values, or list values
@@ -55,7 +61,7 @@ check_file() {
                     ERRORS=$((ERRORS + 1))
                 fi
             elif [[ "$value" == *: ]]; then
-                # Trailing colon is also fragile in YAML
+                # Trailing colon in a value is fragile in YAML
                 echo "WARNING: $file: unquoted $key value ends with ':' - consider quoting"
                 echo "       $line"
             fi

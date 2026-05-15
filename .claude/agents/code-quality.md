@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Maintain high code quality through formatting, linting, and static analysis using rustfmt, clippy, and cargo audit. Invoke when ensuring consistent code style, catching common mistakes, verifying security vulnerabilities, or performing quality checks before commits.
+description: "Maintain high code quality through formatting, linting, and static analysis using rustfmt, clippy, and cargo audit. Invoke when ensuring consistent code style, catching common mistakes, verifying security vulnerabilities, or performing quality checks before commits."
 tools: Bash, Read, Grep, Edit
 ---
 

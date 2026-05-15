@@ -1,6 +1,6 @@
 ---
 name: rust-quality-reviewer
-description: Perform comprehensive Rust code quality reviews against best practices, focusing on async patterns, error handling, testing, and clean code principles
+description: "Perform comprehensive Rust code quality reviews against best practices, focusing on async patterns, error handling, testing, and clean code principles"
 version: 1.0.0
 tools: [Read, Glob, Grep, Bash, TodoWrite]
 skills: [rust-code-quality, clean-code-developer, codebase-consolidation]

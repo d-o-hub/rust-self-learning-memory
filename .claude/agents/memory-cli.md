@@ -1,6 +1,6 @@
 ---
 name: do-memory-cli
-description: Develop, test, and maintain the do-memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool.
+description: "Develop, test, and maintain the do-memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool."
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

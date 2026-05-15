@@ -1,6 +1,6 @@
 ---
 name: analysis-swarm
-description: Multi-persona code analysis orchestrator using RYAN (methodical analyst), FLASH (rapid innovator), and SOCRATES (questioning facilitator) for balanced decision-making. Invoke for complex architectural decisions, trade-off analysis, comprehensive code reviews, or when avoiding single-perspective blind spots is critical.
+description: "Multi-persona code analysis orchestrator using RYAN (methodical analyst), FLASH (rapid innovator), and SOCRATES (questioning facilitator) for balanced decision-making. Invoke for complex architectural decisions, trade-off analysis, comprehensive code reviews, or when avoiding single-perspective blind spots is critical."
 tools: Read, Glob, Grep, Bash
 ---
 

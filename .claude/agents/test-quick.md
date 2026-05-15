@@ -1,6 +1,6 @@
 ---
 name: test-quick
-description: Quick test runner for targeted testing. Runs specific tests or packages, not full suite. Use during development for fast feedback. Token-efficient.
+description: "Quick test runner for targeted testing. Runs specific tests or packages, not full suite. Use during development for fast feedback. Token-efficient."
 tools: Bash, Read
 ---
 

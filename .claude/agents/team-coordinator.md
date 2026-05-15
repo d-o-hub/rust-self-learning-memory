@@ -1,6 +1,6 @@
 ---
 name: team-coordinator
-description: Agent team orchestration specialist. Creates teams, assigns tasks, coordinates parallel work. Use when spawning multiple agents for complex tasks requiring coordination.
+description: "Agent team orchestration specialist. Creates teams, assigns tasks, coordinates parallel work. Use when spawning multiple agents for complex tasks requiring coordination."
 tools: Task, TeamCreate, TeamDelete, TaskCreate, TaskUpdate, TaskList, SendMessage
 ---
 

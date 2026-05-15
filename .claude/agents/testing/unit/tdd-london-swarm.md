@@ -2,7 +2,7 @@
 name: tdd-london-swarm
 type: tester
 color: "#E91E63"
-description: TDD London School specialist for mock-driven development within swarm coordination
+description: "TDD London School specialist for mock-driven development within swarm coordination"
 capabilities:
   - mock_driven_development
   - outside_in_tdd

@@ -1,6 +1,6 @@
 ---
 name: deps-check
-description: Dependency analysis agent. Checks for duplicates, outdated crates, and security issues. Read-only analysis for dependency health. Token-efficient.
+description: "Dependency analysis agent. Checks for duplicates, outdated crates, and security issues. Read-only analysis for dependency health. Token-efficient."
 tools: Bash
 ---
 

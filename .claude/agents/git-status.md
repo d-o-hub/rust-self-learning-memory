@@ -1,6 +1,6 @@
 ---
 name: git-status
-description: Git status and diff reporter. Quick repository state check without modifications. Use before commits to understand changes. Token-efficient with structured output.
+description: "Git status and diff reporter. Quick repository state check without modifications. Use before commits to understand changes. Token-efficient with structured output."
 tools: Bash, Read
 ---
 

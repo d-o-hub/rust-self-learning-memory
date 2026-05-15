@@ -1,6 +1,6 @@
 ---
 name: quick-check
-description: Fast read-only validation agent. Runs format check + clippy without modifications. Use for quick CI-parity validation before commits. Token-efficient: limited tools, minimal output.
+description: "Fast read-only validation agent. Runs format check + clippy without modifications. Use for quick CI-parity validation before commits. Token-efficient: limited tools, minimal output."
 tools: Bash, Read
 ---
 

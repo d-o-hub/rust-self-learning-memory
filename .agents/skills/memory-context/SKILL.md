@@ -1,6 +1,6 @@
 ---
 name: memory-context
-description: Retrieve relevant context from memory and preserve essential state. Use for episode retrieval, semantic search, or context compaction when window fills.
+description: "Retrieve relevant context from memory and preserve essential state. Use for episode retrieval, semantic search, or context compaction when window fills."
 version: "2.0"
 template_version: "0.2"
 category: KnowledgeManagement

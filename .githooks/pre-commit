@@ -6,6 +6,14 @@ set -e
 
 echo "🔍 Running pre-commit quality checks..."
 
+# 0. Validate YAML frontmatter
+echo "  ├─ Validating YAML frontmatter..."
+if ! bash scripts/check-yaml-frontmatter.sh 2>&1; then
+    echo "  ❌ YAML frontmatter validation failed."
+    exit 1
+fi
+echo "  ✅ YAML frontmatter OK"
+
 # 1. Check code formatting
 echo "  ├─ Checking code formatting..."
 if ! cargo fmt --all -- --check >/dev/null 2>&1; then

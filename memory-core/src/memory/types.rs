@@ -13,6 +13,7 @@ use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
+use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -145,6 +146,11 @@ pub struct SelfLearningMemory {
     // Event Broadcasting (WG-103)
     /// Event broadcast channel sender for lifecycle notifications
     pub(super) event_sender: broadcast::Sender<MemoryEvent>,
+
+    // CloudEvents EventEmitter (WG-149)
+    /// External event emitter for CloudEvents interoperability.
+    /// Uses NoOpEmitter by default (zero overhead) unless configured.
+    pub(super) event_emitter: Arc<dyn EventEmitter>,
 }
 
 impl SelfLearningMemory {
@@ -180,5 +186,29 @@ impl SelfLearningMemory {
     #[must_use]
     pub fn patterns_fallback(&self) -> &Arc<RwLock<HashMap<PatternId, Pattern>>> {
         &self.patterns_fallback
+    }
+
+    /// Emit a memory event to both internal subscribers and the external event emitter.
+    ///
+    /// This sends the event through the broadcast channel for internal subscribers
+    /// and concurrently emits it as a CloudEvent to the configured external emitter.
+    /// External emission is fire-and-forget (failures are logged, not propagated).
+    #[allow(dead_code)] // WG-149: wired when lifecycle methods call this instead of emit_event
+    pub(super) fn emit_event_with_cloud(&self, event: MemoryEvent) {
+        // Internal broadcast (existing behavior)
+        let _ = self.event_sender.send(event.clone());
+
+        // External CloudEvents emission (fire-and-forget)
+        let emitter = self.event_emitter.clone();
+        tokio::spawn(async move {
+            let cloud_event = crate::types::emitter::CloudEvent::from_memory_event(&event);
+            if let Err(e) = emitter.emit(cloud_event).await {
+                tracing::warn!(
+                    error = %e,
+                    "Failed to emit CloudEvent for {:?}",
+                    event.entity_id()
+                );
+            }
+        });
     }
 }

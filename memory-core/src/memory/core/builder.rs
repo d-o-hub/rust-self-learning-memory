@@ -12,6 +12,7 @@ use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
+
 use crate::types::{MemoryConfig, DEFAULT_EVENT_CHANNEL_CAPACITY};
 use std::sync::Arc;
 use tokio::sync::broadcast;
@@ -42,6 +43,8 @@ impl SelfLearningMemory {
         let dbscan_detector =
             crate::patterns::DBSCANAnomalyDetector::new(crate::patterns::DBSCANConfig::default());
         let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
+        let event_emitter: Arc<dyn crate::types::emitter::EventEmitter> =
+            config.event_emitter_mode.build();
 
         Self {
             config,
@@ -73,6 +76,7 @@ impl SelfLearningMemory {
             )),
             dbscan_detector,
             event_sender,
+            event_emitter,
         }
     }
 

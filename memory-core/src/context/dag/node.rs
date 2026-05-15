@@ -98,11 +98,15 @@ impl StateNode {
         }
     }
 
-    /// Add an episode reference to this node.
+    /// Register an episode reference to this node.
+    ///
+    /// Note: This only registers the episode as a reference; it does **not**
+    /// count as an explicit "access" for observability purposes (i.e., it does
+    /// not update `last_accessed` or `access_count`). Use `mark_accessed()`
+    /// separately for explicit access tracking to distinguish registration
+    /// from active retrieval.
     pub fn add_episode_ref(&mut self, episode_id: Uuid) {
         self.episode_refs.insert(episode_id);
-        self.last_accessed = Utc::now();
-        self.access_count += 1;
     }
 
     /// Remove an episode reference from this node.
@@ -165,6 +169,14 @@ impl StateNode {
     }
 
     /// Estimate the token count for this node's value.
+    ///
+    /// # Heuristic
+    ///
+    /// - ~4 characters per token (English text average).
+    /// - Minimum 1 token (`.max(1)`) for very short values.
+    /// - The `+ 2` accounts for structural overhead: separators or
+    ///   formatting delimiters (e.g., colons, commas, newlines) that
+    ///   surround the value in the serialized output.
     #[must_use]
     pub fn estimated_tokens(&self) -> usize {
         // Rough estimate: 1 token per 4 characters, plus overhead

@@ -5,7 +5,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use tracing::debug;
 use uuid::Uuid;
 
@@ -272,32 +272,32 @@ impl StateDag {
 
     /// Get shared context between episodes.
     ///
-    /// Returns nodes that are referenced by all given episodes.
+    /// Returns nodes that are referenced by **all** given episodes.
+    /// Uses frequency counting across all episodes (O(E × N) count +
+    /// O(N) filter) rather than sequential narrowing from a single
+    /// starting episode, which ensures the result is correct regardless
+    /// of which episode happens to appear first in the slice.
     #[must_use]
     pub fn get_shared_context(&self, episode_ids: &[Uuid]) -> Vec<&StateNode> {
         if episode_ids.is_empty() {
             return Vec::new();
         }
 
-        let mut shared: HashSet<NodeId> = self
-            .get_episode_nodes(&episode_ids[0])
-            .iter()
-            .map(|n| n.node_id)
-            .collect();
+        let target = episode_ids.len();
 
-        for ep_id in &episode_ids[1..] {
-            let ep_node_ids: HashSet<NodeId> = self
-                .get_episode_nodes(ep_id)
-                .iter()
-                .map(|n| n.node_id)
-                .collect();
-            shared.retain(|id| ep_node_ids.contains(id));
-            if shared.is_empty() {
-                break;
+        // Count how many episodes reference each node.
+        let mut freq: HashMap<NodeId, usize> = HashMap::with_capacity(self.nodes.len());
+        for ep_id in episode_ids {
+            for node in self.get_episode_nodes(ep_id) {
+                *freq.entry(node.node_id).or_insert(0) += 1;
             }
         }
 
-        shared.iter().filter_map(|id| self.nodes.get(id)).collect()
+        // Return only nodes referenced by all episodes.
+        freq.into_iter()
+            .filter(|(_, count)| *count == target)
+            .filter_map(|(id, _)| self.nodes.get(&id))
+            .collect()
     }
 
     /// Calculate token reduction percentage.

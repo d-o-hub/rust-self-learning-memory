@@ -42,6 +42,20 @@ pub struct StateEdge {
     pub metadata: EdgeMetadata,
 }
 
+/// Clamp a float to the valid confidence range [0.0, 1.0].
+fn clamp_confidence_val(val: f32) -> f32 {
+    val.clamp(0.0, 1.0)
+}
+
+/// Custom deserializer that clamps `EdgeMetadata.confidence` to [0.0, 1.0].
+fn deserialize_confidence<'de, D>(deserializer: D) -> Result<f32, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let val = f32::deserialize(deserializer)?;
+    Ok(clamp_confidence_val(val))
+}
+
 /// Additional metadata about an edge.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EdgeMetadata {
@@ -49,8 +63,17 @@ pub struct EdgeMetadata {
     pub source_field: Option<String>,
     /// Whether this edge is primary (first choice) or secondary.
     pub is_primary: bool,
-    /// Confidence level of this relationship.
+    /// Confidence level of this relationship (clamped to [0.0, 1.0]).
+    /// Use `set_confidence()` to safely set this value.
+    #[serde(deserialize_with = "deserialize_confidence")]
     pub confidence: f32,
+}
+
+impl EdgeMetadata {
+    /// Set the confidence level, clamped to the valid range [0.0, 1.0].
+    pub fn set_confidence(&mut self, confidence: f32) {
+        self.confidence = clamp_confidence_val(confidence);
+    }
 }
 
 impl StateEdge {

@@ -182,10 +182,11 @@
     - Paper: arXiv:2602.22398 — DAG-based conversation state, reference impl for Claude Code
     - Result: ~1,320 LOC in `memory-core/src/context/dag/`, 24 tests, ADR-054
 
-25. **WG-135**: Evaluate federated HDC for multi-agent memory sharing
+25. **WG-135**: 🔵 Evaluated — Federated HDC for multi-agent memory sharing (evaluation doc)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2603.20037 — HDC prototype exchange instead of full embedding sync
+    - Result: Evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md`
 
 26. **WG-136**: Create `performance` skill (referenced but missing)
     - Priority: P1

@@ -249,6 +249,8 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         semantic_similarity_threshold: 0.7,
         // Audit configuration
         audit_config: do_memory_core::AuditConfig::default(),
+        // CloudEvents EventEmitter (WG-149)
+        event_emitter_mode: do_memory_core::types::emitter::EventEmitterMode::default(),
     }
 }
 

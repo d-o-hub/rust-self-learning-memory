@@ -267,7 +267,11 @@ fn test_state_dag_remove_episode() {
     dag.register_episode(&ep2);
 
     // Remove one episode
-    dag.remove_episode(&ep1.episode_id);
+    let removed = dag.remove_episode(&ep1.episode_id);
+    assert!(
+        removed,
+        "remove_episode should return true for registered episode"
+    );
 
     // Language node should still exist (referenced by ep2)
     let lang_nodes = dag.nodes_by_type(StateNodeType::Language);

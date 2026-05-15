@@ -2,7 +2,6 @@
 //!
 //! Extracted from `definitions.rs` to maintain the ≤500 LOC invariant.
 
-use crate::constants::{MAX_PLAYBOOK_STEPS, MAX_QUERY_LIMIT, MIN_QUERY_LIMIT};
 use crate::types::Tool;
 use serde_json::json;
 
@@ -51,8 +50,6 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     },
                     "limit": {
                         "type": "integer",
-                        "minimum": MIN_QUERY_LIMIT,
-                        "maximum": MAX_QUERY_LIMIT,
                         "description": "Maximum number of results (default: 5)",
                         "default": 5
                     },
@@ -94,8 +91,6 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     },
                     "limit": {
                         "type": "integer",
-                        "minimum": MIN_QUERY_LIMIT,
-                        "maximum": MAX_QUERY_LIMIT,
                         "description": "Maximum number of recommendations (default: 3)",
                         "default": 3
                     }
@@ -127,8 +122,6 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     },
                     "max_steps": {
                         "type": "integer",
-                        "minimum": 1,
-                        "maximum": MAX_PLAYBOOK_STEPS,
                         "description": "Maximum number of steps to include (default: 5)",
                         "default": 5
                     },
@@ -287,8 +280,6 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     },
                     "limit": {
                         "type": "integer",
-                        "minimum": MIN_QUERY_LIMIT,
-                        "maximum": MAX_QUERY_LIMIT,
                         "default": 10,
                         "description": "Maximum number of episodes to retrieve"
                     },
@@ -347,8 +338,6 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     },
                     "limit": {
                         "type": "integer",
-                        "minimum": MIN_QUERY_LIMIT,
-                        "maximum": MAX_QUERY_LIMIT,
                         "default": 20,
                         "description": "Maximum number of patterns to return"
                     },

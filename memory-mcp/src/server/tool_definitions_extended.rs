@@ -369,6 +369,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000,
                     "description": "Maximum number of results. Default: 100"
                 }
             },

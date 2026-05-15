@@ -97,7 +97,7 @@ pub async fn handle_recommend_playbook(
         .get("max_steps")
         .and_then(|v| v.as_u64())
         .unwrap_or(5)
-        .min(do_memory_mcp::constants::MAX_PLAYBOOK_STEPS as u64) as usize;
+        .min(100) as usize;
 
     let language = args
         .get("language")
@@ -167,14 +167,14 @@ pub async fn handle_explain_pattern(
         .ok_or_else(|| anyhow::anyhow!("Missing 'pattern_id' parameter"))?;
 
     let pattern_id = uuid::Uuid::parse_str(pattern_id_str)
-        .map_err(|e| anyhow::anyhow!("Invalid pattern_id: {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Invalid pattern_id: {}", e))?;
 
     // Get pattern explanation from memory
     let explanation = server
         .memory()
         .explain_pattern(pattern_id)
         .await
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {pattern_id}"))?;
+        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
 
     let result = serde_json::json!({
         "pattern_id": pattern_id_str,

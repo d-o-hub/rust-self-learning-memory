@@ -32,11 +32,11 @@ pub async fn handle_query_memory(
         .get("task_type")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
-    let limit = do_memory_core::apply_query_limit(
-        args.get("limit")
-            .and_then(|v| v.as_u64())
-            .map(|v| v as usize),
-    );
+    let limit = args
+        .get("limit")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(10)
+        .min(1000) as usize;
     let sort = args
         .get("sort")
         .and_then(|v| v.as_str())
@@ -110,11 +110,11 @@ pub async fn handle_analyze_patterns(
         .get("min_success_rate")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.7) as f32;
-    let limit = do_memory_core::apply_query_limit(
-        args.get("limit")
-            .and_then(|v| v.as_u64())
-            .map(|v| v as usize),
-    );
+    let limit = args
+        .get("limit")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(20)
+        .min(1000) as usize;
 
     let result = server
         .analyze_patterns(task_type.clone(), min_success_rate, limit, None)
@@ -160,7 +160,8 @@ pub async fn handle_advanced_pattern_analysis(
         }
         _ => {
             return Err(anyhow::anyhow!(
-                "Invalid analysis_type: {analysis_type_str}"
+                "Invalid analysis_type: {}",
+                analysis_type_str
             ));
         }
     };
@@ -267,7 +268,7 @@ pub async fn handle_configure_embeddings(
         .audit_logger()
         .log_embedding_config(
             &client_id,
-            &format!("{provider:?}"),
+            &format!("{:?}", provider),
             model.as_deref(),
             success,
         )

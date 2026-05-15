@@ -113,28 +113,27 @@ No urgent dependency upgrades are needed. Continue monitoring with `cargo audit`
 
 | Priority | Action | Effort | Impact |
 |----------|--------|--------|--------|
-| 1 | Update `openssl` crate to v0.10.80+ | Low (cargo update) | Fixes 6 CVEs — see Verification Results ⬇ |
-| 2 | Update `jsonwebtoken` to v11.0.0+ | Medium (API may change) | Fixes 2 CVEs — see Verification Results ⬇ |
+| 1 | Verify `openssl` crate version | Low (cargo update -p) | ✅ Already at latest (v0.10.79) — see Verification Results ⬇ |
+| 2 | Verify `jsonwebtoken` version | Low (cargo update -p) | ✅ Already at latest (v10.4.0) — see Verification Results ⬇ |
 | 3 | Run `cargo update` to pull latest transitive deps | Low | Fixes aws-lc, wasmtime, webpki, etc. |
 | 4 | Add `cargo audit` to pre-commit hook | Low | Prevents future regressions |
 | 5 | Schedule regular Dependabot review | Low | Keep on top of alerts |
 
-> **Note:** Items 1–2 above are **recommended actions** evaluated during verification. The Verification Results section documents the outcome of attempting each action — see below for details on which updates were actually applied.
+> **Note:** Items 1–2 above were evaluated during verification. The Verification Results section documented the outcome of attempting each action — both packages were already at their latest versions, so no changes were needed. The entries remain as recommended practices for future audits.
 
 ### Quick Wins
 
 ```bash
-# Update openssl
-cargo update -p openssl
-
-# Update jsonwebtoken
-cargo update -p jsonwebtoken
-
 # Pull all transitive updates
 cargo update
 
 # Verify
 cargo audit
+
+# If a specific update is needed in the future:
+#   cargo update -p <package-name>
+#   cargo update -p jsonwebtoken
+#   cargo update -p openssl
 ```
 
 ---

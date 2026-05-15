@@ -1,6 +1,6 @@
 ---
 name: external-signal-provider
-description: Integrate external signal providers (AgentFS, audit trails, toolcall logs) into the reward system. Use when adding external reward signals, processing toolcall audit trails, or connecting third-party agent telemetry to episode scoring.
+description: "Integrate external signal providers (AgentFS, audit trails, toolcall logs) into the reward system. Use when adding external reward signals, processing toolcall audit trails, or connecting third-party agent telemetry to episode scoring."
 ---
 
 # External Signal Provider Integration

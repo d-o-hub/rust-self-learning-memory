@@ -1,6 +1,6 @@
 ---
 name: github-release-best-practices
-description: GitHub release preparation for Rust workspace projects. Use when preparing releases with proper versioning, changelog, and quality gates.
+description: "GitHub release preparation for Rust workspace projects. Use when preparing releases with proper versioning, changelog, and quality gates."
 audience: maintainers
 workflow: github
 ---

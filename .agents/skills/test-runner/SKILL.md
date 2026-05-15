@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Execute Rust tests (unit, integration, doc). Use cargo nextest for fast parallel execution.
+description: "Execute Rust tests (unit, integration, doc). Use cargo nextest for fast parallel execution."
 ---
 
 # Test Runner

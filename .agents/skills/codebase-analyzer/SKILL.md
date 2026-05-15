@@ -1,6 +1,6 @@
 ---
 name: codebase-analyzer
-description: Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt.
+description: "Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt."
 ---
 
 # Codebase Analyzer

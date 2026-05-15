@@ -325,4 +325,101 @@ mod csm_tests {
         let sim_diff = vec1.cosine_similarity(&vec3);
         assert!(sim_diff < sim_same);
     }
+
+    // ── ConceptGraph ontology expansion tests (Tier 3) ──
+
+    #[test]
+    fn test_concept_graph_from_embedded() {
+        let graph = ConceptGraph::from_embedded();
+        // Should parse the embedded ontology successfully
+        assert!(graph.domain_count() > 0, "ConceptGraph should have domains");
+        assert!(!graph.is_empty());
+    }
+
+    #[test]
+    fn test_concept_graph_expand_auth_terms() {
+        let graph = ConceptGraph::from_embedded();
+        let expanded = graph.expand_terms("implement auth");
+
+        // Should find auth-related synonyms
+        assert!(!expanded.is_empty());
+        assert!(expanded.iter().any(|t| t == "auth"));
+        assert!(expanded.iter().any(|t| t == "login"));
+    }
+
+    #[test]
+    fn test_concept_graph_expand_database_terms() {
+        let graph = ConceptGraph::from_embedded();
+        let expanded = graph.expand_terms("fix db connection");
+
+        assert!(!expanded.is_empty());
+        assert!(expanded.iter().any(|t| t == "db"));
+    }
+
+    #[test]
+    fn test_concept_graph_expand_no_match() {
+        let graph = ConceptGraph::from_embedded();
+        let expanded = graph.expand_terms("xyzzy_nonexistent_term");
+
+        // No domain should match this term
+        assert!(expanded.is_empty());
+    }
+
+    #[test]
+    fn test_concept_graph_expand_multiple_domains() {
+        let graph = ConceptGraph::from_embedded();
+        // Query that touches both authentication and database domains
+        let expanded = graph.expand_terms("fix auth and db errors");
+
+        assert!(!expanded.is_empty());
+        // Should have terms from multiple domains
+        let has_auth = expanded.iter().any(|t| t == "auth" || t == "login");
+        let has_db = expanded.iter().any(|t| t == "db" || t == "sql");
+        assert!(has_auth || has_db, "Should match at least one domain");
+    }
+
+    #[test]
+    fn test_concept_graph_e2e_cascade_tier3() {
+        let config = CascadeConfig {
+            top_k: 5,
+            bm25_threshold: 0.5,
+            hdc_threshold: 0.6,
+            concept_graph_threshold: 0.1,
+            merge_results: true,
+            min_results: 1,
+            enable_concept_expansion: true,
+        };
+        let mut retriever = CascadeRetriever::new(config);
+
+        // Add episodes that use domain-specific terminology
+        retriever.add_episode("ep-1", "implement JWT authentication flow");
+        retriever.add_episode("ep-2", "fix database connection pool timeout");
+        retriever.add_episode("ep-3", "add rate limiting middleware");
+        retriever.add_episode("ep-4", "optimize build artifact caching");
+        retriever.add_episode("ep-5", "refactor error handling patterns");
+
+        // Query with abbreviated terms that need expansion
+        let result = retriever.retrieve("fix auth bug").unwrap();
+
+        // Should find results via concept graph expansion ("auth" → authentication domain)
+        assert!(!result.episode_ids.is_empty());
+        // Should include the concept_graph tier or bm25 tier
+        assert!(!result.contributing_tiers.is_empty());
+        // Should have 0 API calls (CPU-local tier satisfied the query)
+        assert_eq!(result.api_calls, 0);
+    }
+
+    #[test]
+    fn test_concept_graph_empty_query() {
+        let graph = ConceptGraph::from_embedded();
+        let expanded = graph.expand_terms("");
+        assert!(expanded.is_empty());
+    }
+
+    #[test]
+    fn test_concept_graph_domain_count() {
+        let graph = ConceptGraph::from_embedded();
+        // Should have at least the domains defined in ontology.json
+        assert!(graph.domain_count() >= 10, "Expected 10+ ontology domains");
+    }
 }

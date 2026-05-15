@@ -176,7 +176,7 @@ impl ConceptGraph {
         for entry in &self.entries {
             let domain_matched = query_words
                 .iter()
-                .any(|w| entry.terms.iter().any(|t| t == w || w.contains(t.as_str())));
+                .any(|w| entry.terms.iter().any(|t| t == w));
 
             if domain_matched {
                 // Add all terms and related concepts from matching domains
@@ -498,7 +498,7 @@ impl CascadeRetriever {
                 let text_lower = text.to_lowercase();
                 let match_count = expanded_terms
                     .iter()
-                    .filter(|term| text_lower.contains(term.as_str()))
+                    .filter(|term| text_lower.split_whitespace().any(|w| w == term.as_str()))
                     .count();
 
                 // Score based on term overlap density

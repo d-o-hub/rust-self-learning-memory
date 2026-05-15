@@ -172,23 +172,35 @@ impl StateDag {
     /// Remove an episode from the DAG.
     ///
     /// Removes edges and cleans up unreferenced nodes.
-    pub fn remove_episode(&mut self, episode_id: &Uuid) {
+    /// Returns `true` if the episode was found and removed.
+    #[must_use]
+    pub fn remove_episode(&mut self, episode_id: &Uuid) -> bool {
         // Remove edges
-        if let Some(edges) = self.edges_by_episode.remove(episode_id) {
+        let removed = if let Some(edges) = self.edges_by_episode.remove(episode_id) {
+            let edge_count = edges.len() as u64;
             for edge in edges {
                 // Remove episode ref from node
                 if let Some(node) = self.nodes.get_mut(&edge.target_node) {
                     node.remove_episode_ref(episode_id);
                 }
             }
-        }
+            // Decrement edge count now that edges are removed
+            self.stats.total_edges = self.stats.total_edges.saturating_sub(edge_count);
+            true
+        } else {
+            false
+        };
 
         // Clean up unreferenced nodes
         self.cleanup_unreferenced_nodes();
 
-        self.stats.total_episodes -= 1;
-        self.stats.last_updated = Utc::now();
-        self.update_token_savings();
+        if removed {
+            self.stats.total_episodes = self.stats.total_episodes.saturating_sub(1);
+            self.stats.last_updated = Utc::now();
+            self.update_token_savings();
+        }
+
+        removed
     }
 
     /// Remove nodes with no episode references.
@@ -267,26 +279,25 @@ impl StateDag {
             return Vec::new();
         }
 
-        let first_nodes: HashSet<NodeId> = self
+        let mut shared: HashSet<NodeId> = self
             .get_episode_nodes(&episode_ids[0])
             .iter()
             .map(|n| n.node_id)
             .collect();
 
-        episode_ids
-            .iter()
-            .skip(1)
-            .fold(first_nodes, |shared, ep_id| {
-                let ep_nodes: HashSet<NodeId> = self
-                    .get_episode_nodes(ep_id)
-                    .iter()
-                    .map(|n| n.node_id)
-                    .collect();
-                shared.intersection(&ep_nodes).copied().collect()
-            })
-            .iter()
-            .filter_map(|id| self.nodes.get(id))
-            .collect()
+        for ep_id in &episode_ids[1..] {
+            let ep_node_ids: HashSet<NodeId> = self
+                .get_episode_nodes(ep_id)
+                .iter()
+                .map(|n| n.node_id)
+                .collect();
+            shared.retain(|id| ep_node_ids.contains(id));
+            if shared.is_empty() {
+                break;
+            }
+        }
+
+        shared.iter().filter_map(|id| self.nodes.get(id)).collect()
     }
 
     /// Calculate token reduction percentage.

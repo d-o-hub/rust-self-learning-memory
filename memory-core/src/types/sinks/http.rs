@@ -6,6 +6,7 @@
 
 use crate::types::emitter::{CloudEvent, EventEmitter};
 use async_trait::async_trait;
+use std::time::Duration;
 
 /// An `EventEmitter` that sends CloudEvents to an HTTP endpoint.
 ///
@@ -41,11 +42,18 @@ pub struct HttpEmitter {
 
 impl HttpEmitter {
     /// Create a new `HttpEmitter` that sends events to the given URL.
+    ///
+    /// The underlying HTTP client is configured with a 30-second timeout
+    /// to prevent hanging connections.
     #[must_use]
     pub fn new(url: &str) -> Self {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()
+            .expect("Failed to build reqwest client with timeout");
         Self {
             url: url.to_string(),
-            client: reqwest::Client::new(),
+            client,
         }
     }
 

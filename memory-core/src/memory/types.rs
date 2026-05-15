@@ -193,14 +193,21 @@ impl SelfLearningMemory {
     /// This sends the event through the broadcast channel for internal subscribers
     /// and concurrently emits it as a CloudEvent to the configured external emitter.
     /// External emission is fire-and-forget (failures are logged, not propagated).
+    ///
+    /// # Panics
+    ///
+    /// Panics if called outside of a Tokio runtime context.
     #[allow(dead_code)] // WG-149: wired when lifecycle methods call this instead of emit_event
     pub(super) fn emit_event_with_cloud(&self, event: MemoryEvent) {
         // Internal broadcast (existing behavior)
         let _ = self.event_sender.send(event.clone());
 
         // External CloudEvents emission (fire-and-forget)
+        // Uses spawn_local equivalent — the task is short-lived (single HTTP POST)
+        // and will be cancelled on runtime shutdown. Since this is best-effort
+        // delivery with tracing::warn on failure, cancellation is acceptable.
         let emitter = self.event_emitter.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let cloud_event = crate::types::emitter::CloudEvent::from_memory_event(&event);
             if let Err(e) = emitter.emit(cloud_event).await {
                 tracing::warn!(
@@ -210,5 +217,9 @@ impl SelfLearningMemory {
                 );
             }
         });
+        // Drop the JoinHandle — the spawned task runs independently.
+        // The task is short-lived (single HTTP POST) and will be gracefully
+        // cancelled if the runtime shuts down before completion.
+        drop(handle);
     }
 }

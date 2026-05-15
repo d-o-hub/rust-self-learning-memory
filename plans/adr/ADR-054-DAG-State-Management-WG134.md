@@ -91,7 +91,7 @@ For N episodes sharing the same language/domain/task_type:
 | `memory-core/src/context/dag/mod.rs` | 45 | Module declarations, re-exports, architecture docs |
 | `memory-core/src/context/dag/node.rs` | 190 | `StateNode`, `StateNodeType`, token savings |
 | `memory-core/src/context/dag/edge.rs` | 150 | `StateEdge`, `EdgeType`, `EdgeMetadata` |
-| `memory-core/src/context/dag/dag.rs` | 255 | `StateDag`, `DagStats`, CRUD operations |
+| `memory-core/src/context/dag/state.rs` | 255 | `StateDag`, `DagStats`, CRUD operations |
 | `memory-core/src/context/dag/assembler.rs` | 310 | `DagContextAssembler`, 3 format modes |
 | `memory-core/src/context/dag/tests.rs` | 370 | 24 unit + integration tests |
 | **Total** | **~1,320** | |
@@ -145,7 +145,7 @@ The `DagContextAssembler` integrates with `BundleAccumulator` (WG-117):
 
 - **+1,320 LOC** in `context/` module (stays within project conventions)
 - **Registration step required** — episodes must be explicitly registered before assembly
-- **ConceptGraph tier (WG-131)** still placeholder — full CSM cascade benefits not yet realized
+- **ConceptGraph tier (WG-131)** now complete — full CSM cascade benefits realized with 30 tests
 
 ### Neutral
 

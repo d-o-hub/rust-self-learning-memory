@@ -282,7 +282,7 @@ fn test_state_dag_token_reduction() {
     // Register 10 episodes with same context for clear reduction
     for i in 0..10 {
         let ep = create_test_episode(
-            &format!("Task {}", i),
+            &format!("Task {i}"),
             TaskType::Debugging,
             rust_web_context(),
         );
@@ -300,7 +300,7 @@ fn test_state_dag_stats() {
 
     for i in 0..3 {
         let ep = create_test_episode(
-            &format!("Task {}", i),
+            &format!("Task {i}"),
             TaskType::Debugging,
             rust_web_context(),
         );
@@ -412,7 +412,7 @@ fn test_assembler_reduction_calculation() {
     let episodes: Vec<Arc<Episode>> = (0..5)
         .map(|i| {
             Arc::new(create_test_episode(
-                &format!("Task {}", i),
+                &format!("Task {i}"),
                 TaskType::Debugging,
                 rust_web_context(),
             ))
@@ -440,7 +440,7 @@ fn test_assembler_format_compact() {
         TaskType::Debugging,
         rust_web_context(),
     ));
-    assembler.register_episodes(&[ep.clone()]);
+    assembler.register_episodes(std::slice::from_ref(&ep));
     let assembled = assembler.assemble(&[ep]);
 
     let formatted = assembler.format_for_prompt(&assembled);
@@ -461,7 +461,7 @@ fn test_assembler_format_full() {
         TaskType::Debugging,
         rust_web_context(),
     ));
-    assembler.register_episodes(&[ep.clone()]);
+    assembler.register_episodes(std::slice::from_ref(&ep));
     let assembled = assembler.assemble(&[ep]);
 
     let formatted = assembler.format_for_prompt(&assembled);
@@ -558,7 +558,7 @@ fn test_dag_clear() {
 
     for i in 0..3 {
         let ep = create_test_episode(
-            &format!("Task {}", i),
+            &format!("Task {i}"),
             TaskType::Debugging,
             rust_web_context(),
         );
@@ -895,7 +895,7 @@ fn test_full_pipeline_episodes_only_filter() {
     let assembled = assembler.assemble(&bundle_eps);
 
     assert_eq!(assembled.unique_context.len(), 2);
-    assert!(assembled.shared_context.len() > 0);
+    assert!(!assembled.shared_context.is_empty());
 }
 
 /// Test pipeline with full context config (no deduplication).

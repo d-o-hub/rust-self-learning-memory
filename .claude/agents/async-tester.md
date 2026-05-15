@@ -1,5 +1,5 @@
 ---
-description: Specialist in async/tokio testing patterns and debugging
+description: "Specialist in async/tokio testing patterns and debugging"
 capabilities:
   - Write async test implementations
   - Debug tokio runtime issues

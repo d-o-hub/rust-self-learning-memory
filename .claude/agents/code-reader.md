@@ -1,6 +1,6 @@
 ---
 name: code-reader
-description: Efficient code reader with line-range awareness. Reads only needed sections of files. Use for targeted code inspection without full file reads. Token-efficient.
+description: "Efficient code reader with line-range awareness. Reads only needed sections of files. Use for targeted code inspection without full file reads. Token-efficient."
 tools: Read
 ---
 

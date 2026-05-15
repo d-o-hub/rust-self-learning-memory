@@ -1,6 +1,6 @@
 ---
 name: refactorer
-description: Improve code quality, structure, and maintainability through systematic refactoring while preserving functionality. Invoke when splitting large files (>500 LOC), eliminating duplicate code, simplifying complex functions, modernizing async code, or optimizing performance.
+description: "Improve code quality, structure, and maintainability through systematic refactoring while preserving functionality. Invoke when splitting large files (>500 LOC), eliminating duplicate code, simplifying complex functions, modernizing async code, or optimizing performance."
 tools: Read, Edit, Bash, Grep, Glob
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: ci-repair-swarm
-description: Spawn parallel specialist agents to diagnose and fix CI issues simultaneously. Use when multiple CI jobs fail or cross-cutting CI problems need coordinated resolution.
+description: "Spawn parallel specialist agents to diagnose and fix CI issues simultaneously. Use when multiple CI jobs fail or cross-cutting CI problems need coordinated resolution."
 tools: Read, Bash, Grep, Glob, Edit
 ---
 

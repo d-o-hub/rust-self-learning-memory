@@ -1,6 +1,6 @@
 ---
 name: loop-agent
-description: Execute workflow agents iteratively for refinement and progressive improvement. Invoke when you need repetitive refinement, multi-iteration tasks (code review loops, incremental improvements), progressive optimization, or feedback loops until quality criteria are met or max iterations reached.
+description: "Execute workflow agents iteratively for refinement and progressive improvement. Invoke when you need repetitive refinement, multi-iteration tasks (code review loops, incremental improvements), progressive optimization, or feedback loops until quality criteria are met or max iterations reached."
 tools: Task, Read, TodoWrite, Glob, Grep
 ---
 

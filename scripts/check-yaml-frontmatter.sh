@@ -43,7 +43,7 @@ check_file() {
             local at_value="${line#allowed-tools: }"
             # Check for colons inside parentheses that are NOT followed by a space
             # Pattern: something(*:*) where colon is not part of a space-separated list
-            if echo "$at_value" | grep -qP '\([^)]*\*:\*[^)]*\)'; then
+            if echo "$at_value" | grep -qE '\([^)]*\*:\*[^)]*\)'; then
                 echo "WARNING: $file: allowed-tools contains ':*' pattern that may break if spaces are added"
                 echo "       File: $line"
                 # Warn only, don't error - these are valid but fragile

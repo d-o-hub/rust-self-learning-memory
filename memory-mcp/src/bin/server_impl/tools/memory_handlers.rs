@@ -35,8 +35,12 @@ pub async fn handle_query_memory(
     let limit = args
         .get("limit")
         .and_then(|v| v.as_u64())
-        .unwrap_or(10)
-        .min(1000) as usize;
+        .map(|v| v as usize)
+        .unwrap_or(do_memory_mcp::constants::DEFAULT_QUERY_LIMIT)
+        .clamp(
+            do_memory_mcp::constants::MIN_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_QUERY_LIMIT,
+        );
     let sort = args
         .get("sort")
         .and_then(|v| v.as_str())
@@ -113,8 +117,12 @@ pub async fn handle_analyze_patterns(
     let limit = args
         .get("limit")
         .and_then(|v| v.as_u64())
-        .unwrap_or(20)
-        .min(1000) as usize;
+        .map(|v| v as usize)
+        .unwrap_or(do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT)
+        .clamp(
+            do_memory_mcp::constants::MIN_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_QUERY_LIMIT,
+        );
 
     let result = server
         .analyze_patterns(task_type.clone(), min_success_rate, limit, None)

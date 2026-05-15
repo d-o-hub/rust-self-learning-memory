@@ -143,7 +143,9 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of results (default: 5)",
-                    "default": 5
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 100
                 },
                 "min_relevance": {
                     "type": "number",
@@ -184,7 +186,9 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of recommendations (default: 3)",
-                    "default": 3
+                    "default": 3,
+                    "minimum": 1,
+                    "maximum": 50
                 }
             },
             "required": ["task_description", "domain"]

@@ -51,7 +51,9 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "limit": {
                         "type": "integer",
                         "description": "Maximum number of results (default: 5)",
-                        "default": 5
+                        "default": 5,
+                        "minimum": 1,
+                        "maximum": 100
                     },
                     "min_relevance": {
                         "type": "number",
@@ -92,7 +94,9 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "limit": {
                         "type": "integer",
                         "description": "Maximum number of recommendations (default: 3)",
-                        "default": 3
+                        "default": 3,
+                        "minimum": 1,
+                        "maximum": 50
                     }
                 },
                 "required": ["task_description", "domain"]
@@ -123,7 +127,9 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "max_steps": {
                         "type": "integer",
                         "description": "Maximum number of steps to include (default: 5)",
-                        "default": 5
+                        "default": 5,
+                        "minimum": 1,
+                        "maximum": 100
                     },
                     "language": {
                         "type": "string",
@@ -281,6 +287,8 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     "limit": {
                         "type": "integer",
                         "default": 10,
+                        "minimum": 1,
+                        "maximum": 1000,
                         "description": "Maximum number of episodes to retrieve"
                     },
                     "sort": {
@@ -339,6 +347,8 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     "limit": {
                         "type": "integer",
                         "default": 20,
+                        "minimum": 1,
+                        "maximum": 1000,
                         "description": "Maximum number of patterns to return"
                     },
                     "fields": {

@@ -96,8 +96,12 @@ pub async fn handle_recommend_playbook(
     let max_steps = args
         .get("max_steps")
         .and_then(|v| v.as_u64())
-        .unwrap_or(5)
-        .min(100) as usize;
+        .map(|v| v as usize)
+        .unwrap_or(do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS)
+        .clamp(
+            do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+            do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+        );
 
     let language = args
         .get("language")

@@ -7,8 +7,11 @@ use std::collections::HashMap;
 
 #[path = "builder.rs"]
 mod builder;
+#[path = "builder_core.rs"]
+mod builder_core;
 
-use builder::{create_additional_extended_tools, create_core_tools};
+use builder::create_additional_extended_tools;
+use builder_core::create_core_tools;
 
 /// Create the default tool registry with core and extended tools
 pub fn create_default_registry() -> super::ToolRegistry {

@@ -106,10 +106,15 @@ impl EventEmitter for HttpEmitter {
         if errors.is_empty() {
             Ok(())
         } else {
+            let error_details: Vec<String> = errors
+                .iter()
+                .enumerate()
+                .map(|(i, e)| format!("  [{}] {}", i, e))
+                .collect();
             anyhow::bail!(
-                "HTTP emitter batch had {} failure(s): {}",
+                "HTTP emitter batch had {} failure(s):\n{}",
                 errors.len(),
-                errors[0]
+                error_details.join("\n")
             )
         }
     }

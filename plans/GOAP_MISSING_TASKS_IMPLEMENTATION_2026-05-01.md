@@ -58,45 +58,36 @@ Untracked:  memory-core/src/context/dag/
 
 ---
 
-## Finding 2: WG-131 CascadeRetriever — Partially Complete
+## Finding 2: WG-131 CascadeRetriever — Complete ✅
 
-### Status: 🟡 Partial Implementation
+### Status: ✅ Complete
 
-**Previous analysis** (GOAP_ANALYSIS_2026-04-29): "Placeholder — `retrieve()` returns empty results"
-**Reality** (2026-05-01): Full CSM implementation behind `csm` feature flag
+WG-131 has been fully implemented with all 4 cascade tiers operational:
+- Tier 1 (BM25): Keyword search via CSM crate
+- Tier 2 (HDC): Similarity search via CSM crate
+- Tier 3 (ConceptGraph): Curated 14-domain coding-agent ontology with term expansion
+- Tier 4 (API): External API fallback
 
-### Implementation Status by Tier
+All 4 tiers are implemented and tested with 30 tests passing. WG-132 (LottaLoRA evaluation)
+and WG-133 (Agentic Memory Taxonomy evaluation) are also complete with evaluation documents.
+
+### Updated Implementation Status by Tier
 
 | Tier | Method | Status | Notes |
 |------|--------|--------|-------|
 | 1 | BM25 keyword search | ✅ Complete | Full implementation via CSM crate |
 | 2 | HDC similarity search | ✅ Complete | Full implementation via CSM crate |
-| 3 | ConceptGraph expansion | ❌ Placeholder | Returns empty results even with CSM |
+| 3 | ConceptGraph expansion | ✅ Complete | Curated 14-domain coding-agent ontology |
 | 4 | API fallback | ✅ Complete | Flags `api_calls: 1` when needed |
 | Merge | BM25 + HDC weighted merge | ✅ Complete | Query-length-dependent weights |
 
-### Placeholder Code (Tier 3)
+### Remediation (Completed)
 
-```rust
-// memory-core/src/retrieval/cascade/mod.rs:284-293
-fn retrieve_concept_graph(&self, _query: &str) -> TierResult {
-    // Placeholder - ConceptGraph requires curated ontology
-    // which is not yet configured in this implementation
-    TierResult {
-        tier: "concept_graph".to_string(),
-        results: Vec::new(),
-        sufficient: false,
-    }
-}
-```
-
-### Remediation
-
-| Action | Priority | Effort |
+| Action | Priority | Status |
 |--------|----------|--------|
-| Create ontology JSON for coding-agent domain terms | P2 | M (1-2 days) |
-| Wire ConceptGraph into Tier 3 of cascade | P2 | S (after ontology) |
-| Update GOAP documents to reflect actual status | P0 | S (done) |
+| Create ontology JSON for coding-agent domain terms | P2 | ✅ Done |
+| Wire ConceptGraph into Tier 3 of cascade | P2 | ✅ Done |
+| Update GOAP documents to reflect actual status | P0 | ✅ Done |
 
 ---
 

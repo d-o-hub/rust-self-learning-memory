@@ -216,7 +216,7 @@ impl StateDag {
             if let Some(node) = self.nodes.remove(&node_id) {
                 let key = (node.node_type, node.value);
                 self.node_index.remove(&key);
-                self.stats.total_nodes -= 1;
+                self.stats.total_nodes = self.stats.total_nodes.saturating_sub(1);
             }
         }
     }

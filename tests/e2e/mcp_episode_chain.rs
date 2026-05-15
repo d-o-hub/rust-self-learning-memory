@@ -81,11 +81,7 @@ async fn test_mcp_complete_episode_chain() {
 
     // Step 2: log_step (multiple steps)
     for i in 1..=4 {
-        let step = ExecutionStep::new(
-            i,
-            format!("mcp-tool-{i}"),
-            format!("Execute MCP tool {i}"),
-        );
+        let step = ExecutionStep::new(i, format!("mcp-tool-{i}"), format!("Execute MCP tool {i}"));
         memory.log_step(episode_id, step).await;
     }
 

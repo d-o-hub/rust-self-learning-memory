@@ -6,6 +6,7 @@
 
 use crate::types::emitter::{CloudEvent, EventEmitter};
 use async_trait::async_trait;
+use futures::stream::StreamExt;
 use std::time::Duration;
 
 /// An `EventEmitter` that sends CloudEvents to an HTTP endpoint.
@@ -102,9 +103,15 @@ impl EventEmitter for HttpEmitter {
     }
 
     async fn emit_batch(&self, events: Vec<CloudEvent>) -> anyhow::Result<()> {
-        // Send events concurrently using join_all
-        let futures: Vec<_> = events.into_iter().map(|e| self.emit(e)).collect();
-        let results = futures::future::join_all(futures).await;
+        // Limit concurrent HTTP requests to MAX_CONCURRENT_REQUESTS
+        // to prevent resource exhaustion from unbounded fan-out
+        const MAX_CONCURRENT_REQUESTS: usize = 10;
+
+        let results: Vec<_> = futures::stream::iter(events.into_iter().map(|e| self.emit(e)))
+            .buffered(MAX_CONCURRENT_REQUESTS)
+            .collect()
+            .await;
+
         let mut errors = Vec::new();
         for result in results {
             if let Err(e) = result {
@@ -117,7 +124,7 @@ impl EventEmitter for HttpEmitter {
             let error_details: Vec<String> = errors
                 .iter()
                 .enumerate()
-                .map(|(i, e)| format!("  [{}] {}", i, e))
+                .map(|(i, e)| format!("  [{i}] {e}"))
                 .collect();
             anyhow::bail!(
                 "HTTP emitter batch had {} failure(s):\n{}",
@@ -131,6 +138,9 @@ impl EventEmitter for HttpEmitter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+    use tokio::sync::oneshot;
 
     #[test]
     fn test_http_emitter_creation() {
@@ -150,5 +160,129 @@ mod tests {
         // Should fail to connect (no server on port 1)
         let result = emitter.emit(event).await;
         assert!(result.is_err());
+    }
+
+    /// Helper: spawn a minimal HTTP server that responds with a given status code
+    /// and returns the port it is listening on.
+    async fn spawn_mock_server(status_code: u16) -> (u16, oneshot::Sender<()>) {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
+
+        tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    _ = &mut shutdown_rx => break,
+                    result = listener.accept() => {
+                        if let Ok((mut stream, _)) = result {
+                            // Read the request (just consume it)
+                            let mut buf = [0u8; 4096];
+                            let _ = stream.read(&mut buf).await;
+
+                            // Send HTTP response with the requested status
+                            let response = format!(
+                                "HTTP/1.1 {} {}\r\ncontent-length: 2\r\ncontent-type: application/json\r\n\r\n{{}}",
+                                status_code,
+                                if status_code == 200 { "OK" } else { "Error" }
+                            );
+                            let _ = stream.write_all(response.as_bytes()).await;
+                        }
+                    }
+                }
+            }
+        });
+
+        (port, shutdown_tx)
+    }
+
+    #[tokio::test]
+    async fn test_http_emitter_successful_delivery() {
+        let (port, _shutdown) = spawn_mock_server(200).await;
+        let url = format!("http://127.0.0.1:{port}/events");
+        let emitter = HttpEmitter::new(&url);
+        let event = CloudEvent::new(
+            "com.test.event".to_string(),
+            "test://source".to_string(),
+            serde_json::json!({"key": "value"}),
+        );
+
+        let result = emitter.emit(event).await;
+        assert!(
+            result.is_ok(),
+            "Expected successful delivery, got: {result:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_http_emitter_client_error() {
+        let (port, _shutdown) = spawn_mock_server(400).await;
+        let url = format!("http://127.0.0.1:{port}/events");
+        let emitter = HttpEmitter::new(&url);
+        let event = CloudEvent::new(
+            "com.test.event".to_string(),
+            "test://source".to_string(),
+            serde_json::json!({"key": "value"}),
+        );
+
+        let result = emitter.emit(event).await;
+        assert!(result.is_err(), "Expected error for 400 response");
+    }
+
+    #[tokio::test]
+    async fn test_http_emitter_server_error() {
+        let (port, _shutdown) = spawn_mock_server(500).await;
+        let url = format!("http://127.0.0.1:{port}/events");
+        let emitter = HttpEmitter::new(&url);
+        let event = CloudEvent::new(
+            "com.test.event".to_string(),
+            "test://source".to_string(),
+            serde_json::json!({"key": "value"}),
+        );
+
+        let result = emitter.emit(event).await;
+        assert!(result.is_err(), "Expected error for 500 response");
+    }
+
+    #[tokio::test]
+    async fn test_http_emitter_batch_success() {
+        let (port, _shutdown) = spawn_mock_server(200).await;
+        let url = format!("http://127.0.0.1:{port}/events");
+        let emitter = HttpEmitter::new(&url);
+
+        let events: Vec<CloudEvent> = (0..5)
+            .map(|i| {
+                CloudEvent::new(
+                    format!("com.test.event.{i}"),
+                    "test://source".to_string(),
+                    serde_json::json!({"index": i}),
+                )
+            })
+            .collect();
+
+        let result = emitter.emit_batch(events).await;
+        assert!(
+            result.is_ok(),
+            "Expected successful batch delivery, got: {result:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_http_emitter_subject_header() {
+        let (port, _shutdown) = spawn_mock_server(200).await;
+        let url = format!("http://127.0.0.1:{port}/events");
+        let emitter = HttpEmitter::new(&url);
+
+        let mut event = CloudEvent::new(
+            "com.test.event".to_string(),
+            "test://source".to_string(),
+            serde_json::json!({"key": "value"}),
+        );
+        event.subject = Some("test-subject".to_string());
+
+        let result = emitter.emit(event).await;
+        assert!(
+            result.is_ok(),
+            "Expected successful delivery with subject header"
+        );
     }
 }

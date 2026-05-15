@@ -92,6 +92,8 @@ pub struct SelfLearningMemory {
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
     #[allow(dead_code)] // API reserve: for rate limiting in future cache operations
     pub(super) cache_semaphore: Arc<Semaphore>,
+    /// Semaphore to limit concurrent CloudEvents emission tasks
+    pub(super) event_emitter_semaphore: Arc<Semaphore>,
 
     // Phase 2 (GENESIS) - Capacity management
     /// Capacity manager for episodic storage with eviction policies
@@ -192,7 +194,8 @@ impl SelfLearningMemory {
     ///
     /// This sends the event through the broadcast channel for internal subscribers
     /// and concurrently emits it as a CloudEvent to the configured external emitter.
-    /// External emission is fire-and-forget (failures are logged, not propagated).
+    /// External emission is fire-and-forget with backpressure: if the semaphore
+    /// is exhausted the event is dropped with a warning rather than unbounded queuing.
     ///
     /// # Panics
     ///
@@ -202,12 +205,20 @@ impl SelfLearningMemory {
         // Internal broadcast (existing behavior)
         let _ = self.event_sender.send(event.clone());
 
-        // External CloudEvents emission (fire-and-forget)
-        // Uses spawn_local equivalent — the task is short-lived (single HTTP POST)
-        // and will be cancelled on runtime shutdown. Since this is best-effort
-        // delivery with tracing::warn on failure, cancellation is acceptable.
+        // External CloudEvents emission with backpressure.
+        // Uses try_acquire_owned to avoid blocking — if the semaphore is
+        // exhausted the event is dropped with a logged warning instead of
+        // unbounded queuing.
+        let Ok(permit) = self.event_emitter_semaphore.clone().try_acquire_owned() else {
+            tracing::warn!(
+                "Event emitter semaphore exhausted, dropping CloudEvent for {:?}",
+                event.entity_id()
+            );
+            return;
+        };
+
         let emitter = self.event_emitter.clone();
-        let handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             let cloud_event = crate::types::emitter::CloudEvent::from_memory_event(&event);
             if let Err(e) = emitter.emit(cloud_event).await {
                 tracing::warn!(
@@ -216,10 +227,8 @@ impl SelfLearningMemory {
                     event.entity_id()
                 );
             }
+            // Permit is dropped here, releasing the semaphore slot
+            drop(permit);
         });
-        // Drop the JoinHandle — the spawned task runs independently.
-        // The task is short-lived (single HTTP POST) and will be gracefully
-        // cancelled if the runtime shuts down before completion.
-        drop(handle);
     }
 }

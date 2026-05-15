@@ -4,7 +4,7 @@
 - **Date**: 2026-05-01
 - **Deciders**: Project maintainers
 - **Related**: WG-134, WG-117 (BundleAccumulator), ADR-053 (v0.1.31 Comprehensive Analysis)
-- **Paper**: arXiv:2602.22398 — "DAG-based conversation state management for LLM agents"
+- **Paper**: arXiv:2602.22402 — "DAG-based conversation state management for LLM agents"
 
 ## Context
 
@@ -12,7 +12,7 @@ The `BundleAccumulator` (WG-117) provides bounded context assembly, but each epi
 context attributes (language, domain, framework, tags, task type) are stored redundantly.
 For N episodes sharing the same language/domain/task type, this wastes N × (context tokens).
 
-arXiv:2602.22398 proposes a DAG-based state management approach where shared context
+arXiv:2602.22402 proposes a DAG-based state management approach where shared context
 attributes are stored once as nodes, and episodes reference them via edges. This achieves
 up to 86% token reduction by deduplicating shared context between episodes.
 
@@ -163,7 +163,7 @@ The `DagContextAssembler` integrates with `BundleAccumulator` (WG-117):
 
 ## References
 
-- Paper: arXiv:2602.22398 — DAG-based conversation state management
+- Paper: arXiv:2602.22402 — DAG-based conversation state management
 - WG-117: BundleAccumulator (bounded context assembly)
 - WG-131: CascadeRetriever (CSM cascading pipeline)
 - ADR-053: v0.1.31 Comprehensive Analysis

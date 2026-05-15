@@ -252,6 +252,7 @@ async fn test_timeout_protection() {
 // ──── Input Bounds Clamping Tests (CWE-770 Prevention) ────
 
 /// Verify that tags-specific constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_tags_constants_validity() {
     assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION >= 1);
@@ -278,6 +279,7 @@ fn test_tags_constants_validity() {
 }
 
 /// Verify that constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_input_bounds_constants_validity() {
     // All min values should be >= 1
@@ -301,6 +303,7 @@ fn test_input_bounds_constants_validity() {
 }
 
 /// Verify that default values fall within min/max bounds
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_input_bounds_defaults_in_range() {
     assert!(
@@ -329,6 +332,7 @@ fn test_input_bounds_defaults_in_range() {
 }
 
 /// Verify clamping logic: values below min are clamped up to min
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_clamping_lower_bound() {
     // Test query limit clamping (0 should become 1)
@@ -355,6 +359,7 @@ fn test_clamping_lower_bound() {
 }
 
 /// Verify clamping logic: values above max are clamped down to max
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_clamping_upper_bound() {
     // Test query limit clamping (9999 should become 1000)
@@ -381,6 +386,7 @@ fn test_clamping_upper_bound() {
 }
 
 /// Verify clamping logic: valid values within range pass through unchanged
+#[allow(clippy::assertions_on_constants)]
 #[test]
 fn test_clamping_middle_values() {
     let clamped = 50usize.clamp(

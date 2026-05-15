@@ -300,17 +300,15 @@ async fn test_tool_schema_tags_arrays_have_max_items() {
             .find(|t| t.name == *tool_name)
             .and_then(|t| t.input_schema.as_object())
             .and_then(|s| s.get("properties"))
-            .and_then(|v| v.as_object())
+            .and_then(serde_json::Value::as_object)
             .and_then(|props| props.get("tags"))
-            .and_then(|v| v.as_object())
+            .and_then(serde_json::Value::as_object)
             .and_then(|tags| tags.get("maxItems"))
-            .and_then(|v| v.as_u64());
+            .and_then(serde_json::Value::as_u64);
         if let Some(max) = max {
             assert!(
                 max <= 100,
-                "Tool '{}' tags maxItems should be <= 100, got {}",
-                tool_name,
-                max
+                "Tool {tool_name:?} tags maxItems should be <= 100, got {max}",
             );
         }
     }
@@ -326,16 +324,15 @@ async fn test_tool_schema_bulk_episode_ids_has_max_items() {
         .find(|t| t.name == "bulk_episodes")
         .and_then(|t| t.input_schema.as_object())
         .and_then(|s| s.get("properties"))
-        .and_then(|v| v.as_object())
+        .and_then(serde_json::Value::as_object)
         .and_then(|props| props.get("episode_ids"))
-        .and_then(|v| v.as_object())
+        .and_then(serde_json::Value::as_object)
         .and_then(|ids| ids.get("maxItems"))
-        .and_then(|v| v.as_u64());
+        .and_then(serde_json::Value::as_u64);
     if let Some(max) = max {
         assert!(
             max <= 100,
-            "bulk_episodes episode_ids maxItems should be <= 100, got {}",
-            max
+            "bulk_episodes episode_ids maxItems should be <= 100, got {max}",
         );
     }
 }

@@ -280,3 +280,60 @@ async fn test_mcp_tool_coverage_restrictive_sandbox_config() {
     assert_eq!(config.max_memory_mb, 64);
     assert_eq!(config.max_execution_time_ms, 3000);
 }
+
+// ── 11. Tool schema bounds (CWE-770 prevention) ────────────────────────
+
+#[tokio::test]
+async fn test_tool_schema_tags_arrays_have_max_items() {
+    let server = create_test_server().await;
+    let tools = server.list_tools().await;
+
+    let tags_tools = [
+        "add_episode_tags",
+        "remove_episode_tags",
+        "set_episode_tags",
+    ];
+
+    for tool_name in &tags_tools {
+        if let Some(tool) = tools.iter().find(|t| t.name == *tool_name) {
+            let schema = tool.input_schema.as_object().unwrap();
+            if let Some(props) = schema.get("properties").and_then(|v| v.as_object()) {
+                if let Some(tags_schema) = props.get("tags") {
+                    if let Some(tags_obj) = tags_schema.as_object() {
+                        if let Some(max) = tags_obj.get("maxItems").and_then(|v| v.as_u64()) {
+                            assert!(
+                                max <= 100,
+                                "Tool '{}' tags maxItems should be <= 100, got {}",
+                                tool_name,
+                                max
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_tool_schema_bulk_episode_ids_has_max_items() {
+    let server = create_test_server().await;
+    let tools = server.list_tools().await;
+
+    if let Some(tool) = tools.iter().find(|t| t.name == "bulk_episodes") {
+        let schema = tool.input_schema.as_object().unwrap();
+        if let Some(props) = schema.get("properties").and_then(|v| v.as_object()) {
+            if let Some(ids_schema) = props.get("episode_ids") {
+                if let Some(ids_obj) = ids_schema.as_object() {
+                    if let Some(max) = ids_obj.get("maxItems").and_then(|v| v.as_u64()) {
+                        assert!(
+                            max <= 100,
+                            "bulk_episodes episode_ids maxItems should be <= 100, got {}",
+                            max
+                        );
+                    }
+                }
+            }
+        }
+    }
+}

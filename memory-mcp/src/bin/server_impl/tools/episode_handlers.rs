@@ -38,6 +38,15 @@ pub async fn handle_bulk_episodes(
         }
     };
 
+    // Enforce maximum episode IDs to prevent resource exhaustion (CWE-770)
+    if episode_ids.len() > do_memory_mcp::constants::MAX_BULK_EPISODE_IDS {
+        return Err(anyhow::anyhow!(
+            "Number of episode_ids ({}) exceeds maximum allowed ({})",
+            episode_ids.len(),
+            do_memory_mcp::constants::MAX_BULK_EPISODE_IDS
+        ));
+    }
+
     let result = server.get_episodes_by_ids(&episode_ids).await;
 
     let episode_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
@@ -86,6 +95,16 @@ pub async fn handle_create_episode(
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
+
+    // Validate task_description length to prevent resource exhaustion (CWE-770)
+    if task_description.len() > do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN {
+        return Err(anyhow::anyhow!(
+            "Task description length {} exceeds maximum {} bytes ({}KB)",
+            task_description.len(),
+            do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN,
+            do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN / 1024
+        ));
+    }
 
     let result = server.create_episode_tool(args).await;
     let episode_id = result

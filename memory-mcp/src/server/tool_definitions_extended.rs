@@ -19,7 +19,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
                 "episode_ids": {
                     "type": "array",
                     "items": {"type": "string", "description": "Episode UUIDs"},
-                    "description": "Array of episode IDs to retrieve"
+                    "maxItems": 100,
+                    "description": "Array of episode IDs to retrieve (max 100)"
                 }
             },
             "required": ["episode_ids"]
@@ -35,7 +36,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
             "properties": {
                 "task_description": {
                     "type": "string",
-                    "description": "Clear description of the task to be performed"
+                    "maxLength": 10000,
+                    "description": "Clear description of the task to be performed (max 10000 chars)"
                 },
                 "domain": {
                     "type": "string",
@@ -286,7 +288,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
                 "tags": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Tags to add"
+                    "maxItems": 100,
+                    "description": "Tags to add (max 100)"
                 }
             },
             "required": ["episode_id", "tags"]
@@ -307,7 +310,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
                 "tags": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Tags to remove"
+                    "maxItems": 100,
+                    "description": "Tags to remove (max 100)"
                 }
             },
             "required": ["episode_id", "tags"]
@@ -328,7 +332,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
                 "tags": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "New tags to set (replaces all existing)"
+                    "maxItems": 100,
+                    "description": "New tags to set - max 100 (replaces all existing)"
                 }
             },
             "required": ["episode_id", "tags"]

@@ -53,3 +53,74 @@ pub const MAX_TAG_SEARCH_LIMIT: usize = 1000;
 
 /// Default limit for search_episodes_by_tags.
 pub const DEFAULT_TAG_SEARCH_LIMIT: usize = 100;
+
+// ──── Bulk operations limits ────
+
+/// Maximum allowed number of episode IDs in a single bulk request.
+pub const MAX_BULK_EPISODE_IDS: usize = 100;
+
+/// Maximum allowed number of tags in a single tags operation (add/remove/set).
+pub const MAX_TAGS_PER_OPERATION: usize = 100;
+
+// ──── Task description limits ────
+
+/// Maximum allowed length (in bytes) for task descriptions.
+pub const MAX_TASK_DESCRIPTION_LEN: usize = 10_000;
+
+// ──── Dependency graph limits ────
+
+/// Minimum allowed depth for dependency graph traversal.
+pub const MIN_DEPTH: usize = 1;
+
+/// Maximum allowed depth for dependency graph traversal.
+pub const MAX_DEPTH: usize = 10;
+
+/// Default depth for dependency graph traversal.
+pub const DEFAULT_DEPTH: usize = 2;
+
+/// Maximum allowed limit for find_related_episodes.
+pub const MAX_FIND_RELATED_LIMIT: usize = 100;
+
+/// Default limit for find_related_episodes.
+pub const DEFAULT_FIND_RELATED_LIMIT: usize = 10;
+
+// ──── Embedding limits ────
+
+/// Maximum allowed length (in bytes) for text sent to generate_embedding.
+pub const MAX_EMBEDDING_TEXT_LEN: usize = 50_000;
+
+// ──── Checkpoint limits ────
+
+/// Maximum allowed length for checkpoint reason.
+pub const MAX_CHECKPOINT_REASON_LEN: usize = 1000;
+
+/// Maximum allowed length for checkpoint note.
+pub const MAX_CHECKPOINT_NOTE_LEN: usize = 5000;
+
+// ──── Recommendation feedback limits ────
+
+/// Maximum allowed number of recommended pattern/playbook IDs.
+pub const MAX_RECOMMENDED_IDS: usize = 1000;
+
+/// Minimum rating for agent recommendation feedback.
+pub const MIN_AGENT_RATING: f32 = 0.0;
+
+/// Maximum rating for agent recommendation feedback.
+pub const MAX_AGENT_RATING: f32 = 1.0;
+
+// ──── External signal provider limits ────
+
+/// Minimum allowed weight for external signal merging.
+pub const MIN_EXTERNAL_WEIGHT: f32 = 0.0;
+
+/// Maximum allowed weight for external signal merging.
+pub const MAX_EXTERNAL_WEIGHT: f32 = 1.0;
+
+/// Minimum allowed min_samples for external signal configuration.
+pub const MIN_EXTERNAL_SAMPLES: usize = 1;
+
+/// Maximum allowed min_samples for external signal configuration.
+pub const MAX_EXTERNAL_SAMPLES: usize = 10_000;
+
+/// Maximum allowed length for AgentFS database path.
+pub const MAX_DB_PATH_LEN: usize = 4096;

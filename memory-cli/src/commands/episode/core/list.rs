@@ -8,10 +8,16 @@ use crate::output::OutputFormat;
 use chrono::Utc;
 use do_memory_core::SelfLearningMemory;
 
+/// Maximum allowed limit for episode list operations
+const MAX_LIST_LIMIT: usize = 1000;
+
+/// Minimum allowed limit for episode list operations
+const MIN_LIST_LIMIT: usize = 1;
+
 #[allow(clippy::too_many_arguments)]
 pub async fn list_episodes(
     task_type: Option<String>,
-    limit: usize,
+    mut limit: usize,
     status: Option<super::types::EpisodeStatus>,
     _semantic_search: Option<String>,
     _enable_embeddings: bool,
@@ -162,6 +168,9 @@ pub async fn list_episodes(
         EpisodeSortOrder::Relevance => {}
     }
 
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
+
     let total_count = episode_summaries.len();
 
     episode_summaries = episode_summaries
@@ -230,7 +239,7 @@ pub async fn list_episodes(
 #[allow(clippy::too_many_arguments)]
 pub async fn list_episodes_basic(
     task_type: Option<String>,
-    limit: usize,
+    mut limit: usize,
     status: Option<super::types::EpisodeStatus>,
     _semantic_search: Option<String>,
     _enable_embeddings: bool,
@@ -311,6 +320,9 @@ pub async fn list_episodes_basic(
             }
         })
         .collect();
+
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
 
     episode_summaries.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     let total_count = episode_summaries.len();

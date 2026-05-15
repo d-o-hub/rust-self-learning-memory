@@ -133,11 +133,11 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "domain": {
                     "type": "string",
                     "description": "Domain to search in (e.g., 'web-api', 'cli', 'data-processing')"
-                },
-                "tags": {
+                },                    "tags": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional tags for filtering",
+                    "maxItems": 100,
+                    "description": "Optional tags for filtering (max 100)",
                     "default": []
                 },
                 "limit": {
@@ -176,11 +176,11 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "domain": {
                     "type": "string",
                     "description": "Domain of the task (e.g., 'web-api', 'cli')"
-                },
-                "tags": {
+                },                    "tags": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional context tags",
+                    "maxItems": 100,
+                    "description": "Optional context tags (max 100)",
                     "default": []
                 },
                 "limit": {
@@ -206,19 +206,20 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "episode_id": {
                     "type": "string",
                     "description": "Episode ID for which recommendations are made"
-                },
-                "recommended_pattern_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Pattern IDs that were recommended",
-                    "default": []
-                },
-                "recommended_playbook_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Playbook IDs that were recommended",
-                    "default": []
-                }
+                },                    "recommended_pattern_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 1000,
+                        "description": "Pattern IDs that were recommended (max 1000)",
+                        "default": []
+                    },
+                    "recommended_playbook_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 1000,
+                        "description": "Playbook IDs that were recommended (max 1000)",
+                        "default": []
+                    }
             },
             "required": ["episode_id"]
         }),
@@ -233,19 +234,20 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "session_id": {
                     "type": "string",
                     "description": "Session ID from the recommendation session"
-                },
-                "applied_pattern_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Pattern IDs that were actually applied",
-                    "default": []
-                },
-                "consulted_episode_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Episode IDs that were consulted",
-                    "default": []
-                },
+                },                    "applied_pattern_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 1000,
+                        "description": "Pattern IDs that were actually applied (max 1000)",
+                        "default": []
+                    },
+                    "consulted_episode_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 1000,
+                        "description": "Episode IDs that were consulted (max 1000)",
+                        "default": []
+                    },
                 "outcome": {
                     "type": "object",
                     "description": "Final outcome of the task",

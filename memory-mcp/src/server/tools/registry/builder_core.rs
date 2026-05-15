@@ -112,7 +112,8 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                 "properties": {
                     "task_description": {
                         "type": "string",
-                        "description": "Clear description of the task to be performed"
+                        "maxLength": 10000,
+                        "description": "Clear description of the task to be performed (max 10000 chars)"
                     },
                     "domain": {
                         "type": "string",

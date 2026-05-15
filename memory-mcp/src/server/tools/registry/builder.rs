@@ -46,7 +46,8 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "tags": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Optional tags for filtering",
+                        "maxItems": 100,
+                        "description": "Optional tags for filtering (max 100)",
                         "default": []
                     },
                     "limit": {
@@ -89,7 +90,8 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "tags": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Optional context tags",
+                        "maxItems": 100,
+                        "description": "Optional context tags (max 100)",
                         "default": []
                     },
                     "limit": {
@@ -184,13 +186,15 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "recommended_pattern_ids": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Pattern IDs that were recommended",
+                        "maxItems": 1000,
+                        "description": "Pattern IDs that were recommended (max 1000)",
                         "default": []
                     },
                     "recommended_playbook_ids": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Playbook IDs that were recommended",
+                        "maxItems": 1000,
+                        "description": "Playbook IDs that were recommended (max 1000)",
                         "default": []
                     }
                 },
@@ -210,13 +214,15 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "applied_pattern_ids": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Pattern IDs that were actually applied",
+                        "maxItems": 1000,
+                        "description": "Pattern IDs that were actually applied (max 1000)",
                         "default": []
                     },
                     "consulted_episode_ids": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Episode IDs that were consulted",
+                        "maxItems": 1000,
+                        "description": "Episode IDs that were consulted (max 1000)",
                         "default": []
                     },
                     "outcome": {

@@ -251,6 +251,32 @@ async fn test_timeout_protection() {
 
 // ──── Input Bounds Clamping Tests (CWE-770 Prevention) ────
 
+/// Verify that tags-specific constants are defined with sensible values
+#[test]
+fn test_tags_constants_validity() {
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION >= 1);
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION <= 10_000);
+
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN >= 100);
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN <= 1_000_000);
+
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS >= 1);
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS <= 10_000);
+
+    // Depth bounds
+    assert!(do_memory_mcp::constants::MIN_DEPTH >= 1);
+    assert!(do_memory_mcp::constants::MAX_DEPTH > do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH >= do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH <= do_memory_mcp::constants::MAX_DEPTH);
+
+    // Find related bounds
+    assert!(do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT > 0);
+    assert!(
+        do_memory_mcp::constants::DEFAULT_FIND_RELATED_LIMIT
+            <= do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT
+    );
+}
+
 /// Verify that constants are defined with sensible values
 #[test]
 fn test_input_bounds_constants_validity() {

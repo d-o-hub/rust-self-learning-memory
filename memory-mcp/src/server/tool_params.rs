@@ -16,7 +16,8 @@ pub fn bulk_episodes_params() -> Value {
             "episode_ids": {
                 "type": "array",
                 "items": {"type": "string", "description": "Episode UUIDs"},
-                "description": "Array of episode IDs to retrieve"
+                "maxItems": 100,
+                "description": "Array of episode IDs to retrieve (max 100)"
             }
         },
         "required": ["episode_ids"]
@@ -30,7 +31,8 @@ pub fn create_episode_params() -> Value {
         "properties": {
             "task_description": {
                 "type": "string",
-                "description": "Clear description of the task to be performed"
+                "maxLength": 10000,
+                "description": "Clear description of the task to be performed (max 10000 chars)"
             },
             "domain": {
                 "type": "string",

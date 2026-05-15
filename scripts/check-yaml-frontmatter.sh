@@ -52,7 +52,7 @@ check_file() {
             
             # Check if the unquoted value contains colon-space (risks YAML parsing)
             if echo "$value" | grep -q ': '; then
-                if [[ "$key" == "allowed-tools" ]] && echo "$value" | grep -qE '\\([^)]*\\*:\\*[^)]*\\)'; then
+                if [[ "$key" == "allowed-tools" ]] && echo "$value" | grep -qE '\([^)]*\*:*[^)]*\)'; then
                     echo "WARNING: $file: unquoted $key has fragile ':*' pattern"
                     echo "       $line"
                 else

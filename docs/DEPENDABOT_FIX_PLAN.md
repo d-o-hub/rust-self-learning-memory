@@ -1,6 +1,6 @@
 # Dependabot Vulnerability Fix Plan
 
-**Generated:** 2026-04-13  
+**Generated:** 2026-05-15  
 **Context:** Results from `cargo audit` (clean — 0 vulnerabilities found) + GitHub Dependabot alerts (22 alerts reported)
 
 ---
@@ -24,7 +24,7 @@
 
 ## Priority 1: Direct Dependencies (High Severity)
 
-### 1. rusT-openssl (v0.10.79) — 6 CVEs
+### 1. rust-openssl (v0.10.79) — 6 CVEs
 
 | Alert | Severity | Description | Minimum Fix |
 |-------|----------|-------------|-------------|
@@ -72,7 +72,7 @@
 | #24 | **Medium** | Type confusion → authorization bypass | jsonwebtoken 11.0.0+ |
 
 **Current version:** v10.4.0  
-**Note:** `cargo audit` (RustSec DB) reports 0 vulnerabilities — these Dependabot alerts may be stale or for older versions. The researcher's data was contradictory (suggested v9.0.0 but we're at v10.4.0). 
+**Note:** `cargo audit` (RustSec DB) reports 0 vulnerabilities for the current v10.4.0 — these Dependabot alerts may reference older advisory data (e.g., Dependabot's advisory entry for jsonwebtoken references a minimum of v9.0.0, but our lockfile is at v10.4.0 which may have already addressed those CVEs). 
 **Recommended:** Run `cargo audit` locally to confirm which alerts are actionable. If confirmed, upgrade to latest available version.
 
 ### 5. Webpki / Rand / libsql — Low severity
@@ -113,11 +113,13 @@ No urgent dependency upgrades are needed. Continue monitoring with `cargo audit`
 
 | Priority | Action | Effort | Impact |
 |----------|--------|--------|--------|
-| 1 | Update `openssl` crate to v0.10.80+ | Low (cargo update) | Fixes 6 CVEs |
-| 2 | Update `jsonwebtoken` to v11.0.0+ | Medium (API may change) | Fixes 2 CVEs |
+| 1 | Update `openssl` crate to v0.10.80+ | Low (cargo update) | Fixes 6 CVEs — see Verification Results ⬇ |
+| 2 | Update `jsonwebtoken` to v11.0.0+ | Medium (API may change) | Fixes 2 CVEs — see Verification Results ⬇ |
 | 3 | Run `cargo update` to pull latest transitive deps | Low | Fixes aws-lc, wasmtime, webpki, etc. |
 | 4 | Add `cargo audit` to pre-commit hook | Low | Prevents future regressions |
 | 5 | Schedule regular Dependabot review | Low | Keep on top of alerts |
+
+> **Note:** Items 1–2 above are **recommended actions** evaluated during verification. The Verification Results section documents the outcome of attempting each action — see below for details on which updates were actually applied.
 
 ### Quick Wins
 

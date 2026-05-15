@@ -1,1 +1,0 @@
-.agents/skills/web-doc-resolver/SKILL.md

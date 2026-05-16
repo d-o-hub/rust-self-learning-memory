@@ -32,9 +32,9 @@ rules:
   # Document start: not required (optional ---)
   document-start: disable
 
-  # Truthy values: allow yes/no/on/off in addition to true/false
+  # Truthy values: allow only true/false (strict mode)
   truthy:
-    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    allowed-values: ['true', 'false']
     check-keys: false
 
   # Brackets: consistent spacing

@@ -14,6 +14,18 @@ if ! bash scripts/check-yaml-frontmatter.sh 2>&1; then
 fi
 echo "  ✅ YAML frontmatter OK"
 
+# 0b. Run yamllint on all YAML files
+echo "  ├─ Running yamllint..."
+if command -v yamllint &>/dev/null; then
+    if ! yamllint . 2>&1; then
+        echo "  ❌ yamllint found errors. Please fix before committing."
+        exit 1
+    fi
+    echo "  ✅ yamllint OK"
+else
+    echo "  ⚠️  yamllint not installed, skipping YAML lint"
+fi
+
 # 1. Check code formatting
 echo "  ├─ Checking code formatting..."
 if ! cargo fmt --all -- --check >/dev/null 2>&1; then

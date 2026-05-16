@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-01 (metrics sync with v0.1.31 release)
+**Last Updated**: 2026-05-16 (PR #547/#546 auto-merge, plans sync)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -63,23 +63,26 @@
 
 ---
 
-## Open Items (2026-04-20 Validation)
+## Open Items (2026-05-16 Validation)
 
 ### Open Issues
 | # | Title | Status |
 |---|-------|--------|
 | — | No open issues | ✅ All closed |
 
-### Open PRs (All Resolved)
+### Open PRs
 | # | Title | Status |
 |---|-------|--------|
-| 453 | chore: bump version to 0.1.31 | ❌ CLOSED (not merged, deferred) |
-| 450 | perf: parking_lot::RwLock for QueryCache | ✅ MERGED 2026-04-18 |
-| 445 | ci(deps): bump actions/github-script 8→9 | ✅ MERGED 2026-04-18 |
+| 547 | chore(ci): use create-pull-request for automated commits | 🔄 Auto-merge enabled (CI pending) |
+| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | 🔄 Auto-merge enabled (CI pending) |
 
 ### Recently Merged PRs
 | # | Title | Status |
 |---|-------|--------|
+| 548 | chore: YAML frontmatter validation + code quality | ✅ Merged 2026-05-16 |
+| 545 | chore: YAML frontmatter validation and Dependabot fix plan | ✅ Merged 2026-05-16 |
+| 544 | feat: CloudEvents EventEmitter, ConceptGraph, evaluations | ✅ Merged 2026-05-15 |
+| 542 | code health: update coverage badge generation workflow | ✅ Merged 2026-05-14 |
 | 454 | fix(persistence): SQL injection in metadata query | ✅ Merged 2026-04-18 (P0 security fix) |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)
@@ -132,9 +135,10 @@ All research/implementation phases are complete:
 - **CI/CD**: 6 workflows all passing, cargo-nextest, mutation testing
 - **Performance**: Exceeds all targets (17–2307×)
 
-## Planned: CSM Cascading Retrieval (v0.1.31)
+## CSM Cascading Retrieval (Completed ✅)
 
 **Integration Method**: Crate dependency (`chaotic_semantic_memory = "0.3.2"`), not source code copy.
+**Implementation**: 732 LOC, 20+ tests for full 4-tier cascade (`CascadeRetriever` behind `csm` feature flag).
 
 | Tier | Method | Source | API Calls | Status |
 |------|--------|--------|-----------|--------|
@@ -142,7 +146,7 @@ All research/implementation phases are complete:
 | 2 | HDC 10,240-bit encoding | `chaotic_semantic_memory` crate | 0 | ✅ WG-129 Complete |
 | 3 | ConceptGraph expansion | `chaotic_semantic_memory` crate | 0 | ✅ WG-130 Complete |
 | 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
-| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | 🔵 WG-131 Planned |
+| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | ✅ WG-131 Complete (732 LOC, 20+ tests) |
 
 ## Critical Issues for v0.1.22 Tag — ALL RESOLVED
 

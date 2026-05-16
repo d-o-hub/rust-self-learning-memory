@@ -122,7 +122,10 @@ jobs:
     # Let the initial task tell us to not run (currently very blunt)
     needs:
       - plan
-    if: ${{ fromJson(needs.plan.outputs.val).ci.github.artifacts_matrix.include != null && (needs.plan.outputs.publishing == 'true' || fromJson(needs.plan.outputs.val).ci.github.pr_run_mode == 'upload') }}
+    if: >-
+      ${{ fromJson(needs.plan.outputs.val).ci.github.artifacts_matrix.include != null &&
+         (needs.plan.outputs.publishing == 'true' ||
+          fromJson(needs.plan.outputs.val).ci.github.pr_run_mode == 'upload') }}
     strategy:
       fail-fast: false
       # Target platforms/runners are computed by dist in create-release.
@@ -253,7 +256,13 @@ jobs:
       - build-local-artifacts
       - build-global-artifacts
     # Only run if we're "publishing", and only if plan, local and global didn't fail (skipped is fine)
-    if: ${{ always() && needs.plan.result == 'success' && needs.plan.outputs.publishing == 'true' && (needs.build-global-artifacts.result == 'skipped' || needs.build-global-artifacts.result == 'success') && (needs.build-local-artifacts.result == 'skipped' || needs.build-local-artifacts.result == 'success') }}
+    if: >-
+      ${{ always() && needs.plan.result == 'success' &&
+         needs.plan.outputs.publishing == 'true' &&
+         (needs.build-global-artifacts.result == 'skipped' ||
+          needs.build-global-artifacts.result == 'success') &&
+         (needs.build-local-artifacts.result == 'skipped' ||
+          needs.build-local-artifacts.result == 'success') }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: "ubuntu-22.04"

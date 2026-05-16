@@ -71,11 +71,15 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint==1.35.1
 
-      - name: Run yamllint
+      - name: Run yamllint (entire repo)
+        run: |
+          yamllint -c .yamllint.yml . || (echo "❌ YAML lint failed" && exit 1)
+
+      - name: Validate GitHub Actions workflows
         run: |
           yamllint -d \
             "{extends: default, rules: {line-length: disable, indentation: {spaces: 2}}}" \
-            .github/ || (echo "❌ YAML lint failed" && exit 1)
+            .github/ || (echo "❌ GitHub Actions YAML lint failed" && exit 1)
 
   actionlint:
     name: GitHub Actions Workflow Validation

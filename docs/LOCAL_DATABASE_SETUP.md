@@ -468,6 +468,6 @@ CACHE_DB_URL=sqlite:./data/cache.db
 5. **Configure backups**: Set up automated backup schedule
 
 For more information, see:
-- [Memory CLI Documentation](../do-memory-cli/README.md)
-- [Core API Documentation](../do-memory-core/README.md)
-- [Configuration Reference](../do-memory-cli/CONFIGURATION_GUIDE.md)
+- [Memory CLI Documentation](../memory-cli/README.md)
+- [Core API Documentation](../memory-core/README.md)
+- [Configuration Reference](../memory-cli/CONFIGURATION_GUIDE.md)

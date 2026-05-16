@@ -142,6 +142,7 @@ jobs:
           echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run slow integration tests (ignored tests)
+        # yamllint disable rule:line-length
         run: |
           # Run tests marked with #[ignore]
           # These are slow integration tests that timeout in regular CI
@@ -161,6 +162,7 @@ jobs:
           cargo nextest run --all --run-ignored only \
             -E 'not (package(do-memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
+          # yamllint enable rule:line-length
           RUST_TEST_THREADS: 2
 
       - name: Cleanup artifacts after slow tests
@@ -293,6 +295,7 @@ jobs:
           echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run slow integration tests
+        # yamllint disable rule:line-length
         run: |
           # Tier 1: Run slow do-memory-core integration tests
           # Exclude test_pattern_accuracy_measurement (non-deterministic in CI)
@@ -309,6 +312,7 @@ jobs:
           cargo nextest run --all --run-ignored only \
             -E 'not (package(do-memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
+          # yamllint enable rule:line-length
           RUST_TEST_THREADS: 1
 
   # Mutation testing - validates test suite effectiveness

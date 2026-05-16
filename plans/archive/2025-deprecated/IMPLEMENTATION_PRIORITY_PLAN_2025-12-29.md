@@ -12,6 +12,7 @@
 These can be completed immediately with minimal risk and high value.
 
 ### 1. Update Documentation (1 hour)
+
 - [x] Mark v0.1.9 as COMPLETE in all status files
 - [x] Update CHANGELOG.md with gap analysis findings
 - [x] Cross-reference new gap analysis report
@@ -22,6 +23,7 @@ These can be completed immediately with minimal risk and high value.
 **Files**: CHANGELOG.md, STATUS/*.md, ROADMAPS/*.md
 
 ### 2. Add TODO Issue Tracking (30 minutes)
+
 - [x] Create GitHub issues for each P0 task
 - [x] Create GitHub issues for each P1 task
 - [x] Label by priority (P0, P1, P2, P3)
@@ -32,6 +34,7 @@ These can be completed immediately with minimal risk and high value.
 **Tool**: GitHub Issues
 
 ### 3. Document Quick Reference Guide (1 hour)
+
 - [x] Create QUICK_START_V0110.md
 - [x] Document embeddings setup (current state)
 - [x] Document known limitations
@@ -47,15 +50,17 @@ These can be completed immediately with minimal risk and high value.
 **Status**: ✅ Ready for release
 
 ### Completed ✅
-- ✅ CLI Integration (`do-memory-cli/src/commands/embedding.rs` - 467 LOC)
-- ✅ MCP Integration (`do-memory-mcp/src/mcp/tools/embeddings.rs` - 709 LOC)
-- ✅ Hierarchical Retrieval (`do-memory-core/src/memory/retrieval.rs:369-389`)
+
+- ✅ CLI Integration (`memory-cli/src/commands/embedding.rs` - 467 LOC)
+- ✅ MCP Integration (`memory-mcp/src/mcp/tools/embeddings.rs` - 709 LOC)
+- ✅ Hierarchical Retrieval (`memory-core/src/memory/retrieval.rs:369-389`)
 - ✅ All 5 providers (OpenAI, Mistral, Azure, Local, Custom)
 - ✅ Circuit breaker, caching, fallback mechanisms
-- ✅ E2E Tests (`do-memory-core/tests/semantic_retrieval_test.rs` - 10 tests)
-- ✅ CLI E2E Tests (`do-memory-cli/tests/integration/embeddings.rs`)
+- ✅ E2E Tests (`memory-core/tests/semantic_retrieval_test.rs` - 10 tests)
+- ✅ CLI E2E Tests (`memory-cli/tests/integration/embeddings.rs`)
 
 ### Release Checklist
+
 - [ ] Update CHANGELOG.md with embeddings completion
 - [ ] Tag release v0.1.10
 - [ ] Verify all tests pass
@@ -74,16 +79,16 @@ These can be completed immediately with minimal risk and high value.
 **Status**: 10 of 16 files COMPLETED ✅
 
 ### Completed ✅
-1. do-memory-mcp/src/sandbox.rs (690 → 433 + 258 LOC)
-2. do-memory-mcp/src/wasmtime_sandbox.rs (595 → 366 + 187 LOC)
-3. do-memory-core/src/reward.rs (790 → 367 + 424 LOC)
-4. do-memory-core/src/embeddings/mod.rs (774 → 422 + 312 LOC)
-5. do-memory-core/src/spatiotemporal/embeddings.rs (765 → 462 + 262 LOC)
-6. do-memory-core/src/semantic/summary.rs (727 → 5 modules)
+1. memory-mcp/src/sandbox.rs (690 → 433 + 258 LOC)
+2. memory-mcp/src/wasmtime_sandbox.rs (595 → 366 + 187 LOC)
+3. memory-core/src/reward.rs (790 → 367 + 424 LOC)
+4. memory-core/src/embeddings/mod.rs (774 → 422 + 312 LOC)
+5. memory-core/src/spatiotemporal/embeddings.rs (765 → 462 + 262 LOC)
+6. memory-core/src/semantic/summary.rs (727 → 5 modules)
 
 ### Week 1: Large Files (Top 2 - Remaining)
 
-#### Task 1: do-memory-storage-turso/src/storage.rs (10-12 hours)
+#### Task 1: memory-storage-turso/src/storage.rs (10-12 hours)
 **Current**: 2,502 LOC
 **Target**: 5 modules (~500 LOC each)
 
@@ -113,7 +118,7 @@ storage/
 - [ ] No clippy warnings
 - [ ] Documentation updated
 
-#### Task 2: do-memory-mcp/src/patterns/predictive.rs (10-12 hours)
+#### Task 2: memory-mcp/src/patterns/predictive.rs (10-12 hours)
 **Current**: 2,435 LOC
 **Target**: 5 modules (~450 LOC each)
 
@@ -132,10 +137,10 @@ predictive/
 **Estimated Effort**: 2-3 hours per file × 4 = 8-12 hours
 
 **Files**:
-1. do-memory-core/src/memory/mod.rs (1,530 LOC → 3 modules)
-2. do-memory-storage-redb/src/storage.rs (1,514 LOC → 3 modules)
-3. do-memory-mcp/src/server.rs (1,414 LOC → 3 modules)
-4. do-memory-cli/src/commands/episode.rs (1,201 LOC → 3 modules)
+1. memory-core/src/memory/mod.rs (1,530 LOC → 3 modules)
+2. memory-storage-redb/src/storage.rs (1,514 LOC → 3 modules)
+3. memory-mcp/src/server.rs (1,414 LOC → 3 modules)
+4. memory-cli/src/commands/episode.rs (1,201 LOC → 3 modules)
 
 **Validation** (After Each File):
 - [ ] File ≤ 500 LOC
@@ -335,12 +340,12 @@ predictive/
 - **Deliverable**: 0 files > 500 LOC
 - **Status**: IN PROGRESS - 10/16 files complete ✅
 - **Target Files**:
-  1. `do-memory-storage-turso/src/storage.rs` (2,502 LOC)
-  2. `do-memory-mcp/src/patterns/predictive.rs` (2,435 LOC)
-  3. `do-memory-core/src/memory/mod.rs` (1,530 LOC)
-  4. `do-memory-storage-redb/src/storage.rs` (1,514 LOC)
-  5. `do-memory-mcp/src/server.rs` (1,414 LOC)
-  6. `do-memory-cli/src/commands/episode.rs` (1,201 LOC)
+  1. `memory-storage-turso/src/storage.rs` (2,502 LOC)
+  2. `memory-mcp/src/patterns/predictive.rs` (2,435 LOC)
+  3. `memory-core/src/memory/mod.rs` (1,530 LOC)
+  4. `memory-storage-redb/src/storage.rs` (1,514 LOC)
+  5. `memory-mcp/src/server.rs` (1,414 LOC)
+  6. `memory-cli/src/commands/episode.rs` (1,201 LOC)
 
 ### Sprint 3: Code Quality (Weeks 5-7) - v0.1.12
 - **Effort**: 50-75 hours

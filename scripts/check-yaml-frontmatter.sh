@@ -2,6 +2,7 @@
 # validate-yaml-frontmatter: Check that YAML frontmatter in SKILL.md and agent .md files
 # has properly quoted description values to prevent YAML parsing errors.
 # Also checks for fragile colon patterns in other YAML fields like allowed-tools.
+# Scans: .agents/skills/, .claude/agents/, .opencode/agents/, .opencode/commands/, .rovodev/subagents/, .github/ISSUE_TEMPLATE/
 set -euo pipefail
 
 ERRORS=0
@@ -23,45 +24,70 @@ check_file() {
         
         [[ $in_frontmatter -eq 0 ]] && continue
         
-        # Check description field for unquoted colon-space
-        if [[ "$line" =~ ^description: ]]; then
-            local prefix="description: "
-            local value="${line#$prefix}"
+        # Check if line has a key: value pattern in YAML frontmatter
+        if [[ "$line" =~ ^[a-zA-Z_-]+: ]]; then
+            local key="${line%%:*}"
+            
+            # Skip if line doesn't have a value after the colon (key-only lines like 'capabilities:' for lists)
+            if [[ "$line" != *": "* ]]; then
+                continue
+            fi
+            
+            # Extract the value after 'key: '
+            local value="${line#*: }"
+            
+            # Skip blank values, numeric values, or list values
+            [[ -z "$value" ]] && continue
+            [[ "${value:0:1}" == "[" ]] && continue
+            [[ "$value" =~ ^[0-9.]+$ ]] && continue
+            
             local first_char="${value:0:1}"
-            if [[ "$first_char" != '"' && "$first_char" != "'" ]]; then
-                if echo "$value" | grep -q ': '; then
-                    echo "ERROR: $file: unquoted description contains ': ' which can cause YAML parsing errors"
-                    echo "       Fix: wrap the description value in quotes:\n       description: \"your text here\""
+            local last_char="${value: -1}"
+            
+            if [[ "$first_char" == '"' && "$last_char" == '"' ]]; then
+                continue
+            fi
+            if [[ "$first_char" == "'" && "$last_char" == "'" ]]; then
+                continue
+            fi
+            
+            # Check if the unquoted value contains colon-space (risks YAML parsing)
+            if echo "$value" | grep -q ': '; then
+                if [[ "$key" == "allowed-tools" ]] && echo "$value" | grep -qE '\([^)]*\*:\*[^)]*\)'; then
+                    echo "WARNING: $file: unquoted $key has fragile ':*' pattern"
+                    echo "       $line"
+                else
+                    echo "ERROR: $file: unquoted $key has ': ' which can cause YAML parsing errors"
+                    echo "       Fix: $key: \"$value\""
                     ERRORS=$((ERRORS + 1))
                 fi
-            fi
-            continue
-        fi
-        
-        # Check allowed-tools field for fragile colon patterns like Bash(gh *:*)
-        if [[ "$line" =~ ^allowed-tools: ]]; then
-            local at_value="${line#allowed-tools: }"
-            # Check for colons inside parentheses that are NOT followed by a space
-            # Pattern: something(*:*) where colon is not part of a space-separated list
-            if echo "$at_value" | grep -qE '\([^)]*\*:\*[^)]*\)'; then
-                echo "WARNING: $file: allowed-tools contains ':*' pattern that may break if spaces are added"
-                echo "       File: $line"
-                # Warn only, don't error - these are valid but fragile
+            elif [[ "$value" == *: ]]; then
+                # Trailing colon in a value is fragile in YAML
+                echo "WARNING: $file: unquoted $key value ends with ':' - consider quoting"
+                echo "       $line"
             fi
             continue
         fi
     done < "$file"
 }
 
-# Check all SKILL.md files
-while IFS= read -r -d '' file; do
-    check_file "$file"
-done < <(find .agents/skills -name 'SKILL.md' -type f -print0 2>/dev/null)
+# Directories to scan: [path:name_pattern]
+SCAN_DIRS=(
+    ".agents/skills:SKILL.md"
+    ".claude/agents:*.md"
+    ".opencode/agents:*.md"
+    ".opencode/commands:*.md"
+    ".rovodev/subagents:*.md"
+    ".github/ISSUE_TEMPLATE:*.md"
+)
 
-# Check all .claude/agents .md files
-while IFS= read -r -d '' file; do
-    check_file "$file"
-done < <(find .claude/agents -name '*.md' -type f -print0 2>/dev/null)
+for entry in "${SCAN_DIRS[@]}"; do
+    dir="${entry%%:*}"
+    pattern="${entry#*:}"
+    while IFS= read -r -d '' file; do
+        check_file "$file"
+    done < <(find "$dir" -name "$pattern" -type f -print0 2>/dev/null)
+done
 
 if [ "$ERRORS" -gt 0 ]; then
     echo "Found $ERRORS file(s) with invalid YAML frontmatter."

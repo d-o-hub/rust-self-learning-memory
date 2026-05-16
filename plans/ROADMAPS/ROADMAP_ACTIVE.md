@@ -208,7 +208,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 
 ## Upcoming Sprint — v0.1.23 Remediation (Complete)
 
-The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene. Full execution plan: [GOAP_EXECUTION_PLAN_v0.1.23.md](../GOAP_EXECUTION_PLAN_v0.1.23.md).
+The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene.
 
 ### P0: Feature Integrity (ADR-044)
 
@@ -347,6 +347,6 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 - **Current status**: [STATUS/CURRENT.md](../STATUS/CURRENT.md)
 - **Gap analysis**: [STATUS/GAP_ANALYSIS_LATEST.md](../STATUS/GAP_ANALYSIS_LATEST.md)
-- **Execution plans**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../archive/2026-03-consolidation/GOAP_EXECUTION_PLAN_v0.1.22.md), [GOAP_EXECUTION_PLAN_v0.1.23.md](../archive/2026-03-consolidation/GOAP_EXECUTION_PLAN_v0.1.23.md)
+- **Execution plans**: [GOAP Execution Plans](../archive/2026-03-consolidation/)
 - **Long-term vision**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
 - **ADRs**: [adr/](../adr/)

@@ -33,6 +33,7 @@
 
 pub mod assembler;
 pub mod edge;
+pub mod format;
 pub mod node;
 pub mod state;
 

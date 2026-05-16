@@ -271,10 +271,10 @@ These are potential improvements for future versions:
 
 ## 🔗 Related Documentation
 
-- [Episode Tagging Tools Guide](../do-memory-mcp/EPISODE_TAGS_TOOLS.md)
+- [Episode Tagging Tools Guide](../../../memory-mcp/EPISODE_TAGS_TOOLS.md)
 - [Episode Management Roadmap](./EPISODE_TAGGING_IMPLEMENTATION_ROADMAP.md)
 - [Feature Specification](./EPISODE_TAGGING_FEATURE_SPEC.md)
-- [Memory Core README](../do-memory-core/README.md)
+- [Memory Core README](../../../memory-core/README.md)
 
 ---
 

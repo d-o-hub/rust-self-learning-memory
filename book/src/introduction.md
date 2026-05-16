@@ -45,4 +45,4 @@ The system consists of several crates:
 - `do-memory-mcp`: MCP server
 - `do-memory-cli`: Command-line interface
 
-See the [Architecture](./architecture.md) chapter for details.
+See the [Getting Started](./getting-started.md) chapter for details.

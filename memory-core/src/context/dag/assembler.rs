@@ -1,7 +1,5 @@
-//! DAG-based context assembler (WG-134).
-//!
-//! Assembles episode context by traversing the StateDag to
-//! deduplicate shared attributes, achieving ~86% token reduction.
+//! DAG-based context assembler (WG-134) — assembles episode context by
+//! traversing StateDag to deduplicate shared attributes (~86% token reduction).
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -12,14 +10,12 @@ use super::node::StateNodeType;
 use super::state::StateDag;
 
 use crate::episode::Episode;
-use std::fmt::Write;
 use std::sync::Arc;
 
 // ── Token estimation heuristics ──
-// These constants calibrate the approximate token cost of various context
-// elements.  They are intentionally simple heuristics, not precise counters;
-// the goal is to guide deduplication decisions, not to match a specific
-// tokenizer byte-for-byte.
+// These constants calibrate the approximate token cost of context elements.
+// They are simple heuristics, not precise counters — the goal is to guide
+// deduplication decisions, not to match a specific tokenizer byte-for-byte.
 
 /// Approximate characters per token (English text, ~4 chars/token).
 const CHARS_PER_TOKEN: usize = 4;
@@ -360,12 +356,9 @@ impl DagContextAssembler {
             .sum()
     }
 
-    /// Estimate original tokens (without deduplication).
-    ///
-    /// Uses the heuristics defined in the module-level constants
-    /// (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
-    /// approximate the token cost of representing every episode's full context
-    /// without any sharing.
+    /// Estimate original tokens (without deduplication), using the module-level
+    /// heuristics (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
+    /// approximate the token cost of every episode's full context without sharing.
     fn estimate_original_tokens(&self, episodes: &[Arc<Episode>]) -> usize {
         episodes
             .iter()
@@ -384,122 +377,12 @@ impl DagContextAssembler {
     /// Format assembled context as string for prompt.
     #[must_use]
     pub fn format_for_prompt(&self, assembled: &AssembledContext) -> String {
-        match self.config.format {
-            AssemblyFormat::Compact => self.format_compact(assembled),
-            AssemblyFormat::Full => self.format_full(assembled),
-            AssemblyFormat::TokenOptimized => self.format_optimized(assembled),
-        }
-    }
-
-    /// Format in compact mode (minimal).
-    fn format_compact(&self, assembled: &AssembledContext) -> String {
-        let shared = assembled
-            .shared_context
-            .iter()
-            .map(|s| format!("{}:{}", s.node_type_name(), s.node_id))
-            .collect::<Vec<_>>()
-            .join(",");
-
-        let unique = assembled
-            .unique_context
-            .iter()
-            .map(|u| {
-                format!(
-                    "{}:{}",
-                    u.episode_id,
-                    u.task_description.chars().take(30).collect::<String>()
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("|");
-
-        format!("S:{shared}\nU:{unique}")
-    }
-
-    /// Format in full mode (verbose).
-    fn format_full(&self, assembled: &AssembledContext) -> String {
-        let mut output = String::new();
-
-        output.push_str("## Shared Context\n");
-        for item in &assembled.shared_context {
-            writeln!(
-                output,
-                "- {} = {} (shared by {} episodes)",
-                item.node_type_name(),
-                item.value,
-                item.shared_count
-            )
-            .unwrap();
-        }
-
-        output.push_str("\n## Episode Context\n");
-        for item in &assembled.unique_context {
-            writeln!(
-                output,
-                "- Episode {}: {}",
-                item.episode_id, item.task_description
-            )
-            .unwrap();
-            if !item.unique_aspects.is_empty() {
-                writeln!(output, "  Unique: {}", item.unique_aspects.join(", ")).unwrap();
-            }
-        }
-
-        output
-    }
-
-    /// Format in token-optimized mode.
-    fn format_optimized(&self, assembled: &AssembledContext) -> String {
-        let mut output = String::new();
-
-        // Shared block (one copy, referenced)
-        if !assembled.shared_context.is_empty() {
-            output.push_str("SHARED:\n");
-            for item in &assembled.shared_context {
-                writeln!(output, "{}={}", item.node_type_name(), item.value).unwrap();
-            }
-        }
-
-        // Unique per episode
-        for item in &assembled.unique_context {
-            writeln!(
-                output,
-                "EP:{}|{}",
-                item.episode_id,
-                item.task_description.chars().take(50).collect::<String>()
-            )
-            .unwrap();
-        }
-
-        output
+        super::format::format_for_prompt(self.config.format, assembled)
     }
 
     /// Calculate reduction percentage.
     #[must_use]
     pub fn reduction_percentage(&self, assembled: &AssembledContext) -> f32 {
-        if assembled.token_savings == 0 {
-            return 0.0;
-        }
-        let original = assembled.estimated_tokens + assembled.token_savings;
-        if original == 0 {
-            return 0.0;
-        }
-        (assembled.token_savings as f32 / original as f32) * 100.0
-    }
-}
-
-impl SharedContextItem {
-    /// Get human-readable type name.
-    #[must_use]
-    pub fn node_type_name(&self) -> &'static str {
-        match self.node_type {
-            StateNodeType::Language => "lang",
-            StateNodeType::Framework => "fw",
-            StateNodeType::Domain => "domain",
-            StateNodeType::TaskType => "type",
-            StateNodeType::Complexity => "complexity",
-            StateNodeType::Tag => "tag",
-            StateNodeType::Composite => "composite",
-        }
+        super::format::reduction_percentage(assembled)
     }
 }

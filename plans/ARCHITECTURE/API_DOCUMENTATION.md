@@ -1393,10 +1393,10 @@ Current version: **0.1.7**
 
 ## References
 
-- [do-memory-core Documentation](../../do-memory-core/README.md)
-- [do-memory-storage-turso Documentation](../../do-memory-storage-turso/README.md)
-- [do-memory-storage-redb Documentation](../../do-memory-storage-redb/README.md)
-- [do-memory-mcp Documentation](../../do-memory-mcp/README.md)
+- [do-memory-core Documentation](../../memory-core/README.md)
+- [do-memory-storage-turso Documentation](../../memory-storage-turso/README.md)
+- [do-memory-storage-redb Documentation](../../memory-storage-redb/README.md)
+- [do-memory-mcp Documentation](../../memory-mcp/README.md)
 - [Architecture Decision Records](../adr/)
 - Current Architecture - See ROADMAP_ACTIVE.md for current state
 

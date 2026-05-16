@@ -105,6 +105,60 @@ fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
     matrix[len1][len2]
 }
 
+/// Calculate similarity between two ToolSequence patterns
+pub(super) fn tool_sequence_similarity(
+    tools1: &[String],
+    ctx1: &TaskContext,
+    tools2: &[String],
+    ctx2: &TaskContext,
+) -> f32 {
+    let sequence_similarity = sequence_similarity(tools1, tools2);
+    let context_similarity = context_similarity(ctx1, ctx2);
+    sequence_similarity * 0.7 + context_similarity * 0.3
+}
+
+/// Calculate similarity between two DecisionPoint patterns
+pub(super) fn decision_point_similarity(
+    cond1: &str,
+    act1: &str,
+    ctx1: &TaskContext,
+    cond2: &str,
+    act2: &str,
+    ctx2: &TaskContext,
+) -> f32 {
+    let condition_sim = string_similarity(cond1, cond2);
+    let action_sim = string_similarity(act1, act2);
+    let context_sim = context_similarity(ctx1, ctx2);
+    condition_sim * 0.4 + action_sim * 0.4 + context_sim * 0.2
+}
+
+/// Calculate similarity between two ErrorRecovery patterns
+pub(super) fn error_recovery_similarity(
+    err1: &str,
+    steps1: &[String],
+    ctx1: &TaskContext,
+    err2: &str,
+    steps2: &[String],
+    ctx2: &TaskContext,
+) -> f32 {
+    let error_sim = string_similarity(err1, err2);
+    let steps_sim = sequence_similarity(steps1, steps2);
+    let context_sim = context_similarity(ctx1, ctx2);
+    error_sim * 0.4 + steps_sim * 0.4 + context_sim * 0.2
+}
+
+/// Calculate similarity between two ContextPattern patterns
+pub(super) fn context_pattern_similarity(
+    feat1: &[String],
+    rec1: &str,
+    feat2: &[String],
+    rec2: &str,
+) -> f32 {
+    let features_sim = sequence_similarity(feat1, feat2);
+    let approach_sim = string_similarity(rec1, rec2);
+    features_sim * 0.6 + approach_sim * 0.4
+}
+
 /// Calculate context similarity between two task contexts
 pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 {
     let mut score = 0.0;

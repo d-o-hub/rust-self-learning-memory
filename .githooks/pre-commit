@@ -56,7 +56,7 @@ echo "  ✅ Tests OK"
 
 # 4. Run cargo audit (skip if cargo-audit not installed)
 echo "  ├─ Running cargo audit..."
-if command -v cargo-audit &>/dev/null || cargo audit --version &>/dev/null; then
+if cargo audit --version &>/dev/null 2>&1; then
     if ! cargo audit -q 2>&1; then
         echo "  ❌ Cargo audit found vulnerabilities. Run 'cargo audit' for details."
         cargo audit

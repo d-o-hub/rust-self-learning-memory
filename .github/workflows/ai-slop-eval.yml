@@ -18,6 +18,7 @@ name: 🧪 AI Slop Detector — Eval Suite
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   eval:

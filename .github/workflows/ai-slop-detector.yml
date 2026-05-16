@@ -17,6 +17,7 @@ name: 🤖 AI Slop Issue Detector
 permissions:
   issues: write
   contents: write
+  pull-requests: write
 
 env:
   PATTERNS_FILE: .github/workflows/ai-slop-patterns.json
@@ -392,9 +393,11 @@ jobs:
             fs.writeFileSync(pf, JSON.stringify(P, null, 2));
           } catch(e) { console.warn('Stats: ' + e.message); }
           EOF
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "$PATTERNS_FILE" || true
-          git diff --cached --quiet || \
-            git commit -m "chore(ai-slop): stats #${{ github.event.issue.number }} [skip ci]"
-          git push || true
+      - name: Create Pull Request for updated AI slop stats
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(ai-slop): stats #${{ github.event.issue.number }} [skip ci]"
+          title: "chore(ai-slop): update stats for #${{ github.event.issue.number }}"
+          body: "Automated update of AI slop stats."
+          branch: "chore/update-ai-slop-stats-${{ github.event.issue.number }}"
+          labels: automated-pr

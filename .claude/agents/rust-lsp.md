@@ -1,6 +1,6 @@
 ---
 name: rust-lsp
-description: LSP-powered code navigation agent. Uses Language Server Protocol for go-to-definition, find-references, hover info. Token-efficient navigation without reading entire files. Use for precise code intelligence.
+description: "LSP-powered code navigation agent. Uses Language Server Protocol for go-to-definition, find-references, hover info. Token-efficient navigation without reading entire files. Use for precise code intelligence."
 tools: LSP, Read
 ---
 

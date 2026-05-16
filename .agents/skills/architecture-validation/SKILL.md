@@ -1,6 +1,6 @@
 ---
 name: architecture-validation
-description: Dynamically validate that the implemented codebase matches architectural decisions documented in plan files. Use when validating implementation matches planning documents, checking for architecture drift, or preparing for architecture reviews.
+description: "Dynamically validate that the implemented codebase matches architectural decisions documented in plan files. Use when validating implementation matches planning documents, checking for architecture drift, or preparing for architecture reviews."
 ---
 
 # Architecture Validation Skill

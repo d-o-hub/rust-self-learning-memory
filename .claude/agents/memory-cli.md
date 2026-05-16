@@ -1,6 +1,6 @@
 ---
 name: do-memory-cli
-description: Develop, test, and maintain the do-memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool.
+description: "Develop, test, and maintain the do-memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool."
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -551,9 +551,9 @@ sudo systemctl start do-memory-cli
 
 ## Resources
 
-- [CLI User Guide](../../do-memory-cli/CLI_USER_GUIDE.md)
-- [Configuration Guide](../../do-memory-cli/CONFIGURATION_GUIDE.md)
-- [Memory Core Documentation](../../do-memory-core/README.md)
+- [CLI User Guide](../../memory-cli/CLI_USER_GUIDE.md)
+- [Configuration Guide](../../memory-cli/CONFIGURATION_GUIDE.md)
+- [Memory Core Documentation](../../memory-core/README.md)
 - [AGENTS.md](../../AGENTS.md) - Project conventions
 
 ## Success Criteria

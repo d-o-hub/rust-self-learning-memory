@@ -1,6 +1,6 @@
 ---
 name: plan-mode
-description: Read-only planning agent. Analyzes requirements and designs implementation approach without making changes. Use for complex tasks requiring planning before implementation.
+description: "Read-only planning agent. Analyzes requirements and designs implementation approach without making changes. Use for complex tasks requiring planning before implementation."
 tools: Read, Glob, Grep, LSP
 ---
 

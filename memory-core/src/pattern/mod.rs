@@ -4,13 +4,14 @@
 
 mod heuristic;
 mod similarity;
+#[cfg(test)]
+mod tests;
 mod types;
 
 pub use heuristic::Heuristic;
 pub use types::{Pattern, PatternEffectiveness};
 
 use crate::types::TaskContext;
-use chrono::Duration;
 
 impl Pattern {
     /// Check if this pattern is relevant to a given context
@@ -108,12 +109,7 @@ impl Pattern {
                     context: ctx2,
                     ..
                 },
-            ) => {
-                let sequence_similarity = similarity::sequence_similarity(tools1, tools2);
-                let context_similarity = similarity::context_similarity(ctx1, ctx2);
-                // Weight: 70% sequence, 30% context
-                sequence_similarity * 0.7 + context_similarity * 0.3
-            }
+            ) => similarity::tool_sequence_similarity(tools1, ctx1, tools2, ctx2),
             (
                 Pattern::DecisionPoint {
                     condition: cond1,
@@ -127,13 +123,7 @@ impl Pattern {
                     context: ctx2,
                     ..
                 },
-            ) => {
-                let condition_sim = similarity::string_similarity(cond1, cond2);
-                let action_sim = similarity::string_similarity(act1, act2);
-                let context_sim = similarity::context_similarity(ctx1, ctx2);
-                // Weight: 40% condition, 40% action, 20% context
-                condition_sim * 0.4 + action_sim * 0.4 + context_sim * 0.2
-            }
+            ) => similarity::decision_point_similarity(cond1, act1, ctx1, cond2, act2, ctx2),
             (
                 Pattern::ErrorRecovery {
                     error_type: err1,
@@ -147,13 +137,7 @@ impl Pattern {
                     context: ctx2,
                     ..
                 },
-            ) => {
-                let error_sim = similarity::string_similarity(err1, err2);
-                let steps_sim = similarity::sequence_similarity(steps1, steps2);
-                let context_sim = similarity::context_similarity(ctx1, ctx2);
-                // Weight: 40% error type, 40% recovery steps, 20% context
-                error_sim * 0.4 + steps_sim * 0.4 + context_sim * 0.2
-            }
+            ) => similarity::error_recovery_similarity(err1, steps1, ctx1, err2, steps2, ctx2),
             (
                 Pattern::ContextPattern {
                     context_features: feat1,
@@ -165,12 +149,7 @@ impl Pattern {
                     recommended_approach: rec2,
                     ..
                 },
-            ) => {
-                let features_sim = similarity::sequence_similarity(feat1, feat2);
-                let approach_sim = similarity::string_similarity(rec1, rec2);
-                // Weight: 60% features, 40% approach
-                features_sim * 0.6 + approach_sim * 0.4
-            }
+            ) => similarity::context_pattern_similarity(feat1, rec1, feat2, rec2),
             _ => 0.0,
         }
     }
@@ -211,17 +190,7 @@ impl Pattern {
                     avg_latency: lat2,
                     ..
                 },
-            ) => {
-                let total_count = *oc1 + *oc2;
-                // Weighted average of success rates
-                *sr1 = (*sr1 * *oc1 as f32 + *sr2 * *oc2 as f32) / total_count as f32;
-                // Weighted average of latencies
-                *lat1 = Duration::milliseconds(
-                    (lat1.num_milliseconds() * *oc1 as i64 + lat2.num_milliseconds() * *oc2 as i64)
-                        / total_count as i64,
-                );
-                *oc1 = total_count;
-            }
+            ) => types::merge_tool_sequence(sr1, oc1, lat1, *sr2, *oc2, lat2),
             (
                 Pattern::DecisionPoint {
                     outcome_stats: stats1,
@@ -231,16 +200,7 @@ impl Pattern {
                     outcome_stats: stats2,
                     ..
                 },
-            ) => {
-                stats1.success_count += stats2.success_count;
-                stats1.failure_count += stats2.failure_count;
-                stats1.total_count += stats2.total_count;
-                // Weighted average of durations
-                stats1.avg_duration_secs = (stats1.avg_duration_secs
-                    * (stats1.total_count - stats2.total_count) as f32
-                    + stats2.avg_duration_secs * stats2.total_count as f32)
-                    / stats1.total_count as f32;
-            }
+            ) => types::merge_decision_point(stats1, stats2),
             (
                 Pattern::ErrorRecovery {
                     success_rate: sr1, ..
@@ -248,12 +208,7 @@ impl Pattern {
                 Pattern::ErrorRecovery {
                     success_rate: sr2, ..
                 },
-            ) => {
-                // Simple average for error recovery patterns
-                *sr1 = (*sr1 + *sr2) / 2.0;
-                // Keep the richer context (more tags)
-                // Context is already part of self
-            }
+            ) => types::merge_error_recovery(sr1, *sr2),
             (
                 Pattern::ContextPattern {
                     evidence: ev1,
@@ -265,233 +220,8 @@ impl Pattern {
                     success_rate: sr2,
                     ..
                 },
-            ) => {
-                let size1 = ev1.len();
-                let size2 = ev2.len();
-                // Combine evidence
-                ev1.extend_from_slice(ev2);
-                // Weighted average of success rates
-                *sr1 = (*sr1 * size1 as f32 + *sr2 * size2 as f32) / (size1 + size2) as f32;
-            }
+            ) => types::merge_context_pattern(ev1, sr1, ev2, *sr2),
             _ => {}
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::types::ComplexityLevel;
-    use uuid::Uuid;
-
-    #[test]
-    fn test_pattern_id() {
-        let pattern = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["tool1".to_string(), "tool2".to_string()],
-            context: TaskContext::default(),
-            success_rate: 0.9,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 5,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        assert!(pattern.success_rate() > 0.8);
-        assert!(pattern.context().is_some());
-    }
-
-    #[test]
-    fn test_pattern_similarity_key() {
-        let pattern1 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext {
-                domain: "web-api".to_string(),
-                ..Default::default()
-            },
-            success_rate: 0.9,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 5,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        let pattern2 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext {
-                domain: "web-api".to_string(),
-                ..Default::default()
-            },
-            success_rate: 0.8,
-            avg_latency: Duration::milliseconds(120),
-            occurrence_count: 3,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        // Same tools and domain = same key
-        assert_eq!(pattern1.similarity_key(), pattern2.similarity_key());
-    }
-
-    #[test]
-    fn test_pattern_similarity_score() {
-        let pattern1 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext {
-                domain: "web-api".to_string(),
-                language: Some("rust".to_string()),
-                ..Default::default()
-            },
-            success_rate: 0.9,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 5,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        let pattern2 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext {
-                domain: "web-api".to_string(),
-                language: Some("rust".to_string()),
-                ..Default::default()
-            },
-            success_rate: 0.8,
-            avg_latency: Duration::milliseconds(120),
-            occurrence_count: 3,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        let similarity = pattern1.similarity_score(&pattern2);
-
-        // Identical tools and context should have high similarity
-        assert!(similarity > 0.9);
-    }
-
-    #[test]
-    fn test_pattern_confidence() {
-        let pattern = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["tool1".to_string()],
-            context: TaskContext::default(),
-            success_rate: 0.8,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 16, // sqrt(16) = 4
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        let confidence = pattern.confidence();
-
-        // 0.8 * sqrt(16) = 0.8 * 4 = 3.2
-        assert!((confidence - 3.2).abs() < 0.01);
-    }
-
-    #[test]
-    fn test_pattern_merge() {
-        let mut pattern1 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext::default(),
-            success_rate: 0.8,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 10,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        let pattern2 = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec!["read".to_string(), "write".to_string()],
-            context: TaskContext::default(),
-            success_rate: 0.9,
-            avg_latency: Duration::milliseconds(200),
-            occurrence_count: 10,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        pattern1.merge_with(&pattern2);
-
-        // Should have combined occurrence count
-        match pattern1 {
-            Pattern::ToolSequence {
-                occurrence_count,
-                success_rate,
-                ..
-            } => {
-                assert_eq!(occurrence_count, 20);
-                // Average: (0.8 * 10 + 0.9 * 10) / 20 = 0.85
-                assert!((success_rate - 0.85).abs() < 0.01);
-            }
-            _ => panic!("Expected ToolSequence"),
-        }
-    }
-
-    #[test]
-    fn test_pattern_relevance() {
-        let pattern_context = TaskContext {
-            language: Some("rust".to_string()),
-            framework: None,
-            complexity: ComplexityLevel::Moderate,
-            domain: "web-api".to_string(),
-            tags: vec!["async".to_string()],
-        };
-
-        let pattern = Pattern::ToolSequence {
-            id: Uuid::new_v4(),
-            tools: vec![],
-            context: pattern_context.clone(),
-            success_rate: 0.9,
-            avg_latency: Duration::milliseconds(100),
-            occurrence_count: 1,
-            effectiveness: PatternEffectiveness::new(),
-        };
-
-        // Should match on domain
-        let query_context = TaskContext {
-            domain: "web-api".to_string(),
-            ..Default::default()
-        };
-        assert!(pattern.is_relevant_to(&query_context));
-
-        // Should match on language
-        let query_context2 = TaskContext {
-            language: Some("rust".to_string()),
-            domain: "cli".to_string(),
-            ..Default::default()
-        };
-        assert!(pattern.is_relevant_to(&query_context2));
-
-        // Should not match
-        let query_context3 = TaskContext {
-            language: Some("python".to_string()),
-            domain: "data-science".to_string(),
-            ..Default::default()
-        };
-        assert!(!pattern.is_relevant_to(&query_context3));
-    }
-
-    #[test]
-    fn test_heuristic_evidence_update() {
-        let mut heuristic = Heuristic::new(
-            "When refactoring async code".to_string(),
-            "Use tokio::spawn for CPU-intensive tasks".to_string(),
-            0.7,
-        );
-
-        assert_eq!(heuristic.evidence.sample_size, 0);
-
-        // Add successful evidence
-        heuristic.update_evidence(Uuid::new_v4(), true);
-        assert_eq!(heuristic.evidence.sample_size, 1);
-        assert_eq!(heuristic.evidence.success_rate, 1.0);
-
-        // Add failed evidence
-        heuristic.update_evidence(Uuid::new_v4(), false);
-        assert_eq!(heuristic.evidence.sample_size, 2);
-        assert_eq!(heuristic.evidence.success_rate, 0.5);
-
-        // Add more successful evidence
-        heuristic.update_evidence(Uuid::new_v4(), true);
-        assert_eq!(heuristic.evidence.sample_size, 3);
-        assert!((heuristic.evidence.success_rate - 0.666).abs() < 0.01);
     }
 }

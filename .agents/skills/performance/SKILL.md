@@ -1,6 +1,6 @@
 ---
 name: performance
-description: Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI.
+description: "Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI."
 ---
 
 # Performance Skill
@@ -9,9 +9,9 @@ Benchmarking and performance optimization for the Rust self-learning memory syst
 
 ## Quick Reference
 
-- **[Benchmarking](benchmarking.md)** - Criterion patterns and profiling
-- **[Optimization](optimization.md)** - CPU/memory optimization strategies
-- **[Profiling](profiling.md)** - perf, flamegraph, tokio-console
+- **Benchmarking** — Criterion patterns and profiling
+- **Optimization** — CPU/memory optimization strategies
+- **Profiling** — perf, flamegraph, tokio-console
 
 ## When to Use
 

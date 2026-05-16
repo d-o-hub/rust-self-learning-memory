@@ -1,6 +1,6 @@
 ---
 name: plan-gap-analyzer
-description: Analyze gaps between implementation plans (Phase 1-6) and actual codebase implementation, generating prioritized TODO lists
+description: "Analyze gaps between implementation plans (Phase 1-6) and actual codebase implementation, generating prioritized TODO lists"
 version: 1.0.0
 tools: [Read, Glob, Grep, Bash, TodoWrite]
 skills: [plan-gap-analysis, architecture-validation]

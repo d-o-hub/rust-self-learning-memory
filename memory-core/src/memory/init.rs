@@ -95,6 +95,10 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     // Initialize event broadcast channel
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
+    // Initialize CloudEvents event emitter based on config mode
+    let event_emitter: Arc<dyn crate::types::emitter::EventEmitter> =
+        config.event_emitter_mode.build();
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -113,6 +117,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         pattern_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),
         cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
+        event_emitter_semaphore: Arc::new(Semaphore::new(10)),
         capacity_manager,
         semantic_summarizer,
         spatiotemporal_index,
@@ -128,6 +133,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
+        event_emitter,
     }
 }
 
@@ -226,6 +232,10 @@ pub fn with_storage(
     // Initialize event broadcast channel
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
+    // Initialize CloudEvents event emitter based on config mode
+    let event_emitter: Arc<dyn crate::types::emitter::EventEmitter> =
+        config.event_emitter_mode.build();
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -244,6 +254,7 @@ pub fn with_storage(
         pattern_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),
         cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
+        event_emitter_semaphore: Arc::new(Semaphore::new(10)),
         capacity_manager,
         semantic_summarizer,
         spatiotemporal_index,
@@ -259,6 +270,7 @@ pub fn with_storage(
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
+        event_emitter,
     }
 }
 

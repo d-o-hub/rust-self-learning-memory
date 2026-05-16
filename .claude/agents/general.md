@@ -2,7 +2,7 @@
 name: general
 type: general-purpose
 color: "#3498DB"
-description: Versatile general-purpose agent for diverse software engineering tasks
+description: "Versatile general-purpose agent for diverse software engineering tasks"
 capabilities:
   - task_automation
   - code_modification

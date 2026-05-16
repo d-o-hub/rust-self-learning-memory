@@ -1,6 +1,6 @@
 ---
 name: cargo-check
-description: Minimal compilation verification agent. Runs cargo check only - fastest build verification. Use during active development for quick feedback without full builds. Token-efficient.
+description: "Minimal compilation verification agent. Runs cargo check only - fastest build verification. Use during active development for quick feedback without full builds. Token-efficient."
 tools: Bash
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: file-search
-description: Ultra-lightweight file finder. Token-efficient search using Glob/Grep only. Use when you know what you're looking for and just need locations. No file reading, no analysis.
+description: "Ultra-lightweight file finder. Token-efficient search using Glob/Grep only. Use when you know what you're looking for and just need locations. No file reading, no analysis."
 tools: Glob, Grep
 ---
 

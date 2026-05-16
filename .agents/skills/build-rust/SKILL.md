@@ -1,6 +1,6 @@
 ---
 name: build-rust
-description: Build Rust code with proper error handling, optimization, and workspace support for development, testing, and production
+description: "Build Rust code with proper error handling, optimization, and workspace support for development, testing, and production"
 ---
 
 # Rust Build Operations

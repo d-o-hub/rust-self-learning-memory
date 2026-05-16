@@ -184,9 +184,7 @@ fn run_cli(
 
             // Try to parse the combined JSON
             serde_json::from_str::<serde_json::Value>(&combined).map_err(|e| {
-                anyhow::anyhow!(
-                    "Failed to parse JSON: {e} - attempted to parse: '{combined}'"
-                )
+                anyhow::anyhow!("Failed to parse JSON: {e} - attempted to parse: '{combined}'")
             })?
         } else if !success {
             serde_json::json!({"error": "Command failed", "stderr": stderr, "stdout": stripped_stdout})
@@ -237,10 +235,7 @@ async fn test_episode_full_lifecycle() {
     )
     .expect("Failed to run create command");
 
-    assert!(
-        success,
-        "Create episode should succeed: {create_result:?}"
-    );
+    assert!(success, "Create episode should succeed: {create_result:?}");
     let episode_id = create_result
         .get("id")
         .and_then(|v| v.as_str())

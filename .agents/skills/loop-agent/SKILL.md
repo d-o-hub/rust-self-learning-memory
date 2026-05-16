@@ -1,6 +1,6 @@
 ---
 name: loop-agent
-description: Execute workflow agents iteratively for refinement and progressive improvement until quality criteria are met. Use when tasks require repetitive refinement, multi-iteration improvements, progressive optimization, or feedback loops until convergence.
+description: "Execute workflow agents iteratively for refinement and progressive improvement until quality criteria are met. Use when tasks require repetitive refinement, multi-iteration improvements, progressive optimization, or feedback loops until convergence."
 ---
 
 # Loop Agent Skill

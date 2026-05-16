@@ -1,6 +1,6 @@
 ---
 name: debug-troubleshoot
-description: Systematic debugging approach for Rust async code with Tokio, Turso, and redb. Use when diagnosing runtime issues, performance problems, async deadlocks, database connection issues, or panics.
+description: "Systematic debugging approach for Rust async code with Tokio, Turso, and redb. Use when diagnosing runtime issues, performance problems, async deadlocks, database connection issues, or panics."
 ---
 
 # Debug and Troubleshoot

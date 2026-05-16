@@ -30,6 +30,8 @@ proptest-arbitrary = ["proptest"]
 agentfs = []
 # Enable CSM cascading retrieval (BM25 + HDC + ConceptGraph)
 csm = ["chaotic_semantic_memory"]
+# Enable HTTP webhook EventEmitter for CloudEvents delivery
+http-emitter = ["reqwest"]
 
 [dependencies]
 # Async runtime

@@ -1,6 +1,6 @@
 ---
 name: learn
-description: Extract non-obvious session learnings into scoped AGENTS.md files
+description: "Extract non-obvious session learnings into scoped AGENTS.md files"
 category: knowledge-management
 trigger: after non-trivial task completion
 ---

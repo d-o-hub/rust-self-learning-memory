@@ -1,0 +1,100 @@
+{
+  "name": "coding-agent-domain-ontology",
+  "version": "0.1.0",
+  "description": "Domain ontology for coding-agent terminology. Maps coding concepts to synonyms and related terms for the ConceptGraph tier (Tier 3) of the cascading retrieval pipeline (WG-131).",
+  "domains": [
+    {
+      "domain": "authentication",
+      "terms": ["auth", "login", "signin", "sign-in", "oauth", "jwt", "token", "password", "credential", "2fa", "mfa", "session", "sso"],
+      "related_concepts": ["authorization", "security", "user-management", "identity"]
+    },
+    {
+      "domain": "database",
+      "terms": ["db", "sql", "query", "schema", "migration", "table", "index", "row", "column", "postgres", "mysql", "sqlite", "turso", "libsql", "connection-pool", "pool", "orm"],
+      "related_concepts": ["storage", "persistence", "caching", "data-modeling"]
+    },
+    {
+      "domain": "api",
+      "terms": ["endpoint", "route", "handler", "rest", "graphql", "rpc", "webhook", "middleware", "rate-limit", "throttle", "cors", "payload", "request", "response"],
+      "related_concepts": ["networking", "http", "server", "microservices"]
+    },
+    {
+      "domain": "testing",
+      "terms": ["test", "unit-test", "integration-test", "e2e", "mock", "fixture", "assertion", "coverage", "regression", "snapshot", "property-test", "fuzz"],
+      "related_concepts": ["quality", "ci", "validation", "debugging"]
+    },
+    {
+      "domain": "concurrency",
+      "terms": ["async", "await", "thread", "tokio", "goroutine", "channel", "mutex", "lock", "race-condition", "deadlock", "semaphore", "actor", "stream"],
+      "related_concepts": ["performance", "parallelism", "scheduling", "io"]
+    },
+    {
+      "domain": "error-handling",
+      "terms": ["error", "exception", "panic", "result", "option", "unwrap", "fallback", "retry", "circuit-breaker", "graceful-shutdown", "logging"],
+      "related_concepts": ["resilience", "monitoring", "debugging", "safety"]
+    },
+    {
+      "domain": "performance",
+      "terms": ["optimization", "benchmark", "profiling", "latency", "throughput", "memory", "cpu", "cache", "bottleneck", "hot-path", "allocation", "zero-copy"],
+      "related_concepts": ["concurrency", "io", "algorithms", "data-structures"]
+    },
+    {
+      "domain": "devops",
+      "terms": ["ci", "cd", "pipeline", "deploy", "docker", "container", "kubernetes", "k8s", "helm", "terraform", "ansible", "monitoring", "alerting"],
+      "related_concepts": ["infrastructure", "automation", "cloud", "scaling"]
+    },
+    {
+      "domain": "code-quality",
+      "terms": ["lint", "clippy", "format", "fmt", "refactor", "clean-code", "dry", "solid", "pattern", "architecture", "dependency", "coupling"],
+      "related_concepts": ["testing", "maintainability", "review", "standards"]
+    },
+    {
+      "domain": "rust-specific",
+      "terms": ["cargo", "crate", "trait", "derive", "macro", "lifetime", "borrow-checker", "ownership", "unsafe", "ffi", "wasm", "proc-macro", "feature-flag"],
+      "related_concepts": ["systems-programming", "memory-safety", "zero-cost-abstraction"]
+    },
+    {
+      "domain": "security",
+      "terms": ["vulnerability", "exploit", "xss", "csrf", "sql-injection", "cve", "patch", "audit", "harden", "sandbox", "encryption", "hashing", "salt"],
+      "related_concepts": ["authentication", "authorization", "cryptography", "compliance"]
+    },
+    {
+      "domain": "debugging",
+      "terms": ["debug", "breakpoint", "stacktrace", "backtrace", "repl", "trace", "instrument", "log-level", "verbose", "reproduce", "bisect", "root-cause"],
+      "related_concepts": ["error-handling", "testing", "monitoring", "logging"]
+    },
+    {
+      "domain": "documentation",
+      "terms": ["docs", "readme", "changelog", "api-doc", "rustdoc", "javadoc", "swagger", "openapi", "example", "tutorial", "guide", "reference"],
+      "related_concepts": ["code-quality", "onboarding", "maintainability"]
+    },
+    {
+      "domain": "build-system",
+      "terms": ["build", "compile", "link", "artifact", "binary", "library", "dylib", "staticlib", "target", "release", "debug", "profile", "opt-level"],
+      "related_concepts": ["devops", "ci", "rust-specific", "performance"]
+    }
+  ],
+  "synonym_mappings": {
+    "auth": "authentication",
+    "db": "database",
+    "endpoint": "api",
+    "test": "testing",
+    "async": "concurrency",
+    "error": "error-handling",
+    "perf": "performance",
+    "ops": "devops",
+    "lint": "code-quality",
+    "crate": "rust-specific",
+    "vuln": "security",
+    "debug": "debugging",
+    "docs": "documentation",
+    "build": "build-system",
+    "optimize": "performance",
+    "fix": "debugging",
+    "implement": "code-quality",
+    "setup": "build-system",
+    "configure": "devops",
+    "refactor": "code-quality",
+    "benchmark": "performance"
+  }
+}

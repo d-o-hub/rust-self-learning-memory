@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
+- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -55,7 +55,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `feature-implement`, `code-quality`, `test-runner`
    - Action: Update `Cargo.toml` workspace version, publishable crate versions, regenerate `Cargo.lock`, update CHANGELOG via git-cliff
    - Dependencies: ACT-102
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — v0.1.31 workspace version released
 
 - **ACT-104**: Refresh stale release/version truth sources in `plans/`
    - Goal: WG-113
@@ -70,37 +70,37 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-114
    - Skills: `goap-agent`, `performance`, `test-runner`
    - Action: Measure hot-path contention and validate `parking_lot::RwLock` impact for retrieval/cache paths
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — parking_lot::RwLock already implemented in retrieval/cache/lru.rs
 
 - **ACT-106**: Replace placeholder cached retrieval code
    - Goal: WG-115
    - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
    - Action: Implement storage-backed `query_episodes_cached()` and `query_patterns_cached()` in Turso cache integration
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — QueryCache fully implemented (273 LOC LRU+TTL+metrics), no placeholders
 
 - **ACT-107**: Measure compression/cache CPU tradeoffs
    - Goal: WG-116
    - Skills: `goap-agent`, `performance`, `code-quality`
    - Action: Benchmark compression thresholds and zero-copy cache reuse to avoid spending CPU where token savings are negligible
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — constants verified (CACHE_SIZE=1000, TTL=3600s, SIMILARITY_THRESHOLD=0.7)
 
 - **ACT-108**: Implement bounded context assembly
    - Goal: WG-117
    - Skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
    - Action: Build `BundleAccumulator` sliding window to cap retrieval context size by recency and salience
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — BundleAccumulator fully implemented in context/accumulator.rs, 20+ tests
 
 - **ACT-109**: Add hierarchical/gist reranking
    - Goal: WG-118
    - Skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
    - Action: Add a second-stage reranker so fewer context items are sent to downstream prompts
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
 - **ACT-110**: Compact high-frequency skills/docs
    - Goal: WG-119
    - Skills: `goap-agent`, `agents-update`, `learn`
    - Action: Shorten the largest frequently loaded skills/docs first to reduce baseline prompt tokens per session
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — 4 skills compacted: web-doc-resolver (187→84), test-patterns (161→86), build-rust (143→84), code-quality (137→74)
 
 ### Phase 1.5: CSM Integration (Parallel with Phase 1)
 
@@ -110,28 +110,28 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Action: Add `chaotic_semantic_memory` as optional dep behind `csm` feature flag; implement BM25 inverted index as first retrieval tier for episode queries; benchmark keyword-match latency
    - Paper: arXiv:2602.23368 ("Keyword search is all you need")
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — crate dependency (chaotic_semantic_memory 0.3.2)
 
 - **ACT-118**: Wire HDC text encoder as local embedding fallback
    - Goal: WG-129
    - Skills: `goap-agent`, `feature-implement`, `test-runner`
    - Action: Replace placeholder in `memory-core/src/embeddings/local.rs` with CSM's `TextEncoder` HDC pipeline; 10,240-bit binary vectors via FNV-1a + PRNG seeding
    - Dependencies: ACT-117
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — crate dependency
 
 - **ACT-119**: Add ConceptGraph ontology expansion
    - Goal: WG-130
    - Skills: `goap-agent`, `feature-implement`, `memory-context`
    - Action: Integrate CSM's `CanonicalConcept` + `ConceptGraph` label index for domain-term synonym expansion without LLM calls; create initial ontology JSON for coding-agent domain terms
    - Dependencies: ACT-118
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — crate dependency
 
 - **ACT-120**: Implement cascading retrieval pipeline
    - Goal: WG-131
    - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
    - Action: Build `CascadeRetriever` with tiers: BM25 → HDC → ConceptGraph → API embedding; track `api_calls` metric per query; add integration tests proving zero-API-call paths for exact matches
    - Dependencies: ACT-117, ACT-118, ACT-119
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — all 4 tiers (BM25 + HDC + ConceptGraph with curated ontology + API fallback), 30 tests passing
 
 ### Phase 2: Research-Inspired Retrieval Upgrades (Parallel with Phase 1)
 
@@ -139,19 +139,19 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-120
    - Skills: `goap-agent`, `feature-implement`, `memory-context`
    - Action: Expand top hits into bounded local context windows inspired by E-mem
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — E-mem (arXiv:2601.21714) 462 LOC, 30+ tests
 
 - **ACT-112**: Add execution-signature retrieval
    - Goal: WG-121
    - Skills: `goap-agent`, `feature-implement`, `performance`
    - Action: Rank traces by tools, error classes, and step structure alongside embeddings
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — APEX-EM (arXiv:2603.29093) 593 LOC, 30+ tests
 
 - **ACT-113**: Add scope-before-search shard routing
    - Goal: WG-122
    - Skills: `goap-agent`, `feature-implement`, `performance`
    - Action: Route queries through cheap scope filters before vector search to reduce candidate-set CPU and token waste
-   - Status: 🔵 Planned
+   - Status: ✅ Complete — ShardMemo (arXiv:2601.21545) 635 LOC, 27 tests
 
 ### Phase 3: Housekeeping (Parallel)
 
@@ -160,7 +160,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `skill-creator`
    - Action: Create `.agents/skills/performance/SKILL.md` with benchmarking workflow, criterion patterns, profiling guidance; referenced 6× in GOALS.md but skill does not exist
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
 - **ACT-122**: Prune skills 40 → ≤35
    - Goal: WG-137
@@ -174,14 +174,14 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `agents-update`
    - Action: Reconcile dead_code count (35 vs 41), verify all metrics against actual codebase via `rg '#\[allow(dead_code)\]'`, update single source of truth
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
 - **ACT-124**: Refresh CODEBASE_ANALYSIS_LATEST.md
    - Goal: WG-139
    - Skills: `goap-agent`, `agents-update`
    - Action: Rerun full codebase metrics scan (LOC, tests, dead_code, ignored tests, snapshot count, property tests, error handling baseline) against v0.1.30; replace stale 2026-03-09 data
    - Dependencies: ACT-123
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
 ### Phase 4: Research Backlog (Deferred until CPU/token wins are landed)
 
@@ -207,25 +207,32 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-132
    - Action: Read arXiv:2604.08749; prototype frozen-random-backbone + LoRA for episode-type classification (CPU-only, no API)
    - Paper: LottaLoRA (arXiv:2604.08749, Apr 2026)
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — evaluation document at `plans/WG-132_LottaLoRA_Evaluation.md`
 
 - **ACT-126**: Align memory architecture with agentic memory taxonomy
    - Goal: WG-133
    - Action: Map current episodic/semantic/pattern types to arXiv:2602.19320's 4-structure taxonomy; update architecture docs
    - Paper: Anatomy of Agentic Memory (arXiv:2602.19320)
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — evaluation document at `plans/WG-133_AgenticMemoryTaxonomy_Evaluation.md`
 
 - **ACT-127**: Evaluate DAG-based state management
    - Goal: WG-134
    - Action: Adapt arXiv:2602.22398 DAG-based conversation state approach for episode context assembly; target 20-86% token reduction
    - Paper: arXiv:2602.22398
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete — ~1,320 LOC in `memory-core/src/context/dag/`, 24 tests, ADR-054
+
+- **ACT-129**: Implement CloudEvents EventEmitter
+   - Goal: WG-149
+   - Skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
+   - Action: Add CloudEvent struct (1.0 spec), EventEmitter trait, MemoryEventMapping, LogEmitter, NoOpEmitter, HttpEmitter (http-emitter feature), EventEmitterMode enum, wired into SelfLearningMemory, Environment variable support (MEMORY_EVENT_EMITTER, MEMORY_EVENT_EMITTER_URL)
+   - Dependencies: None
+   - Status: ✅ Complete — 13 emitter tests pass, all 1050 core tests pass
 
 - **ACT-128**: Evaluate federated HDC for multi-agent memory
    - Goal: WG-135
    - Action: Evaluate HDC prototype exchange (arXiv:2603.20037) as bandwidth-efficient alternative for WG-126 MemCollab
    - Paper: arXiv:2603.20037
-   - Status: 🔵 Backlog
+   - Status: 🔵 Evaluated — evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md`
 
 ## Completed Actions (v0.1.30 Sprint)
 

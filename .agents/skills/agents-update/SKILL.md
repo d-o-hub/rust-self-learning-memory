@@ -1,6 +1,6 @@
 ---
 name: agents-update
-description: Update AGENTS.md and agent_docs/ following best practices. Use when modifying agent guidelines, adding new documentation, or restructuring agent instructions.
+description: "Update AGENTS.md and agent_docs/ following best practices. Use when modifying agent guidelines, adding new documentation, or restructuring agent instructions."
 ---
 
 # AGENTS.md Update

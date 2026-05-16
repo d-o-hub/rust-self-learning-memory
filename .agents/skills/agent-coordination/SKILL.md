@@ -1,6 +1,6 @@
 ---
 name: agent-coordination
-description: Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, hybrid, or iterative execution strategies. Use when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates.
+description: "Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, hybrid, or iterative execution strategies. Use when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates."
 ---
 
 # Agent Coordination
@@ -37,4 +37,4 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 All start simultaneously.
 ```
 
-See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agants.md)** for when to use each.
+See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agents.md)** for when to use each.

@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Git commit with enforced quality gates, proper message format, and safe push workflow
+description: "Git commit with enforced quality gates, proper message format, and safe push workflow"
 ---
 
 # Git Commit with Quality Gates

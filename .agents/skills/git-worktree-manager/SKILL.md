@@ -1,6 +1,6 @@
 ---
 name: git-worktree-manager
-description: Manage git worktrees for efficient multi-branch development. Use when creating worktrees for feature branches, organizing worktree directories, cleaning up unused worktrees, or implementing worktree-based workflows.
+description: "Manage git worktrees for efficient multi-branch development. Use when creating worktrees for feature branches, organizing worktree directories, cleaning up unused worktrees, or implementing worktree-based workflows."
 ---
 
 # Git Worktree Manager

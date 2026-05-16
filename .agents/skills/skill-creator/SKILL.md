@@ -1,6 +1,6 @@
 ---
 name: skill-creator
-description: Create new Claude Code skills with proper structure, YAML frontmatter, and best practices. Use when creating reusable knowledge modules, adding specialized guidance, or building domain-specific expertise.
+description: "Create new Claude Code skills with proper structure, YAML frontmatter, and best practices. Use when creating reusable knowledge modules, adding specialized guidance, or building domain-specific expertise."
 ---
 
 # Skill Creator

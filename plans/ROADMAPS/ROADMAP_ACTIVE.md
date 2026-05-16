@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-30 (v0.1.31 release verified)
+**Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed; plans sync)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -50,7 +50,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
 | WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
 | WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
-| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | ✅ Complete (732 LOC, 20+ tests) | 131 |
+| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | ✅ Complete (all 4 tiers, 30 tests) | 131 |
 
 ### Phase 2: Token Efficiency
 
@@ -67,7 +67,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | ✅ Complete | 120 |
 | WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
 | WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
-| WG-149 | CloudEvents EventEmitter Integration (ADR-054) | 🔵 Planned | 149 |
+| WG-149 | CloudEvents EventEmitter Integration (ADR-054) | ✅ Complete | 149 |
 
 ### P3: Backlog (Future Sprints)
 
@@ -81,9 +81,9 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
 | WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Backlog | 126 |
 | WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | 🔵 Backlog | 127 |
-| WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | 🔵 Backlog | 132 |
-| WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | 🔵 Backlog | 133 |
-| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | 🔵 Backlog | 134 |
+| WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | ✅ Complete (evaluation doc) | 132 |
+| WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | ✅ Complete (evaluation doc) | 133 |
+| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | ✅ Complete (~1,320 LOC, 24 tests, ADR-054) | 134 |
 | WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
 | WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
 | WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |
@@ -208,7 +208,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 
 ## Upcoming Sprint — v0.1.23 Remediation (Complete)
 
-The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene. Full execution plan: [GOAP_EXECUTION_PLAN_v0.1.23.md](../GOAP_EXECUTION_PLAN_v0.1.23.md).
+The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene.
 
 ### P0: Feature Integrity (ADR-044)
 
@@ -347,6 +347,6 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 - **Current status**: [STATUS/CURRENT.md](../STATUS/CURRENT.md)
 - **Gap analysis**: [STATUS/GAP_ANALYSIS_LATEST.md](../STATUS/GAP_ANALYSIS_LATEST.md)
-- **Execution plans**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../archive/2026-03-consolidation/GOAP_EXECUTION_PLAN_v0.1.22.md), [GOAP_EXECUTION_PLAN_v0.1.23.md](../archive/2026-03-consolidation/GOAP_EXECUTION_PLAN_v0.1.23.md)
+- **Execution plans**: [GOAP Execution Plans](../archive/2026-03-consolidation/)
 - **Long-term vision**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
 - **ADRs**: [adr/](../adr/)

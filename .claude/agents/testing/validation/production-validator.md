@@ -2,7 +2,7 @@
 name: production-validator
 type: validator
 color: "#4CAF50"
-description: Production validation specialist ensuring applications are fully implemented and deployment-ready
+description: "Production validation specialist ensuring applications are fully implemented and deployment-ready"
 capabilities:
   - production_validation
   - implementation_verification

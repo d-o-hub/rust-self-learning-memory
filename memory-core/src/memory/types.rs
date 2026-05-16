@@ -13,6 +13,7 @@ use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
+use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -91,6 +92,8 @@ pub struct SelfLearningMemory {
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
     #[allow(dead_code)] // API reserve: for rate limiting in future cache operations
     pub(super) cache_semaphore: Arc<Semaphore>,
+    /// Semaphore to limit concurrent CloudEvents emission tasks
+    pub(super) event_emitter_semaphore: Arc<Semaphore>,
 
     // Phase 2 (GENESIS) - Capacity management
     /// Capacity manager for episodic storage with eviction policies
@@ -145,6 +148,11 @@ pub struct SelfLearningMemory {
     // Event Broadcasting (WG-103)
     /// Event broadcast channel sender for lifecycle notifications
     pub(super) event_sender: broadcast::Sender<MemoryEvent>,
+
+    // CloudEvents EventEmitter (WG-149)
+    /// External event emitter for CloudEvents interoperability.
+    /// Uses NoOpEmitter by default (zero overhead) unless configured.
+    pub(super) event_emitter: Arc<dyn EventEmitter>,
 }
 
 impl SelfLearningMemory {
@@ -180,5 +188,47 @@ impl SelfLearningMemory {
     #[must_use]
     pub fn patterns_fallback(&self) -> &Arc<RwLock<HashMap<PatternId, Pattern>>> {
         &self.patterns_fallback
+    }
+
+    /// Emit a memory event to both internal subscribers and the external event emitter.
+    ///
+    /// This sends the event through the broadcast channel for internal subscribers
+    /// and concurrently emits it as a CloudEvent to the configured external emitter.
+    /// External emission is fire-and-forget with backpressure: if the semaphore
+    /// is exhausted the event is dropped with a warning rather than unbounded queuing.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called outside of a Tokio runtime context.
+    #[allow(dead_code)] // WG-149: wired when lifecycle methods call this instead of emit_event
+    pub(super) fn emit_event_with_cloud(&self, event: MemoryEvent) {
+        // Internal broadcast (existing behavior)
+        let _ = self.event_sender.send(event.clone());
+
+        // External CloudEvents emission with backpressure.
+        // Uses try_acquire_owned to avoid blocking — if the semaphore is
+        // exhausted the event is dropped with a logged warning instead of
+        // unbounded queuing.
+        let Ok(permit) = self.event_emitter_semaphore.clone().try_acquire_owned() else {
+            tracing::warn!(
+                "Event emitter semaphore exhausted, dropping CloudEvent for {:?}",
+                event.entity_id()
+            );
+            return;
+        };
+
+        let emitter = self.event_emitter.clone();
+        tokio::spawn(async move {
+            let cloud_event = crate::types::emitter::CloudEvent::from_memory_event(&event);
+            if let Err(e) = emitter.emit(cloud_event).await {
+                tracing::warn!(
+                    error = %e,
+                    "Failed to emit CloudEvent for {:?}",
+                    event.entity_id()
+                );
+            }
+            // Permit is dropped here, releasing the semaphore slot
+            drop(permit);
+        });
     }
 }

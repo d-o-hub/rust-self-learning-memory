@@ -187,7 +187,7 @@ All research/implementation phases are complete:
 ## Cross-References
 
 - **Gap analysis**: [GAP_ANALYSIS_LATEST.md](GAP_ANALYSIS_LATEST.md)
-- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
+- **Execution plan**: [GOAP Execution Plans](../GOAP_STATE.md)
 - **Active roadmap**: [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 - **ADRs**: [ADR Directory](../adr/)
 - **Comprehensive analysis**: [COMPREHENSIVE_ANALYSIS_2026-04-21.md](COMPREHENSIVE_ANALYSIS_2026-04-21.md)

@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed; plans sync)
+- **Last Updated**: 2026-05-16 (PR #547/#546 conflict resolution pushed; WG-131 confirmed complete)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`

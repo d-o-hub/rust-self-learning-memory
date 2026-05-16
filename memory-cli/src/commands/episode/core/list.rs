@@ -56,6 +56,9 @@ pub async fn list_episodes(
         };
     }
 
+    // Clamp limit to prevent resource exhaustion BEFORE any operations
+    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
+
     let completed_only = match status {
         Some(super::types::EpisodeStatus::Completed) => Some(true),
         _ => None,
@@ -168,9 +171,6 @@ pub async fn list_episodes(
         EpisodeSortOrder::Relevance => {}
     }
 
-    // Clamp limit to prevent resource exhaustion
-    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
-
     let total_count = episode_summaries.len();
 
     episode_summaries = episode_summaries
@@ -271,6 +271,9 @@ pub async fn list_episodes_basic(
         };
     }
 
+    // Clamp limit to prevent resource exhaustion BEFORE any operations
+    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
+
     let completed_only = match status {
         Some(super::types::EpisodeStatus::Completed) => Some(true),
         _ => None,
@@ -320,9 +323,6 @@ pub async fn list_episodes_basic(
             }
         })
         .collect();
-
-    // Clamp limit to prevent resource exhaustion
-    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
 
     episode_summaries.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     let total_count = episode_summaries.len();

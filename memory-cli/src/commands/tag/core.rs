@@ -223,6 +223,9 @@ pub async fn set_tags(
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
+    // Clamp tags to prevent resource exhaustion
+    tags.truncate(MAX_TAGS_PER_OPERATION);
+
     if dry_run {
         println!(
             "Would set {} tag(s) on episode {}: {}",

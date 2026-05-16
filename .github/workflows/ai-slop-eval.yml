@@ -18,6 +18,7 @@ name: 🧪 AI Slop Detector — Eval Suite
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   eval:
@@ -382,10 +383,11 @@ jobs:
             fs.writeFileSync('.github/eval-results.json', JSON.stringify(summary, null, 2));
             core.info('Results written to .github/eval-results.json');
 
-      - name: Commit eval results
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/eval-results.json
-          git diff --cached --quiet || git commit -m "chore(ai-slop): eval results $(date +%Y-%m-%d) [skip ci]"
-          git push || true
+      - name: Create Pull Request for updated AI slop eval results
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(ai-slop): eval results $(date +%Y-%m-%d) [skip ci]"
+          title: "chore(ai-slop): update eval results"
+          body: "Automated update of AI slop eval results."
+          branch: "chore/update-ai-slop-eval-results"
+          labels: automated-pr

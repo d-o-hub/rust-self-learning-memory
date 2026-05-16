@@ -61,7 +61,7 @@ pub use types::{
 #[allow(unused)]
 pub use core::*;
 #[allow(unused)]
-pub use jsonrpc::*;
+pub use jsonrpc::run_jsonrpc_server;
 // Always export load_oauth_config (it's available without the oauth feature)
 #[allow(unused)]
 pub use oauth::load_oauth_config;
@@ -72,6 +72,6 @@ pub use oauth::{
     check_scopes, create_www_authenticate_header, extract_bearer_token, validate_bearer_token,
 };
 #[allow(unused)]
-pub use storage::*;
+pub use storage::initialize_memory_system;
 #[allow(unused)]
 pub use types::*;

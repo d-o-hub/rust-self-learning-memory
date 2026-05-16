@@ -566,7 +566,7 @@ impl ConfigLoader {
 
 ## Cross-References
 
-- **Status**: See [CURRENT.md](./CURRENT.md) for live metrics
+- **Status**: See [CURRENT.md](../../CURRENT.md) for live metrics
 - **Phase 2**: See [IMPLEMENTATION_PHASE2.md](./IMPLEMENTATION_PHASE2.md)
 - **Configuration Details**: See [ARCHITECTURE_CORE.md](../../ARCHITECTURE/ARCHITECTURE_CORE.md)
 - **Current Status**: See [ROADMAP_ACTIVE.md](../../ROADMAPS/ROADMAP_ACTIVE.md)

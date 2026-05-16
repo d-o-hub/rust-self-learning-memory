@@ -54,7 +54,7 @@
 
 ### Sprint 1: Foundation
 
-```
+```text
 Week 1: WG-147.1 (handoff protocol) + WG-147.4 (skill audit)
 Week 2: WG-147.2 (context thresholds) + WG-147.3 (quality metrics)
 Week 3: WG-147.5 (lessons documentation)

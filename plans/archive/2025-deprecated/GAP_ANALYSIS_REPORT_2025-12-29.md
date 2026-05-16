@@ -234,10 +234,12 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 2. ⏳ **Begin P0 file splitting** - Start with memory-mcp sandbox files
 
 ### Short-term (Next 2 Weeks)
+
 1. ⏳ **Split P0 files**: memory-mcp sandbox + memory-storage
 2. ⏳ **Validate**: Tests pass, clippy clean
 
 ### Medium-term (Next 1-2 Months)
+
 1. ⏳ **Complete P1 files**: memory-core large files
 2. ⏳ **Complete P2 files**: remaining files
 3. ⏳ **Code quality improvements**: unwraps, clones

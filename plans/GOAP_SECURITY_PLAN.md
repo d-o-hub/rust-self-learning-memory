@@ -64,7 +64,7 @@
 
 ### Sprint 1: Audit
 
-```
+```text
 Week 1: WG-145.1 (dependency audit) + WG-145.2 (JWT verification)
 Week 2: WG-145.4 (rate limiting) + WG-145.5 (audit logging)
 Week 3: WG-145.3 (input validation) + WG-145.6 (gitleaks scan)

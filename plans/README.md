@@ -14,8 +14,7 @@
 | [ROADMAPS/ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md) | Active development roadmap |
 | [GOALS.md](GOALS.md) | GOAP goal index |
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
-| [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
-| [GOAP_STATE.md](GOAP_STATE.md) | Current execution plan state |
+| [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot and execution plan state |
 
 ## Architecture
 

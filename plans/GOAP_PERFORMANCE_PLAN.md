@@ -58,7 +58,7 @@
 
 ### Sprint 1: Measurement
 
-```
+```text
 Week 1: WG-146.1 (baseline benchmarks) + WG-146.2 (Turso profiling)
 Week 2: WG-146.3 (embedding analysis) + WG-146.4 (postcard review)
 Week 3: WG-146.5 (optimizations) + WG-146.6 (reporting)

@@ -17,10 +17,16 @@ fn outcome_score(episode: &Episode) -> u8 {
     }
 }
 
+/// Maximum allowed limit for episode search operations
+const MAX_SEARCH_LIMIT: usize = 1000;
+
+/// Minimum allowed limit for episode search operations
+const MIN_SEARCH_LIMIT: usize = 1;
+
 #[allow(clippy::too_many_arguments)]
 pub async fn search_episodes(
     query: String,
-    limit: usize,
+    mut limit: usize,
     _semantic: bool,
     _enable_embeddings: bool,
     _embedding_provider: Option<String>,
@@ -36,6 +42,9 @@ pub async fn search_episodes(
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_SEARCH_LIMIT, MAX_SEARCH_LIMIT);
+
     // Build filter with search mode
     let mut filter_builder = EpisodeFilter::builder().search_text(query.clone());
 

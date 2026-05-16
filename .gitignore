@@ -109,3 +109,9 @@ mcp-config-*.json
 .memory-traces/
 audit-report.json
 insights-report/
+
+# Split file artifacts (from split command)
+x??
+
+# Compiled ELF binaries in root
+debug_config

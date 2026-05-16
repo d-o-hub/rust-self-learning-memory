@@ -8,7 +8,13 @@ pub async fn handle_add_episode_tags(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: AddEpisodeTagsInput = serde_json::from_value(args)?;
+    let mut input: AddEpisodeTagsInput = serde_json::from_value(args)?;
+
+    // Clamp tags array to prevent resource exhaustion (CWE-770)
+    input
+        .tags
+        .truncate(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION);
+
     let episode_id = input.episode_id.clone();
     let tags: Vec<String> = input.tags.clone();
 
@@ -34,7 +40,13 @@ pub async fn handle_remove_episode_tags(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: RemoveEpisodeTagsInput = serde_json::from_value(args)?;
+    let mut input: RemoveEpisodeTagsInput = serde_json::from_value(args)?;
+
+    // Clamp tags array to prevent resource exhaustion (CWE-770)
+    input
+        .tags
+        .truncate(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION);
+
     let episode_id = input.episode_id.clone();
     let tags: Vec<String> = input.tags.clone();
 
@@ -60,7 +72,13 @@ pub async fn handle_set_episode_tags(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: SetEpisodeTagsInput = serde_json::from_value(args)?;
+    let mut input: SetEpisodeTagsInput = serde_json::from_value(args)?;
+
+    // Clamp tags array to prevent resource exhaustion (CWE-770)
+    input
+        .tags
+        .truncate(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION);
+
     let episode_id = input.episode_id.clone();
     let tags: Vec<String> = input.tags.clone();
 
@@ -103,7 +121,18 @@ pub async fn handle_search_episodes_by_tags(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: SearchEpisodesByTagsInput = serde_json::from_value(args)?;
+    let mut input: SearchEpisodesByTagsInput = serde_json::from_value(args)?;
+
+    // Clamp limit to prevent resource exhaustion (CWE-770)
+    if let Some(limit) = input.limit {
+        input.limit = Some(limit.clamp(
+            do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT,
+            do_memory_mcp::constants::MAX_TAG_SEARCH_LIMIT,
+        ));
+    } else {
+        input.limit = Some(do_memory_mcp::constants::DEFAULT_TAG_SEARCH_LIMIT);
+    }
+
     let tags: Vec<String> = input.tags.clone();
 
     let tools = EpisodeTagTools::new(server.memory());

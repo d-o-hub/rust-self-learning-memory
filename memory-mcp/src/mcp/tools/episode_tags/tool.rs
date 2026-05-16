@@ -325,7 +325,13 @@ impl EpisodeTagTools {
         }
 
         let require_all = input.require_all.unwrap_or(false);
-        let limit = input.limit.unwrap_or(100);
+        let limit = input
+            .limit
+            .unwrap_or(crate::constants::DEFAULT_TAG_SEARCH_LIMIT)
+            .clamp(
+                crate::constants::MIN_TAG_SEARCH_LIMIT,
+                crate::constants::MAX_TAG_SEARCH_LIMIT,
+            );
 
         // Build search criteria description
         let search_criteria = if require_all {

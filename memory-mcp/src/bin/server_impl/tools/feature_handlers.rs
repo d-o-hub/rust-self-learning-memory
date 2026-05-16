@@ -13,7 +13,14 @@ pub async fn handle_search_patterns(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: SearchPatternsInput = serde_json::from_value(args)?;
+    let mut input: SearchPatternsInput = serde_json::from_value(args)?;
+
+    // Clamp limit to prevent resource exhaustion (CWE-770)
+    input.limit = input.limit.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_SEARCH_LIMIT,
+    );
+
     let domain = input.domain.clone();
 
     // Access memory through the server's memory field
@@ -39,7 +46,14 @@ pub async fn handle_recommend_patterns(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
-    let input: RecommendPatternsInput = serde_json::from_value(args)?;
+    let mut input: RecommendPatternsInput = serde_json::from_value(args)?;
+
+    // Clamp limit to prevent resource exhaustion (CWE-770)
+    input.limit = input.limit.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_RECOMMEND_LIMIT,
+    );
+
     let domain = input.domain.clone();
 
     // Access memory through the server's memory field
@@ -93,7 +107,15 @@ pub async fn handle_recommend_playbook(
         _ => do_memory_core::TaskType::CodeGeneration,
     };
 
-    let max_steps = args.get("max_steps").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
+    let max_steps = args
+        .get("max_steps")
+        .and_then(|v| v.as_u64())
+        .map(|v| v as usize)
+        .unwrap_or(do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS)
+        .clamp(
+            do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+            do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+        );
 
     let language = args
         .get("language")

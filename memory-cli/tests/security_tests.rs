@@ -497,6 +497,57 @@ batch_size = 10
     }
 
     #[test]
+    fn test_cli_input_bounds_clamping_limit() {
+        let harness = CliHarness::new();
+
+        // Test that very large limit values get clamped to safe maximums
+        let oversized_limits = vec!["999999", "999999999", "18446744073709551615"];
+
+        for limit in &oversized_limits {
+            let mut result = harness.execute(["episode", "list", "--limit", limit]);
+            match result.output() {
+                Ok(output) => {
+                    // Should either:
+                    // - Succeed (limit clamped)
+                    // - Fail due to missing storage features (not due to panics)
+                    assert!(
+                        output.status.code().is_some(),
+                        "Limit '{}' caused crash (SIGTERM/panic)",
+                        limit
+                    );
+                }
+                Err(_) => {
+                    // Argument parsing may reject extremely large numbers
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_cli_search_limit_bounds() {
+        let harness = CliHarness::new();
+
+        // Test that search limit values are handled safely
+        let search_limits = vec!["0", "999999", "999999999"];
+
+        for limit in &search_limits {
+            let mut result = harness.execute(["episode", "search", "--limit", limit, "test"]);
+            match result.output() {
+                Ok(output) => {
+                    assert!(
+                        output.status.code().is_some(),
+                        "Search limit '{}' caused crash (SIGTERM/panic)",
+                        limit
+                    );
+                }
+                Err(_) => {
+                    // Argument parsing may reject some inputs
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_large_input_size_limits() {
         let harness = CliHarness::new();
 

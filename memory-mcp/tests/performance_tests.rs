@@ -48,16 +48,15 @@ async fn benchmark_statistical_analysis() {
 
         let output = result.unwrap();
         println!(
-            "Statistical analysis size {}: {}ms",
-            size, output.performance.total_time_ms
+            "Statistical analysis size {size}: {}ms",
+            output.performance.total_time_ms
         );
 
         // Performance target: < 500ms for reasonable sizes
         if size <= 100 {
             assert!(
                 duration.as_millis() < 500,
-                "Analysis too slow for size {}: {}ms",
-                size,
+                "Analysis too slow for size {size}: {}ms",
                 duration.as_millis()
             );
         }

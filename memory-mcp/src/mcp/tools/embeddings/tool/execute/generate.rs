@@ -20,6 +20,16 @@ impl EmbeddingTools {
 
         info!("Generating embedding for text ({} chars)", input.text.len());
 
+        // Validate text length to prevent resource exhaustion (CWE-770)
+        if input.text.len() > crate::constants::MAX_EMBEDDING_TEXT_LEN {
+            return Err(anyhow::anyhow!(
+                "Text length {} exceeds maximum {} bytes ({}KB)",
+                input.text.len(),
+                crate::constants::MAX_EMBEDDING_TEXT_LEN,
+                crate::constants::MAX_EMBEDDING_TEXT_LEN / 1024
+            ));
+        }
+
         // Check if semantic_service is available
         if let Some(semantic_service) = self.memory.semantic_service() {
             // Generate the embedding
@@ -101,10 +111,15 @@ impl EmbeddingTools {
             let provider = format!("{:?}", config.provider);
 
             // Search for similar episodes using the embedding directly
+            let clamped_limit = input.limit.clamp(
+                crate::constants::MIN_QUERY_LIMIT,
+                crate::constants::MAX_QUERY_LIMIT,
+            );
+
             let similar_episodes = semantic_service
                 .find_episodes_by_embedding(
                     input.embedding.clone(),
-                    input.limit,
+                    clamped_limit,
                     input.similarity_threshold,
                 )
                 .await

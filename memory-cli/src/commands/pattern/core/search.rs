@@ -6,13 +6,19 @@ use do_memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext};
 use serde::{Deserialize, Serialize};
 
 /// Search for patterns semantically similar to a query
+/// Maximum allowed limit for pattern search operations
+const MAX_SEARCH_LIMIT: usize = 100;
+
+/// Minimum allowed limit for pattern search operations
+const MIN_SEARCH_LIMIT: usize = 1;
+
 #[allow(clippy::too_many_arguments)]
 pub async fn search_patterns(
     memory: &SelfLearningMemory,
     query: &str,
     domain: &str,
     tags: Vec<String>,
-    limit: usize,
+    mut limit: usize,
     min_relevance: f32,
     filter_by_domain: bool,
     format: OutputFormat,
@@ -25,6 +31,9 @@ pub async fn search_patterns(
         complexity: ComplexityLevel::Moderate,
         tags,
     };
+
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_SEARCH_LIMIT, MAX_SEARCH_LIMIT);
 
     // Build config
     let config = do_memory_core::memory::SearchConfig {
@@ -124,7 +133,7 @@ pub async fn recommend_patterns(
     task_description: &str,
     domain: &str,
     tags: Vec<String>,
-    limit: usize,
+    mut limit: usize,
     format: OutputFormat,
 ) -> Result<()> {
     // Build context
@@ -135,6 +144,9 @@ pub async fn recommend_patterns(
         complexity: ComplexityLevel::Moderate,
         tags,
     };
+
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_SEARCH_LIMIT, 50); // Max 50 recommendations
 
     // Execute recommendation
     let results = memory

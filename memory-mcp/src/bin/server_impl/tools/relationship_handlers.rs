@@ -199,7 +199,18 @@ pub async fn handle_find_related_episodes(
     }
 
     let client_id_str = get_client_id(&args);
-    let input: FindRelatedEpisodesInput = serde_json::from_value(args)?;
+    let mut input: FindRelatedEpisodesInput = serde_json::from_value(args)?;
+
+    // Clamp limit to prevent resource exhaustion (CWE-770)
+    if let Some(limit) = input.limit {
+        input.limit = Some(limit.clamp(
+            do_memory_mcp::constants::MIN_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT,
+        ));
+    } else {
+        input.limit = Some(do_memory_mcp::constants::DEFAULT_FIND_RELATED_LIMIT);
+    }
+
     let episode_id = input.episode_id.clone();
 
     let tools = EpisodeRelationshipTools::new(server.memory());
@@ -303,7 +314,11 @@ pub async fn handle_get_dependency_graph(
     }
 
     let client_id_str = get_client_id(&args);
-    let input: DependencyGraphInput = serde_json::from_value(args)?;
+    let mut input: DependencyGraphInput = serde_json::from_value(args)?;
+
+    // Clamp depth to prevent resource exhaustion (CWE-770)
+    input.clamp_bounds();
+
     let episode_id = input.episode_id.clone();
 
     let tools = EpisodeRelationshipTools::new(server.memory());

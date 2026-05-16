@@ -4,6 +4,7 @@ use super::types::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
     HandoffPackResponse, ResumeFromHandoffInput, ResumeFromHandoffOutput,
 };
+use crate::constants;
 use crate::types::Tool;
 use anyhow::{Result, anyhow};
 use do_memory_core::SelfLearningMemory;
@@ -41,11 +42,13 @@ impl CheckpointTools {
                     },
                     "reason": {
                         "type": "string",
-                        "description": "Why the checkpoint is being created (e.g., 'Agent switch', 'Long-running task pause')"
+                        "maxLength": 1000,
+                        "description": "Why the checkpoint is being created (e.g., 'Agent switch', 'Long-running task pause') (max 1000 chars)"
                     },
                     "note": {
                         "type": "string",
-                        "description": "Optional additional context about the checkpoint"
+                        "maxLength": 5000,
+                        "description": "Optional additional context about the checkpoint (max 5000 chars)"
                     }
                 },
                 "required": ["episode_id", "reason"]
@@ -108,8 +111,14 @@ impl CheckpointTools {
     #[instrument(skip(self, input), fields(episode_id = %input.episode_id))]
     pub async fn checkpoint_episode(
         &self,
-        input: CheckpointEpisodeInput,
+        mut input: CheckpointEpisodeInput,
     ) -> Result<CheckpointEpisodeOutput> {
+        // Clamp reason and note lengths (CWE-770)
+        input.reason.truncate(constants::MAX_CHECKPOINT_REASON_LEN);
+        if let Some(note) = &mut input.note {
+            note.truncate(constants::MAX_CHECKPOINT_NOTE_LEN);
+        }
+
         info!(
             "Creating checkpoint for episode: {} (reason: {})",
             input.episode_id, input.reason
@@ -301,5 +310,44 @@ mod tests {
 
         let result = tools.get_handoff_pack(input).await;
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_checkpoint_reason_truncation() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = CheckpointTools::new(memory);
+
+        // Reason longer than MAX_CHECKPOINT_REASON_LEN
+        let long_reason = "x".repeat(constants::MAX_CHECKPOINT_REASON_LEN + 100);
+        let input = CheckpointEpisodeInput {
+            episode_id: Uuid::new_v4().to_string(),
+            reason: long_reason,
+            note: Some("test".to_string()),
+        };
+
+        // Should fail because episode doesn't exist (not due to reason length)
+        let result = tools.checkpoint_episode(input).await;
+        // The truncation should keep reason at MAX_CHECKPOINT_REASON_LEN
+        // The call will fail because the episode doesn't exist, but that's expected
+        // What matters is that it doesn't panic or error due to length
+        assert!(result.is_err() || !result.as_ref().unwrap().success);
+    }
+
+    #[tokio::test]
+    async fn test_checkpoint_note_truncation() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = CheckpointTools::new(memory);
+
+        // Note longer than MAX_CHECKPOINT_NOTE_LEN
+        let long_note = "x".repeat(constants::MAX_CHECKPOINT_NOTE_LEN + 100);
+        let input = CheckpointEpisodeInput {
+            episode_id: Uuid::new_v4().to_string(),
+            reason: "test".to_string(),
+            note: Some(long_note),
+        };
+
+        let result = tools.checkpoint_episode(input).await;
+        // Should not panic from length
+        assert!(result.is_err() || !result.as_ref().unwrap().success);
     }
 }

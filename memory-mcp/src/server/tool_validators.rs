@@ -21,7 +21,8 @@ pub fn add_episode_tags_params() -> Value {
             "tags": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Tags to add"
+                "maxItems": 100,
+                "description": "Tags to add (max 100)"
             }
         },
         "required": ["episode_id", "tags"]
@@ -40,7 +41,8 @@ pub fn remove_episode_tags_params() -> Value {
             "tags": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Tags to remove"
+                "maxItems": 100,
+                "description": "Tags to remove (max 100)"
             }
         },
         "required": ["episode_id", "tags"]
@@ -59,7 +61,8 @@ pub fn set_episode_tags_params() -> Value {
             "tags": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "New tags to set (replaces all existing)"
+                "maxItems": 100,
+                "description": "New tags to set - max 100 (replaces all existing)"
             }
         },
         "required": ["episode_id", "tags"]
@@ -88,7 +91,8 @@ pub fn search_episodes_by_tags_params() -> Value {
             "tags": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Tags to search for"
+                "maxItems": 100,
+                "description": "Tags to search for (max 100)"
             },
             "require_all": {
                 "type": "boolean",
@@ -96,6 +100,8 @@ pub fn search_episodes_by_tags_params() -> Value {
             },
             "limit": {
                 "type": "integer",
+                "minimum": 1,
+                "maximum": 1000,
                 "description": "Maximum number of results. Default: 100"
             }
         },
@@ -204,6 +210,7 @@ pub fn find_related_episodes_params() -> Value {
             "limit": {
                 "type": "integer",
                 "minimum": 1,
+                "maximum": 100,
                 "default": 10,
                 "description": "Maximum number of results"
             },

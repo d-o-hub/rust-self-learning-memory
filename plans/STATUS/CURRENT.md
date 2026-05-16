@@ -73,7 +73,7 @@ No open issues — all closed.
 
 | # | Title | Status |
 |---|-------|--------|
-| 549 | docs(plans): sync CURRENT.md and GOAP_STATE.md to 2026-05-16 | ✅ Merged 2026-05-16 |
+| — | No open PRs | ✅ All merged |
 
 ### Recently Merged PRs
 
@@ -163,7 +163,7 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features, verified 2026-04-22) |
+| `#[allow(dead_code)]` (prod src) | 38 | ≤25 | ⚠️ Over (API reserves/future features, verified 2026-05-16) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

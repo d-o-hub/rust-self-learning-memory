@@ -1,7 +1,5 @@
-//! DAG-based context assembler (WG-134).
-//!
-//! Assembles episode context by traversing the StateDag to
-//! deduplicate shared attributes, achieving ~86% token reduction.
+//! DAG-based context assembler (WG-134) — assembles episode context by
+//! traversing StateDag to deduplicate shared attributes (~86% token reduction).
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -16,10 +14,9 @@ use std::fmt::Write;
 use std::sync::Arc;
 
 // ── Token estimation heuristics ──
-// These constants calibrate the approximate token cost of various context
-// elements.  They are intentionally simple heuristics, not precise counters;
-// the goal is to guide deduplication decisions, not to match a specific
-// tokenizer byte-for-byte.
+// These constants calibrate the approximate token cost of context elements.
+// They are simple heuristics, not precise counters — the goal is to guide
+// deduplication decisions, not to match a specific tokenizer byte-for-byte.
 
 /// Approximate characters per token (English text, ~4 chars/token).
 const CHARS_PER_TOKEN: usize = 4;
@@ -360,12 +357,9 @@ impl DagContextAssembler {
             .sum()
     }
 
-    /// Estimate original tokens (without deduplication).
-    ///
-    /// Uses the heuristics defined in the module-level constants
-    /// (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
-    /// approximate the token cost of representing every episode's full context
-    /// without any sharing.
+    /// Estimate original tokens (without deduplication), using the module-level
+    /// heuristics (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
+    /// approximate the token cost of every episode's full context without sharing.
     fn estimate_original_tokens(&self, episodes: &[Arc<Episode>]) -> usize {
         episodes
             .iter()

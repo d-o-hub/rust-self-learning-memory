@@ -10,16 +10,30 @@
 //! - bounds_tests: input size limits, clamping, large input handling
 //! - validation_tests: argument validation, unicode handling
 
-// Integration tests are separate crate roots and don't inherit .clippy.toml settings
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::expect_used)]
-#![allow(clippy::manual_let_else)]
-#![allow(clippy::single_match_else)]
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::unreadable_literal)]
+// Clippy allows are scoped to each submodule rather than crate-wide
+// (coderabbitai: address lints individually or scope to specific items)
 
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod bounds_tests;
+
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::uninlined_format_args)]
 mod config_tests;
+
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::single_match_else,
+    clippy::uninlined_format_args
+)]
 mod injection_tests;
+
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod path_traversal_tests;
+
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::excessive_nesting,
+    clippy::single_match_else
+)]
 mod validation_tests;

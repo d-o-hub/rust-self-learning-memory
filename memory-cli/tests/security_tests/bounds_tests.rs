@@ -1,6 +1,7 @@
 //! Input bounds and size limit tests.
 
 use do_memory_cli::test_utils::CliHarness;
+use std::io::ErrorKind;
 
 #[cfg(test)]
 mod bounds_tests {
@@ -21,13 +22,19 @@ mod bounds_tests {
                     // - Succeed (limit clamped)
                     // - Fail due to missing storage features (not due to panics)
                     assert!(
-                        output.status.code().is_some(),
-                        "Limit '{}' caused crash (SIGTERM/panic)",
+                        !output.status.success(),
+                        "Limit '{}' should produce non-zero exit without storage",
                         limit
                     );
                 }
-                Err(_) => {
-                    // Argument parsing may reject extremely large numbers
+                Err(e) => {
+                    // Accept spawn failures (argument list too long on some platforms)
+                    assert!(
+                        matches!(e.kind(), ErrorKind::NotFound | ErrorKind::PermissionDenied),
+                        "Unexpected error kind {:?} for limit '{}'",
+                        e.kind(),
+                        limit
+                    );
                 }
             }
         }
@@ -45,13 +52,19 @@ mod bounds_tests {
             match result.output() {
                 Ok(output) => {
                     assert!(
-                        output.status.code().is_some(),
-                        "Search limit '{}' caused crash (SIGTERM/panic)",
+                        !output.status.success(),
+                        "Search limit '{}' should produce non-zero exit without storage",
                         limit
                     );
                 }
-                Err(_) => {
-                    // Argument parsing may reject some inputs
+                Err(e) => {
+                    // Accept spawn failures (argument list too long on some platforms)
+                    assert!(
+                        matches!(e.kind(), ErrorKind::NotFound | ErrorKind::PermissionDenied),
+                        "Unexpected error kind {:?} for search limit '{}'",
+                        e.kind(),
+                        limit
+                    );
                 }
             }
         }
@@ -68,11 +81,15 @@ mod bounds_tests {
         match result.output() {
             Ok(output) => {
                 // If command spawned, should fail due to missing features
-                assert!(output.status.code().is_some());
+                assert!(!output.status.success());
             }
-            Err(_) => {
-                // Command failed to spawn due to argument list too long on Windows
-                // This is acceptable security behavior for very large inputs
+            Err(e) => {
+                // Command failed to spawn due to argument list too long on Windows — acceptable
+                assert!(
+                    matches!(e.kind(), ErrorKind::NotFound | ErrorKind::PermissionDenied),
+                    "Unexpected error kind {:?} for large input",
+                    e.kind()
+                );
             }
         }
     }

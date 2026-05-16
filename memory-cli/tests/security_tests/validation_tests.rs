@@ -87,10 +87,10 @@ mod validation_tests {
                         }
                     };
 
-                    // Should fail safely with validation error
+                    // Should fail safely with non-success exit code
                     assert!(
-                        output.status.code().is_some(),
-                        "Invalid arg '{}' in command {:?} caused crash",
+                        !output.status.success(),
+                        "Invalid arg '{}' in command {:?} should fail (got success instead)",
                         arg_value,
                         cmd
                     );

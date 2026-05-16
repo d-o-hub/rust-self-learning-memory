@@ -20,7 +20,7 @@ mod path_traversal_tests {
             "../../../../root/.ssh/id_rsa",
         ];
 
-        for _path in &traversal_attempts {
+        for path in &traversal_attempts {
             // Test with config file path
             let temp_dir = TempDir::new().unwrap();
             let safe_config = temp_dir.path().join("config.toml");
@@ -46,7 +46,7 @@ batch_size = 10
             let mut cmd =
                 Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&safe_config);
-            cmd.args(["episode", "create", "test task"]);
+            cmd.args(["episode", "create", path]);
 
             // Should not crash or access unauthorized paths
             cmd.assert().failure(); // Fails due to missing turso feature, not path issues

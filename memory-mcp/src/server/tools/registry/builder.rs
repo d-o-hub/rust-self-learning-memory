@@ -147,7 +147,8 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
                     "tags": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Additional context tags",
+                        "maxItems": 100,
+                        "description": "Additional context tags (max 100)",
                         "default": []
                     }
                 },

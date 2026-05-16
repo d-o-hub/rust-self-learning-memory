@@ -84,6 +84,8 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     "min_success_rate": {
                         "type": "number",
                         "default": 0.7,
+                        "minimum": 0.0,
+                        "maximum": 1.0,
                         "description": "Minimum success rate for patterns (0.0-1.0)"
                     },
                     "limit": {
@@ -133,7 +135,8 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                     "tags": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Optional context tags"
+                        "maxItems": 32,
+                        "description": "Optional context tags (max 32)"
                     }
                 },
                 "required": ["task_description", "domain", "task_type"]

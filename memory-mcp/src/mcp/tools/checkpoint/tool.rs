@@ -113,10 +113,16 @@ impl CheckpointTools {
         &self,
         mut input: CheckpointEpisodeInput,
     ) -> Result<CheckpointEpisodeOutput> {
-        // Clamp reason and note lengths (CWE-770)
-        input.reason.truncate(constants::MAX_CHECKPOINT_REASON_LEN);
+        // UTF-8 safe truncation: find nearest char boundary at or before the limit
+        if input.reason.len() > constants::MAX_CHECKPOINT_REASON_LEN {
+            let boundary = input.reason.floor_char_boundary(constants::MAX_CHECKPOINT_REASON_LEN);
+            input.reason.truncate(boundary);
+        }
         if let Some(note) = &mut input.note {
-            note.truncate(constants::MAX_CHECKPOINT_NOTE_LEN);
+            if note.len() > constants::MAX_CHECKPOINT_NOTE_LEN {
+                let boundary = note.floor_char_boundary(constants::MAX_CHECKPOINT_NOTE_LEN);
+                note.truncate(boundary);
+            }
         }
 
         info!(

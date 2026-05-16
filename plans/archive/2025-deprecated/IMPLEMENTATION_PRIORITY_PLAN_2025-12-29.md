@@ -12,6 +12,7 @@
 These can be completed immediately with minimal risk and high value.
 
 ### 1. Update Documentation (1 hour)
+
 - [x] Mark v0.1.9 as COMPLETE in all status files
 - [x] Update CHANGELOG.md with gap analysis findings
 - [x] Cross-reference new gap analysis report
@@ -22,6 +23,7 @@ These can be completed immediately with minimal risk and high value.
 **Files**: CHANGELOG.md, STATUS/*.md, ROADMAPS/*.md
 
 ### 2. Add TODO Issue Tracking (30 minutes)
+
 - [x] Create GitHub issues for each P0 task
 - [x] Create GitHub issues for each P1 task
 - [x] Label by priority (P0, P1, P2, P3)
@@ -32,6 +34,7 @@ These can be completed immediately with minimal risk and high value.
 **Tool**: GitHub Issues
 
 ### 3. Document Quick Reference Guide (1 hour)
+
 - [x] Create QUICK_START_V0110.md
 - [x] Document embeddings setup (current state)
 - [x] Document known limitations
@@ -47,6 +50,7 @@ These can be completed immediately with minimal risk and high value.
 **Status**: ✅ Ready for release
 
 ### Completed ✅
+
 - ✅ CLI Integration (`memory-cli/src/commands/embedding.rs` - 467 LOC)
 - ✅ MCP Integration (`memory-mcp/src/mcp/tools/embeddings.rs` - 709 LOC)
 - ✅ Hierarchical Retrieval (`memory-core/src/memory/retrieval.rs:369-389`)
@@ -56,6 +60,7 @@ These can be completed immediately with minimal risk and high value.
 - ✅ CLI E2E Tests (`memory-cli/tests/integration/embeddings.rs`)
 
 ### Release Checklist
+
 - [ ] Update CHANGELOG.md with embeddings completion
 - [ ] Tag release v0.1.10
 - [ ] Verify all tests pass

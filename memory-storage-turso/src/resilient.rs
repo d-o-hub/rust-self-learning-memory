@@ -148,9 +148,22 @@ impl ResilientStorage {
             return Ok(false);
         }
 
-        // Check actual storage health through circuit breaker
+        self.circuit_call(|s| async move { s.health_check().await }).await
+    }
+
+    /// Helper to reduce circuit-breaker boilerplate in StorageBackend methods
+    async fn circuit_call<F, Fut, T>(&self, op: F) -> Result<T>
+    where
+        F: FnOnce(Arc<TursoStorage>) -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = Result<T>> + Send,
+        T: Send + 'static,
+    {
+        let storage = Arc::clone(&self.storage);
         self.circuit_breaker
-            .call(|| async { self.storage.health_check().await })
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                op(storage)
+            })
             .await
     }
 }
@@ -158,83 +171,34 @@ impl ResilientStorage {
 #[async_trait]
 impl StorageBackend for ResilientStorage {
     async fn store_episode(&self, episode: &Episode) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
         let episode = episode.clone();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_episode(&episode).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_episode(&episode).await }).await
     }
 
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_episode(id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_episode(id).await }).await
     }
 
     async fn delete_episode(&self, id: Uuid) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.delete_episode(id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.delete_episode(id).await }).await
     }
 
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
         let pattern = pattern.clone();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_pattern(&pattern).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_pattern(&pattern).await }).await
     }
 
     async fn get_pattern(&self, id: do_memory_core::episode::PatternId) -> Result<Option<Pattern>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_pattern(id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_pattern(id).await }).await
     }
 
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
         let heuristic = heuristic.clone();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_heuristic(&heuristic).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_heuristic(&heuristic).await }).await
     }
 
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_heuristic(id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_heuristic(id).await }).await
     }
 
     async fn query_episodes_since(
@@ -242,14 +206,7 @@ impl StorageBackend for ResilientStorage {
         since: chrono::DateTime<chrono::Utc>,
         limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.query_episodes_since(since, limit).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.query_episodes_since(since, limit).await }).await
     }
 
     async fn query_episodes_by_metadata(
@@ -258,166 +215,72 @@ impl StorageBackend for ResilientStorage {
         value: &str,
         limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        let storage = Arc::clone(&self.storage);
-        let key_string = key.to_string();
-        let value_string = value.to_string();
-        let limit_param = limit;
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                let key_string = key_string;
-                let value_string = value_string;
-                async move {
-                    storage
-                        .query_episodes_by_metadata(&key_string, &value_string, limit_param)
-                        .await
-                }
-            })
-            .await
+        let key = key.to_string();
+        let value = value.to_string();
+        self.circuit_call(move |s| {
+            let key = key;
+            let value = value;
+            async move { s.query_episodes_by_metadata(&key, &value, limit).await }
+        }).await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
-        let id_string = id.to_string();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_embedding(&id_string, embedding).await }
-            })
-            .await
+        let id = id.to_string();
+        self.circuit_call(move |s| async move { s.store_embedding(&id, embedding).await }).await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
-        let storage = Arc::clone(&self.storage);
-        let id_string = id.to_string();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                let id = id_string;
-                async move { storage.get_embedding(&id).await }
-            })
-            .await
+        let id = id.to_string();
+        self.circuit_call(move |s| async move { s.get_embedding(&id).await }).await
     }
 
     async fn delete_embedding(&self, id: &str) -> Result<bool> {
-        let storage = Arc::clone(&self.storage);
-        let id_string = id.to_string();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                let id = id_string;
-                async move { storage.delete_embedding(&id).await }
-            })
-            .await
+        let id = id.to_string();
+        self.circuit_call(move |s| async move { s.delete_embedding(&id).await }).await
     }
 
     async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_embeddings_batch(embeddings).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_embeddings_batch(embeddings).await }).await
     }
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        let storage = Arc::clone(&self.storage);
-        let ids_vec = ids.to_vec();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                let ids = ids_vec;
-                async move { storage.get_embeddings_batch(&ids).await }
-            })
-            .await
+        let ids = ids.to_vec();
+        self.circuit_call(move |s| async move { s.get_embeddings_batch(&ids).await }).await
     }
 
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
         let session = session.clone();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_recommendation_session(&session).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_recommendation_session(&session).await }).await
     }
 
     async fn get_recommendation_session(
         &self,
         session_id: Uuid,
     ) -> Result<Option<RecommendationSession>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_recommendation_session(session_id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_recommendation_session(session_id).await }).await
     }
 
     async fn get_recommendation_session_for_episode(
         &self,
         episode_id: Uuid,
     ) -> Result<Option<RecommendationSession>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move {
-                    storage
-                        .get_recommendation_session_for_episode(episode_id)
-                        .await
-                }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_recommendation_session_for_episode(episode_id).await }).await
     }
 
     async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
         let feedback = feedback.clone();
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.store_recommendation_feedback(&feedback).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.store_recommendation_feedback(&feedback).await }).await
     }
 
     async fn get_recommendation_feedback(
         &self,
         session_id: Uuid,
     ) -> Result<Option<RecommendationFeedback>> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_recommendation_feedback(session_id).await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_recommendation_feedback(session_id).await }).await
     }
 
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.get_recommendation_stats().await }
-            })
-            .await
+        self.circuit_call(move |s| async move { s.get_recommendation_stats().await }).await
     }
 }
 

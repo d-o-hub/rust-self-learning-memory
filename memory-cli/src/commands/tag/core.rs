@@ -124,7 +124,7 @@ pub async fn add_tags(
     let tags_before = memory.get_episode_tags(uuid).await?;
     let before_count = tags_before.len();
 
-    // Add tags (note: color is currently informational only - stored in metadata would require storage changes)
+    // Add tags
     memory.add_episode_tags(uuid, tags).await?;
 
     // Get updated tags
@@ -330,13 +330,10 @@ pub async fn list_all_tags(
 
 /// Maximum allowed limit for tag search operations
 const MAX_TAG_SEARCH_LIMIT: usize = 1000;
-
 /// Minimum allowed limit for tag search operations
 const MIN_TAG_SEARCH_LIMIT: usize = 1;
-
 /// Maximum allowed tags per operation
 const MAX_TAGS_PER_OPERATION: usize = 100;
-
 /// Search episodes by tags
 #[allow(clippy::too_many_arguments)]
 pub async fn search_by_tags(

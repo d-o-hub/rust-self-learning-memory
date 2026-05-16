@@ -16,7 +16,7 @@
 | Workspace version | 0.1.31 | — | ✅ |
 | Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
+| Total tests | 3,288 | — | 3,288 passing (2026-05-16) |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
@@ -66,19 +66,21 @@
 ## Open Items (2026-05-16 Validation)
 
 ### Open Issues
-| # | Title | Status |
-|---|-------|--------|
-| — | No open issues | ✅ All closed |
+
+No open issues — all closed.
 
 ### Open PRs
+
 | # | Title | Status |
 |---|-------|--------|
-| 547 | chore(ci): use create-pull-request for automated commits | 🔄 Auto-merge enabled (CI pending) |
-| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | 🔄 Auto-merge enabled (CI pending) |
+| 549 | docs(plans): sync CURRENT.md and GOAP_STATE.md to 2026-05-16 | ✅ Merged 2026-05-16 |
 
 ### Recently Merged PRs
+
 | # | Title | Status |
 |---|-------|--------|
+| 547 | chore(ci): resolve merge conflicts with main; use create-pull-request | ✅ Merged 2026-05-16 |
+| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | ✅ Merged 2026-05-16 |
 | 548 | chore: YAML frontmatter validation + code quality | ✅ Merged 2026-05-16 |
 | 545 | chore: YAML frontmatter validation and Dependabot fix plan | ✅ Merged 2026-05-16 |
 | 544 | feat: CloudEvents EventEmitter, ConceptGraph, evaluations | ✅ Merged 2026-05-15 |

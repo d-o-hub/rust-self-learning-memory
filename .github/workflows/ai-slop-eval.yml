@@ -34,6 +34,7 @@ jobs:
           VERBOSE: ${{ inputs.verbose || 'false' }}
           REPO: ${{ github.repository }}
         with:
+          # yamllint disable rule:line-length
           script: |
             // ─────────────────────────────────────────────────────────────────
             // EVAL DATASET — 20 labeled cases (10 SPAM, 10 LEGITIMATE)
@@ -382,6 +383,7 @@ jobs:
             fs.writeFileSync('.github/eval-results.json', JSON.stringify(summary, null, 2));
             core.info('Results written to .github/eval-results.json');
 
+      # yamllint enable rule:line-length
       - name: Commit eval results
         run: |
           git config user.name  "github-actions[bot]"

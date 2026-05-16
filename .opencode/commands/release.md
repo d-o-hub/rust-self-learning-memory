@@ -1,5 +1,5 @@
 ---
-description: Create a GitHub release with atomic commit, quality gates, and semver safety. Use: /release [patch|minor|major]
+description: "Create a GitHub release with atomic commit, quality gates, and semver safety. Use: /release [patch|minor|major]"
 subtask: true
 ---
 

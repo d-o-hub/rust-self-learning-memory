@@ -2,6 +2,7 @@
 # validate-yaml-frontmatter: Check that YAML frontmatter in SKILL.md and agent .md files
 # has properly quoted description values to prevent YAML parsing errors.
 # Also checks for fragile colon patterns in other YAML fields like allowed-tools.
+# Scans: .agents/skills/, .claude/agents/, .opencode/agents/, .opencode/commands/, .rovodev/subagents/, .github/ISSUE_TEMPLATE/
 set -euo pipefail
 
 ERRORS=0
@@ -70,15 +71,23 @@ check_file() {
     done < "$file"
 }
 
-# Check all SKILL.md files
-while IFS= read -r -d '' file; do
-    check_file "$file"
-done < <(find .agents/skills -name 'SKILL.md' -type f -print0 2>/dev/null)
+# Directories to scan: [path:name_pattern]
+SCAN_DIRS=(
+    ".agents/skills:SKILL.md"
+    ".claude/agents:*.md"
+    ".opencode/agents:*.md"
+    ".opencode/commands:*.md"
+    ".rovodev/subagents:*.md"
+    ".github/ISSUE_TEMPLATE:*.md"
+)
 
-# Check all .claude/agents .md files
-while IFS= read -r -d '' file; do
-    check_file "$file"
-done < <(find .claude/agents -name '*.md' -type f -print0 2>/dev/null)
+for entry in "${SCAN_DIRS[@]}"; do
+    dir="${entry%%:*}"
+    pattern="${entry#*:}"
+    while IFS= read -r -d '' file; do
+        check_file "$file"
+    done < <(find "$dir" -name "$pattern" -type f -print0 2>/dev/null)
+done
 
 if [ "$ERRORS" -gt 0 ]; then
     echo "Found $ERRORS file(s) with invalid YAML frontmatter."

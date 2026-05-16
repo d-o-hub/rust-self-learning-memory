@@ -7,6 +7,48 @@ use uuid::Uuid;
 use crate::episode::PatternId;
 use crate::types::{OutcomeStats, TaskContext};
 
+/// Merge two ToolSequence pattern statistics
+pub(super) fn merge_tool_sequence(
+    sr1: &mut f32,
+    oc1: &mut usize,
+    lat1: &mut Duration,
+    sr2: f32,
+    oc2: usize,
+    lat2: &Duration,
+) {
+    let total_count = *oc1 + oc2;
+    *sr1 = (*sr1 * *oc1 as f32 + sr2 * oc2 as f32) / total_count as f32;
+    *lat1 = Duration::milliseconds(
+        (lat1.num_milliseconds() * *oc1 as i64 + lat2.num_milliseconds() * oc2 as i64)
+            / total_count as i64,
+    );
+    *oc1 = total_count;
+}
+
+/// Merge two DecisionPoint pattern statistics
+pub(super) fn merge_decision_point(stats1: &mut OutcomeStats, stats2: &OutcomeStats) {
+    let prev_total = stats1.total_count;
+    stats1.success_count += stats2.success_count;
+    stats1.failure_count += stats2.failure_count;
+    stats1.total_count += stats2.total_count;
+    stats1.avg_duration_secs = (stats1.avg_duration_secs * prev_total as f32
+        + stats2.avg_duration_secs * stats2.total_count as f32)
+        / stats1.total_count as f32;
+}
+
+/// Merge two ErrorRecovery pattern statistics
+pub(super) fn merge_error_recovery(sr1: &mut f32, sr2: f32) {
+    *sr1 = (*sr1 + sr2) / 2.0;
+}
+
+/// Merge two ContextPattern pattern statistics
+pub(super) fn merge_context_pattern(ev1: &mut Vec<Uuid>, sr1: &mut f32, ev2: &[Uuid], sr2: f32) {
+    let size1 = ev1.len();
+    let size2 = ev2.len();
+    ev1.extend_from_slice(ev2);
+    *sr1 = (*sr1 * size1 as f32 + sr2 * size2 as f32) / (size1 + size2) as f32;
+}
+
 /// Tracks the real-world effectiveness of a pattern based on actual usage
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PatternEffectiveness {

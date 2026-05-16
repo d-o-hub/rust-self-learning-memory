@@ -11,9 +11,9 @@ rules:
     indent-sequences: true
     check-multi-line-strings: false
 
-  # Line length: allow up to 120 characters (for readability)
+  # Line length: allow up to 200 characters (CI workflows have long command lines)
   line-length:
-    max: 120
+    max: 200
     level: warning
 
   # Comments: require at least 1 space from content

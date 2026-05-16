@@ -93,7 +93,7 @@ impl Default for ConcurrencyConfig {
 /// # Examples
 ///
 /// ```
-/// use do_memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy};
+/// use do_memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy, EventEmitterMode};
 /// use do_memory_core::security::audit::AuditConfig;
 ///
 /// // Default configuration
@@ -123,6 +123,7 @@ impl Default for ConcurrencyConfig {
 ///     enable_query_embedding_cache: true,
 ///     semantic_similarity_threshold: 0.6,
 ///     audit_config: AuditConfig::default(),
+///     event_emitter_mode: EventEmitterMode::NoOp,
 /// };
 /// ```
 #[derive(Debug, Clone)]

@@ -113,13 +113,30 @@ impl CheckpointTools {
         &self,
         mut input: CheckpointEpisodeInput,
     ) -> Result<CheckpointEpisodeOutput> {
-        // Clamp reason and note lengths with UTF-8 safe truncation (CWE-770)
-        let reason_truncate_at = input
-            .reason
-            .floor_char_boundary(constants::MAX_CHECKPOINT_REASON_LEN);
+        // Clamp reason and note lengths with UTF-8 safe truncation (CWE-770).
+        // Manual char-boundary walk: floor_char_boundary() requires Rust 1.73+.
+        let reason_max = constants::MAX_CHECKPOINT_REASON_LEN;
+        let reason_truncate_at = if input.reason.len() <= reason_max {
+            input.reason.len()
+        } else {
+            let mut end = reason_max;
+            while !input.reason.is_char_boundary(end) {
+                end -= 1;
+            }
+            end
+        };
         input.reason.truncate(reason_truncate_at);
         if let Some(note) = &mut input.note {
-            let note_truncate_at = note.floor_char_boundary(constants::MAX_CHECKPOINT_NOTE_LEN);
+            let note_max = constants::MAX_CHECKPOINT_NOTE_LEN;
+            let note_truncate_at = if note.len() <= note_max {
+                note.len()
+            } else {
+                let mut end = note_max;
+                while !note.is_char_boundary(end) {
+                    end -= 1;
+                }
+                end
+            };
             note.truncate(note_truncate_at);
         }
 

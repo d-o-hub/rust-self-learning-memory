@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Review code changes for quality, correctness, performance, and adherence to project standards. Invoke when conducting code reviews, pre-commit checks, quality audits, or verifying standards compliance (AGENTS.md, Rust best practices).
+description: "Review code changes for quality, correctness, performance, and adherence to project standards. Invoke when conducting code reviews, pre-commit checks, quality audits, or verifying standards compliance (AGENTS.md, Rust best practices)."
 tools: Read, Glob, Grep, Bash
 ---
 

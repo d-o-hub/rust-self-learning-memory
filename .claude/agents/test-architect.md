@@ -1,5 +1,5 @@
 ---
-description: Strategic test planning and architecture for episodic memory system
+description: "Strategic test planning and architecture for episodic memory system"
 capabilities:
   - Design comprehensive test strategies
   - Identify testing gaps and priorities

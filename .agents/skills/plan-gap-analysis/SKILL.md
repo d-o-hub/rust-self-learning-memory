@@ -1,6 +1,6 @@
 ---
 name: plan-gap-analysis
-description: Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project
+description: "Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project"
 ---
 
 # Plan Gap Analysis

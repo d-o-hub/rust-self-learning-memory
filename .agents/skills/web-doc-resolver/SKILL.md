@@ -1,6 +1,6 @@
 ---
 name: web-doc-resolver
-description: Resolve queries or URLs into compact, LLM-ready markdown using a low-cost cascade. Prioritizes llms.txt for structured docs, uses web fetch/search tools for extraction. Use when you need to fetch documentation, resolve web URLs to markdown, search for technical content, or build context from web sources.
+description: "Resolve queries or URLs into compact, LLM-ready markdown using a low-cost cascade. Prioritizes llms.txt for structured docs, uses web fetch/search tools for extraction. Use when you need to fetch documentation, resolve web URLs to markdown, search for technical content, or build context from web sources."
 allowed-tools: Bash, webfetch, websearch, WebFetch, WebSearch, web_fetch, web_search
 ---
 

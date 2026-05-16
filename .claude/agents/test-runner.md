@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Execute and analyze tests, diagnose failures, and ensure all tests pass before commits. Invoke when running test suites, debugging failing tests, fixing async/await issues, verifying test coverage, or troubleshooting intermittent test failures.
+description: "Execute and analyze tests, diagnose failures, and ensure all tests pass before commits. Invoke when running test suites, debugging failing tests, fixing async/await issues, verifying test coverage, or troubleshooting intermittent test failures."
 tools: Bash, Read, Grep, Edit
 ---
 

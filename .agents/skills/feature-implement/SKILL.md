@@ -1,6 +1,6 @@
 ---
 name: feature-implement
-description: Systematic approach to implementing new features in the Rust memory system following project conventions. Use when adding new functionality with proper testing and documentation, maintaining code quality and test coverage.
+description: "Systematic approach to implementing new features in the Rust memory system following project conventions. Use when adding new functionality with proper testing and documentation, maintaining code quality and test coverage."
 ---
 
 # Feature Implementation

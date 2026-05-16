@@ -1,6 +1,6 @@
 ---
 name: release-guard
-description: STRICT GitHub release gatekeeper. Blocks premature releases (from develop, incomplete CI). Verifies PR merged to main + ALL CI passed before allowing tag/release. Triggers on "release", "tag", "publish", "deploy", "version".
+description: "STRICT GitHub release gatekeeper. Blocks premature releases (from develop, incomplete CI). Verifies PR merged to main + ALL CI passed before allowing tag/release. Triggers on \"release\", \"tag\", \"publish\", \"deploy\", \"version\"."
 allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: memory-harness
-description: Universal agent memory harness — record, replay, and benchmark real agent sessions. Use when testing memory system learning, generating test fixtures, or benchmarking CLI performance.
+description: "Universal agent memory harness — record, replay, and benchmark real agent sessions. Use when testing memory system learning, generating test fixtures, or benchmarking CLI performance."
 version: "1.0"
 category: testing
 ---

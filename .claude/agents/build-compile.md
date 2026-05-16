@@ -1,6 +1,6 @@
 ---
 name: build-compile
-description: Build and compile Rust projects with comprehensive verification and optimization. Invoke when compiling the self-learning memory project, troubleshooting build errors, optimizing release builds, checking compilation without building, or reporting build metrics and warnings.
+description: "Build and compile Rust projects with comprehensive verification and optimization. Invoke when compiling the self-learning memory project, troubleshooting build errors, optimizing release builds, checking compilation without building, or reporting build metrics and warnings."
 tools: Bash, Read, Grep, Edit
 ---
 

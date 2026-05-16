@@ -1,6 +1,6 @@
 ---
 name: agent-creator
-description: Create new Claude Code agents with proper format, YAML frontmatter, system prompts, and tool configuration. Invoke when you need to build specialized sub-agents for autonomous task execution.
+description: "Create new Claude Code agents with proper format, YAML frontmatter, system prompts, and tool configuration. Invoke when you need to build specialized sub-agents for autonomous task execution."
 tools: Write, Read, Glob, Grep, Edit
 ---
 

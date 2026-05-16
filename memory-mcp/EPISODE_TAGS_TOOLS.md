@@ -476,6 +476,6 @@ Potential improvements for future versions:
 
 ## See Also
 
-- [Episode Management API](../do-memory-core/EPISODE_MANAGEMENT.md)
-- [Memory Core Documentation](../do-memory-core/README.md)
+- [Episode Management API](../memory-core/EPISODE_MANAGEMENT.md)
+- [Memory Core Documentation](../memory-core/README.md)
 - [MCP Protocol Specification](./README.md)

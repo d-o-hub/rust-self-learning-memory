@@ -526,10 +526,10 @@ impl BOCPD {
 
 ## Cross-References
 
-- **Status**: See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)
-- **Phase 1**: See [IMPLEMENTATION_PHASE1.md](IMPLEMENTATION_PHASE1.md)
-- **Research Integration**: See [ROADMAP_V018_PLANNING.md](ROADMAP_V018_PLANNING.md)
-- **Current Status**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
+- **Status**: See [CURRENT.md](./CURRENT.md) for live metrics
+- **Phase 1**: See [IMPLEMENTATION_PHASE1.md](./IMPLEMENTATION_PHASE1.md)
+- **Research Integration**: Completed — see ROADMAP_ACTIVE.md for current state
+- **Current Status**: See [ROADMAP_ACTIVE.md](../../ROADMAPS/ROADMAP_ACTIVE.md)
 
 ---
 

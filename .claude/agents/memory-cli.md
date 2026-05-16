@@ -551,9 +551,9 @@ sudo systemctl start do-memory-cli
 
 ## Resources
 
-- [CLI User Guide](../../do-memory-cli/CLI_USER_GUIDE.md)
-- [Configuration Guide](../../do-memory-cli/CONFIGURATION_GUIDE.md)
-- [Memory Core Documentation](../../do-memory-core/README.md)
+- [CLI User Guide](../../memory-cli/CLI_USER_GUIDE.md)
+- [Configuration Guide](../../memory-cli/CONFIGURATION_GUIDE.md)
+- [Memory Core Documentation](../../memory-core/README.md)
 - [AGENTS.md](../../AGENTS.md) - Project conventions
 
 ## Success Criteria

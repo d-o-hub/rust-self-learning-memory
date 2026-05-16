@@ -183,10 +183,22 @@ pub struct CheckRelationshipExistsOutput {
 pub struct DependencyGraphInput {
     /// Root episode UUID
     pub episode_id: String,
-    /// Maximum traversal depth (1-5)
+    /// Maximum traversal depth (1-10, clamped)
     pub depth: Option<usize>,
     /// Output format (json or dot)
     pub format: Option<String>,
+}
+
+impl DependencyGraphInput {
+    /// Apply input bounds clamping to prevent resource exhaustion (CWE-770).
+    pub fn clamp_bounds(&mut self) {
+        if let Some(depth) = self.depth {
+            self.depth =
+                Some(depth.clamp(crate::constants::MIN_DEPTH, crate::constants::MAX_DEPTH));
+        } else {
+            self.depth = Some(crate::constants::DEFAULT_DEPTH);
+        }
+    }
 }
 
 /// A node in the dependency graph

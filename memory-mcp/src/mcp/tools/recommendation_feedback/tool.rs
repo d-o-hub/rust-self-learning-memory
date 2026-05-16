@@ -7,6 +7,7 @@ use super::types::{
     RecordRecommendationFeedbackOutput, RecordRecommendationSessionInput,
     RecordRecommendationSessionOutput,
 };
+use crate::constants;
 use anyhow::{Result, anyhow};
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
@@ -33,8 +34,15 @@ impl RecommendationFeedbackTools {
     #[instrument(skip(self, input), fields(episode_id = %input.episode_id))]
     pub async fn record_session(
         &self,
-        input: RecordRecommendationSessionInput,
+        mut input: RecordRecommendationSessionInput,
     ) -> Result<RecordRecommendationSessionOutput> {
+        // Clamp array lengths (CWE-770)
+        input
+            .recommended_pattern_ids
+            .truncate(constants::MAX_RECOMMENDED_IDS);
+        input
+            .recommended_playbook_ids
+            .truncate(constants::MAX_RECOMMENDED_IDS);
         info!(
             "Recording recommendation session for episode: {}",
             input.episode_id
@@ -91,8 +99,19 @@ impl RecommendationFeedbackTools {
     #[instrument(skip(self, input), fields(session_id = %input.session_id))]
     pub async fn record_feedback(
         &self,
-        input: RecordRecommendationFeedbackInput,
+        mut input: RecordRecommendationFeedbackInput,
     ) -> Result<RecordRecommendationFeedbackOutput> {
+        // Clamp array lengths and rating (CWE-770)
+        input
+            .applied_pattern_ids
+            .truncate(constants::MAX_RECOMMENDED_IDS);
+        input
+            .consulted_episode_ids
+            .truncate(constants::MAX_RECOMMENDED_IDS);
+        if let Some(rating) = &mut input.agent_rating {
+            *rating = rating.clamp(constants::MIN_AGENT_RATING, constants::MAX_AGENT_RATING);
+        }
+
         info!(
             "Recording recommendation feedback for session: {}",
             input.session_id
@@ -217,5 +236,67 @@ mod tests {
         let output = tools.record_feedback(feedback_input).await.unwrap();
         assert!(output.success);
         assert_eq!(output.patterns_applied, 1);
+    }
+
+    #[tokio::test]
+    async fn test_record_session_truncates_large_arrays() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = RecommendationFeedbackTools::new(memory);
+
+        // Create arrays larger than MAX_RECOMMENDED_IDS
+        let many_patterns: Vec<String> = (0..constants::MAX_RECOMMENDED_IDS + 50)
+            .map(|i| format!("pattern-{}", i))
+            .collect();
+        let many_playbooks: Vec<String> = (0..constants::MAX_RECOMMENDED_IDS + 50)
+            .map(|i| format!("playbook-{}", i))
+            .collect();
+
+        let input = RecordRecommendationSessionInput {
+            episode_id: Uuid::new_v4().to_string(),
+            recommended_pattern_ids: many_patterns,
+            recommended_playbook_ids: many_playbooks,
+        };
+
+        let output = tools.record_session(input).await.unwrap();
+        assert!(output.success);
+        // Should have been truncated to MAX_RECOMMENDED_IDS
+        assert_eq!(output.patterns_recommended, constants::MAX_RECOMMENDED_IDS);
+        assert_eq!(output.playbooks_recommended, constants::MAX_RECOMMENDED_IDS);
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_clamps_rating() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = RecommendationFeedbackTools::new(memory);
+
+        // First record a session
+        let session_input = RecordRecommendationSessionInput {
+            episode_id: Uuid::new_v4().to_string(),
+            recommended_pattern_ids: vec!["p1".to_string()],
+            recommended_playbook_ids: vec![],
+        };
+        let session_output = tools.record_session(session_input).await.unwrap();
+
+        // Record feedback with out-of-range rating
+        let feedback_input = RecordRecommendationFeedbackInput {
+            session_id: session_output.session_id,
+            applied_pattern_ids: (0..constants::MAX_RECOMMENDED_IDS + 10)
+                .map(|i| format!("p{}", i))
+                .collect(),
+            consulted_episode_ids: (0..constants::MAX_RECOMMENDED_IDS + 10)
+                .map(|i| format!("e{}", i))
+                .collect(),
+            outcome: TaskOutcomeJson::Success {
+                verdict: "Done".to_string(),
+                artifacts: vec![],
+            },
+            agent_rating: Some(5.0), // Way above 1.0
+        };
+
+        let output = tools.record_feedback(feedback_input).await.unwrap();
+        assert!(output.success);
+        // Arrays should have been truncated
+        assert_eq!(output.patterns_applied, constants::MAX_RECOMMENDED_IDS);
+        assert_eq!(output.episodes_consulted, constants::MAX_RECOMMENDED_IDS);
     }
 }

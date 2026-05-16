@@ -39,7 +39,13 @@ impl EmbeddingTools {
                     .unwrap_or_default(),
             };
 
-            let limit = input.limit.unwrap_or(10);
+            let limit = input
+                .limit
+                .unwrap_or(crate::constants::DEFAULT_QUERY_LIMIT)
+                .clamp(
+                    crate::constants::MIN_QUERY_LIMIT,
+                    crate::constants::MAX_QUERY_LIMIT,
+                );
 
             // Use the semantic service to find similar episodes
             let similar_episodes = match semantic_service
@@ -140,7 +146,13 @@ impl EmbeddingTools {
                 .unwrap_or_default(),
         };
 
-        let limit = input.limit.unwrap_or(10);
+        let limit = input
+            .limit
+            .unwrap_or(crate::constants::DEFAULT_QUERY_LIMIT)
+            .clamp(
+                crate::constants::MIN_QUERY_LIMIT,
+                crate::constants::MAX_QUERY_LIMIT,
+            );
 
         let arc_episodes = self
             .memory

@@ -5,10 +5,16 @@ use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 use chrono::{DateTime, Utc};
 
+/// Maximum allowed limit for pattern list operations
+const MAX_LIST_LIMIT: usize = 1000;
+
+/// Minimum allowed limit for pattern list operations
+const MIN_LIST_LIMIT: usize = 1;
+
 pub async fn list_patterns(
     min_confidence: f32,
     pattern_type: Option<super::types::PatternType>,
-    limit: usize,
+    mut limit: usize,
     memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
@@ -110,6 +116,9 @@ pub async fn list_patterns(
             .partial_cmp(&a.confidence)
             .unwrap_or(std::cmp::Ordering::Equal)
     });
+
+    // Clamp limit to prevent resource exhaustion
+    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
 
     // Apply limit
     let total_count = summaries.len();

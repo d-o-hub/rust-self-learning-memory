@@ -76,7 +76,7 @@ pub async fn handle_tag_command(
 /// Add tags to an episode
 pub async fn add_tags(
     episode_id: String,
-    tags: Vec<String>,
+    mut tags: Vec<String>,
     color: Option<String>,
     memory: &SelfLearningMemory,
     format: OutputFormat,
@@ -85,6 +85,9 @@ pub async fn add_tags(
     if tags.is_empty() {
         return Err(anyhow::anyhow!("At least one tag must be specified"));
     }
+
+    // Clamp tags to prevent resource exhaustion
+    tags.truncate(MAX_TAGS_PER_OPERATION);
 
     // Validate color if provided
     let color = color.map(|c| c.to_lowercase());
@@ -141,7 +144,7 @@ pub async fn add_tags(
 /// Remove tags from an episode
 pub async fn remove_tags(
     episode_id: String,
-    tags: Vec<String>,
+    mut tags: Vec<String>,
     memory: &SelfLearningMemory,
     format: OutputFormat,
     dry_run: bool,
@@ -149,6 +152,9 @@ pub async fn remove_tags(
     if tags.is_empty() {
         return Err(anyhow::anyhow!("At least one tag must be specified"));
     }
+
+    // Clamp tags to prevent resource exhaustion
+    tags.truncate(MAX_TAGS_PER_OPERATION);
 
     if dry_run {
         println!(
@@ -212,7 +218,7 @@ pub async fn list_episode_tags(
 /// Set/replace all tags on an episode
 pub async fn set_tags(
     episode_id: String,
-    tags: Vec<String>,
+    mut tags: Vec<String>,
     memory: &SelfLearningMemory,
     format: OutputFormat,
     dry_run: bool,
@@ -319,14 +325,23 @@ pub async fn list_all_tags(
     format.print_output(&result)
 }
 
+/// Maximum allowed limit for tag search operations
+const MAX_TAG_SEARCH_LIMIT: usize = 1000;
+
+/// Minimum allowed limit for tag search operations
+const MIN_TAG_SEARCH_LIMIT: usize = 1;
+
+/// Maximum allowed tags per operation
+const MAX_TAGS_PER_OPERATION: usize = 100;
+
 /// Search episodes by tags
 #[allow(clippy::too_many_arguments)]
 pub async fn search_by_tags(
-    tags: Vec<String>,
+    mut tags: Vec<String>,
     require_all: bool,
     partial: bool,
     case_sensitive: bool,
-    limit: usize,
+    mut limit: usize,
     memory: &SelfLearningMemory,
     format: OutputFormat,
     dry_run: bool,
@@ -334,6 +349,10 @@ pub async fn search_by_tags(
     if tags.is_empty() {
         return Err(anyhow::anyhow!("At least one tag must be specified"));
     }
+
+    // Clamp limit and tags to prevent resource exhaustion
+    limit = limit.clamp(MIN_TAG_SEARCH_LIMIT, MAX_TAG_SEARCH_LIMIT);
+    tags.truncate(MAX_TAGS_PER_OPERATION);
 
     if dry_run {
         let logic = if require_all { "ALL" } else { "ANY" };

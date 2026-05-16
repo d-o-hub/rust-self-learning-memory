@@ -123,6 +123,7 @@
 
 pub mod batch;
 pub mod cache;
+pub mod constants;
 pub mod error;
 pub mod jsonrpc;
 pub mod mcp;

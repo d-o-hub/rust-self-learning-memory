@@ -249,6 +249,159 @@ async fn test_timeout_protection() {
     }
 }
 
+// ──── Input Bounds Clamping Tests (CWE-770 Prevention) ────
+
+/// Verify that tags-specific constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_tags_constants_validity() {
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION >= 1);
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION <= 10_000);
+
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN >= 100);
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN <= 1_000_000);
+
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS >= 1);
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS <= 10_000);
+
+    // Depth bounds
+    assert!(do_memory_mcp::constants::MIN_DEPTH >= 1);
+    assert!(do_memory_mcp::constants::MAX_DEPTH > do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH >= do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH <= do_memory_mcp::constants::MAX_DEPTH);
+
+    // Find related bounds
+    assert!(do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT > 0);
+    assert!(
+        do_memory_mcp::constants::DEFAULT_FIND_RELATED_LIMIT
+            <= do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT
+    );
+}
+
+/// Verify that constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_input_bounds_constants_validity() {
+    // All min values should be >= 1
+    assert!(do_memory_mcp::constants::MIN_QUERY_LIMIT >= 1);
+    assert!(do_memory_mcp::constants::MIN_PLAYBOOK_STEPS >= 1);
+    assert!(do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT >= 1);
+
+    // All max values should be > min values
+    assert!(do_memory_mcp::constants::MAX_QUERY_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT);
+    assert!(
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS > do_memory_mcp::constants::MIN_PLAYBOOK_STEPS
+    );
+    assert!(
+        do_memory_mcp::constants::MAX_TAG_SEARCH_LIMIT
+            > do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT
+    );
+    assert!(do_memory_mcp::constants::MAX_SEARCH_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT);
+    assert!(
+        do_memory_mcp::constants::MAX_RECOMMEND_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT
+    );
+}
+
+/// Verify that default values fall within min/max bounds
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_input_bounds_defaults_in_range() {
+    assert!(
+        do_memory_mcp::constants::DEFAULT_QUERY_LIMIT >= do_memory_mcp::constants::MIN_QUERY_LIMIT
+            && do_memory_mcp::constants::DEFAULT_QUERY_LIMIT
+                <= do_memory_mcp::constants::MAX_QUERY_LIMIT
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT
+            >= do_memory_mcp::constants::MIN_QUERY_LIMIT
+            && do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT
+                <= do_memory_mcp::constants::MAX_QUERY_LIMIT
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS
+            >= do_memory_mcp::constants::MIN_PLAYBOOK_STEPS
+            && do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS
+                <= do_memory_mcp::constants::MAX_PLAYBOOK_STEPS
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_TAG_SEARCH_LIMIT
+            >= do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT
+            && do_memory_mcp::constants::DEFAULT_TAG_SEARCH_LIMIT
+                <= do_memory_mcp::constants::MAX_TAG_SEARCH_LIMIT
+    );
+}
+
+/// Verify clamping logic: values below min are clamped up to min
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_clamping_lower_bound() {
+    // Test query limit clamping (0 should become 1)
+    let clamped = 0usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+    );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        "Value 0 should be clamped to minimum"
+    );
+
+    // Test playbook steps clamping (0 should become 1)
+    let clamped = 0usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        "Value 0 should be clamped to minimum playbook steps"
+    );
+}
+
+/// Verify clamping logic: values above max are clamped down to max
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_clamping_upper_bound() {
+    // Test query limit clamping (9999 should become 1000)
+    let clamped = 9999usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+    );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+        "Value 9999 should be clamped to maximum"
+    );
+
+    // Test playbook steps clamping (999 should become 100)
+    let clamped = 999usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+        "Value 999 should be clamped to maximum playbook steps"
+    );
+}
+
+/// Verify clamping logic: valid values within range pass through unchanged
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_clamping_middle_values() {
+    let clamped = 50usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+    );
+    assert_eq!(clamped, 50, "Value 50 should pass through unchanged");
+
+    let clamped = 5usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
+    assert_eq!(clamped, 5, "Value 5 should pass through unchanged");
+}
+
 /// Test that analysis results don't contain sensitive information
 #[tokio::test]
 async fn test_output_sanitization() {

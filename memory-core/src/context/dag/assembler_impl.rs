@@ -1,159 +1,23 @@
-//! DAG-based context assembler (WG-134) — assembles episode context by
-//! traversing StateDag to deduplicate shared attributes (~86% token reduction).
+//! Implementation of DagContextAssembler and SharedContextItem.
+//!
+//! Extracted from assembler.rs to maintain the ≤500 LOC invariant.
 
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
-use uuid::Uuid;
-
-use super::node::StateNodeType;
-use super::state::StateDag;
-
-use crate::episode::Episode;
+use std::fmt::Write;
 use std::sync::Arc;
 
+use super::super::state::StateDag;
+use super::{
+    AssembledContext, AssemblyFormat, DagAssemblyConfig, SharedContextItem, UniqueContextItem,
+};
+use crate::episode::Episode;
+use chrono::Utc;
+use uuid::Uuid;
+
 // ── Token estimation heuristics ──
-// These constants calibrate the approximate token cost of context elements.
-// They are simple heuristics, not precise counters — the goal is to guide
-// deduplication decisions, not to match a specific tokenizer byte-for-byte.
+// These constants are defined as `pub(super)` in the parent `assembler`
+// module.  We reference them via `super::*` to avoid redefinition.
 
-/// Approximate characters per token (English text, ~4 chars/token).
-pub(super) const CHARS_PER_TOKEN: usize = 4;
-
-/// Base overhead tokens for a single episode's context fields
-/// (language, domain, task_type, complexity, etc.).
-pub(super) const DEFAULT_CONTEXT_TOKENS: usize = 20;
-
-/// Estimated tokens consumed by a single tag.
-pub(super) const TOKENS_PER_TAG: usize = 3;
-
-/// Extra tokens added to the shared-context block header in token-optimized
-/// format.
-pub(super) const TOKEN_OPTIMIZED_HEADER_TOKENS: usize = 5;
-
-/// Base tokens for one shared-context item (compact / full format).
-pub(super) const SHARED_ITEM_BASE_TOKENS: usize = 2;
-
-/// Base tokens for one shared-context item in token-optimised format.
-pub(super) const SHARED_ITEM_TOKEN_OPT_BASE: usize = 3;
-
-/// Per-episode overhead tokens for the unique-context section.
-pub(super) const UNIQUE_ITEM_OVERHEAD_TOKENS: usize = 2;
-
-/// Configuration for DAG context assembly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DagAssemblyConfig {
-    /// Maximum unique context items to include.
-    pub max_unique_items: usize,
-    /// Include shared context first (deduplicated).
-    pub deduplicate_shared: bool,
-    /// Include episode-unique context after shared.
-    pub include_unique: bool,
-    /// Minimum node reference count to consider "shared".
-    pub min_shared_threshold: usize,
-    /// Format: compact (minimal) vs full (verbose).
-    pub format: AssemblyFormat,
-}
-
-/// Format for assembled context output.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum AssemblyFormat {
-    /// Compact format: node refs only.
-    Compact,
-    /// Full format: include node values.
-    Full,
-    /// Token-optimized: minimal tokens.
-    TokenOptimized,
-}
-
-impl Default for DagAssemblyConfig {
-    fn default() -> Self {
-        Self {
-            max_unique_items: 20,
-            deduplicate_shared: true,
-            include_unique: true,
-            min_shared_threshold: 2,
-            format: AssemblyFormat::TokenOptimized,
-        }
-    }
-}
-
-impl DagAssemblyConfig {
-    /// Create config optimized for token efficiency.
-    #[must_use]
-    pub fn token_efficient() -> Self {
-        Self {
-            max_unique_items: 10,
-            deduplicate_shared: true,
-            include_unique: true,
-            min_shared_threshold: 1,
-            format: AssemblyFormat::TokenOptimized,
-        }
-    }
-
-    /// Create config for full context (no deduplication).
-    #[must_use]
-    pub fn full_context() -> Self {
-        Self {
-            max_unique_items: 50,
-            deduplicate_shared: false,
-            include_unique: true,
-            min_shared_threshold: 1,
-            format: AssemblyFormat::Full,
-        }
-    }
-}
-
-/// Assembled context from DAG traversal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssembledContext {
-    /// Shared context nodes (deduplicated).
-    pub shared_context: Vec<SharedContextItem>,
-    /// Episode-unique context (not shared).
-    pub unique_context: Vec<UniqueContextItem>,
-    /// Total estimated token count.
-    pub estimated_tokens: usize,
-    /// Token savings from deduplication.
-    pub token_savings: usize,
-    /// Episodes included.
-    pub episode_ids: HashSet<Uuid>,
-    /// Assembly timestamp.
-    pub assembled_at: DateTime<Utc>,
-}
-
-/// A shared context item from the DAG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SharedContextItem {
-    /// Node type.
-    pub node_type: StateNodeType,
-    /// Node value.
-    pub value: String,
-    /// Number of episodes sharing this.
-    pub shared_count: usize,
-    /// Node ID reference.
-    pub node_id: Uuid,
-}
-
-/// An episode-unique context item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UniqueContextItem {
-    /// Episode ID.
-    pub episode_id: Uuid,
-    /// Task description (unique).
-    pub task_description: String,
-    /// Unique aspects not shared.
-    pub unique_aspects: Vec<String>,
-}
-
-/// Assembler for DAG-based context.
-///
-/// Traverses StateDag to build minimal, deduplicated context.
-pub struct DagContextAssembler {
-    dag: StateDag,
-    config: DagAssemblyConfig,
-}
-
-impl DagContextAssembler {
+impl super::DagContextAssembler {
     /// Create a new assembler with given DAG.
     pub fn new(dag: StateDag) -> Self {
         Self {
@@ -200,7 +64,8 @@ impl DagContextAssembler {
     /// build minimal representation.
     #[must_use]
     pub fn assemble(&self, episodes: &[Arc<Episode>]) -> AssembledContext {
-        let episode_ids: HashSet<Uuid> = episodes.iter().map(|e| e.episode_id).collect();
+        let episode_ids: std::collections::HashSet<Uuid> =
+            episodes.iter().map(|e| e.episode_id).collect();
 
         // Find shared context
         let shared_context = if self.config.deduplicate_shared {
@@ -237,7 +102,10 @@ impl DagContextAssembler {
     }
 
     /// Extract shared context from DAG.
-    fn extract_shared_context(&self, episode_ids: &HashSet<Uuid>) -> Vec<SharedContextItem> {
+    fn extract_shared_context(
+        &self,
+        episode_ids: &std::collections::HashSet<Uuid>,
+    ) -> Vec<SharedContextItem> {
         let ids: Vec<Uuid> = episode_ids.iter().copied().collect();
         let shared_nodes = self.dag.get_shared_context(&ids);
 
@@ -259,7 +127,7 @@ impl DagContextAssembler {
         episodes: &[Arc<Episode>],
         shared_context: &[SharedContextItem],
     ) -> Vec<UniqueContextItem> {
-        let shared_values: HashSet<String> =
+        let shared_values: std::collections::HashSet<String> =
             shared_context.iter().map(|s| s.value.clone()).collect();
 
         episodes
@@ -280,7 +148,7 @@ impl DagContextAssembler {
     fn find_unique_aspects(
         &self,
         episode: &Episode,
-        shared_values: &HashSet<String>,
+        shared_values: &std::collections::HashSet<String>,
     ) -> Vec<String> {
         let mut unique = Vec::new();
 
@@ -327,7 +195,9 @@ impl DagContextAssembler {
                 // Full values: base tokens + value-chars estimate per item
                 items
                     .iter()
-                    .map(|i| i.value.len() / CHARS_PER_TOKEN + SHARED_ITEM_BASE_TOKENS)
+                    .map(|i| {
+                        i.value.len() / super::CHARS_PER_TOKEN + super::SHARED_ITEM_BASE_TOKENS
+                    })
                     .sum()
             }
             AssemblyFormat::TokenOptimized => {
@@ -337,9 +207,11 @@ impl DagContextAssembler {
                 // One shared block: type + value per item + header overhead
                 items
                     .iter()
-                    .map(|i| i.value.len() / CHARS_PER_TOKEN + SHARED_ITEM_TOKEN_OPT_BASE)
+                    .map(|i| {
+                        i.value.len() / super::CHARS_PER_TOKEN + super::SHARED_ITEM_TOKEN_OPT_BASE
+                    })
                     .sum::<usize>()
-                    + TOKEN_OPTIMIZED_HEADER_TOKENS
+                    + super::TOKEN_OPTIMIZED_HEADER_TOKENS
             }
         }
     }
@@ -349,16 +221,19 @@ impl DagContextAssembler {
         items
             .iter()
             .map(|i| {
-                let desc_tokens = i.task_description.len() / CHARS_PER_TOKEN;
-                let unique_tokens = i.unique_aspects.len() * TOKENS_PER_TAG;
-                desc_tokens + unique_tokens + UNIQUE_ITEM_OVERHEAD_TOKENS
+                let desc_tokens = i.task_description.len() / super::CHARS_PER_TOKEN;
+                let unique_tokens = i.unique_aspects.len() * super::TOKENS_PER_TAG;
+                desc_tokens + unique_tokens + super::UNIQUE_ITEM_OVERHEAD_TOKENS
             })
             .sum()
     }
 
-    /// Estimate original tokens (without deduplication), using the module-level
-    /// heuristics (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
-    /// approximate the token cost of every episode's full context without sharing.
+    /// Estimate original tokens (without deduplication).
+    ///
+    /// Uses the heuristics defined in the module-level constants
+    /// (`DEFAULT_CONTEXT_TOKENS`, `CHARS_PER_TOKEN`, `TOKENS_PER_TAG`) to
+    /// approximate the token cost of representing every episode's full context
+    /// without any sharing.
     fn estimate_original_tokens(&self, episodes: &[Arc<Episode>]) -> usize {
         episodes
             .iter()
@@ -366,9 +241,9 @@ impl DagContextAssembler {
                 // Full context per episode: see
                 //   Episode.context.language, .domain, .task_type, .complexity,
                 //   .tags, .task_description
-                let context_tokens = DEFAULT_CONTEXT_TOKENS;
-                let desc_tokens = ep.task_description.len() / CHARS_PER_TOKEN;
-                let tag_tokens = ep.context.tags.len() * TOKENS_PER_TAG;
+                let context_tokens = super::DEFAULT_CONTEXT_TOKENS;
+                let desc_tokens = ep.task_description.len() / super::CHARS_PER_TOKEN;
+                let tag_tokens = ep.context.tags.len() * super::TOKENS_PER_TAG;
                 context_tokens + desc_tokens + tag_tokens
             })
             .sum()
@@ -377,12 +252,123 @@ impl DagContextAssembler {
     /// Format assembled context as string for prompt.
     #[must_use]
     pub fn format_for_prompt(&self, assembled: &AssembledContext) -> String {
-        super::format::format_for_prompt(self.config.format, assembled)
+        match self.config.format {
+            AssemblyFormat::Compact => self.format_compact(assembled),
+            AssemblyFormat::Full => self.format_full(assembled),
+            AssemblyFormat::TokenOptimized => self.format_optimized(assembled),
+        }
+    }
+
+    /// Format in compact mode (minimal).
+    fn format_compact(&self, assembled: &AssembledContext) -> String {
+        let shared = assembled
+            .shared_context
+            .iter()
+            .map(|s| format!("{}:{}", s.node_type_name(), s.node_id))
+            .collect::<Vec<_>>()
+            .join(",");
+
+        let unique = assembled
+            .unique_context
+            .iter()
+            .map(|u| {
+                format!(
+                    "{}:{}",
+                    u.episode_id,
+                    u.task_description.chars().take(30).collect::<String>()
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("|");
+
+        format!("S:{shared}\nU:{unique}")
+    }
+
+    /// Format in full mode (verbose).
+    fn format_full(&self, assembled: &AssembledContext) -> String {
+        let mut output = String::new();
+
+        output.push_str("## Shared Context\n");
+        for item in &assembled.shared_context {
+            writeln!(
+                output,
+                "- {} = {} (shared by {} episodes)",
+                item.node_type_name(),
+                item.value,
+                item.shared_count
+            )
+            .unwrap();
+        }
+
+        output.push_str("\n## Episode Context\n");
+        for item in &assembled.unique_context {
+            writeln!(
+                output,
+                "- Episode {}: {}",
+                item.episode_id, item.task_description
+            )
+            .unwrap();
+            if !item.unique_aspects.is_empty() {
+                writeln!(output, "  Unique: {}", item.unique_aspects.join(", ")).unwrap();
+            }
+        }
+
+        output
+    }
+
+    /// Format in token-optimized mode.
+    fn format_optimized(&self, assembled: &AssembledContext) -> String {
+        let mut output = String::new();
+
+        // Shared block (one copy, referenced)
+        if !assembled.shared_context.is_empty() {
+            output.push_str("SHARED:\n");
+            for item in &assembled.shared_context {
+                writeln!(output, "{}={}", item.node_type_name(), item.value).unwrap();
+            }
+        }
+
+        // Unique per episode
+        for item in &assembled.unique_context {
+            writeln!(
+                output,
+                "EP:{}|{}",
+                item.episode_id,
+                item.task_description.chars().take(50).collect::<String>()
+            )
+            .unwrap();
+        }
+
+        output
     }
 
     /// Calculate reduction percentage.
     #[must_use]
     pub fn reduction_percentage(&self, assembled: &AssembledContext) -> f32 {
-        super::format::reduction_percentage(assembled)
+        if assembled.token_savings == 0 {
+            return 0.0;
+        }
+        let original = assembled.estimated_tokens + assembled.token_savings;
+        if original == 0 {
+            return 0.0;
+        }
+        (assembled.token_savings as f32 / original as f32) * 100.0
+    }
+}
+
+impl super::SharedContextItem {
+    /// Get human-readable type name.
+    #[must_use]
+    pub fn node_type_name(&self) -> &'static str {
+        use super::super::node::StateNodeType;
+        match self.node_type {
+            StateNodeType::Language => "lang",
+            StateNodeType::Framework => "fw",
+            StateNodeType::Domain => "domain",
+            StateNodeType::TaskType => "type",
+            StateNodeType::Complexity => "complexity",
+            StateNodeType::Tag => "tag",
+            StateNodeType::Composite => "composite",
+        }
     }
 }

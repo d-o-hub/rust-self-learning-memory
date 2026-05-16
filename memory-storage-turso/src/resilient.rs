@@ -148,7 +148,8 @@ impl ResilientStorage {
             return Ok(false);
         }
 
-        self.circuit_call(|s| async move { s.health_check().await }).await
+        self.circuit_call(|s| async move { s.health_check().await })
+            .await
     }
 
     /// Helper to reduce circuit-breaker boilerplate in StorageBackend methods
@@ -172,33 +173,40 @@ impl ResilientStorage {
 impl StorageBackend for ResilientStorage {
     async fn store_episode(&self, episode: &Episode) -> Result<()> {
         let episode = episode.clone();
-        self.circuit_call(move |s| async move { s.store_episode(&episode).await }).await
+        self.circuit_call(move |s| async move { s.store_episode(&episode).await })
+            .await
     }
 
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
-        self.circuit_call(move |s| async move { s.get_episode(id).await }).await
+        self.circuit_call(move |s| async move { s.get_episode(id).await })
+            .await
     }
 
     async fn delete_episode(&self, id: Uuid) -> Result<()> {
-        self.circuit_call(move |s| async move { s.delete_episode(id).await }).await
+        self.circuit_call(move |s| async move { s.delete_episode(id).await })
+            .await
     }
 
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
         let pattern = pattern.clone();
-        self.circuit_call(move |s| async move { s.store_pattern(&pattern).await }).await
+        self.circuit_call(move |s| async move { s.store_pattern(&pattern).await })
+            .await
     }
 
     async fn get_pattern(&self, id: do_memory_core::episode::PatternId) -> Result<Option<Pattern>> {
-        self.circuit_call(move |s| async move { s.get_pattern(id).await }).await
+        self.circuit_call(move |s| async move { s.get_pattern(id).await })
+            .await
     }
 
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         let heuristic = heuristic.clone();
-        self.circuit_call(move |s| async move { s.store_heuristic(&heuristic).await }).await
+        self.circuit_call(move |s| async move { s.store_heuristic(&heuristic).await })
+            .await
     }
 
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
-        self.circuit_call(move |s| async move { s.get_heuristic(id).await }).await
+        self.circuit_call(move |s| async move { s.get_heuristic(id).await })
+            .await
     }
 
     async fn query_episodes_since(
@@ -206,7 +214,8 @@ impl StorageBackend for ResilientStorage {
         since: chrono::DateTime<chrono::Utc>,
         limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        self.circuit_call(move |s| async move { s.query_episodes_since(since, limit).await }).await
+        self.circuit_call(move |s| async move { s.query_episodes_since(since, limit).await })
+            .await
     }
 
     async fn query_episodes_by_metadata(
@@ -221,66 +230,80 @@ impl StorageBackend for ResilientStorage {
             let key = key;
             let value = value;
             async move { s.query_episodes_by_metadata(&key, &value, limit).await }
-        }).await
+        })
+        .await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
         let id = id.to_string();
-        self.circuit_call(move |s| async move { s.store_embedding(&id, embedding).await }).await
+        self.circuit_call(move |s| async move { s.store_embedding(&id, embedding).await })
+            .await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
         let id = id.to_string();
-        self.circuit_call(move |s| async move { s.get_embedding(&id).await }).await
+        self.circuit_call(move |s| async move { s.get_embedding(&id).await })
+            .await
     }
 
     async fn delete_embedding(&self, id: &str) -> Result<bool> {
         let id = id.to_string();
-        self.circuit_call(move |s| async move { s.delete_embedding(&id).await }).await
+        self.circuit_call(move |s| async move { s.delete_embedding(&id).await })
+            .await
     }
 
     async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        self.circuit_call(move |s| async move { s.store_embeddings_batch(embeddings).await }).await
+        self.circuit_call(move |s| async move { s.store_embeddings_batch(embeddings).await })
+            .await
     }
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         let ids = ids.to_vec();
-        self.circuit_call(move |s| async move { s.get_embeddings_batch(&ids).await }).await
+        self.circuit_call(move |s| async move { s.get_embeddings_batch(&ids).await })
+            .await
     }
 
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         let session = session.clone();
-        self.circuit_call(move |s| async move { s.store_recommendation_session(&session).await }).await
+        self.circuit_call(move |s| async move { s.store_recommendation_session(&session).await })
+            .await
     }
 
     async fn get_recommendation_session(
         &self,
         session_id: Uuid,
     ) -> Result<Option<RecommendationSession>> {
-        self.circuit_call(move |s| async move { s.get_recommendation_session(session_id).await }).await
+        self.circuit_call(move |s| async move { s.get_recommendation_session(session_id).await })
+            .await
     }
 
     async fn get_recommendation_session_for_episode(
         &self,
         episode_id: Uuid,
     ) -> Result<Option<RecommendationSession>> {
-        self.circuit_call(move |s| async move { s.get_recommendation_session_for_episode(episode_id).await }).await
+        self.circuit_call(move |s| async move {
+            s.get_recommendation_session_for_episode(episode_id).await
+        })
+        .await
     }
 
     async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
         let feedback = feedback.clone();
-        self.circuit_call(move |s| async move { s.store_recommendation_feedback(&feedback).await }).await
+        self.circuit_call(move |s| async move { s.store_recommendation_feedback(&feedback).await })
+            .await
     }
 
     async fn get_recommendation_feedback(
         &self,
         session_id: Uuid,
     ) -> Result<Option<RecommendationFeedback>> {
-        self.circuit_call(move |s| async move { s.get_recommendation_feedback(session_id).await }).await
+        self.circuit_call(move |s| async move { s.get_recommendation_feedback(session_id).await })
+            .await
     }
 
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
-        self.circuit_call(move |s| async move { s.get_recommendation_stats().await }).await
+        self.circuit_call(move |s| async move { s.get_recommendation_stats().await })
+            .await
     }
 }
 

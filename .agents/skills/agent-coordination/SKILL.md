@@ -37,4 +37,4 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 All start simultaneously.
 ```
 
-See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agants.md)** for when to use each.
+See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agents.md)** for when to use each.

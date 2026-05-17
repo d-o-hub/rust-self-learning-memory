@@ -205,38 +205,42 @@ impl AgentFsProvider {
             Err(_) => return Vec::new(),
         };
 
-        let mut tool_signals = Vec::new();
-
         // Get unique tool names from episode steps
-        let mut tools: Vec<String> = episode.steps.iter().map(|s| s.tool.clone()).collect();
-        tools.sort();
-        tools.dedup();
+        let episode_tools: std::collections::HashSet<_> =
+            episode.steps.iter().map(|s| &s.tool).collect();
 
-        for tool_name in tools {
-            if let Ok(Some(stats)) = tc.stats_for(&tool_name).await {
-                if stats.total_calls >= self.config.min_correlation_samples as i64 {
-                    let success_rate = if stats.total_calls > 0 {
-                        stats.successful as f32 / stats.total_calls as f32
-                    } else {
-                        0.5
-                    };
+        // Query all tool stats once for efficiency
+        let all_stats = match tc.stats().await {
+            Ok(stats) => stats,
+            Err(_) => return Vec::new(),
+        };
 
-                    let mut metadata = HashMap::new();
-                    metadata.insert("failed".to_string(), serde_json::json!(stats.failed));
-                    metadata.insert("provider".to_string(), serde_json::json!("agentfs"));
+        all_stats
+            .into_iter()
+            .filter(|stats| {
+                episode_tools.contains(&stats.name)
+                    && stats.total_calls >= self.config.min_correlation_samples as i64
+            })
+            .map(|stats| {
+                let success_rate = if stats.total_calls > 0 {
+                    stats.successful as f32 / stats.total_calls as f32
+                } else {
+                    0.5
+                };
 
-                    tool_signals.push(ToolSignal {
-                        tool_name: tool_name.clone(),
-                        success_rate,
-                        avg_latency_ms: stats.avg_duration_ms,
-                        sample_count: stats.total_calls as usize,
-                        metadata,
-                    });
+                let mut metadata = HashMap::new();
+                metadata.insert("failed".to_string(), serde_json::json!(stats.failed));
+                metadata.insert("provider".to_string(), serde_json::json!("agentfs"));
+
+                ToolSignal {
+                    tool_name: stats.name,
+                    success_rate,
+                    avg_latency_ms: stats.avg_duration_ms,
+                    sample_count: stats.total_calls as usize,
+                    metadata,
                 }
-            }
-        }
-
-        tool_signals
+            })
+            .collect()
     }
 }
 

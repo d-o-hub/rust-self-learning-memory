@@ -2,6 +2,12 @@
 
 Compact log for non-obvious workflow learnings. Pair each entry here with a short distilled note in the nearest `AGENTS.md`.
 
+## LESSON-010: Coderabbitai review loop — verify each finding against current code
+
+- Issue: Conversation summaries implied fixes were already applied, but code still had the original unfixed patterns (e.g., `_min_sequence_len` in `with_thresholds`, `contributing_tiers` hardcoding `api_fallback_needed`).
+- Root Cause: Trusting historical memory over actual file state. Multiple rounds of review comments can accumulate; fixes described in summaries may not match current tree.
+- Solution: Always `read_files` on the target file before acting on a finding. Search for callers independently of cached results. Verify each finding against current code before declaring it resolved.
+
 ## LESSON-001: Verify release/package truth before roadmap edits
 
 - Issue: Planning docs treated `v0.1.30` as unreleased even though GitHub already had a published release and publishable crates were still at `0.1.30`.

@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-16 (PR #547/#546 conflict resolution pushed; WG-131 confirmed complete)
+- **Last Updated**: 2026-05-17 (PR #552 dead_code→0; cascade tier attribution fix committed)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`

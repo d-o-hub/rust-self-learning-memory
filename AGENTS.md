@@ -47,6 +47,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 
 ## Common Pitfalls
 
+- **Coderabbitai review loops**: Always `read_files` on the target file before acting on a finding. Trust current code, not conversation summaries or cached search results. Fix history may not match current tree.
 - Read patterns first; roadmap and status docs can lag real repo state.
 - Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
 - Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.

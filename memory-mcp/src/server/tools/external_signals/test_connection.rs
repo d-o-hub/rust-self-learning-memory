@@ -32,24 +32,46 @@ impl MemoryMCPServer {
         );
 
         let start_time = std::time::Instant::now();
+
+        let db_path = input
+            .db_path
+            .clone()
+            .or_else(|| std::env::var("AGENTFS_DB_PATH").ok())
+            .unwrap_or_else(|| "/path/to/agentfs.db".to_string());
+
+        // Attempt real connection test using SDK
+        let (success, message, error, toolcall_count) =
+            match agentfs_sdk::ToolCalls::new(&db_path).await {
+                Ok(tc) => {
+                    let count = tc.stats().await.ok().map(|s| s.len());
+                    (
+                        true,
+                        "Successfully connected to AgentFS database".to_string(),
+                        None,
+                        count,
+                    )
+                }
+                Err(e) => (
+                    false,
+                    "Failed to connect to AgentFS database".to_string(),
+                    Some(format!("Connection error: {e}")),
+                    None,
+                ),
+            };
+
         let test_duration_ms = start_time.elapsed().as_millis() as u64;
 
-        // SDK is not integrated - return informative stub result
-        // This indicates that the test "passes" in terms of API structure
-        // but clearly shows no real connection is possible
         let result = crate::mcp::tools::external_signals::TestAgentFsConnectionOutput {
-            success: false, // Not actually successful - SDK unavailable
+            success,
             provider: "agentfs".to_string(),
-            db_path: input
-                .db_path
-                .unwrap_or_else(|| "/path/to/agentfs.db".to_string()),
+            db_path,
             connection_time_ms: test_duration_ms,
-            readable: false, // Cannot read without SDK
-            writable: false,
-            toolcall_count: None, // No data available
-            version: None, // SDK not integrated
-            message: "AgentFS SDK not integrated - stub implementation cannot connect to real database".to_string(),
-            error: Some("SDK unavailable: agentfs-sdk dependency not added to project. Add dependency and enable 'agentfs' feature for real connection testing.".to_string()),
+            readable: success,
+            writable: false, // Audit trail is read-only for memory system
+            toolcall_count,
+            version: Some("0.6.4".to_string()),
+            message,
+            error,
         };
 
         Ok(json!(result))

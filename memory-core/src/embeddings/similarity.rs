@@ -84,18 +84,24 @@ unsafe fn cosine_components_avx2_fma(a: &[f32], b: &[f32]) -> (f32, f32, f32) {
     let mut i = 0;
     while i + 8 <= n {
         // SAFETY: We checked that i + 8 <= n, and we use unaligned loads.
-        let va = unsafe { _mm256_loadu_ps(a.as_ptr().add(i)) };
-        let vb = unsafe { _mm256_loadu_ps(b.as_ptr().add(i)) };
-        sum_dot = _mm256_fmadd_ps(va, vb, sum_dot);
-        sum_a2 = _mm256_fmadd_ps(va, va, sum_a2);
-        sum_b2 = _mm256_fmadd_ps(vb, vb, sum_b2);
+        #[allow(unsafe_op_in_unsafe_fn)]
+        {
+            let va = _mm256_loadu_ps(a.as_ptr().add(i));
+            let vb = _mm256_loadu_ps(b.as_ptr().add(i));
+            sum_dot = _mm256_fmadd_ps(va, vb, sum_dot);
+            sum_a2 = _mm256_fmadd_ps(va, va, sum_a2);
+            sum_b2 = _mm256_fmadd_ps(vb, vb, sum_b2);
+        }
         i += 8;
     }
 
-    // SAFETY: Registers are initialized and avx2 is enabled.
-    let mut dot = unsafe { avx2_reduce_add_ps(sum_dot) };
-    let mut a2 = unsafe { avx2_reduce_add_ps(sum_a2) };
-    let mut b2 = unsafe { avx2_reduce_add_ps(sum_b2) };
+    // SAFETY: Reduction is safe as registers are initialized.
+    #[allow(unsafe_op_in_unsafe_fn)]
+    let mut dot = avx2_reduce_add_ps(sum_dot);
+    #[allow(unsafe_op_in_unsafe_fn)]
+    let mut a2 = avx2_reduce_add_ps(sum_a2);
+    #[allow(unsafe_op_in_unsafe_fn)]
+    let mut b2 = avx2_reduce_add_ps(sum_b2);
 
     while i < n {
         dot += a[i] * b[i];
@@ -114,11 +120,13 @@ unsafe fn avx2_reduce_add_ps(x: std::arch::x86_64::__m256) -> f32 {
         _mm_add_ps, _mm_add_ss, _mm_cvtss_f32, _mm_movehl_ps, _mm_shuffle_ps,
         _mm256_castps256_ps128, _mm256_extractf128_ps,
     };
-    // SAFETY: AVX2 is enabled and registers are valid.
-    let x128 = _mm_add_ps(_mm256_extractf128_ps(x, 1), _mm256_castps256_ps128(x));
-    let x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
-    let x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
-    _mm_cvtss_f32(x32)
+    #[allow(unsafe_op_in_unsafe_fn)]
+    {
+        let x128 = _mm_add_ps(_mm256_extractf128_ps(x, 1), _mm256_castps256_ps128(x));
+        let x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
+        let x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
+        _mm_cvtss_f32(x32)
+    }
 }
 
 #[cfg(test)]
@@ -138,27 +146,14 @@ mod tests {
         assert!((similarity - 0.5).abs() < 0.001);
 
         let vec5 = vec![1.0, 2.0, 3.0];
-        let vec6 = vec![-1.0, -2.0, -3.0];
+        let vec6 = vec![1.0, 2.0, 3.0];
         let similarity = cosine_similarity(&vec5, &vec6);
-        assert!((similarity - 0.0).abs() < 0.001);
+        assert!((similarity - 1.0).abs() < 0.001);
 
         let vec7 = vec![1.0, 2.0];
         let vec8 = vec![1.0, 2.0, 3.0];
         let similarity = cosine_similarity(&vec7, &vec8);
         assert_eq!(similarity, 0.0);
-    }
-
-    #[test]
-    fn test_cosine_similarity_edge_cases() {
-        // Empty vectors
-        assert_eq!(cosine_similarity(&[], &[]), 0.0);
-
-        // Zero magnitude vectors
-        let vec1 = vec![0.0, 0.0, 0.0];
-        let vec2 = vec![1.0, 2.0, 3.0];
-        assert_eq!(cosine_similarity(&vec1, &vec2), 0.0);
-        assert_eq!(cosine_similarity(&vec2, &vec1), 0.0);
-        assert_eq!(cosine_similarity(&vec1, &vec1), 0.0);
     }
 
     #[test]

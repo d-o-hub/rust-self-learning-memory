@@ -21,7 +21,7 @@ use tokio::sync::{RwLock, Semaphore, broadcast};
 #[must_use]
 pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     let pattern_extractor =
-        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 5);
 
     // Initialize quality assessor with configured threshold
     let quality_config = QualityConfig::new(config.quality_threshold);
@@ -144,7 +144,7 @@ pub fn with_storage(
     cache: Arc<dyn crate::StorageBackend>,
 ) -> super::SelfLearningMemory {
     let pattern_extractor =
-        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 5);
 
     // Initialize quality assessor with configured threshold
     let quality_config = QualityConfig::new(config.quality_threshold);

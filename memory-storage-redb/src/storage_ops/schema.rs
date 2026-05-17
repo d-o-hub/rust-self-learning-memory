@@ -5,7 +5,7 @@
 
 use super::super::{
     EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE,
-    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
+    PROCEDURAL_MEMORIES_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
     RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SCHEMA_VERSION, SCHEMA_VERSION_TABLE,
     SUMMARIES_TABLE, with_db_timeout,
 };
@@ -42,6 +42,11 @@ impl RedbStorage {
                 let _heuristics = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open heuristics table: {}", e))
                 })?;
+                let _procedural = write_txn
+                    .open_table(PROCEDURAL_MEMORIES_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to open procedural memories table: {}", e))
+                    })?;
                 let _embeddings = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open embeddings table: {}", e))
                 })?;

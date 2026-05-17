@@ -8,5 +8,6 @@
 //! - `stats`: Statistics, health checks, and cache metrics
 
 mod clear;
+mod procedural;
 mod schema;
 mod stats;

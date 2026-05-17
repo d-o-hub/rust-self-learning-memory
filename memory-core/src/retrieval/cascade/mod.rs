@@ -9,6 +9,9 @@
 //! The cascade eliminates 50-70% of embedding API calls by satisfying
 //! queries from CPU-local tiers before falling back to the API.
 
+#[cfg(feature = "csm")]
+use super::gist::GistScoredItem;
+use super::gist::{CogniRank, CogniRankWeights, HierarchicalReranker, RerankConfig};
 use anyhow::Result;
 
 mod concept_graph;
@@ -31,6 +34,10 @@ pub struct CascadeConfig {
     pub min_results: usize,
     /// Enable/disable ConceptGraph expansion.
     pub enable_concept_expansion: bool,
+    /// Enable/disable CogniRank reranking.
+    pub enable_cognirank: bool,
+    /// Weights for CogniRank scoring.
+    pub cognirank_weights: CogniRankWeights,
 }
 
 impl Default for CascadeConfig {
@@ -43,6 +50,8 @@ impl Default for CascadeConfig {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            enable_cognirank: true,
+            cognirank_weights: CogniRankWeights::default(),
         }
     }
 }
@@ -105,6 +114,12 @@ pub struct CascadeRetriever {
     config: CascadeConfig,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
+    /// Reranker for final results.
+    #[cfg(feature = "csm")]
+    reranker: HierarchicalReranker,
+    /// CogniRank logic.
+    #[cfg(feature = "csm")]
+    cognirank: CogniRank,
     /// Concept graph for ontology-based term expansion (Tier 3).
     #[cfg(feature = "csm")]
     concept_graph: ConceptGraph,
@@ -122,6 +137,10 @@ impl CascadeRetriever {
         Self {
             config,
             episode_data: Vec::new(),
+            #[cfg(feature = "csm")]
+            reranker: HierarchicalReranker::new(RerankConfig::dense()),
+            #[cfg(feature = "csm")]
+            cognirank: CogniRank::default(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
             #[cfg(feature = "csm")]
@@ -222,90 +241,112 @@ impl CascadeRetriever {
     #[cfg(feature = "csm")]
     fn retrieve_with_csm(&self, query: &str) -> Result<CascadeResult> {
         use super::{compute_weights, merge_results};
+        use std::sync::Arc;
 
         // Tier 1: BM25 keyword search
         let bm25_results = self.retrieve_bm25(query);
 
-        // Check if BM25 produced sufficient results
-        if bm25_results.sufficient {
-            return Ok(CascadeResult {
-                episode_ids: bm25_results.ids(),
-                scores: bm25_results.scores(),
-                contributing_tiers: vec!["bm25".to_string()],
-                api_calls: 0,
-            });
-        }
-
         // Tier 2: HDC similarity search
         let hdc_results = self.retrieve_hdc(query);
 
-        // Check if HDC produced sufficient results (or merge with BM25)
-        if self.config.merge_results && !bm25_results.is_empty() {
-            // Merge BM25 and HDC results with query-length-dependent weights
-            let weights = compute_weights(query.len());
-            let merged = merge_results(&bm25_results.results, &hdc_results.results, weights);
-
-            // Check if merged results are sufficient
-            if merged.len() >= self.config.min_results {
-                return Ok(CascadeResult {
-                    episode_ids: merged.iter().map(|(id, _)| id.clone()).collect(),
-                    scores: merged.iter().map(|(_, s)| *s).collect(),
-                    contributing_tiers: vec!["bm25".to_string(), "hdc".to_string()],
-                    api_calls: 0,
-                });
-            }
-        } else if hdc_results.sufficient {
-            return Ok(CascadeResult {
-                episode_ids: hdc_results.ids(),
-                scores: hdc_results.scores(),
-                contributing_tiers: vec!["hdc".to_string()],
-                api_calls: 0,
-            });
-        }
-
         // Tier 3: ConceptGraph expansion (optional)
-        if self.config.enable_concept_expansion {
-            let concept_results = self.retrieve_concept_graph(query);
+        let concept_results = if self.config.enable_concept_expansion {
+            self.retrieve_concept_graph(query)
+        } else {
+            TierResult {
+                tier: "concept_graph".to_string(),
+                results: Vec::new(),
+                sufficient: false,
+            }
+        };
 
-            if concept_results.sufficient {
-                return Ok(CascadeResult {
-                    episode_ids: concept_results.ids(),
-                    scores: concept_results.scores(),
-                    contributing_tiers: vec!["concept_graph".to_string()],
-                    api_calls: 0,
-                });
+        // Merge and Rerank
+        let (mut final_results, mut contributing_tiers) = if self.config.merge_results {
+            let weights = compute_weights(query.len());
+            let mut merged = merge_results(&bm25_results.results, &hdc_results.results, weights);
+            let mut tiers = Vec::new();
+            if !bm25_results.is_empty() {
+                tiers.push("bm25".to_string());
+            }
+            if !hdc_results.is_empty() {
+                tiers.push("hdc".to_string());
+            }
+
+            if !concept_results.is_empty() {
+                // Simplified merge for concept results
+                for (id, score) in &concept_results.results {
+                    if let Some(existing) = merged.iter_mut().find(|(eid, _)| eid == id) {
+                        existing.1 = (existing.1 + score) / 2.0;
+                    } else {
+                        merged.push((id.clone(), *score));
+                    }
+                }
+                tiers.push("concept_graph".to_string());
+            }
+            (merged, tiers)
+        } else if !concept_results.is_empty() {
+            (
+                concept_results.results.clone(),
+                vec!["concept_graph".to_string()],
+            )
+        } else if !hdc_results.is_empty() {
+            (hdc_results.results.clone(), vec!["hdc".to_string()])
+        } else {
+            (bm25_results.results.clone(), vec!["bm25".to_string()])
+        };
+
+        // Apply CogniRank if enabled and we have results
+        if self.config.enable_cognirank && !final_results.is_empty() {
+            let mut scored_items = Vec::new();
+            for (id, score) in &final_results {
+                if let Some((_, text)) = self.episode_data.iter().find(|(eid, _)| eid == id) {
+                    // Create a dummy episode for gist extraction
+                    let ep = Arc::new(crate::Episode::new(
+                        text.clone(),
+                        crate::TaskContext::default(),
+                        crate::TaskType::Other,
+                    ));
+                    let gist_config = self.reranker.config().max_key_points;
+                    let gist_obj =
+                        super::gist::GistExtractor::new(gist_config).extract_from_episode(&ep);
+                    scored_items.push(GistScoredItem::new(ep, gist_obj, *score));
+                }
+            }
+
+            if !scored_items.is_empty() {
+                let reranked = self.cognirank.rerank(
+                    query,
+                    scored_items,
+                    self.config.cognirank_weights.clone(),
+                );
+                final_results = reranked
+                    .into_iter()
+                    .map(|item| (item.episode().episode_id.to_string(), item.combined_score()))
+                    .collect();
+                contributing_tiers.push("cognirank".to_string());
             }
         }
 
-        // Tier 4: API fallback - mark that we need an API call
-        // Return best available results with api_calls = 1 indicator
-        let best_results: Vec<(String, f32)> = if self.config.merge_results {
-            let weights = compute_weights(query.len());
-            merge_results(&bm25_results.results, &hdc_results.results, weights)
-        } else if !hdc_results.is_empty() {
-            hdc_results.results.clone()
+        let api_calls = if final_results.len() < self.config.min_results {
+            contributing_tiers.push("api_fallback_needed".to_string());
+            1
         } else {
-            bm25_results.results.clone()
+            0
         };
 
         Ok(CascadeResult {
-            episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
-            scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if best_results.is_empty() {
-                vec!["none".to_string()]
-            } else {
-                // Preserve original tier attributions + note that API fallback was needed
-                let mut tiers = Vec::new();
-                if !bm25_results.is_empty() {
-                    tiers.push("bm25".to_string());
-                }
-                if !hdc_results.is_empty() {
-                    tiers.push("hdc".to_string());
-                }
-                tiers.push("api_fallback_needed".to_string());
-                tiers
-            },
-            api_calls: 1, // Indicates API call would be needed
+            episode_ids: final_results
+                .iter()
+                .take(self.config.top_k)
+                .map(|(id, _)| id.clone())
+                .collect(),
+            scores: final_results
+                .iter()
+                .take(self.config.top_k)
+                .map(|(_, s)| *s)
+                .collect(),
+            contributing_tiers,
+            api_calls,
         })
     }
 

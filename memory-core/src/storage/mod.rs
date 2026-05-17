@@ -14,7 +14,7 @@ use crate::episode::{
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use crate::{Episode, Heuristic, Pattern, Result};
+use crate::{Episode, Heuristic, Pattern, ProceduralMemory, Result, TaskType};
 use async_trait::async_trait;
 use uuid::Uuid;
 
@@ -131,6 +131,61 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// Returns error if storage operation fails
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>>;
+
+    /// Store a procedural memory
+    ///
+    /// # Arguments
+    ///
+    /// * `procedural` - Procedural memory to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_procedural_memory(&self, procedural: &ProceduralMemory) -> Result<()> {
+        let _ = procedural;
+        Ok(())
+    }
+
+    /// Retrieve a procedural memory by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Procedural memory UUID
+    ///
+    /// # Returns
+    ///
+    /// `Some(ProceduralMemory)` if found, `None` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_procedural_memory(&self, id: Uuid) -> Result<Option<ProceduralMemory>> {
+        let _ = id;
+        Ok(None)
+    }
+
+    /// Query procedural memories by task type
+    ///
+    /// # Arguments
+    ///
+    /// * `task_type` - Task type to filter by
+    /// * `limit` - Maximum number of memories to return
+    ///
+    /// # Returns
+    ///
+    /// Vector of matching procedural memories
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn query_procedural_memories(
+        &self,
+        task_type: TaskType,
+        limit: Option<usize>,
+    ) -> Result<Vec<ProceduralMemory>> {
+        let _ = (task_type, limit);
+        Ok(Vec::new())
+    }
 
     /// Query episodes modified since a given timestamp
     ///
@@ -324,6 +379,29 @@ pub trait StorageBackend: Send + Sync {
     ) -> Result<bool> {
         let _ = (from_episode_id, to_episode_id, relationship_type);
         Ok(false)
+    }
+
+    /// Traverse the temporal graph starting from an episode
+    ///
+    /// # Arguments
+    ///
+    /// * `start_episode_id` - Starting episode UUID
+    /// * `max_depth` - Maximum traversal depth
+    ///
+    /// # Returns
+    ///
+    /// Vector of related episodes with their path weights
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn traverse_temporal_graph(
+        &self,
+        start_episode_id: Uuid,
+        max_depth: usize,
+    ) -> Result<Vec<(Episode, f32)>> {
+        let _ = (start_episode_id, max_depth);
+        Ok(Vec::new())
     }
 
     // ========== Recommendation Attribution (ADR-044) ==========

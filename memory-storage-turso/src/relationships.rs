@@ -65,8 +65,8 @@ impl TursoStorage {
         self.execute_with_retry(
             &conn,
             &format!(
-                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, '{}', {})",
-                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, metadata, created_at)",
+                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {})",
+                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, temporal_weight, metadata, created_at)",
                 relationship.id,
                 relationship.from_episode_id,
                 relationship.to_episode_id,
@@ -74,6 +74,7 @@ impl TursoStorage {
                 relationship.metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 relationship.metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 relationship.metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
+                relationship.temporal_weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
                 metadata_json.replace('\'', "''"),
                 created_at
             ),
@@ -81,11 +82,12 @@ impl TursoStorage {
         .await?;
 
         debug!(
-            "Stored relationship {} from {} to {} (type: {:?})",
+            "Stored relationship {} from {} to {} (type: {:?}, weight: {:?})",
             relationship.id,
             relationship.from_episode_id,
             relationship.to_episode_id,
-            relationship.relationship_type
+            relationship.relationship_type,
+            relationship.temporal_weight
         );
 
         Ok(())
@@ -246,6 +248,60 @@ impl TursoStorage {
         }
     }
 
+    /// Traverse the temporal graph starting from an episode
+    pub async fn traverse_temporal_graph(
+        &self,
+        start_episode_id: Uuid,
+        max_depth: usize,
+    ) -> Result<Vec<(do_memory_core::Episode, f32)>> {
+        let conn = self.get_connection().await?;
+
+        // Use a recursive CTE to find all reachable episodes with their path weights
+        let sql = format!(
+            "WITH RECURSIVE
+              temporal_paths(to_id, weight, depth) AS (
+                SELECT to_episode_id, IFNULL(temporal_weight, 1.0), 1
+                FROM episode_relationships
+                WHERE from_episode_id = '{}'
+                UNION ALL
+                SELECT r.to_episode_id, p.weight * IFNULL(r.temporal_weight, 1.0), p.depth + 1
+                FROM episode_relationships r
+                JOIN temporal_paths p ON r.from_episode_id = p.to_id
+                WHERE p.depth < {}
+              )
+            SELECT e.episode_id, e.task_type, e.task_description, e.context, e.start_time, e.end_time, e.steps, e.outcome, e.reward, e.reflection, e.patterns, e.heuristics, e.checkpoints, e.metadata, e.domain, e.language, e.archived_at, MAX(p.weight) as max_weight 
+            FROM temporal_paths p
+            JOIN episodes e ON p.to_id = e.episode_id
+            GROUP BY p.to_id",
+            start_episode_id, max_depth
+        );
+
+        let stmt = conn.prepare(&sql).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to prepare traversal query: {}", e))
+        })?;
+
+        let mut rows = stmt.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute traversal query: {}", e))
+        })?;
+
+        let mut results = Vec::new();
+
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            let weight: f64 = row.get(17).map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to get weight: {}", e))
+            })?;
+
+            let episode = TursoStorage::row_to_episode(&row)?;
+            results.push((episode, weight as f32));
+        }
+
+        Ok(results)
+    }
+
     /// Helper to convert a database row to an EpisodeRelationship
     fn row_to_relationship(&self, row: &libsql::Row) -> Result<EpisodeRelationship> {
         let relationship_id_str: String = row.get(0).map_err(|e| {
@@ -264,10 +320,11 @@ impl TursoStorage {
         let reason: Option<String> = row.get(4).ok();
         let created_by: Option<String> = row.get(5).ok();
         let priority: Option<i64> = row.get(6).ok();
-        let metadata_json: String = row.get(7).map_err(|e| {
+        let temporal_weight: Option<f64> = row.get(7).ok();
+        let metadata_json: String = row.get(8).map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to get metadata: {}", e))
         })?;
-        let created_at_timestamp: i64 = row.get(8).map_err(|e| {
+        let created_at_timestamp: i64 = row.get(9).map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to get created_at: {}", e))
         })?;
 
@@ -303,6 +360,7 @@ impl TursoStorage {
             to_episode_id,
             relationship_type,
             metadata,
+            temporal_weight: temporal_weight.map(|w| w as f32),
             created_at,
         })
     }

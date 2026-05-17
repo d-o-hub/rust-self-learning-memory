@@ -51,6 +51,28 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_heuristic(self, id).await
     }
 
+    async fn store_procedural_memory(
+        &self,
+        procedural: &do_memory_core::ProceduralMemory,
+    ) -> Result<()> {
+        super::TursoStorage::store_procedural_memory(self, procedural).await
+    }
+
+    async fn get_procedural_memory(
+        &self,
+        id: uuid::Uuid,
+    ) -> Result<Option<do_memory_core::ProceduralMemory>> {
+        super::TursoStorage::get_procedural_memory(self, id).await
+    }
+
+    async fn query_procedural_memories(
+        &self,
+        task_type: do_memory_core::TaskType,
+        limit: Option<usize>,
+    ) -> Result<Vec<do_memory_core::ProceduralMemory>> {
+        super::TursoStorage::query_procedural_memories(self, task_type, limit).await
+    }
+
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,

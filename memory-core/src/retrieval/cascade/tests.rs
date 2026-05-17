@@ -82,6 +82,8 @@ fn test_config_custom_values() {
         merge_results: false,
         min_results: 2,
         enable_concept_expansion: false,
+        enable_cognirank: false,
+        cognirank_weights: Default::default(),
     };
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 5);
@@ -201,6 +203,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            enable_cognirank: false,
+            cognirank_weights: Default::default(),
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -232,6 +236,8 @@ mod csm_tests {
             merge_results: false,
             min_results: 1,
             enable_concept_expansion: false,
+            enable_cognirank: false,
+            cognirank_weights: Default::default(),
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -339,6 +345,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 1,
             enable_concept_expansion: true,
+            enable_cognirank: false,
+            cognirank_weights: Default::default(),
         };
         let mut retriever = CascadeRetriever::new(config);
 

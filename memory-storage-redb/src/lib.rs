@@ -122,6 +122,8 @@ pub(crate) const EPISODES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 pub(crate) const PATTERNS_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("patterns");
 pub(crate) const HEURISTICS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("heuristics");
+pub(crate) const PROCEDURAL_MEMORIES_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("procedural_memories");
 pub(crate) const EMBEDDINGS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("embeddings");
 pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("metadata");
@@ -153,7 +155,8 @@ pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str>
 /// ## Version history:
 /// - v1: Initial version (pre-versioning)
 /// - v2: Added checkpoints field to Episode (ADR-044 Feature 3)
-pub(crate) const SCHEMA_VERSION: u64 = 2;
+/// - v3: Added temporal_weight to EpisodeRelationship and ProceduralMemory type
+pub(crate) const SCHEMA_VERSION: u64 = 3;
 
 pub(crate) const SCHEMA_VERSION_TABLE: TableDefinition<&str, u64> =
     TableDefinition::new("schema_version");

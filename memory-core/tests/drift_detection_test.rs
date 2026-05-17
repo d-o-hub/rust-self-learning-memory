@@ -1,13 +1,13 @@
-use do_memory_core::{
-    ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
-    TaskType,
-};
-use std::sync::Arc;
+//! Integration tests for concept drift detection.
+
+use do_memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
 
 #[tokio::test]
 async fn test_concept_drift_detection_integration() {
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.0; // Disable quality gating for test
+    let config = MemoryConfig {
+        quality_threshold: 0.0, // Disable quality gating for test
+        ..Default::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
     let mut receiver = memory.subscribe();
 
@@ -59,38 +59,30 @@ async fn test_concept_drift_detection_integration() {
         .unwrap();
 
     let mut found_drift = false;
+    let target_id = id1.to_string();
+
     // Drain events to see if drift was detected
     for _ in 0..20 {
-        if let Ok(event) = receiver.try_recv() {
-            if let do_memory_core::types::event::MemoryEvent::ConceptDriftDetected {
-                parent_id,
-                ..
-            } = event
-            {
-                if parent_id == id1.to_string() {
-                    found_drift = true;
-                    break;
-                }
+        let event_opt = match receiver.try_recv() {
+            Ok(e) => Some(e),
+            Err(tokio::sync::broadcast::error::TryRecvError::Empty) => {
+                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+                receiver.try_recv().ok()
             }
-        } else {
-            // Wait a bit for async emission if needed
-            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-            if let Ok(event) = receiver.try_recv() {
-                if let do_memory_core::types::event::MemoryEvent::ConceptDriftDetected {
-                    parent_id,
-                    ..
-                } = event
-                {
-                    if parent_id == id1.to_string() {
-                        found_drift = true;
-                        break;
-                    }
-                }
-            } else {
+            _ => None,
+        };
+
+        if let Some(do_memory_core::types::event::MemoryEvent::ConceptDriftDetected {
+            parent_id,
+            ..
+        }) = event_opt
+        {
+            if parent_id == target_id {
+                found_drift = true;
                 break;
             }
         }
     }
 
-    println!("Found drift: {}", found_drift);
+    println!("Found drift: {found_drift}");
 }

@@ -405,14 +405,14 @@ impl SelfLearningMemory {
                 match turso.get_episode_versions(parent_id).await {
                     Ok(v) => versions = v,
                     Err(e) => {
-                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis")
+                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis");
                     }
                 }
             } else if let Some(cache) = &self.cache_storage {
                 match cache.get_episode_versions(parent_id).await {
                     Ok(v) => versions = v,
                     Err(e) => {
-                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis")
+                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis");
                     }
                 }
             }
@@ -440,7 +440,7 @@ impl SelfLearningMemory {
                         }
                     }
                     Err(e) => {
-                        tracing::error!(parent_id = %parent_id, error = %e, "Drift analysis failed")
+                        tracing::error!(parent_id = %parent_id, error = %e, "Drift analysis failed");
                     }
                 }
             }

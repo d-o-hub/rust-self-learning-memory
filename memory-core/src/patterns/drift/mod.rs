@@ -43,7 +43,7 @@ impl DriftAnalyzer {
         // Extract reward series
         let rewards: Vec<f64> = episodes
             .iter()
-            .map(|e| e.reward.as_ref().map(|r| r.total as f64).unwrap_or(0.0))
+            .map(|e| e.reward.as_ref().map(|r| f64::from(r.total)).unwrap_or(0.0))
             .collect();
 
         // Extract latency series

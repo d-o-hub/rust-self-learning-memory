@@ -177,8 +177,10 @@ impl SignalMerger {
             efficiency: merged_efficiency,
             internal_score: internal.total,
             external_score: external_success,
-            confidence: if valid_signals.is_empty() {
+            confidence: if external_sets.is_empty() {
                 0.0
+            } else if valid_signals.is_empty() {
+                0.5
             } else {
                 external_confidence
             },

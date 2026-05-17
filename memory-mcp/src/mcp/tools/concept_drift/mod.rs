@@ -33,17 +33,22 @@ impl ConceptDriftTool {
         let parent_id = Uuid::parse_str(&input.parent_id)?;
 
         // Fetch all versions
-        let versions = if let Some(turso) = self.memory.turso_storage.as_ref() {
+        let versions = if let Some(turso) = self.memory.turso_storage() {
             turso.get_episode_versions(parent_id).await?
-        } else if let Some(cache) = self.memory.cache_storage.as_ref() {
+        } else if let Some(cache) = self.memory.cache_storage() {
             cache.get_episode_versions(parent_id).await?
         } else {
             Vec::new()
         };
 
-        let mut analyzer = do_memory_core::patterns::drift::DriftAnalyzer::new();
-        let changepoints = analyzer.analyze_drift(&versions)?;
-        let drift_detected = !changepoints.is_empty();
+        let (changepoints, drift_detected) = if versions.len() >= 3 {
+            let mut analyzer = do_memory_core::patterns::drift::DriftAnalyzer::new();
+            let cp = analyzer.analyze_drift(&versions)?;
+            let detected = !cp.is_empty();
+            (cp, detected)
+        } else {
+            (Vec::new(), false)
+        };
 
         Ok(ConceptDriftResult {
             parent_id: input.parent_id,

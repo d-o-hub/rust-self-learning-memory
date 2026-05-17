@@ -364,6 +364,8 @@ impl SelfLearningMemory {
         // Re-insert the updated episode into the in-memory cache
         // ============================================================================
 
+        let parent_id = episode.parent_id;
+
         {
             let mut episodes = self.episodes_fallback.write().await;
             episodes.insert(episode_id, Arc::new(episode));
@@ -390,7 +392,7 @@ impl SelfLearningMemory {
         // WG-108: Concept Drift Analysis
         // ============================================================================
 
-        if let Some(parent_id) = episode.parent_id {
+        if let Some(parent_id) = parent_id {
             debug!(
                 episode_id = %episode_id,
                 parent_id = %parent_id,
@@ -424,10 +426,10 @@ impl SelfLearningMemory {
                         let event = crate::types::event::MemoryEvent::ConceptDriftDetected {
                             parent_id: parent_id.to_string(),
                             version_count: versions.len() as u32,
-                            changepoint_count: changepoints.len(),
+                            changepoint_count: changepoints.len() as u32,
                             timestamp: crate::types::event::unix_now_secs(),
                         };
-                        self.emit_event(event).await;
+                        self.emit_event_with_cloud(event);
                     }
                 }
             }

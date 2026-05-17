@@ -278,6 +278,12 @@ CREATE INDEX IF NOT EXISTS idx_episodes_domain
 ON episodes(domain)
 "#;
 
+/// Index on episodes parent_id for efficient version chain queries
+pub const CREATE_EPISODES_PARENT_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episodes_parent_id
+ON episodes(parent_id)
+"#;
+
 /// Index on episodes archived_at for filtering archived episodes
 pub const CREATE_EPISODES_ARCHIVED_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_episodes_archived

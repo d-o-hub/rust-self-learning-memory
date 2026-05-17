@@ -15,7 +15,7 @@ use tracing::{debug, info, warn};
 /// The SQL must return columns in the standard episode query order:
 /// episode_id, task_type, task_description, context, start_time, end_time,
 /// steps, outcome, reward, reflection, patterns, heuristics, checkpoints,
-/// metadata, domain, language, archived_at
+/// metadata, domain, language, version, parent_id, archived_at
 pub struct RawEpisodeQuery<'a> {
     storage: &'a TursoStorage,
 }
@@ -135,7 +135,7 @@ pub const EPISODE_SELECT_COLUMNS: &str = r#"
     reflection, patterns, heuristics,
     COALESCE(checkpoints, '[]') AS checkpoints,
     metadata, domain, language,
-    archived_at
+    version, parent_id, archived_at
 "#;
 
 impl TursoStorage {

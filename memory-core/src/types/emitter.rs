@@ -175,6 +175,21 @@ impl MemoryEventMapping {
                     "extraction_timestamp": timestamp,
                 }),
             ),
+            MemoryEvent::ConceptDriftDetected {
+                parent_id,
+                version_count,
+                changepoint_count,
+                timestamp,
+            } => (
+                "com.do-memory.concept.drift".to_string(),
+                parent_id.clone(),
+                serde_json::json!({
+                    "parent_id": parent_id,
+                    "version_count": version_count,
+                    "changepoint_count": changepoint_count,
+                    "detection_timestamp": timestamp,
+                }),
+            ),
         }
     }
 }

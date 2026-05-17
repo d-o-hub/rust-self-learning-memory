@@ -54,7 +54,7 @@ pub enum MemoryEvent {
         /// Number of versions analyzed
         version_count: u32,
         /// Number of changepoints detected
-        changepoint_count: usize,
+        changepoint_count: u32,
         /// Unix timestamp in seconds
         timestamp: u64,
     },
@@ -121,6 +121,38 @@ mod tests {
             timestamp: 12345,
         };
         assert_eq!(event.entity_id(), "episode-123");
+    }
+
+    #[test]
+    fn test_concept_drift_event() {
+        let parent_id = uuid::Uuid::new_v4().to_string();
+        let timestamp = unix_now_secs();
+        let event = MemoryEvent::ConceptDriftDetected {
+            parent_id: parent_id.clone(),
+            version_count: 5,
+            changepoint_count: 2,
+            timestamp,
+        };
+
+        assert_eq!(event.timestamp(), timestamp);
+        assert_eq!(event.entity_id(), parent_id);
+
+        // Serde round-trip
+        let json = serde_json::to_string(&event).unwrap();
+        let deserialized: MemoryEvent = serde_json::from_str(&json).unwrap();
+        if let MemoryEvent::ConceptDriftDetected {
+            parent_id: pid,
+            version_count,
+            changepoint_count,
+            ..
+        } = deserialized
+        {
+            assert_eq!(pid, parent_id);
+            assert_eq!(version_count, 5);
+            assert_eq!(changepoint_count, 2);
+        } else {
+            panic!("Wrong event variant after deserialization");
+        }
     }
 
     #[test]

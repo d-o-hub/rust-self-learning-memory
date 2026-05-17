@@ -21,7 +21,7 @@
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Close (down from 38; API reserves/future features, verified 2026-05-16) |
+| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
 | CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
 | Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
@@ -163,7 +163,7 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 164 | ≤165 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Close (down from 38; API reserves/future features, verified 2026-05-16) |
+| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

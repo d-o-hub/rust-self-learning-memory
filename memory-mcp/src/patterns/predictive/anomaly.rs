@@ -7,9 +7,6 @@ use super::dbscan::{AdaptiveDBSCAN, ClusterLabel, DBSCANConfig};
 use super::forecasting::types::PredictiveConfig;
 
 pub struct AnomalyDetector {
-    /// Configuration stored for future threshold customization methods
-    #[allow(dead_code)]
-    config: PredictiveConfig,
     dbscan: AdaptiveDBSCAN,
 }
 
@@ -28,7 +25,7 @@ impl AnomalyDetector {
             window_size: config.reservoir_size.min(1000),
         };
         let dbscan = AdaptiveDBSCAN::new(dbscan_config)?;
-        Ok(Self { config, dbscan })
+        Ok(Self { dbscan })
     }
 
     /// Detect anomalies in time series data

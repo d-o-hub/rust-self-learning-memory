@@ -291,10 +291,10 @@ impl CascadeRetriever {
         Ok(CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if !best_results.is_empty() {
-                vec!["api_fallback_needed".to_string()]
-            } else {
+            contributing_tiers: if best_results.is_empty() {
                 vec!["none".to_string()]
+            } else {
+                vec!["api_fallback_needed".to_string()]
             },
             api_calls: 1, // Indicates API call would be needed
         })

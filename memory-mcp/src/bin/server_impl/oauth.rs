@@ -15,7 +15,7 @@ use do_memory_mcp::protocol::OAuthConfig;
 #[cfg(feature = "oauth")]
 use {
     super::types::AuthorizationResult,
-    jsonwebtoken::{DecodingKey, Validation, dangerous::insecure_decode, decode},
+    jsonwebtoken::{DecodingKey, Validation, decode},
     serde::{Deserialize, Serialize},
     tracing::{debug, warn},
 };
@@ -106,7 +106,7 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
             AuthorizationResult::Authorized
         }
         Err(e) => {
-            let err_msg = format!("JWT validation failed: {}", e);
+            let err_msg = format!("JWT validation failed: {e}");
             warn!("{}", err_msg);
             AuthorizationResult::InvalidToken(err_msg)
         }
@@ -178,14 +178,14 @@ pub fn create_www_authenticate_header(
     error_description: Option<&str>,
     realm: Option<&str>,
 ) -> String {
-    let mut parts = vec![format!("error=\"{}\"", error)];
+    let mut parts = vec![format!("error=\"{error}\"")];
 
     if let Some(desc) = error_description {
-        parts.push(format!("error_description=\"{}\"", desc));
+        parts.push(format!("error_description=\"{desc}\""));
     }
 
     if let Some(r) = realm {
-        parts.push(format!("realm=\"{}\"", r));
+        parts.push(format!("realm=\"{r}\""));
     }
 
     format!("Bearer {}", parts.join(", "))

@@ -113,10 +113,31 @@ impl CheckpointTools {
         &self,
         mut input: CheckpointEpisodeInput,
     ) -> Result<CheckpointEpisodeOutput> {
-        // Clamp reason and note lengths (CWE-770)
-        input.reason.truncate(constants::MAX_CHECKPOINT_REASON_LEN);
+        // Clamp reason and note lengths with UTF-8 safe truncation (CWE-770).
+        // Manual char-boundary walk: floor_char_boundary() requires Rust 1.73+.
+        let reason_max = constants::MAX_CHECKPOINT_REASON_LEN;
+        let reason_truncate_at = if input.reason.len() <= reason_max {
+            input.reason.len()
+        } else {
+            let mut end = reason_max;
+            while !input.reason.is_char_boundary(end) {
+                end -= 1;
+            }
+            end
+        };
+        input.reason.truncate(reason_truncate_at);
         if let Some(note) = &mut input.note {
-            note.truncate(constants::MAX_CHECKPOINT_NOTE_LEN);
+            let note_max = constants::MAX_CHECKPOINT_NOTE_LEN;
+            let note_truncate_at = if note.len() <= note_max {
+                note.len()
+            } else {
+                let mut end = note_max;
+                while !note.is_char_boundary(end) {
+                    end -= 1;
+                }
+                end
+            };
+            note.truncate(note_truncate_at);
         }
 
         info!(
@@ -327,9 +348,50 @@ mod tests {
 
         // Should fail because episode doesn't exist (not due to reason length)
         let result = tools.checkpoint_episode(input).await;
-        // The truncation should keep reason at MAX_CHECKPOINT_REASON_LEN
-        // The call will fail because the episode doesn't exist, but that's expected
-        // What matters is that it doesn't panic or error due to length
+        assert!(result.is_err() || !result.as_ref().unwrap().success);
+    }
+
+    #[tokio::test]
+    async fn test_checkpoint_reason_truncation_utf8_safe() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = CheckpointTools::new(memory);
+
+        // Multi-byte UTF-8 at the truncation boundary (e.g., CJK characters)
+        // 'あ' is 3 bytes in UTF-8; place it so truncation falls mid-character
+        let prefix = "x".repeat(constants::MAX_CHECKPOINT_REASON_LEN - 1);
+        let reason = format!("{}あああ", prefix);
+        assert!(reason.len() > constants::MAX_CHECKPOINT_REASON_LEN);
+
+        let input = CheckpointEpisodeInput {
+            episode_id: Uuid::new_v4().to_string(),
+            reason,
+            note: None,
+        };
+
+        // Must not panic from multi-byte truncation
+        let result = tools.checkpoint_episode(input).await;
+        // Episode won't exist, but truncation must succeed without panic
+        assert!(result.is_err() || !result.as_ref().unwrap().success);
+    }
+
+    #[tokio::test]
+    async fn test_checkpoint_reason_truncation_emoji_safe() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = CheckpointTools::new(memory);
+
+        // Emoji at truncation boundary (🚀 is 4 bytes in UTF-8)
+        let prefix = "x".repeat(constants::MAX_CHECKPOINT_REASON_LEN.saturating_sub(3));
+        let reason = format!("{}🚀🚀🚀", prefix);
+        assert!(reason.len() > constants::MAX_CHECKPOINT_REASON_LEN);
+
+        let input = CheckpointEpisodeInput {
+            episode_id: Uuid::new_v4().to_string(),
+            reason,
+            note: None,
+        };
+
+        // Must not panic from emoji truncation
+        let result = tools.checkpoint_episode(input).await;
         assert!(result.is_err() || !result.as_ref().unwrap().success);
     }
 

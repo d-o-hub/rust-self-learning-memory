@@ -16,12 +16,12 @@
 | Workspace version | 0.1.31 | — | ✅ |
 | Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
+| Total tests | 3,288 | — | 3,288 passing (2026-05-16) |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features) |
+| `#[allow(dead_code)]` (prod src) | 38 | ≤25 | ⚠️ Over (API reserves/future features, verified 2026-05-16) |
 | CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
 | Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
@@ -66,19 +66,21 @@
 ## Open Items (2026-05-16 Validation)
 
 ### Open Issues
-| # | Title | Status |
-|---|-------|--------|
-| — | No open issues | ✅ All closed |
+
+No open issues — all closed.
 
 ### Open PRs
+
 | # | Title | Status |
 |---|-------|--------|
-| 547 | chore(ci): use create-pull-request for automated commits | 🔄 Auto-merge enabled (CI pending) |
-| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | 🔄 Auto-merge enabled (CI pending) |
+| — | No open PRs | ✅ All merged |
 
 ### Recently Merged PRs
+
 | # | Title | Status |
 |---|-------|--------|
+| 547 | chore(ci): resolve merge conflicts with main; use create-pull-request | ✅ Merged 2026-05-16 |
+| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | ✅ Merged 2026-05-16 |
 | 548 | chore: YAML frontmatter validation + code quality | ✅ Merged 2026-05-16 |
 | 545 | chore: YAML frontmatter validation and Dependabot fix plan | ✅ Merged 2026-05-16 |
 | 544 | feat: CloudEvents EventEmitter, ConceptGraph, evaluations | ✅ Merged 2026-05-15 |
@@ -161,7 +163,7 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features, verified 2026-04-22) |
+| `#[allow(dead_code)]` (prod src) | 38 | ≤25 | ⚠️ Over (API reserves/future features, verified 2026-05-16) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

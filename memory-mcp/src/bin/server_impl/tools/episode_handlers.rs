@@ -14,6 +14,20 @@ pub async fn handle_bulk_episodes(
         .get("episode_ids")
         .ok_or_else(|| anyhow::anyhow!("Missing 'episode_ids' parameter"))?;
 
+    // Validate collection size BEFORE parsing to prevent resource exhaustion (CWE-770)
+    let raw_count = match episode_ids_value {
+        Value::String(s) => s.split(',').count(),
+        Value::Array(arr) => arr.len(),
+        _ => 0,
+    };
+    if raw_count > do_memory_mcp::constants::MAX_BULK_EPISODE_IDS {
+        return Err(anyhow::anyhow!(
+            "Number of episode_ids ({}) exceeds maximum allowed ({})",
+            raw_count,
+            do_memory_mcp::constants::MAX_BULK_EPISODE_IDS
+        ));
+    }
+
     let episode_ids: Vec<Uuid> = match episode_ids_value {
         Value::String(s) => s
             .split(',')

@@ -261,9 +261,9 @@ pub fn get_dependency_graph_params() -> Value {
             "depth": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 5,
+                "maximum": 10,
                 "default": 2,
-                "description": "Maximum traversal depth"
+                "description": "Maximum traversal depth (1-10, clamped to MAX_DEPTH)"
             },
             "format": {
                 "type": "string",

@@ -89,7 +89,7 @@ pub(super) fn append_episode_relationship_tools(tools: &mut Vec<Tool>) {
             "type": "object",
             "properties": {
                 "episode_id": {"type": "string", "format": "uuid", "description": "Root episode UUID"},
-                "depth": {"type": "integer", "minimum": 1, "maximum": 5, "default": 2, "description": "Maximum traversal depth"},
+                "depth": {"type": "integer", "minimum": 1, "maximum": 10, "default": 2, "description": "Maximum traversal depth (1-10, clamped to MAX_DEPTH)"},
                 "format": {"type": "string", "enum": ["json", "dot"], "default": "json", "description": "Output format"}
             },
             "required": ["episode_id"]

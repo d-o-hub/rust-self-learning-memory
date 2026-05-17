@@ -278,7 +278,7 @@ impl MemoryMCPServer {
     /// # Arguments (from JSON)
     ///
     /// * `episode_id` - Root episode UUID
-    /// * `depth` - Optional maximum traversal depth (1-5, default: 2)
+    /// * `depth` - Optional maximum traversal depth (1-10, default: 2)
     /// * `format` - Optional output format ("json" or "dot", default: "json")
     pub async fn get_dependency_graph_tool(&self, args: Value) -> Result<Value> {
         debug!("Getting dependency graph with args: {}", args);

@@ -121,15 +121,13 @@ mod tests {
 #[cfg(test)]
 mod functional_tests {
     use super::*;
-    use crate::mcp::types::SandboxConfig;
+    use crate::types::SandboxConfig;
     use crate::server::MemoryMCPServer;
     use do_memory_core::SelfLearningMemory;
-    use do_memory_core::types::MemoryConfig;
     use std::sync::Arc;
 
     async fn create_test_server() -> MemoryMCPServer {
-        let config = MemoryConfig::default();
-        let memory = Arc::new(SelfLearningMemory::new(config).await.unwrap());
+        let memory = Arc::new(SelfLearningMemory::new());
         MemoryMCPServer::new(SandboxConfig::default(), memory)
             .await
             .unwrap()

@@ -205,9 +205,9 @@ impl AgentFsProvider {
             Err(_) => return Vec::new(),
         };
 
-        // Get unique tool names from episode steps
-        let episode_tools: std::collections::HashSet<_> =
-            episode.steps.iter().map(|s| &s.tool).collect();
+        // Get unique tool names from episode steps as &str for efficient lookups
+        let episode_tools: std::collections::HashSet<&str> =
+            episode.steps.iter().map(|s| s.tool.as_str()).collect();
 
         // Query all tool stats once for efficiency
         let all_stats = match tc.stats().await {
@@ -218,15 +218,12 @@ impl AgentFsProvider {
         all_stats
             .into_iter()
             .filter(|stats| {
-                episode_tools.contains(&stats.name)
+                episode_tools.contains(stats.name.as_str())
                     && stats.total_calls >= self.config.min_correlation_samples as i64
             })
             .map(|stats| {
-                let success_rate = if stats.total_calls > 0 {
-                    stats.successful as f32 / stats.total_calls as f32
-                } else {
-                    0.5
-                };
+                // Total calls guaranteed to be > 0 due to filter above
+                let success_rate = stats.successful as f32 / stats.total_calls as f32;
 
                 let mut metadata = HashMap::new();
                 metadata.insert("failed".to_string(), serde_json::json!(stats.failed));
@@ -485,10 +482,11 @@ mod tests {
         let db_path = temp_db.path().to_str().unwrap().to_string();
 
         // Initialize SDK and record some stats
+        // Signature: record(name, latency, success, parameters, input_tokens, output_tokens)
         let tc = ToolCalls::new(&db_path).await.unwrap();
-        tc.record("test_tool", 100, true, None).await.unwrap();
-        tc.record("test_tool", 200, false, None).await.unwrap();
-        tc.record("other_tool", 50, true, None).await.unwrap();
+        tc.record("test_tool", 100, true, None, None, None).await.unwrap();
+        tc.record("test_tool", 200, false, None, None, None).await.unwrap();
+        tc.record("other_tool", 50, true, None, None, None).await.unwrap();
 
         let config = AgentFsConfig {
             db_path: db_path.clone(),
@@ -506,15 +504,17 @@ mod tests {
             crate::types::TaskContext::default(),
             crate::types::TaskType::Testing,
         );
-        episode.add_step(crate::episode::EpisodeStep::new(
+        let mut step = crate::episode::ExecutionStep::new(
+            1,
             "test_tool".to_string(),
-            serde_json::json!({}),
-            crate::types::ExecutionResult::Success {
-                output: "ok".to_string(),
-                artifacts: vec![],
-            },
-            std::time::Duration::from_millis(100),
-        ));
+            "test action".to_string(),
+        );
+        step.set_parameters(serde_json::json!({}));
+        step.result = Some(crate::types::ExecutionResult::Success {
+            output: "ok".to_string(),
+        });
+        step.latency_ms = 100;
+        episode.add_step(step);
 
         let stats = provider.fetch_tool_stats(&episode).await;
 

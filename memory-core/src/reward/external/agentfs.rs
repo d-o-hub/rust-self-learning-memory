@@ -477,8 +477,6 @@ mod tests {
             serde_json::Value::String("[REDACTED]".to_string())
         );
     }
-}
-
 
     #[tokio::test]
     async fn test_fetch_tool_stats_with_real_sdk() {

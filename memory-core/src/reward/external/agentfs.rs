@@ -1,25 +1,18 @@
 //! AgentFS external signal provider implementation
 //!
-//! This module provides a stub implementation for AgentFS SDK integration.
-//! The actual `agentfs-sdk` crate exists on crates.io (v0.6.4) but is not
-//! currently integrated as a dependency in this project.
+//! This module provides the AgentFS SDK integration for external signals.
 //!
 //! ## Current Status
 //!
-//! - **SDK Integrated**: No (stub implementation)
-//! - **Functional**: Returns empty signals when enabled (no real data)
-//! - **Error Handling**: Returns `SdkUnavailable` error if enabled without SDK
-//!
-//! ## Future Integration
-//!
-//! To enable full AgentFS integration:
-//! 1. Add `agentfs-sdk = { version = "0.6.4", optional = true }` to Cargo.toml
-//! 2. Update feature flag: `agentfs = ["dep:agentfs-sdk"]`
-//! 3. Replace stub code with actual SDK calls
+//! - **SDK Integrated**: Yes (v0.6.4)
+//! - **Functional**: Fetches real tool statistics from AgentFS SQLite database
+//! - **Error Handling**: Graceful degradation if database is unavailable
 //!
 //! See ADR-050 for full integration plan.
 
+use agentfs_sdk::ToolCalls;
 use async_trait::async_trait;
+use std::collections::HashMap;
 
 use super::{
     ExternalSignalError, ExternalSignalProvider, ExternalSignalSet, ProviderHealth, Result,
@@ -138,26 +131,33 @@ impl ExternalSignalProvider for AgentFsProvider {
         "agentfs"
     }
 
-    async fn get_signals(&self, _episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
+    async fn get_signals(&self, episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
         // Disabled provider returns empty signals (graceful degradation)
         if !self.config.enabled {
             return Ok(ExternalSignalSet::empty("agentfs"));
         }
 
-        // SDK not integrated - return error if enabled
-        // This prevents misleading placeholder data from being used
-        return Err(ExternalSignalError::SdkUnavailable(
-            "agentfs-sdk not integrated - enable feature and add SDK dependency to use".to_string(),
-        ));
+        if self.config.db_path.is_empty() {
+            return Err(ExternalSignalError::ConfigMissing(
+                "AgentFS database path not configured".to_string(),
+            ));
+        }
 
-        // The following code would be used when SDK is integrated:
-        // if self.config.db_path.is_empty() {
-        //     return Err(ExternalSignalError::ConfigMissing(
-        //         "AgentFS database path not configured".to_string(),
-        //     ));
-        // }
-        // let tool_signals = self.fetch_tool_stats(episode);
-        // ... calculate confidence and quality ...
+        let tool_signals = self.fetch_tool_stats(episode).await;
+
+        // Calculate confidence based on sample sizes
+        let total_samples: usize = tool_signals.iter().map(|t| t.sample_count).sum();
+
+        // 100 samples = 1.0 confidence, 0 samples = 0.0
+        let confidence = (total_samples as f32 / 100.0).min(1.0);
+
+        Ok(ExternalSignalSet {
+            provider: "agentfs".to_string(),
+            tool_signals,
+            episode_quality: None, // Could be derived from success rates if needed
+            timestamp: chrono::Utc::now(),
+            confidence,
+        })
     }
 
     async fn health_check(&self) -> ProviderHealth {
@@ -166,18 +166,14 @@ impl ExternalSignalProvider for AgentFsProvider {
             return ProviderHealth::Healthy;
         }
 
-        // SDK not integrated - report degraded status with clear message
-        // This is "Degraded" not "Unhealthy" because the system still works
-        // without external signals; it just lacks ground truth validation
-        return ProviderHealth::Degraded(
-            "SDK not integrated - stub implementation, no real signal data available".to_string(),
-        );
+        if self.config.db_path.is_empty() {
+            return ProviderHealth::Unhealthy("Database path not configured".to_string());
+        }
 
-        // The following code would be used when SDK is integrated:
-        // if self.config.db_path.is_empty() {
-        //     return ProviderHealth::Unhealthy("Database path not configured".to_string());
-        // }
-        // match tokio::fs::metadata(&self.config.db_path).await { ... }
+        match ToolCalls::new(&self.config.db_path).await {
+            Ok(_) => ProviderHealth::Healthy,
+            Err(e) => ProviderHealth::Unhealthy(format!("AgentFS connection failed: {e}")),
+        }
     }
 
     fn validate_config(&self) -> Result<()> {
@@ -201,16 +197,46 @@ impl ExternalSignalProvider for AgentFsProvider {
 impl AgentFsProvider {
     /// Fetch tool statistics for an episode
     ///
-    /// **STUB IMPLEMENTATION**: This method is not functional without SDK integration.
-    /// When `agentfs-sdk` is integrated, this would query the AgentFS database
-    /// for toolcall statistics matching the episode's tools.
-    ///
-    /// Returns empty vector (no real data available from stub).
-    #[allow(dead_code)] // Not used until SDK integrated
-    fn fetch_tool_stats(&self, _episode: &crate::episode::Episode) -> Vec<ToolSignal> {
-        // Stub: No real data available without SDK
-        // TODO: Implement when agentfs-sdk is integrated
-        Vec::new()
+    /// This method queries the AgentFS database via the SDK for toolcall statistics
+    /// matching the tools used in the provided episode.
+    async fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Vec<ToolSignal> {
+        let tc = match ToolCalls::new(&self.config.db_path).await {
+            Ok(tc) => tc,
+            Err(_) => return Vec::new(),
+        };
+
+        let mut tool_signals = Vec::new();
+
+        // Get unique tool names from episode steps
+        let mut tools: Vec<String> = episode.steps.iter().map(|s| s.tool.clone()).collect();
+        tools.sort();
+        tools.dedup();
+
+        for tool_name in tools {
+            if let Ok(Some(stats)) = tc.stats_for(&tool_name).await {
+                if stats.total_calls >= self.config.min_correlation_samples as i64 {
+                    let success_rate = if stats.total_calls > 0 {
+                        stats.successful as f32 / stats.total_calls as f32
+                    } else {
+                        0.5
+                    };
+
+                    let mut metadata = HashMap::new();
+                    metadata.insert("failed".to_string(), serde_json::json!(stats.failed));
+                    metadata.insert("provider".to_string(), serde_json::json!("agentfs"));
+
+                    tool_signals.push(ToolSignal {
+                        tool_name: tool_name.clone(),
+                        success_rate,
+                        avg_latency_ms: stats.avg_duration_ms,
+                        sample_count: stats.total_calls as usize,
+                        metadata,
+                    });
+                }
+            }
+        }
+
+        tool_signals
     }
 }
 
@@ -336,32 +362,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_enabled_provider_returns_sdk_unavailable_error() {
+    async fn test_enabled_provider_with_invalid_path_returns_error() {
         let config = AgentFsConfig {
-            db_path: "/tmp/test.db".to_string(),
-            enabled: true, // Enabled but SDK not integrated
+            db_path: "/nonexistent/path/to/db".to_string(),
+            enabled: true,
             external_weight: 0.3,
             min_correlation_samples: 10,
             sanitize_parameters: true,
         };
 
         let provider = AgentFsProvider::new(config);
-        let episode = crate::episode::Episode::new(
-            "test-episode".to_string(),
-            crate::types::TaskContext::default(),
-            crate::types::TaskType::Testing,
-        );
+        let health = provider.health_check().await;
 
-        let result = provider.get_signals(&episode).await;
-        assert!(
-            result.is_err(),
-            "Enabled provider without SDK should return error"
-        );
-        let err = result.unwrap_err();
-        assert!(
-            matches!(err, ExternalSignalError::SdkUnavailable(_)),
-            "Error should be SdkUnavailable"
-        );
+        // Should be unhealthy because path doesn't exist/can't connect
+        assert!(matches!(health, ProviderHealth::Unhealthy(_)));
     }
 
     #[tokio::test]
@@ -377,27 +391,6 @@ mod tests {
         let provider = AgentFsProvider::new(config);
         let health = provider.health_check().await;
         assert!(health.is_healthy(), "Disabled provider should be healthy");
-    }
-
-    #[tokio::test]
-    async fn test_health_check_enabled_returns_degraded() {
-        let config = AgentFsConfig {
-            db_path: "/tmp/test.db".to_string(),
-            enabled: true, // Enabled but SDK not integrated
-            external_weight: 0.3,
-            min_correlation_samples: 10,
-            sanitize_parameters: true,
-        };
-
-        let provider = AgentFsProvider::new(config);
-        let health = provider.health_check().await;
-
-        // Degraded (not unhealthy) because system works without external signals
-        assert!(
-            matches!(health, ProviderHealth::Degraded(_)),
-            "Enabled provider without SDK should be degraded"
-        );
-        assert!(health.is_operational(), "Degraded is still operational");
     }
 
     #[test]

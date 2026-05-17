@@ -27,7 +27,7 @@ hybrid_search = []
 # Enable proptest Arbitrary implementations for property testing
 proptest-arbitrary = ["proptest"]
 # Enable AgentFS SDK integration for external signals
-agentfs = []
+agentfs = ["dep:agentfs-sdk"]
 # Enable CSM cascading retrieval (BM25 + HDC + ConceptGraph)
 csm = ["chaotic_semantic_memory"]
 # Enable HTTP webhook EventEmitter for CloudEvents delivery
@@ -88,6 +88,9 @@ rand = "0.10"
 
 # Fuzzy string matching for search
 strsim = "0.11.1"
+
+# AgentFS SDK for toolcall audit trails (optional)
+agentfs-sdk = { version = "0.6.4", optional = true }
 
 # Regular expressions for pattern matching
 regex = "1.12"

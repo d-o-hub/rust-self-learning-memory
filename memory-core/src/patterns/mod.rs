@@ -17,6 +17,7 @@
 pub mod affinity;
 pub mod changepoint;
 pub mod clustering;
+pub mod drift;
 pub mod dbscan;
 pub mod effectiveness;
 pub mod extractors;
@@ -32,6 +33,7 @@ pub use changepoint::{
     ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointDetector,
     SegmentComparison, SegmentComparisonConfig, SegmentStats,
 };
+pub use drift::DriftAnalyzer;
 pub use clustering::{ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer};
 pub use dbscan::{
     Anomaly, AnomalyReason, DBSCANAnomalyDetector, DBSCANClusterResult, DBSCANConfig, DBSCANStats,

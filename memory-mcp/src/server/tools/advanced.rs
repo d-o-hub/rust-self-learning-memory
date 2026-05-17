@@ -38,6 +38,31 @@ impl crate::server::MemoryMCPServer {
         Ok(json!(result))
     }
 
+    /// Execute the analyze_concept_drift tool
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Drift analysis input parameters
+    ///
+    /// # Returns
+    ///
+    /// Returns drift analysis results
+    pub async fn execute_analyze_concept_drift(
+        &self,
+        input: crate::mcp::tools::concept_drift::ConceptDriftInput,
+    ) -> Result<serde_json::Value> {
+        self.track_tool_usage("analyze_concept_drift").await;
+
+        debug!("Executing concept drift analysis for: {}", input.parent_id);
+
+        let tool = crate::mcp::tools::concept_drift::ConceptDriftTool::new(Arc::clone(&self.memory));
+
+        let result = tool.execute(input).await?;
+
+        // Convert result to JSON
+        Ok(json!(result))
+    }
+
     /// Execute the quality_metrics tool
     ///
     /// # Arguments

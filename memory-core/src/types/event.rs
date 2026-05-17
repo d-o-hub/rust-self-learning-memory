@@ -47,6 +47,17 @@ pub enum MemoryEvent {
         /// Unix timestamp in seconds
         timestamp: u64,
     },
+    /// Concept drift was detected in a versioned episode chain.
+    ConceptDriftDetected {
+        /// Parent episode ID (the "concept" identifier)
+        parent_id: String,
+        /// Number of versions analyzed
+        version_count: u32,
+        /// Number of changepoints detected
+        changepoint_count: usize,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
 }
 
 impl MemoryEvent {
@@ -57,7 +68,8 @@ impl MemoryEvent {
             Self::EpisodeCreated { timestamp, .. }
             | Self::EpisodeCompleted { timestamp, .. }
             | Self::EpisodeGarbageCollected { timestamp, .. }
-            | Self::PatternExtracted { timestamp, .. } => *timestamp,
+            | Self::PatternExtracted { timestamp, .. }
+            | Self::ConceptDriftDetected { timestamp, .. } => *timestamp,
         }
     }
 
@@ -69,6 +81,7 @@ impl MemoryEvent {
             | Self::EpisodeCompleted { id, .. }
             | Self::EpisodeGarbageCollected { id, .. } => id,
             Self::PatternExtracted { id, .. } => id,
+            Self::ConceptDriftDetected { parent_id, .. } => parent_id,
         }
     }
 }

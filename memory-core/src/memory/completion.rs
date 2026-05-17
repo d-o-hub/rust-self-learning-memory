@@ -386,6 +386,53 @@ impl SelfLearningMemory {
             );
         }
 
+        // ============================================================================
+        // WG-108: Concept Drift Analysis
+        // ============================================================================
+
+        if let Some(parent_id) = episode.parent_id {
+            debug!(
+                episode_id = %episode_id,
+                parent_id = %parent_id,
+                "Checking for concept drift in version chain"
+            );
+
+            // Fetch all versions
+            let mut versions = Vec::new();
+            if let Some(turso) = &self.turso_storage {
+                if let Ok(v) = turso.get_episode_versions(parent_id).await {
+                    versions = v;
+                }
+            } else if let Some(cache) = &self.cache_storage {
+                if let Ok(v) = cache.get_episode_versions(parent_id).await {
+                    versions = v;
+                }
+            }
+
+            if versions.len() >= 3 {
+                let mut drift_analyzer = crate::patterns::drift::DriftAnalyzer::new();
+                if let Ok(changepoints) = drift_analyzer.analyze_drift(&versions) {
+                    if !changepoints.is_empty() {
+                        info!(
+                            parent_id = %parent_id,
+                            version_count = versions.len(),
+                            changepoint_count = changepoints.len(),
+                            "Concept drift detected"
+                        );
+
+                        // Emit concept drift event
+                        let event = crate::types::event::MemoryEvent::ConceptDriftDetected {
+                            parent_id: parent_id.to_string(),
+                            version_count: versions.len() as u32,
+                            changepoint_count: changepoints.len(),
+                            timestamp: crate::types::event::unix_now_secs(),
+                        };
+                        self.emit_event(event).await;
+                    }
+                }
+            }
+        }
+
         // Audit log: episode completed
         let context = AuditContext::system();
         let outcome_str = match &outcome {

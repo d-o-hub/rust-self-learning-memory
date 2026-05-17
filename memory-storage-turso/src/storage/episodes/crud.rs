@@ -24,8 +24,8 @@ impl TursoStorage {
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
                 reflection, patterns, heuristics, checkpoints, metadata, domain, language,
-                archived_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                version, parent_id, archived_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         // Get compression threshold from config
@@ -143,6 +143,8 @@ impl TursoStorage {
             metadata_str,
             episode.context.domain.clone(),
             episode.context.language.clone(),
+            episode.version,
+            episode.parent_id.map(|id| id.to_string()),
             archived_at,
         ])
         .await
@@ -188,7 +190,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   archived_at
+                   version, parent_id, archived_at
             FROM episodes WHERE episode_id = ?
         "#;
 
@@ -334,6 +336,45 @@ impl TursoStorage {
         result
     }
 
+    /// Retrieve all versions of an episode by its parent ID
+    pub async fn get_episode_versions(&self, parent_id: Uuid) -> Result<Vec<Episode>> {
+        debug!("Retrieving versions for parent episode: {}", parent_id);
+        let (conn, conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
+                   version, parent_id, archived_at
+            FROM episodes
+            WHERE parent_id = ? OR episode_id = ?
+            ORDER BY version ASC
+        "#;
+
+        // Use prepared statement cache
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
+        let mut rows = stmt
+            .query(libsql::params![parent_id.to_string(), parent_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episode versions: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode version row: {}", e)))?
+        {
+            episodes.push(Self::row_to_episode(&row)?);
+        }
+
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
+        Ok(episodes)
+    }
+
     /// Retrieve an episode by task description
     pub async fn get_episode_by_task_desc(&self, task_desc: &str) -> Result<Option<Episode>> {
         debug!("Retrieving episode by task description: {}", task_desc);
@@ -345,7 +386,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   archived_at
+                   version, parent_id, archived_at
             FROM episodes WHERE task_description = ?
         "#;
 

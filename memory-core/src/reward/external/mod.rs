@@ -27,6 +27,7 @@
 //! - `agentfs`: Enables AgentFS SDK integration
 
 mod merger;
+#[cfg(test)]
 mod provider;
 mod registry;
 mod types;
@@ -72,3 +73,7 @@ pub enum ExternalSignalError {
     #[error("SDK not available for provider '{0}' - stub implementation returns no real data")]
     SdkUnavailable(String),
 }
+
+#[cfg(test)]
+
+#[cfg(test)]

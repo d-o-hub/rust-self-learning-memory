@@ -121,3 +121,34 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod functional_tests {
+    use super::*;
+    use crate::server::MemoryMCPServer;
+    use crate::mcp::types::SandboxConfig;
+    use do_memory_core::SelfLearningMemory;
+    use do_memory_core::types::MemoryConfig;
+    use std::sync::Arc;
+
+    async fn create_test_server() -> MemoryMCPServer {
+        let config = MemoryConfig::default();
+        let memory = Arc::new(SelfLearningMemory::new(config).await.unwrap());
+        MemoryMCPServer::new(SandboxConfig::default(), memory).await.unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_execute_test_agentfs_connection_invalid_path() {
+        let server = create_test_server().await;
+        let input = crate::mcp::tools::external_signals::TestAgentFsConnectionInput {
+            db_path: Some("/nonexistent/path".to_string()),
+        };
+
+        let result = server.execute_test_agentfs_connection(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::TestAgentFsConnectionOutput =
+            serde_json::from_value(result).unwrap();
+
+        assert!(!output.success);
+        assert!(output.error.is_some());
+    }
+}

@@ -117,3 +117,58 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod functional_tests {
+    use super::*;
+    use crate::server::MemoryMCPServer;
+    use crate::mcp::types::SandboxConfig;
+    use do_memory_core::SelfLearningMemory;
+    use do_memory_core::types::MemoryConfig;
+    use std::sync::Arc;
+
+    async fn create_test_server() -> MemoryMCPServer {
+        let config = MemoryConfig::default();
+        let memory = Arc::new(SelfLearningMemory::new(config).await.unwrap());
+        MemoryMCPServer::new(SandboxConfig::default(), memory).await.unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_execute_external_signal_status_all() {
+        let server = create_test_server().await;
+        let input = crate::mcp::tools::external_signals::ExternalSignalStatusInput {
+            provider: None,
+        };
+
+        let result = server.execute_external_signal_status(input).await.unwrap();
+
+        let output: crate::mcp::tools::external_signals::ExternalSignalStatusOutput =
+            serde_json::from_value(result).unwrap();
+
+        assert_eq!(output.total_providers, 1);
+        assert_eq!(output.providers[0].name, "agentfs");
+    }
+
+    #[tokio::test]
+    async fn test_execute_external_signal_status_filter() {
+        let server = create_test_server().await;
+
+        // Filter for agentfs
+        let input = crate::mcp::tools::external_signals::ExternalSignalStatusInput {
+            provider: Some("agentfs".to_string()),
+        };
+        let result = server.execute_external_signal_status(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::ExternalSignalStatusOutput =
+            serde_json::from_value(result).unwrap();
+        assert_eq!(output.total_providers, 1);
+
+        // Filter for nonexistent
+        let input = crate::mcp::tools::external_signals::ExternalSignalStatusInput {
+            provider: Some("nonexistent".to_string()),
+        };
+        let result = server.execute_external_signal_status(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::ExternalSignalStatusOutput =
+            serde_json::from_value(result).unwrap();
+        assert_eq!(output.total_providers, 0);
+    }
+}

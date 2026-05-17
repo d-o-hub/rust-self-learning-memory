@@ -236,9 +236,7 @@ pub struct KDTree {
 
 impl KDTree {
     pub(crate) fn new() -> Self {
-        Self {
-            root: None,
-        }
+        Self { root: None }
     }
 
     /// Build KD-tree from points

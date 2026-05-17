@@ -2,7 +2,10 @@
 
 ### Added
 
-- Nothing yet
+- **SIMD-accelerated similarity** (WG-110) - ~10x speedup for cosine similarity
+  - Implemented single-pass AVX2 + FMA optimization for vector similarity
+  - Added runtime feature detection with safe scalar fallback
+  - Introduced `benches/similarity_benchmark.rs` for performance validation
 
 ## [0.1.31] - 2026-04-22
 

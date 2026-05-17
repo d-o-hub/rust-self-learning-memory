@@ -37,9 +37,9 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
         return 0.0;
     }
 
-    let dot_prod = dot_product(a, b);
-    let mag_a = sum_squares(a).sqrt();
-    let mag_b = sum_squares(b).sqrt();
+    let (dot_prod, sum_sq_a, sum_sq_b) = compute_cosine_components(a, b);
+    let mag_a = sum_sq_a.sqrt();
+    let mag_b = sum_sq_b.sqrt();
 
     if mag_a == 0.0 || mag_b == 0.0 {
         return 0.0;
@@ -50,75 +50,60 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     (similarity + 1.0) / 2.0
 }
 
-/// Calculate dot product of two vectors, with SIMD acceleration where available.
+/// Compute dot product and sums of squares in a single pass.
 #[allow(unsafe_code)]
-fn dot_product(a: &[f32], b: &[f32]) -> f32 {
+fn compute_cosine_components(a: &[f32], b: &[f32]) -> (f32, f32, f32) {
     #[cfg(target_arch = "x86_64")]
     {
         if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
-            return unsafe { dot_product_avx2_fma(a, b) };
+            // SAFETY: Runtime detection ensures feature availability.
+            return unsafe { cosine_components_avx2_fma(a, b) };
         }
     }
-    a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
-}
 
-/// Calculate sum of squares of a vector, with SIMD acceleration where available.
-#[allow(unsafe_code)]
-fn sum_squares(a: &[f32]) -> f32 {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
-            return unsafe { sum_squares_avx2_fma(a) };
-        }
+    let mut dot = 0.0;
+    let mut a2 = 0.0;
+    let mut b2 = 0.0;
+    for (&x, &y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        a2 += x * x;
+        b2 += y * y;
     }
-    a.iter().map(|x| x * x).sum()
+    (dot, a2, b2)
 }
 
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx2,fma")]
 #[allow(unsafe_code)]
-unsafe fn dot_product_avx2_fma(a: &[f32], b: &[f32]) -> f32 {
+unsafe fn cosine_components_avx2_fma(a: &[f32], b: &[f32]) -> (f32, f32, f32) {
     use std::arch::x86_64::{_mm256_fmadd_ps, _mm256_loadu_ps, _mm256_setzero_ps};
     let n = a.len();
-    let mut sum = _mm256_setzero_ps();
+    let mut sum_dot = _mm256_setzero_ps();
+    let mut sum_a2 = _mm256_setzero_ps();
+    let mut sum_b2 = _mm256_setzero_ps();
     let mut i = 0;
     while i + 8 <= n {
         // SAFETY: We checked that i + 8 <= n, and we use unaligned loads.
         let va = unsafe { _mm256_loadu_ps(a.as_ptr().add(i)) };
         let vb = unsafe { _mm256_loadu_ps(b.as_ptr().add(i)) };
-        sum = _mm256_fmadd_ps(va, vb, sum);
+        sum_dot = _mm256_fmadd_ps(va, vb, sum_dot);
+        sum_a2 = _mm256_fmadd_ps(va, va, sum_a2);
+        sum_b2 = _mm256_fmadd_ps(vb, vb, sum_b2);
         i += 8;
     }
-    // SAFETY: Input registers are valid for reduction.
-    let mut res = unsafe { avx2_reduce_add_ps(sum) };
-    while i < n {
-        res += a[i] * b[i];
-        i += 1;
-    }
-    res
-}
 
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx2,fma")]
-#[allow(unsafe_code)]
-unsafe fn sum_squares_avx2_fma(a: &[f32]) -> f32 {
-    use std::arch::x86_64::{_mm256_fmadd_ps, _mm256_loadu_ps, _mm256_setzero_ps};
-    let n = a.len();
-    let mut sum = _mm256_setzero_ps();
-    let mut i = 0;
-    while i + 8 <= n {
-        // SAFETY: We checked that i + 8 <= n, and we use unaligned loads.
-        let va = unsafe { _mm256_loadu_ps(a.as_ptr().add(i)) };
-        sum = _mm256_fmadd_ps(va, va, sum);
-        i += 8;
-    }
-    // SAFETY: Input register is valid for reduction.
-    let mut res = unsafe { avx2_reduce_add_ps(sum) };
+    // SAFETY: Registers are initialized and avx2 is enabled.
+    let mut dot = unsafe { avx2_reduce_add_ps(sum_dot) };
+    let mut a2 = unsafe { avx2_reduce_add_ps(sum_a2) };
+    let mut b2 = unsafe { avx2_reduce_add_ps(sum_b2) };
+
     while i < n {
-        res += a[i] * a[i];
+        dot += a[i] * b[i];
+        a2 += a[i] * a[i];
+        b2 += b[i] * b[i];
         i += 1;
     }
-    res
+    (dot, a2, b2)
 }
 
 #[cfg(target_arch = "x86_64")]
@@ -129,6 +114,7 @@ unsafe fn avx2_reduce_add_ps(x: std::arch::x86_64::__m256) -> f32 {
         _mm_add_ps, _mm_add_ss, _mm_cvtss_f32, _mm_movehl_ps, _mm_shuffle_ps,
         _mm256_castps256_ps128, _mm256_extractf128_ps,
     };
+    // SAFETY: AVX2 is enabled and registers are valid.
     let x128 = _mm_add_ps(_mm256_extractf128_ps(x, 1), _mm256_castps256_ps128(x));
     let x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
     let x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));

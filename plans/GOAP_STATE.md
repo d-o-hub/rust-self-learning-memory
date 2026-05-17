@@ -205,7 +205,7 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | Publishable workspace crates | 6 | all at 0.1.31 |
 | Total tests | 3,282 | — |
 | Ignored tests | 164 skipped | ceiling ≤165 |
-| `allow(dead_code)` (prod) | 0 | ≤25 | ✅ Met (all 38 dead_code warnings eliminated, verified 2026-05-16) |
+| `allow(dead_code)` (prod) | 0 | ≤25 — ✅ Met (all 38 dead_code warnings eliminated, verified 2026-05-16) |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
 | Skills count | 31 | ✅ target ≤35 met |

@@ -123,9 +123,6 @@ pub trait EmbeddingProvider: Send + Sync {
 
 /// Utility functions for embedding providers
 pub mod utils {
-    #[cfg(any(test, feature = "embeddings-full"))]
-    use anyhow::Result;
-
     /// Normalize a vector to unit length
     #[must_use]
     pub fn normalize_vector(mut vector: Vec<f32>) -> Vec<f32> {
@@ -139,8 +136,9 @@ pub mod utils {
     }
 
     /// Validate embedding dimension matches expected
-    #[cfg(any(test, feature = "embeddings-full"))]
-    pub fn validate_dimension(embedding: &[f32], expected: usize) -> Result<()> {
+    /// Only available in test builds.
+    #[cfg(test)]
+    pub fn validate_dimension(embedding: &[f32], expected: usize) -> anyhow::Result<()> {
         if embedding.len() != expected {
             anyhow::bail!(
                 "Embedding dimension mismatch: got {}, expected {}",
@@ -152,8 +150,9 @@ pub mod utils {
     }
 
     /// Chunk text into smaller pieces for embedding
-    /// Useful for long texts that exceed model token limits
-    #[cfg(any(test, feature = "embeddings-full"))]
+    /// Useful for long texts that exceed model token limits.
+    /// Only available in test builds.
+    #[cfg(test)]
     pub fn chunk_text(text: &str, max_chars: usize) -> Vec<String> {
         if text.len() <= max_chars {
             return vec![text.to_string()];
@@ -183,9 +182,10 @@ pub mod utils {
     }
 
     /// Average multiple embeddings into a single embedding
-    /// Useful for combining embeddings from chunked text
-    #[cfg(any(test, feature = "embeddings-full"))]
-    pub fn average_embeddings(embeddings: &[Vec<f32>]) -> Result<Vec<f32>> {
+    /// Useful for combining embeddings from chunked text.
+    /// Only available in test builds.
+    #[cfg(test)]
+    pub fn average_embeddings(embeddings: &[Vec<f32>]) -> anyhow::Result<Vec<f32>> {
         if embeddings.is_empty() {
             anyhow::bail!("Cannot average empty embeddings list");
         }

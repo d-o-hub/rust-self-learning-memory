@@ -145,7 +145,7 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 |------|----|--------|---------|
 | Version-retained persistence | WG-108 | 🔵 Backlog | Track concept drift across episode versions |
 | `BundleAccumulator` sliding window | WG-109 | ✅ Complete (WG-117) | Recency-weighted context for pattern retrieval |
-| SIMD-accelerated similarity | WG-110 | 🔵 Backlog | Marginal perf gain — defer until benchmarks justify |
+| SIMD-accelerated similarity | WG-110 | ✅ Complete | ~10x speedup confirmed via benchmarks |
 
 ## v0.1.29 Sprint (Complete ✅)
 

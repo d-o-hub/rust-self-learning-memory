@@ -51,16 +51,21 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 }
 
 /// Compute dot product and sums of squares in a single pass.
-#[allow(unsafe_code)]
 fn compute_cosine_components(a: &[f32], b: &[f32]) -> (f32, f32, f32) {
     #[cfg(target_arch = "x86_64")]
     {
         if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
             // SAFETY: Runtime detection ensures feature availability.
+            #[allow(unsafe_code)]
             return unsafe { cosine_components_avx2_fma(a, b) };
         }
     }
 
+    scalar_cosine_components(a, b)
+}
+
+/// Scalar implementation of cosine components.
+fn scalar_cosine_components(a: &[f32], b: &[f32]) -> (f32, f32, f32) {
     let mut dot = 0.0;
     let mut a2 = 0.0;
     let mut b2 = 0.0;
@@ -146,9 +151,9 @@ mod tests {
         assert!((similarity - 0.5).abs() < 0.001);
 
         let vec5 = vec![1.0, 2.0, 3.0];
-        let vec6 = vec![1.0, 2.0, 3.0];
+        let vec6 = vec![-1.0, -2.0, -3.0];
         let similarity = cosine_similarity(&vec5, &vec6);
-        assert!((similarity - 1.0).abs() < 0.001);
+        assert!((similarity - 0.0).abs() < 0.001);
 
         let vec7 = vec![1.0, 2.0];
         let vec8 = vec![1.0, 2.0, 3.0];
@@ -179,5 +184,31 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn test_cosine_similarity_edge_cases() {
+        // Zero vector case
+        let v1 = vec![0.0; 8];
+        let v2 = vec![1.0; 8];
+        assert_eq!(cosine_similarity(&v1, &v2), 0.0);
+
+        // Empty vector
+        assert_eq!(cosine_similarity(&[], &[]), 0.0);
+
+        // Negative elements (completely opposite)
+        let v5 = vec![-1.0, 0.0, 1.0];
+        let v6 = vec![1.0, 0.0, -1.0];
+        assert!((cosine_similarity(&v5, &v6) - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_scalar_components_coverage() {
+        let v1 = vec![1.0, 2.0, 3.0];
+        let v2 = vec![4.0, 5.0, 6.0];
+        let (dot, a2, b2) = scalar_cosine_components(&v1, &v2);
+        assert!((dot - 32.0).abs() < 1e-6);
+        assert!((a2 - 14.0).abs() < 1e-6);
+        assert!((b2 - 77.0).abs() < 1e-6);
     }
 }

@@ -12,8 +12,6 @@ use anyhow::{Context, Result};
 /// A simple concept graph ontology entry for domain-term expansion.
 #[derive(Debug, Clone)]
 struct OntologyEntry {
-    #[allow(dead_code)] // domain name may be useful for diagnostics
-    domain: String,
     terms: Vec<String>,
     related_concepts: Vec<String>,
 }
@@ -54,7 +52,6 @@ impl ConceptGraph {
         let entries: Vec<OntologyEntry> = domains
             .iter()
             .map(|d| OntologyEntry {
-                domain: d["domain"].as_str().unwrap_or("").to_string(),
                 terms: d["terms"]
                     .as_array()
                     .map(|a| {

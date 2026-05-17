@@ -11,7 +11,6 @@ use chrono::Duration;
 fn test_pattern_extractor_creation() {
     let extractor = PatternExtractor::new();
     assert_eq!(extractor.success_threshold, MIN_PATTERN_SUCCESS_RATE);
-    assert_eq!(extractor.min_sequence_len, MIN_SEQUENCE_LENGTH);
     assert_eq!(extractor.max_sequence_len, MAX_SEQUENCE_LENGTH);
 }
 

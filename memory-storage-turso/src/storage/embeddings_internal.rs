@@ -227,9 +227,6 @@ impl TursoStorage {
 
     /// Delete an embedding
     pub(crate) async fn _delete_embedding_internal(&self, item_id: &str) -> Result<bool> {
-        #[allow(unused_variables)]
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
         #[cfg(feature = "turso_multi_dimension")]
         {
             return self.delete_embedding_dimension_aware(item_id).await;
@@ -237,6 +234,7 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
             const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
             let stmt = self
                 .prepared_cache

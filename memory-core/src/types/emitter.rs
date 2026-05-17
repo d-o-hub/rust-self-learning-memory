@@ -415,4 +415,28 @@ mod tests {
         assert_eq!(deserialized.specversion, "1.0");
         assert_eq!(deserialized.event_type, "com.test");
     }
+
+    #[test]
+    fn test_concept_drift_event_mapping() {
+        use crate::types::event::MemoryEvent;
+        use super::MemoryEventMapping;
+        use uuid::Uuid;
+
+        let parent_id = Uuid::new_v4().to_string();
+        let timestamp = crate::types::event::unix_now_secs();
+        let event = MemoryEvent::ConceptDriftDetected {
+            parent_id: parent_id.clone(),
+            version_count: 5,
+            changepoint_count: 2,
+            timestamp,
+        };
+
+        let (event_type, subject, data) = MemoryEventMapping::map_event(&event);
+        assert_eq!(event_type, "com.do-memory.concept.drift");
+        assert_eq!(subject, parent_id);
+        assert_eq!(data["parent_id"], parent_id);
+        assert_eq!(data["version_count"], 5);
+        assert_eq!(data["changepoint_count"], 2);
+        assert_eq!(data["detection_timestamp"], timestamp);
+    }
 }

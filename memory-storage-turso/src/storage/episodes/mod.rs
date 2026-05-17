@@ -7,6 +7,8 @@ pub mod crud;
 pub mod query;
 pub mod raw_query;
 pub mod row;
+#[cfg(test)]
+mod tests;
 
 pub use compression::{compress_json_field, decompress_json_field};
 pub use raw_query::RawEpisodeQuery;

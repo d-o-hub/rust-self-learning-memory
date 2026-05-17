@@ -76,9 +76,7 @@ fn create_episode_with_quality(task_description: &str, quality_score: f32) -> Ep
         }),
         metadata: std::collections::HashMap::new(),
         tags: vec![],
-        checkpoints: vec![],
-        version: 1,
-        parent_id: None,
+        checkpoints: vec![], version: 1, parent_id: None,
     }
 }
 

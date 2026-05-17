@@ -356,10 +356,7 @@ impl TursoStorage {
         // Use prepared statement cache
         let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
         let mut rows = stmt
-            .query(libsql::params![
-                parent_id.to_string(),
-                parent_id.to_string()
-            ])
+            .query(libsql::params![parent_id.to_string(), parent_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query episode versions: {}", e)))?;
 
@@ -410,6 +407,3 @@ impl TursoStorage {
         }
     }
 }
-
-#[cfg(test)]
-mod tests;

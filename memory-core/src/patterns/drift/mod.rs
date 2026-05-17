@@ -4,9 +4,9 @@
 //! in performance metrics such as reward and latency.
 
 use crate::episode::Episode;
-use crate::patterns::changepoint::{Changepoint, ChangepointConfig, ChangepointDetector};
+use crate::patterns::changepoint::{ChangepointDetector, ChangepointConfig, Changepoint};
 use anyhow::Result;
-use tracing::{debug, error, instrument};
+use tracing::{debug, instrument};
 
 /// Analyzer for detecting concept drift in versioned episodes
 #[derive(Debug, Clone)]
@@ -43,29 +43,29 @@ impl DriftAnalyzer {
         // Extract reward series
         let rewards: Vec<f64> = episodes
             .iter()
-            .map(|e| e.reward.as_ref().map(|r| f64::from(r.total)).unwrap_or(0.0))
+            .map(|e| e.reward.as_ref().map(|r| r.total as f64).unwrap_or(0.0))
             .collect();
 
         // Extract latency series
         let latencies: Vec<f64> = episodes
             .iter()
-            .map(|e| e.steps.iter().map(|s| s.latency_ms as f64).sum::<f64>())
+            .map(|e| {
+                e.steps
+                    .iter()
+                    .map(|s| s.latency_ms as f64)
+                    .sum::<f64>()
+            })
             .collect();
 
         // Detect drift in rewards
         let mut all_changepoints = Vec::new();
-        match self.detector.detect_metric_changepoints("reward", &rewards) {
-            Ok(cp) => all_changepoints.extend(cp),
-            Err(e) => error!("Changepoint detection failed for metric reward: {:?}", e),
+        if let Ok(cp) = self.detector.detect_metric_changepoints("reward", &rewards) {
+            all_changepoints.extend(cp);
         }
 
         // Detect drift in latencies
-        match self
-            .detector
-            .detect_metric_changepoints("latency", &latencies)
-        {
-            Ok(cp) => all_changepoints.extend(cp),
-            Err(e) => error!("Changepoint detection failed for metric latency: {:?}", e),
+        if let Ok(cp) = self.detector.detect_metric_changepoints("latency", &latencies) {
+            all_changepoints.extend(cp);
         }
 
         Ok(all_changepoints)
@@ -77,3 +77,6 @@ impl Default for DriftAnalyzer {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests;

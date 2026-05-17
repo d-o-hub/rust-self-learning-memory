@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 use crate::security::audit::{AuditContext, episode_completed};
 use crate::types::TaskOutcome;
 use std::sync::Arc;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
@@ -364,11 +364,11 @@ impl SelfLearningMemory {
         // Re-insert the updated episode into the in-memory cache
         // ============================================================================
 
-        let parent_id = episode.parent_id;
-
+        let parent_id_for_drift = episode.parent_id;
+        let episode_arc = Arc::new(episode);
         {
             let mut episodes = self.episodes_fallback.write().await;
-            episodes.insert(episode_id, Arc::new(episode));
+            episodes.insert(episode_id, episode_arc.clone());
         }
 
         // Extract patterns - async if queue enabled, sync otherwise
@@ -392,7 +392,7 @@ impl SelfLearningMemory {
         // WG-108: Concept Drift Analysis
         // ============================================================================
 
-        if let Some(parent_id) = parent_id {
+        if let Some(parent_id) = parent_id_for_drift {
             debug!(
                 episode_id = %episode_id,
                 parent_id = %parent_id,
@@ -400,52 +400,38 @@ impl SelfLearningMemory {
             );
 
             // Fetch all versions
-            let versions_result = if let Some(turso) = &self.turso_storage {
-                turso.get_episode_versions(parent_id).await
+            let mut versions = Vec::new();
+            if let Some(turso) = &self.turso_storage {
+                if let Ok(v) = turso.get_episode_versions(parent_id).await {
+                    versions = v;
+                }
             } else if let Some(cache) = &self.cache_storage {
-                cache.get_episode_versions(parent_id).await
-            } else {
-                Ok(Vec::new())
-            };
+                if let Ok(v) = cache.get_episode_versions(parent_id).await {
+                    versions = v;
+                }
+            }
 
-            match versions_result {
-                Ok(versions) if versions.len() >= 3 => {
-                    let mut drift_analyzer = crate::patterns::drift::DriftAnalyzer::new();
-                    match drift_analyzer.analyze_drift(&versions) {
-                        Ok(changepoints) if !changepoints.is_empty() => {
-                            info!(
-                                parent_id = %parent_id,
-                                version_count = versions.len(),
-                                changepoint_count = changepoints.len(),
-                                "Concept drift detected"
-                            );
-
-                            // Emit concept drift event
-                            let event = crate::types::event::MemoryEvent::ConceptDriftDetected {
-                                parent_id: parent_id.to_string(),
-                                version_count: versions.len() as u32,
-                                changepoint_count: changepoints.len() as u32,
-                                timestamp: crate::types::event::unix_now_secs(),
-                            };
-                            self.emit_event_with_cloud(event);
-                        }
-                        Ok(_) => debug!("No significant concept drift detected"),
-                        Err(e) => error!(
+            if versions.len() >= 3 {
+                let mut drift_analyzer = crate::patterns::drift::DriftAnalyzer::new();
+                if let Ok(changepoints) = drift_analyzer.analyze_drift(&versions) {
+                    if !changepoints.is_empty() {
+                        info!(
                             parent_id = %parent_id,
-                            error = ?e,
-                            "Drift analysis failed for episode version chain"
-                        ),
+                            version_count = versions.len(),
+                            changepoint_count = changepoints.len(),
+                            "Concept drift detected"
+                        );
+
+                        // Emit concept drift event
+                        let event = crate::types::event::MemoryEvent::ConceptDriftDetected {
+                            parent_id: parent_id.to_string(),
+                            version_count: versions.len() as u32,
+                            changepoint_count: changepoints.len(),
+                            timestamp: crate::types::event::unix_now_secs(),
+                        };
+                        self.emit_event(event);
                     }
                 }
-                Ok(versions) => debug!(
-                    count = versions.len(),
-                    "Insufficient versions for drift analysis"
-                ),
-                Err(e) => error!(
-                    parent_id = %parent_id,
-                    error = ?e,
-                    "Failed to fetch episode versions for drift analysis"
-                ),
             }
         }
 

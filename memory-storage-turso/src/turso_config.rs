@@ -50,8 +50,6 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_DOMAIN_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_PARENT_INDEX)
-            .await?;
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_ARCHIVED_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)

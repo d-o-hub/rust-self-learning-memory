@@ -55,8 +55,7 @@ impl crate::server::MemoryMCPServer {
 
         debug!("Executing concept drift analysis for: {}", input.parent_id);
 
-        let tool =
-            crate::mcp::tools::concept_drift::ConceptDriftTool::new(Arc::clone(&self.memory));
+        let tool = crate::mcp::tools::concept_drift::ConceptDriftTool::new(Arc::clone(&self.memory));
 
         let result = tool.execute(input).await?;
 

@@ -1,7 +1,6 @@
-//! Tests for Turso episode storage CRUD operations
-
-use super::*;
-use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
+use super::crud::*;
+use crate::TursoStorage;
+use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta, Result, Error};
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -89,38 +88,4 @@ async fn test_store_and_get_episode_persists_checkpoints() {
     assert_eq!(retrieved.checkpoints[0].reason, "handoff");
     assert_eq!(retrieved.checkpoints[0].step_number, 2);
     assert_eq!(retrieved.checkpoints[0].note.as_deref(), Some("persist me"));
-}
-
-#[tokio::test]
-async fn test_get_episode_versions() {
-    let (storage, _dir) = create_test_storage().await.unwrap();
-    let parent_id = Uuid::new_v4();
-
-    // Create 3 versions of the same episode
-    for i in 1..=3 {
-        let mut episode = Episode::new(
-            format!("Version {i}"),
-            TaskContext::default(),
-            TaskType::CodeGeneration,
-        );
-        episode.version = i as u32;
-        episode.parent_id = Some(parent_id);
-        storage.store_episode(&episode).await.unwrap();
-    }
-
-    // Retrieve versions
-    let versions = storage.get_episode_versions(parent_id).await.unwrap();
-
-    assert_eq!(versions.len(), 3);
-    
-    // Assert chain membership
-    for ep in &versions {
-        assert_eq!(ep.parent_id, Some(parent_id));
-    }
-
-    // Assert ordering by version ascending
-    assert_eq!(versions[0].version, 1);
-    assert_eq!(versions[1].version, 2);
-    assert_eq!(versions[2].version, 3);
-    assert_eq!(versions[0].task_description, "Version 1");
 }

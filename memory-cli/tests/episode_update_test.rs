@@ -238,7 +238,7 @@ mod tests {
     }
 
     /// Test that tag operations persist across storage
-    /// Note: This test requires `TURSO_DB_URL` and `TURSO_AUTH_TOKEN` environment variables
+    /// Note: This test requires TURSO_DB_URL and TURSO_AUTH_TOKEN environment variables
     /// and is ignored by default. Run with `cargo test -- --ignored` to execute.
     #[tokio::test]
     #[cfg(feature = "turso")]

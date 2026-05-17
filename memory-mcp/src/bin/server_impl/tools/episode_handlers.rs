@@ -5,14 +5,6 @@ pub async fn handle_bulk_episodes(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    #[derive(serde::Serialize)]
-    struct BulkEpisodeResult {
-        requested_count: usize,
-        found_count: usize,
-        missing_count: usize,
-        episodes: Vec<serde_json::Value>,
-    }
-
     use uuid::Uuid;
 
     let args: Value = arguments.unwrap_or(json!({}));
@@ -84,6 +76,14 @@ pub async fn handle_bulk_episodes(
             serde_json::to_value(ep)
                 .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {e}"))?,
         );
+    }
+
+    #[derive(serde::Serialize)]
+    struct BulkEpisodeResult {
+        requested_count: usize,
+        found_count: usize,
+        missing_count: usize,
+        episodes: Vec<serde_json::Value>,
     }
 
     let bulk_result = BulkEpisodeResult {

@@ -44,8 +44,6 @@ fn create_test_episode(id: u32, domain: &str) -> Episode {
         metadata: HashMap::new(),
         tags: Vec::new(),
         checkpoints: Vec::new(),
-        version: 1,
-        parent_id: None,
     }
 }
 

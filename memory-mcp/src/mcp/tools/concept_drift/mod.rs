@@ -1,5 +1,6 @@
 use anyhow::Result;
 use do_memory_core::SelfLearningMemory;
+use do_memory_core::episode::Episode;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -33,7 +34,7 @@ impl ConceptDriftTool {
         let parent_id = Uuid::parse_str(&input.parent_id)?;
 
         // Fetch all versions
-        let versions = if let Some(turso) = self.memory.turso_storage() {
+        let versions: Vec<Episode> = if let Some(turso) = self.memory.turso_storage() {
             turso.get_episode_versions(parent_id).await?
         } else if let Some(cache) = self.memory.cache_storage() {
             cache.get_episode_versions(parent_id).await?
@@ -41,14 +42,9 @@ impl ConceptDriftTool {
             Vec::new()
         };
 
-        let (changepoints, drift_detected) = if versions.len() >= 3 {
-            let mut analyzer = do_memory_core::patterns::drift::DriftAnalyzer::new();
-            let cp = analyzer.analyze_drift(&versions)?;
-            let detected = !cp.is_empty();
-            (cp, detected)
-        } else {
-            (Vec::new(), false)
-        };
+        let mut analyzer = do_memory_core::patterns::drift::DriftAnalyzer::new();
+        let changepoints = analyzer.analyze_drift(&versions)?;
+        let drift_detected = !changepoints.is_empty();
 
         Ok(ConceptDriftResult {
             parent_id: input.parent_id,

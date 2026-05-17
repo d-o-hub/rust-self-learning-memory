@@ -39,9 +39,7 @@ fn create_test_episode(id: Uuid) -> Episode {
         salient_features: None,
         metadata: HashMap::new(),
         tags: vec![],
-        checkpoints: vec![],
-        version: 1,
-        parent_id: None,
+        checkpoints: vec![], version: 1, parent_id: None,
     }
 }
 

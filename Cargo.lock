@@ -1551,6 +1551,7 @@ dependencies = [
 name = "do-memory-mcp"
 version = "0.1.31"
 dependencies = [
+ "agentfs-sdk",
  "anyhow",
  "base64 0.22.1",
  "chrono",

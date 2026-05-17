@@ -129,8 +129,6 @@ pub(super) struct ConnectionCache {
     pub(super) statements: HashMap<String, CachedStatementMetadata>,
     /// Order of SQL keys for LRU eviction tracking
     access_order: Vec<String>,
-    #[allow(dead_code)] // Available for future cache age tracking
-    created_at: Instant,
     pub(super) last_accessed: Instant,
 }
 
@@ -140,7 +138,6 @@ impl ConnectionCache {
         Self {
             statements: HashMap::new(),
             access_order: Vec::new(),
-            created_at: now,
             last_accessed: now,
         }
     }
@@ -191,12 +188,6 @@ impl ConnectionCache {
 
     pub(super) fn is_empty(&self) -> bool {
         self.statements.is_empty()
-    }
-
-    #[allow(dead_code)] // Utility method for cache management
-    pub(super) fn clear(&mut self) {
-        self.statements.clear();
-        self.access_order.clear();
     }
 
     pub(super) fn idle_time(&self) -> Duration {

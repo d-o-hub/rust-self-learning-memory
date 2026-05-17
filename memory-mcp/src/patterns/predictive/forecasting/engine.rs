@@ -99,7 +99,7 @@ impl ForecastingEngine {
     }
 
     /// Calculate forecast fit quality
-    #[allow(dead_code)] // Utility method for forecast quality metrics
+    #[cfg(test)]
     fn calculate_fit_quality(&self, actual: &[f64], forecast: &[f64]) -> f64 {
         if actual.len() < 2 || forecast.is_empty() {
             return 0.0;

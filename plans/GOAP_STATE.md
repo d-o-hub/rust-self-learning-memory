@@ -148,7 +148,7 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | Routing-Free MoE | WG-125 | ✅ Evaluated | ADR-055 recommends DyMoE evolution |
 | Version-retained persistence | WG-108 | ✅ Complete | Added `version` and `parent_id` to Episode; drift analysis integrated |
 | `BundleAccumulator` sliding window | WG-109 | ✅ Complete (WG-117) | Recency-weighted context for pattern retrieval |
-| SIMD-accelerated similarity | WG-110 | ✅ Complete | ~90% speedup via AVX2+FMA similarity kernels |
+| SIMD-accelerated similarity | WG-110 | ✅ Complete | ~10x speedup confirmed via benchmarks |
 | Cross-agent memory collaboration | WG-126 | 🔵 Planning | Contrastive trajectory distillation (MemCollab) |
 | Semantic gist + CogniRank | WG-127 | ✅ Complete | `CogniRank` integrated into `CascadeRetriever` final reranking stage |
 

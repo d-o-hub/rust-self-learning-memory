@@ -123,7 +123,7 @@ pub trait EmbeddingProvider: Send + Sync {
 
 /// Utility functions for embedding providers
 pub mod utils {
-    #[cfg(test)]
+    #[cfg(any(test, feature = "embeddings-full"))]
     use anyhow::Result;
 
     /// Normalize a vector to unit length
@@ -139,7 +139,7 @@ pub mod utils {
     }
 
     /// Validate embedding dimension matches expected
-    #[cfg(test)]
+    #[cfg(any(test, feature = "embeddings-full"))]
     pub fn validate_dimension(embedding: &[f32], expected: usize) -> Result<()> {
         if embedding.len() != expected {
             anyhow::bail!(
@@ -153,7 +153,7 @@ pub mod utils {
 
     /// Chunk text into smaller pieces for embedding
     /// Useful for long texts that exceed model token limits
-    #[cfg(test)]
+    #[cfg(any(test, feature = "embeddings-full"))]
     pub fn chunk_text(text: &str, max_chars: usize) -> Vec<String> {
         if text.len() <= max_chars {
             return vec![text.to_string()];
@@ -184,7 +184,7 @@ pub mod utils {
 
     /// Average multiple embeddings into a single embedding
     /// Useful for combining embeddings from chunked text
-    #[cfg(test)]
+    #[cfg(any(test, feature = "embeddings-full"))]
     pub fn average_embeddings(embeddings: &[Vec<f32>]) -> Result<Vec<f32>> {
         if embeddings.is_empty() {
             anyhow::bail!("Cannot average empty embeddings list");

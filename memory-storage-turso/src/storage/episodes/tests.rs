@@ -1,6 +1,8 @@
 use super::crud::*;
 use crate::TursoStorage;
-use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta, Result, Error};
+use do_memory_core::{
+    Episode, Error, Result, TaskContext, TaskType, memory::checkpoint::CheckpointMeta,
+};
 use tempfile::TempDir;
 use uuid::Uuid;
 

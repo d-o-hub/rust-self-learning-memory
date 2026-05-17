@@ -417,27 +417,27 @@ mod tests {
     }
 }
 
-    #[test]
-    fn test_concept_drift_event_mapping() {
-        use crate::types::event::MemoryEvent;
-        use super::MemoryEventMapping;
-        use uuid::Uuid;
+#[test]
+fn test_concept_drift_event_mapping() {
+    use super::MemoryEventMapping;
+    use crate::types::event::MemoryEvent;
+    use uuid::Uuid;
 
-        let parent_id = Uuid::new_v4().to_string();
-        let timestamp = 1_714_500_400;
-        let mem_event = MemoryEvent::ConceptDriftDetected {
-            parent_id: parent_id.clone(),
-            version_count: 5,
-            changepoint_count: 2,
-            timestamp,
-        };
+    let parent_id = Uuid::new_v4().to_string();
+    let timestamp = 1_714_500_400;
+    let mem_event = MemoryEvent::ConceptDriftDetected {
+        parent_id: parent_id.clone(),
+        version_count: 5,
+        changepoint_count: 2,
+        timestamp,
+    };
 
-        let (event_type, subject, data) = MemoryEventMapping::map_event(&mem_event);
+    let (event_type, subject, data) = MemoryEventMapping::map_event(&mem_event);
 
-        assert_eq!(event_type, "com.do-memory.concept.drift_detected");
-        assert_eq!(subject, parent_id);
-        assert_eq!(data["parent_id"], parent_id);
-        assert_eq!(data["version_count"], 5);
-        assert_eq!(data["changepoint_count"], 2);
-        assert_eq!(data["drift_timestamp"], timestamp);
-    }
+    assert_eq!(event_type, "com.do-memory.concept.drift_detected");
+    assert_eq!(subject, parent_id);
+    assert_eq!(data["parent_id"], parent_id);
+    assert_eq!(data["version_count"], 5);
+    assert_eq!(data["changepoint_count"], 2);
+    assert_eq!(data["drift_timestamp"], timestamp);
+}

@@ -42,6 +42,15 @@ impl ConceptDriftTool {
             Vec::new()
         };
 
+        if versions.len() < 3 {
+            return Ok(ConceptDriftResult {
+                parent_id: input.parent_id,
+                versions_analyzed: versions.len(),
+                changepoints: Vec::new(),
+                drift_detected: false,
+            });
+        }
+
         let mut analyzer = do_memory_core::patterns::drift::DriftAnalyzer::new();
         let changepoints = analyzer.analyze_drift(&versions)?;
         let drift_detected = !changepoints.is_empty();

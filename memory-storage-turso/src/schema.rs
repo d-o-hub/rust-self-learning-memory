@@ -284,6 +284,12 @@ CREATE INDEX IF NOT EXISTS idx_episodes_archived
 ON episodes(archived_at)
 "#;
 
+/// Index on episodes parent_id for version chain retrieval
+pub const CREATE_EPISODES_PARENT_ID_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episodes_parent_id
+ON episodes(parent_id)
+"#;
+
 /// Index on patterns context for relevance matching
 pub const CREATE_PATTERNS_CONTEXT_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_patterns_context

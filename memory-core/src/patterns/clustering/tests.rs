@@ -152,7 +152,9 @@ mod tests {
             applied_patterns: Vec::new(),
             salient_features: None,
             tags: vec![],
-            checkpoints: vec![], version: 1, parent_id: None,
+            checkpoints: vec![],
+            version: 1,
+            parent_id: None,
             metadata: std::collections::HashMap::new(),
         };
 

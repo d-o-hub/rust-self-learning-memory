@@ -198,7 +198,9 @@ mod tests {
             salient_features: None,
             metadata: std::collections::HashMap::new(),
             tags: Vec::new(),
-            checkpoints: Vec::new(), version: 1, parent_id: None,
+            checkpoints: Vec::new(),
+            version: 1,
+            parent_id: None,
         })
     }
 

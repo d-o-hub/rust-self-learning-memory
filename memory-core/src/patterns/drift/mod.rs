@@ -4,7 +4,7 @@
 //! in performance metrics such as reward and latency.
 
 use crate::episode::Episode;
-use crate::patterns::changepoint::{ChangepointDetector, ChangepointConfig, Changepoint};
+use crate::patterns::changepoint::{Changepoint, ChangepointConfig, ChangepointDetector};
 use anyhow::Result;
 use tracing::{debug, instrument};
 
@@ -49,12 +49,7 @@ impl DriftAnalyzer {
         // Extract latency series
         let latencies: Vec<f64> = episodes
             .iter()
-            .map(|e| {
-                e.steps
-                    .iter()
-                    .map(|s| s.latency_ms as f64)
-                    .sum::<f64>()
-            })
+            .map(|e| e.steps.iter().map(|s| s.latency_ms as f64).sum::<f64>())
             .collect();
 
         // Detect drift in rewards
@@ -64,7 +59,10 @@ impl DriftAnalyzer {
         }
 
         // Detect drift in latencies
-        if let Ok(cp) = self.detector.detect_metric_changepoints("latency", &latencies) {
+        if let Ok(cp) = self
+            .detector
+            .detect_metric_changepoints("latency", &latencies)
+        {
             all_changepoints.extend(cp);
         }
 

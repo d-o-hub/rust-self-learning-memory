@@ -17,7 +17,11 @@ mod tests {
         let mut analyzer = DriftAnalyzer::new();
         let mut episodes = Vec::new();
         for _ in 0..10 {
-            let mut ep = Episode::new("task".to_string(), TaskContext::default(), TaskType::Analysis);
+            let mut ep = Episode::new(
+                "task".to_string(),
+                TaskContext::default(),
+                TaskType::Analysis,
+            );
             ep.reward = Some(RewardScore {
                 total: 1.0,
                 base: 1.0,

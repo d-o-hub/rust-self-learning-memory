@@ -54,7 +54,7 @@ pub enum MemoryEvent {
         /// Number of versions analyzed
         version_count: u32,
         /// Number of changepoints detected
-        changepoint_count: usize,
+        changepoint_count: u32,
         /// Unix timestamp in seconds
         timestamp: u64,
     },

@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-17 (PR #552 dead_code elimination complete, cascade tier attribution fix)
+**Last Updated**: 2026-05-17 (Parallel Feature Enhancements: Procedural Memory, Temporal Edges, CogniRank)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -16,15 +16,15 @@
 | Workspace version | 0.1.31 | — | ✅ |
 | Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
+| Total tests | 3,297 | — | 3,297 passing (2026-05-17) |
 | Skipped/ignored tests | 164 | ≤165 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 0 | ≤25 | ✅ Met (all 38 eliminated; removed unused params, cfg-gated test-only utils, verified 2026-05-17) |
+| `#[allow(dead_code)]` (prod src) | 0 | ≤25 | ✅ Met (verified 2026-05-17) |
 | CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
-| Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
-| Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
+| Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-05-17 |
+| Skills count | 31 | ≤35 | ✅ Target met |
 | Skills LOC | ~3,500 | ≤4,000 | ✅ Compact high-frequency skills |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 17 | ≥13 | ✅ Exceeds target |
@@ -33,59 +33,39 @@
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
 
-## v0.1.30 Sprint Highlights
+## v0.1.31 Highlights (Research & Efficiency)
 
-- **MemoryEvent Broadcast**: `tokio::broadcast` channel for episode lifecycle events
-- **Top-k Optimization**: O(n) `select_nth_unstable_by` for retrieval hot paths
-- **Zero-copy Retrieval Caching**: Bolt optimization for episodic memory
-- **Agent Skills**: Added `memory-context` and `learn` skills
+- **Parallel Feature Enhancements**: Procedural memory (WG-124), Temporal graph edges (WG-123), and CogniRank reranking (WG-127).
+- **SIMD-accelerated Similarity**: ~90% speedup for hyperdimensional similarity (WG-110).
+- **Concept Drift Tracking**: Version-retained persistence and statistical drift analysis (WG-108).
+- **AgentFS Integration**: Functional SDK-backed reward signal provider.
+- **CSM integration**: Cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API) to eliminate 50-70% of embedding API calls.
 
-## v0.1.31 Planning Focus
-
-- **CSM integration**: Cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API) to eliminate 50-70% of embedding API calls
-- **CPU efficiency**: QueryCache contention, cached retrieval wiring, compression/cache thresholds
-- **Token efficiency**: bounded context windows, hierarchical/gist reranking, compact high-frequency skills/docs
-- **Housekeeping**: Create missing `performance` skill, prune skills 40→≤35, fix metric contradictions, refresh stale analysis docs
-- **Release/package hygiene**: keep GitHub release, package versions, and planning docs aligned before the `0.1.31` bump
-
-## v0.1.28 Release Highlights
-
-- **DyMoE Routing-Drift Protection**: Affinity gating and dual reward scoring
-- **CodeQL Fixed**: Cleartext logging alert resolved (WG-093)
-- **Dependabot Analyzed**: All 3 alerts are transitive dependencies (accepted risk)
-
-## v0.1.26 Release Highlights
-
-- **Crate Renaming**: All crates renamed from `memory-*` to `do-memory-*` namespace
-- **crates.io Publishing**: All 4 crates published successfully
-- **Binary Names**: `do-memory-mcp-server`, `do-memory-cli`
-- **GitHub Release**: v0.1.26 with multi-platform binaries
-
----
-
-## Open Items (2026-05-16 Validation)
+## Open Items (2026-05-17 Validation)
 
 ### Open Issues
 
-No open issues — all closed.
+| # | Title | Labels |
+|---|-------|--------|
+| 561 | WG-135: Evaluate federated HDC for multi-agent memory sharing | jules |
+| 558 | WG-126: Cross-agent memory collaboration via contrastive trajectory distillation | |
 
 ### Open PRs
 
 | # | Title | Status |
 |---|-------|--------|
-| — | No open PRs | ✅ All merged |
+| 566 | Parallel Feature Enhancements: Procedural Memory, Temporal Edges, and CogniRank | 🟢 Passing |
+| 565 | SIMD-accelerated similarity implementation (WG-110) | 🟢 Passing |
+| 564 | Implement agentfs-sdk integration | 🟢 Passing |
+| 562 | Version-retained persistence for concept drift tracking | 🟢 Passing |
+| 552 | perf(dead_code): eliminate all dead_code warnings in production source | 🟡 Pending |
 
 ### Recently Merged PRs
 
 | # | Title | Status |
 |---|-------|--------|
+| 563 | Evaluate Routing-Free MoE for DyMoE replacement (WG-125) | ✅ Merged 2026-05-17 |
 | 547 | chore(ci): resolve merge conflicts with main; use create-pull-request | ✅ Merged 2026-05-16 |
-| 546 | fix(mcp): enforce input bounds clamping on all public tool parameters (CWE-770) | ✅ Merged 2026-05-16 |
-| 548 | chore: YAML frontmatter validation + code quality | ✅ Merged 2026-05-16 |
-| 545 | chore: YAML frontmatter validation and Dependabot fix plan | ✅ Merged 2026-05-16 |
-| 544 | feat: CloudEvents EventEmitter, ConceptGraph, evaluations | ✅ Merged 2026-05-15 |
-| 542 | code health: update coverage badge generation workflow | ✅ Merged 2026-05-14 |
-| 454 | fix(persistence): SQL injection in metadata query | ✅ Merged 2026-04-18 (P0 security fix) |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)
 | # | Dependency | Severity | Notes |

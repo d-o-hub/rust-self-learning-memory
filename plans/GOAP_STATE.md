@@ -84,7 +84,7 @@
 | LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |
-| Federated HDC multi-agent memory | WG-135 | 🔵 Evaluated (evaluation doc) | feature-implement | arXiv:2603.20037 |
+| Federated HDC multi-agent memory | WG-135 | ✅ Complete (evaluation doc) | feature-implement | arXiv:2603.20037 — evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md` |
 | CloudEvents EventEmitter | WG-149 | ✅ Complete | feature-implement | ADR-054 — CloudEvents 1.0 spec
 
 ### WG-131 CascadeRetriever Status (Updated 2026-05-01)
@@ -143,9 +143,14 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| Version-retained persistence | WG-108 | 🔵 Backlog | Track concept drift across episode versions |
+| Temporal graph edges | WG-123 | ✅ Complete | Added `temporal_weight` to EpisodeRelationship; implemented recursive CTE (Turso) and BFS (redb) |
+| Procedural memory type | WG-124 | ✅ Complete | Added `ProceduralMemory` first-class entity for learned heuristics-as-skills |
+| Routing-Free MoE | WG-125 | ✅ Evaluated | ADR-055 recommends DyMoE evolution |
+| Version-retained persistence | WG-108 | ✅ Complete | Added `version` and `parent_id` to Episode; drift analysis integrated |
 | `BundleAccumulator` sliding window | WG-109 | ✅ Complete (WG-117) | Recency-weighted context for pattern retrieval |
-| SIMD-accelerated similarity | WG-110 | 🔵 Backlog | Marginal perf gain — defer until benchmarks justify |
+| SIMD-accelerated similarity | WG-110 | ✅ Complete | ~90% speedup via AVX2+FMA similarity kernels |
+| Cross-agent memory collaboration | WG-126 | 🔵 Planning | Contrastive trajectory distillation (MemCollab) |
+| Semantic gist + CogniRank | WG-127 | ✅ Complete | `CogniRank` integrated into `CascadeRetriever` final reranking stage |
 
 ## v0.1.29 Sprint (Complete ✅)
 

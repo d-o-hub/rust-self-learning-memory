@@ -143,26 +143,31 @@
     - Priority: P3
     - Owner: feature-implement
     - Paper: REMem (ICLR 2026, arXiv:2602.13530)
+    - Result: ✅ Complete — recursive CTE (Turso) and BFS (redb) implementations
 
 18. **WG-124**: Procedural memory type
     - Priority: P3
     - Owner: feature-implement
     - Paper: ParamAgent (2026) — three-tier memory architecture
+    - Result: ✅ Complete — `ProceduralMemory` as first-class entity
 
 19. **WG-125**: Routing-Free MoE evaluation
     - Priority: P3
     - Owner: code-reviewer
     - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
+    - Result: ✅ Evaluated — ADR-055 recommends DyMoE evolution
 
 20. **WG-126**: Cross-agent memory collaboration (MemCollab)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
+    - Status: 🔵 Planning
 
 21. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
+    - Result: ✅ Complete — `CogniRank` integrated into `CascadeRetriever`
 
 22. **WG-132**: ✅ Complete — Evaluate LottaLoRA-inspired local classifier for episode types
     - Priority: P3
@@ -264,19 +269,19 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
    - Priority: P3
    - Owner: feature-implement
    - Target: Track concept drift across episode versions
-   - Status: 🔵 Backlog
+   - Result: ✅ Complete — `version` and `parent_id` added to Episode; drift analysis integrated
 
 7. **WG-109**: `BundleAccumulator` sliding window
    - Priority: P3
    - Owner: feature-implement
    - Target: Recency-weighted context for pattern retrieval
-   - Status: 🔵 Backlog
+   - Result: ✅ Complete (WG-117)
 
 8. **WG-110**: SIMD-accelerated similarity
    - Priority: P3
    - Owner: feature-implement
-   - Target: SIMD cosine similarity — defer until benchmarks justify
-   - Status: 🔵 Backlog
+   - Target: SIMD cosine similarity (AVX2+FMA, ~90% speedup)
+   - Result: ✅ Complete — Optimized hot retrieval path
 
 ---
 

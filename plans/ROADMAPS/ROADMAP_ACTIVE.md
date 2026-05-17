@@ -73,18 +73,18 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | 🔵 Backlog | 123 |
-| WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | 🔵 Backlog | 124 |
-| WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | 🔵 Backlog | 125 |
-| WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
+| WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | ✅ Complete | 123 |
+| WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | ✅ Complete | 124 |
+| WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | ✅ Evaluated (ADR-055) | 125 |
+| WG-108 | Version-retained persistence (concept drift tracking) | ✅ Complete | 108 |
 | WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | ✅ Complete (WG-117) | 109 |
-| WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
+| WG-110 | SIMD-accelerated similarity (AVX2+FMA, ~90% speedup) | ✅ Complete | 110 |
 | WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Backlog | 126 |
-| WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | 🔵 Backlog | 127 |
+| WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | ✅ Complete | 127 |
 | WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | ✅ Complete (evaluation doc) | 132 |
 | WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | ✅ Complete (evaluation doc) | 133 |
 | WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | ✅ Complete (~1,320 LOC, 24 tests, ADR-054) | 134 |
-| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
+| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | ✅ Evaluated (evaluation doc) | 135 |
 | WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
 | WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |
 | WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | ✅ Complete | 138 |

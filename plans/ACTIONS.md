@@ -232,7 +232,37 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-135
    - Action: Evaluate HDC prototype exchange (arXiv:2603.20037) as bandwidth-efficient alternative for WG-126 MemCollab
    - Paper: arXiv:2603.20037
-   - Status: 🔵 Evaluated — evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md`
+   - Status: ✅ Complete — evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md`
+
+- **ACT-130**: Implement temporal graph edges
+   - Goal: WG-123
+   - Action: Add temporal_weight to EpisodeRelationship and implement recursive CTE/BFS traversal
+   - Status: ✅ Complete
+
+- **ACT-131**: Implement procedural memory type
+   - Goal: WG-124
+   - Action: Add ProceduralMemory struct and storage backend support
+   - Status: ✅ Complete
+
+- **ACT-132**: Evaluate Routing-Free MoE
+   - Goal: WG-125
+   - Action: Evaluate arXiv:2604.00801 for DyMoE replacement
+   - Status: ✅ Complete — ADR-055
+
+- **ACT-133**: Implement version-retained persistence
+   - Goal: WG-108
+   - Action: Add versioning to episodes and integrate drift analysis
+   - Status: ✅ Complete
+
+- **ACT-134**: Implement SIMD-accelerated similarity
+   - Goal: WG-110
+   - Action: Implement AVX2+FMA similarity kernels
+   - Status: ✅ Complete
+
+- **ACT-135**: Implement CogniRank reranking
+   - Goal: WG-127
+   - Action: Add gist-based reranking to CascadeRetriever
+   - Status: ✅ Complete
 
 ## Completed Actions (v0.1.30 Sprint)
 

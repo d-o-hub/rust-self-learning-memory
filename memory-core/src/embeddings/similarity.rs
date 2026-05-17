@@ -149,6 +149,19 @@ mod tests {
     }
 
     #[test]
+    fn test_cosine_similarity_edge_cases() {
+        // Empty vectors
+        assert_eq!(cosine_similarity(&[], &[]), 0.0);
+
+        // Zero magnitude vectors
+        let vec1 = vec![0.0, 0.0, 0.0];
+        let vec2 = vec![1.0, 2.0, 3.0];
+        assert_eq!(cosine_similarity(&vec1, &vec2), 0.0);
+        assert_eq!(cosine_similarity(&vec2, &vec1), 0.0);
+        assert_eq!(cosine_similarity(&vec1, &vec1), 0.0);
+    }
+
+    #[test]
     fn test_cosine_similarity_various_sizes() {
         for n in [1, 7, 8, 9, 15, 16, 17, 31, 32, 33, 128, 768] {
             let vec1 = vec![1.0; n];
@@ -156,9 +169,7 @@ mod tests {
             let similarity = cosine_similarity(&vec1, &vec2);
             assert!(
                 (similarity - 1.0).abs() < f32::EPSILON * 100.0,
-                "Failed for size {}: expected 1.0, got {}",
-                n,
-                similarity
+                "Failed for size {n}: expected 1.0, got {similarity}"
             );
 
             let mut vec3 = vec![0.0; n];
@@ -169,9 +180,7 @@ mod tests {
                 let similarity = cosine_similarity(&vec3, &vec4);
                 assert!(
                     (similarity - 0.5).abs() < f32::EPSILON * 100.0,
-                    "Failed for size {}: expected 0.5, got {}",
-                    n,
-                    similarity
+                    "Failed for size {n}: expected 0.5, got {similarity}"
                 );
             }
         }

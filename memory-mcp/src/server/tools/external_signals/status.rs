@@ -121,8 +121,8 @@ mod tests {
 #[cfg(test)]
 mod functional_tests {
     use super::*;
-    use crate::server::MemoryMCPServer;
     use crate::mcp::types::SandboxConfig;
+    use crate::server::MemoryMCPServer;
     use do_memory_core::SelfLearningMemory;
     use do_memory_core::types::MemoryConfig;
     use std::sync::Arc;
@@ -130,15 +130,16 @@ mod functional_tests {
     async fn create_test_server() -> MemoryMCPServer {
         let config = MemoryConfig::default();
         let memory = Arc::new(SelfLearningMemory::new(config).await.unwrap());
-        MemoryMCPServer::new(SandboxConfig::default(), memory).await.unwrap()
+        MemoryMCPServer::new(SandboxConfig::default(), memory)
+            .await
+            .unwrap()
     }
 
     #[tokio::test]
     async fn test_execute_external_signal_status_all() {
         let server = create_test_server().await;
-        let input = crate::mcp::tools::external_signals::ExternalSignalStatusInput {
-            provider: None,
-        };
+        let input =
+            crate::mcp::tools::external_signals::ExternalSignalStatusInput { provider: None };
 
         let result = server.execute_external_signal_status(input).await.unwrap();
 

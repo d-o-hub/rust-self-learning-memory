@@ -300,11 +300,6 @@ mod tests {
         // Should prefer external (0.5) over internal (0.8)
         assert_eq!(result.base, 0.5);
     }
-}
-
-#[cfg(test)]
-mod additional_merger_tests {
-    use super::*;
 
     #[test]
     fn test_merger_builder_methods() {
@@ -313,7 +308,10 @@ mod additional_merger_tests {
             .with_conflict_resolution(ConflictResolution::PreferInternal);
 
         assert_eq!(merger.min_confidence, 0.8);
-        assert_eq!(merger.conflict_resolution, ConflictResolution::PreferInternal);
+        assert_eq!(
+            merger.conflict_resolution,
+            ConflictResolution::PreferInternal
+        );
     }
 
     #[test]
@@ -355,14 +353,7 @@ mod additional_merger_tests {
     #[test]
     fn test_merge_with_low_confidence_signals() {
         let merger = SignalMerger::new().with_min_confidence(0.9);
-        let internal = RewardScore {
-            total: 1.0,
-            base: 0.5,
-            efficiency: 1.0,
-            complexity_bonus: 1.0,
-            quality_multiplier: 1.0,
-            learning_bonus: 0.0,
-        };
+        let internal = create_test_reward();
 
         let external = vec![ExternalSignalSet {
             provider: "test".to_string(),
@@ -375,21 +366,14 @@ mod additional_merger_tests {
         let result = merger.merge(&internal, &external);
 
         // Should ignore external signal and return 0.5 confidence (valid_signals empty but external_sets not)
-        assert_eq!(result.base, 0.5);
+        assert_eq!(result.base, 0.8);
         assert_eq!(result.confidence, 0.5);
     }
 
     #[test]
     fn test_merge_with_no_tool_samples() {
         let merger = SignalMerger::new();
-        let internal = RewardScore {
-            total: 1.0,
-            base: 0.5,
-            efficiency: 1.0,
-            complexity_bonus: 1.0,
-            quality_multiplier: 1.0,
-            learning_bonus: 0.0,
-        };
+        let internal = create_test_reward();
 
         let external = vec![ExternalSignalSet {
             provider: "test".to_string(),
@@ -407,7 +391,7 @@ mod additional_merger_tests {
 
         let result = merger.merge(&internal, &external);
 
-        assert_eq!(result.base, 0.5);
+        assert_eq!(result.base, 0.8);
         assert_eq!(result.confidence, 0.5);
     }
 
@@ -436,13 +420,5 @@ mod additional_merger_tests {
         };
 
         assert_eq!(reward.external_influence(), 1.0);
-    }
-}
-
-#[cfg(test)]
-        let merger = SignalMerger::with_weights(0.7, 0.3)
-            .with_conflict_resolution(ConflictResolution::WeightByConfidence);
-        let expected = 0.8 * 0.7 + 0.4 * 0.3;
-        assert!((merger.resolve_conflict(internal, external) - expected).abs() < 0.001);
     }
 }

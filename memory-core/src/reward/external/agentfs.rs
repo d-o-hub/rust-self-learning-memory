@@ -143,7 +143,7 @@ impl ExternalSignalProvider for AgentFsProvider {
             ));
         }
 
-        let tool_signals = self.fetch_tool_stats(episode).await;
+        let tool_signals = self.fetch_tool_stats(episode).await?;
 
         // Calculate confidence based on sample sizes
         let total_samples: usize = tool_signals.iter().map(|t| t.sample_count).sum();
@@ -199,23 +199,24 @@ impl AgentFsProvider {
     ///
     /// This method queries the AgentFS database via the SDK for toolcall statistics
     /// matching the tools used in the provided episode.
-    async fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Vec<ToolSignal> {
-        let tc = match ToolCalls::new(&self.config.db_path).await {
-            Ok(tc) => tc,
-            Err(_) => return Vec::new(),
-        };
+    async fn fetch_tool_stats(
+        &self,
+        episode: &crate::episode::Episode,
+    ) -> Result<Vec<ToolSignal>> {
+        let tc = ToolCalls::new(&self.config.db_path).await.map_err(|e| {
+            ExternalSignalError::SdkUnavailable(format!("Failed to connect to AgentFS: {e}"))
+        })?;
 
         // Get unique tool names from episode steps
         let episode_tools: std::collections::HashSet<_> =
             episode.steps.iter().map(|s| &s.tool).collect();
 
         // Query all tool stats once for efficiency
-        let all_stats = match tc.stats().await {
-            Ok(stats) => stats,
-            Err(_) => return Vec::new(),
-        };
+        let all_stats = tc.stats().await.map_err(|e| {
+            ExternalSignalError::Provider(format!("Failed to query AgentFS stats: {e}"))
+        })?;
 
-        all_stats
+        let results = all_stats
             .into_iter()
             .filter(|stats| {
                 episode_tools.contains(&stats.name)
@@ -240,7 +241,9 @@ impl AgentFsProvider {
                     metadata,
                 }
             })
-            .collect()
+            .collect();
+
+        Ok(results)
     }
 }
 
@@ -363,6 +366,51 @@ mod tests {
         );
         assert_eq!(signals.confidence, 0.0);
         assert_eq!(signals.provider, "agentfs");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_tool_stats_positive_path() {
+        use tempfile::tempdir;
+        let tmp_dir = tempdir().unwrap();
+        let db_path = tmp_dir.path().join("agentfs.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+
+        // Create a real AgentFS DB and seed it with test data
+        let tc = ToolCalls::new(&db_path_str).await.unwrap();
+        // name, started_at, ended_at, params, result, error
+        tc.record("test_tool", 0, 100, None, None, None).await.unwrap();
+        tc.record("test_tool", 0, 200, None, None, None).await.unwrap();
+        tc.record("test_tool", 0, 300, None, None, Some("test error")).await.unwrap();
+
+        let config = AgentFsConfig {
+            db_path: db_path_str,
+            enabled: true,
+            external_weight: 0.3,
+            min_correlation_samples: 2, // Low for testing
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        let mut episode = crate::episode::Episode::new(
+            "test-episode".to_string(),
+            crate::types::TaskContext::default(),
+            crate::types::TaskType::Testing,
+        );
+        episode.add_step(crate::episode::ExecutionStep::new(
+            1,
+            "test_tool".to_string(),
+            "test action".to_string(),
+        ));
+
+        let signals = provider.fetch_tool_stats(&episode).await.unwrap();
+        assert_eq!(signals.len(), 1);
+        let signal = &signals[0];
+        assert_eq!(signal.tool_name, "test_tool");
+        assert_eq!(signal.sample_count, 3);
+        // 2 success / 3 total = 0.666...
+        assert!((signal.success_rate - 0.666).abs() < 0.01);
+        // (100+200+300)/3 = 200 seconds = 200,000 ms
+        assert_eq!(signal.avg_latency_ms, 200_000.0);
     }
 
     #[tokio::test]

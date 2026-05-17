@@ -199,7 +199,7 @@ impl CascadeRetriever {
     pub fn retrieve(&self, query: &str) -> CascadeResult {
         #[cfg(feature = "csm")]
         {
-            self.retrieve_with_csm(query)
+            Ok(self.retrieve_with_csm(query))
         }
 
         #[cfg(not(feature = "csm"))]

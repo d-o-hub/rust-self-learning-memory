@@ -329,7 +329,7 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
         20 + 80 + 80 + 40 + 60 // Sum of all operations
     );
     println!("  Operations: {}", response.results.len());
-    println!("  Speedup: ~{:.1}x", 280.0 / duration.as_millis() as f64);
+    println!("  Speedup: ~{:.1}x", 0.280 / duration.as_secs_f64());
 
     // Show execution timeline
     println!("\n  Execution Timeline:");

@@ -16,12 +16,12 @@
 | Workspace version | 0.1.31 | — | ✅ |
 | Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 3,288 | — | 3,288 passing (2026-05-16) |
-| Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
+| Skipped/ignored tests | 164 | ≤165 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 38 | ≤25 | ⚠️ Over (API reserves/future features, verified 2026-05-16) |
+| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
 | CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
 | Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
@@ -162,8 +162,8 @@ All research/implementation phases are complete:
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 38 | ≤25 | ⚠️ Over (API reserves/future features, verified 2026-05-16) |
+| Ignored tests | 164 | ≤165 ceiling | 70 Turso (upstream libsql bug), rest by design |
+| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

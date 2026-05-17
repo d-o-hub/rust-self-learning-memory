@@ -232,17 +232,11 @@ impl KDNode {
 #[derive(Debug)]
 pub struct KDTree {
     root: Option<Box<KDNode>>,
-    /// Max depth stored for future tree balancing features
-    #[allow(dead_code)]
-    max_depth: usize,
 }
 
 impl KDTree {
     pub(crate) fn new() -> Self {
-        Self {
-            root: None,
-            max_depth: 10,
-        }
+        Self { root: None }
     }
 
     /// Build KD-tree from points

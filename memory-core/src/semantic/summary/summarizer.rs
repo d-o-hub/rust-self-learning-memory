@@ -56,9 +56,6 @@ use chrono::Utc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct SemanticSummarizer {
-    /// Minimum words in summary (informational, not enforced to avoid artificial padding)
-    #[allow(dead_code)] // informational config, not enforced in current implementation
-    min_summary_length: usize,
     /// Maximum words in summary
     max_summary_length: usize,
     /// Maximum key steps to extract
@@ -83,7 +80,6 @@ impl SemanticSummarizer {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            min_summary_length: 100,
             max_summary_length: 200,
             max_key_steps: 5,
         }
@@ -93,7 +89,7 @@ impl SemanticSummarizer {
     ///
     /// # Arguments
     ///
-    /// * `min_len` - Minimum words in summary
+    /// * `min_len` - Minimum words in summary (informational, reserved for future enforcement)
     /// * `max_len` - Maximum words in summary
     /// * `max_steps` - Maximum key steps to extract
     ///
@@ -105,9 +101,8 @@ impl SemanticSummarizer {
     /// let summarizer = SemanticSummarizer::with_config(50, 150, 3);
     /// ```
     #[must_use]
-    pub fn with_config(min_len: usize, max_len: usize, max_steps: usize) -> Self {
+    pub fn with_config(_min_len: usize, max_len: usize, max_steps: usize) -> Self {
         Self {
-            min_summary_length: min_len,
             max_summary_length: max_len,
             max_key_steps: max_steps,
         }

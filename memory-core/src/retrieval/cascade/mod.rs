@@ -106,7 +106,7 @@ pub struct CascadeRetriever {
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
     /// Concept graph for ontology-based term expansion (Tier 3).
-    #[allow(dead_code)] // Only used under csm feature; kept for non-csm config parity
+    #[cfg(feature = "csm")]
     concept_graph: ConceptGraph,
     #[cfg(feature = "csm")]
     bm25_index: super::Bm25Index,
@@ -122,6 +122,7 @@ impl CascadeRetriever {
         Self {
             config,
             episode_data: Vec::new(),
+            #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
             #[cfg(feature = "csm")]
             bm25_index: super::Bm25Index::new(),

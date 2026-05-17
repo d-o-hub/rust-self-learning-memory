@@ -46,8 +46,5 @@ pub use utils::{deduplicate_patterns, rank_patterns};
 /// Minimum success rate to extract a pattern
 pub const MIN_PATTERN_SUCCESS_RATE: f32 = 0.7;
 
-/// Minimum sequence length for tool sequence patterns
-pub const MIN_SEQUENCE_LENGTH: usize = 2;
-
 /// Maximum sequence length for tool sequence patterns
 pub const MAX_SEQUENCE_LENGTH: usize = 5;

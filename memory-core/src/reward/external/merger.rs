@@ -153,7 +153,7 @@ impl SignalMerger {
                 .sum();
 
             if total_samples == 0 {
-                (internal.base, 0.5)
+                (internal.base, 0.0)
             } else {
                 let weighted_success: f32 = valid_signals
                     .iter()
@@ -320,7 +320,9 @@ mod tests {
             enabled: true,
             default_weight: 0.4,
             min_confidence: 0.6,
-            providers: std::collections::HashMap::new(),
+            provider_weights: std::collections::HashMap::new(),
+            enable_caching: true,
+            cache_ttl_seconds: 60,
         };
         let merger = SignalMerger::from_config(&config);
 
@@ -392,7 +394,7 @@ mod tests {
         let result = merger.merge(&internal, &external);
 
         assert_eq!(result.base, 0.8);
-        assert_eq!(result.confidence, 0.5);
+        assert_eq!(result.confidence, 0.0);
     }
 
     #[test]

@@ -83,7 +83,7 @@ fn test_config_custom_values() {
         min_results: 2,
         enable_concept_expansion: false,
         enable_cognirank: false,
-        cognirank_weights: Default::default(),
+        cognirank_weights: CogniRankWeights::default(),
     };
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 5);

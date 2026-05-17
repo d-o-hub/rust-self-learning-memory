@@ -9,9 +9,11 @@
 //! The cascade eliminates 50-70% of embedding API calls by satisfying
 //! queries from CPU-local tiers before falling back to the API.
 
+use super::gist::CogniRankWeights;
 #[cfg(feature = "csm")]
 use super::gist::GistScoredItem;
-use super::gist::{CogniRank, CogniRankWeights, HierarchicalReranker, RerankConfig};
+#[cfg(feature = "csm")]
+use super::gist::{CogniRank, HierarchicalReranker, RerankConfig};
 use anyhow::Result;
 
 mod concept_graph;

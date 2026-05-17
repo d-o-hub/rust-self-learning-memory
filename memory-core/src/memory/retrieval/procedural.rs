@@ -27,7 +27,7 @@ impl SelfLearningMemory {
         // Try cache storage first
         if let Some(cache) = &self.cache_storage {
             match cache
-                .query_procedural_memories(task_type.clone(), Some(limit))
+                .query_procedural_memories(task_type, Some(limit))
                 .await
             {
                 Ok(memories) if !memories.is_empty() => return memories,

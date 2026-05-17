@@ -98,34 +98,6 @@ impl ForecastingEngine {
         })
     }
 
-    /// Calculate forecast fit quality
-    #[allow(dead_code)] // Utility method for forecast quality metrics
-    fn calculate_fit_quality(&self, actual: &[f64], forecast: &[f64]) -> f64 {
-        if actual.len() < 2 || forecast.is_empty() {
-            return 0.0;
-        }
-
-        // Simple MAPE calculation for last few points
-        let n = actual.len().min(forecast.len().min(10));
-        let start_idx = actual.len().saturating_sub(n);
-
-        let mape: f64 = actual[start_idx..]
-            .iter()
-            .zip(&forecast[..n])
-            .map(|(&a, &f)| {
-                if a != 0.0 {
-                    (a - f).abs() / a.abs()
-                } else {
-                    0.0
-                }
-            })
-            .sum::<f64>()
-            / n as f64;
-
-        // Convert MAPE to quality score (lower MAPE = higher quality)
-        (1.0 - mape.min(1.0)).max(0.0)
-    }
-
     /// Automatic seasonality detection using autocorrelation
     fn detect_seasonality(&self, series: &[f64]) -> Result<SeasonalityResult> {
         if series.len() < 10 {

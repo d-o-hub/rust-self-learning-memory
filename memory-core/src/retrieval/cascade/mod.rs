@@ -291,10 +291,19 @@ impl CascadeRetriever {
         Ok(CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if !best_results.is_empty() {
-                vec!["api_fallback_needed".to_string()]
-            } else {
+            contributing_tiers: if best_results.is_empty() {
                 vec!["none".to_string()]
+            } else {
+                // Preserve original tier attributions + note that API fallback was needed
+                let mut tiers = Vec::new();
+                if !bm25_results.is_empty() {
+                    tiers.push("bm25".to_string());
+                }
+                if !hdc_results.is_empty() {
+                    tiers.push("hdc".to_string());
+                }
+                tiers.push("api_fallback_needed".to_string());
+                tiers
             },
             api_calls: 1, // Indicates API call would be needed
         })

@@ -10,6 +10,7 @@
 
 use parking_lot::RwLock;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{debug, trace, warn};
 
@@ -75,7 +76,6 @@ impl TokenBucket {
     }
 
     /// Check if this bucket is stale (not accessed for a while)
-    #[cfg(test)]
     fn is_stale(&self, timeout: Duration) -> bool {
         Instant::now().duration_since(self.last_accessed) > timeout
     }
@@ -101,6 +101,8 @@ pub struct RateLimiter {
     read_buckets: RwLock<HashMap<ClientId, TokenBucket>>,
     /// Token buckets for write operations per client
     write_buckets: RwLock<HashMap<ClientId, TokenBucket>>,
+    /// Monotonically increasing call count for periodic cleanup
+    call_count: AtomicU64,
 }
 
 impl RateLimiter {
@@ -110,6 +112,7 @@ impl RateLimiter {
             config,
             read_buckets: RwLock::new(HashMap::new()),
             write_buckets: RwLock::new(HashMap::new()),
+            call_count: AtomicU64::new(0),
         };
 
         // Spawn cleanup task if enabled
@@ -144,6 +147,12 @@ impl RateLimiter {
                 limit: u32::MAX,
                 retry_after: None,
             };
+        }
+
+        // Periodic stale bucket cleanup (every ~1000 calls)
+        let count = self.call_count.fetch_add(1, Ordering::Relaxed) + 1;
+        if count % 1000 == 0 {
+            self.cleanup_stale_buckets(self.config.stale_threshold);
         }
 
         let (rps, burst) = match operation {
@@ -229,11 +238,11 @@ impl RateLimiter {
 
     /// Spawn a background task to clean up stale buckets
     fn spawn_cleanup_task(&self) {
-        // This is a placeholder for the cleanup task
-        // In a production implementation, we would use a background task
-        // to periodically clean up stale buckets. For now, we rely on
-        // lazy cleanup during check_rate_limit calls.
-        debug!("Rate limiter cleanup task registered (lazy cleanup enabled)");
+        // Periodic cleanup is triggered by check_rate_limit (every ~1000 calls)
+        // using the call_count atomic counter. Also run once at startup to
+        // establish the pattern for any pre-existing buckets.
+        self.cleanup_stale_buckets(self.config.stale_threshold);
+        debug!("Rate limiter cleanup: periodic eviction via check_rate_limit");
     }
 
     /// Get current statistics about the rate limiter
@@ -253,8 +262,7 @@ impl RateLimiter {
         }
     }
 
-    /// Manually clean up stale buckets (for testing)
-    #[cfg(test)]
+    /// Manually clean up stale buckets (for testing and runtime eviction)
     pub fn cleanup_stale_buckets(&self, stale_threshold: Duration) {
         // Clean up stale read buckets
         {

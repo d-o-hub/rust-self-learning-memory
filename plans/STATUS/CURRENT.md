@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-16 (PR #547/#546 auto-merge, plans sync)
+**Last Updated**: 2026-05-17 (PR #552 dead_code elimination complete, cascade tier attribution fix)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -21,7 +21,7 @@
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
+| `#[allow(dead_code)]` (prod src) | 0 | ≤25 | ✅ Met (all 38 eliminated; removed unused params, cfg-gated test-only utils, verified 2026-05-17) |
 | CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
 | Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
@@ -163,7 +163,7 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 164 | ≤165 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 24 | ≤25 | ✅ Met (down from 38; removed 11 cfg-gated/field removals + 3 predictive config fields, verified 2026-05-16) |
+| `#[allow(dead_code)]` (prod src) | 0 | ≤25 | ✅ Met (all 38 eliminated; removed unused params, cfg-gated test-only utils, verified 2026-05-17) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

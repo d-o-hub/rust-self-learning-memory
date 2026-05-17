@@ -205,16 +205,6 @@ impl RealEmbeddingModel {
             session,
         ))
     }
-
-    /// Get model name
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Get embedding dimension
-    pub fn dimension(&self) -> usize {
-        self.dimension
-    }
 }
 
 /// Stubs for when local-embeddings feature is not enabled
@@ -248,15 +238,5 @@ impl RealEmbeddingModel {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"
         ))
-    }
-
-    /// Get model name
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Get embedding dimension
-    pub fn dimension(&self) -> usize {
-        self.dimension
     }
 }

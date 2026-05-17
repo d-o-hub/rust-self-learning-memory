@@ -37,11 +37,7 @@ impl PatternExtractor {
 
     /// Create an extractor with custom thresholds
     #[must_use]
-    pub fn with_thresholds(
-        success_threshold: f32,
-        _min_sequence_len: usize,
-        max_sequence_len: usize,
-    ) -> Self {
+    pub fn with_thresholds(success_threshold: f32, max_sequence_len: usize) -> Self {
         Self {
             success_threshold,
             max_sequence_len,

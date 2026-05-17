@@ -77,3 +77,58 @@ mod tests {
         let _ = method_signature; // Use the function to avoid unused warnings
     }
 }
+
+#[cfg(test)]
+mod functional_tests {
+    use super::*;
+    use crate::server::MemoryMCPServer;
+    use crate::mcp::types::SandboxConfig;
+    use do_memory_core::SelfLearningMemory;
+    use do_memory_core::types::MemoryConfig;
+    use std::sync::Arc;
+
+    async fn create_test_server() -> MemoryMCPServer {
+        let config = MemoryConfig::default();
+        let memory = Arc::new(SelfLearningMemory::new(config).await.unwrap());
+        MemoryMCPServer::new(SandboxConfig::default(), memory).await.unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_execute_configure_agentfs_success() {
+        let server = create_test_server().await;
+        let input = crate::mcp::tools::external_signals::ConfigureAgentFsInput {
+            db_path: "/tmp/agentfs.db".to_string(),
+            enabled: true,
+            weight: 0.5,
+            min_samples: 20,
+            sanitize: true,
+        };
+
+        let result = server.execute_configure_agentfs(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::ConfigureAgentFsOutput =
+            serde_json::from_value(result).unwrap();
+
+        assert!(output.success);
+        assert_eq!(output.weight, 0.5);
+        assert_eq!(output.min_samples, 20);
+    }
+
+    #[tokio::test]
+    async fn test_execute_configure_agentfs_clamping() {
+        let server = create_test_server().await;
+        let input = crate::mcp::tools::external_signals::ConfigureAgentFsInput {
+            db_path: "/tmp/agentfs.db".to_string(),
+            enabled: true,
+            weight: 1.5, // Should clamp to 1.0
+            min_samples: 0, // Should clamp to 1
+            sanitize: true,
+        };
+
+        let result = server.execute_configure_agentfs(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::ConfigureAgentFsOutput =
+            serde_json::from_value(result).unwrap();
+
+        assert_eq!(output.weight, 1.0);
+        assert_eq!(output.min_samples, 1);
+    }
+}

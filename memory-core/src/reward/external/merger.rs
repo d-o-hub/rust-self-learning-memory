@@ -301,3 +301,148 @@ mod tests {
         assert_eq!(result.base, 0.5);
     }
 }
+
+#[cfg(test)]
+mod additional_merger_tests {
+    use super::*;
+
+    #[test]
+    fn test_merger_builder_methods() {
+        let merger = SignalMerger::new()
+            .with_min_confidence(0.8)
+            .with_conflict_resolution(ConflictResolution::PreferInternal);
+
+        assert_eq!(merger.min_confidence, 0.8);
+        assert_eq!(merger.conflict_resolution, ConflictResolution::PreferInternal);
+    }
+
+    #[test]
+    fn test_merger_from_config() {
+        let config = ExternalSignalConfig {
+            enabled: true,
+            default_weight: 0.4,
+            min_confidence: 0.6,
+            providers: std::collections::HashMap::new(),
+        };
+        let merger = SignalMerger::from_config(&config);
+
+        assert!((merger.internal_weight - 0.6).abs() < 0.001);
+        assert!((merger.external_weight - 0.4).abs() < 0.001);
+        assert_eq!(merger.min_confidence, 0.6);
+    }
+
+    #[test]
+    fn test_resolve_conflict_strategies() {
+        let internal = 0.8;
+        let external = 0.4;
+
+        let merger = SignalMerger::new();
+
+        assert_eq!(merger.resolve_conflict(internal, external), 0.6); // Average
+
+        let merger = merger.with_conflict_resolution(ConflictResolution::PreferInternal);
+        assert_eq!(merger.resolve_conflict(internal, external), 0.8);
+
+        let merger = merger.with_conflict_resolution(ConflictResolution::PreferExternal);
+        assert_eq!(merger.resolve_conflict(internal, external), 0.4);
+
+        let merger = SignalMerger::with_weights(0.7, 0.3)
+            .with_conflict_resolution(ConflictResolution::WeightByConfidence);
+        let expected = 0.8 * 0.7 + 0.4 * 0.3;
+        assert!((merger.resolve_conflict(internal, external) - expected).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_merge_with_low_confidence_signals() {
+        let merger = SignalMerger::new().with_min_confidence(0.9);
+        let internal = RewardScore {
+            total: 1.0,
+            base: 0.5,
+            efficiency: 1.0,
+            complexity_bonus: 1.0,
+            quality_multiplier: 1.0,
+            learning_bonus: 0.0,
+        };
+
+        let external = vec![ExternalSignalSet {
+            provider: "test".to_string(),
+            tool_signals: vec![],
+            episode_quality: Some(0.9),
+            timestamp: chrono::Utc::now(),
+            confidence: 0.5, // Below 0.9
+        }];
+
+        let result = merger.merge(&internal, &external);
+
+        // Should ignore external signal and return 0.5 confidence (valid_signals empty but external_sets not)
+        assert_eq!(result.base, 0.5);
+        assert_eq!(result.confidence, 0.5);
+    }
+
+    #[test]
+    fn test_merge_with_no_tool_samples() {
+        let merger = SignalMerger::new();
+        let internal = RewardScore {
+            total: 1.0,
+            base: 0.5,
+            efficiency: 1.0,
+            complexity_bonus: 1.0,
+            quality_multiplier: 1.0,
+            learning_bonus: 0.0,
+        };
+
+        let external = vec![ExternalSignalSet {
+            provider: "test".to_string(),
+            tool_signals: vec![super::super::ToolSignal {
+                tool_name: "tool".to_string(),
+                success_rate: 1.0,
+                avg_latency_ms: 100.0,
+                sample_count: 0, // Zero samples
+                metadata: std::collections::HashMap::new(),
+            }],
+            episode_quality: None,
+            timestamp: chrono::Utc::now(),
+            confidence: 0.8,
+        }];
+
+        let result = merger.merge(&internal, &external);
+
+        assert_eq!(result.base, 0.5);
+        assert_eq!(result.confidence, 0.5);
+    }
+
+    #[test]
+    fn test_merged_reward_total_and_influence() {
+        let reward = MergedReward {
+            base: 0.8,
+            efficiency: 1.2,
+            internal_score: 0.5,
+            external_score: 0.9,
+            confidence: 0.8,
+        };
+
+        assert!((reward.calculate_total() - 0.96).abs() < 0.001);
+        assert!((reward.external_influence() - 0.8).abs() < 0.001); // (0.9 - 0.5) / 0.5 = 0.8
+    }
+
+    #[test]
+    fn test_merged_reward_external_influence_internal_zero() {
+        let reward = MergedReward {
+            base: 0.8,
+            efficiency: 1.2,
+            internal_score: 0.0,
+            external_score: 0.9,
+            confidence: 0.8,
+        };
+
+        assert_eq!(reward.external_influence(), 1.0);
+    }
+}
+
+#[cfg(test)]
+        let merger = SignalMerger::with_weights(0.7, 0.3)
+            .with_conflict_resolution(ConflictResolution::WeightByConfidence);
+        let expected = 0.8 * 0.7 + 0.4 * 0.3;
+        assert!((merger.resolve_conflict(internal, external) - expected).abs() < 0.001);
+    }
+}

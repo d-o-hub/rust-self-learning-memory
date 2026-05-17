@@ -478,3 +478,51 @@ mod tests {
         );
     }
 }
+
+
+    #[tokio::test]
+    async fn test_fetch_tool_stats_with_real_sdk() {
+        use tempfile::NamedTempFile;
+        let temp_db = NamedTempFile::new().unwrap();
+        let db_path = temp_db.path().to_str().unwrap().to_string();
+
+        // Initialize SDK and record some stats
+        let tc = ToolCalls::new(&db_path).await.unwrap();
+        tc.record("test_tool", 100, true, None).await.unwrap();
+        tc.record("test_tool", 200, false, None).await.unwrap();
+        tc.record("other_tool", 50, true, None).await.unwrap();
+
+        let config = AgentFsConfig {
+            db_path: db_path.clone(),
+            enabled: true,
+            external_weight: 0.3,
+            min_correlation_samples: 1, // Low to match our test data
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+
+        // Create an episode that uses "test_tool"
+        let mut episode = crate::episode::Episode::new(
+            "test-episode".to_string(),
+            crate::types::TaskContext::default(),
+            crate::types::TaskType::Testing,
+        );
+        episode.add_step(crate::episode::EpisodeStep::new(
+            "test_tool".to_string(),
+            serde_json::json!({}),
+            crate::types::ExecutionResult::Success {
+                output: "ok".to_string(),
+                artifacts: vec![],
+            },
+            std::time::Duration::from_millis(100),
+        ));
+
+        let stats = provider.fetch_tool_stats(&episode).await;
+
+        assert_eq!(stats.len(), 1);
+        assert_eq!(stats[0].tool_name, "test_tool");
+        assert_eq!(stats[0].sample_count, 2);
+        assert_eq!(stats[0].success_rate, 0.5);
+    }
+}

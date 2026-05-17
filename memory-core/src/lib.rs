@@ -1,56 +1,24 @@
-// Justified clippy suppressions for this crate (WG-113 audit)
+// Clippy suppressions — only lints that actually fire in this crate (verified 2026-05-17)
+// Dead suppressions removed: cognitive_complexity, cast_possible_truncation, cast_sign_loss,
+// cast_possible_wrap, implicit_hasher, needless_pass_by_value, redundant_closure_for_method_calls,
+// ref_option, match_same_arms, map_unwrap_or, float_cmp, assigning_clones, similar_names,
+// expect_used, panic, missing_docs (zero instances in crate)
 //
-// CAST-RELATED (necessary for embedding/similarity calculations):
+// LIVE (each has instances; fixing tracked as tech debt):
 // - cast_precision_loss: f32/f64 conversions in similarity math
-// - cast_possible_truncation: usize to u32 for storage IDs
-// - cast_sign_loss: positive integers cast to unsigned
-// - cast_possible_wrap: negative to unsigned with validation
-//
-// DOCUMENTATION (would require extensive rework across all functions):
-// - missing_errors_doc: Documenting every Result error variant
-// - missing_panics_doc: Documenting every potential panic
-// - doc_markdown: Backticks around field names in docs is pedantic
-//
-// API DESIGN CHOICES (intentional decisions):
-// - unused_self: Methods that may use self in future extensions
-// - implicit_hasher: Accepting HashMap/HashSet without generic bound
-// - needless_pass_by_value: Ownership semantics for builder pattern
-//
-// PEDANTIC LINTS (widespread, provide minimal value):
-// - must_use_candidate: Constructors commonly return Self; not worth marking all
-// - redundant_closure_for_method_calls: Style preference; closures are clear
-// - ref_option: API design choice for consistency with existing patterns
-// - match_same_arms: Merging arms reduces readability for maintenance
-// - map_unwrap_or: map_or is less readable than the explicit pattern
-// - float_cmp: Intentional exact comparisons for known values (e.g., 1.0, 0.5)
-// - assigning_clones: clone_from is not always more efficient
-// - similar_names: Short variable names common in mathematical contexts
-// - missing_docs: Documentation for all public items would require extensive rework
-// - cognitive_complexity: Complex functions exist; refactoring tracked as tech debt
-// - expect_used/unwrap_used: Required for infallible operations and test assertions
-#![allow(clippy::cognitive_complexity)]
+// - missing_errors_doc / missing_panics_doc / doc_markdown: doc coverage gaps
+// - unused_self: methods that may use self in future extensions
+// - must_use_candidate: public methods that should be #[must_use]
+// - redundant_closure: closures where method reference would suffice
+// - unwrap_used: infallible operations and test assertions
 #![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_wrap)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::unused_self)]
-#![allow(clippy::implicit_hasher)]
-#![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::must_use_candidate)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::ref_option)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::float_cmp)]
-#![allow(clippy::assigning_clones)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::expect_used)]
+#![allow(clippy::redundant_closure)]
 #![allow(clippy::unwrap_used)]
-#![allow(clippy::panic)]
-#![allow(missing_docs)]
 
 //! # Memory Core
 //!
@@ -274,8 +242,8 @@ pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_qu
 pub use types::{
     CloudEvent, ComplexityLevel, ConcurrencyConfig, DualRewardScore, EventEmitter,
     EventEmitterMode, Evidence, ExecutionResult, LogEmitter, MemoryConfig, MemoryEventMapping,
-    NoOpEmitter, OutcomeStats, Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome,
-    TaskType,
+    NoOpEmitter, OutcomeStats, ProceduralMemory, ProceduralStep, Reflection, RewardScore,
+    StorageConfig, TaskContext, TaskOutcome, TaskType,
 };
 
 // Re-export attribution types (ADR-044 Feature 2)

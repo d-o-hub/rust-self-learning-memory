@@ -11,6 +11,7 @@ pub mod constants;
 pub mod emitter;
 pub mod enums;
 pub mod event;
+pub mod procedural;
 pub mod sinks;
 pub mod structs;
 
@@ -21,6 +22,7 @@ pub use constants::{
 pub use emitter::{CloudEvent, EventEmitter, EventEmitterMode, MemoryEventMapping};
 pub use enums::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
 pub use event::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryEvent, unix_now_secs};
+pub use procedural::{ProceduralMemory, ProceduralStep};
 pub use sinks::{LogEmitter, NoOpEmitter};
 
 #[cfg(feature = "http-emitter")]

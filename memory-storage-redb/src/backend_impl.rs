@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use do_memory_core::{
+    Episode, Heuristic, Pattern, PatternId, ProceduralMemory, Result, StorageBackend, TaskType,
+};
 use uuid::Uuid;
 
 use crate::RedbStorage;
@@ -35,6 +37,22 @@ impl StorageBackend for RedbStorage {
 
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
         self.get_heuristic(id).await
+    }
+
+    async fn store_procedural_memory(&self, procedural: &ProceduralMemory) -> Result<()> {
+        self.store_procedural_memory(procedural).await
+    }
+
+    async fn get_procedural_memory(&self, id: Uuid) -> Result<Option<ProceduralMemory>> {
+        self.get_procedural_memory(id).await
+    }
+
+    async fn query_procedural_memories(
+        &self,
+        task_type: TaskType,
+        limit: Option<usize>,
+    ) -> Result<Vec<ProceduralMemory>> {
+        self.query_procedural_memories(task_type, limit).await
     }
 
     async fn query_episodes_since(
@@ -100,6 +118,15 @@ impl StorageBackend for RedbStorage {
         relationship_type: do_memory_core::episode::RelationshipType,
     ) -> Result<bool> {
         self.relationship_exists(from_episode_id, to_episode_id, relationship_type)
+            .await
+    }
+
+    async fn traverse_temporal_graph(
+        &self,
+        start_episode_id: Uuid,
+        max_depth: usize,
+    ) -> Result<Vec<(Episode, f32)>> {
+        self.traverse_temporal_graph(start_episode_id, max_depth)
             .await
     }
 

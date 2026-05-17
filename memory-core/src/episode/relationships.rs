@@ -198,6 +198,8 @@ pub struct EpisodeRelationship {
     pub relationship_type: RelationshipType,
     /// Additional metadata
     pub metadata: RelationshipMetadata,
+    /// Temporal weight for this relationship (0.0 to 1.0)
+    pub temporal_weight: Option<f32>,
     /// When this relationship was created
     pub created_at: DateTime<Utc>,
 }
@@ -217,6 +219,27 @@ impl EpisodeRelationship {
             to_episode_id,
             relationship_type,
             metadata,
+            temporal_weight: None,
+            created_at: Utc::now(),
+        }
+    }
+
+    /// Create a new relationship with a temporal weight
+    #[must_use]
+    pub fn new_with_weight(
+        from_episode_id: Uuid,
+        to_episode_id: Uuid,
+        relationship_type: RelationshipType,
+        metadata: RelationshipMetadata,
+        temporal_weight: f32,
+    ) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            from_episode_id,
+            to_episode_id,
+            relationship_type,
+            metadata,
+            temporal_weight: Some(temporal_weight),
             created_at: Utc::now(),
         }
     }
@@ -252,6 +275,7 @@ impl EpisodeRelationship {
             to_episode_id: self.from_episode_id,
             relationship_type: inv_type,
             metadata: self.metadata.clone(),
+            temporal_weight: self.temporal_weight,
             created_at: self.created_at,
         })
     }

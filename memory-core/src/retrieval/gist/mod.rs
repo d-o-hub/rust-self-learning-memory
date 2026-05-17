@@ -61,6 +61,7 @@
 //! // Returns at most 5 items, prioritized by density
 //! ```
 
+mod cognirank;
 mod config;
 mod extractor;
 mod reranker;
@@ -69,6 +70,7 @@ mod types;
 #[cfg(test)]
 mod tests;
 
+pub use cognirank::{CogniRank, CogniRankWeights};
 pub use config::RerankConfig;
 pub use extractor::GistExtractor;
 pub use reranker::{GistScoredItem, HierarchicalReranker};

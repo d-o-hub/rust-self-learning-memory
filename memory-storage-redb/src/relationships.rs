@@ -43,6 +43,43 @@ impl RedbStorage {
             .any(|r| r.to_episode_id == to_episode_id && r.relationship_type == relationship_type))
     }
 
+    /// Traverse the temporal graph starting from an episode
+    pub async fn traverse_temporal_graph(
+        &self,
+        start_episode_id: Uuid,
+        max_depth: usize,
+    ) -> Result<Vec<(do_memory_core::Episode, f32)>> {
+        use std::collections::{HashMap, VecDeque};
+
+        let mut results: HashMap<Uuid, (do_memory_core::Episode, f32)> = HashMap::new();
+        let mut queue = VecDeque::new();
+        queue.push_back((start_episode_id, 1.0f32, 0));
+
+        while let Some((current_id, current_weight, depth)) = queue.pop_front() {
+            if depth >= max_depth {
+                continue;
+            }
+
+            let outgoing = self.get_cached_relationships(current_id, Direction::Outgoing)?;
+            for rel in outgoing {
+                let weight = current_weight * rel.temporal_weight.unwrap_or(1.0);
+                let target_id = rel.to_episode_id;
+
+                // If not visited or found a heavier path
+                if !results.contains_key(&target_id)
+                    || results.get(&target_id).map_or(0.0, |(_, w)| *w) < weight
+                {
+                    if let Some(episode) = self.get_episode(target_id).await? {
+                        results.insert(target_id, (episode, weight));
+                        queue.push_back((target_id, weight, depth + 1));
+                    }
+                }
+            }
+        }
+
+        Ok(results.into_values().collect())
+    }
+
     // Original redb-specific methods
 
     /// Cache a relationship

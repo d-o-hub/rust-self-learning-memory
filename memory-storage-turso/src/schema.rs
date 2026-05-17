@@ -57,6 +57,22 @@ CREATE TABLE IF NOT EXISTS heuristics (
 )
 "#;
 
+/// SQL to create the procedural_memories table
+pub const CREATE_PROCEDURAL_MEMORIES_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS procedural_memories (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    task_type TEXT NOT NULL,
+    steps TEXT NOT NULL,
+    evidence TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    version INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
 /// SQL to create recommendation sessions table (ADR-044)
 pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS recommendation_sessions (
@@ -441,6 +457,7 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     reason TEXT,
     created_by TEXT,
     priority INTEGER,
+    temporal_weight REAL,
     metadata TEXT NOT NULL DEFAULT '{}',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (from_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
@@ -448,6 +465,10 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     UNIQUE(from_episode_id, to_episode_id, relationship_type)
 )
 "#;
+
+/// Migration SQL to add temporal_weight column to existing episode_relationships table.
+pub const ADD_RELATIONSHIPS_TEMPORAL_WEIGHT_COLUMN: &str =
+    "ALTER TABLE episode_relationships ADD COLUMN temporal_weight REAL";
 
 /// Index on relationships for efficient outgoing relationship queries
 pub const CREATE_RELATIONSHIPS_FROM_INDEX: &str = r#"

@@ -236,7 +236,7 @@ impl CascadeRetriever {
             // If highly relevant to collaborative memory, we could add a "collaboration boost"
             // or filter. For now, we'll just note it in contributing tiers if strong.
             if similarity > 0.8 {
-                tracing::debug!(similarity, "Query matched collaborative prototype");
+                debug!(similarity, "Query matched collaborative prototype");
             }
         }
 

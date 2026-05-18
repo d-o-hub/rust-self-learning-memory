@@ -33,10 +33,6 @@ impl TrajectoryAdapter {
         match representation {
             TrajectoryRepresentation::Embedding(emb) => {
                 let dim = emb.len();
-                // Guard against dimensionality mismatch to avoid out-of-bounds panics
-                if dim != self.matrix.len() {
-                    return TrajectoryRepresentation::Embedding(emb);
-                }
                 let mut adapted = vec![0.0; dim];
                 for i in 0..dim {
                     for j in 0..dim {

@@ -394,7 +394,7 @@ jobs:
           } catch(e) { console.warn('Stats: ' + e.message); }
           EOF
       - name: Create Pull Request for updated AI slop stats
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(ai-slop): stats #${{ github.event.issue.number }} [skip ci]"
           title: "chore(ai-slop): update stats for #${{ github.event.issue.number }}"

@@ -210,7 +210,7 @@ impl TursoStorage {
 mod tests {
     use super::*;
     use crate::TursoStorage;
-    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
+    use do_memory_core::{Episode, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

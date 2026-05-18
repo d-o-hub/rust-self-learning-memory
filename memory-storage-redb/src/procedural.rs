@@ -128,7 +128,7 @@ impl RedbStorage {
             }
 
             // Sort by updated_at descending, then apply limit
-            results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+            results.sort_by_key(|b| std::cmp::Reverse(b.updated_at));
             results.truncate(limit);
 
             Ok(results)

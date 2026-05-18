@@ -186,7 +186,11 @@ fn row_to_procedural(row: &Row) -> Result<ProceduralMemory> {
         effectiveness,
         source_episodes,
         source_patterns,
-        created_at: chrono::DateTime::from_timestamp(created_at, 0).unwrap_or_default(),
-        updated_at: chrono::DateTime::from_timestamp(updated_at, 0).unwrap_or_default(),
+        created_at: chrono::DateTime::from_timestamp(created_at, 0).ok_or_else(|| {
+            Error::Storage(format!("Invalid created_at timestamp: {}", created_at))
+        })?,
+        updated_at: chrono::DateTime::from_timestamp(updated_at, 0).ok_or_else(|| {
+            Error::Storage(format!("Invalid updated_at timestamp: {}", updated_at))
+        })?,
     })
 }

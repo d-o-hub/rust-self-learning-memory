@@ -4,9 +4,6 @@ use crate::TursoStorage;
 use do_memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
 use uuid::Uuid;
 
-#[cfg(feature = "compression")]
-use crate::compression;
-
 impl TursoStorage {
     /// Convert a database row to an Episode
     pub async fn row_to_episode(&self, row: &libsql::Row) -> Result<Episode> {
@@ -99,14 +96,14 @@ pub fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
 
     let summary_embedding: Option<Vec<u8>> =
         row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-    let summary_embedding = summary_embedding.and_then(|bytes| {
+    let summary_embedding = summary_embedding.map(|bytes| {
         let mut floats = Vec::with_capacity(bytes.len() / 4);
         for chunk in bytes.chunks_exact(4) {
             let mut arr = [0u8; 4];
             arr.copy_from_slice(chunk);
             floats.push(f32::from_le_bytes(arr));
         }
-        Some(floats)
+        floats
     });
 
     Ok(EpisodeSummary {

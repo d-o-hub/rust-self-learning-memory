@@ -499,7 +499,7 @@ impl SelfLearningMemory {
         // Fallback to in-memory
         let procedural = self.procedural_fallback.read().await;
         let mut results: Vec<ProceduralMemory> = procedural.values().cloned().collect();
-        results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+        results.sort_by_key(|b| std::cmp::Reverse(b.updated_at));
         if let Some(l) = limit {
             results.truncate(l);
         }

@@ -24,9 +24,11 @@ fn test_procedural_memory_creation() {
 
 #[test]
 fn test_relevance() {
-    let mut context = TaskContext::default();
-    context.domain = "rust".to_string();
-    context.tags = vec!["async".to_string()];
+    let context = TaskContext {
+        domain: "rust".to_string(),
+        tags: vec!["async".to_string()],
+        ..TaskContext::default()
+    };
 
     let procedural = ProceduralMemory::new(
         "Rust Async".to_string(),
@@ -35,8 +37,10 @@ fn test_relevance() {
         vec![],
     );
 
-    let mut query_context = TaskContext::default();
-    query_context.domain = "rust".to_string();
+    let mut query_context = TaskContext {
+        domain: "rust".to_string(),
+        ..TaskContext::default()
+    };
     assert!(procedural.is_relevant_to(&query_context));
 
     query_context.domain = "python".to_string();

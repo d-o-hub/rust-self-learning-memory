@@ -33,18 +33,27 @@ impl MemoryMCPServer {
         let mut providers = vec![];
 
         // Check AgentFS provider status
-        // Get AgentFS config from memory if available
-        // Note: In a real integration, we'd retrieve this from the provider in the registry
+        let db_path = std::env::var("AGENTFS_DB_PATH").ok();
+        let configured = db_path.is_some();
+        let enabled = configured;
+        let (connected, last_error) = if let Some(ref path) = db_path {
+            match agentfs_sdk::ToolCalls::new(path).await {
+                Ok(_) => (true, None),
+                Err(e) => (false, Some(format!("Connection failed: {e}"))),
+            }
+        } else {
+            (false, None)
+        };
         let agentfs_status = crate::mcp::tools::external_signals::ProviderStatus {
             name: "agentfs".to_string(),
-            configured: true,
-            enabled: true,
-            connected: true,
-            last_error: None,
+            configured,
+            enabled,
+            connected,
+            last_error,
             signal_count: 0,
             weight: 0.3,
             metadata: json!({
-                "db_path": std::env::var("AGENTFS_DB_PATH").ok(),
+                "db_path": db_path,
                 "sanitize": true,
                 "sdk_integrated": true,
                 "stub_implementation": false,

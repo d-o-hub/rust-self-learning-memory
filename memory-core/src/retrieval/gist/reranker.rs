@@ -146,6 +146,27 @@ impl HierarchicalReranker {
     /// Vector of gist-scored items, sorted by combined score
     #[must_use]
     pub fn rerank(&self, episodes: Vec<(Arc<Episode>, f32)>, top_k: usize) -> Vec<GistScoredItem> {
+        self.rerank_with_query(episodes, "", top_k)
+    }
+
+    /// Rerank episodes using CogniRank (gist-to-query alignment).
+    ///
+    /// # Arguments
+    ///
+    /// * `episodes` - Episodes with their original relevance scores
+    /// * `query` - The user query to align gists against
+    /// * `top_k` - Maximum number of items to return
+    ///
+    /// # Returns
+    ///
+    /// Vector of gist-scored items, sorted by combined score
+    #[must_use]
+    pub fn rerank_with_query(
+        &self,
+        episodes: Vec<(Arc<Episode>, f32)>,
+        query: &str,
+        top_k: usize,
+    ) -> Vec<GistScoredItem> {
         if episodes.is_empty() || top_k == 0 {
             return Vec::new();
         }
@@ -167,7 +188,17 @@ impl HierarchicalReranker {
         // 2. Compute combined scores
         for item in &mut items {
             let recency = self.compute_recency_score(item.episode());
-            let score = self.compute_combined_score(item.relevance(), item.gist().density, recency);
+            let gist_query_sim = if query.is_empty() {
+                0.0
+            } else {
+                self.compute_gist_query_similarity(item, query)
+            };
+            let score = self.compute_combined_score(
+                item.relevance(),
+                item.gist().density,
+                gist_query_sim,
+                recency,
+            );
             item.set_combined_score(score);
         }
 
@@ -192,10 +223,38 @@ impl HierarchicalReranker {
     }
 
     /// Compute combined score from components.
-    fn compute_combined_score(&self, relevance: f32, density: f32, recency: f32) -> f32 {
+    fn compute_combined_score(
+        &self,
+        relevance: f32,
+        density: f32,
+        gist_query_sim: f32,
+        recency: f32,
+    ) -> f32 {
         self.config.relevance_weight * relevance
             + self.config.density_weight * density
+            + self.config.gist_query_similarity_weight * gist_query_sim
             + self.config.recency_weight * recency
+    }
+
+    /// Compute similarity between a gist and a query.
+    pub fn compute_gist_query_similarity(&self, item: &GistScoredItem, query: &str) -> f32 {
+        let summary = item.gist().summary();
+        let gist_words = self.extract_words(&summary);
+        let query_words = self.extract_words(query);
+
+        if gist_words.is_empty() || query_words.is_empty() {
+            return 0.0;
+        }
+
+        // Jaccard similarity = intersection / union
+        let intersection = gist_words.intersection(&query_words).count();
+        let union = gist_words.union(&query_words).count();
+
+        if union == 0 {
+            return 0.0;
+        }
+
+        intersection as f32 / union as f32
     }
 
     /// Select diverse items using MMR-style algorithm.

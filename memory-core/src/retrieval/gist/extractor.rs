@@ -155,22 +155,25 @@ impl GistExtractor {
     }
 
     /// Score sentences by information density.
-    fn score_sentences(&self, sentences: &[String]) -> Vec<(String, f32)> {
+    pub(crate) fn score_sentences(&self, sentences: &[String]) -> Vec<(String, f32)> {
+        let total = sentences.len();
         sentences
             .iter()
-            .map(|s| {
-                let score = self.sentence_score(s);
+            .enumerate()
+            .map(|(idx, s)| {
+                let score = self.sentence_score(s, idx, total);
                 (s.clone(), score)
             })
             .collect()
     }
 
     /// Compute information density score for a sentence.
-    fn sentence_score(&self, sentence: &str) -> f32 {
+    fn sentence_score(&self, sentence: &str, index: usize, total: usize) -> f32 {
         // Score based on:
         // 1. Length (longer sentences may have more info, but penalize very long)
         // 2. Keyword indicators (action verbs, outcomes)
-        // 3. Token density (words per character)
+        // 3. Positional bias (first/last sentences carry more context)
+        // 4. Cognitive weight (insight/reasoning markers)
 
         let len = sentence.len();
 
@@ -187,19 +190,40 @@ impl GistExtractor {
             0.4 // Very long, verbose
         };
 
-        // Keyword score: action verbs indicate high-value info
-        let keyword_score = self.keyword_score(sentence);
+        // Keyword/Cognitive score: action verbs and insights
+        let cognitive_score = self.cognitive_score(sentence);
+
+        // Positional bias: first and last sentences often have the most gist
+        let position_score = self.position_score(index, total);
 
         // Combine scores
-        0.4 * length_score + 0.6 * keyword_score
+        0.3 * length_score + 0.5 * cognitive_score + 0.2 * position_score
     }
 
-    /// Score based on keyword indicators.
-    fn keyword_score(&self, sentence: &str) -> f32 {
+    /// Score based on positional bias.
+    fn position_score(&self, index: usize, total: usize) -> f32 {
+        if total == 0 {
+            return 0.0;
+        }
+        if total == 1 {
+            return 1.0;
+        }
+
+        if index == 0 {
+            1.0 // First sentence (usually summary/intro)
+        } else if index == total - 1 {
+            0.9 // Last sentence (usually conclusion/outcome)
+        } else {
+            0.5 // Middle sentences
+        }
+    }
+
+    /// Score based on cognitive markers and keyword indicators.
+    fn cognitive_score(&self, sentence: &str) -> f32 {
         let lower = sentence.to_lowercase();
 
         // High-value action keywords
-        let high_value = [
+        let action_keywords = [
             "fixed",
             "added",
             "implemented",
@@ -217,20 +241,39 @@ impl GistExtractor {
         ];
 
         // Outcome indicators
-        let outcome = ["success", "failed", "error", "bug", "issue", "feature"];
+        let outcome_indicators = ["success", "failed", "error", "bug", "issue", "feature"];
 
-        let has_high_value = high_value.iter().any(|kw| lower.contains(kw));
-        let has_outcome = outcome.iter().any(|kw| lower.contains(kw));
+        // Cognitive/Insight markers
+        let cognitive_markers = [
+            "decided",
+            "learned",
+            "insight",
+            "because",
+            "due to",
+            "reasoning",
+            "discovered",
+            "noticed",
+            "found",
+            "improved",
+            "optimized",
+        ];
 
-        if has_high_value && has_outcome {
-            1.0
-        } else if has_high_value {
-            0.8
-        } else if has_outcome {
-            0.6
-        } else {
-            0.4
+        let has_action = action_keywords.iter().any(|kw| lower.contains(kw));
+        let has_outcome = outcome_indicators.iter().any(|kw| lower.contains(kw));
+        let has_cognitive = cognitive_markers.iter().any(|kw| lower.contains(kw));
+
+        let mut score: f32 = 0.4;
+        if has_action {
+            score += 0.2;
         }
+        if has_outcome {
+            score += 0.2;
+        }
+        if has_cognitive {
+            score += 0.2;
+        }
+
+        score.min(1.0)
     }
 
     /// Select top-k sentences by score.

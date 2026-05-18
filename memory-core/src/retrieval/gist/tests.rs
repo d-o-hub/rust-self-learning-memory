@@ -27,6 +27,7 @@ fn test_rerank_config_validation() {
     let invalid = RerankConfig {
         relevance_weight: 0.5,
         density_weight: 0.6,
+        gist_query_similarity_weight: 0.0,
         recency_weight: 0.5, // Sum > 1.0
         diversity_lambda: 0.7,
         max_key_points: 3,
@@ -73,6 +74,29 @@ fn test_gist_extractor_high_value_keywords() {
     let gist = extractor.extract("Fixed critical bug in authentication module.");
     // Should extract this sentence due to "fixed" and "bug" keywords
     assert!(!gist.key_points.is_empty());
+}
+
+#[test]
+fn test_gist_extractor_positional_bias() {
+    let extractor = GistExtractor::default();
+    let text = "This is the first sentence. Middle sentence that is neutral. Final conclusion sentence.";
+    let gist = extractor.extract(text);
+
+    // First and last should be favored
+    assert!(gist.key_points.iter().any(|s| s.contains("first")));
+    assert!(gist.key_points.iter().any(|s| s.contains("Final")));
+}
+
+#[test]
+fn test_gist_extractor_cognitive_markers() {
+    let extractor = GistExtractor::default();
+    let s1 = "I updated the code."; // Simple action
+    let s2 = "I learned that the bug was due to race conditions and decided to refactor."; // High cognitive weight
+
+    let sentences = vec![s1.to_string(), s2.to_string()];
+    let scored = extractor.score_sentences(&sentences);
+
+    assert!(scored[1].1 > scored[0].1);
 }
 
 #[test]
@@ -150,6 +174,39 @@ fn test_hierarchical_reranker_multiple() {
     if result.len() > 1 {
         assert!(result[0].combined_score() >= result[1].combined_score());
     }
+}
+
+#[test]
+fn test_rerank_config_cognirank() {
+    let config = RerankConfig::cognirank();
+    assert!(config.validate().is_ok());
+    assert!(config.gist_query_similarity_weight > config.relevance_weight);
+    assert!(config.gist_query_similarity_weight > config.density_weight);
+}
+
+#[test]
+fn test_hierarchical_reranker_cognirank() {
+    let reranker = HierarchicalReranker::new(RerankConfig::cognirank());
+
+    let ep1 = Arc::new(Episode::new(
+        "Fixed authentication bug in login module".to_string(),
+        TaskContext::default(),
+        TaskType::Debugging,
+    ));
+    let ep2 = Arc::new(Episode::new(
+        "Updated the documentation for the project".to_string(),
+        TaskContext::default(),
+        TaskType::Documentation,
+    ));
+
+    let items = vec![(ep1, 0.9), (ep2, 0.95)]; // ep2 has higher original relevance
+
+    // Query specifically about authentication
+    let result = reranker.rerank_with_query(items, "authentication login", 1);
+
+    assert_eq!(result.len(), 1);
+    // ep1 should be selected despite lower original relevance because its gist matches the query better
+    assert!(result[0].episode().task_description.contains("authentication"));
 }
 
 #[test]

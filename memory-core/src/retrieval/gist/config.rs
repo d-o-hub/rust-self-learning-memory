@@ -9,6 +9,8 @@ pub struct RerankConfig {
     pub relevance_weight: f32,
     /// Weight for gist density score (0.0-1.0)
     pub density_weight: f32,
+    /// Weight for gist-to-query similarity (0.0-1.0)
+    pub gist_query_similarity_weight: f32,
     /// Weight for recency score (0.0-1.0)
     pub recency_weight: f32,
     /// Lambda for diversity (MMR-style) (0.0-1.0)
@@ -26,7 +28,8 @@ impl Default for RerankConfig {
     fn default() -> Self {
         Self {
             relevance_weight: 0.3,
-            density_weight: 0.4,
+            density_weight: 0.3,
+            gist_query_similarity_weight: 0.2,
             recency_weight: 0.2,
             diversity_lambda: 0.7,
             max_key_points: 3,
@@ -45,7 +48,8 @@ impl RerankConfig {
     pub fn dense() -> Self {
         Self {
             relevance_weight: 0.2,
-            density_weight: 0.5,
+            density_weight: 0.4,
+            gist_query_similarity_weight: 0.25,
             recency_weight: 0.15,
             diversity_lambda: 0.6,
             max_key_points: 2,
@@ -62,11 +66,29 @@ impl RerankConfig {
         Self {
             relevance_weight: 0.35,
             density_weight: 0.25,
+            gist_query_similarity_weight: 0.15,
             recency_weight: 0.25,
             diversity_lambda: 0.75,
             max_key_points: 3,
             min_density_threshold: 0.2,
             recency_half_life_days: 60.0,
+        }
+    }
+
+    /// Create a configuration optimized for CogniRank.
+    ///
+    /// Prioritizes alignment between the gist and the user query.
+    #[must_use]
+    pub fn cognirank() -> Self {
+        Self {
+            relevance_weight: 0.2,
+            density_weight: 0.2,
+            gist_query_similarity_weight: 0.45,
+            recency_weight: 0.15,
+            diversity_lambda: 0.65,
+            max_key_points: 3,
+            min_density_threshold: 0.3,
+            recency_half_life_days: 30.0,
         }
     }
 
@@ -76,7 +98,10 @@ impl RerankConfig {
     ///
     /// `Ok(())` if configuration is valid, `Err` with message if invalid
     pub fn validate(&self) -> Result<(), String> {
-        let weight_sum = self.relevance_weight + self.density_weight + self.recency_weight;
+        let weight_sum = self.relevance_weight
+            + self.density_weight
+            + self.gist_query_similarity_weight
+            + self.recency_weight;
         if (weight_sum - 1.0).abs() > 0.15 {
             return Err(format!("Weights should sum to ~1.0, got {weight_sum:.2}"));
         }

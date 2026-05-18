@@ -6,6 +6,7 @@ use crate::memory::attribution::RecommendationTracker;
 use crate::memory::playbook::PlaybookGenerator;
 use crate::monitoring::AgentMonitor;
 use crate::pattern::{Heuristic, Pattern};
+use crate::procedural::ProceduralMemory;
 use crate::patterns::extractors::HeuristicExtractor;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
@@ -83,6 +84,8 @@ pub struct SelfLearningMemory {
     pub(super) patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
     /// In-memory fallback for heuristics (used when no storage configured)
     pub(super) heuristics_fallback: Arc<RwLock<HashMap<Uuid, Heuristic>>>,
+    /// In-memory fallback for procedural memory (used when no storage configured)
+    pub(super) procedural_fallback: Arc<RwLock<HashMap<Uuid, ProceduralMemory>>>,
     /// In-memory fallback for relationships (used when no storage configured)
     pub(super) relationships_fallback: Arc<RwLock<HashMap<Uuid, EpisodeRelationship>>>,
     /// Async pattern extraction queue (optional)

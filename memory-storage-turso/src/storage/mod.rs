@@ -21,6 +21,7 @@ mod embeddings_internal;
 pub mod episodes;
 pub mod heuristics;
 pub mod monitoring;
+pub mod procedural;
 pub mod patterns;
 pub mod recommendations;
 pub mod search;

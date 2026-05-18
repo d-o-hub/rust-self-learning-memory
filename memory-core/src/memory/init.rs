@@ -113,6 +113,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
         patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
         heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
+        procedural_fallback: Arc::new(RwLock::new(HashMap::new())),
         relationships_fallback: Arc::new(RwLock::new(HashMap::new())),
         pattern_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),

@@ -153,4 +153,31 @@ impl StorageBackend for RedbStorage {
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         RedbStorage::get_recommendation_stats(self).await
     }
+
+    // ========== Procedural Memory Storage Methods ==========
+
+    async fn store_procedural(
+        &self,
+        procedural: &do_memory_core::procedural::ProceduralMemory,
+    ) -> Result<()> {
+        self.store_procedural(procedural).await
+    }
+
+    async fn get_procedural(
+        &self,
+        id: Uuid,
+    ) -> Result<Option<do_memory_core::procedural::ProceduralMemory>> {
+        self.get_procedural(id).await
+    }
+
+    async fn delete_procedural(&self, id: Uuid) -> Result<()> {
+        self.delete_procedural(id).await
+    }
+
+    async fn query_procedural(
+        &self,
+        limit: Option<usize>,
+    ) -> Result<Vec<do_memory_core::procedural::ProceduralMemory>> {
+        self.query_procedural(limit).await
+    }
 }

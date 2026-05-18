@@ -448,3 +448,31 @@ CREATE INDEX IF NOT EXISTS idx_episode_pattern_rel_pattern
 /// Migration SQL to add weight column to existing episode_relationships table.
 pub const ADD_RELATIONSHIPS_WEIGHT_COLUMN: &str =
     "ALTER TABLE episode_relationships ADD COLUMN weight REAL";
+
+/// SQL to create the procedural_memory table
+pub const CREATE_PROCEDURAL_MEMORY_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS procedural_memory (
+    procedural_id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    context TEXT NOT NULL,
+    steps TEXT NOT NULL,
+    effectiveness TEXT NOT NULL,
+    source_episodes TEXT NOT NULL,
+    source_patterns TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// Index on procedural_memory name for fast lookup
+pub const CREATE_PROCEDURAL_MEMORY_NAME_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_procedural_memory_name
+ON procedural_memory(name)
+"#;
+
+/// Index on procedural_memory updated_at for chronological queries
+pub const CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_procedural_memory_updated
+ON procedural_memory(updated_at DESC)
+"#;

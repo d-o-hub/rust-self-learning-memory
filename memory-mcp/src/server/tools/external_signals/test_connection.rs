@@ -36,8 +36,26 @@ impl MemoryMCPServer {
         let db_path = input
             .db_path
             .clone()
-            .or_else(|| std::env::var("AGENTFS_DB_PATH").ok())
-            .unwrap_or_else(|| "/path/to/agentfs.db".to_string());
+            .or_else(|| std::env::var("AGENTFS_DB_PATH").ok());
+
+        let Some(db_path) = db_path else {
+            let result = crate::mcp::tools::external_signals::TestAgentFsConnectionOutput {
+                success: false,
+                provider: "agentfs".to_string(),
+                db_path: String::new(),
+                connection_time_ms: start_time.elapsed().as_millis() as u64,
+                readable: false,
+                writable: false,
+                toolcall_count: None,
+                version: Some("0.6.4".to_string()),
+                message: "AgentFS database path not configured".to_string(),
+                error: Some(
+                    "Set AGENTFS_DB_PATH environment variable or provide db_path in request"
+                        .to_string(),
+                ),
+            };
+            return Ok(json!(result));
+        };
 
         // Attempt real connection test using SDK
         let (success, message, error, toolcall_count) =

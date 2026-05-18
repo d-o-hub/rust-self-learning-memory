@@ -19,6 +19,7 @@ mod tests {
         let distiller = TrajectoryDistiller::new(false);
         let representation = distiller.distill(&episode);
 
+        #[allow(clippy::infallible_destructuring_match)]
         match representation {
             crate::learning::distillation::TrajectoryRepresentation::Embedding(emb) => {
                 assert_eq!(emb.len(), 1536);

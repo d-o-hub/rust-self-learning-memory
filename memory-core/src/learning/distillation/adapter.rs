@@ -18,7 +18,7 @@ impl TrajectoryAdapter {
     /// Create a new trajectory adapter with identity matrix.
     pub fn new(task_type: TaskType, dimension: usize) -> Self {
         let mut matrix = vec![vec![0.0; dimension]; dimension];
-        for (i, row) in matrix.iter_mut().enumerate().take(dimension) {
+        for (i, row) in matrix.iter_mut().enumerate() {
             row[i] = 1.0;
         }
         Self {
@@ -34,9 +34,9 @@ impl TrajectoryAdapter {
             TrajectoryRepresentation::Embedding(emb) => {
                 let dim = emb.len();
                 let mut adapted = vec![0.0; dim];
-                for (j, &emb_val) in emb.iter().enumerate().take(dim) {
-                    for (i, a) in adapted.iter_mut().enumerate().take(dim) {
-                        *a += emb_val * self.matrix[j][i];
+                for (i, adapted_val) in adapted.iter_mut().enumerate() {
+                    for (j, emb_val) in emb.iter().enumerate() {
+                        *adapted_val += emb_val * self.matrix[j][i];
                     }
                 }
                 TrajectoryRepresentation::Embedding(adapted)
@@ -96,12 +96,8 @@ impl TrajectoryTrainer {
         Ok(())
     }
 
-    #[allow(
-        clippy::infallible_destructuring_match,
-        clippy::manual_let_else,
-        irrefutable_let_patterns
-    )]
     fn update_step(&self, adapter: &mut TrajectoryAdapter, triplet: &TrajectoryTriplet) {
+        #[allow(clippy::infallible_destructuring_match)]
         let (anchor, pos, neg) = match (&triplet.anchor, &triplet.positive, &triplet.negative) {
             (
                 TrajectoryRepresentation::Embedding(a),
@@ -114,17 +110,20 @@ impl TrajectoryTrainer {
 
         let dim = anchor.len();
 
-        // Current adapted versions — match is needed for #[cfg(feature = "csm")] support
+        // Current adapted versions
+        #[allow(clippy::infallible_destructuring_match)]
         let a_adapted = match adapter.adapt(TrajectoryRepresentation::Embedding(anchor.clone())) {
             TrajectoryRepresentation::Embedding(v) => v,
             #[cfg(feature = "csm")]
             _ => unreachable!(),
         };
+        #[allow(clippy::infallible_destructuring_match)]
         let p_adapted = match adapter.adapt(TrajectoryRepresentation::Embedding(pos.clone())) {
             TrajectoryRepresentation::Embedding(v) => v,
             #[cfg(feature = "csm")]
             _ => unreachable!(),
         };
+        #[allow(clippy::infallible_destructuring_match)]
         let n_adapted = match adapter.adapt(TrajectoryRepresentation::Embedding(neg.clone())) {
             TrajectoryRepresentation::Embedding(v) => v,
             #[cfg(feature = "csm")]
@@ -138,9 +137,11 @@ impl TrajectoryTrainer {
         if d_pos - d_neg + self.margin > 0.0 {
             // Simplified gradient update
             for i in 0..dim {
+                let diff_a_p = a_adapted[i] - p_adapted[i];
+                let diff_a_n = a_adapted[i] - n_adapted[i];
                 for j in 0..dim {
-                    let grad_pos = (anchor[j] - pos[j]) * (a_adapted[i] - p_adapted[i]);
-                    let grad_neg = (anchor[j] - neg[j]) * (a_adapted[i] - n_adapted[i]);
+                    let grad_pos = (anchor[j] - pos[j]) * diff_a_p;
+                    let grad_neg = (anchor[j] - neg[j]) * diff_a_n;
                     adapter.matrix[j][i] -= self.learning_rate * (grad_pos - grad_neg);
                 }
             }

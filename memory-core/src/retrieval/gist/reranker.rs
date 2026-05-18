@@ -361,15 +361,8 @@ impl HierarchicalReranker {
     }
 
     /// Extract significant words from text.
-    ///
-    /// Normalizes tokens by lowercasing and stripping leading/trailing
-    /// punctuation for robust case-insensitive Jaccard matching.
-    fn extract_words(&self, text: &str) -> std::collections::HashSet<String> {
+    fn extract_words<'a>(&self, text: &'a str) -> std::collections::HashSet<&'a str> {
         text.split_whitespace()
-            .map(|w| {
-                w.trim_matches(|c: char| !c.is_alphanumeric())
-                    .to_lowercase()
-            })
             .filter(|w| w.len() >= 3) // Skip short words
             .collect()
     }

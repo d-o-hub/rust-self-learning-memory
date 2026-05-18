@@ -8,8 +8,8 @@
 pub mod circuit_breaker;
 
 use crate::episode::{
-    CleanupResult, Direction, EpisodeRelationship, EpisodeRetentionPolicy, PatternId,
-    RelationshipType,
+    CleanupResult, Direction, EpisodePatternRelationship, EpisodeRelationship,
+    EpisodeRetentionPolicy, PatternId, RelationshipType,
 };
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
@@ -324,6 +324,32 @@ pub trait StorageBackend: Send + Sync {
     ) -> Result<bool> {
         let _ = (from_episode_id, to_episode_id, relationship_type);
         Ok(false)
+    }
+
+    /// Store a relationship between an episode and a pattern
+    async fn store_episode_pattern_relationship(
+        &self,
+        relationship: &EpisodePatternRelationship,
+    ) -> Result<()> {
+        let _ = relationship;
+        Ok(())
+    }
+
+    /// Get pattern relationships for an episode
+    async fn get_episode_pattern_relationships(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Vec<EpisodePatternRelationship>> {
+        let _ = episode_id;
+        Ok(Vec::new())
+    }
+
+    /// Get weighted neighbors (episodes and patterns) for an episode
+    ///
+    /// Returns a list of (target_id, weight, is_pattern)
+    async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
+        let _ = episode_id;
+        Ok(Vec::new())
     }
 
     // ========== Recommendation Attribution (ADR-044) ==========

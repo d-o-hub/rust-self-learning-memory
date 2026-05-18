@@ -441,6 +441,7 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     reason TEXT,
     created_by TEXT,
     priority INTEGER,
+    weight REAL,
     metadata TEXT NOT NULL DEFAULT '{}',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (from_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
@@ -472,3 +473,35 @@ pub const CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_relationships_bidirectional 
     ON episode_relationships(from_episode_id, to_episode_id)
 "#;
+
+/// SQL to create the episode_pattern_relationships table
+pub const CREATE_EPISODE_PATTERN_RELATIONSHIPS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS episode_pattern_relationships (
+    relationship_id TEXT PRIMARY KEY NOT NULL,
+    episode_id TEXT NOT NULL,
+    pattern_id TEXT NOT NULL,
+    relationship_type TEXT NOT NULL,
+    weight REAL,
+    metadata TEXT NOT NULL DEFAULT '{}',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
+    FOREIGN KEY (pattern_id) REFERENCES patterns(pattern_id) ON DELETE CASCADE,
+    UNIQUE(episode_id, pattern_id, relationship_type)
+)
+"#;
+
+/// Index on episode_pattern_relationships for efficient episode lookup
+pub const CREATE_EPISODE_PATTERN_REL_EPISODE_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episode_pattern_rel_episode
+    ON episode_pattern_relationships(episode_id)
+"#;
+
+/// Index on episode_pattern_relationships for efficient pattern lookup
+pub const CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episode_pattern_rel_pattern
+    ON episode_pattern_relationships(pattern_id)
+"#;
+
+/// Migration SQL to add weight column to existing episode_relationships table.
+pub const ADD_RELATIONSHIPS_WEIGHT_COLUMN: &str =
+    "ALTER TABLE episode_relationships ADD COLUMN weight REAL";

@@ -84,7 +84,7 @@
 | LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |
-| Federated HDC multi-agent memory | WG-135 | ✅ Complete (evaluation doc) | feature-implement | arXiv:2603.20037 |
+| Federated HDC multi-agent memory | WG-135 | 🔵 Evaluated (evaluation doc) | feature-implement | arXiv:2603.20037 |
 | CloudEvents EventEmitter | WG-149 | ✅ Complete | feature-implement | ADR-054 — CloudEvents 1.0 spec
 
 ### WG-131 CascadeRetriever Status (Updated 2026-05-01)

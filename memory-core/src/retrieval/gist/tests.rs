@@ -79,7 +79,8 @@ fn test_gist_extractor_high_value_keywords() {
 #[test]
 fn test_gist_extractor_positional_bias() {
     let extractor = GistExtractor::default();
-    let text = "This is the first sentence. Middle sentence that is neutral. Final conclusion sentence.";
+    let text =
+        "This is the first sentence. Middle sentence that is neutral. Final conclusion sentence.";
     let gist = extractor.extract(text);
 
     // First and last should be favored
@@ -206,7 +207,12 @@ fn test_hierarchical_reranker_cognirank() {
 
     assert_eq!(result.len(), 1);
     // ep1 should be selected despite lower original relevance because its gist matches the query better
-    assert!(result[0].episode().task_description.contains("authentication"));
+    assert!(
+        result[0]
+            .episode()
+            .task_description
+            .contains("authentication")
+    );
 }
 
 #[test]

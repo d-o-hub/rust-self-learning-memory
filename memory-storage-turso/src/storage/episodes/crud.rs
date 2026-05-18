@@ -1,11 +1,9 @@
 //! CRUD operations for episodes.
 
 use crate::TursoStorage;
-use do_memory_core::{Episode, Error, Result};
+use do_memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
 use tracing::{debug, info};
 use uuid::Uuid;
-
-use do_memory_core::semantic::EpisodeSummary;
 
 impl TursoStorage {
     /// Store an episode
@@ -213,7 +211,7 @@ impl TursoStorage {
 mod tests {
     use super::*;
     use crate::TursoStorage;
-    use do_memory_core::{TaskContext, TaskType};
+    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

@@ -18,7 +18,7 @@ use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock, Semaphore};
+use tokio::sync::{RwLock, Semaphore, broadcast};
 use uuid::Uuid;
 
 use super::step_buffer::StepBuffer;

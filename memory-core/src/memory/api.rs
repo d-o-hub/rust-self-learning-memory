@@ -405,3 +405,94 @@ impl SelfLearningMemory {
         self.recommendation_tracker.get_stats().await
     }
 }
+
+// ============================================================================
+// Procedural Memory API
+// ============================================================================
+
+impl SelfLearningMemory {
+    /// Store a procedural memory
+    pub async fn store_procedural_memory(&self, procedural: ProceduralMemory) -> Result<()> {
+        // Store in durable storage
+        if let Some(storage) = &self.turso_storage {
+            storage.store_procedural(&procedural).await?;
+        }
+
+        // Store in cache
+        if let Some(storage) = &self.cache_storage {
+            let _ = storage.store_procedural(&procedural).await;
+        }
+
+        // Always store in fallback for in-memory access
+        let mut procedural_fallback = self.procedural_fallback.write().await;
+        procedural_fallback.insert(procedural.id, procedural.clone());
+
+        Ok(())
+    }
+
+    /// Retrieve a procedural memory by ID
+    pub async fn get_procedural_memory(&self, id: uuid::Uuid) -> Result<Option<ProceduralMemory>> {
+        // Try cache first
+        if let Some(storage) = &self.cache_storage {
+            if let Ok(Some(procedural)) = storage.get_procedural(id).await {
+                return Ok(Some(procedural));
+            }
+        }
+
+        // Try durable storage
+        if let Some(storage) = &self.turso_storage {
+            match storage.get_procedural(id).await {
+                Ok(Some(procedural)) => {
+                    // Update cache
+                    if let Some(cache) = &self.cache_storage {
+                        let _ = cache.store_procedural(&procedural).await;
+                    }
+                    return Ok(Some(procedural));
+                }
+                Ok(None) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        // Fallback to in-memory
+        let procedural_fallback = self.procedural_fallback.read().await;
+        Ok(procedural_fallback.get(&id).cloned())
+    }
+
+    /// Delete a procedural memory by ID
+    pub async fn delete_procedural_memory(&self, id: uuid::Uuid) -> Result<()> {
+        // Delete from durable storage
+        if let Some(storage) = &self.turso_storage {
+            storage.delete_procedural(id).await?;
+        }
+
+        // Delete from cache
+        if let Some(storage) = &self.cache_storage {
+            let _ = storage.delete_procedural(id).await;
+        }
+
+        // Delete from fallback
+        let mut procedural_fallback = self.procedural_fallback.write().await;
+        procedural_fallback.remove(&id);
+
+        Ok(())
+    }
+
+    /// Query procedural memories
+    pub async fn query_procedural_memory(
+        &self,
+        limit: Option<usize>,
+    ) -> Result<Vec<ProceduralMemory>> {
+        if let Some(storage) = &self.turso_storage {
+            storage.query_procedural(limit).await
+        } else {
+            let procedural = self.procedural_fallback.read().await;
+            let mut results: Vec<ProceduralMemory> = procedural.values().cloned().collect();
+            results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+            if let Some(l) = limit {
+                results.truncate(l);
+            }
+            Ok(results)
+        }
+    }
+}

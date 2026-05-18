@@ -249,10 +249,10 @@ pub use indexing::{
     spatiotemporal::{IndexStats, QueryOptions, SpatiotemporalIndex, TimeBucket},
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+pub use memory::SelfLearningMemory;
 pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
-pub use memory::SelfLearningMemory;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
@@ -272,7 +272,7 @@ pub use security::audit::{
     ActorType, AuditConfig, AuditContext, AuditEntry, AuditEventType, AuditLogLevel, AuditLogger,
     AuditOutput, AuditResult,
 };
-pub use storage::{apply_query_limit, StorageBackend, DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
+pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_query_limit};
 pub use types::{
     CloudEvent, ComplexityLevel, ConcurrencyConfig, DualRewardScore, EventEmitter,
     EventEmitterMode, Evidence, ExecutionResult, LogEmitter, MemoryConfig, MemoryEventMapping,

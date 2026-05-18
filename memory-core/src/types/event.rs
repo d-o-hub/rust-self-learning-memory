@@ -121,4 +121,25 @@ mod tests {
         let deserialized: MemoryEvent = serde_json::from_str(&json).unwrap();
         assert_eq!(event.entity_id(), deserialized.entity_id());
     }
+
+    #[test]
+    fn test_procedural_memory_created_event() {
+        let event = MemoryEvent::ProceduralMemoryCreated {
+            id: "proc-1".to_string(),
+            name: "Test Skill".to_string(),
+            timestamp: 12345,
+        };
+        assert_eq!(event.timestamp(), 12345);
+        assert_eq!(event.entity_id(), "proc-1");
+    }
+
+    #[test]
+    fn test_procedural_memory_updated_event() {
+        let event = MemoryEvent::ProceduralMemoryUpdated {
+            id: "proc-2".to_string(),
+            timestamp: 67890,
+        };
+        assert_eq!(event.timestamp(), 67890);
+        assert_eq!(event.entity_id(), "proc-2");
+    }
 }

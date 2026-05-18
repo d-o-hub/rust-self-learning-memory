@@ -1,8 +1,9 @@
 //! Procedural memory storage operations for redb
 
-use crate::{with_db_timeout, RedbStorage, PROCEDURAL_TABLE};
+use crate::{PROCEDURAL_TABLE, RedbStorage, with_db_timeout};
 use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::{Error, Result};
+use redb::{ReadableDatabase, ReadableTable};
 use tracing::debug;
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ impl RedbStorage {
 
         // Serialize to bytes using postcard (consistent with other redb implementations)
         let data = postcard::to_allocvec(procedural)
-            .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
+            .map_err(|e| Error::Storage(format!("Serialization error: {}", e)))?;
 
         let db = self.db.clone();
         with_db_timeout(move || {
@@ -60,7 +61,7 @@ impl RedbStorage {
 
             if let Some(data) = result {
                 let procedural: ProceduralMemory = postcard::from_bytes(data.value())
-                    .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
+                    .map_err(|e| Error::Storage(format!("Deserialization error: {}", e)))?;
                 Ok(Some(procedural))
             } else {
                 Ok(None)
@@ -117,21 +118,18 @@ impl RedbStorage {
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate procedural table: {}", e)))?
             {
-                if results.len() >= limit {
-                    break;
-                }
-
                 let (_key, value) = item.map_err(|e| {
                     Error::Storage(format!("Failed to read procedural table item: {}", e))
                 })?;
 
                 let procedural: ProceduralMemory = postcard::from_bytes(value.value())
-                    .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
+                    .map_err(|e| Error::Storage(format!("Deserialization error: {}", e)))?;
                 results.push(procedural);
             }
 
-            // Sort by updated_at descending
+            // Sort by updated_at descending, then apply limit
             results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+            results.truncate(limit);
 
             Ok(results)
         })

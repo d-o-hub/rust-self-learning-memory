@@ -47,6 +47,22 @@ pub enum MemoryEvent {
         /// Unix timestamp in seconds
         timestamp: u64,
     },
+    /// A new procedural memory was created (skill/playbook).
+    ProceduralMemoryCreated {
+        /// Procedural memory ID
+        id: String,
+        /// Name of the procedural memory
+        name: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// An existing procedural memory was updated.
+    ProceduralMemoryUpdated {
+        /// Procedural memory ID
+        id: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
 }
 
 impl MemoryEvent {
@@ -57,7 +73,9 @@ impl MemoryEvent {
             Self::EpisodeCreated { timestamp, .. }
             | Self::EpisodeCompleted { timestamp, .. }
             | Self::EpisodeGarbageCollected { timestamp, .. }
-            | Self::PatternExtracted { timestamp, .. } => *timestamp,
+            | Self::PatternExtracted { timestamp, .. }
+            | Self::ProceduralMemoryCreated { timestamp, .. }
+            | Self::ProceduralMemoryUpdated { timestamp, .. } => *timestamp,
         }
     }
 
@@ -67,8 +85,10 @@ impl MemoryEvent {
         match self {
             Self::EpisodeCreated { id, .. }
             | Self::EpisodeCompleted { id, .. }
-            | Self::EpisodeGarbageCollected { id, .. } => id,
-            Self::PatternExtracted { id, .. } => id,
+            | Self::EpisodeGarbageCollected { id, .. }
+            | Self::PatternExtracted { id, .. }
+            | Self::ProceduralMemoryCreated { id, .. }
+            | Self::ProceduralMemoryUpdated { id, .. } => id,
         }
     }
 }

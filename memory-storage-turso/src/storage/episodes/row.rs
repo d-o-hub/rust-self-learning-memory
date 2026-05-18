@@ -39,16 +39,13 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let steps = serde_json::from_str(&steps_json).map_err(Error::Serialization)?;
 
     let outcome_json: Option<String> = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
-    let outcome = outcome_json
-        .and_then(|json| serde_json::from_str(&json).ok());
+    let outcome = outcome_json.and_then(|json| serde_json::from_str(&json).ok());
 
     let reward_json: Option<String> = row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
-    let reward = reward_json
-        .and_then(|json| serde_json::from_str(&json).ok());
+    let reward = reward_json.and_then(|json| serde_json::from_str(&json).ok());
 
     let reflection_json: Option<String> = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
-    let reflection = reflection_json
-        .and_then(|json| serde_json::from_str(&json).ok());
+    let reflection = reflection_json.and_then(|json| serde_json::from_str(&json).ok());
 
     let patterns_json: String = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
     let patterns = serde_json::from_str(&patterns_json).map_err(Error::Serialization)?;
@@ -91,7 +88,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
 /// Convert a database row to an EpisodeSummary
 pub fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
     let episode_id_str: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-    let _episode_id = Uuid::parse_str(&episode_id_str).map_err(|e| Error::Storage(e.to_string()))?;
+    let episode_id = Uuid::parse_str(&episode_id_str).map_err(|e| Error::Storage(e.to_string()))?;
 
     let summary_text: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
     let key_concepts_json: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
@@ -100,8 +97,9 @@ pub fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
     let key_concepts = serde_json::from_str(&key_concepts_json).map_err(Error::Serialization)?;
     let key_steps = serde_json::from_str(&key_steps_json).map_err(Error::Serialization)?;
 
-    let summary_embedding: Option<Vec<u8>> = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-    let embedding = summary_embedding.and_then(|bytes| {
+    let summary_embedding: Option<Vec<u8>> =
+        row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
+    let summary_embedding = summary_embedding.and_then(|bytes| {
         let mut floats = Vec::with_capacity(bytes.len() / 4);
         for chunk in bytes.chunks_exact(4) {
             let mut arr = [0u8; 4];
@@ -112,9 +110,11 @@ pub fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
     });
 
     Ok(EpisodeSummary {
+        episode_id,
         summary_text,
         key_concepts,
         key_steps,
-        embedding,
+        summary_embedding,
+        created_at: chrono::Utc::now(),
     })
 }

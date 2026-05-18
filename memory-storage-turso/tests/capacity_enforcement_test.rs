@@ -97,11 +97,11 @@ async fn test_store_and_retrieve_episode_summary() -> Result<(), Box<dyn std::er
     storage.store_episode(&episode).await?;
 
     // Store the summary
-    storage.store_episode_summary(&summary).await?;
+    storage.store_summary(summary.episode_id, &summary).await?;
 
     // Retrieve the summary
     let retrieved = storage
-        .get_episode_summary(episode.episode_id)
+        .get_summary(episode.episode_id)
         .await?
         .ok_or("Summary not found")?;
 
@@ -122,6 +122,7 @@ async fn test_capacity_enforcement_lru() -> Result<(), Box<dyn std::error::Error
     // Store 3 episodes at capacity with explicit time ordering
     // task_0 is oldest (30 seconds ago), task_1 is next (20 seconds ago), etc.
     let episode0 = create_test_episode_with_offset("task_0", 30);
+    let task_0_id = episode0.episode_id;
     let episode1 = create_test_episode_with_offset("task_1", 20);
     let episode2 = create_test_episode_with_offset("task_2", 10);
 
@@ -144,7 +145,7 @@ async fn test_capacity_enforcement_lru() -> Result<(), Box<dyn std::error::Error
     assert_eq!(final_count, max_episodes);
 
     // Verify task_0 was evicted
-    let result = storage.get_episode_by_task_desc("task_0").await?;
+    let result = storage.get_episode(task_0_id).await?;
     assert!(result.is_none(), "Oldest episode should be evicted");
 
     Ok(())
@@ -179,17 +180,17 @@ async fn test_summary_cascade_deletion() -> Result<(), Box<dyn std::error::Error
 
     // Store episode and summary
     storage.store_episode(&episode).await?;
-    storage.store_episode_summary(&summary).await?;
+    storage.store_summary(summary.episode_id, &summary).await?;
 
     // Verify summary exists
-    let retrieved = storage.get_episode_summary(episode_id).await?;
+    let retrieved = storage.get_summary(episode_id).await?;
     assert!(retrieved.is_some());
 
     // Delete episode using delete_episode
     storage.delete_episode(episode_id).await?;
 
     // Verify summary was cascade deleted (manually check - depends on FK constraint)
-    let after_delete = storage.get_episode_summary(episode_id).await?;
+    let after_delete = storage.get_summary(episode_id).await?;
     assert!(after_delete.is_none(), "Summary should be deleted");
     Ok(())
 }
@@ -295,11 +296,11 @@ async fn test_summary_without_embedding() -> Result<(), Box<dyn std::error::Erro
 
     // Store episode and summary
     storage.store_episode(&episode).await?;
-    storage.store_episode_summary(&summary).await?;
+    storage.store_summary(summary.episode_id, &summary).await?;
 
     // Retrieve and verify
     let retrieved = storage
-        .get_episode_summary(episode.episode_id)
+        .get_summary(episode.episode_id)
         .await?
         .ok_or("Summary not found")?;
 

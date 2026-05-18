@@ -8,6 +8,7 @@ use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use crate::monitoring::AgentMetrics;
+use crate::procedural::ProceduralMemory;
 use std::time::Duration;
 use tracing::warn;
 
@@ -483,16 +484,25 @@ impl SelfLearningMemory {
         &self,
         limit: Option<usize>,
     ) -> Result<Vec<ProceduralMemory>> {
+        // Try durable storage first (source of truth)
         if let Some(storage) = &self.turso_storage {
-            storage.query_procedural(limit).await
-        } else {
-            let procedural = self.procedural_fallback.read().await;
-            let mut results: Vec<ProceduralMemory> = procedural.values().cloned().collect();
-            results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
-            if let Some(l) = limit {
-                results.truncate(l);
-            }
-            Ok(results)
+            return storage.query_procedural(limit).await;
         }
+
+        // Try cache storage if no durable storage available
+        if let Some(storage) = &self.cache_storage {
+            if let Ok(results) = storage.query_procedural(limit).await {
+                return Ok(results);
+            }
+        }
+
+        // Fallback to in-memory
+        let procedural = self.procedural_fallback.read().await;
+        let mut results: Vec<ProceduralMemory> = procedural.values().cloned().collect();
+        results.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+        if let Some(l) = limit {
+            results.truncate(l);
+        }
+        Ok(results)
     }
 }

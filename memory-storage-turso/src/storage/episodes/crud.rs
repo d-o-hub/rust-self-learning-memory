@@ -1,6 +1,7 @@
 //! CRUD operations for episodes.
 
 use crate::TursoStorage;
+use crate::storage::tag_operations::{get_episode_tags, save_episode_tags};
 use do_memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
 use tracing::{debug, info};
 use uuid::Uuid;
@@ -26,12 +27,14 @@ impl TursoStorage {
         let reward_json = serde_json::to_string(&episode.reward).map_err(Error::Serialization)?;
         let reflection_json =
             serde_json::to_string(&episode.reflection).map_err(Error::Serialization)?;
-        let patterns_json = serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
+        let patterns_json =
+            serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
         let heuristics_json =
             serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
         let checkpoints_json =
             serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
-        let metadata_json = serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
+        let metadata_json =
+            serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
 
         let stmt = self
             .prepared_cache
@@ -62,8 +65,7 @@ impl TursoStorage {
 
         // Store tags if any
         if !episode.tags.is_empty() {
-            self.store_episode_tags(episode.episode_id, &episode.tags)
-                .await?;
+            save_episode_tags(&conn, &episode.episode_id, &episode.tags).await?;
         }
 
         info!("Successfully stored episode: {}", episode.episode_id);
@@ -76,10 +78,7 @@ impl TursoStorage {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let select_cols = super::raw_query::EPISODE_SELECT_COLUMNS;
-        let sql = format!(
-            "SELECT {} FROM episodes WHERE episode_id = ?",
-            select_cols.join(", ")
-        );
+        let sql = format!("SELECT {} FROM episodes WHERE episode_id = ?", select_cols);
 
         let stmt = self
             .prepared_cache
@@ -100,7 +99,7 @@ impl TursoStorage {
             let mut episode = super::row::row_to_episode(&row)?;
 
             // Load tags
-            episode.tags = self.get_episode_tags(id).await?;
+            episode.tags = get_episode_tags(&conn, &id).await?;
 
             Ok(Some(episode))
         } else {
@@ -146,7 +145,7 @@ impl TursoStorage {
             serde_json::to_string(&summary.key_steps).map_err(Error::Serialization)?;
 
         // Convert f32 vector to bytes for BLOB storage
-        let embedding_bytes = summary.embedding.as_ref().map(|vec| {
+        let embedding_bytes = summary.summary_embedding.as_ref().map(|vec| {
             let mut bytes = Vec::with_capacity(vec.len() * 4);
             for &f in vec {
                 bytes.extend_from_slice(&f.to_le_bytes());
@@ -268,10 +267,12 @@ mod tests {
         let (storage, _dir) = create_test_storage().await?;
         let episode_id = Uuid::new_v4();
         let summary = EpisodeSummary {
+            episode_id,
             summary_text: "Test summary".to_string(),
             key_concepts: vec!["concept1".to_string()],
             key_steps: vec!["step1".to_string()],
-            embedding: Some(vec![0.1, 0.2, 0.3]),
+            summary_embedding: Some(vec![0.1, 0.2, 0.3]),
+            created_at: chrono::Utc::now(),
         };
 
         // Note: foreign key constraint requires episode to exist
@@ -293,8 +294,8 @@ mod tests {
         assert_eq!(retrieved.summary_text, summary.summary_text);
         assert_eq!(retrieved.key_concepts, summary.key_concepts);
         assert_eq!(retrieved.key_steps, summary.key_steps);
-        assert!(retrieved.embedding.is_some());
-        let emb = retrieved.embedding.unwrap();
+        assert!(retrieved.summary_embedding.is_some());
+        let emb = retrieved.summary_embedding.unwrap();
         assert_eq!(emb.len(), 3);
         assert!((emb[0] - 0.1).abs() < f32::EPSILON);
 

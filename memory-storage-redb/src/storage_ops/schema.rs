@@ -86,6 +86,9 @@ impl RedbStorage {
                             e
                         ))
                     })?;
+                let _procedural = write_txn.open_table(PROCEDURAL_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open procedural table: {}", e))
+                })?;
                 let _schema_version = write_txn.open_table(SCHEMA_VERSION_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open schema version table: {}", e))
                 })?;

@@ -188,10 +188,7 @@ impl MemoryEventMapping {
                     "timestamp": timestamp,
                 }),
             ),
-            MemoryEvent::ProceduralMemoryUpdated {
-                id,
-                timestamp,
-            } => (
+            MemoryEvent::ProceduralMemoryUpdated { id, timestamp } => (
                 "com.do-memory.procedural.updated".to_string(),
                 id.clone(),
                 serde_json::json!({

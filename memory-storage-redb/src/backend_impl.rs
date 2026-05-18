@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
+use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use uuid::Uuid;
 
@@ -152,5 +153,21 @@ impl StorageBackend for RedbStorage {
 
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         RedbStorage::get_recommendation_stats(self).await
+    }
+
+    async fn store_procedural(&self, procedural: &ProceduralMemory) -> Result<()> {
+        self.store_procedural(procedural).await
+    }
+
+    async fn get_procedural(&self, id: Uuid) -> Result<Option<ProceduralMemory>> {
+        self.get_procedural(id).await
+    }
+
+    async fn delete_procedural(&self, id: Uuid) -> Result<()> {
+        self.delete_procedural(id).await
+    }
+
+    async fn query_procedural(&self, limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
+        self.query_procedural(limit).await
     }
 }

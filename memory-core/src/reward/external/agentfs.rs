@@ -482,15 +482,16 @@ mod tests {
         let db_path = temp_db.path().to_str().unwrap().to_string();
 
         // Initialize SDK and record some stats
-        // Signature: record(name, latency, success, parameters, input_tokens, output_tokens)
+        // Signature: record(name, started_at, completed_at, parameters, result, error)
+        // Status is "success" when error is None, "error" when error is Some
         let tc = ToolCalls::new(&db_path).await.unwrap();
-        tc.record("test_tool", 100, true, None, None, None)
+        tc.record("test_tool", 0, 100, None, None, None)
             .await
             .unwrap();
-        tc.record("test_tool", 200, false, None, None, None)
+        tc.record("test_tool", 0, 200, None, None, Some("test error"))
             .await
             .unwrap();
-        tc.record("other_tool", 50, true, None, None, None)
+        tc.record("other_tool", 0, 50, None, None, None)
             .await
             .unwrap();
 

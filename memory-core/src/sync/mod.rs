@@ -24,6 +24,7 @@ pub use self::conflict::{
 pub use self::synchronizer::StorageSynchronizer;
 pub use self::two_phase_commit::TwoPhaseCommit;
 pub use self::types::{SyncConfig, SyncState, SyncStats};
+pub mod collaboration;
 
 mod conflict;
 mod synchronizer;

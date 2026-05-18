@@ -69,24 +69,6 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
 
-    /// Retrieve all versions of an episode by its parent ID
-    ///
-    /// # Arguments
-    ///
-    /// * `parent_id` - The parent episode UUID
-    ///
-    /// # Returns
-    ///
-    /// Vector of episodes belonging to the version chain, sorted by version
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
-    async fn get_episode_versions(&self, parent_id: Uuid) -> Result<Vec<Episode>> {
-        let _ = parent_id;
-        Ok(Vec::new())
-    }
-
     /// Delete an episode by ID
     ///
     /// # Arguments

@@ -101,8 +101,6 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             salient_features: None,
             tags: vec![],
             checkpoints: vec![],
-            version: 1,
-            parent_id: None,
             metadata,
         };
 
@@ -150,8 +148,6 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             salient_features: None,
             tags: vec![],
             checkpoints: vec![],
-            version: 1,
-            parent_id: None,
             metadata,
         };
 
@@ -198,8 +194,6 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             salient_features: None,
             tags: vec![],
             checkpoints: vec![],
-            version: 1,
-            parent_id: None,
             metadata,
         };
 

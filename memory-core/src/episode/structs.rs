@@ -154,12 +154,6 @@ pub struct Episode {
     /// Record of patterns applied during execution
     #[serde(default)]
     pub applied_patterns: Vec<PatternApplication>,
-    /// Version of this episode (for concept drift tracking)
-    #[serde(default = "default_version")]
-    pub version: u32,
-    /// Parent episode ID (if this is a subsequent version)
-    #[serde(default)]
-    pub parent_id: Option<Uuid>,
     /// Salient features extracted during pre-storage reasoning (`PREMem`)
     #[serde(default)]
     pub salient_features: Option<SalientFeatures>,
@@ -171,10 +165,6 @@ pub struct Episode {
     /// Checkpoints created during episode execution (ADR-044 Feature 3)
     #[serde(default)]
     pub checkpoints: Vec<CheckpointMeta>,
-}
-
-fn default_version() -> u32 {
-    1
 }
 
 impl Episode {
@@ -195,37 +185,9 @@ impl Episode {
             patterns: Vec::new(),
             heuristics: Vec::new(),
             applied_patterns: Vec::new(),
-            version: 1,
-            parent_id: None,
             salient_features: None,
             metadata: HashMap::new(),
             tags: Vec::new(),
-            checkpoints: Vec::new(),
-        }
-    }
-
-    /// Create a new version of this episode.
-    #[must_use]
-    pub fn new_version(&self) -> Self {
-        Self {
-            episode_id: Uuid::new_v4(),
-            task_type: self.task_type,
-            task_description: self.task_description.clone(),
-            context: self.context.clone(),
-            start_time: Utc::now(),
-            end_time: None,
-            steps: Vec::new(),
-            outcome: None,
-            reward: None,
-            reflection: None,
-            patterns: Vec::new(),
-            heuristics: Vec::new(),
-            applied_patterns: Vec::new(),
-            version: self.version + 1,
-            parent_id: Some(self.parent_id.unwrap_or(self.episode_id)),
-            salient_features: None,
-            metadata: self.metadata.clone(),
-            tags: self.tags.clone(),
             checkpoints: Vec::new(),
         }
     }

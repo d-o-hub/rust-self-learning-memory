@@ -49,8 +49,6 @@ fn create_test_episode(id: Uuid, domain: &str) -> Episode {
         metadata,
         tags: vec![],
         checkpoints: vec![],
-        version: 1,
-        parent_id: None,
     }
 }
 

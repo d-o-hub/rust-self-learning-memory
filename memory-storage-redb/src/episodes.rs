@@ -181,47 +181,4 @@ impl RedbStorage {
         info!("Deleted episode from cache: {}", episode_id);
         Ok(())
     }
-
-    /// Retrieve all versions of an episode by its parent ID from cache
-    pub async fn get_episode_versions(&self, parent_id: Uuid) -> Result<Vec<Episode>> {
-        debug!(
-            "Retrieving all versions for parent ID from cache: {}",
-            parent_id
-        );
-        let db = Arc::clone(&self.db);
-
-        tokio::task::spawn_blocking(move || {
-            let read_txn = db
-                .begin_read()
-                .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
-
-            let table = read_txn
-                .open_table(EPISODES_TABLE)
-                .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
-
-            let mut episodes = Vec::new();
-            let iter = table
-                .iter()
-                .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?;
-
-            for result in iter {
-                let (_, bytes_guard) = result
-                    .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
-
-                let episode: Episode = postcard::from_bytes(bytes_guard.value())
-                    .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
-
-                if episode.parent_id == Some(parent_id) || episode.episode_id == parent_id {
-                    episodes.push(episode);
-                }
-            }
-
-            // Sort by version
-            episodes.sort_by_key(|e| e.version);
-
-            Ok(episodes)
-        })
-        .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
-    }
 }

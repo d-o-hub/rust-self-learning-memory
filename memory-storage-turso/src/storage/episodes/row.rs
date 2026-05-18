@@ -27,9 +27,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let metadata_json: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
     let _domain: String = row.get(14).map_err(|e| Error::Storage(e.to_string()))?;
     let _language: Option<String> = row.get(15).ok();
-    let version: u32 = row.get(16).map_err(|e| Error::Storage(e.to_string()))?;
-    let parent_id_str: Option<String> = row.get(17).ok();
-    let archived_at: Option<i64> = row.get(18).ok();
+    let archived_at: Option<i64> = row.get(16).ok();
 
     let context: do_memory_core::TaskContext = serde_json::from_str(&context_json)
         .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
@@ -113,13 +111,6 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         salient_features: None,
         tags: vec![],
         checkpoints,
-        version,
-        parent_id: parent_id_str
-            .map(|s| {
-                Uuid::parse_str(&s)
-                    .map_err(|e| Error::Storage(format!("Invalid parent episode ID: {}", e)))
-            })
-            .transpose()?,
         start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,

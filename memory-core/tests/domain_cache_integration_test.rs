@@ -36,8 +36,6 @@ fn create_episode(id: &str, domain: &str) -> Arc<Episode> {
         patterns: vec![],
         heuristics: vec![],
         applied_patterns: vec![],
-        version: 1,
-        parent_id: None,
         salient_features: None,
         tags: vec![],
         checkpoints: vec![],

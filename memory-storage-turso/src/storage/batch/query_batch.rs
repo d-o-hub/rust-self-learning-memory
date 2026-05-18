@@ -59,7 +59,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   version, parent_id, archived_at
+                   archived_at
             FROM episodes WHERE episode_id IN ({})
         "#,
             placeholders.join(", ")
@@ -328,8 +328,6 @@ mod tests {
             metadata: std::collections::HashMap::new(),
             tags: Vec::new(),
             checkpoints: Vec::new(),
-            version: 1,
-            parent_id: None,
         };
         storage.store_episodes_batch(vec![episode]).await.unwrap();
 

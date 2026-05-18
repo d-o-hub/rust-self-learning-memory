@@ -3,7 +3,7 @@
 //! CRUD operations for episodes.
 
 use crate::TursoStorage;
-use do_memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
+use do_memory_core::{semantic::EpisodeSummary, Episode, Error, Result};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -370,7 +370,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
+    use do_memory_core::{memory::checkpoint::CheckpointMeta, Episode, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

@@ -7,7 +7,7 @@ mod raw_query;
 mod row;
 
 pub(crate) use crud::PatternDataJson;
-pub use raw_query::{PATTERN_SELECT_COLUMNS, RawPatternQuery};
+pub use raw_query::{RawPatternQuery, PATTERN_SELECT_COLUMNS};
 pub(crate) use row::row_to_pattern;
 
 use do_memory_core::episode::PatternId;

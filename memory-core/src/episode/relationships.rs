@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 #[cfg(feature = "proptest-arbitrary")]
-use proptest::prelude::{Arbitrary, BoxedStrategy, Just, Strategy, prop_oneof};
+use proptest::prelude::{prop_oneof, Arbitrary, BoxedStrategy, Just, Strategy};
 
 /// Type of relationship between two episodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

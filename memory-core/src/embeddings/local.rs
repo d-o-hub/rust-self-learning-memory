@@ -249,7 +249,7 @@ pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFa
 /// Re-export utilities from the utils module
 #[allow(unused)]
 pub use crate::embeddings::utils::{
-    LocalModelUseCase, get_recommended_model, list_available_models,
+    get_recommended_model, list_available_models, LocalModelUseCase,
 };
 
 #[cfg(test)]

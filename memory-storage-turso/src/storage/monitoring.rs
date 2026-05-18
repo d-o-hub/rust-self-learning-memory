@@ -2,8 +2,9 @@
 
 use crate::TursoStorage;
 use do_memory_core::{
-    Error, Result, apply_query_limit,
+    apply_query_limit,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
+    Error, Result,
 };
 use libsql::Row;
 use tracing::{debug, info};

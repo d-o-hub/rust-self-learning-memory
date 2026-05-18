@@ -3,8 +3,8 @@
 use super::super::patterns::row_to_pattern;
 use crate::TursoStorage;
 use do_memory_core::{
+    embeddings::{cosine_similarity, SimilarityMetadata, SimilaritySearchResult},
     Error, Pattern, Result,
-    embeddings::{SimilarityMetadata, SimilaritySearchResult, cosine_similarity},
 };
 use libsql::Connection;
 use tracing::{debug, info, warn};

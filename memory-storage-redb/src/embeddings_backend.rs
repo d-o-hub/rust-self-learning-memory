@@ -3,10 +3,10 @@
 // Format args inlining not required for error message clarity
 #![allow(clippy::uninlined_format_args)]
 
-use crate::{EMBEDDINGS_TABLE, EPISODES_TABLE, PATTERNS_TABLE, RedbStorage};
+use crate::{RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, PATTERNS_TABLE};
 use async_trait::async_trait;
 use do_memory_core::embeddings::{
-    EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult, cosine_similarity,
+    cosine_similarity, EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult,
 };
 use do_memory_core::episode::PatternId;
 use do_memory_core::search::select_top_k;

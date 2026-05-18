@@ -204,11 +204,9 @@ mod tests {
             assert!(context_features.iter().any(|f| f.starts_with("language:")));
             assert!(context_features.iter().any(|f| f.starts_with("framework:")));
             assert!(context_features.iter().any(|f| f.starts_with("domain:")));
-            assert!(
-                context_features
-                    .iter()
-                    .any(|f| f.starts_with("complexity:"))
-            );
+            assert!(context_features
+                .iter()
+                .any(|f| f.starts_with("complexity:")));
             assert!(context_features.iter().any(|f| f.starts_with("tag:")));
         }
     }

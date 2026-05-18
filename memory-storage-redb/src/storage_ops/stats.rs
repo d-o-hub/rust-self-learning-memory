@@ -3,7 +3,7 @@
 //! Provides database statistics, health checks, and cache metrics.
 
 use super::super::{
-    CacheMetrics, EPISODES_TABLE, HEURISTICS_TABLE, PATTERNS_TABLE, with_db_timeout,
+    with_db_timeout, CacheMetrics, EPISODES_TABLE, HEURISTICS_TABLE, PATTERNS_TABLE,
 };
 use crate::{RedbStorage, StorageStatistics};
 use do_memory_core::{Error, Result};

@@ -3,7 +3,7 @@
 use crate::TursoStorage;
 use async_trait::async_trait;
 use do_memory_core::embeddings::{EmbeddingStorageBackend, SimilaritySearchResult};
-use do_memory_core::{Episode, Pattern, Result, episode::PatternId};
+use do_memory_core::{episode::PatternId, Episode, Pattern, Result};
 use tracing::{debug, info};
 use uuid::Uuid;
 

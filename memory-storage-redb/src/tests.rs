@@ -1,8 +1,8 @@
 //! Tests for redb storage backend.
 
 use super::*;
-use do_memory_core::StorageBackend;
 use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_core::StorageBackend;
 use do_memory_core::{Episode, TaskContext, TaskType};
 use tempfile::tempdir;
 use uuid::Uuid;

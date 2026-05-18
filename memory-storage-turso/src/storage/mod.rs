@@ -32,9 +32,9 @@ pub mod tag_operations;
 mod embeddings_multi;
 
 pub use batch::episode_batch::BatchConfig;
-pub use episodes::EpisodeQuery;
 pub use episodes::raw_query::EPISODE_SELECT_COLUMNS;
 pub use episodes::raw_query::RawEpisodeQuery;
+pub use episodes::EpisodeQuery;
 pub use patterns::PATTERN_SELECT_COLUMNS;
 #[allow(unused)]
 pub use patterns::PatternMetadata;

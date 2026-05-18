@@ -53,8 +53,8 @@ pub use relationships::{
     RelationshipType,
 };
 pub use retention::{
-    CleanupResult, DEFAULT_CLEANUP_BATCH_SIZE, DEFAULT_CLEANUP_INTERVAL, DEFAULT_MAX_AGE_DAYS,
-    DEFAULT_MAX_EPISODES, DEFAULT_MIN_REWARD_THRESHOLD, EpisodeRetentionPolicy, RetentionCriterion,
-    RetentionPolicyError, RetentionTrigger,
+    CleanupResult, EpisodeRetentionPolicy, RetentionCriterion, RetentionPolicyError,
+    RetentionTrigger, DEFAULT_CLEANUP_BATCH_SIZE, DEFAULT_CLEANUP_INTERVAL, DEFAULT_MAX_AGE_DAYS,
+    DEFAULT_MAX_EPISODES, DEFAULT_MIN_REWARD_THRESHOLD,
 };
 pub use structs::{ApplicationOutcome, Episode, ExecutionStep, PatternApplication, PatternId};

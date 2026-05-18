@@ -3,7 +3,7 @@
 // Format args inlining not required for error message clarity
 #![allow(clippy::uninlined_format_args)]
 
-use crate::{EMBEDDINGS_TABLE, RedbStorage};
+use crate::{RedbStorage, EMBEDDINGS_TABLE};
 use do_memory_core::{Error, Result};
 use redb::ReadableDatabase;
 use std::sync::Arc;

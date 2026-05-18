@@ -1,6 +1,6 @@
 //! Procedural memory storage operations for redb
 
-use crate::{PROCEDURAL_TABLE, RedbStorage, with_db_timeout};
+use crate::{with_db_timeout, RedbStorage, PROCEDURAL_TABLE};
 use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::{Error, Result};
 use tracing::debug;

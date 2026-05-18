@@ -3,8 +3,8 @@
 //! Runs multiple specialized extractors in parallel and combines results.
 
 use super::{
-    ContextPatternExtractor, DecisionPointExtractor, ErrorRecoveryExtractor,
-    PatternExtractor as PatternExtractorTrait, ToolSequenceExtractor, cluster_similar_patterns,
+    cluster_similar_patterns, ContextPatternExtractor, DecisionPointExtractor,
+    ErrorRecoveryExtractor, PatternExtractor as PatternExtractorTrait, ToolSequenceExtractor,
 };
 use crate::episode::Episode;
 use crate::pattern::Pattern;

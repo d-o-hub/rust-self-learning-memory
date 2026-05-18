@@ -3,7 +3,7 @@
 //! Database row to Episode conversion operations.
 
 use crate::TursoStorage;
-use do_memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
+use do_memory_core::{semantic::EpisodeSummary, Episode, Error, Result, TaskType};
 use uuid::Uuid;
 
 #[cfg(feature = "compression")]

@@ -4,8 +4,8 @@
 
 use crate::episode::ExecutionStep;
 use crate::error::{Error, Result};
-use crate::memory::SelfLearningMemory;
 use crate::memory::pattern_search::PatternSearchResult;
+use crate::memory::SelfLearningMemory;
 use crate::pattern::Heuristic;
 use chrono::Utc;
 use tracing::{info, instrument, warn};

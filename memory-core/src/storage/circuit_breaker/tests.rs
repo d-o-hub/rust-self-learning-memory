@@ -5,8 +5,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::Error;
 use crate::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
+use crate::Error;
 
 /// Helper function to create a test circuit breaker with custom config
 #[allow(dead_code)] // Test helper used in multiple test functions

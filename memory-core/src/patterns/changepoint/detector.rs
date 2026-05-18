@@ -7,7 +7,7 @@ use super::types::{
     ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointError,
     SegmentComparison, SegmentComparisonConfig, SegmentStats,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use augurs_changepoint::{DefaultArgpcpDetector, Detector};
 use std::collections::HashMap;
 use tracing::{debug, instrument, warn};

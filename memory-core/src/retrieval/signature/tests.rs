@@ -343,14 +343,10 @@ fn test_contributing_components() {
 
     assert!(!matches.is_empty());
     // Should have both tools and errors as contributing
-    assert!(
-        matches[0]
-            .contributing_components
-            .contains(&"tools".to_string())
-    );
-    assert!(
-        matches[0]
-            .contributing_components
-            .contains(&"errors".to_string())
-    );
+    assert!(matches[0]
+        .contributing_components
+        .contains(&"tools".to_string()));
+    assert!(matches[0]
+        .contributing_components
+        .contains(&"errors".to_string()));
 }

@@ -85,18 +85,14 @@ fn test_extract_critical_decisions() {
 
     let features = extractor.extract(&episode);
     assert!(!features.critical_decisions.is_empty());
-    assert!(
-        features
-            .critical_decisions
-            .iter()
-            .any(|d| d.contains("Choose async"))
-    );
-    assert!(
-        features
-            .critical_decisions
-            .iter()
-            .any(|d| d.contains("strategy"))
-    );
+    assert!(features
+        .critical_decisions
+        .iter()
+        .any(|d| d.contains("Choose async")));
+    assert!(features
+        .critical_decisions
+        .iter()
+        .any(|d| d.contains("strategy")));
 }
 
 #[test]
@@ -211,12 +207,10 @@ fn test_extract_multi_step_error_recovery() {
     let features = extractor.extract(&episode);
     assert!(!features.error_recovery_patterns.is_empty());
     // Should capture multi-step recovery
-    assert!(
-        features
-            .error_recovery_patterns
-            .iter()
-            .any(|p| p.contains('['))
-    );
+    assert!(features
+        .error_recovery_patterns
+        .iter()
+        .any(|p| p.contains('[')));
 }
 
 #[test]
@@ -239,18 +233,14 @@ fn test_extract_key_insights_from_reflection() {
 
     let features = extractor.extract(&episode);
     assert!(!features.key_insights.is_empty());
-    assert!(
-        features
-            .key_insights
-            .iter()
-            .any(|i| i.contains("Builder pattern"))
-    );
-    assert!(
-        features
-            .key_insights
-            .iter()
-            .any(|i| i.contains("Async improves"))
-    );
+    assert!(features
+        .key_insights
+        .iter()
+        .any(|i| i.contains("Builder pattern")));
+    assert!(features
+        .key_insights
+        .iter()
+        .any(|i| i.contains("Async improves")));
 }
 
 #[test]
@@ -265,12 +255,10 @@ fn test_extract_key_insights_from_outcome() {
 
     let features = extractor.extract(&episode);
     assert!(!features.key_insights.is_empty());
-    assert!(
-        features
-            .key_insights
-            .iter()
-            .any(|i| i.contains("Artifacts produced"))
-    );
+    assert!(features
+        .key_insights
+        .iter()
+        .any(|i| i.contains("Artifacts produced")));
 }
 
 #[test]
@@ -354,12 +342,10 @@ fn test_extract_handles_partial_success() {
 
     let features = extractor.extract(&episode);
     assert!(!features.critical_decisions.is_empty());
-    assert!(
-        features
-            .critical_decisions
-            .iter()
-            .any(|d| d.contains("Partial success"))
-    );
+    assert!(features
+        .critical_decisions
+        .iter()
+        .any(|d| d.contains("Partial success")));
 }
 
 #[test]
@@ -374,12 +360,10 @@ fn test_extract_handles_failure() {
 
     let features = extractor.extract(&episode);
     assert!(!features.critical_decisions.is_empty());
-    assert!(
-        features
-            .critical_decisions
-            .iter()
-            .any(|d| d.contains("Failure reason"))
-    );
+    assert!(features
+        .critical_decisions
+        .iter()
+        .any(|d| d.contains("Failure reason")));
 }
 
 #[test]

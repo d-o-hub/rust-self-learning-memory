@@ -118,6 +118,9 @@ pub const MAX_HEURISTIC_SIZE: u64 = 100_000;
 /// Typical embedding dimensions (384-1536) * 4 bytes/f32 = ~1.5KB-6KB.
 pub const MAX_EMBEDDING_SIZE: u64 = 1_000_000;
 
+/// Maximum size for procedural memory deserialization (500KB).
+pub const MAX_PROCEDURAL_SIZE: u64 = 500_000;
+
 // Table definitions
 pub(crate) const EPISODES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("episodes");
 pub(crate) const PATTERNS_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("patterns");

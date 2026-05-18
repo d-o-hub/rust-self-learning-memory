@@ -2,7 +2,7 @@
 
 use crate::TursoStorage;
 use do_memory_core::{
-    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit,
+    apply_query_limit, Error, Heuristic, Pattern as CorePattern, Result, TaskContext,
 };
 use tracing::{debug, info};
 

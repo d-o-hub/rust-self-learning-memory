@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use do_memory_core::{episode::PatternId, Episode, Heuristic, Pattern, Result, StorageBackend};
 use uuid::Uuid;
 
 use crate::RedbStorage;

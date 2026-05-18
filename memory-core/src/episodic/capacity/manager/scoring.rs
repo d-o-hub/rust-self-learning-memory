@@ -106,8 +106,8 @@ pub fn calculate_recency_score(episode: &Episode) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Episode;
     use crate::types::{ComplexityLevel, RewardScore, TaskContext, TaskOutcome, TaskType};
+    use crate::Episode;
 
     fn create_test_episode(task_desc: &str) -> Episode {
         let context = TaskContext {

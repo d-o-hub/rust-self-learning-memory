@@ -802,11 +802,9 @@ mod tests {
 
         assert!(manager.get_outgoing(id).is_empty());
         assert!(manager.get_incoming(id).is_empty());
-        assert!(
-            manager
-                .get_by_type(id, RelationshipType::DependsOn)
-                .is_empty()
-        );
+        assert!(manager
+            .get_by_type(id, RelationshipType::DependsOn)
+            .is_empty());
     }
 
     #[test]

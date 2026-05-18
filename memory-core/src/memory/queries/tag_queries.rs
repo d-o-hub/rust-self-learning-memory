@@ -1,6 +1,6 @@
-use crate::Result;
 use crate::episode::Episode;
 use crate::memory::SelfLearningMemory;
+use crate::Result;
 use std::collections::HashMap;
 use tracing::{debug, info};
 

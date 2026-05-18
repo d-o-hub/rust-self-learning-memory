@@ -6,7 +6,7 @@
 mod tests {
     use super::super::pattern_types::{BatchProgress, BatchResult};
     use do_memory_core::{
-        Pattern, PatternEffectiveness, TaskContext, episode::PatternId, types::OutcomeStats,
+        episode::PatternId, types::OutcomeStats, Pattern, PatternEffectiveness, TaskContext,
     };
     use tempfile::TempDir;
 

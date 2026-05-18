@@ -4,8 +4,8 @@
 
 use crate::episode::Episode;
 use crate::patterns::dbscan::{
-    Anomaly, AnomalyReason, DBSCANClusterResult, DBSCANConfig, DBSCANStats, EpisodeCluster,
-    algorithms,
+    algorithms, Anomaly, AnomalyReason, DBSCANClusterResult, DBSCANConfig, DBSCANStats,
+    EpisodeCluster,
 };
 use crate::types::TaskContext;
 

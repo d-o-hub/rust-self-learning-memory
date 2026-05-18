@@ -7,8 +7,8 @@ use crate::memory::playbook::PlaybookGenerator;
 use crate::monitoring::AgentMonitor;
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
-use crate::procedural::ProceduralMemory;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
+use crate::procedural::ProceduralMemory;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
@@ -18,7 +18,7 @@ use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{RwLock, Semaphore, broadcast};
+use tokio::sync::{broadcast, RwLock, Semaphore};
 use uuid::Uuid;
 
 use super::step_buffer::StepBuffer;

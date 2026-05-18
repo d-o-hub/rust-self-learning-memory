@@ -6,16 +6,16 @@
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
+use crate::monitoring::{storage::SimpleMonitoringStorage, AgentMonitor, MonitoringConfig};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
-use crate::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryConfig};
+use crate::types::{MemoryConfig, DEFAULT_EVENT_CHANNEL_CAPACITY};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use std::sync::Arc;
-use tokio::sync::{RwLock, Semaphore, broadcast};
+use tokio::sync::{broadcast, RwLock, Semaphore};
 
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]

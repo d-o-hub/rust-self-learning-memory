@@ -300,7 +300,7 @@ fn test_merge_overlapping_same_episode() {
     assert_eq!(merged.len(), 1);
     assert_eq!(merged[0].start_step, 2); // min of both
     assert_eq!(merged[0].end_step, 10); // max of both
-    // Should use best score
+                                        // Should use best score
     assert!((merged[0].window_score - 0.8).abs() < 0.01);
 }
 

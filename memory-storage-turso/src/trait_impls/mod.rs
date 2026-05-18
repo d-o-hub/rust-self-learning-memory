@@ -28,6 +28,13 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_episode(self, id).await
     }
 
+    async fn get_episode_versions(
+        &self,
+        parent_id: uuid::Uuid,
+    ) -> Result<Vec<do_memory_core::Episode>> {
+        super::TursoStorage::get_episode_versions(self, parent_id).await
+    }
+
     async fn delete_episode(&self, id: uuid::Uuid) -> Result<()> {
         super::TursoStorage::delete_episode(self, id).await
     }

@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS episodes (
     metadata TEXT NOT NULL,
     domain TEXT NOT NULL,
     language TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    parent_id TEXT,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     archived_at INTEGER
 )
@@ -27,6 +29,12 @@ CREATE TABLE IF NOT EXISTS episodes (
 /// Migration SQL to add checkpoints column to existing episodes table.
 pub const ADD_EPISODES_CHECKPOINTS_COLUMN: &str =
     "ALTER TABLE episodes ADD COLUMN checkpoints TEXT NOT NULL DEFAULT '[]'";
+
+/// Migration SQL to add version columns to existing episodes table.
+pub const ADD_EPISODES_VERSION_COLUMNS: &[&str] = &[
+    "ALTER TABLE episodes ADD COLUMN version INTEGER NOT NULL DEFAULT 1",
+    "ALTER TABLE episodes ADD COLUMN parent_id TEXT",
+];
 
 /// SQL to create the patterns table
 pub const CREATE_PATTERNS_TABLE: &str = r#"
@@ -274,6 +282,12 @@ ON episodes(domain)
 pub const CREATE_EPISODES_ARCHIVED_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_episodes_archived
 ON episodes(archived_at)
+"#;
+
+/// Index on episodes parent_id for version chain retrieval
+pub const CREATE_EPISODES_PARENT_ID_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episodes_parent_id
+ON episodes(parent_id)
 "#;
 
 /// Index on patterns context for relevance matching

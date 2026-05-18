@@ -17,6 +17,10 @@ impl StorageBackend for RedbStorage {
         self.get_episode(id).await
     }
 
+    async fn get_episode_versions(&self, parent_id: Uuid) -> Result<Vec<Episode>> {
+        self.get_episode_versions(parent_id).await
+    }
+
     async fn delete_episode(&self, id: Uuid) -> Result<()> {
         self.delete_episode(id).await
     }

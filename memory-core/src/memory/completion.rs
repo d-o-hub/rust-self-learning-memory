@@ -364,9 +364,11 @@ impl SelfLearningMemory {
         // Re-insert the updated episode into the in-memory cache
         // ============================================================================
 
+        let parent_id_for_drift = episode.parent_id;
+        let episode_arc = Arc::new(episode);
         {
             let mut episodes = self.episodes_fallback.write().await;
-            episodes.insert(episode_id, Arc::new(episode));
+            episodes.insert(episode_id, episode_arc.clone());
         }
 
         // Extract patterns - async if queue enabled, sync otherwise
@@ -384,6 +386,64 @@ impl SelfLearningMemory {
                 episode_id = %episode_id,
                 "Episode completed and patterns extracted synchronously"
             );
+        }
+
+        // ============================================================================
+        // WG-108: Concept Drift Analysis
+        // ============================================================================
+
+        if let Some(parent_id) = parent_id_for_drift {
+            debug!(
+                episode_id = %episode_id,
+                parent_id = %parent_id,
+                "Checking for concept drift in version chain"
+            );
+
+            // Fetch all versions
+            let mut versions = Vec::new();
+            if let Some(turso) = &self.turso_storage {
+                match turso.get_episode_versions(parent_id).await {
+                    Ok(v) => versions = v,
+                    Err(e) => {
+                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis");
+                    }
+                }
+            } else if let Some(cache) = &self.cache_storage {
+                match cache.get_episode_versions(parent_id).await {
+                    Ok(v) => versions = v,
+                    Err(e) => {
+                        tracing::error!(parent_id = %parent_id, error = %e, "Failed to fetch versions for drift analysis");
+                    }
+                }
+            }
+
+            if versions.len() >= 3 {
+                let mut drift_analyzer = crate::patterns::drift::DriftAnalyzer::new();
+                match drift_analyzer.analyze_drift(&versions) {
+                    Ok(changepoints) => {
+                        if !changepoints.is_empty() {
+                            info!(
+                                parent_id = %parent_id,
+                                version_count = versions.len(),
+                                changepoint_count = changepoints.len(),
+                                "Concept drift detected"
+                            );
+
+                            // Emit concept drift event
+                            let event = crate::types::event::MemoryEvent::ConceptDriftDetected {
+                                parent_id: parent_id.to_string(),
+                                version_count: versions.len() as u32,
+                                changepoint_count: changepoints.len() as u32,
+                                timestamp: crate::types::event::unix_now_secs(),
+                            };
+                            self.emit_event(event);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(parent_id = %parent_id, error = %e, "Drift analysis failed");
+                    }
+                }
+            }
         }
 
         // Audit log: episode completed

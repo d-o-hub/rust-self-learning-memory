@@ -103,6 +103,24 @@ impl StorageBackend for RedbStorage {
             .await
     }
 
+    async fn store_episode_pattern_relationship(
+        &self,
+        relationship: &do_memory_core::episode::EpisodePatternRelationship,
+    ) -> Result<()> {
+        self.store_episode_pattern_relationship(relationship).await
+    }
+
+    async fn get_episode_pattern_relationships(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Vec<do_memory_core::episode::EpisodePatternRelationship>> {
+        self.get_episode_pattern_relationships(episode_id).await
+    }
+
+    async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
+        self.get_weighted_neighbors(episode_id).await
+    }
+
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         RedbStorage::store_recommendation_session(self, session).await
     }

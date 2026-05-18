@@ -13,7 +13,6 @@ use std::sync::Arc;
 use tokio::sync::{broadcast, RwLock, Semaphore};
 
 use super::super::step_buffer::StepBuffer;
-use crate::learning::distillation::TrajectoryDistiller;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::monitoring::{AgentMetrics, AgentMonitor};
 use crate::pattern::{Heuristic, Pattern};
@@ -90,8 +89,4 @@ pub struct SelfLearningMemory {
     /// External event emitter for CloudEvents interoperability (WG-149)
     #[allow(dead_code)] // WG-149: unused in core variant until wired
     pub(super) event_emitter: Arc<dyn EventEmitter>,
-    /// Trajectory distiller for MemCollab (WG-126)
-    pub(super) trajectory_distiller: TrajectoryDistiller,
-    /// Collaboration manager for MemCollab (WG-126)
-    pub(super) collaboration_manager: Arc<RwLock<crate::sync::collaboration::CollaborationManager>>,
 }

@@ -50,7 +50,7 @@ impl Default for CascadeConfig {
 /// Result from a single tier in the cascade.
 #[derive(Debug, Clone)]
 pub struct TierResult {
-    /// Tier identifier (bm25, hdc, concept_graph, api).
+    /// Tier identifier (collaboration, bm25, hdc, concept_graph, api).
     pub tier: String,
     /// Retrieved episode IDs with scores as tuples.
     pub results: Vec<(String, f32)>,
@@ -108,6 +108,9 @@ pub struct CascadeRetriever {
     /// Concept graph for ontology-based term expansion (Tier 3).
     #[cfg(feature = "csm")]
     concept_graph: ConceptGraph,
+    /// Collaborative prototype for cross-agent memory (Tier 0).
+    #[cfg(feature = "csm")]
+    pub collaborative_prototype: Option<super::HVec10240>,
     #[cfg(feature = "csm")]
     bm25_index: super::Bm25Index,
     #[cfg(feature = "csm")]
@@ -124,6 +127,8 @@ impl CascadeRetriever {
             episode_data: Vec::new(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
+            #[cfg(feature = "csm")]
+            collaborative_prototype: None,
             #[cfg(feature = "csm")]
             bm25_index: super::Bm25Index::new(),
             #[cfg(feature = "csm")]
@@ -222,6 +227,18 @@ impl CascadeRetriever {
     #[cfg(feature = "csm")]
     fn retrieve_with_csm(&self, query: &str) -> Result<CascadeResult> {
         use super::{compute_weights, merge_results};
+
+        // Tier 0: Collaborative Prototype (WG-126)
+        if let Some(prototype) = &self.collaborative_prototype {
+            let query_vec = self.hdc_encoder.encode(query);
+            let similarity = query_vec.cosine_similarity(prototype);
+
+            // If highly relevant to collaborative memory, we could add a "collaboration boost"
+            // or filter. For now, we'll just note it in contributing tiers if strong.
+            if similarity > 0.8 {
+                debug!(similarity, "Query matched collaborative prototype");
+            }
+        }
 
         // Tier 1: BM25 keyword search
         let bm25_results = self.retrieve_bm25(query);

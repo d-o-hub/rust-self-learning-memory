@@ -1,6 +1,7 @@
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
+use crate::learning::distillation::TrajectoryDistiller;
 use crate::learning::queue::PatternExtractionQueue;
 use crate::memory::attribution::RecommendationTracker;
 use crate::memory::playbook::PlaybookGenerator;
@@ -153,6 +154,12 @@ pub struct SelfLearningMemory {
     /// External event emitter for CloudEvents interoperability.
     /// Uses NoOpEmitter by default (zero overhead) unless configured.
     pub(super) event_emitter: Arc<dyn EventEmitter>,
+
+    // MemCollab (WG-126)
+    /// Trajectory distiller for MemCollab
+    pub(super) trajectory_distiller: TrajectoryDistiller,
+    /// Collaboration manager for MemCollab
+    pub(super) collaboration_manager: Arc<RwLock<crate::sync::collaboration::CollaborationManager>>,
 }
 
 impl SelfLearningMemory {

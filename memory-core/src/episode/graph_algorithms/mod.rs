@@ -14,8 +14,8 @@ use super::EpisodeRelationship;
 use super::relationship_errors::GraphError;
 
 pub use self::traversal::{
-    find_cycles_helper, find_path_dfs_helper, find_weighted_path_helper, get_weighted_neighbors,
-    has_cycle_helper, has_path_dfs_helper, topological_sort_helper,
+    WeightedPathState, find_cycles_helper, find_path_dfs_helper, find_weighted_path_helper,
+    get_weighted_neighbors, has_cycle_helper, has_path_dfs_helper, topological_sort_helper,
 };
 
 /// Check if a path exists from start to end using DFS.
@@ -443,24 +443,17 @@ pub fn find_weighted_path<S>(
 where
     S: std::hash::BuildHasher,
 {
-    let mut visited = HashSet::new();
-    let mut current_path = Vec::new();
-    let mut best_path = None;
-    let mut best_weight = f32::MIN;
+    let mut state = self::traversal::WeightedPathState {
+        visited: HashSet::new(),
+        path: Vec::new(),
+        best_path: None,
+        best_weight: f32::MIN,
+    };
 
-    find_weighted_path_helper(
-        adjacency_list,
-        start,
-        end,
-        &mut visited,
-        &mut current_path,
-        0.0,
-        &mut best_path,
-        &mut best_weight,
-    )?;
+    find_weighted_path_helper(adjacency_list, start, end, &mut state, 0.0)?;
 
-    if let Some(path) = best_path {
-        Ok(Some((path, best_weight)))
+    if let Some(path) = state.best_path {
+        Ok(Some((path, state.best_weight)))
     } else {
         Ok(None)
     }

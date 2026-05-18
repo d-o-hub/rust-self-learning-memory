@@ -213,17 +213,15 @@ async fn test_episode_pattern_relationships() {
         occurrence_count: 1,
         effectiveness: Default::default(),
     };
-    storage.store_pattern(&pattern).await.expect("Failed to store pattern");
+    storage
+        .store_pattern(&pattern)
+        .await
+        .expect("Failed to store pattern");
 
     let mut metadata = RelationshipMetadata::new();
     metadata.weight = Some(0.9);
 
-    let rel = EpisodePatternRelationship::new(
-        ep_id,
-        pt_id,
-        RelationshipType::References,
-        metadata,
-    );
+    let rel = EpisodePatternRelationship::new(ep_id, pt_id, RelationshipType::References, metadata);
 
     storage
         .store_episode_pattern_relationship(&rel)
@@ -249,7 +247,10 @@ async fn test_get_weighted_neighbors() {
     // 1. Add episode-episode relationship
     let mut meta1 = RelationshipMetadata::new();
     meta1.weight = Some(0.6);
-    storage.add_relationship(ep1, ep2, RelationshipType::RelatedTo, meta1).await.unwrap();
+    storage
+        .add_relationship(ep1, ep2, RelationshipType::RelatedTo, meta1)
+        .await
+        .unwrap();
 
     // 2. Add episode-pattern relationship
     let pattern = do_memory_core::Pattern::ToolSequence {
@@ -266,13 +267,25 @@ async fn test_get_weighted_neighbors() {
     let mut meta2 = RelationshipMetadata::new();
     meta2.weight = Some(0.4);
     let ep_pt_rel = EpisodePatternRelationship::new(ep1, pt1, RelationshipType::References, meta2);
-    storage.store_episode_pattern_relationship(&ep_pt_rel).await.unwrap();
+    storage
+        .store_episode_pattern_relationship(&ep_pt_rel)
+        .await
+        .unwrap();
 
-    let neighbors = storage.get_weighted_neighbors(ep1).await.expect("Failed to get neighbors");
+    let neighbors = storage
+        .get_weighted_neighbors(ep1)
+        .await
+        .expect("Failed to get neighbors");
     assert_eq!(neighbors.len(), 2);
 
-    let ep2_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == ep2 && !*is_pt).unwrap();
-    let pt1_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == pt1 && *is_pt).unwrap();
+    let ep2_neighbor = neighbors
+        .iter()
+        .find(|(id, _, is_pt)| *id == ep2 && !*is_pt)
+        .unwrap();
+    let pt1_neighbor = neighbors
+        .iter()
+        .find(|(id, _, is_pt)| *id == pt1 && *is_pt)
+        .unwrap();
 
     assert_eq!(ep2_neighbor.1, 0.6);
     assert_eq!(pt1_neighbor.1, 0.4);

@@ -120,11 +120,7 @@ impl RedbStorage {
         // 1. Episode neighbors
         let ep_rels = self.get_cached_relationships(episode_id, Direction::Outgoing)?;
         for rel in ep_rels {
-            neighbors.push((
-                rel.to_episode_id,
-                rel.metadata.weight.unwrap_or(1.0),
-                false,
-            ));
+            neighbors.push((rel.to_episode_id, rel.metadata.weight.unwrap_or(1.0), false));
         }
 
         // 2. Pattern neighbors

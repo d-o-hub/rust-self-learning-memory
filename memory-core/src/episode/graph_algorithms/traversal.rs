@@ -129,55 +129,57 @@ where
     Ok(())
 }
 
+/// State for weighted path traversal.
+pub struct WeightedPathState {
+    pub visited: HashSet<Uuid>,
+    pub path: Vec<Uuid>,
+    pub best_path: Option<Vec<Uuid>>,
+    pub best_weight: f32,
+}
+
 /// Helper for finding the maximum weight path.
 pub fn find_weighted_path_helper<S>(
     adjacency_list: &HashMap<Uuid, Vec<EpisodeRelationship>, S>,
     current: Uuid,
     target: Uuid,
-    visited: &mut HashSet<Uuid>,
-    path: &mut Vec<Uuid>,
+    state: &mut WeightedPathState,
     current_weight: f32,
-    best_path: &mut Option<Vec<Uuid>>,
-    best_weight: &mut f32,
 ) -> Result<(), GraphError>
 where
     S: std::hash::BuildHasher,
 {
-    path.push(current);
+    state.path.push(current);
 
     if current == target {
-        if current_weight > *best_weight {
-            *best_weight = current_weight;
-            *best_path = Some(path.clone());
+        if current_weight > state.best_weight {
+            state.best_weight = current_weight;
+            state.best_path = Some(state.path.clone());
         }
-        path.pop();
+        state.path.pop();
         return Ok(());
     }
 
-    visited.insert(current);
+    state.visited.insert(current);
 
     if let Some(neighbors) = adjacency_list.get(&current) {
         for rel in neighbors {
             let neighbor = rel.to_episode_id;
             let weight = rel.metadata.weight.unwrap_or(1.0);
 
-            if !visited.contains(&neighbor) {
+            if !state.visited.contains(&neighbor) {
                 find_weighted_path_helper(
                     adjacency_list,
                     neighbor,
                     target,
-                    visited,
-                    path,
+                    state,
                     current_weight + weight,
-                    best_path,
-                    best_weight,
                 )?;
             }
         }
     }
 
-    visited.remove(&current);
-    path.pop();
+    state.visited.remove(&current);
+    state.path.pop();
     Ok(())
 }
 

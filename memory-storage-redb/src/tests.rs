@@ -471,13 +471,22 @@ pub async fn test_get_weighted_neighbors_parity() {
         do_memory_core::episode::RelationshipType::References,
         meta2,
     );
-    storage.store_episode_pattern_relationship(&rel2).await.unwrap();
+    storage
+        .store_episode_pattern_relationship(&rel2)
+        .await
+        .unwrap();
 
     let neighbors = storage.get_weighted_neighbors(ep1).await.unwrap();
     assert_eq!(neighbors.len(), 2);
 
-    let ep2_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == ep2 && !*is_pt).unwrap();
-    let pt1_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == pt1 && *is_pt).unwrap();
+    let ep2_neighbor = neighbors
+        .iter()
+        .find(|(id, _, is_pt)| *id == ep2 && !*is_pt)
+        .unwrap();
+    let pt1_neighbor = neighbors
+        .iter()
+        .find(|(id, _, is_pt)| *id == pt1 && *is_pt)
+        .unwrap();
 
     assert_eq!(ep2_neighbor.1, 0.6);
     assert_eq!(pt1_neighbor.1, 0.3);

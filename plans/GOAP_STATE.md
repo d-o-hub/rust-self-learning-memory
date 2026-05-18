@@ -81,6 +81,8 @@
 | Reconstructive retrieval windows | WG-120 | ✅ Complete | feature-implement | E-mem (arXiv:2601.21714) - 462 LOC, 30+ tests |
 | Execution-signature retrieval | WG-121 | ✅ Complete | feature-implement | APEX-EM (arXiv:2603.29093) - 593 LOC, 30+ tests |
 | Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
+| Temporal graph edges in episode store | WG-123 | 🔵 Evaluated (evaluation doc) | feature-implement | REMem (ICLR 2026, arXiv:2602.13530) |
+| Cross-agent memory collaboration (MemCollab) | WG-126 | 🔵 Evaluated (evaluation doc) | feature-implement | arXiv:2603.23234 — contrastive trajectory distillation |
 | LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |

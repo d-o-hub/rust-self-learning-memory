@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed; plans sync)
+**Last Updated**: 2026-05-17 (WG-127 completed; WG-123, WG-126 evaluated; file size splits)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -73,13 +73,13 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | 🔵 Backlog | 123 |
+| WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | 🔵 Evaluated (evaluation doc) | 123 |
 | WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | 🔵 Backlog | 124 |
 | WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | 🔵 Backlog | 125 |
 | WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
 | WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | ✅ Complete (WG-117) | 109 |
 | WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
-| WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Backlog | 126 |
+| WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Evaluated (evaluation doc) | 126 |
 | WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | ✅ Complete | 127 |
 | WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | ✅ Complete (evaluation doc) | 132 |
 | WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | ✅ Complete (evaluation doc) | 133 |

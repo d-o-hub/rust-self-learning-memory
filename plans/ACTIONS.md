@@ -185,11 +185,11 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
 
 ### Phase 4: Research Backlog (Deferred until CPU/token wins are landed)
 
-- **ACT-114**: Add temporal graph edges to episode store
+- **ACT-114**: Evaluate temporal graph edges for episode store
    - Goal: WG-123
-   - Action: Add Turso schema for episode→episode and episode→pattern edges with temporal weights; implement graph traversal queries
+   - Action: Created evaluation document (`plans/WG-123_TemporalGraph_Evaluation.md`); recommended P2 for future sprint
    - Paper: REMem (ICLR 2026, arXiv:2602.13530)
-   - Status: 🔵 Backlog
+   - Status: 🔵 Evaluated
 
 - **ACT-115**: Add procedural memory type
    - Goal: WG-124

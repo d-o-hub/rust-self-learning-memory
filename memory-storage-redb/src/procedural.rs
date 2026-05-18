@@ -13,9 +13,8 @@ impl RedbStorage {
         debug!("Caching procedural memory in redb: {}", id);
 
         // Serialize to bytes using postcard (consistent with other redb implementations)
-        let data = postcard::to_allocvec(procedural).map_err(|e| {
-            Error::Serialization(serde_json::to_error(e))
-        })?;
+        let data = postcard::to_allocvec(procedural)
+            .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
 
         let db = self.db.clone();
         with_db_timeout(move || {
@@ -51,18 +50,17 @@ impl RedbStorage {
                 .begin_read()
                 .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
 
-            let table = read_txn.open_table(PROCEDURAL_TABLE).map_err(|e| {
-                Error::Storage(format!("Failed to open procedural table: {}", e))
-            })?;
+            let table = read_txn
+                .open_table(PROCEDURAL_TABLE)
+                .map_err(|e| Error::Storage(format!("Failed to open procedural table: {}", e)))?;
 
             let result = table
                 .get(id_str.as_str())
                 .map_err(|e| Error::Storage(format!("Failed to get procedural: {}", e)))?;
 
             if let Some(data) = result {
-                let procedural: ProceduralMemory = postcard::from_bytes(data.value()).map_err(|e| {
-                    Error::Serialization(serde_json::to_error(e))
-                })?;
+                let procedural: ProceduralMemory = postcard::from_bytes(data.value())
+                    .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
                 Ok(Some(procedural))
             } else {
                 Ok(None)
@@ -110,9 +108,9 @@ impl RedbStorage {
                 .begin_read()
                 .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
 
-            let table = read_txn.open_table(PROCEDURAL_TABLE).map_err(|e| {
-                Error::Storage(format!("Failed to open procedural table: {}", e))
-            })?;
+            let table = read_txn
+                .open_table(PROCEDURAL_TABLE)
+                .map_err(|e| Error::Storage(format!("Failed to open procedural table: {}", e)))?;
 
             let mut results = Vec::new();
             for item in table
@@ -127,10 +125,8 @@ impl RedbStorage {
                     Error::Storage(format!("Failed to read procedural table item: {}", e))
                 })?;
 
-                let procedural: ProceduralMemory =
-                    postcard::from_bytes(value.value()).map_err(|e| {
-                        Error::Serialization(serde_json::to_error(e))
-                    })?;
+                let procedural: ProceduralMemory = postcard::from_bytes(value.value())
+                    .map_err(|e| Error::Serialization(serde_json::to_error(e)))?;
                 results.push(procedural);
             }
 

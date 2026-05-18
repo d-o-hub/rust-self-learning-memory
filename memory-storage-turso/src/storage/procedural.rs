@@ -21,7 +21,8 @@ impl TursoStorage {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        let context_json = serde_json::to_string(&procedural.context).map_err(Error::Serialization)?;
+        let context_json =
+            serde_json::to_string(&procedural.context).map_err(Error::Serialization)?;
         let steps_json = serde_json::to_string(&procedural.steps).map_err(Error::Serialization)?;
         let effectiveness_json =
             serde_json::to_string(&procedural.effectiveness).map_err(Error::Serialization)?;
@@ -171,8 +172,10 @@ fn row_to_procedural(row: &Row) -> Result<ProceduralMemory> {
     let context = serde_json::from_str(&context_json).map_err(Error::Serialization)?;
     let steps = serde_json::from_str(&steps_json).map_err(Error::Serialization)?;
     let effectiveness = serde_json::from_str(&effectiveness_json).map_err(Error::Serialization)?;
-    let source_episodes = serde_json::from_str(&source_episodes_json).map_err(Error::Serialization)?;
-    let source_patterns = serde_json::from_str(&source_patterns_json).map_err(Error::Serialization)?;
+    let source_episodes =
+        serde_json::from_str(&source_episodes_json).map_err(Error::Serialization)?;
+    let source_patterns =
+        serde_json::from_str(&source_patterns_json).map_err(Error::Serialization)?;
 
     Ok(ProceduralMemory {
         id,

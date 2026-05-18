@@ -46,14 +46,13 @@ impl ProceduralMemory {
         }
 
         // Match on language
-        if self.context.language == query_context.language
-            && self.context.language.is_some()
-        {
+        if self.context.language == query_context.language && self.context.language.is_some() {
             return true;
         }
 
         // Match on tags
-        let common_tags: Vec<_> = self.context
+        let common_tags: Vec<_> = self
+            .context
             .tags
             .iter()
             .filter(|t| query_context.tags.contains(t))

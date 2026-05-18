@@ -1,3 +1,5 @@
+#![allow(clippy::module_inception)]
+
 #[cfg(test)]
 mod tests {
     use crate::episode::Episode;
@@ -5,6 +7,7 @@ mod tests {
     use crate::types::{TaskContext, TaskOutcome, TaskType};
 
     #[test]
+    #[allow(clippy::infallible_destructuring_match)]
     fn test_trajectory_distillation() {
         let mut episode = Episode::new(
             "Test task".to_string(),

@@ -1,3 +1,5 @@
+#![allow(clippy::module_inception)]
+
 #[cfg(test)]
 mod tests {
     use crate::learning::distillation::TrajectoryRepresentation;
@@ -5,6 +7,7 @@ mod tests {
     use crate::types::TaskType;
 
     #[test]
+    #[allow(clippy::infallible_destructuring_match)]
     fn test_collaboration_bundling() {
         let manager = CollaborationManager::new();
         let t1 = TrajectoryRepresentation::Embedding(vec![1.0, 0.0]);

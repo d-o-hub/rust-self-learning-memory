@@ -6,9 +6,9 @@
 // Type alias for complex nested type to avoid parser issues with >>>>
 type EpisodeMap = tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>;
 
+use crate::Result;
 use crate::episode::Episode;
 use crate::pattern::Pattern;
-use crate::Result;
 use chrono::{TimeZone, Utc};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 mod tag_queries;
 
-pub use tag_queries::{get_all_tags, get_tag_statistics, list_episodes_by_tags, TagStats};
+pub use tag_queries::{TagStats, get_all_tags, get_tag_statistics, list_episodes_by_tags};
 
 /// Default limit for `get_all_episodes` (used for backfilling)
 const GET_ALL_EPISODES_LIMIT: Option<usize> = Some(1000);

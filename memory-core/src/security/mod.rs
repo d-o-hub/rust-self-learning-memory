@@ -36,7 +36,7 @@ pub mod audit;
 
 // Re-export commonly used audit types
 pub use audit::{
-    access_denied, config_changed, episode_completed, episode_created, episode_deleted,
-    relationship_added, relationship_removed, tags_modified, ActorType, AuditConfig, AuditContext,
-    AuditEntry, AuditEventType, AuditLogLevel, AuditLogger, AuditOutput, AuditResult,
+    ActorType, AuditConfig, AuditContext, AuditEntry, AuditEventType, AuditLogLevel, AuditLogger,
+    AuditOutput, AuditResult, access_denied, config_changed, episode_completed, episode_created,
+    episode_deleted, relationship_added, relationship_removed, tags_modified,
 };

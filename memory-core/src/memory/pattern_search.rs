@@ -7,7 +7,7 @@ pub mod recommendation;
 pub mod scoring;
 
 pub use recommendation::{
-    discover_analogous_patterns, recommend_patterns_for_task, search_patterns_semantic,
-    PatternSearchResult,
+    PatternSearchResult, discover_analogous_patterns, recommend_patterns_for_task,
+    search_patterns_semantic,
 };
 pub use scoring::{ScoreBreakdown, SearchConfig};

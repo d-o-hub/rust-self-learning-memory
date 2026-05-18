@@ -2,8 +2,8 @@
 
 use super::*;
 use crate::{
-    pattern::{Pattern, PatternEffectiveness},
     ComplexityLevel, Episode, ExecutionStep, OutcomeStats, TaskContext, TaskOutcome, TaskType,
+    pattern::{Pattern, PatternEffectiveness},
 };
 use chrono::Duration;
 

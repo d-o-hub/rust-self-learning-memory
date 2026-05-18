@@ -5,7 +5,7 @@
 use super::super::episodes::row_to_episode;
 use super::super::patterns::row_to_pattern;
 use crate::TursoStorage;
-use do_memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
+use do_memory_core::{Episode, Error, Heuristic, Pattern, Result, episode::PatternId};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -275,7 +275,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use do_memory_core::{memory::checkpoint::CheckpointMeta, Episode, TaskContext, TaskType};
+    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
     use tempfile::TempDir;
     use uuid::Uuid;
 

@@ -6,16 +6,16 @@
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::monitoring::{storage::SimpleMonitoringStorage, AgentMonitor, MonitoringConfig};
+use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
-use crate::types::{MemoryConfig, DEFAULT_EVENT_CHANNEL_CAPACITY};
+use crate::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryConfig};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock, Semaphore};
+use tokio::sync::{RwLock, Semaphore, broadcast};
 
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]
@@ -113,7 +113,6 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
         patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
         heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
-        procedural_fallback: Arc::new(RwLock::new(HashMap::new())),
         relationships_fallback: Arc::new(RwLock::new(HashMap::new())),
         pattern_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),

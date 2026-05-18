@@ -231,10 +231,12 @@ async fn test_generator_with_error_recovery() {
         .unwrap();
 
     // Should have error handling steps
-    assert!(playbook
-        .ordered_steps
-        .iter()
-        .any(|s| s.action.contains("error") || s.action.contains("Handle")));
+    assert!(
+        playbook
+            .ordered_steps
+            .iter()
+            .any(|s| s.action.contains("error") || s.action.contains("Handle"))
+    );
 }
 
 #[tokio::test]

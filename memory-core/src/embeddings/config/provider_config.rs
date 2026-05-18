@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{mistral::MistralConfig, openai::OpenAIConfig, OptimizationConfig};
+use super::{OptimizationConfig, mistral::MistralConfig, openai::OpenAIConfig};
 
 #[allow(unused_imports)]
 use super::mistral::OutputDtype;

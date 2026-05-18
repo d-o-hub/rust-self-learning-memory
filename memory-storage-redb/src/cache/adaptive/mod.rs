@@ -23,12 +23,12 @@ pub use types::{AdaptiveCacheConfig, AdaptiveCacheMetrics};
 
 use self::entry::AdaptiveCacheEntry;
 use self::state::AdaptiveCacheState;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
-use tokio::time::{interval, Duration as TokioDuration};
+use tokio::time::{Duration as TokioDuration, interval};
 use tracing::{debug, info};
 use uuid::Uuid;
 

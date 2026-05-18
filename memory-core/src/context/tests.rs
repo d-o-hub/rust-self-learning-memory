@@ -422,9 +422,11 @@ fn test_from_episodes_convenience() {
     });
 
     assert_eq!(bundle.len(), 5);
-    assert!(bundle
-        .iter()
-        .all(|item| item.item_type() == ContextItemType::Episode));
+    assert!(
+        bundle
+            .iter()
+            .all(|item| item.item_type() == ContextItemType::Episode)
+    );
 }
 
 #[test]

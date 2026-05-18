@@ -237,11 +237,7 @@ pub fn hit_rate_at_k(retrieved: &[usize], relevant: &HashSet<usize>, k: usize) -
     }
 
     let has_hit = retrieved[..k].iter().any(|id| relevant.contains(id));
-    if has_hit {
-        1.0
-    } else {
-        0.0
-    }
+    if has_hit { 1.0 } else { 0.0 }
 }
 
 /// Reciprocal Rank Fusion (RRF) for combining multiple ranked lists.

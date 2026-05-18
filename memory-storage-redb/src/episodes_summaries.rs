@@ -1,6 +1,6 @@
 //! Episode summaries and capacity operations for redb cache
 
-use crate::{RedbStorage, EPISODES_TABLE, METADATA_TABLE, SUMMARIES_TABLE};
+use crate::{EPISODES_TABLE, METADATA_TABLE, RedbStorage, SUMMARIES_TABLE};
 use do_memory_core::episodic::CapacityManager;
 use do_memory_core::semantic::EpisodeSummary;
 use do_memory_core::{Episode, Error, Result};

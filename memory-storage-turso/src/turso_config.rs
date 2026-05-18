@@ -104,6 +104,12 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX)
             .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_NAME_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX)
+            .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)
@@ -111,14 +117,6 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TYPE_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX)
-            .await?;
-
-        // Create Procedural Memory table and indexes
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_NAME_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX)
             .await?;
 
         // Create FTS5 tables for hybrid search (feature-gated)

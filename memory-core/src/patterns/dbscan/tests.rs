@@ -2,9 +2,9 @@
 //!
 //! Unit tests for the DBSCAN anomaly detection system.
 
+use crate::ExecutionStep;
 use crate::episode::Episode;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::ExecutionStep;
 #[allow(unused)]
 use crate::{DBSCANAnomalyDetector, DBSCANConfig, FeatureWeights};
 use chrono::{Duration, Utc};

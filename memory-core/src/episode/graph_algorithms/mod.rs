@@ -10,8 +10,8 @@ mod traversal;
 use std::collections::{HashMap, HashSet, VecDeque};
 use uuid::Uuid;
 
-use super::relationship_errors::GraphError;
 use super::EpisodeRelationship;
+use super::relationship_errors::GraphError;
 
 pub use self::traversal::{
     WeightedPathState, find_cycles_helper, find_path_dfs_helper, find_weighted_path_helper,

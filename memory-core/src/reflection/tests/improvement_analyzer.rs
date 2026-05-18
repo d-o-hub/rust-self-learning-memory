@@ -4,9 +4,9 @@
 
 #![allow(unused_imports)]
 
+use crate::ExecutionStep;
 use crate::reflection::improvement_analyzer;
 use crate::types::{ExecutionResult, TaskOutcome, TaskType};
-use crate::ExecutionStep;
 
 use super::create_test_episode;
 use super::successful_step;

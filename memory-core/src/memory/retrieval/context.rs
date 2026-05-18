@@ -3,10 +3,10 @@
 // expect used with preceding invariant check - pattern is intentional
 #![allow(clippy::expect_used)]
 
+use crate::MAX_QUERY_LIMIT;
 use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
-use crate::MAX_QUERY_LIMIT;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 

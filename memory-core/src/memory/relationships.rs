@@ -7,7 +7,7 @@ use crate::episode::{
     Direction, EpisodeRelationship, RelationshipManager, RelationshipMetadata, RelationshipType,
 };
 use crate::error::Result;
-use crate::security::audit::{relationship_added, relationship_removed, AuditContext};
+use crate::security::audit::{AuditContext, relationship_added, relationship_removed};
 use uuid::Uuid;
 
 use super::relationship_query::{EpisodeWithRelationships, RelationshipFilter, RelationshipGraph};

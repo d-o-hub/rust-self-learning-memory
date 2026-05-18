@@ -4,8 +4,8 @@
 //!
 //! Convenience functions for creating common audit entries.
 
-use super::types::{AuditEntry, AuditEventType, AuditLogLevel, AuditResult};
 use super::AuditContext;
+use super::types::{AuditEntry, AuditEventType, AuditLogLevel, AuditResult};
 use uuid::Uuid;
 
 /// Create an audit entry for episode creation.

@@ -21,16 +21,16 @@ pub mod windows;
 // Re-export CSM types when csm feature is enabled
 #[cfg(feature = "csm")]
 pub use chaotic_semantic_memory::{
-    encoder::TextEncoder as HdcEncoder, BundleAccumulator, ConceptGraph, HVec10240,
+    BundleAccumulator, ConceptGraph, HVec10240, encoder::TextEncoder as HdcEncoder,
 };
 
 #[cfg(feature = "csm")]
 pub use chaotic_semantic_memory::retrieval::{
-    compute_weights, merge_results, normalize_scores, Bm25Config, Bm25Index, HybridConfig,
-    HybridMode,
+    Bm25Config, Bm25Index, HybridConfig, HybridMode, compute_weights, merge_results,
+    normalize_scores,
 };
 
-pub use cache::{CacheKey, CacheMetrics, QueryCache, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES};
+pub use cache::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache};
 pub use cascade::{CascadeConfig, CascadeResult, CascadeRetriever};
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
 pub use shard::{EpisodeMetadata, RoutingResult, ScopeFilter, ShardConfig, ShardRouter, TimeRange};
@@ -39,6 +39,6 @@ pub use signature::{
     StepPattern,
 };
 pub use windows::{
-    merge_overlapping_windows, ContextWindow, RetrievalHit, WindowConfig, WindowExpander,
-    WindowExpansionResult,
+    ContextWindow, RetrievalHit, WindowConfig, WindowExpander, WindowExpansionResult,
+    merge_overlapping_windows,
 };

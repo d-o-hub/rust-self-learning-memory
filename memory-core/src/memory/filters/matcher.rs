@@ -4,7 +4,7 @@
 
 use super::types::{EpisodeFilter, OutcomeType};
 use crate::episode::Episode;
-use crate::search::{fuzzy_match, fuzzy_search_in_text, regex_search, SearchField, SearchMode};
+use crate::search::{SearchField, SearchMode, fuzzy_match, fuzzy_search_in_text, regex_search};
 use crate::types::TaskOutcome;
 
 impl EpisodeFilter {

@@ -60,7 +60,7 @@ pub use config::{
     OptimizationConfig, ProviderConfig,
 };
 pub use local::{
-    get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
+    LocalEmbeddingProvider, LocalModelUseCase, get_recommended_model, list_available_models,
 };
 pub use metrics::{LatencyTimer, MetricsSnapshot, ProviderMetrics};
 #[cfg(feature = "mistral")]
@@ -70,8 +70,8 @@ pub use mock_model::MockLocalModel;
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::utils::normalize_vector;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
-pub use semantic_service::{SemanticService, DEFAULT_EMBEDDING_DIM};
-pub use similarity::{cosine_similarity, SimilarityMetadata, SimilaritySearchResult};
+pub use semantic_service::{DEFAULT_EMBEDDING_DIM, SemanticService};
+pub use similarity::{SimilarityMetadata, SimilaritySearchResult, cosine_similarity};
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
 
 #[cfg(all(test, feature = "mistral"))]

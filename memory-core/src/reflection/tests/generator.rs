@@ -2,10 +2,10 @@
 //! Tests for the reflection generator module
 //!
 
+use crate::ExecutionStep;
 use crate::episode::Episode;
 use crate::reflection::ReflectionGenerator;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::ExecutionStep;
 
 fn successful_step(step_number: usize, tool: &str, action: &str) -> ExecutionStep {
     let mut step = ExecutionStep::new(step_number, tool.to_string(), action.to_string());
@@ -66,10 +66,12 @@ fn test_generate_reflection_successful_episode() {
     let reflection = generator.generate(&episode);
 
     assert!(!reflection.successes.is_empty());
-    assert!(reflection
-        .successes
-        .iter()
-        .any(|s| s.contains("Successfully completed")));
+    assert!(
+        reflection
+            .successes
+            .iter()
+            .any(|s| s.contains("Successfully completed"))
+    );
     assert!(reflection.successes.iter().any(|s| s.contains("artifact")));
 }
 

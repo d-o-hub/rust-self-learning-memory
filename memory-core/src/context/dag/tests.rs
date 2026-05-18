@@ -252,9 +252,11 @@ fn test_state_dag_get_shared_context() {
     assert!(!shared.is_empty());
 
     // Language should be shared
-    assert!(shared
-        .iter()
-        .any(|n| n.node_type == StateNodeType::Language));
+    assert!(
+        shared
+            .iter()
+            .any(|n| n.node_type == StateNodeType::Language)
+    );
 }
 
 #[test]

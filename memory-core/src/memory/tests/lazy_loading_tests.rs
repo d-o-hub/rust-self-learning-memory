@@ -1,8 +1,8 @@
 //! Lazy loading tests for `SelfLearningMemory`.
 
+use crate::SelfLearningMemory;
 use crate::episode::ExecutionStep;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::SelfLearningMemory;
 
 /// Test `get_all_episodes` with lazy loading.
 #[tokio::test(flavor = "multi_thread")]

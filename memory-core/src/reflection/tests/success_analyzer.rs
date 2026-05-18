@@ -26,9 +26,11 @@ fn test_identify_successes_full_success() {
     let successes = success_analyzer::identify_successes(&episode, 5);
 
     assert!(!successes.is_empty());
-    assert!(successes
-        .iter()
-        .any(|s| s.contains("Successfully completed")));
+    assert!(
+        successes
+            .iter()
+            .any(|s| s.contains("Successfully completed"))
+    );
     assert!(successes.iter().any(|s| s.contains("artifact")));
 }
 
@@ -178,9 +180,11 @@ fn test_analyze_success_patterns_context_factors() {
 
     let patterns = success_analyzer::analyze_success_patterns(&episode);
 
-    assert!(patterns
-        .iter()
-        .any(|p| p.contains("Rust-specific") || p.contains("domain knowledge")));
+    assert!(
+        patterns
+            .iter()
+            .any(|p| p.contains("Rust-specific") || p.contains("domain knowledge"))
+    );
 }
 
 #[test]
@@ -198,9 +202,11 @@ fn test_analyze_success_patterns_efficiency() {
     let episode = create_test_episode("Efficient", TaskType::Testing, steps, Some(outcome));
     let patterns = success_analyzer::analyze_success_patterns(&episode);
 
-    assert!(patterns
-        .iter()
-        .any(|p| p.contains("expertise") || p.contains("minimalist")));
+    assert!(
+        patterns
+            .iter()
+            .any(|p| p.contains("expertise") || p.contains("minimalist"))
+    );
 }
 
 #[test]

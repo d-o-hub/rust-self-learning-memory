@@ -30,7 +30,7 @@ pub mod types;
 
 pub use diversity::{DiversityMaximizer, ScoredEpisode};
 pub use embeddings::{ContextAwareEmbeddings, ContrastivePair, TaskAdapter};
-pub use index::domain_index::DomainIndex;
 pub use index::SpatiotemporalIndex;
+pub use index::domain_index::DomainIndex;
 pub use retriever::{HierarchicalRetriever, HierarchicalScore, RetrievalQuery};
 pub use types::{TaskTypeIndex, TemporalCluster, TemporalGranularity};

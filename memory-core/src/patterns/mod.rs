@@ -24,8 +24,8 @@ pub mod optimized_validator;
 pub mod validation;
 
 pub use affinity::{
-    EpisodeAssignmentGuard, PatternAffinityClassifier, RejectionReason, RelativeAffinity,
-    DEFAULT_AFFINITY_THRESHOLD, DEFAULT_MIN_SUCCESS_RATE,
+    DEFAULT_AFFINITY_THRESHOLD, DEFAULT_MIN_SUCCESS_RATE, EpisodeAssignmentGuard,
+    PatternAffinityClassifier, RejectionReason, RelativeAffinity,
 };
 
 pub use changepoint::{

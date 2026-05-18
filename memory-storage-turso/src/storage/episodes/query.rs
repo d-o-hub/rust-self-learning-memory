@@ -4,7 +4,7 @@
 
 use super::EpisodeQuery;
 use crate::TursoStorage;
-use do_memory_core::{apply_query_limit as core_apply_limit, Episode, Error, Result};
+use do_memory_core::{Episode, Error, Result, apply_query_limit as core_apply_limit};
 use tracing::{debug, info};
 
 /// Apply query limit with defaults and bounds checking.

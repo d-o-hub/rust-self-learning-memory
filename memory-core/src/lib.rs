@@ -244,9 +244,9 @@ pub use episodic::{CapacityManager, EvictionPolicy};
 pub use error::{CacheError, Error, RelationshipError, Result};
 pub use extraction::PatternExtractor;
 pub use indexing::{
+    BenchmarkResult, IndexMetrics, IndexableMemory, QueryPerformance,
     hierarchical::{HierarchicalIndex, HierarchicalIndexStats, HierarchicalQuery},
     spatiotemporal::{IndexStats, QueryOptions, SpatiotemporalIndex, TimeBucket},
-    BenchmarkResult, IndexMetrics, IndexableMemory, QueryPerformance,
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::checkpoint::{CheckpointMeta, HandoffPack};

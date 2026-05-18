@@ -1,6 +1,6 @@
 //! Episode storage operations for redb cache
 
-use crate::{RedbStorage, EPISODES_TABLE};
+use crate::{EPISODES_TABLE, RedbStorage};
 use do_memory_core::{Episode, Error, Result};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;

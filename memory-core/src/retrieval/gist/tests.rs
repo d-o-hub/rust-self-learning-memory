@@ -3,9 +3,9 @@
 use std::sync::Arc;
 
 use super::*;
+use crate::TaskContext;
 use crate::episode::Episode;
 use crate::types::TaskType;
-use crate::TaskContext;
 
 #[test]
 fn test_rerank_config_default() {

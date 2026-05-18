@@ -56,7 +56,6 @@ impl RedbStorage {
                     RECOMMENDATION_EPISODE_INDEX_TABLE,
                     "recommendation_episode_index",
                 )?;
-                Self::clear_table_entries(&write_txn, PROCEDURAL_TABLE, "procedural")?;
             }
 
             write_txn

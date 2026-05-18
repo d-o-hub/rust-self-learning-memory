@@ -196,8 +196,8 @@ pub struct BenchmarkResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{ComplexityLevel, TaskContext, TaskType};
     use crate::Episode;
+    use crate::types::{ComplexityLevel, TaskContext, TaskType};
     use chrono::{Datelike, Timelike};
 
     fn create_test_episode(domain: &str, task_type: TaskType) -> Episode {

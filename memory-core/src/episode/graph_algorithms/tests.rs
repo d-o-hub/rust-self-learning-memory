@@ -217,10 +217,12 @@ fn test_topological_sort_cyclic_fails() {
 
     let result = topological_sort(&graph);
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Cannot perform topological sort on cyclic graph"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Cannot perform topological sort on cyclic graph")
+    );
 }
 
 #[test]

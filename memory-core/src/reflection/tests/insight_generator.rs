@@ -2,10 +2,10 @@
 //! Tests for the insight generator module
 //!
 
+use crate::ExecutionStep;
 use crate::episode::Episode;
 use crate::reflection::insight_generator;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::ExecutionStep;
 
 use super::create_test_episode;
 use super::successful_step;
@@ -65,9 +65,11 @@ fn test_generate_insights_step_patterns() {
     let episode = create_test_episode("Perfect success", TaskType::Testing, steps, Some(outcome));
     let insights = insight_generator::generate_insights(&episode, 5);
 
-    assert!(insights
-        .iter()
-        .any(|i| i.contains("reliable") || i.contains("All steps")));
+    assert!(
+        insights
+            .iter()
+            .any(|i| i.contains("reliable") || i.contains("All steps"))
+    );
 }
 
 #[test]
@@ -164,9 +166,11 @@ fn test_generate_contextual_insights_complexity_alignment() {
 
     let insights = insight_generator::generate_contextual_insights(&episode);
 
-    assert!(insights
-        .iter()
-        .any(|i| i.contains("more steps than typical")));
+    assert!(
+        insights
+            .iter()
+            .any(|i| i.contains("more steps than typical"))
+    );
 }
 
 #[test]
@@ -184,9 +188,11 @@ fn test_generate_contextual_insights_learning_indicators() {
     let episode = create_test_episode("Learning", TaskType::Testing, steps, Some(outcome));
     let insights = insight_generator::generate_contextual_insights(&episode);
 
-    assert!(insights
-        .iter()
-        .any(|i| i.contains("learning") || i.contains("adaptability")));
+    assert!(
+        insights
+            .iter()
+            .any(|i| i.contains("learning") || i.contains("adaptability"))
+    );
 }
 
 #[test]

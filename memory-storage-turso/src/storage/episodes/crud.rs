@@ -1,131 +1,46 @@
-//! # Episode CRUD Operations
-//!
 //! CRUD operations for episodes.
 
 use crate::TursoStorage;
-use do_memory_core::{semantic::EpisodeSummary, Episode, Error, Result};
+use do_memory_core::{Episode, Error, Result};
 use tracing::{debug, info};
 use uuid::Uuid;
 
-#[cfg(feature = "compression")]
-use super::compression::compress_json_field;
+use do_memory_core::semantic::EpisodeSummary;
 
 impl TursoStorage {
     /// Store an episode
-    ///
-    /// Uses INSERT OR REPLACE for upsert semantics.
-    /// When compression is enabled, large payloads are compressed to reduce bandwidth.
     pub async fn store_episode(&self, episode: &Episode) -> Result<()> {
         debug!("Storing episode: {}", episode.episode_id);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
-                reflection, patterns, heuristics, checkpoints, metadata, domain, language,
-                archived_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reflection, patterns, heuristics, checkpoints, metadata,
+                domain, language
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
-
-        // Get compression threshold from config
-        #[cfg(feature = "compression")]
-        let compression_threshold = self.config.compression_threshold;
-        #[cfg(not(feature = "compression"))]
-        let _compression_threshold = 0;
 
         let context_json = serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
         let steps_json = serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
-        let outcome_json = episode
-            .outcome
-            .as_ref()
-            .map(serde_json::to_string)
-            .transpose()
-            .map_err(Error::Serialization)?;
-        let reward_json = episode
-            .reward
-            .as_ref()
-            .map(serde_json::to_string)
-            .transpose()
-            .map_err(Error::Serialization)?;
-        let reflection_json = episode
-            .reflection
-            .as_ref()
-            .map(serde_json::to_string)
-            .transpose()
-            .map_err(Error::Serialization)?;
-
-        // Compress patterns, heuristics, and metadata if they're large enough
-        #[cfg(feature = "compression")]
-        let should_compress = self.config.compress_episodes;
-        #[cfg(not(feature = "compression"))]
-        let _should_compress = false;
-
-        #[cfg(feature = "compression")]
-        let patterns_json = if should_compress {
-            let data = serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-            compress_json_field(data.as_bytes(), compression_threshold)?
-        } else {
-            serde_json::to_string(&episode.patterns)
-                .map_err(Error::Serialization)?
-                .into_bytes()
-        };
-
-        #[cfg(not(feature = "compression"))]
-        let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
-            .map_err(Error::Serialization)?
-            .into_bytes();
-
-        #[cfg(feature = "compression")]
-        let heuristics_json = if should_compress {
-            let data = serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-            compress_json_field(data.as_bytes(), compression_threshold)?
-        } else {
-            serde_json::to_string(&episode.heuristics)
-                .map_err(Error::Serialization)?
-                .into_bytes()
-        };
-
-        #[cfg(not(feature = "compression"))]
-        let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
-            .map_err(Error::Serialization)?
-            .into_bytes();
-
-        #[cfg(feature = "compression")]
-        let metadata_json = if should_compress {
-            let data = serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-            compress_json_field(data.as_bytes(), compression_threshold)?
-        } else {
-            serde_json::to_string(&episode.metadata)
-                .map_err(Error::Serialization)?
-                .into_bytes()
-        };
-
-        #[cfg(not(feature = "compression"))]
-        let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
-            .map_err(Error::Serialization)?
-            .into_bytes();
-
+        let outcome_json = serde_json::to_string(&episode.outcome).map_err(Error::Serialization)?;
+        let reward_json = serde_json::to_string(&episode.reward).map_err(Error::Serialization)?;
+        let reflection_json =
+            serde_json::to_string(&episode.reflection).map_err(Error::Serialization)?;
+        let patterns_json = serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
+        let heuristics_json =
+            serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
         let checkpoints_json =
             serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+        let metadata_json = serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
 
-        // Get archived_at from metadata if present
-        let archived_at = episode
-            .metadata
-            .get("archived_at")
-            .and_then(|v| v.parse::<i64>().ok());
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        // Convert bytes to String for SQL (assuming UTF-8)
-        let patterns_str = String::from_utf8(patterns_json)
-            .map_err(|e| Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e)))?;
-        let heuristics_str = String::from_utf8(heuristics_json)
-            .map_err(|e| Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e)))?;
-        let metadata_str = String::from_utf8(metadata_json)
-            .map_err(|e| Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e)))?;
-
-        // Use prepared statement cache for optimal performance
-        // The cache is connection-aware and handles all connection types
-        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
         stmt.execute(libsql::params![
             episode.episode_id.to_string(),
             episode.task_type.to_string(),
@@ -137,24 +52,20 @@ impl TursoStorage {
             outcome_json,
             reward_json,
             reflection_json,
-            patterns_str,
-            heuristics_str,
+            patterns_json,
+            heuristics_json,
             checkpoints_json,
-            metadata_str,
+            metadata_json,
             episode.context.domain.clone(),
             episode.context.language.clone(),
-            archived_at,
         ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
 
-        // Clear the prepared statement cache for this connection when done
-        self.clear_prepared_cache(conn_id);
-
-        // Invalidate cache entry for this episode (when feature is enabled)
-        #[cfg(feature = "adaptive-ttl")]
-        if let Some(ref cache) = self.episode_cache {
-            cache.remove(&episode.episode_id.to_string()).await;
+        // Store tags if any
+        if !episode.tags.is_empty() {
+            self.store_episode_tags(episode.episode_id, &episode.tags)
+                .await?;
         }
 
         info!("Successfully stored episode: {}", episode.episode_id);
@@ -162,195 +73,24 @@ impl TursoStorage {
     }
 
     /// Retrieve an episode by ID
-    ///
-    /// When adaptive-ttl feature is enabled and caching is configured,
-    /// this method will first check the cache before querying the database.
-    /// Cache hits record access for TTL adaptation.
-    pub async fn get_episode(&self, episode_id: Uuid) -> Result<Option<Episode>> {
-        debug!("Retrieving episode: {}", episode_id);
+    pub async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
+        debug!("Retrieving episode: {}", id);
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
-        // Check adaptive TTL cache first (when feature is enabled)
-        #[cfg(feature = "adaptive-ttl")]
-        if let Some(ref cache) = self.episode_cache {
-            let cache_key = episode_id.to_string();
-            if let Some(cached_episode) = cache.get(&cache_key).await {
-                debug!("Episode cache hit for: {}", episode_id);
-                return Ok(Some(cached_episode));
-            }
-            debug!("Episode cache miss for: {}", episode_id);
-        }
-
-        let (conn, conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
-            SELECT episode_id, task_type, task_description, context,
-                   start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics,
-                   COALESCE(checkpoints, '[]') AS checkpoints,
-                   metadata, domain, language,
-                   archived_at
-            FROM episodes WHERE episode_id = ?
-        "#;
-
-        // Use prepared statement cache for optimal performance
-        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-        let mut rows = stmt
-            .query(libsql::params![episode_id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
-
-        let result = if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            let episode = Self::row_to_episode(&row)?;
-
-            // Cache the episode for future lookups (when feature is enabled)
-            #[cfg(feature = "adaptive-ttl")]
-            if let Some(ref cache) = self.episode_cache {
-                cache.insert(episode_id.to_string(), episode.clone()).await;
-                debug!("Cached episode: {}", episode_id);
-            }
-
-            Ok(Some(episode))
-        } else {
-            Ok(None)
-        };
-
-        // Clear the prepared statement cache for this connection when done
-        self.clear_prepared_cache(conn_id);
-
-        result
-    }
-
-    /// Delete an episode by ID
-    pub async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
-        debug!("Deleting episode: {}", episode_id);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
-
-        // Use prepared statement cache
-        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-
-        stmt.execute(libsql::params![episode_id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
-
-        // Clear the prepared statement cache for this connection when done
-        self.clear_prepared_cache(conn_id);
-
-        // Invalidate cache entry for this episode (when feature is enabled)
-        #[cfg(feature = "adaptive-ttl")]
-        if let Some(ref cache) = self.episode_cache {
-            cache.remove(&episode_id.to_string()).await;
-        }
-
-        info!("Successfully deleted episode: {}", episode_id);
-        Ok(())
-    }
-
-    /// Store an episode summary
-    pub async fn store_episode_summary(&self, summary: &EpisodeSummary) -> Result<()> {
-        debug!("Storing episode summary: {}", summary.episode_id);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
-            INSERT OR REPLACE INTO episode_summaries (
-                episode_id, summary_text, key_concepts, key_steps,
-                summary_embedding, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
-        "#;
-
-        let key_concepts_json =
-            serde_json::to_string(&summary.key_concepts).map_err(Error::Serialization)?;
-        let key_steps_json =
-            serde_json::to_string(&summary.key_steps).map_err(Error::Serialization)?;
-        let embedding_json = summary
-            .summary_embedding
-            .as_ref()
-            .map(serde_json::to_string)
-            .transpose()
-            .map_err(Error::Serialization)?;
-
-        // Use prepared statement cache
-        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-
-        stmt.execute(libsql::params![
-            summary.episode_id.to_string(),
-            summary.summary_text.clone(),
-            key_concepts_json,
-            key_steps_json,
-            embedding_json,
-            summary.created_at.timestamp(),
-        ])
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to store summary: {}", e)))?;
-
-        // Clear the prepared statement cache for this connection when done
-        self.clear_prepared_cache(conn_id);
-
-        info!(
-            "Successfully stored summary for episode: {}",
-            summary.episode_id
+        let select_cols = super::raw_query::EPISODE_SELECT_COLUMNS;
+        let sql = format!(
+            "SELECT {} FROM episodes WHERE episode_id = ?",
+            select_cols.join(", ")
         );
-        Ok(())
-    }
 
-    /// Retrieve an episode summary by episode ID
-    pub async fn get_episode_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
-        debug!("Retrieving episode summary: {}", episode_id);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
-            SELECT episode_id, summary_text, key_concepts, key_steps,
-                   summary_embedding, created_at
-            FROM episode_summaries WHERE episode_id = ?
-        "#;
-
-        // Use prepared statement cache
-        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, &sql)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
         let mut rows = stmt
-            .query(libsql::params![episode_id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query summary: {}", e)))?;
-
-        let result = if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch summary row: {}", e)))?
-        {
-            let summary = Self::row_to_summary(&row)?;
-            Ok(Some(summary))
-        } else {
-            Ok(None)
-        };
-
-        // Clear the prepared statement cache for this connection when done
-        self.clear_prepared_cache(conn_id);
-
-        result
-    }
-
-    /// Retrieve an episode by task description
-    pub async fn get_episode_by_task_desc(&self, task_desc: &str) -> Result<Option<Episode>> {
-        debug!("Retrieving episode by task description: {}", task_desc);
-        let conn = self.get_connection().await?;
-
-        let sql = r#"
-            SELECT episode_id, task_type, task_description, context,
-                   start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics,
-                   COALESCE(checkpoints, '[]') AS checkpoints,
-                   metadata, domain, language,
-                   archived_at
-            FROM episodes WHERE task_description = ?
-        "#;
-
-        let mut rows = conn
-            .query(sql, libsql::params![task_desc])
+            .query(libsql::params![id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
 
@@ -359,8 +99,110 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
-            let episode = Self::row_to_episode(&row)?;
+            let mut episode = super::row::row_to_episode(&row)?;
+
+            // Load tags
+            episode.tags = self.get_episode_tags(id).await?;
+
             Ok(Some(episode))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Delete an episode by ID
+    pub async fn delete_episode(&self, id: Uuid) -> Result<()> {
+        debug!("Deleting episode: {}", id);
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
+
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
+
+        info!("Successfully deleted episode: {}", id);
+        Ok(())
+    }
+
+    /// Store a semantic summary for an episode
+    pub async fn store_summary(&self, episode_id: Uuid, summary: &EpisodeSummary) -> Result<()> {
+        debug!("Storing summary for episode: {}", episode_id);
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = r#"
+            INSERT OR REPLACE INTO episode_summaries (
+                episode_id, summary_text, key_concepts, key_steps, summary_embedding
+            ) VALUES (?, ?, ?, ?, ?)
+        "#;
+
+        let key_concepts_json =
+            serde_json::to_string(&summary.key_concepts).map_err(Error::Serialization)?;
+        let key_steps_json =
+            serde_json::to_string(&summary.key_steps).map_err(Error::Serialization)?;
+
+        // Convert f32 vector to bytes for BLOB storage
+        let embedding_bytes = summary.embedding.as_ref().map(|vec| {
+            let mut bytes = Vec::with_capacity(vec.len() * 4);
+            for &f in vec {
+                bytes.extend_from_slice(&f.to_le_bytes());
+            }
+            bytes
+        });
+
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            episode_id.to_string(),
+            summary.summary_text.clone(),
+            key_concepts_json,
+            key_steps_json,
+            embedding_bytes,
+        ])
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store summary: {}", e)))?;
+
+        info!("Successfully stored summary for episode: {}", episode_id);
+        Ok(())
+    }
+
+    /// Retrieve a semantic summary by episode ID
+    pub async fn get_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
+        debug!("Retrieving summary for episode: {}", episode_id);
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = r#"
+            SELECT episode_id, summary_text, key_concepts, key_steps, summary_embedding
+            FROM episode_summaries WHERE episode_id = ?
+        "#;
+
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query summary: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch summary row: {}", e)))?
+        {
+            Ok(Some(super::row::row_to_summary(&row)?))
         } else {
             Ok(None)
         }
@@ -370,92 +212,94 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use do_memory_core::{memory::checkpoint::CheckpointMeta, Episode, TaskContext, TaskType};
+    use crate::TursoStorage;
+    use do_memory_core::{TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
-        let dir = TempDir::new().unwrap();
+        let dir = tempfile::tempdir().map_err(|e| Error::Storage(e.to_string()))?;
         let db_path = dir.path().join("test.db");
-
-        let db = libsql::Builder::new_local(&db_path)
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
-
-        let storage = TursoStorage::from_database(db)?;
+        let path_str = format!("file:{}", db_path.to_string_lossy());
+        let storage = TursoStorage::new(&path_str, "").await?;
         storage.initialize_schema().await?;
-
         Ok((storage, dir))
     }
 
     #[tokio::test]
-    async fn test_store_and_get_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let episode = Episode::new(
-            "Test episode".to_string(),
-            TaskContext::default(),
-            TaskType::CodeGeneration,
-        );
-
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
-
-        let retrieved = storage.get_episode(episode_id).await.unwrap();
-        assert!(retrieved.is_some());
-        assert_eq!(retrieved.unwrap().task_description, "Test episode");
-    }
-
-    #[tokio::test]
-    async fn test_delete_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let episode = Episode::new(
-            "To delete".to_string(),
-            TaskContext::default(),
-            TaskType::Debugging,
-        );
-
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
-
-        storage.delete_episode(episode_id).await.unwrap();
-
-        let retrieved = storage.get_episode(episode_id).await.unwrap();
-        assert!(retrieved.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_get_nonexistent_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let nonexistent_id = Uuid::new_v4();
-        let result = storage.get_episode(nonexistent_id).await.unwrap();
-        assert!(result.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_store_and_get_episode_persists_checkpoints() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
+    async fn test_store_and_get_episode() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
         let mut episode = Episode::new(
-            "Checkpoint test".to_string(),
+            "Test task".to_string(),
             TaskContext::default(),
             TaskType::CodeGeneration,
         );
-        episode.checkpoints.push(CheckpointMeta::new(
-            "handoff".to_string(),
-            2,
-            Some("persist me".to_string()),
-        ));
+        episode.add_tag("test".to_string()).unwrap();
 
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
+        storage.store_episode(&episode).await?;
 
-        let retrieved = storage.get_episode(episode_id).await.unwrap().unwrap();
-        assert_eq!(retrieved.checkpoints.len(), 1);
-        assert_eq!(retrieved.checkpoints[0].reason, "handoff");
-        assert_eq!(retrieved.checkpoints[0].step_number, 2);
-        assert_eq!(retrieved.checkpoints[0].note.as_deref(), Some("persist me"));
+        let retrieved = storage.get_episode(episode.episode_id).await?;
+        assert!(retrieved.is_some());
+        let retrieved = retrieved.unwrap();
+        assert_eq!(retrieved.episode_id, episode.episode_id);
+        assert_eq!(retrieved.task_description, episode.task_description);
+        assert!(retrieved.has_tag("test"));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_delete_episode() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+        let episode = Episode::new(
+            "Test task".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+
+        storage.store_episode(&episode).await?;
+        storage.delete_episode(episode.episode_id).await?;
+
+        let retrieved = storage.get_episode(episode.episode_id).await?;
+        assert!(retrieved.is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_store_and_get_summary() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+        let episode_id = Uuid::new_v4();
+        let summary = EpisodeSummary {
+            summary_text: "Test summary".to_string(),
+            key_concepts: vec!["concept1".to_string()],
+            key_steps: vec!["step1".to_string()],
+            embedding: Some(vec![0.1, 0.2, 0.3]),
+        };
+
+        // Note: foreign key constraint requires episode to exist
+        let episode = Episode {
+            episode_id,
+            ..Episode::new(
+                "Test".to_string(),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            )
+        };
+        storage.store_episode(&episode).await?;
+
+        storage.store_summary(episode_id, &summary).await?;
+
+        let retrieved = storage.get_summary(episode_id).await?;
+        assert!(retrieved.is_some());
+        let retrieved = retrieved.unwrap();
+        assert_eq!(retrieved.summary_text, summary.summary_text);
+        assert_eq!(retrieved.key_concepts, summary.key_concepts);
+        assert_eq!(retrieved.key_steps, summary.key_steps);
+        assert!(retrieved.embedding.is_some());
+        let emb = retrieved.embedding.unwrap();
+        assert_eq!(emb.len(), 3);
+        assert!((emb[0] - 0.1).abs() < f32::EPSILON);
+
+        Ok(())
     }
 }

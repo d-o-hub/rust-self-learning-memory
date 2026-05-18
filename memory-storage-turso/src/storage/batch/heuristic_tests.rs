@@ -5,7 +5,7 @@
 #[cfg(test)]
 mod tests {
     use super::super::heuristic_types::{HeuristicBatchProgress, HeuristicBatchResult};
-    use do_memory_core::{types::Evidence, Heuristic};
+    use do_memory_core::{Heuristic, types::Evidence};
     use tempfile::TempDir;
     use uuid::Uuid;
 

@@ -1,8 +1,8 @@
 //! Episode-related tests for `SelfLearningMemory`.
 
+use crate::SelfLearningMemory;
 use crate::episode::ExecutionStep;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::SelfLearningMemory;
 
 /// Test starting an episode.
 #[tokio::test]

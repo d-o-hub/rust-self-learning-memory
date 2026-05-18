@@ -177,33 +177,6 @@ impl StorageBackend for super::TursoStorage {
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         super::TursoStorage::get_recommendation_stats(self).await
     }
-
-    // ========== Procedural Memory Storage Methods ==========
-
-    async fn store_procedural(
-        &self,
-        procedural: &do_memory_core::procedural::ProceduralMemory,
-    ) -> Result<()> {
-        super::TursoStorage::store_procedural_memory(self, procedural).await
-    }
-
-    async fn get_procedural(
-        &self,
-        id: uuid::Uuid,
-    ) -> Result<Option<do_memory_core::procedural::ProceduralMemory>> {
-        super::TursoStorage::get_procedural_memory(self, id).await
-    }
-
-    async fn delete_procedural(&self, id: uuid::Uuid) -> Result<()> {
-        super::TursoStorage::delete_procedural_memory(self, id).await
-    }
-
-    async fn query_procedural(
-        &self,
-        limit: Option<usize>,
-    ) -> Result<Vec<do_memory_core::procedural::ProceduralMemory>> {
-        super::TursoStorage::query_procedural_memories(self, limit).await
-    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage

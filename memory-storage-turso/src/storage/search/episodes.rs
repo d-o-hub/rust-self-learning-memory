@@ -3,8 +3,8 @@
 use super::super::episodes::row_to_episode;
 use crate::TursoStorage;
 use do_memory_core::{
-    embeddings::{cosine_similarity, SimilarityMetadata, SimilaritySearchResult},
     Episode, Error, Result,
+    embeddings::{SimilarityMetadata, SimilaritySearchResult, cosine_similarity},
 };
 use libsql::Connection;
 use tracing::{debug, info, warn};

@@ -5,8 +5,8 @@
 //! - `RelationshipGraph` for visualization and analysis
 //! - Helper functions for querying episodes with their relationships
 
-use crate::episode::{Direction, EpisodeRelationship, RelationshipType};
 use crate::Episode;
+use crate::episode::{Direction, EpisodeRelationship, RelationshipType};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -238,8 +238,8 @@ impl EpisodeWithRelationships {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{TaskContext, TaskType};
     use crate::Episode;
+    use crate::types::{TaskContext, TaskType};
 
     fn create_test_episode(_id: Uuid, description: &str) -> Episode {
         Episode::new(

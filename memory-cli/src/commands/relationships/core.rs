@@ -71,6 +71,7 @@ pub async fn add_relationship(
         reason,
         created_by,
         priority,
+        weight: None,
         custom_fields,
     };
 

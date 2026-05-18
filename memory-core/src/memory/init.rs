@@ -134,10 +134,6 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
         event_emitter,
-        trajectory_distiller: crate::learning::distillation::TrajectoryDistiller::new(true),
-        collaboration_manager: Arc::new(RwLock::new(
-            crate::sync::collaboration::CollaborationManager::new(),
-        )),
     }
 }
 
@@ -275,10 +271,6 @@ pub fn with_storage(
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
         event_emitter,
-        trajectory_distiller: crate::learning::distillation::TrajectoryDistiller::new(true),
-        collaboration_manager: Arc::new(RwLock::new(
-            crate::sync::collaboration::CollaborationManager::new(),
-        )),
     }
 }
 

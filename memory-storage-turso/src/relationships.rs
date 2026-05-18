@@ -4,7 +4,8 @@
 
 use crate::{Result, TursoStorage};
 use do_memory_core::episode::{
-    Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType,
+    Direction, EpisodePatternRelationship, EpisodeRelationship, RelationshipMetadata,
+    RelationshipType,
 };
 use std::collections::HashMap;
 use tracing::debug;
@@ -29,8 +30,8 @@ impl TursoStorage {
         self.execute_with_retry(
             &conn,
             &format!(
-                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, '{}', {})",
-                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, metadata, created_at)",
+                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {})",
+                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at)",
                 relationship_id,
                 from_episode_id,
                 to_episode_id,
@@ -38,6 +39,7 @@ impl TursoStorage {
                 metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
+                metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
                 metadata_json.replace('\'', "''"),
                 created_at
             ),
@@ -65,8 +67,8 @@ impl TursoStorage {
         self.execute_with_retry(
             &conn,
             &format!(
-                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, '{}', {})",
-                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, metadata, created_at)",
+                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {})",
+                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at)",
                 relationship.id,
                 relationship.from_episode_id,
                 relationship.to_episode_id,
@@ -74,6 +76,7 @@ impl TursoStorage {
                 relationship.metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 relationship.metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
                 relationship.metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
+                relationship.metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
                 metadata_json.replace('\'', "''"),
                 created_at
             ),
@@ -264,10 +267,11 @@ impl TursoStorage {
         let reason: Option<String> = row.get(4).ok();
         let created_by: Option<String> = row.get(5).ok();
         let priority: Option<i64> = row.get(6).ok();
-        let metadata_json: String = row.get(7).map_err(|e| {
+        let weight: Option<f64> = row.get(7).ok();
+        let metadata_json: String = row.get(8).map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to get metadata: {}", e))
         })?;
-        let created_at_timestamp: i64 = row.get(8).map_err(|e| {
+        let created_at_timestamp: i64 = row.get(9).map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to get created_at: {}", e))
         })?;
 
@@ -291,6 +295,7 @@ impl TursoStorage {
             reason,
             created_by,
             priority: priority.map(|p| p as u8),
+            weight: weight.map(|w| w as f32),
             custom_fields,
         };
 
@@ -326,6 +331,192 @@ impl TursoStorage {
             .await?;
 
         Ok(relationships.into_iter().map(|r| r.to_episode_id).collect())
+    }
+
+    /// Store a relationship between an episode and a pattern
+    pub async fn store_episode_pattern_relationship(
+        &self,
+        relationship: &EpisodePatternRelationship,
+    ) -> Result<()> {
+        let conn = self.get_connection().await?;
+        let created_at = relationship.created_at.timestamp();
+
+        let metadata_json = serde_json::to_string(&relationship.metadata.custom_fields)
+            .map_err(|e| do_memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
+
+        self.execute_with_retry(
+            &conn,
+            &format!(
+                "INSERT INTO episode_pattern_relationships (relationship_id, episode_id, pattern_id, relationship_type, weight, metadata, created_at) VALUES ('{}', '{}', '{}', '{}', {}, '{}', {})",
+                relationship.id,
+                relationship.episode_id,
+                relationship.pattern_id,
+                relationship.relationship_type.as_str(),
+                relationship.metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
+                metadata_json.replace('\'', "''"),
+                created_at
+            ),
+        )
+        .await?;
+
+        debug!(
+            "Stored episode-pattern relationship {} from episode {} to pattern {} (type: {:?})",
+            relationship.id,
+            relationship.episode_id,
+            relationship.pattern_id,
+            relationship.relationship_type
+        );
+
+        Ok(())
+    }
+
+    /// Get pattern relationships for an episode
+    pub async fn get_episode_pattern_relationships(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Vec<EpisodePatternRelationship>> {
+        let conn = self.get_connection().await?;
+
+        let sql = format!(
+            "SELECT * FROM episode_pattern_relationships WHERE episode_id = '{}'",
+            episode_id
+        );
+
+        let stmt = conn.prepare(&sql).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
+        })?;
+
+        let mut rows = stmt.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+        })?;
+
+        let mut relationships = Vec::new();
+
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            let rel = self.row_to_episode_pattern_relationship(&row)?;
+            relationships.push(rel);
+        }
+
+        Ok(relationships)
+    }
+
+    /// Helper to convert a database row to an EpisodePatternRelationship
+    fn row_to_episode_pattern_relationship(
+        &self,
+        row: &libsql::Row,
+    ) -> Result<EpisodePatternRelationship> {
+        let relationship_id_str: String = row.get(0).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get relationship_id: {}", e))
+        })?;
+        let episode_id_str: String = row.get(1).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get episode_id: {}", e))
+        })?;
+        let pattern_id_str: String = row.get(2).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get pattern_id: {}", e))
+        })?;
+        let relationship_type_str: String = row.get(3).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get relationship_type: {}", e))
+        })?;
+
+        let weight: Option<f64> = row.get(4).ok();
+        let metadata_json: String = row.get(5).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get metadata: {}", e))
+        })?;
+        let created_at_timestamp: i64 = row.get(6).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to get created_at: {}", e))
+        })?;
+
+        let relationship_id = Uuid::parse_str(&relationship_id_str).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Invalid relationship_id UUID: {}", e))
+        })?;
+        let episode_id = Uuid::parse_str(&episode_id_str).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Invalid episode_id UUID: {}", e))
+        })?;
+        let pattern_id = Uuid::parse_str(&pattern_id_str).map_err(|e| {
+            do_memory_core::Error::Storage(format!("Invalid pattern_id UUID: {}", e))
+        })?;
+
+        let relationship_type = RelationshipType::parse(&relationship_type_str)
+            .map_err(do_memory_core::Error::Storage)?;
+
+        let custom_fields: HashMap<String, String> = serde_json::from_str(&metadata_json)
+            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+
+        let metadata = RelationshipMetadata {
+            reason: None,
+            created_by: None,
+            priority: None,
+            weight: weight.map(|w| w as f32),
+            custom_fields,
+        };
+
+        let created_at = chrono::DateTime::from_timestamp(created_at_timestamp, 0)
+            .ok_or_else(|| do_memory_core::Error::Storage("Invalid timestamp".to_string()))?;
+
+        Ok(EpisodePatternRelationship {
+            id: relationship_id,
+            episode_id,
+            pattern_id,
+            relationship_type,
+            metadata,
+            created_at,
+        })
+    }
+
+    /// Get weighted neighbors (episodes and patterns) for an episode
+    pub async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
+        let conn = self.get_connection().await?;
+        let mut neighbors = Vec::new();
+
+        // 1. Get episode neighbors
+        let sql_ep = format!(
+            "SELECT to_episode_id, weight FROM episode_relationships WHERE from_episode_id = '{}'",
+            episode_id
+        );
+        let stmt_ep = conn.prepare(&sql_ep).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
+        })?;
+        let mut rows_ep = stmt_ep.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+        })?;
+        while let Some(row) = rows_ep
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            let id_str: String = row.get(0).unwrap();
+            let weight: Option<f64> = row.get(1).ok();
+            let id = Uuid::parse_str(&id_str).unwrap();
+            neighbors.push((id, weight.map(|w| w as f32).unwrap_or(1.0), false));
+        }
+
+        // 2. Get pattern neighbors
+        let sql_pt = format!(
+            "SELECT pattern_id, weight FROM episode_pattern_relationships WHERE episode_id = '{}'",
+            episode_id
+        );
+        let stmt_pt = conn.prepare(&sql_pt).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
+        })?;
+        let mut rows_pt = stmt_pt.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+        })?;
+        while let Some(row) = rows_pt
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            let id_str: String = row.get(0).unwrap();
+            let weight: Option<f64> = row.get(1).ok();
+            let id = Uuid::parse_str(&id_str).unwrap();
+            neighbors.push((id, weight.map(|w| w as f32).unwrap_or(1.0), true));
+        }
+
+        Ok(neighbors)
     }
 }
 

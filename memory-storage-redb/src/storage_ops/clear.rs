@@ -4,9 +4,10 @@
 //! and manual cache clearing.
 
 use super::super::{
-    EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE,
-    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
-    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
+    EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE,
+    METADATA_TABLE, PATTERNS_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
+    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE,
+    SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
 use do_memory_core::{Error, Result};
@@ -35,6 +36,11 @@ impl RedbStorage {
                 Self::clear_table_entries(&write_txn, METADATA_TABLE, "metadata")?;
                 Self::clear_table_entries(&write_txn, SUMMARIES_TABLE, "summaries")?;
                 Self::clear_table_entries(&write_txn, RELATIONSHIPS_TABLE, "relationships")?;
+                Self::clear_table_entries(
+                    &write_txn,
+                    EPISODE_PATTERN_RELATIONSHIPS_TABLE,
+                    "episode_pattern_relationships",
+                )?;
                 Self::clear_table_entries(
                     &write_txn,
                     RECOMMENDATION_SESSIONS_TABLE,
@@ -89,6 +95,11 @@ impl RedbStorage {
                 Self::clear_table_entries(&write_txn, METADATA_TABLE, "metadata")?;
                 Self::clear_table_entries(&write_txn, SUMMARIES_TABLE, "summaries")?;
                 Self::clear_table_entries(&write_txn, RELATIONSHIPS_TABLE, "relationships")?;
+                Self::clear_table_entries(
+                    &write_txn,
+                    EPISODE_PATTERN_RELATIONSHIPS_TABLE,
+                    "episode_pattern_relationships",
+                )?;
             }
 
             write_txn

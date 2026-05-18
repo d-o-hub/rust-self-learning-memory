@@ -142,6 +142,8 @@ pub struct RelationshipMetadata {
     pub created_by: Option<String>,
     /// Priority/importance (1-10, higher is more important)
     pub priority: Option<u8>,
+    /// Weight for temporal or semantic significance (0.0 to 1.0)
+    pub weight: Option<f32>,
     /// Custom fields for extensibility
     #[serde(default)]
     pub custom_fields: HashMap<String, String>,
@@ -200,6 +202,43 @@ pub struct EpisodeRelationship {
     pub metadata: RelationshipMetadata,
     /// When this relationship was created
     pub created_at: DateTime<Utc>,
+}
+
+/// A relationship between an episode and a pattern.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EpisodePatternRelationship {
+    /// Unique identifier for this relationship
+    pub id: Uuid,
+    /// Source episode ID
+    pub episode_id: Uuid,
+    /// Target pattern ID
+    pub pattern_id: Uuid,
+    /// Type of relationship
+    pub relationship_type: RelationshipType,
+    /// Additional metadata
+    pub metadata: RelationshipMetadata,
+    /// When this relationship was created
+    pub created_at: DateTime<Utc>,
+}
+
+impl EpisodePatternRelationship {
+    /// Create a new episode-pattern relationship
+    #[must_use]
+    pub fn new(
+        episode_id: Uuid,
+        pattern_id: Uuid,
+        relationship_type: RelationshipType,
+        metadata: RelationshipMetadata,
+    ) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            episode_id,
+            pattern_id,
+            relationship_type,
+            metadata,
+            created_at: Utc::now(),
+        }
+    }
 }
 
 impl EpisodeRelationship {

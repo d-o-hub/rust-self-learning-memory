@@ -78,26 +78,42 @@ fn test_gist_extractor_high_value_keywords() {
 
 #[test]
 fn test_gist_extractor_positional_bias() {
-    let extractor = GistExtractor::default();
+    // Use max_key_points=2 on 3 sentences to force positional selection
+    let extractor = GistExtractor::new(2);
     let text =
         "This is the first sentence. Middle sentence that is neutral. Final conclusion sentence.";
     let gist = extractor.extract(text);
 
-    // First and last should be favored
-    assert!(gist.key_points.iter().any(|s| s.contains("first")));
-    assert!(gist.key_points.iter().any(|s| s.contains("Final")));
+    // With only 2 key points from 3 sentences, first and last should be favored
+    assert_eq!(
+        gist.key_points.len(),
+        2,
+        "Should select exactly 2 key points"
+    );
+    assert!(
+        gist.key_points.iter().any(|s| s.contains("first")),
+        "Should favor first sentence (positional bias)"
+    );
+    assert!(
+        gist.key_points.iter().any(|s| s.contains("Final")),
+        "Should favor last sentence (positional bias)"
+    );
 }
 
 #[test]
 fn test_gist_extractor_cognitive_markers() {
     let extractor = GistExtractor::default();
-    let s1 = "I updated the code."; // Simple action
-    let s2 = "I learned that the bug was due to race conditions and decided to refactor."; // High cognitive weight
+    // Use sentences of similar length to isolate cognitive marker effect
+    let s1 = "The code needs a simple update today."; // No cognitive markers
+    let s2 = "I learned and fixed the important bug today."; // Has cognitive + action markers
 
     let sentences = vec![s1.to_string(), s2.to_string()];
     let scored = extractor.score_sentences(&sentences);
 
-    assert!(scored[1].1 > scored[0].1);
+    assert!(
+        scored[1].1 > scored[0].1,
+        "Cognitive markers should boost score independent of length"
+    );
 }
 
 #[test]

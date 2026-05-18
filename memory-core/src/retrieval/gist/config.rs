@@ -98,6 +98,22 @@ impl RerankConfig {
     ///
     /// `Ok(())` if configuration is valid, `Err` with message if invalid
     pub fn validate(&self) -> Result<(), String> {
+        // Validate individual weight fields are in [0.0, 1.0]
+        let weights = [
+            ("relevance_weight", self.relevance_weight),
+            ("density_weight", self.density_weight),
+            (
+                "gist_query_similarity_weight",
+                self.gist_query_similarity_weight,
+            ),
+            ("recency_weight", self.recency_weight),
+        ];
+        for (name, value) in &weights {
+            if !(0.0..=1.0).contains(value) {
+                return Err(format!("{name} must be in [0.0, 1.0], got {value}"));
+            }
+        }
+
         let weight_sum = self.relevance_weight
             + self.density_weight
             + self.gist_query_similarity_weight

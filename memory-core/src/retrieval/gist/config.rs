@@ -76,8 +76,8 @@ impl RerankConfig {
             + self.density_weight
             + self.gist_query_similarity_weight
             + self.recency_weight;
-        if (weight_sum - 1.0).abs() > 0.15 {
-            return Err(format!("Weights should sum to ~1.0, got {weight_sum:.2}"));
+        if (weight_sum - 1.0).abs() > 0.05 {
+            return Err(format!("Weights must sum to 1.0, got {weight_sum}"));
         }
         if !(0.0..=1.0).contains(&self.diversity_lambda) {
             return Err("diversity_lambda must be in [0.0, 1.0]".to_string());

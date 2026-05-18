@@ -406,3 +406,33 @@ fn test_cycle_detection_performance() {
     assert!(!result);
     assert!(duration.as_millis() < 100);
 }
+
+#[test]
+fn test_weighted_neighbor_retrieval() {
+    let mut graph = HashMap::new();
+    let a = Uuid::new_v4();
+    let b = Uuid::new_v4();
+    let c = Uuid::new_v4();
+
+    let mut rel1 = create_rel(a, b);
+    rel1.metadata.weight = Some(0.8);
+    let mut rel2 = create_rel(a, c);
+    rel2.metadata.weight = Some(0.5);
+
+    graph.insert(a, vec![rel1, rel2]);
+
+    let neighbors = graph.get(&a).unwrap();
+    assert_eq!(neighbors.len(), 2);
+
+    let weight_b = neighbors
+        .iter()
+        .find(|r| r.to_episode_id == b)
+        .and_then(|r| r.metadata.weight);
+    let weight_c = neighbors
+        .iter()
+        .find(|r| r.to_episode_id == c)
+        .and_then(|r| r.metadata.weight);
+
+    assert_eq!(weight_b, Some(0.8));
+    assert_eq!(weight_c, Some(0.5));
+}

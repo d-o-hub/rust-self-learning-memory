@@ -139,11 +139,10 @@
 
 ### Backlog (Future)
 
-17. **WG-123**: 🔵 Evaluated — Temporal graph edges in episode store
+17. **WG-123**: Temporal graph edges in episode store
     - Priority: P3
     - Owner: feature-implement
     - Paper: REMem (ICLR 2026, arXiv:2602.13530)
-    - Result: Evaluation document at `plans/WG-123_TemporalGraph_Evaluation.md`
 
 18. **WG-124**: Procedural memory type
     - Priority: P3
@@ -155,11 +154,10 @@
     - Owner: code-reviewer
     - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
 
-20. **WG-126**: 🔵 Evaluated — Cross-agent memory collaboration (MemCollab)
+20. **WG-126**: Cross-agent memory collaboration (MemCollab)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
-    - Result: Evaluation document at `plans/WG-126_MemCollab_Evaluation.md`
 
 21. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
     - Priority: P3

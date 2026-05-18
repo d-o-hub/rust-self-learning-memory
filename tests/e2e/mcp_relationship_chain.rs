@@ -118,6 +118,7 @@ async fn test_mcp_relationship_full_chain() {
     let metadata = RelationshipMetadata {
         reason: Some("Design leads to implementation".to_string()),
         priority: Some(9),
+        weight: None,
         ..Default::default()
     };
 
@@ -444,6 +445,7 @@ async fn test_mcp_relationship_metadata() {
     let metadata = RelationshipMetadata {
         reason: Some("Important dependency relationship".to_string()),
         priority: Some(10),
+        weight: None,
         ..Default::default()
     };
 

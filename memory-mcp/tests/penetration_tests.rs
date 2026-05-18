@@ -105,10 +105,6 @@ async fn pentest_sandbox_escape_via_process_binding() {
             // Runtime errors are also acceptable
             eprintln!("Got expected error: {}", message);
         }
-        ExecutionResult::Timeout { .. } => {
-            // Timeout is acceptable in resource-constrained CI environments
-            eprintln!("Test timed out (acceptable)");
-        }
         other => {
             eprintln!("Got result: {:?}", other);
             panic!("Unexpected result type");

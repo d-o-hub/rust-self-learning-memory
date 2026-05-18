@@ -484,9 +484,15 @@ mod tests {
         // Initialize SDK and record some stats
         // Signature: record(name, latency, success, parameters, input_tokens, output_tokens)
         let tc = ToolCalls::new(&db_path).await.unwrap();
-        tc.record("test_tool", 100, true, None, None, None).await.unwrap();
-        tc.record("test_tool", 200, false, None, None, None).await.unwrap();
-        tc.record("other_tool", 50, true, None, None, None).await.unwrap();
+        tc.record("test_tool", 100, true, None, None, None)
+            .await
+            .unwrap();
+        tc.record("test_tool", 200, false, None, None, None)
+            .await
+            .unwrap();
+        tc.record("other_tool", 50, true, None, None, None)
+            .await
+            .unwrap();
 
         let config = AgentFsConfig {
             db_path: db_path.clone(),

@@ -6,6 +6,7 @@
 //! worker pool system, allowing episode completion to return quickly while
 //! pattern extraction happens in the background.
 
+pub mod distillation;
 pub mod queue;
 
 mod config;

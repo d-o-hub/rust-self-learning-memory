@@ -49,6 +49,7 @@
 pub mod api;
 pub mod attribution;
 pub mod checkpoint;
+pub mod collaboration;
 mod completion;
 mod episode;
 pub mod filters;

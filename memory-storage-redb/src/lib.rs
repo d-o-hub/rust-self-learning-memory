@@ -128,6 +128,8 @@ pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 pub(crate) const SUMMARIES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("summaries");
 pub(crate) const RELATIONSHIPS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("relationships");
+pub(crate) const EPISODE_PATTERN_RELATIONSHIPS_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("episode_pattern_relationships");
 pub(crate) const RECOMMENDATION_SESSIONS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("recommendation_sessions");
 pub(crate) const RECOMMENDATION_FEEDBACK_TABLE: TableDefinition<&str, &[u8]> =
@@ -153,7 +155,8 @@ pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str>
 /// ## Version history:
 /// - v1: Initial version (pre-versioning)
 /// - v2: Added checkpoints field to Episode (ADR-044 Feature 3)
-pub(crate) const SCHEMA_VERSION: u64 = 2;
+/// - v3: Added weight to relationships, added EpisodePatternRelationship (WG-123)
+pub(crate) const SCHEMA_VERSION: u64 = 3;
 
 pub(crate) const SCHEMA_VERSION_TABLE: TableDefinition<&str, u64> =
     TableDefinition::new("schema_version");

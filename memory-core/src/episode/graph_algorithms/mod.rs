@@ -14,8 +14,8 @@ use super::EpisodeRelationship;
 use super::relationship_errors::GraphError;
 
 pub use self::traversal::{
-    find_cycles_helper, find_path_dfs_helper, has_cycle_helper, has_path_dfs_helper,
-    topological_sort_helper,
+    find_cycles_helper, find_path_dfs_helper, find_weighted_path_helper, get_weighted_neighbors,
+    has_cycle_helper, has_path_dfs_helper, topological_sort_helper,
 };
 
 /// Check if a path exists from start to end using DFS.
@@ -419,4 +419,49 @@ where
     )?;
 
     Ok(cycles)
+}
+
+/// Find the path from start to end with the maximum total weight.
+///
+/// This is a simplified version of a shortest-path algorithm for weighted DAGs.
+///
+/// # Arguments
+///
+/// * `adjacency_list` - The graph represented as an adjacency list
+/// * `start` - The starting node (episode ID)
+/// * `end` - The target node (episode ID)
+///
+/// # Returns
+///
+/// `Ok(Option<(Vec<Uuid>, f32)>)` containing the path and its total weight,
+/// or `None` if no path exists.
+pub fn find_weighted_path<S>(
+    adjacency_list: &HashMap<Uuid, Vec<EpisodeRelationship>, S>,
+    start: Uuid,
+    end: Uuid,
+) -> Result<Option<(Vec<Uuid>, f32)>, GraphError>
+where
+    S: std::hash::BuildHasher,
+{
+    let mut visited = HashSet::new();
+    let mut current_path = Vec::new();
+    let mut best_path = None;
+    let mut best_weight = f32::MIN;
+
+    find_weighted_path_helper(
+        adjacency_list,
+        start,
+        end,
+        &mut visited,
+        &mut current_path,
+        0.0,
+        &mut best_path,
+        &mut best_weight,
+    )?;
+
+    if let Some(path) = best_path {
+        Ok(Some((path, best_weight)))
+    } else {
+        Ok(None)
+    }
 }

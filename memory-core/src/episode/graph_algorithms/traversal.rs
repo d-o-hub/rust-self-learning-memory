@@ -129,6 +129,82 @@ where
     Ok(())
 }
 
+/// Helper for finding the maximum weight path.
+pub fn find_weighted_path_helper<S>(
+    adjacency_list: &HashMap<Uuid, Vec<EpisodeRelationship>, S>,
+    current: Uuid,
+    target: Uuid,
+    visited: &mut HashSet<Uuid>,
+    path: &mut Vec<Uuid>,
+    current_weight: f32,
+    best_path: &mut Option<Vec<Uuid>>,
+    best_weight: &mut f32,
+) -> Result<(), GraphError>
+where
+    S: std::hash::BuildHasher,
+{
+    path.push(current);
+
+    if current == target {
+        if current_weight > *best_weight {
+            *best_weight = current_weight;
+            *best_path = Some(path.clone());
+        }
+        path.pop();
+        return Ok(());
+    }
+
+    visited.insert(current);
+
+    if let Some(neighbors) = adjacency_list.get(&current) {
+        for rel in neighbors {
+            let neighbor = rel.to_episode_id;
+            let weight = rel.metadata.weight.unwrap_or(1.0);
+
+            if !visited.contains(&neighbor) {
+                find_weighted_path_helper(
+                    adjacency_list,
+                    neighbor,
+                    target,
+                    visited,
+                    path,
+                    current_weight + weight,
+                    best_path,
+                    best_weight,
+                )?;
+            }
+        }
+    }
+
+    visited.remove(&current);
+    path.pop();
+    Ok(())
+}
+
+/// Get weighted neighbors from an adjacency list.
+pub fn get_weighted_neighbors<S>(
+    adjacency_list: &HashMap<Uuid, Vec<EpisodeRelationship>, S>,
+    episode_id: Uuid,
+) -> Vec<(Uuid, f32, bool)>
+where
+    S: std::hash::BuildHasher,
+{
+    adjacency_list
+        .get(&episode_id)
+        .map(|rels| {
+            rels.iter()
+                .map(|r| {
+                    (
+                        r.to_episode_id,
+                        r.metadata.weight.unwrap_or(1.0),
+                        false, // Default to not being a pattern in this generic helper
+                    )
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Helper for finding cycles from a specific node.
 pub fn find_cycles_helper<S>(
     adjacency_list: &HashMap<Uuid, Vec<EpisodeRelationship>, S>,

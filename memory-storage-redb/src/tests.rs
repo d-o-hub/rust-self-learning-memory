@@ -387,3 +387,98 @@ pub async fn test_find_similar_episodes_exact_limit() {
         .unwrap();
     assert_eq!(results.len(), 5);
 }
+
+#[tokio::test]
+pub async fn test_weighted_relationships_parity() {
+    let storage = create_test_storage().await.unwrap();
+    let ep1 = Uuid::new_v4();
+    let ep2 = Uuid::new_v4();
+
+    let mut metadata = do_memory_core::episode::RelationshipMetadata::new();
+    metadata.weight = Some(0.7);
+
+    let rel = do_memory_core::episode::EpisodeRelationship::new(
+        ep1,
+        ep2,
+        do_memory_core::episode::RelationshipType::RelatedTo,
+        metadata,
+    );
+
+    storage.store_relationship(&rel).await.unwrap();
+
+    let retrieved = storage
+        .get_relationships(ep1, do_memory_core::episode::Direction::Outgoing)
+        .await
+        .unwrap();
+    assert_eq!(retrieved.len(), 1);
+    assert_eq!(retrieved[0].metadata.weight, Some(0.7));
+}
+
+#[tokio::test]
+pub async fn test_episode_pattern_relationships_parity() {
+    let storage = create_test_storage().await.unwrap();
+    let ep_id = Uuid::new_v4();
+    let pt_id = Uuid::new_v4();
+
+    let mut metadata = do_memory_core::episode::RelationshipMetadata::new();
+    metadata.weight = Some(0.42);
+
+    let rel = do_memory_core::episode::EpisodePatternRelationship::new(
+        ep_id,
+        pt_id,
+        do_memory_core::episode::RelationshipType::References,
+        metadata,
+    );
+
+    storage
+        .store_episode_pattern_relationship(&rel)
+        .await
+        .unwrap();
+
+    let retrieved = storage
+        .get_episode_pattern_relationships(ep_id)
+        .await
+        .unwrap();
+    assert_eq!(retrieved.len(), 1);
+    assert_eq!(retrieved[0].pattern_id, pt_id);
+    assert_eq!(retrieved[0].metadata.weight, Some(0.42));
+}
+
+#[tokio::test]
+pub async fn test_get_weighted_neighbors_parity() {
+    let storage = create_test_storage().await.unwrap();
+    let ep1 = Uuid::new_v4();
+    let ep2 = Uuid::new_v4();
+    let pt1 = Uuid::new_v4();
+
+    // 1. Episode-Episode
+    let mut meta1 = do_memory_core::episode::RelationshipMetadata::new();
+    meta1.weight = Some(0.6);
+    let rel1 = do_memory_core::episode::EpisodeRelationship::new(
+        ep1,
+        ep2,
+        do_memory_core::episode::RelationshipType::RelatedTo,
+        meta1,
+    );
+    storage.store_relationship(&rel1).await.unwrap();
+
+    // 2. Episode-Pattern
+    let mut meta2 = do_memory_core::episode::RelationshipMetadata::new();
+    meta2.weight = Some(0.3);
+    let rel2 = do_memory_core::episode::EpisodePatternRelationship::new(
+        ep1,
+        pt1,
+        do_memory_core::episode::RelationshipType::References,
+        meta2,
+    );
+    storage.store_episode_pattern_relationship(&rel2).await.unwrap();
+
+    let neighbors = storage.get_weighted_neighbors(ep1).await.unwrap();
+    assert_eq!(neighbors.len(), 2);
+
+    let ep2_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == ep2 && !*is_pt).unwrap();
+    let pt1_neighbor = neighbors.iter().find(|(id, _, is_pt)| *id == pt1 && *is_pt).unwrap();
+
+    assert_eq!(ep2_neighbor.1, 0.6);
+    assert_eq!(pt1_neighbor.1, 0.3);
+}

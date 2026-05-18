@@ -15,6 +15,7 @@ use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
 use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
+use crate::learning::distillation::TrajectoryDistiller;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore, broadcast};
@@ -153,6 +154,12 @@ pub struct SelfLearningMemory {
     /// External event emitter for CloudEvents interoperability.
     /// Uses NoOpEmitter by default (zero overhead) unless configured.
     pub(super) event_emitter: Arc<dyn EventEmitter>,
+
+    // MemCollab (WG-126)
+    /// Trajectory distiller for MemCollab
+    pub(super) trajectory_distiller: TrajectoryDistiller,
+    /// Collaboration manager for MemCollab
+    pub(super) collaboration_manager: Arc<RwLock<crate::sync::collaboration::CollaborationManager>>,
 }
 
 impl SelfLearningMemory {

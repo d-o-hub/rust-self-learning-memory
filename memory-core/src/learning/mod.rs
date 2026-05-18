@@ -7,6 +7,7 @@
 //! pattern extraction happens in the background.
 
 pub mod queue;
+pub mod distillation;
 
 mod config;
 mod stats;

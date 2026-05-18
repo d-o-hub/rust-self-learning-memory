@@ -18,8 +18,8 @@ impl TrajectoryAdapter {
     /// Create a new trajectory adapter with identity matrix.
     pub fn new(task_type: TaskType, dimension: usize) -> Self {
         let mut matrix = vec![vec![0.0; dimension]; dimension];
-        for i in 0..dimension {
-            matrix[i][i] = 1.0;
+        for (i, row) in matrix.iter_mut().enumerate().take(dimension) {
+            row[i] = 1.0;
         }
         Self {
             task_type,
@@ -34,9 +34,9 @@ impl TrajectoryAdapter {
             TrajectoryRepresentation::Embedding(emb) => {
                 let dim = emb.len();
                 let mut adapted = vec![0.0; dim];
-                for i in 0..dim {
-                    for j in 0..dim {
-                        adapted[i] += emb[j] * self.matrix[j][i];
+                for (j, &emb_val) in emb.iter().enumerate().take(dim) {
+                    for (i, a) in adapted.iter_mut().enumerate().take(dim) {
+                        *a += emb_val * self.matrix[j][i];
                     }
                 }
                 TrajectoryRepresentation::Embedding(adapted)
@@ -96,6 +96,11 @@ impl TrajectoryTrainer {
         Ok(())
     }
 
+    #[allow(
+        clippy::infallible_destructuring_match,
+        clippy::manual_let_else,
+        irrefutable_let_patterns
+    )]
     fn update_step(&self, adapter: &mut TrajectoryAdapter, triplet: &TrajectoryTriplet) {
         let (anchor, pos, neg) = match (&triplet.anchor, &triplet.positive, &triplet.negative) {
             (
@@ -109,7 +114,7 @@ impl TrajectoryTrainer {
 
         let dim = anchor.len();
 
-        // Current adapted versions
+        // Current adapted versions — match is needed for #[cfg(feature = "csm")] support
         let a_adapted = match adapter.adapt(TrajectoryRepresentation::Embedding(anchor.clone())) {
             TrajectoryRepresentation::Embedding(v) => v,
             #[cfg(feature = "csm")]

@@ -219,7 +219,6 @@ mod tests {
         for priority in 1..=10 {
             let metadata = RelationshipMetadata {
                 priority: Some(priority),
-                weight: None,
                 ..Default::default()
             };
 
@@ -235,7 +234,6 @@ mod tests {
         // Test invalid priority (0)
         let metadata = RelationshipMetadata {
             priority: Some(0),
-            weight: None,
             ..Default::default()
         };
 
@@ -250,7 +248,6 @@ mod tests {
         // Test invalid priority (11)
         let metadata = RelationshipMetadata {
             priority: Some(11),
-            weight: None,
             ..Default::default()
         };
 
@@ -817,7 +814,6 @@ mod tests {
 
         let metadata = RelationshipMetadata {
             priority: Some(5),
-            weight: None,
             reason: Some("Test relationship".to_string()),
             ..Default::default()
         };

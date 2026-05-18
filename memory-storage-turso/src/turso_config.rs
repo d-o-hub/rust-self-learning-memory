@@ -97,13 +97,6 @@ impl TursoStorage {
         // Create Episode Relationships table and indexes
         self.execute_with_retry(&conn, schema::CREATE_EPISODE_RELATIONSHIPS_TABLE)
             .await?;
-        self.ensure_relationships_weight_column(&conn).await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_RELATIONSHIPS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_EPISODE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX)
-            .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)
@@ -226,47 +219,6 @@ impl TursoStorage {
         if !has_checkpoints {
             debug!("Adding missing episodes.checkpoints column");
             self.execute_with_retry(conn, schema::ADD_EPISODES_CHECKPOINTS_COLUMN)
-                .await?;
-        }
-
-        Ok(())
-    }
-
-    /// Ensure the episode_relationships.weight column exists.
-    async fn ensure_relationships_weight_column(&self, conn: &libsql::Connection) -> Result<()> {
-        let mut rows = conn
-            .query("PRAGMA table_info(episode_relationships)", ())
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!(
-                    "Failed to inspect episode_relationships schema: {}",
-                    e
-                ))
-            })?;
-
-        let mut has_weight = false;
-        while let Some(row) = rows.next().await.map_err(|e| {
-            do_memory_core::Error::Storage(format!(
-                "Failed to read episode_relationships schema row: {}",
-                e
-            ))
-        })? {
-            let column_name: String = row.get(1).map_err(|e| {
-                do_memory_core::Error::Storage(format!(
-                    "Failed to parse episode_relationships schema column name: {}",
-                    e
-                ))
-            })?;
-
-            if column_name == "weight" {
-                has_weight = true;
-                break;
-            }
-        }
-
-        if !has_weight {
-            debug!("Adding missing episode_relationships.weight column");
-            self.execute_with_retry(conn, schema::ADD_RELATIONSHIPS_WEIGHT_COLUMN)
                 .await?;
         }
 

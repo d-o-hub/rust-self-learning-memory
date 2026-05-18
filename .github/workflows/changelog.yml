@@ -26,7 +26,7 @@ jobs:
         run: git-cliff --config cliff.toml --output CHANGELOG.md
 
       - name: Create Pull Request for updated changelog
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }} [skip ci]"
           title: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }}"

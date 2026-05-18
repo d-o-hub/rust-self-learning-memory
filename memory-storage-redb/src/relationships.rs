@@ -1,11 +1,9 @@
 //! Redb cache layer for episode relationships.
 
-use crate::{EPISODE_PATTERN_RELATIONSHIPS_TABLE, RELATIONSHIPS_TABLE, RedbStorage, Result};
+use crate::{RELATIONSHIPS_TABLE, RedbStorage, Result};
 #[allow(unused_imports)] // False positive - import is used in error mapping
 use do_memory_core::Error;
-use do_memory_core::episode::{
-    Direction, EpisodePatternRelationship, EpisodeRelationship, RelationshipType,
-};
+use do_memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
 use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use tracing::debug;
 use uuid::Uuid;
@@ -43,93 +41,6 @@ impl RedbStorage {
         Ok(relationships
             .iter()
             .any(|r| r.to_episode_id == to_episode_id && r.relationship_type == relationship_type))
-    }
-
-    /// Store a relationship between an episode and a pattern (StorageBackend trait)
-    pub async fn store_episode_pattern_relationship(
-        &self,
-        relationship: &EpisodePatternRelationship,
-    ) -> Result<()> {
-        let write_txn = self
-            .db
-            .begin_write()
-            .map_err(|e| do_memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
-        {
-            let mut table = write_txn
-                .open_table(EPISODE_PATTERN_RELATIONSHIPS_TABLE)
-                .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
-            let key = relationship.id.to_string();
-            let value = postcard::to_allocvec(relationship).map_err(|e| {
-                do_memory_core::Error::Storage(format!("Serialization error: {}", e))
-            })?;
-            table
-                .insert(key.as_str(), value.as_slice())
-                .map_err(|e| do_memory_core::Error::Storage(format!("Insert failed: {}", e)))?;
-        }
-        write_txn
-            .commit()
-            .map_err(|e| do_memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
-
-        debug!(
-            "Cached episode-pattern relationship {} in redb",
-            relationship.id
-        );
-        Ok(())
-    }
-
-    /// Get pattern relationships for an episode (StorageBackend trait)
-    pub async fn get_episode_pattern_relationships(
-        &self,
-        episode_id: Uuid,
-    ) -> Result<Vec<EpisodePatternRelationship>> {
-        let read_txn = self
-            .db
-            .begin_read()
-            .map_err(|e| do_memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
-        let table = read_txn
-            .open_table(EPISODE_PATTERN_RELATIONSHIPS_TABLE)
-            .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
-
-        let mut relationships = Vec::new();
-        let iter = table.iter().map_err(|e| {
-            do_memory_core::Error::Storage(format!("Iterator creation failed: {}", e))
-        })?;
-
-        for item in iter {
-            let (_, value) = item.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Iterator next failed: {}", e))
-            })?;
-            let bytes = value.value();
-            let relationship: EpisodePatternRelationship =
-                postcard::from_bytes(bytes).map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
-                })?;
-
-            if relationship.episode_id == episode_id {
-                relationships.push(relationship);
-            }
-        }
-
-        Ok(relationships)
-    }
-
-    /// Get weighted neighbors (episodes and patterns) for an episode (StorageBackend trait)
-    pub async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
-        let mut neighbors = Vec::new();
-
-        // 1. Episode neighbors
-        let ep_rels = self.get_cached_relationships(episode_id, Direction::Outgoing)?;
-        for rel in ep_rels {
-            neighbors.push((rel.to_episode_id, rel.metadata.weight.unwrap_or(1.0), false));
-        }
-
-        // 2. Pattern neighbors
-        let pt_rels = self.get_episode_pattern_relationships(episode_id).await?;
-        for rel in pt_rels {
-            neighbors.push((rel.pattern_id, rel.metadata.weight.unwrap_or(1.0), true));
-        }
-
-        Ok(neighbors)
     }
 
     // Original redb-specific methods

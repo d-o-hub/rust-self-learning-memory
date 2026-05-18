@@ -1,5 +1,6 @@
 //! Hierarchical reranking for dense context retrieval.
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::episode::Episode;
@@ -64,37 +65,6 @@ impl GistScoredItem {
 }
 
 /// Hierarchical reranker for dense context retrieval.
-///
-/// Reranks retrieval results by gist density and diversity,
-/// returning fewer items with higher information density.
-///
-/// # Algorithm
-///
-/// 1. Extract gist from each episode
-/// 2. Compute combined score = relevance + density + recency
-/// 3. Apply MMR-style diversity selection
-/// 4. Return top-k dense items
-///
-/// # Examples
-///
-/// ```
-/// use do_memory_core::retrieval::{HierarchicalReranker, RerankConfig};
-/// use do_memory_core::episode::Episode;
-/// use do_memory_core::TaskContext;
-/// use do_memory_core::types::TaskType;
-/// use std::sync::Arc;
-///
-/// let reranker = HierarchicalReranker::new(RerankConfig::dense());
-///
-/// let ep1 = Arc::new(Episode::new("Fixed bug in auth".to_string(), TaskContext::default(), TaskType::Debugging));
-/// let ep2 = Arc::new(Episode::new("Added new feature".to_string(), TaskContext::default(), TaskType::CodeGeneration));
-///
-/// let items = vec![(ep1, 0.9), (ep2, 0.85)];
-/// let dense = reranker.rerank(items, 5);
-///
-/// // Returns at most 5 items, prioritized by density
-/// assert!(dense.len() <= 5);
-/// ```
 #[derive(Debug)]
 pub struct HierarchicalReranker {
     config: RerankConfig,
@@ -109,10 +79,6 @@ impl Default for HierarchicalReranker {
 
 impl HierarchicalReranker {
     /// Create a new hierarchical reranker.
-    ///
-    /// # Arguments
-    ///
-    /// * `config` - Configuration for reranking
     #[must_use]
     pub fn new(config: RerankConfig) -> Self {
         let max_key_points = config.max_key_points;
@@ -128,38 +94,13 @@ impl HierarchicalReranker {
         Self::new(RerankConfig::dense())
     }
 
-    /// Get the configuration.
-    #[must_use]
-    pub fn config(&self) -> &RerankConfig {
-        &self.config
-    }
-
     /// Rerank episodes by gist density.
-    ///
-    /// # Arguments
-    ///
-    /// * `episodes` - Episodes with their original relevance scores
-    /// * `top_k` - Maximum number of items to return
-    ///
-    /// # Returns
-    ///
-    /// Vector of gist-scored items, sorted by combined score
     #[must_use]
     pub fn rerank(&self, episodes: Vec<(Arc<Episode>, f32)>, top_k: usize) -> Vec<GistScoredItem> {
         self.rerank_with_query(episodes, "", top_k)
     }
 
     /// Rerank episodes using CogniRank (gist-to-query alignment).
-    ///
-    /// # Arguments
-    ///
-    /// * `episodes` - Episodes with their original relevance scores
-    /// * `query` - The user query to align gists against
-    /// * `top_k` - Maximum number of items to return
-    ///
-    /// # Returns
-    ///
-    /// Vector of gist-scored items, sorted by combined score
     #[must_use]
     pub fn rerank_with_query(
         &self,
@@ -171,7 +112,6 @@ impl HierarchicalReranker {
             return Vec::new();
         }
 
-        // 1. Extract gists and compute scores
         let mut items: Vec<GistScoredItem> = episodes
             .into_iter()
             .map(|(episode, relevance)| {
@@ -185,7 +125,6 @@ impl HierarchicalReranker {
             return Vec::new();
         }
 
-        // 2. Compute combined scores
         for item in &mut items {
             let recency = self.compute_recency_score(item.episode());
             let gist_query_sim = if query.is_empty() {
@@ -202,7 +141,6 @@ impl HierarchicalReranker {
             item.set_combined_score(score);
         }
 
-        // 3. Apply diversity selection (MMR-style)
         self.select_diverse(items, top_k)
     }
 
@@ -217,7 +155,6 @@ impl HierarchicalReranker {
             return 1.0;
         }
 
-        // Exponential decay with half-life
         let decay = 0.5_f32.powf(age_days / self.config.recency_half_life_days);
         decay.clamp(0.0, 1.0)
     }
@@ -246,7 +183,6 @@ impl HierarchicalReranker {
             return 0.0;
         }
 
-        // Jaccard similarity = intersection / union
         let intersection = gist_words.intersection(&query_words).count();
         let union = gist_words.union(&query_words).count();
 
@@ -260,7 +196,6 @@ impl HierarchicalReranker {
     /// Select diverse items using MMR-style algorithm.
     fn select_diverse(&self, items: Vec<GistScoredItem>, k: usize) -> Vec<GistScoredItem> {
         if items.len() <= k {
-            // Sort by combined score
             let mut sorted = items;
             sorted.sort_by(|a, b| {
                 b.combined_score()
@@ -273,12 +208,10 @@ impl HierarchicalReranker {
         let mut selected: Vec<GistScoredItem> = Vec::with_capacity(k);
         let mut remaining = items;
 
-        // Select first item (highest combined score)
         let first_idx = self.find_max_score_index(&remaining);
         let first = remaining.remove(first_idx);
         selected.push(first);
 
-        // Iterative MMR selection
         while selected.len() < k && !remaining.is_empty() {
             let best_idx = self.find_max_mmr_index(&remaining, &selected);
             let best = remaining.remove(best_idx);
@@ -316,8 +249,6 @@ impl HierarchicalReranker {
     }
 
     /// Compute MMR score for an item.
-    ///
-    /// MMR = lambda * Score(item) - (1-lambda) * max(Similarity(item, selected))
     fn compute_mmr_score(&self, item: &GistScoredItem, selected: &[GistScoredItem]) -> f32 {
         let relevance = item.combined_score();
 
@@ -325,7 +256,6 @@ impl HierarchicalReranker {
             return self.config.diversity_lambda * relevance;
         }
 
-        // Find maximum text similarity to selected items
         let max_similarity = selected
             .iter()
             .map(|s| self.compute_text_similarity(item, s))
@@ -337,8 +267,6 @@ impl HierarchicalReranker {
     }
 
     /// Compute text similarity between two items.
-    ///
-    /// Uses word overlap (Jaccard similarity) for gist comparison.
     pub fn compute_text_similarity(&self, item1: &GistScoredItem, item2: &GistScoredItem) -> f32 {
         let summary1 = item1.gist().summary();
         let summary2 = item2.gist().summary();
@@ -349,7 +277,6 @@ impl HierarchicalReranker {
             return 0.0;
         }
 
-        // Jaccard similarity = intersection / union
         let intersection = words1.intersection(&words2).count();
         let union = words1.union(&words2).count();
 
@@ -361,9 +288,10 @@ impl HierarchicalReranker {
     }
 
     /// Extract significant words from text.
-    fn extract_words<'a>(&self, text: &'a str) -> std::collections::HashSet<&'a str> {
-        text.split_whitespace()
-            .filter(|w| w.len() >= 3) // Skip short words
+    fn extract_words<'a>(&self, text: &'a str) -> HashSet<&'a str> {
+        text.split(|c: char| !c.is_alphanumeric())
+            .map(|s| s.trim())
+            .filter(|s| s.len() >= 3)
             .collect()
     }
 }

@@ -288,10 +288,70 @@ CREATE INDEX IF NOT EXISTS idx_heuristics_confidence
 ON heuristics(confidence DESC)
 "#;
 
-// Monitoring DDL moved to schema_monitoring.rs
-#[path = "schema_monitoring.rs"]
-mod schema_monitoring;
-pub use schema_monitoring::*;
+/// SQL to create the execution_records table for monitoring
+pub const CREATE_EXECUTION_RECORDS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS execution_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    agent_name TEXT NOT NULL,
+    agent_type TEXT NOT NULL,
+    success BOOLEAN NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    started_at INTEGER NOT NULL,
+    task_description TEXT,
+    error_message TEXT,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// SQL to create the agent_metrics table for monitoring
+pub const CREATE_AGENT_METRICS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS agent_metrics (
+    agent_name TEXT PRIMARY KEY NOT NULL,
+    agent_type TEXT NOT NULL,
+    total_executions INTEGER NOT NULL DEFAULT 0,
+    successful_executions INTEGER NOT NULL DEFAULT 0,
+    total_duration_ms INTEGER NOT NULL DEFAULT 0,
+    avg_duration_ms INTEGER NOT NULL DEFAULT 0,
+    min_duration_ms INTEGER NOT NULL DEFAULT 0,
+    max_duration_ms INTEGER NOT NULL DEFAULT 0,
+    last_execution INTEGER,
+    current_streak INTEGER NOT NULL DEFAULT 0,
+    longest_streak INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// SQL to create the task_metrics table for monitoring
+pub const CREATE_TASK_METRICS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS task_metrics (
+    task_type TEXT PRIMARY KEY NOT NULL,
+    total_tasks INTEGER NOT NULL DEFAULT 0,
+    completed_tasks INTEGER NOT NULL DEFAULT 0,
+    avg_completion_time_ms INTEGER NOT NULL DEFAULT 0,
+    agent_success_rates TEXT NOT NULL DEFAULT '{}',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// Index on execution_records for time-based queries
+pub const CREATE_EXECUTION_RECORDS_TIME_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_execution_records_time
+ON execution_records(started_at DESC)
+"#;
+
+/// Index on execution_records for agent-based queries
+pub const CREATE_EXECUTION_RECORDS_AGENT_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_execution_records_agent
+ON execution_records(agent_name, started_at DESC)
+"#;
+
+/// Index on agent_metrics for type-based queries
+pub const CREATE_AGENT_METRICS_TYPE_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_agent_metrics_type
+ON agent_metrics(agent_type)
+"#;
 
 // ======= Phase 2 (GENESIS) Schema =======
 
@@ -381,7 +441,6 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     reason TEXT,
     created_by TEXT,
     priority INTEGER,
-    weight REAL,
     metadata TEXT NOT NULL DEFAULT '{}',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (from_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
@@ -413,35 +472,3 @@ pub const CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_relationships_bidirectional 
     ON episode_relationships(from_episode_id, to_episode_id)
 "#;
-
-/// SQL to create the episode_pattern_relationships table
-pub const CREATE_EPISODE_PATTERN_RELATIONSHIPS_TABLE: &str = r#"
-CREATE TABLE IF NOT EXISTS episode_pattern_relationships (
-    relationship_id TEXT PRIMARY KEY NOT NULL,
-    episode_id TEXT NOT NULL,
-    pattern_id TEXT NOT NULL,
-    relationship_type TEXT NOT NULL,
-    weight REAL,
-    metadata TEXT NOT NULL DEFAULT '{}',
-    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-    FOREIGN KEY (episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
-    FOREIGN KEY (pattern_id) REFERENCES patterns(pattern_id) ON DELETE CASCADE,
-    UNIQUE(episode_id, pattern_id, relationship_type)
-)
-"#;
-
-/// Index on episode_pattern_relationships for efficient episode lookup
-pub const CREATE_EPISODE_PATTERN_REL_EPISODE_INDEX: &str = r#"
-CREATE INDEX IF NOT EXISTS idx_episode_pattern_rel_episode
-    ON episode_pattern_relationships(episode_id)
-"#;
-
-/// Index on episode_pattern_relationships for efficient pattern lookup
-pub const CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX: &str = r#"
-CREATE INDEX IF NOT EXISTS idx_episode_pattern_rel_pattern
-    ON episode_pattern_relationships(pattern_id)
-"#;
-
-/// Migration SQL to add weight column to existing episode_relationships table.
-pub const ADD_RELATIONSHIPS_WEIGHT_COLUMN: &str =
-    "ALTER TABLE episode_relationships ADD COLUMN weight REAL";

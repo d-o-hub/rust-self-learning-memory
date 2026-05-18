@@ -48,10 +48,7 @@ pub use graph_algorithms::{
 };
 pub use relationship_errors::{GraphError, RemovalError, ValidationError};
 pub use relationship_manager::RelationshipManager;
-pub use relationships::{
-    Direction, EpisodePatternRelationship, EpisodeRelationship, RelationshipMetadata,
-    RelationshipType,
-};
+pub use relationships::{Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType};
 pub use retention::{
     CleanupResult, DEFAULT_CLEANUP_BATCH_SIZE, DEFAULT_CLEANUP_INTERVAL, DEFAULT_MAX_AGE_DAYS,
     DEFAULT_MAX_EPISODES, DEFAULT_MIN_REWARD_THRESHOLD, EpisodeRetentionPolicy, RetentionCriterion,

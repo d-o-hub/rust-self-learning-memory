@@ -4,10 +4,10 @@
 //! data structures change.
 
 use super::super::{
-    EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE,
-    METADATA_TABLE, PATTERNS_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
-    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE,
-    SCHEMA_VERSION, SCHEMA_VERSION_TABLE, SUMMARIES_TABLE, with_db_timeout,
+    EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE,
+    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SCHEMA_VERSION, SCHEMA_VERSION_TABLE,
+    SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
 use do_memory_core::{Error, Result};
@@ -54,14 +54,6 @@ impl RedbStorage {
                 let _relationships = write_txn.open_table(RELATIONSHIPS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open relationships table: {}", e))
                 })?;
-                let _ep_pt_relationships = write_txn
-                    .open_table(EPISODE_PATTERN_RELATIONSHIPS_TABLE)
-                    .map_err(|e| {
-                        Error::Storage(format!(
-                            "Failed to open episode pattern relationships table: {}",
-                            e
-                        ))
-                    })?;
                 let _rec_sessions = write_txn
                     .open_table(RECOMMENDATION_SESSIONS_TABLE)
                     .map_err(|e| {

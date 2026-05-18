@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-05-17 (WG-127 completed; file size splits)
+- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary

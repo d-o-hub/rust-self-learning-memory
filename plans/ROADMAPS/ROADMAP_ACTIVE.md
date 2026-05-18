@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-17 (WG-127 completed; file size splits)
+**Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed; plans sync)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED

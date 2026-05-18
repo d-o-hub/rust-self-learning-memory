@@ -264,7 +264,7 @@ jobs:
           echo "Badge written to .github/badges/coverage.svg"
 
       - name: Create Pull Request for updated badge
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(ci): update coverage badge [skip ci]"
           title: "chore(ci): update coverage badge"

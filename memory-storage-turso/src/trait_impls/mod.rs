@@ -124,27 +124,6 @@ impl StorageBackend for super::TursoStorage {
         .await
     }
 
-    async fn store_episode_pattern_relationship(
-        &self,
-        relationship: &do_memory_core::episode::EpisodePatternRelationship,
-    ) -> Result<()> {
-        super::TursoStorage::store_episode_pattern_relationship(self, relationship).await
-    }
-
-    async fn get_episode_pattern_relationships(
-        &self,
-        episode_id: uuid::Uuid,
-    ) -> Result<Vec<do_memory_core::episode::EpisodePatternRelationship>> {
-        super::TursoStorage::get_episode_pattern_relationships(self, episode_id).await
-    }
-
-    async fn get_weighted_neighbors(
-        &self,
-        episode_id: uuid::Uuid,
-    ) -> Result<Vec<(uuid::Uuid, f32, bool)>> {
-        super::TursoStorage::get_weighted_neighbors(self, episode_id).await
-    }
-
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         super::TursoStorage::store_recommendation_session(self, session).await
     }

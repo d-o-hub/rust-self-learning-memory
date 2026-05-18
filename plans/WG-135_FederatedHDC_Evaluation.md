@@ -3,7 +3,7 @@
 **Date**: 2026-05-01
 **Paper**: arXiv:2603.20037 — "Federated Hyperdimensional Computing for Resource-Constrained Industrial IoT"
 **Authors**: Nikita Zeulin, O. Galinina, R. Balakrishnan, N. Himayat, S. Andreev
-**Status**: ✅ Evaluated — Recommended for P3 backlog
+**Status**: 🔵 Evaluated — Recommended for P3 backlog
 
 ---
 
@@ -108,69 +108,6 @@ Agent A                         Aggregator                      Agent B
 | `MultiAgentMemory` | Orchestrate federated memory across agent instances | ~200 |
 | Tests | Integration + property tests | ~200 |
 | **Total** | | **~730** |
-
----
-
-## Technical Alignment: HDC for Trajectory Distillation
-
-### Encoding Agent Trajectories (MemCollab Alignment)
-
-MemCollab (arXiv:2603.23234) proposes contrastive trajectory distillation for
-sharing cross-agent experiences. Federated HDC (arXiv:2603.20037) provides a
-highly efficient mechanism to implement this:
-
-1. **Step Encoding**: Each tool-call or execution step is encoded as an HVec
-2. **Trajectory Binding**: A sequence of steps $S_1, S_2, \dots, S_n$ is encoded
-   using the permutation operator ($\Pi$) to preserve temporal order:
-   $H_{traj} = S_1 + \Pi(S_2) + \Pi^2(S_3) + \dots + \Pi^{n-1}(S_n)$
-3. **Prototype Distillation**: Multiple trajectories representing a successful
-   pattern (e.g., "fix-rust-clippy-lint") are bundled into a single prototype:
-   $P_{pattern} = \text{Bundle}(H_{traj\_1}, H_{traj\_2}, \dots, H_{traj\_k})$
-
-This allows agents to share **actionable sequences** rather than just static
-semantic embeddings.
-
-### Bandwidth & Resource Comparison
-
-| Metric | Full Distillation (MemCollab) | Federated HDC Prototype | Savings |
-|--------|-----------------------------|-------------------------|---------|
-| Payload Size | 100-500 KB (Weights/Embeds) | 1.25 KB (10,240 bits) | **~98%** |
-| Aggregation | Gradient averaging (heavy) | Bitwise bundling (SIMD) | **~99%** |
-| Local Compute | Backprop required | One-shot (XOR/Sum) | **High** |
-
----
-
-## Proposed Data Structures
-
-### MemoryPrototype
-
-```rust
-/// A distilled memory representation for a specific concept or pattern.
-pub struct MemoryPrototype {
-    /// Unique identifier for the concept (e.g., "rust-refactoring-v1")
-    pub concept_id: String,
-    /// The 10,240-bit hypervector representing the distilled experience
-    pub vector: HVec10240,
-    /// Number of episodes bundled into this prototype
-    pub sample_count: u32,
-    /// Average reward/confidence for this prototype
-    pub confidence: f32,
-}
-```
-
-### PrototypePayload
-
-```rust
-/// The network exchange format for federated HDC.
-pub struct PrototypePayload {
-    /// Agent identifier
-    pub agent_id: String,
-    /// Collection of prototypes being shared
-    pub prototypes: Vec<MemoryPrototype>,
-    /// Timestamp of generation
-    pub timestamp: u64,
-}
-```
 
 ---
 

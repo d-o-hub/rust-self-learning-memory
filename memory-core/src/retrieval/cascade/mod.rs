@@ -9,6 +9,8 @@
 //! The cascade eliminates 50-70% of embedding API calls by satisfying
 //! queries from CPU-local tiers before falling back to the API.
 
+use anyhow::Result;
+
 mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
@@ -196,7 +198,7 @@ impl CascadeRetriever {
     /// 4. API fallback (requires external embedding call)
     ///
     /// Without `csm`, returns empty results (placeholder behavior).
-    pub fn retrieve(&self, query: &str) -> CascadeResult {
+    pub fn retrieve(&self, query: &str) -> Result<CascadeResult> {
         #[cfg(feature = "csm")]
         {
             self.retrieve_with_csm(query)
@@ -207,12 +209,12 @@ impl CascadeRetriever {
             // Placeholder implementation - returns empty results
             // query is intentionally unused in placeholder mode
             let _ = query;
-            CascadeResult {
+            Ok(CascadeResult {
                 episode_ids: Vec::new(),
                 scores: Vec::new(),
                 contributing_tiers: Vec::new(),
                 api_calls: 0,
-            }
+            })
         }
     }
 

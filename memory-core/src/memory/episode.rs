@@ -433,19 +433,3 @@ impl SelfLearningMemory {
         Err(Error::NotFound(episode_id))
     }
 }
-
-impl SelfLearningMemory {
-    /// Start a new version of an existing episode.
-    pub async fn start_next_version(&self, episode_id: Uuid) -> Result<Uuid> {
-        let parent = self.get_episode(episode_id).await?;
-        let next_version = parent.new_version();
-        let next_id = next_version.episode_id;
-
-        {
-            let mut episodes = self.episodes_fallback.write().await;
-            episodes.insert(next_id, Arc::new(next_version));
-        }
-
-        Ok(next_id)
-    }
-}

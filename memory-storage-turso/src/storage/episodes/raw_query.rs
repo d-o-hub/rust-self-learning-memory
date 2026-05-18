@@ -135,7 +135,7 @@ pub const EPISODE_SELECT_COLUMNS: &str = r#"
     reflection, patterns, heuristics,
     COALESCE(checkpoints, '[]') AS checkpoints,
     metadata, domain, language,
-    version, parent_id, archived_at
+    archived_at
 "#;
 
 impl TursoStorage {

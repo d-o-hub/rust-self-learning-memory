@@ -18,7 +18,6 @@ pub mod affinity;
 pub mod changepoint;
 pub mod clustering;
 pub mod dbscan;
-pub mod drift;
 pub mod effectiveness;
 pub mod extractors;
 pub mod optimized_validator;
@@ -38,7 +37,6 @@ pub use dbscan::{
     Anomaly, AnomalyReason, DBSCANAnomalyDetector, DBSCANClusterResult, DBSCANConfig, DBSCANStats,
     FeatureWeights,
 };
-pub use drift::DriftAnalyzer;
 pub use effectiveness::{EffectivenessTracker, OverallStats, PatternUsage, UsageStats};
 pub use extractors::{
     ContextPatternExtractor, DecisionPointExtractor, ErrorRecoveryExtractor,

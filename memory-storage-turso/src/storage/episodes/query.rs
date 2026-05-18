@@ -27,7 +27,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   version, parent_id, archived_at
+                   archived_at
             FROM episodes WHERE 1=1
         "#,
         );
@@ -103,7 +103,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   version, parent_id, archived_at
+                   archived_at
             FROM episodes
             WHERE start_time >= ?
             ORDER BY start_time DESC
@@ -174,7 +174,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   version, parent_id, archived_at
+                   archived_at
             FROM episodes
             WHERE json_extract(metadata, ?) = ?
             ORDER BY start_time DESC

@@ -468,22 +468,3 @@ fn test_tags_are_case_insensitive() {
     assert!(episode.remove_tag("BuG-FiX"));
     assert!(!episode.has_tag("bug-fix"));
 }
-
-#[test]
-fn test_episode_new_version() {
-    let context = TaskContext::default();
-    let episode = Episode::new("Version 1".to_string(), context, TaskType::CodeGeneration);
-
-    assert_eq!(episode.version, 1);
-    assert_eq!(episode.parent_id, None);
-
-    let v2 = episode.new_version();
-    assert_eq!(v2.version, 2);
-    assert_eq!(v2.parent_id, Some(episode.episode_id));
-    assert_eq!(v2.task_description, episode.task_description);
-    assert_eq!(v2.task_type, episode.task_type);
-
-    let v3 = v2.new_version();
-    assert_eq!(v3.version, 3);
-    assert_eq!(v3.parent_id, Some(episode.episode_id));
-}

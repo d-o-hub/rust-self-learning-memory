@@ -32,8 +32,6 @@ mod cache_tests {
             salient_features: None,
             tags: vec![],
             checkpoints: vec![],
-            version: 1,
-            parent_id: None,
             metadata: HashMap::new(),
         })
     }

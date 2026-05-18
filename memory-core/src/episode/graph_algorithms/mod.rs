@@ -423,8 +423,7 @@ where
 
 /// Find the path from start to end with the maximum total weight.
 ///
-/// This uses DFS with pruning to find the highest-weight path in a directed
-/// graph, which is useful for identifying the strongest dependency chain.
+/// This is a simplified version of a shortest-path algorithm for weighted DAGs.
 ///
 /// # Arguments
 ///

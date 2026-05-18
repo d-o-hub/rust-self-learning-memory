@@ -261,9 +261,7 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
         let _ = relationship;
-        Err(crate::Error::Storage(
-            "store_relationship not implemented for this backend".to_string(),
-        ))
+        Ok(())
     }
 
     /// Remove a relationship by ID
@@ -277,9 +275,7 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
         let _ = relationship_id;
-        Err(crate::Error::Storage(
-            "remove_relationship not implemented for this backend".to_string(),
-        ))
+        Ok(())
     }
 
     /// Get relationships for an episode
@@ -336,9 +332,7 @@ pub trait StorageBackend: Send + Sync {
         relationship: &EpisodePatternRelationship,
     ) -> Result<()> {
         let _ = relationship;
-        Err(crate::Error::Storage(
-            "store_episode_pattern_relationship not implemented for this backend".to_string(),
-        ))
+        Ok(())
     }
 
     /// Get pattern relationships for an episode

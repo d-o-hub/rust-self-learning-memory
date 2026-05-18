@@ -165,10 +165,6 @@ where
         for rel in neighbors {
             let neighbor = rel.to_episode_id;
             let weight = rel.metadata.weight.unwrap_or(1.0);
-            // Sanitize non-finite weights that would poison traversal
-            if !weight.is_finite() || weight < 0.0 {
-                continue;
-            }
 
             if !state.visited.contains(&neighbor) {
                 find_weighted_path_helper(

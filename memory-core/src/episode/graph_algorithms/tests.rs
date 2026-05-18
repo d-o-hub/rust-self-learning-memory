@@ -1,8 +1,8 @@
 //! Tests for graph algorithms.
 
 use crate::episode::graph_algorithms::{
-    find_all_cycles_from_node, find_path_dfs, get_ancestors, get_transitive_closure, has_cycle,
-    has_path_dfs, topological_sort,
+    find_all_cycles_from_node, find_path_dfs, get_ancestors, get_transitive_closure,
+    get_weighted_neighbors, has_cycle, has_path_dfs, topological_sort,
 };
 use crate::episode::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
 use std::collections::HashMap;
@@ -421,17 +421,19 @@ fn test_weighted_neighbor_retrieval() {
 
     graph.insert(a, vec![rel1, rel2]);
 
-    let neighbors = graph.get(&a).unwrap();
+    // Test should exercise the get_weighted_neighbors helper instead of
+    // raw map access for proper API coverage
+    let neighbors = get_weighted_neighbors(&graph, a);
     assert_eq!(neighbors.len(), 2);
 
     let weight_b = neighbors
         .iter()
-        .find(|r| r.to_episode_id == b)
-        .and_then(|r| r.metadata.weight);
+        .find(|(id, _, _)| *id == b)
+        .map(|(_, w, _)| *w);
     let weight_c = neighbors
         .iter()
-        .find(|r| r.to_episode_id == c)
-        .and_then(|r| r.metadata.weight);
+        .find(|(id, _, _)| *id == c)
+        .map(|(_, w, _)| *w);
 
     assert_eq!(weight_b, Some(0.8));
     assert_eq!(weight_c, Some(0.5));

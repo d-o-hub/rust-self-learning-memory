@@ -151,7 +151,55 @@ impl TursoStorage {
         Ok(())
     }
 
-    /// Execute a SQL statement with retry logic
+    /// Execute a SQL statement with retry logic (parameterized variant).
+    ///
+    /// Accepts a `&[libsql::Value]` slice for parameter binding via
+    /// `libsql::params_from_iter`. Prefer this over `execute_with_retry` when
+    /// user-supplied values are part of the query to prevent SQL injection.
+    pub async fn execute_with_retry_params(
+        &self,
+        conn: &Connection,
+        sql: &str,
+        params: &[libsql::Value],
+    ) -> Result<()> {
+        let mut attempts = 0;
+        let mut delay = std::time::Duration::from_millis(self.config.retry_base_delay_ms);
+
+        loop {
+            match conn
+                .execute(sql, libsql::params_from_iter(params.to_vec()))
+                .await
+            {
+                Ok(_) => {
+                    if attempts > 0 {
+                        debug!("SQL succeeded after {} retries", attempts);
+                    }
+                    return Ok(());
+                }
+                Err(e) => {
+                    attempts += 1;
+                    if attempts >= self.config.max_retries {
+                        error!("SQL failed after {} attempts: {}", attempts, e);
+                        return Err(Error::Storage(format!(
+                            "SQL execution failed after {} retries: {}",
+                            attempts, e
+                        )));
+                    }
+
+                    warn!("SQL attempt {} failed: {}, retrying...", attempts, e);
+                    tokio::time::sleep(delay).await;
+
+                    // Exponential backoff
+                    delay = std::cmp::min(
+                        delay * 2,
+                        std::time::Duration::from_millis(self.config.retry_max_delay_ms),
+                    );
+                }
+            }
+        }
+    }
+
+    /// Execute a SQL statement with retry logic (no parameters).
     pub async fn execute_with_retry(&self, conn: &Connection, sql: &str) -> Result<()> {
         let mut attempts = 0;
         let mut delay = std::time::Duration::from_millis(self.config.retry_base_delay_ms);

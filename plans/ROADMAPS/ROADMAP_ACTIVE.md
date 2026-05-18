@@ -84,7 +84,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | ✅ Complete (evaluation doc) | 132 |
 | WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | ✅ Complete (evaluation doc) | 133 |
 | WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | ✅ Complete (~1,320 LOC, 24 tests, ADR-054) | 134 |
-| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
+| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | ✅ Complete (evaluation doc) | 135 |
 | WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
 | WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |
 | WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | ✅ Complete | 138 |

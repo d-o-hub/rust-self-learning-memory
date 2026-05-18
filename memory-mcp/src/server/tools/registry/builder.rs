@@ -266,5 +266,22 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
         crate::mcp::tools::checkpoint::CheckpointTools::checkpoint_episode_tool(),
         crate::mcp::tools::checkpoint::CheckpointTools::get_handoff_pack_tool(),
         crate::mcp::tools::checkpoint::CheckpointTools::resume_from_handoff_tool(),
+        // WG-108: Concept drift analysis tool
+        Tool::new(
+            "analyze_concept_drift".to_string(),
+            "Analyze a versioned episode chain for statistical concept drift in performance"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "parent_id": {
+                        "type": "string",
+                        "description": "Parent episode ID (the concept identifier)",
+                        "format": "uuid"
+                    }
+                },
+                "required": ["parent_id"]
+            }),
+        ),
     ]
 }

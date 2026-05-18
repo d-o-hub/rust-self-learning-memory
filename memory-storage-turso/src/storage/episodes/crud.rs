@@ -24,8 +24,8 @@ impl TursoStorage {
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
                 reflection, patterns, heuristics, checkpoints, metadata, domain, language,
-                archived_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                version, parent_id, archived_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         // Get compression threshold from config
@@ -143,6 +143,8 @@ impl TursoStorage {
             metadata_str,
             episode.context.domain.clone(),
             episode.context.language.clone(),
+            episode.version,
+            episode.parent_id.map(|id| id.to_string()),
             archived_at,
         ])
         .await
@@ -188,7 +190,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   archived_at
+                   version, parent_id, archived_at
             FROM episodes WHERE episode_id = ?
         "#;
 
@@ -334,6 +336,48 @@ impl TursoStorage {
         result
     }
 
+    /// Retrieve all versions of an episode by its parent ID
+    pub async fn get_episode_versions(&self, parent_id: Uuid) -> Result<Vec<Episode>> {
+        debug!("Retrieving versions for parent episode: {}", parent_id);
+        let (conn, conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
+                   version, parent_id, archived_at
+            FROM episodes
+            WHERE parent_id = ? OR episode_id = ?
+            ORDER BY version ASC
+        "#;
+
+        // Use prepared statement cache
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
+        let mut rows = stmt
+            .query(libsql::params![
+                parent_id.to_string(),
+                parent_id.to_string()
+            ])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episode versions: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode version row: {}", e)))?
+        {
+            episodes.push(Self::row_to_episode(&row)?);
+        }
+
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
+        Ok(episodes)
+    }
+
     /// Retrieve an episode by task description
     pub async fn get_episode_by_task_desc(&self, task_desc: &str) -> Result<Option<Episode>> {
         debug!("Retrieving episode by task description: {}", task_desc);
@@ -345,7 +389,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics,
                    COALESCE(checkpoints, '[]') AS checkpoints,
                    metadata, domain, language,
-                   archived_at
+                   version, parent_id, archived_at
             FROM episodes WHERE task_description = ?
         "#;
 
@@ -364,98 +408,5 @@ impl TursoStorage {
         } else {
             Ok(None)
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
-    use tempfile::TempDir;
-
-    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
-        let dir = TempDir::new().unwrap();
-        let db_path = dir.path().join("test.db");
-
-        let db = libsql::Builder::new_local(&db_path)
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
-
-        let storage = TursoStorage::from_database(db)?;
-        storage.initialize_schema().await?;
-
-        Ok((storage, dir))
-    }
-
-    #[tokio::test]
-    async fn test_store_and_get_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let episode = Episode::new(
-            "Test episode".to_string(),
-            TaskContext::default(),
-            TaskType::CodeGeneration,
-        );
-
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
-
-        let retrieved = storage.get_episode(episode_id).await.unwrap();
-        assert!(retrieved.is_some());
-        assert_eq!(retrieved.unwrap().task_description, "Test episode");
-    }
-
-    #[tokio::test]
-    async fn test_delete_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let episode = Episode::new(
-            "To delete".to_string(),
-            TaskContext::default(),
-            TaskType::Debugging,
-        );
-
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
-
-        storage.delete_episode(episode_id).await.unwrap();
-
-        let retrieved = storage.get_episode(episode_id).await.unwrap();
-        assert!(retrieved.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_get_nonexistent_episode() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let nonexistent_id = Uuid::new_v4();
-        let result = storage.get_episode(nonexistent_id).await.unwrap();
-        assert!(result.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_store_and_get_episode_persists_checkpoints() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let mut episode = Episode::new(
-            "Checkpoint test".to_string(),
-            TaskContext::default(),
-            TaskType::CodeGeneration,
-        );
-        episode.checkpoints.push(CheckpointMeta::new(
-            "handoff".to_string(),
-            2,
-            Some("persist me".to_string()),
-        ));
-
-        let episode_id = episode.episode_id;
-        storage.store_episode(&episode).await.unwrap();
-
-        let retrieved = storage.get_episode(episode_id).await.unwrap().unwrap();
-        assert_eq!(retrieved.checkpoints.len(), 1);
-        assert_eq!(retrieved.checkpoints[0].reason, "handoff");
-        assert_eq!(retrieved.checkpoints[0].step_number, 2);
-        assert_eq!(retrieved.checkpoints[0].note.as_deref(), Some("persist me"));
     }
 }

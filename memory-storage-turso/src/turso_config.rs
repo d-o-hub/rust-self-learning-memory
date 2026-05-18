@@ -21,6 +21,7 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
             .await?;
         self.ensure_episodes_checkpoints_column(&conn).await?;
+        self.ensure_episodes_version_columns(&conn).await?;
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_TABLE)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
@@ -115,6 +116,42 @@ impl TursoStorage {
         self.initialize_vector_tables(&conn).await?;
 
         info!("Schema initialization complete");
+        Ok(())
+    }
+
+    /// Ensure the episodes version and parent_id columns exist for backward compatibility.
+    async fn ensure_episodes_version_columns(&self, conn: &libsql::Connection) -> Result<()> {
+        let mut rows = conn
+            .query("PRAGMA table_info(episodes)", ())
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to inspect episodes schema: {}", e))
+            })?;
+
+        let mut has_version = false;
+        while let Some(row) = rows.next().await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to read episodes schema row: {}", e))
+        })? {
+            let column_name: String = row.get(1).map_err(|e| {
+                do_memory_core::Error::Storage(format!(
+                    "Failed to parse episodes schema column name: {}",
+                    e
+                ))
+            })?;
+
+            if column_name == "version" {
+                has_version = true;
+                break;
+            }
+        }
+
+        if !has_version {
+            debug!("Adding missing episodes version and parent_id columns");
+            for migration in schema::ADD_EPISODES_VERSION_COLUMNS {
+                self.execute_with_retry(conn, migration).await?;
+            }
+        }
+
         Ok(())
     }
 

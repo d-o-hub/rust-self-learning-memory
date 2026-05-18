@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
+- **Last Updated**: 2026-05-17 (WG-127 completed; file size splits)
 - **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
@@ -159,10 +159,11 @@
     - Owner: feature-implement
     - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
 
-21. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
+21. **WG-127**: ✅ Complete — Semantic gist extraction + CogniRank (CogitoRAG)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
+    - Result: Implemented on branch `wg-127-cognirank-gist-extraction`
 
 22. **WG-132**: ✅ Complete — Evaluate LottaLoRA-inspired local classifier for episode types
     - Priority: P3

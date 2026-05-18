@@ -70,7 +70,7 @@ impl TrajectoryDistiller {
         );
 
         // Convert signature + episode data to text for encoding/embedding
-        let _distillation_text = format!(
+        let distillation_text = format!(
             "Task: {} | Tools: {:?} | Steps: {} | Success: {} | Outcome: {:?}",
             episode.task_description,
             signature.tools,
@@ -82,12 +82,19 @@ impl TrajectoryDistiller {
         #[cfg(feature = "csm")]
         if self.use_hdc {
             let encoder = chaotic_semantic_memory::encoder::TextEncoder::new();
-            return TrajectoryRepresentation::Hyperdim(encoder.encode(&_distillation_text));
+            return TrajectoryRepresentation::Hyperdim(encoder.encode(&distillation_text));
         }
 
         // Fallback to simple embedding (mocked for now as we don't have async here)
-        // In a real implementation, this would use the semantic service
-        TrajectoryRepresentation::Embedding(vec![0.0; 1536])
+        // In a real implementation, this would use the semantic service.
+        // Use a deterministic hash-to-vector derived from the distillation text
+        // so that different episodes produce distinct embeddings.
+        let mut fallback = vec![0.0_f32; 1536];
+        for (i, byte) in distillation_text.as_bytes().iter().enumerate() {
+            let idx = i % 1536;
+            fallback[idx] = (*byte as f32) / 255.0;
+        }
+        TrajectoryRepresentation::Embedding(fallback)
     }
 }
 

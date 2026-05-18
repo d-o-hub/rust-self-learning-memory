@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::learning::distillation::TrajectoryDistiller;
     use crate::episode::Episode;
-    use crate::types::{TaskContext, TaskType, TaskOutcome};
+    use crate::learning::distillation::TrajectoryDistiller;
+    use crate::types::{TaskContext, TaskOutcome, TaskType};
 
     #[test]
     fn test_trajectory_distillation() {

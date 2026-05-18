@@ -1,10 +1,10 @@
 //! Collaboration methods for `SelfLearningMemory` (WG-126).
 
+use super::SelfLearningMemory;
 use crate::error::Result;
 use crate::learning::distillation::TrajectoryRepresentation;
 use crate::types::TaskType;
 use uuid::Uuid;
-use super::SelfLearningMemory;
 
 impl SelfLearningMemory {
     /// Distill a trajectory for a given episode.

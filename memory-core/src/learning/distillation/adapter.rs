@@ -1,7 +1,7 @@
 //! Trajectory adapter for contrastive learning (WG-126).
 
-use crate::types::TaskType;
 use crate::learning::distillation::TrajectoryRepresentation;
+use crate::types::TaskType;
 use anyhow::Result;
 
 /// Adapter for aligning trajectory representations using contrastive learning.
@@ -77,7 +77,11 @@ impl Default for TrajectoryTrainer {
 
 impl TrajectoryTrainer {
     /// Train an adapter using a set of triplets.
-    pub fn train(&self, adapter: &mut TrajectoryAdapter, triplets: &[TrajectoryTriplet]) -> Result<()> {
+    pub fn train(
+        &self,
+        adapter: &mut TrajectoryAdapter,
+        triplets: &[TrajectoryTriplet],
+    ) -> Result<()> {
         if triplets.is_empty() {
             return Ok(());
         }
@@ -140,5 +144,9 @@ impl TrajectoryTrainer {
 }
 
 fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
-    a.iter().zip(b.iter()).map(|(x, y)| (x - y).powi(2)).sum::<f32>().sqrt()
+    a.iter()
+        .zip(b.iter())
+        .map(|(x, y)| (x - y).powi(2))
+        .sum::<f32>()
+        .sqrt()
 }

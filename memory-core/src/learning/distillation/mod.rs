@@ -4,9 +4,9 @@
 //! (step sequences, signatures, outcomes) into compact representations
 //! that can be shared across agents.
 
-use serde::{Deserialize, Serialize};
 use crate::episode::Episode;
 use crate::retrieval::signature::ExecutionSignature;
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "csm")]
 use chaotic_semantic_memory::HVec10240;
@@ -65,8 +65,8 @@ impl TrajectoryDistiller {
         }
 
         signature.set_avg_latency(
-            episode.steps.iter().map(|s| s.latency_ms).sum::<u64>() /
-            episode.steps.len().max(1) as u64
+            episode.steps.iter().map(|s| s.latency_ms).sum::<u64>()
+                / episode.steps.len().max(1) as u64,
         );
 
         // Convert signature + episode data to text for encoding/embedding

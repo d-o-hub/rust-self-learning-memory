@@ -1,6 +1,7 @@
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
+use crate::learning::distillation::TrajectoryDistiller;
 use crate::learning::queue::PatternExtractionQueue;
 use crate::memory::attribution::RecommendationTracker;
 use crate::memory::playbook::PlaybookGenerator;
@@ -15,7 +16,6 @@ use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
 use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent};
-use crate::learning::distillation::TrajectoryDistiller;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore, broadcast};

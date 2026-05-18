@@ -3,9 +3,9 @@
 //! Handles exporting distilled trajectories and aggregating them into
 //! collaborative prototypes using Federated HDC principles.
 
-use std::collections::HashMap;
 use crate::learning::distillation::TrajectoryRepresentation;
 use crate::types::TaskType;
+use std::collections::HashMap;
 
 /// Manager for cross-agent collaboration.
 pub struct CollaborationManager {
@@ -48,13 +48,16 @@ impl CollaborationManager {
         #[cfg(feature = "csm")]
         {
             // If we have HDC vectors, bundle them using CSM's bundling operation (sum + threshold)
-            let hvecs: Vec<_> = trajectories.iter().filter_map(|t| {
-                if let TrajectoryRepresentation::Hyperdim(h) = t {
-                    Some(h.clone())
-                } else {
-                    None
-                }
-            }).collect();
+            let hvecs: Vec<_> = trajectories
+                .iter()
+                .filter_map(|t| {
+                    if let TrajectoryRepresentation::Hyperdim(h) = t {
+                        Some(h.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
 
             if !hvecs.is_empty() {
                 // Simplified bundling: average for now, CSM usually has a dedicated bundle method
@@ -70,13 +73,14 @@ impl CollaborationManager {
         }
 
         // Fallback to average embedding
-        let embeddings: Vec<_> = trajectories.iter().map(|t| {
-            match t {
+        let embeddings: Vec<_> = trajectories
+            .iter()
+            .map(|t| match t {
                 TrajectoryRepresentation::Embedding(e) => e,
                 #[cfg(feature = "csm")]
                 _ => unreachable!(),
-            }
-        }).collect();
+            })
+            .collect();
 
         if embeddings.is_empty() {
             return None;

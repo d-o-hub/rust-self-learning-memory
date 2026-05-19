@@ -205,11 +205,9 @@ mod tests {
         };
 
         let result = super::validate_bearer_token("some.token.here", &config);
-        match result {
-            AuthorizationResult::InvalidToken(msg) => {
-                assert!(msg.contains("OAUTH_TOKEN_SECRET is missing"));
-            }
-            _ => panic!("Expected InvalidToken error, got {:?}", result),
-        }
+        assert!(
+            matches!(&result, AuthorizationResult::InvalidToken(msg) if msg.contains("OAUTH_TOKEN_SECRET is missing")),
+            "Expected InvalidToken error about missing secret, got {result:?}"
+        );
     }
 }

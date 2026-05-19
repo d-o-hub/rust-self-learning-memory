@@ -58,6 +58,7 @@ mod management;
 mod monitoring;
 pub mod pattern_api;
 mod pattern_search;
+mod persistence;
 pub mod playbook;
 mod queries;
 pub mod query_api;

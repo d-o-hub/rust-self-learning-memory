@@ -7,13 +7,13 @@
 #![allow(clippy::doc_markdown)]
 #![allow(missing_docs)]
 
+#[path = "../src/bin/server_impl/mod.rs"]
+mod server_impl;
+
 use do_memory_mcp::protocol::OAuthConfig;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use server_impl::{AuthorizationResult, validate_bearer_token};
-
-#[path = "../src/bin/server_impl/mod.rs"]
-mod server_impl;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Claims {

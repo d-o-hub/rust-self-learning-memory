@@ -222,6 +222,7 @@ pub mod monitoring;
 pub mod pattern;
 pub mod patterns;
 pub mod pre_storage;
+pub mod procedural;
 pub mod reflection;
 pub mod retrieval;
 pub mod reward;
@@ -261,6 +262,7 @@ pub use patterns::{
     FeatureWeights, PatternClusterer, PatternMetrics, PatternUsage, PatternValidator,
     SegmentComparison, SegmentComparisonConfig, SegmentStats, UsageStats, ValidationConfig,
 };
+pub use procedural::ProceduralMemory;
 pub use reflection::ReflectionGenerator;
 pub use retrieval::{CacheKey, CacheMetrics, QueryCache};
 pub use reward::{

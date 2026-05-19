@@ -5,7 +5,7 @@
 
 use super::super::{
     EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE,
-    METADATA_TABLE, PATTERNS_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
+    METADATA_TABLE, PATTERNS_TABLE, PROCEDURAL_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
     RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE,
     SUMMARIES_TABLE, with_db_timeout,
 };
@@ -56,6 +56,7 @@ impl RedbStorage {
                     RECOMMENDATION_EPISODE_INDEX_TABLE,
                     "recommendation_episode_index",
                 )?;
+                Self::clear_table_entries(&write_txn, PROCEDURAL_TABLE, "procedural")?;
             }
 
             write_txn
@@ -100,6 +101,7 @@ impl RedbStorage {
                     EPISODE_PATTERN_RELATIONSHIPS_TABLE,
                     "episode_pattern_relationships",
                 )?;
+                Self::clear_table_entries(&write_txn, PROCEDURAL_TABLE, "procedural")?;
             }
 
             write_txn

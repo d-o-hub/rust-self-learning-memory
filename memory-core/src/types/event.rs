@@ -47,6 +47,22 @@ pub enum MemoryEvent {
         /// Unix timestamp in seconds
         timestamp: u64,
     },
+    /// A new procedural memory was created (skill/playbook).
+    ProceduralMemoryCreated {
+        /// Procedural memory ID
+        id: String,
+        /// Name of the procedural memory
+        name: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// An existing procedural memory was updated.
+    ProceduralMemoryUpdated {
+        /// Procedural memory ID
+        id: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
 }
 
 impl MemoryEvent {
@@ -57,7 +73,9 @@ impl MemoryEvent {
             Self::EpisodeCreated { timestamp, .. }
             | Self::EpisodeCompleted { timestamp, .. }
             | Self::EpisodeGarbageCollected { timestamp, .. }
-            | Self::PatternExtracted { timestamp, .. } => *timestamp,
+            | Self::PatternExtracted { timestamp, .. }
+            | Self::ProceduralMemoryCreated { timestamp, .. }
+            | Self::ProceduralMemoryUpdated { timestamp, .. } => *timestamp,
         }
     }
 
@@ -67,8 +85,10 @@ impl MemoryEvent {
         match self {
             Self::EpisodeCreated { id, .. }
             | Self::EpisodeCompleted { id, .. }
-            | Self::EpisodeGarbageCollected { id, .. } => id,
-            Self::PatternExtracted { id, .. } => id,
+            | Self::EpisodeGarbageCollected { id, .. }
+            | Self::PatternExtracted { id, .. }
+            | Self::ProceduralMemoryCreated { id, .. }
+            | Self::ProceduralMemoryUpdated { id, .. } => id,
         }
     }
 }
@@ -120,5 +140,26 @@ mod tests {
         let json = serde_json::to_string(&event).unwrap();
         let deserialized: MemoryEvent = serde_json::from_str(&json).unwrap();
         assert_eq!(event.entity_id(), deserialized.entity_id());
+    }
+
+    #[test]
+    fn test_procedural_memory_created_event() {
+        let event = MemoryEvent::ProceduralMemoryCreated {
+            id: "proc-1".to_string(),
+            name: "Test Skill".to_string(),
+            timestamp: 12345,
+        };
+        assert_eq!(event.timestamp(), 12345);
+        assert_eq!(event.entity_id(), "proc-1");
+    }
+
+    #[test]
+    fn test_procedural_memory_updated_event() {
+        let event = MemoryEvent::ProceduralMemoryUpdated {
+            id: "proc-2".to_string(),
+            timestamp: 67890,
+        };
+        assert_eq!(event.timestamp(), 67890);
+        assert_eq!(event.entity_id(), "proc-2");
     }
 }

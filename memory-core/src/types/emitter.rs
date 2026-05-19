@@ -175,6 +175,27 @@ impl MemoryEventMapping {
                     "extraction_timestamp": timestamp,
                 }),
             ),
+            MemoryEvent::ProceduralMemoryCreated {
+                id,
+                name,
+                timestamp,
+            } => (
+                "com.do-memory.procedural.created".to_string(),
+                id.clone(),
+                serde_json::json!({
+                    "procedural_id": id,
+                    "name": name,
+                    "timestamp": timestamp,
+                }),
+            ),
+            MemoryEvent::ProceduralMemoryUpdated { id, timestamp } => (
+                "com.do-memory.procedural.updated".to_string(),
+                id.clone(),
+                serde_json::json!({
+                    "procedural_id": id,
+                    "timestamp": timestamp,
+                }),
+            ),
         }
     }
 }

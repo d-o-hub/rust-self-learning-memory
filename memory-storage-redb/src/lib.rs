@@ -72,6 +72,7 @@ mod episodes_summaries;
 mod heuristics;
 mod patterns;
 mod persistence;
+mod procedural;
 mod recommendations;
 mod relationships;
 mod statistics;
@@ -136,6 +137,8 @@ pub(crate) const RECOMMENDATION_FEEDBACK_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("recommendation_feedback");
 pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str> =
     TableDefinition::new("recommendation_episode_index");
+pub(crate) const PROCEDURAL_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("procedural");
 
 // ============================================================================
 // Schema Versioning (Automatic Cache Invalidation)

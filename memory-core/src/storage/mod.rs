@@ -14,6 +14,7 @@ use crate::episode::{
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
+use crate::procedural::ProceduralMemory;
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -439,5 +440,27 @@ pub trait StorageBackend: Send + Sync {
     async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
         let _ = policy;
         Ok(0)
+    }
+
+    // ========== Procedural Memory Methods ==========
+
+    /// Store a procedural memory
+    async fn store_procedural(&self, _procedural: &ProceduralMemory) -> Result<()> {
+        Ok(())
+    }
+
+    /// Retrieve a procedural memory by ID
+    async fn get_procedural(&self, _id: Uuid) -> Result<Option<ProceduralMemory>> {
+        Ok(None)
+    }
+
+    /// Delete a procedural memory by ID
+    async fn delete_procedural(&self, _id: Uuid) -> Result<()> {
+        Ok(())
+    }
+
+    /// Query procedural memories
+    async fn query_procedural(&self, _limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
+        Ok(Vec::new())
     }
 }

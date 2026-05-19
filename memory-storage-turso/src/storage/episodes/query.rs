@@ -71,7 +71,7 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
-            episodes.push(Self::row_to_episode(&row)?);
+            episodes.push(self.row_to_episode(&row).await?);
         }
 
         info!("Found {} episodes matching query", episodes.len());
@@ -130,7 +130,7 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
-            episodes.push(Self::row_to_episode(&row)?);
+            episodes.push(self.row_to_episode(&row).await?);
         }
 
         info!(
@@ -197,7 +197,7 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
-            episodes.push(Self::row_to_episode(&row)?);
+            episodes.push(self.row_to_episode(&row).await?);
         }
 
         info!(

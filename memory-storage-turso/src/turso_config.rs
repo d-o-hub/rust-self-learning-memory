@@ -104,6 +104,12 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX)
             .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_NAME_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX)
+            .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)

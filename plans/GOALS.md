@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-17 (WG-123, WG-126, WG-127 completed; post-hoc eval docs)
+- **Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
 - **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
@@ -145,11 +145,11 @@
     - Paper: REMem (ICLR 2026, arXiv:2602.13530)
     - Result: Weighted traversal queries, episode-to-pattern relationships, significance weights (0.0-1.0), path-finding with weights, storage schema updates
 
-18. **WG-124**: 🟡 In Review — Procedural memory type (PR #569)
-    - Priority: P3
+18. **WG-124**: ✅ Complete — Procedural memory type (PR #569)
+    - Priority: P3 → Complete
     - Owner: feature-implement
     - Paper: ParamAgent (2026) — three-tier memory architecture
-    - Status: PR #569 open, rebased onto main, CI running
+    - Status: PR #569 merged via admin (pre-existing libsql SIGSEGV, ADR-027)
 
 19. **WG-125**: Routing-Free MoE evaluation
     - Priority: P3

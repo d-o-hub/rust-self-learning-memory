@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-18 (WG-124 in review; PR #576 roadmap updates)
+- **Last Updated**: 2026-05-19 (WG-124 complete; PRs #569, #576 merged)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
@@ -81,7 +81,7 @@
 | Reconstructive retrieval windows | WG-120 | ✅ Complete | feature-implement | E-mem (arXiv:2601.21714) - 462 LOC, 30+ tests |
 | Execution-signature retrieval | WG-121 | ✅ Complete | feature-implement | APEX-EM (arXiv:2603.29093) - 593 LOC, 30+ tests |
 | Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
-| Procedural memory type | WG-124 | 🟡 In Review (PR #569) | feature-implement | ParamAgent |
+| Procedural memory type | WG-124 | ✅ Complete (PR #569) | feature-implement | ParamAgent |
 | LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |

@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-17 (PR #552 dead_code→0; cascade tier attribution fix committed)
+- **Last Updated**: 2026-05-18 (WG-124 in review; PR #576 roadmap updates)
 - **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
@@ -81,9 +81,12 @@
 | Reconstructive retrieval windows | WG-120 | ✅ Complete | feature-implement | E-mem (arXiv:2601.21714) - 462 LOC, 30+ tests |
 | Execution-signature retrieval | WG-121 | ✅ Complete | feature-implement | APEX-EM (arXiv:2603.29093) - 593 LOC, 30+ tests |
 | Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
+| Procedural memory type | WG-124 | 🟡 In Review (PR #569) | feature-implement | ParamAgent |
 | LottaLoRA local classifier | WG-132 | ✅ Complete (evaluation doc) | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | ✅ Complete (evaluation doc) | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | ✅ Complete | feature-implement | arXiv:2602.22398 — ~1,320 LOC in `context/dag/`, 24 tests, ~86% token reduction |
+| Temporal graph edges | WG-123 | ✅ Complete (PR #570) | feature-implement | REMem (ICLR 2026, arXiv:2602.13530) — weighted traversal, pattern edges, significance weights |
+| MemCollab cross-agent memory | WG-126 | ✅ Complete (PR #572) | feature-implement | MemCollab (arXiv:2603.23234) — trajectory distillation, contrastive adapter, collaborative prototypes |
 | Federated HDC multi-agent memory | WG-135 | 🔵 Evaluated (evaluation doc) | feature-implement | arXiv:2603.20037 |
 | CloudEvents EventEmitter | WG-149 | ✅ Complete | feature-implement | ADR-054 — CloudEvents 1.0 spec
 

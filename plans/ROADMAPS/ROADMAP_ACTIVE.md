@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-17 (WG-123, WG-126, WG-127 completed; WG-135 evaluated)
+**Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -74,7 +74,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
 | WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | ✅ Complete (PR #570: weighted traversal, pattern edges, significance weights) | 123 |
-| WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | 🟡 In Review (PR #569) | 124 |
+| WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | ✅ Complete (PR #569) | 124 |
 | WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | 🔵 Backlog | 125 |
 | WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
 | WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | ✅ Complete (WG-117) | 109 |

@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-05-17 (WG-123, WG-126, WG-127 completed; post-hoc eval docs)
+- **Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -195,7 +195,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-124
    - Action: New `ProceduralMemory` type in memory-core; storage traits in turso/redb; extends existing episodic+semantic with learned skill patterns
    - Paper: ParamAgent (2026) three-tier memory
-   - Status: 🟡 In Review (PR #569)
+   - Status: ✅ Complete (PR #569 merged via admin)
 
 - **ACT-116**: Evaluate Routing-Free MoE for DyMoE
    - Goal: WG-125

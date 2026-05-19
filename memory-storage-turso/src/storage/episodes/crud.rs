@@ -223,6 +223,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027"]
     async fn test_store_and_get_episode() -> Result<()> {
         let (storage, _dir) = create_test_storage().await?;
         let mut episode = Episode::new(
@@ -245,6 +246,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027"]
     async fn test_delete_episode() -> Result<()> {
         let (storage, _dir) = create_test_storage().await?;
         let episode = Episode::new(
@@ -263,6 +265,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027"]
     async fn test_store_and_get_summary() -> Result<()> {
         let (storage, _dir) = create_test_storage().await?;
         let episode_id = Uuid::new_v4();

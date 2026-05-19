@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
+- **Last Updated**: 2026-05-17 (WG-123, WG-126, WG-127 completed; post-hoc eval docs)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -189,13 +189,13 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-123
    - Action: Add Turso schema for episode→episode and episode→pattern edges with temporal weights; implement graph traversal queries
    - Paper: REMem (ICLR 2026, arXiv:2602.13530)
-   - Status: 🔵 Backlog
+   - Status: ✅ Complete (PR #570: weighted traversal, pattern edges, significance weights, storage schema)
 
 - **ACT-115**: Add procedural memory type
    - Goal: WG-124
    - Action: New `ProceduralMemory` type in memory-core; storage traits in turso/redb; extends existing episodic+semantic with learned skill patterns
    - Paper: ParamAgent (2026) three-tier memory
-   - Status: 🔵 Backlog
+   - Status: 🟡 In Review (PR #569)
 
 - **ACT-116**: Evaluate Routing-Free MoE for DyMoE
    - Goal: WG-125

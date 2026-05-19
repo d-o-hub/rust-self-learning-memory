@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-01 (WG-149, WG-131, WG-132, WG-133 completed)
+- **Last Updated**: 2026-05-17 (WG-123, WG-126, WG-127 completed; post-hoc eval docs)
 - **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
@@ -139,30 +139,34 @@
 
 ### Backlog (Future)
 
-17. **WG-123**: Temporal graph edges in episode store
-    - Priority: P3
+17. **WG-123**: ✅ Complete — Temporal graph edges in episode store (PR #570)
+    - Priority: P3 → Complete
     - Owner: feature-implement
     - Paper: REMem (ICLR 2026, arXiv:2602.13530)
+    - Result: Weighted traversal queries, episode-to-pattern relationships, significance weights (0.0-1.0), path-finding with weights, storage schema updates
 
-18. **WG-124**: Procedural memory type
+18. **WG-124**: 🟡 In Review — Procedural memory type (PR #569)
     - Priority: P3
     - Owner: feature-implement
     - Paper: ParamAgent (2026) — three-tier memory architecture
+    - Status: PR #569 open, rebased onto main, CI running
 
 19. **WG-125**: Routing-Free MoE evaluation
     - Priority: P3
     - Owner: code-reviewer
     - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
 
-20. **WG-126**: Cross-agent memory collaboration (MemCollab)
-    - Priority: P3
+20. **WG-126**: ✅ Complete — Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, PR #572)
+    - Priority: P3 → Complete
     - Owner: feature-implement
     - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
+    - Result: Trajectory distillation (episodes→compact representations), contrastive triplet adapter, collaborative prototype management/sharing, Tier-0 collaboration check in retrieval
 
-21. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
-    - Priority: P3
+21. **WG-127**: ✅ Complete — Semantic gist extraction + CogniRank reranking (CogitoRAG, PR #568)
+    - Priority: P3 → Complete
     - Owner: feature-implement
     - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
+    - Result: Semantic gist extraction from episodes, CogniRank reranking for retrieval, gist-based retrieval pipeline
 
 22. **WG-132**: ✅ Complete — Evaluate LottaLoRA-inspired local classifier for episode types
     - Priority: P3

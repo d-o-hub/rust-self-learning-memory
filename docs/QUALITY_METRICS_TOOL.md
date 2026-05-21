@@ -276,4 +276,3 @@ Planned improvements for Phase 2 and beyond:
 - Quality score explanations (why an episode scored X)
 - Comparison metrics (current vs. historical baseline)
 
-Optimizing sorting operations using the Schwartzian Transform (decorate-sort-undecorate) and pre-calculating expensive keys (like `HashSet` allocations and `Utc::now()` calls) reduces complexity from O(N log N) to O(N) scoring calls, yielding a ~60-70% speedup.

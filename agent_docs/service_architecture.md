@@ -133,10 +133,9 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 5. `execute_code` - Execute code in WASM sandbox
 6. `health_check` - System health status
 7. `recommend_playbook` - Get actionable playbooks for tasks
-8. `checkpoint_episode` - Mid-task progress snapshots
-8. `record_recommendation_feedback` - Track recommendation outcomes (ADR-044)
-9. `checkpoint_episode` - Create mid-task checkpoints (ADR-044)
-10. `get_handoff_pack` - Generate handoff for multi-agent workflows (ADR-044)
+8. `record_recommendation_feedback` - Track recommendation outcomes
+9. `checkpoint_episode` - Create mid-task checkpoints
+10. `get_handoff_pack` - Generate handoff for multi-agent workflows
 
 **Features**:
 - Tool usage tracking

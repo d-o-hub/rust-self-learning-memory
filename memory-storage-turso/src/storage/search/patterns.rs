@@ -269,7 +269,8 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            const SQL: &str = "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'pattern'";
+            const SQL: &str =
+                "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'pattern'";
             let mut rows = conn
                 .query(SQL, ())
                 .await
@@ -304,7 +305,11 @@ impl TursoStorage {
         }
 
         // Fetch full pattern data for the top matches in a single query
-        let placeholders = top_matches.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let placeholders = top_matches
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
         let select_cols = crate::storage::patterns::PATTERN_SELECT_COLUMNS;
         let patterns_sql = format!(
             "SELECT {} FROM patterns WHERE pattern_id IN ({})",
@@ -346,7 +351,10 @@ impl TursoStorage {
             }
         }
 
-        info!("Found {} similar patterns (brute-force optimized)", results.len());
+        info!(
+            "Found {} similar patterns (brute-force optimized)",
+            results.len()
+        );
         Ok(results)
     }
 }

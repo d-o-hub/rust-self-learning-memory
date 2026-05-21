@@ -285,7 +285,8 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            const SQL: &str = "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'episode'";
+            const SQL: &str =
+                "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'episode'";
             let mut rows = conn
                 .query(SQL, ())
                 .await
@@ -320,7 +321,11 @@ impl TursoStorage {
         }
 
         // Fetch full episode data for the top matches in a single query
-        let placeholders = top_matches.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let placeholders = top_matches
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
         let select_cols = crate::storage::episodes::raw_query::EPISODE_SELECT_COLUMNS;
         let episodes_sql = format!(
             "SELECT {} FROM episodes WHERE episode_id IN ({})",
@@ -362,7 +367,10 @@ impl TursoStorage {
             }
         }
 
-        info!("Found {} similar episodes (brute-force optimized)", results.len());
+        info!(
+            "Found {} similar episodes (brute-force optimized)",
+            results.len()
+        );
         Ok(results)
     }
 }

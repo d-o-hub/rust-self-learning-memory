@@ -1,4 +1,4 @@
-use criterion::{Criterion, criterion_group, criterion_main, black_box, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use do_memory_core::embeddings::cosine_similarity;
 use rand::{Rng, thread_rng};
 
@@ -15,9 +15,7 @@ fn bench_cosine_similarity(c: &mut Criterion) {
         let v2 = generate_vector(dim);
 
         group.bench_with_input(BenchmarkId::new("scalar", dim), &dim, |b, _| {
-            b.iter(|| {
-                black_box(cosine_similarity(black_box(&v1), black_box(&v2)))
-            });
+            b.iter(|| black_box(cosine_similarity(black_box(&v1), black_box(&v2))));
         });
     }
     group.finish();

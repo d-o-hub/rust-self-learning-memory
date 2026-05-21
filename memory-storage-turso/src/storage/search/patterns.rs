@@ -361,3 +361,63 @@ impl TursoStorage {
         Ok(results)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::embeddings::EmbeddingStorageBackend;
+    use do_memory_core::{OutcomeStats, Pattern, TaskContext};
+    use tempfile::TempDir;
+
+    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test_pattern_search.db");
+        let storage = TursoStorage::new(&format!("file:{}", db_path.display()), "").await?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
+
+    #[tokio::test]
+    async fn test_find_similar_patterns_brute_force_direct() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+
+        let pattern = Pattern::DecisionPoint {
+            id: uuid::Uuid::new_v4(),
+            condition: "test condition".to_string(),
+            action: "test action".to_string(),
+            outcome_stats: OutcomeStats {
+                success_count: 0,
+                failure_count: 0,
+                total_count: 0,
+                avg_duration_secs: 0.0,
+            },
+            context: TaskContext {
+                domain: "test-domain".to_string(),
+                ..Default::default()
+            },
+            effectiveness: Default::default(),
+        };
+        storage.store_pattern(&pattern).await?;
+
+        let embedding = vec![0.1; 384];
+        storage
+            .store_pattern_embedding(pattern.id(), embedding.clone())
+            .await?;
+
+        let results = storage
+            .find_similar_patterns_brute_force(&embedding, 10, 0.5)
+            .await?;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].item.id(), pattern.id());
+
+        let dim = results[0]
+            .metadata
+            .context
+            .get("dimension")
+            .and_then(|v| v.as_i64())
+            .expect("dimension should be in metadata");
+        assert_eq!(dim, 384);
+
+        Ok(())
+    }
+}

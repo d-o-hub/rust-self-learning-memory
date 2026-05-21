@@ -377,3 +377,92 @@ impl TursoStorage {
         Ok(results)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::embeddings::EmbeddingStorageBackend;
+    use do_memory_core::{Episode, TaskContext, TaskType};
+    use tempfile::TempDir;
+
+    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test_search.db");
+        let storage = TursoStorage::new(&format!("file:{}", db_path.display()), "").await?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
+
+    #[tokio::test]
+    async fn test_find_similar_episodes_brute_force_direct() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+
+        let episode = Episode::new(
+            "Test search task".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+        storage.store_episode(&episode).await?;
+
+        let embedding = vec![0.1; 384];
+        storage
+            .store_episode_embedding(episode.episode_id, embedding.clone())
+            .await?;
+
+        let results = storage
+            .find_similar_episodes_brute_force(&embedding, 10, 0.5)
+            .await?;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].item.episode_id, episode.episode_id);
+
+        let dim = results[0]
+            .metadata
+            .context
+            .get("dimension")
+            .and_then(|v| v.as_i64())
+            .expect("dimension should be in metadata");
+        assert_eq!(dim, 384);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_find_similar_episodes_brute_force_multiple() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+
+        // Use unit vectors for predictable cosine similarity
+        // Task 0: [1, 0, 0, ...]
+        // Task 1: [0, 1, 0, ...]
+        // ...
+        for i in 0..3 {
+            let mut episode = Episode::new(
+                format!("Task {}", i),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            );
+            episode.episode_id = uuid::Uuid::new_v4();
+            storage.store_episode(&episode).await?;
+
+            let mut embedding = vec![0.0; 384];
+            embedding[i] = 1.0;
+            storage
+                .store_episode_embedding(episode.episode_id, embedding)
+                .await?;
+        }
+
+        // Query closer to Task 1
+        let mut query_embedding = vec![0.0; 384];
+        query_embedding[1] = 0.9;
+        query_embedding[0] = 0.1;
+
+        let results = storage
+            .find_similar_episodes_brute_force(&query_embedding, 2, 0.0)
+            .await?;
+
+        assert_eq!(results.len(), 2);
+        assert!(results[0].item.task_description.contains("Task 1"));
+        assert!(results[1].item.task_description.contains("Task 0"));
+
+        Ok(())
+    }
+}

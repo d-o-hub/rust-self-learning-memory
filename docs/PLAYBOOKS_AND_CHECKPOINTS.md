@@ -1,6 +1,6 @@
 # Playbooks and Checkpoints: Actionable Memory
 
-This guide explains how to use the new Playbook and Checkpoint features introduced in v0.1.22. These features transform passive episodic memory into active, actionable guidance and state management.
+This guide explains how to use the Playbook and Checkpoint capabilities. These features transform passive episodic memory into active, actionable guidance and state management.
 
 ## 1. Actionable Playbooks
 

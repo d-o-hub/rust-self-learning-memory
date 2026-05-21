@@ -287,8 +287,7 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            const SQL: &str =
-                "SELECT item_id, embedding_data, dimension FROM embeddings WHERE item_type = 'episode'";
+            const SQL: &str = "SELECT item_id, embedding_data, dimension FROM embeddings WHERE item_type = 'episode'";
             let mut rows = conn
                 .query(SQL, ())
                 .await

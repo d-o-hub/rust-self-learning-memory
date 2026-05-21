@@ -271,8 +271,7 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            const SQL: &str =
-                "SELECT item_id, embedding_data, dimension FROM embeddings WHERE item_type = 'pattern'";
+            const SQL: &str = "SELECT item_id, embedding_data, dimension FROM embeddings WHERE item_type = 'pattern'";
             let mut rows = conn
                 .query(SQL, ())
                 .await
@@ -312,7 +311,8 @@ impl TursoStorage {
         let placeholders = top_matches
             .iter()
             .map(|_| "?")
-            .collect::<Vec<_>>().join(",");
+            .collect::<Vec<_>>()
+            .join(",");
         let select_cols = crate::storage::patterns::PATTERN_SELECT_COLUMNS;
         let patterns_sql = format!(
             "SELECT {} FROM patterns WHERE pattern_id IN ({})",

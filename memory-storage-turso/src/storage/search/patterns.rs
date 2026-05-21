@@ -378,6 +378,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "libsql memory corruption bug - see ADR-027"]
     async fn test_find_similar_patterns_brute_force_direct() -> Result<()> {
         let (storage, _dir) = create_test_storage().await?;
 

@@ -225,39 +225,128 @@ impl TursoStorage {
             limit, threshold
         );
 
-        let patterns = self.query_patterns(&Default::default()).await?;
-        let mut results = Vec::new();
-        let query_emb = query_embedding.to_vec();
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let mut matched_ids = Vec::new();
 
-        for pattern in patterns {
-            if let Some(embedding) = self
-                ._get_embedding_internal(&pattern.id().to_string(), "pattern")
-                .await?
-            {
-                let similarity = cosine_similarity(&query_emb, &embedding);
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            let dimensions = [384, 1024, 1536, 3072];
+            let mut seen_ids = std::collections::HashSet::new();
 
-                if similarity >= threshold {
-                    results.push(SimilaritySearchResult {
-                        item: pattern,
-                        similarity,
-                        metadata: SimilarityMetadata {
-                            embedding_model: "turso".to_string(),
-                            embedding_timestamp: None,
-                            context: serde_json::json!({ "dimension": embedding.len() }),
-                        },
-                    });
+            for dim in dimensions {
+                let table = self.get_embedding_table_for_dimension(dim);
+                let sql = format!(
+                    "SELECT item_id, embedding_data FROM {} WHERE item_type = 'pattern'",
+                    table
+                );
+
+                let mut rows = conn
+                    .query(&sql, ())
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to query embeddings: {}", e)))?;
+
+                while let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch embedding row: {}", e)))?
+                {
+                    let item_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                    if !seen_ids.insert(item_id.clone()) {
+                        continue;
+                    }
+
+                    let embedding_data: String =
+                        row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                    let embedding = self.decode_embedding_data(&embedding_data)?;
+                    let similarity = cosine_similarity(query_embedding, &embedding);
+
+                    if similarity >= threshold {
+                        matched_ids.push((item_id, similarity));
+                    }
                 }
             }
         }
 
-        results.sort_by(|a, b| {
-            b.similarity
-                .partial_cmp(&a.similarity)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        results.truncate(limit);
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            const SQL: &str = "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'pattern'";
+            let mut rows = conn
+                .query(SQL, ())
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query embeddings: {}", e)))?;
 
-        info!("Found {} similar patterns (brute-force)", results.len());
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch embedding row: {}", e)))?
+            {
+                let item_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let embedding_data: String =
+                    row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                let embedding = self.decode_embedding_data(&embedding_data)?;
+                let similarity = cosine_similarity(query_embedding, &embedding);
+
+                if similarity >= threshold {
+                    matched_ids.push((item_id, similarity));
+                }
+            }
+        }
+
+        // Optimization: select top-k matches before full pattern retrieval
+        let top_matches = do_memory_core::search::select_top_k(&mut matched_ids, limit, |a, b| {
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
+
+        if top_matches.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Fetch full pattern data for the top matches in a single query
+        let placeholders = top_matches.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let select_cols = crate::storage::patterns::PATTERN_SELECT_COLUMNS;
+        let patterns_sql = format!(
+            "SELECT {} FROM patterns WHERE pattern_id IN ({})",
+            select_cols, placeholders
+        );
+
+        let params: Vec<libsql::Value> = top_matches
+            .iter()
+            .map(|(id, _)| id.clone().into())
+            .collect();
+
+        let mut pattern_rows = conn
+            .query(&patterns_sql, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query top patterns: {}", e)))?;
+
+        let mut patterns_map = std::collections::HashMap::new();
+        while let Some(row) = pattern_rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+        {
+            let pattern = row_to_pattern(&row)?;
+            patterns_map.insert(pattern.id().to_string(), pattern);
+        }
+
+        let mut results = Vec::with_capacity(top_matches.len());
+        for (item_id, similarity) in top_matches {
+            if let Some(pattern) = patterns_map.remove(&item_id) {
+                results.push(SimilaritySearchResult {
+                    item: pattern,
+                    similarity,
+                    metadata: SimilarityMetadata {
+                        embedding_model: "turso".to_string(),
+                        embedding_timestamp: None,
+                        context: serde_json::json!({}),
+                    },
+                });
+            }
+        }
+
+        info!("Found {} similar patterns (brute-force optimized)", results.len());
         Ok(results)
     }
 }

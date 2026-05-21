@@ -252,7 +252,7 @@ impl TursoStorage {
             for dim in dimensions {
                 let table = self.get_embedding_table_for_dimension(dim);
                 let sql = format!(
-                    "SELECT item_id, embedding_data FROM {} WHERE item_type = 'episode'",
+                    "SELECT item_id, embedding_data, dimension FROM {} WHERE item_type = 'episode'",
                     table
                 );
 
@@ -273,11 +273,13 @@ impl TursoStorage {
 
                     let embedding_data: String =
                         row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                    let dimension: i64 = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+
                     let embedding = self.decode_embedding_data(&embedding_data)?;
                     let similarity = cosine_similarity(query_embedding, &embedding);
 
                     if similarity >= threshold {
-                        matched_ids.push((item_id, similarity));
+                        matched_ids.push((item_id, similarity, dimension));
                     }
                 }
             }
@@ -286,7 +288,7 @@ impl TursoStorage {
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
             const SQL: &str =
-                "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'episode'";
+                "SELECT item_id, embedding_data, dimension FROM embeddings WHERE item_type = 'episode'";
             let mut rows = conn
                 .query(SQL, ())
                 .await
@@ -300,11 +302,13 @@ impl TursoStorage {
                 let item_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
                 let embedding_data: String =
                     row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                let dimension: i64 = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+
                 let embedding = self.decode_embedding_data(&embedding_data)?;
                 let similarity = cosine_similarity(query_embedding, &embedding);
 
                 if similarity >= threshold {
-                    matched_ids.push((item_id, similarity));
+                    matched_ids.push((item_id, similarity, dimension));
                 }
             }
         }
@@ -334,7 +338,7 @@ impl TursoStorage {
 
         let params: Vec<libsql::Value> = top_matches
             .iter()
-            .map(|(id, _)| id.clone().into())
+            .map(|(id, _, _)| id.clone().into())
             .collect();
 
         let mut episode_rows = conn
@@ -353,7 +357,7 @@ impl TursoStorage {
         }
 
         let mut results = Vec::with_capacity(top_matches.len());
-        for (item_id, similarity) in top_matches {
+        for (item_id, similarity, dimension) in top_matches {
             if let Some(episode) = episodes_map.remove(&item_id) {
                 results.push(SimilaritySearchResult {
                     item: episode,
@@ -361,7 +365,7 @@ impl TursoStorage {
                     metadata: SimilarityMetadata {
                         embedding_model: "turso".to_string(),
                         embedding_timestamp: None,
-                        context: serde_json::json!({}),
+                        context: serde_json::json!({ "dimension": dimension }),
                     },
                 });
             }

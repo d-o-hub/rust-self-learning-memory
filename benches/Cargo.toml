@@ -110,6 +110,11 @@ name = "top_k_benchmark"
 path = "top_k_benchmark.rs"
 harness = false
 
+[[bench]]
+name = "cosine_similarity_benchmark"
+path = "cosine_similarity_benchmark.rs"
+harness = false
+
 # Retrieval quality benchmarks using MTEB/BEIR metrics
 [[bench]]
 name = "retrieval_quality_benchmark"

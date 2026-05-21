@@ -168,57 +168,7 @@ impl TursoStorage {
                 .get(0)
                 .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
 
-            #[cfg(feature = "compression")]
-            let embedding: Vec<f32> =
-                if let Some(remainder) = embedding_data.strip_prefix("__compressed__:") {
-                    let newline_pos = remainder
-                        .find('\n')
-                        .ok_or_else(|| do_memory_core::Error::Storage("Invalid format".into()))?;
-                    let header = &remainder[..newline_pos];
-                    let encoded_data = &remainder[newline_pos + 1..];
-                    let colon_pos = header
-                        .find(':')
-                        .ok_or_else(|| do_memory_core::Error::Storage("Invalid header".into()))?;
-                    let algorithm_str = &header[..colon_pos];
-                    let original_size: usize = header[colon_pos + 1..]
-                        .parse()
-                        .map_err(|_| do_memory_core::Error::Storage("Invalid size".into()))?;
-                    let algorithm = match algorithm_str {
-                        "lz4" => crate::CompressionAlgorithm::Lz4,
-                        "zstd" => crate::CompressionAlgorithm::Zstd,
-                        "gzip" => crate::CompressionAlgorithm::Gzip,
-                        _ => return Err(do_memory_core::Error::Storage("Unknown algo".into())),
-                    };
-                    let compressed_data = base64::Engine::decode(
-                        &base64::engine::general_purpose::STANDARD,
-                        encoded_data,
-                    )
-                    .map_err(|e| do_memory_core::Error::Storage(format!("Base64 fail: {}", e)))?;
-                    let payload = crate::CompressedPayload {
-                        original_size,
-                        compressed_size: compressed_data.len(),
-                        compression_ratio: 0.0,
-                        data: compressed_data,
-                        algorithm,
-                    };
-                    let bytes = payload.decompress()?;
-                    bytes
-                        .chunks_exact(4)
-                        .map(|chunk| {
-                            let mut arr = [0u8; 4];
-                            arr.copy_from_slice(chunk);
-                            f32::from_le_bytes(arr)
-                        })
-                        .collect()
-                } else {
-                    serde_json::from_str(&embedding_data)
-                        .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-                };
-
-            #[cfg(not(feature = "compression"))]
-            let embedding: Vec<f32> = serde_json::from_str(&embedding_data)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-
+            let embedding = self.decode_embedding_data(&embedding_data)?;
             Ok(Some(embedding))
         } else {
             Ok(None)
@@ -338,6 +288,63 @@ impl TursoStorage {
             results.push(self._get_embedding_internal(item_id, "embedding").await?);
         }
         Ok(results)
+    }
+
+    /// Decode embedding data from string representation (handles compression)
+    pub(crate) fn decode_embedding_data(&self, embedding_data: &str) -> Result<Vec<f32>> {
+        #[cfg(feature = "compression")]
+        {
+            if let Some(remainder) = embedding_data.strip_prefix("__compressed__:") {
+                let newline_pos = remainder
+                    .find('\n')
+                    .ok_or_else(|| do_memory_core::Error::Storage("Invalid format".into()))?;
+                let header = &remainder[..newline_pos];
+                let encoded_data = &remainder[newline_pos + 1..];
+                let colon_pos = header
+                    .find(':')
+                    .ok_or_else(|| do_memory_core::Error::Storage("Invalid header".into()))?;
+                let algorithm_str = &header[..colon_pos];
+                let original_size: usize = header[colon_pos + 1..]
+                    .parse()
+                    .map_err(|_| do_memory_core::Error::Storage("Invalid size".into()))?;
+                let algorithm = match algorithm_str {
+                    "lz4" => crate::CompressionAlgorithm::Lz4,
+                    "zstd" => crate::CompressionAlgorithm::Zstd,
+                    "gzip" => crate::CompressionAlgorithm::Gzip,
+                    _ => return Err(do_memory_core::Error::Storage("Unknown algo".into())),
+                };
+                let compressed_data = base64::Engine::decode(
+                    &base64::engine::general_purpose::STANDARD,
+                    encoded_data,
+                )
+                .map_err(|e| do_memory_core::Error::Storage(format!("Base64 fail: {}", e)))?;
+                let payload = crate::CompressedPayload {
+                    original_size,
+                    compressed_size: compressed_data.len(),
+                    compression_ratio: 0.0,
+                    data: compressed_data,
+                    algorithm,
+                };
+                let bytes = payload.decompress()?;
+                Ok(bytes
+                    .chunks_exact(4)
+                    .map(|chunk| {
+                        let mut arr = [0u8; 4];
+                        arr.copy_from_slice(chunk);
+                        f32::from_le_bytes(arr)
+                    })
+                    .collect())
+            } else {
+                serde_json::from_str(embedding_data)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))
+            }
+        }
+
+        #[cfg(not(feature = "compression"))]
+        {
+            serde_json::from_str(embedding_data)
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))
+        }
     }
 
     pub(crate) fn generate_embedding_id(&self, item_id: &str, item_type: &str) -> String {

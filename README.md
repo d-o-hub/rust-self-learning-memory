@@ -56,6 +56,16 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
 
+### 🔄 Episode Checkpoints and Handoff
+- Mid-task progress snapshots for long-running task pauses
+- Handoff capability for passing tasks across specialized agents
+- State preservation with findings and pending actions
+
+### 🌊 CSM Cascading Retrieval
+- Hyperdimensional computing (HDC) binary vectors for zero-API similarity search
+- Tiered retrieval fallback: BM25 -> HDC -> ConceptGraph -> API Embeddings
+- Dramatically reduces external embedding API costs
+
 ### 🔒 Secure Code Sandbox (conditional)
 - Wasmtime WASM sandbox for safe code execution when enabled/available
 - Resource limits (timeout, memory, CPU)
@@ -73,8 +83,8 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **MCP tools** for memory operations, pattern search, and code execution
 - **`search_patterns`** - Semantic pattern search with configurable ranking
 - **`recommend_patterns`** - Task-specific pattern recommendations
-- **`recommend_playbook`** - Actionable step-by-step guidance (ADR-044)
-- **`checkpoint_episode`** - Mid-task progress snapshots (ADR-044)
+- **`recommend_playbook`** - Actionable step-by-step guidance
+- **`checkpoint_episode`** - Mid-task progress snapshots
 - Embedding tools: configure, test, generate, search, provider-status
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
@@ -148,7 +158,7 @@ async fn main() -> anyhow::Result<()> {
         println!("Recommended: {:?}", rec.pattern);
     }
 
-    // NEW (ADR-044): Generate an actionable playbook
+    // Generate an actionable playbook
     let playbooks = memory.retrieve_playbooks(
         "Implement user authentication",
         "security",
@@ -461,7 +471,7 @@ batch_size = 100
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Memory CLI                             │
+│                 do-memory-cli                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │  Pattern    │  │   Storage   │          │
 │  │ Management  │  │  Analysis   │  │ Operations  │          │
@@ -469,7 +479,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory MCP Server                       │
+│                 do-memory-mcp                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │  MCP Tools  │  │  WASM       │  │  Advanced   │          │
 │  │  Interface  │  │  Sandbox    │  │  Analysis   │          │
@@ -477,7 +487,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory Core                             │
+│                 do-memory-core                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │   Pattern   │  │   Reward    │          │
 │  │ Management  │  │ Extraction  │  │   Scoring   │          │
@@ -486,11 +496,11 @@ batch_size = 100
                                │
          ┌─────────────────────┼─────────────────────┐
          │                     │                     │
-┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
-│ Turso Storage  │  │  Redb Cache     │  │  In-Memory      │
-│                │  │                 │  │                 │
-│ libSQL/Remote  │  │   Fast Access   │  │  Temporary      │
-└────────────────┘  └─────────────────┘  └─────────────────┘
+┌───────────▼───────────┐  ┌───────────▼───────────┐  ┌────────▼────────┐
+│do-memory-storage-turso│  │do-memory-storage-redb │  │  In-Memory      │
+│                       │  │                       │  │                 │
+│     libSQL/Remote     │  │      Fast Access      │  │  Temporary      │
+└───────────────────────┘  └───────────────────────┘  └─────────────────┘
 ```
 
 ## MCP Server Tools

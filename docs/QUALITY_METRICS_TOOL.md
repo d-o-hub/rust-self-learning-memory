@@ -247,7 +247,8 @@ The tool provides actionable recommendations based on metrics:
 
 ## Performance Considerations
 
-- Query time scales with episode count
+- Query time scales with episode count.
+- Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces complexity from O(N log N) to O(N) scoring calls.
 - Trend analysis requires ≥3 episodes
 - Large time ranges (90d, all) may take longer
 - Consider using shorter time ranges for frequent checks
@@ -275,9 +276,3 @@ Planned improvements for Phase 2 and beyond:
 - Quality score explanations (why an episode scored X)
 - Comparison metrics (current vs. historical baseline)
 
-## Performance Optimizations
-
-Recent optimizations in `memory-core` (specifically pattern ranking) drastically improved retrieval latency.
-
-### Schwartzian Transform for Pattern Ranking
-Optimizing sorting operations using the Schwartzian Transform (decorate-sort-undecorate) and pre-calculating expensive keys (like `HashSet` allocations and `Utc::now()` calls) reduces complexity from O(N log N) to O(N) scoring calls, yielding a ~60-70% speedup.

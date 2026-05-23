@@ -52,7 +52,7 @@ pub async fn handle_query_memory(
             .filter_map(|v| v.as_str().map(|s| s.to_string()))
             .collect();
         // Limit number of fields to prevent excessive JSON projection (CWE-770)
-        f.truncate(20);
+        f.truncate(do_memory_mcp::constants::MAX_QUERY_FIELDS);
         f
     });
 

@@ -495,8 +495,8 @@ fn test_quality_threshold_clamping_logic() {
     let clamped_high = threshold_too_high.clamp(0.0, 1.0);
     let clamped_low = threshold_too_low.clamp(0.0, 1.0);
 
-    assert_eq!(clamped_high, 1.0);
-    assert_eq!(clamped_low, 0.0);
+    assert!((clamped_high - 1.0).abs() < f32::EPSILON);
+    assert!(clamped_low.abs() < f32::EPSILON);
 }
 
 /// Verify clamping of min_success_rate logic
@@ -508,8 +508,8 @@ fn test_min_success_rate_clamping_logic() {
     let clamped_high = rate_too_high.clamp(0.0, 1.0) as f32;
     let clamped_low = rate_too_low.clamp(0.0, 1.0) as f32;
 
-    assert_eq!(clamped_high, 1.0f32);
-    assert_eq!(clamped_low, 0.0f32);
+    assert!((clamped_high - 1.0f32).abs() < f32::EPSILON);
+    assert!(clamped_low.abs() < f32::EPSILON);
 }
 
 /// Verify field truncation logic

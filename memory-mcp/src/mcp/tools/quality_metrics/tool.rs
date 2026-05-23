@@ -75,7 +75,7 @@ impl QualityMetricsTool {
         info!("Analyzing {} episodes for quality metrics", episodes.len());
 
         // Initialize quality assessor
-        let quality_threshold = input.quality_threshold.unwrap_or(0.7);
+        let quality_threshold = input.quality_threshold.unwrap_or(0.7).clamp(0.0, 1.0);
         let config = QualityConfig::new(quality_threshold);
         let assessor = QualityAssessor::new(config);
 

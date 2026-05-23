@@ -47,9 +47,13 @@ pub async fn handle_query_memory(
         .unwrap_or("relevance")
         .to_string();
     let fields = args.get("fields").and_then(|v| v.as_array()).map(|arr| {
-        arr.iter()
+        let mut f: Vec<String> = arr
+            .iter()
             .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect()
+            .collect();
+        // Limit number of fields to prevent excessive JSON projection (CWE-770)
+        f.truncate(20);
+        f
     });
 
     let result = server
@@ -113,7 +117,8 @@ pub async fn handle_analyze_patterns(
     let min_success_rate = args
         .get("min_success_rate")
         .and_then(|v| v.as_f64())
-        .unwrap_or(0.7) as f32;
+        .unwrap_or(0.7)
+        .clamp(0.0, 1.0) as f32;
     let limit = args
         .get("limit")
         .and_then(|v| v.as_u64())
@@ -121,7 +126,7 @@ pub async fn handle_analyze_patterns(
         .unwrap_or(do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT)
         .clamp(
             do_memory_mcp::constants::MIN_QUERY_LIMIT,
-            do_memory_mcp::constants::MAX_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_SEARCH_LIMIT,
         );
 
     let result = server

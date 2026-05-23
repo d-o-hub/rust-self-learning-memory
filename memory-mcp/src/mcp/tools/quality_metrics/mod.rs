@@ -11,8 +11,7 @@ pub use types::{
 
 #[cfg(test)]
 mod security_logic_tests {
-    use super::QualityMetricsTool;
-    use super::types::QualityMetricsInput;
+    use super::*;
     use do_memory_core::SelfLearningMemory;
     use std::sync::Arc;
 

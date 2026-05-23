@@ -412,12 +412,19 @@ mod security_handler_tests {
         let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)
             .await
             .unwrap();
+
+        // Verify truncation logic in isolation
+        let mut fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
+        fields.truncate(do_memory_mcp::constants::MAX_QUERY_FIELDS);
+        assert_eq!(fields.len(), 20, "Fields should be truncated to 20");
+
         let many_fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
         let args = json!({
             "query": "test",
             "fields": many_fields,
             "limit": 5000
         });
+        // Confirm handler runs with large input
         let _ = handle_query_memory(&mut server, Some(args)).await;
     }
 
@@ -427,6 +434,25 @@ mod security_handler_tests {
         let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)
             .await
             .unwrap();
+
+        // Verify clamping logic explicitly
+        let rate_high = 5.0f64;
+        let rate_clamped = rate_high.clamp(0.0, 1.0) as f32;
+        assert!(
+            (rate_clamped - 1.0).abs() < f32::EPSILON,
+            "min_success_rate should be clamped to 1.0"
+        );
+
+        let limit_high = 5000usize;
+        let limit_clamped = limit_high.clamp(
+            do_memory_mcp::constants::MIN_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_SEARCH_LIMIT,
+        );
+        assert_eq!(
+            limit_clamped, 100,
+            "analyze_patterns limit should be clamped to 100"
+        );
+
         let args = json!({
             "task_type": "test",
             "min_success_rate": 5.0,

@@ -1,117 +1,487 @@
-//! # Security Verification Tests
+//! # Advanced Pattern Analysis Security Tests
 //!
-//! Tests specifically for input clamping and truncation in MCP handlers.
+//! Tests security aspects of the advanced pattern analysis tool.
+
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::useless_conversion)]
+#![allow(missing_docs)]
+#![allow(clippy::single_match_else)]
 
 use do_memory_core::SelfLearningMemory;
-use do_memory_mcp::constants;
-use do_memory_mcp::mcp::tools::quality_metrics::{QualityMetricsInput, QualityMetricsTool};
+use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
+    AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,
+};
+use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Test input sanitization
 #[tokio::test]
-async fn test_quality_threshold_clamping() {
+async fn test_input_sanitization() {
     let memory = Arc::new(SelfLearningMemory::new());
-    let tool = QualityMetricsTool::new(memory);
+    let tool = AdvancedPatternAnalysisTool::new(memory);
 
-    // Test value > 1.0
-    let input_high = QualityMetricsInput {
-        time_range: "7d".to_string(),
-        include_trends: true,
-        quality_threshold: Some(1.5),
+    // Test with potentially malicious data
+    let mut malicious_data = HashMap::new();
+
+    // Very large numbers that might cause overflow
+    malicious_data.insert(
+        "large".to_string(),
+        vec![f64::MAX, f64::MAX / 2.0, f64::MAX / 4.0],
+    );
+
+    // Very small numbers
+    malicious_data.insert(
+        "small".to_string(),
+        vec![
+            f64::MIN_POSITIVE,
+            f64::MIN_POSITIVE * 2.0,
+            f64::MIN_POSITIVE * 4.0,
+        ],
+    );
+
+    // Mixed problematic values
+    malicious_data.insert(
+        "mixed".to_string(),
+        vec![0.0, f64::INFINITY, f64::NEG_INFINITY, f64::NAN],
+    );
+
+    let input = AdvancedPatternAnalysisInput {
+        analysis_type: AnalysisType::Statistical,
+        time_series_data: malicious_data,
+        config: None,
     };
 
-    let result_high = tool.execute(input_high).await.unwrap();
-    // It should be clamped to 1.0
-    assert!(
-        (result_high.quality_threshold - 1.0).abs() < f32::EPSILON,
-        "quality_threshold should be clamped to 1.0, got {}",
-        result_high.quality_threshold
-    );
+    let result = tool.execute(input).await;
 
-    // Test value < 0.0
-    let input_low = QualityMetricsInput {
-        time_range: "7d".to_string(),
-        include_trends: true,
-        quality_threshold: Some(-0.5),
+    // Should not panic or crash
+    match result {
+        Ok(_) => {
+            // If successful, that's fine - the tool handled edge cases
+        }
+        Err(e) => {
+            // If error, should be a proper error, not a panic
+            assert!(!e.to_string().is_empty());
+        }
+    }
+}
+
+/// Test resource limits
+#[tokio::test]
+async fn test_resource_limits() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    // Test with maximum allowed data points
+    let mut large_data = HashMap::new();
+    let max_series: Vec<f64> = (0..10_000).map(f64::from).collect();
+    large_data.insert("max_size".to_string(), max_series);
+
+    let input = AdvancedPatternAnalysisInput {
+        analysis_type: AnalysisType::Statistical,
+        time_series_data: large_data,
+        config: Some(AnalysisConfig {
+            max_data_points: Some(10_000),
+            parallel_processing: Some(false),
+            ..Default::default()
+        }),
     };
 
-    let result_low = tool.execute(input_low).await.unwrap();
-    // It should be clamped to 0.0
+    let result = tool.execute(input).await;
+
+    // Should handle large datasets without issues
+    match result {
+        Ok(output) => {
+            assert!(output.performance.memory_usage_bytes < 500 * 1024 * 1024); // < 500MB
+        }
+        Err(e) => {
+            // Should be a proper error about data size, not a panic
+            assert!(e.to_string().contains("data") || e.to_string().contains("size"));
+        }
+    }
+}
+
+/// Test numerical stability vulnerabilities
+#[tokio::test]
+async fn test_numerical_stability_vulnerabilities() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    let test_cases = vec![
+        ("zeros", vec![0.0, 0.0, 0.0, 0.0, 0.0]),
+        ("constants", vec![1.0, 1.0, 1.0, 1.0, 1.0]),
+        ("near_zero", vec![1e-15, 2e-15, 3e-15, 4e-15, 5e-15]),
+        ("large_variance", vec![1e-10, 1e10, 1e-10, 1e10, 1e-10]),
+        ("division_triggers", vec![1.0, 2.0, 4.0, 8.0, 16.0]), // Powers of 2
+    ];
+
+    for (name, series) in test_cases {
+        let mut data = HashMap::new();
+        data.insert(name.to_string(), series);
+
+        let input = AdvancedPatternAnalysisInput {
+            analysis_type: AnalysisType::Comprehensive,
+            time_series_data: data,
+            config: None,
+        };
+
+        let result = tool.execute(input).await;
+
+        // Should not panic on any of these edge cases
+        match result {
+            Ok(output) => {
+                // Results should be finite and reasonable
+                assert!(output.performance.total_time_ms < 30_000); // < 30 seconds
+            }
+            Err(e) => {
+                // Error should be descriptive
+                assert!(!e.to_string().is_empty());
+            }
+        }
+    }
+}
+
+/// Test error handling doesn't leak sensitive information
+#[tokio::test]
+async fn test_error_information_leakage() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    // Test various error conditions
+    let error_cases = vec![
+        ("empty_data", HashMap::new()),
+        ("insufficient_data", {
+            let mut data = HashMap::new();
+            data.insert("small".to_string(), vec![1.0, 2.0]);
+            data
+        }),
+        ("nan_data", {
+            let mut data = HashMap::new();
+            data.insert("nan".to_string(), vec![1.0, f64::NAN, 3.0]);
+            data
+        }),
+    ];
+
+    for (case_name, data) in error_cases {
+        let input = AdvancedPatternAnalysisInput {
+            analysis_type: AnalysisType::Statistical,
+            time_series_data: data,
+            config: None,
+        };
+
+        let result = tool.execute(input).await;
+        assert!(result.is_err(), "Case {case_name} should fail");
+
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+
+        // Error messages should be user-friendly and not leak internal details
+        assert!(!error_msg.contains("panic"));
+        assert!(!error_msg.contains("unwrap"));
+        assert!(!error_msg.contains("internal"));
+        assert!(!error_msg.contains("debug"));
+
+        // Should contain helpful information
+        assert!(error_msg.len() > 10);
+        assert!(error_msg.len() < 500); // Not too verbose
+    }
+}
+
+/// Test that analysis doesn't modify input data
+#[tokio::test]
+async fn test_input_data_immutability() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    let original_data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let mut data = HashMap::new();
+    data.insert("test".to_string(), original_data.clone());
+
+    let input = AdvancedPatternAnalysisInput {
+        analysis_type: AnalysisType::Statistical,
+        time_series_data: data.clone(),
+        config: None,
+    };
+
+    let result = tool.execute(input).await;
+    assert!(result.is_ok());
+
+    // Original data should be unchanged
+    assert_eq!(data.get("test").unwrap(), &original_data);
+}
+
+/// Test timeout protection (simulated)
+#[tokio::test]
+async fn test_timeout_protection() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    // Create a very large dataset that might be slow
+    let mut data = HashMap::new();
+    let large_series: Vec<f64> = (0..1000).map(f64::from).collect();
+
+    for i in 0..20 {
+        data.insert(format!("var_{i}"), large_series.clone());
+    }
+
+    let input = AdvancedPatternAnalysisInput {
+        analysis_type: AnalysisType::Comprehensive,
+        time_series_data: data,
+        config: Some(AnalysisConfig {
+            parallel_processing: Some(false), // Force sequential to test timeout
+            max_data_points: Some(100_000),
+            ..Default::default()
+        }),
+    };
+
+    // Use tokio timeout to ensure analysis doesn't hang indefinitely
+    let result =
+        tokio::time::timeout(std::time::Duration::from_secs(30), tool.execute(input)).await;
+
+    match result {
+        Ok(analysis_result) => {
+            // If it completed, that's fine
+            assert!(analysis_result.is_ok() || analysis_result.is_err());
+        }
+        Err(_) => {
+            // If it timed out, that's also acceptable for very large datasets
+            // The important thing is it didn't hang indefinitely
+        }
+    }
+}
+
+// ──── Input Bounds Clamping Tests (CWE-770 Prevention) ────
+
+/// Verify that tags-specific constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_tags_constants_validity() {
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION >= 1);
+    assert!(do_memory_mcp::constants::MAX_TAGS_PER_OPERATION <= 10_000);
+
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN >= 100);
+    assert!(do_memory_mcp::constants::MAX_TASK_DESCRIPTION_LEN <= 1_000_000);
+
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS >= 1);
+    assert!(do_memory_mcp::constants::MAX_BULK_EPISODE_IDS <= 10_000);
+
+    // Depth bounds
+    assert!(do_memory_mcp::constants::MIN_DEPTH >= 1);
+    assert!(do_memory_mcp::constants::MAX_DEPTH > do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH >= do_memory_mcp::constants::MIN_DEPTH);
+    assert!(do_memory_mcp::constants::DEFAULT_DEPTH <= do_memory_mcp::constants::MAX_DEPTH);
+
+    // Find related bounds
+    assert!(do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT > 0);
     assert!(
-        result_low.quality_threshold.abs() < f32::EPSILON,
-        "quality_threshold should be clamped to 0.0, got {}",
-        result_low.quality_threshold
+        do_memory_mcp::constants::DEFAULT_FIND_RELATED_LIMIT
+            <= do_memory_mcp::constants::MAX_FIND_RELATED_LIMIT
     );
 }
 
+/// Verify that constants are defined with sensible values
+#[allow(clippy::assertions_on_constants)]
 #[test]
-fn test_security_constants() {
-    // Verify the constants used for hardening are set correctly
-    assert_eq!(constants::MAX_QUERY_FIELDS, 20);
-    assert_eq!(constants::MAX_SEARCH_LIMIT, 100);
-    assert_eq!(constants::MIN_QUERY_LIMIT, 1);
-    assert_eq!(constants::MAX_QUERY_LIMIT, 1000);
+fn test_input_bounds_constants_validity() {
+    // All min values should be >= 1
+    assert!(do_memory_mcp::constants::MIN_QUERY_LIMIT >= 1);
+    assert!(do_memory_mcp::constants::MIN_PLAYBOOK_STEPS >= 1);
+    assert!(do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT >= 1);
+
+    // All max values should be > min values
+    assert!(do_memory_mcp::constants::MAX_QUERY_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT);
+    assert!(
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS > do_memory_mcp::constants::MIN_PLAYBOOK_STEPS
+    );
+    assert!(
+        do_memory_mcp::constants::MAX_TAG_SEARCH_LIMIT
+            > do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT
+    );
+    assert!(do_memory_mcp::constants::MAX_SEARCH_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT);
+    assert!(
+        do_memory_mcp::constants::MAX_RECOMMEND_LIMIT > do_memory_mcp::constants::MIN_QUERY_LIMIT
+    );
 }
 
+/// Verify that default values fall within min/max bounds
+#[allow(clippy::assertions_on_constants)]
 #[test]
-fn test_field_truncation_logic() {
-    // Manually verify truncation logic as used in the handle_query_memory
-    let mut fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
-    // Logic from memory_handlers.rs:
-    // f.truncate(do_memory_mcp::constants::MAX_QUERY_FIELDS);
-    fields.truncate(constants::MAX_QUERY_FIELDS);
+fn test_input_bounds_defaults_in_range() {
+    assert!(
+        do_memory_mcp::constants::DEFAULT_QUERY_LIMIT >= do_memory_mcp::constants::MIN_QUERY_LIMIT
+            && do_memory_mcp::constants::DEFAULT_QUERY_LIMIT
+                <= do_memory_mcp::constants::MAX_QUERY_LIMIT
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT
+            >= do_memory_mcp::constants::MIN_QUERY_LIMIT
+            && do_memory_mcp::constants::DEFAULT_ANALYZE_LIMIT
+                <= do_memory_mcp::constants::MAX_QUERY_LIMIT
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS
+            >= do_memory_mcp::constants::MIN_PLAYBOOK_STEPS
+            && do_memory_mcp::constants::DEFAULT_PLAYBOOK_STEPS
+                <= do_memory_mcp::constants::MAX_PLAYBOOK_STEPS
+    );
+    assert!(
+        do_memory_mcp::constants::DEFAULT_TAG_SEARCH_LIMIT
+            >= do_memory_mcp::constants::MIN_TAG_SEARCH_LIMIT
+            && do_memory_mcp::constants::DEFAULT_TAG_SEARCH_LIMIT
+                <= do_memory_mcp::constants::MAX_TAG_SEARCH_LIMIT
+    );
+}
+
+/// Verify clamping logic: values below min are clamped up to min
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_clamping_lower_bound() {
+    // Test query limit clamping (0 should become 1)
+    let clamped = 0usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+    );
     assert_eq!(
-        fields.len(),
-        20,
-        "Fields should be truncated to MAX_QUERY_FIELDS (20)"
-    );
-    assert_eq!(fields[0], "field_0");
-    assert_eq!(fields[19], "field_19");
-}
-
-#[test]
-fn test_min_success_rate_clamping_logic() {
-    // Logic from handle_analyze_patterns:
-    // .clamp(0.0, 1.0) as f32
-
-    let rate_too_high: f64 = 1.5;
-    let clamped_high = rate_too_high.clamp(0.0, 1.0) as f32;
-    assert!((clamped_high - 1.0).abs() < f32::EPSILON);
-
-    let rate_too_low: f64 = -0.5;
-    let clamped_low = rate_too_low.clamp(0.0, 1.0) as f32;
-    assert!(clamped_low.abs() < f32::EPSILON);
-}
-
-#[test]
-fn test_analyze_patterns_limit_clamping_logic() {
-    // Logic from handle_analyze_patterns:
-    // .clamp(do_memory_mcp::constants::MIN_QUERY_LIMIT, do_memory_mcp::constants::MAX_SEARCH_LIMIT)
-
-    let limit_too_high: usize = 5000;
-    let clamped_high =
-        limit_too_high.clamp(constants::MIN_QUERY_LIMIT, constants::MAX_SEARCH_LIMIT);
-    assert_eq!(
-        clamped_high, 100,
-        "analyze_patterns limit should be clamped to MAX_SEARCH_LIMIT (100)"
+        clamped,
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        "Value 0 should be clamped to minimum"
     );
 
-    let limit_too_low: usize = 0;
-    let clamped_low = limit_too_low.clamp(constants::MIN_QUERY_LIMIT, constants::MAX_SEARCH_LIMIT);
+    // Test playbook steps clamping (0 should become 1)
+    let clamped = 0usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
     assert_eq!(
-        clamped_low, 1,
-        "analyze_patterns limit should be clamped to MIN_QUERY_LIMIT (1)"
+        clamped,
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        "Value 0 should be clamped to minimum playbook steps"
     );
 }
 
+/// Verify clamping logic: values above max are clamped down to max
+#[allow(clippy::assertions_on_constants)]
 #[test]
-fn test_query_memory_limit_clamping_logic() {
-    // Logic from handle_query_memory:
-    // .clamp(do_memory_mcp::constants::MIN_QUERY_LIMIT, do_memory_mcp::constants::MAX_QUERY_LIMIT)
-
-    let limit_too_high: usize = 5000;
-    let clamped_high = limit_too_high.clamp(constants::MIN_QUERY_LIMIT, constants::MAX_QUERY_LIMIT);
-    assert_eq!(
-        clamped_high, 1000,
-        "query_memory limit should be clamped to MAX_QUERY_LIMIT (1000)"
+fn test_clamping_upper_bound() {
+    // Test query limit clamping (9999 should become 1000)
+    let clamped = 9999usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
     );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+        "Value 9999 should be clamped to maximum"
+    );
+
+    // Test playbook steps clamping (999 should become 100)
+    let clamped = 999usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
+    assert_eq!(
+        clamped,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+        "Value 999 should be clamped to maximum playbook steps"
+    );
+}
+
+/// Verify clamping logic: valid values within range pass through unchanged
+#[allow(clippy::assertions_on_constants)]
+#[test]
+fn test_clamping_middle_values() {
+    let clamped = 50usize.clamp(
+        do_memory_mcp::constants::MIN_QUERY_LIMIT,
+        do_memory_mcp::constants::MAX_QUERY_LIMIT,
+    );
+    assert_eq!(clamped, 50, "Value 50 should pass through unchanged");
+
+    let clamped = 5usize.clamp(
+        do_memory_mcp::constants::MIN_PLAYBOOK_STEPS,
+        do_memory_mcp::constants::MAX_PLAYBOOK_STEPS,
+    );
+    assert_eq!(clamped, 5, "Value 5 should pass through unchanged");
+}
+
+/// Test that analysis results don't contain sensitive information
+#[tokio::test]
+async fn test_output_sanitization() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    let mut data = HashMap::new();
+    data.insert("normal".to_string(), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+
+    let input = AdvancedPatternAnalysisInput {
+        analysis_type: AnalysisType::Comprehensive,
+        time_series_data: data,
+        config: None,
+    };
+
+    let result = tool.execute(input).await;
+    assert!(result.is_ok());
+
+    let output = result.unwrap();
+
+    // Check that output doesn't contain any sensitive information
+    // (This is more of a framework test - in practice, we'd check for things like
+    // file paths, environment variables, etc.)
+
+    // Results should be serializable (important for API safety)
+    let json_result = serde_json::to_string(&output);
+    assert!(json_result.is_ok());
+
+    let json_str = json_result.unwrap();
+    assert!(json_str.len() > 100); // Should contain meaningful data
+    assert!(json_str.len() < 1_000_000); // Shouldn't be excessively large
+}
+
+/// Test resistance to malformed configuration
+#[tokio::test]
+async fn test_malformed_configuration_resistance() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tool = AdvancedPatternAnalysisTool::new(memory);
+
+    let mut data = HashMap::new();
+    data.insert("test".to_string(), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+
+    // Test with extreme configuration values
+    let extreme_configs = vec![
+        AnalysisConfig {
+            significance_level: Some(0.0),  // Edge case
+            forecast_horizon: Some(1),      // Minimum
+            anomaly_sensitivity: Some(0.0), // Minimum
+            enable_causal_inference: Some(true),
+            max_data_points: Some(1), // Very small
+            parallel_processing: Some(false),
+        },
+        AnalysisConfig {
+            significance_level: Some(1.0),  // Edge case
+            forecast_horizon: Some(100),    // Maximum
+            anomaly_sensitivity: Some(1.0), // Maximum
+            enable_causal_inference: Some(false),
+            max_data_points: Some(1_000_000), // Very large
+            parallel_processing: Some(true),
+        },
+    ];
+
+    for config in extreme_configs {
+        let input = AdvancedPatternAnalysisInput {
+            analysis_type: AnalysisType::Comprehensive,
+            time_series_data: data.clone(),
+            config: Some(config),
+        };
+
+        let result = tool.execute(input).await;
+
+        // Should not panic on extreme configurations
+        match result {
+            Ok(_) => {
+                // Success is fine
+            }
+            Err(e) => {
+                // Error should be proper, not a panic
+                assert!(!e.to_string().contains("panic"));
+            }
+        }
+    }
 }

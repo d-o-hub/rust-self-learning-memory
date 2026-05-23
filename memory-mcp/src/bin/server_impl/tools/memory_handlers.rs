@@ -3,7 +3,7 @@
 //! This module contains handlers for memory queries, pattern analysis,
 //! and related operations.
 
-use super::{get_client_id, json_value_len, Content, MemoryMCPServer, Value};
+use super::{Content, MemoryMCPServer, Value, get_client_id, json_value_len};
 use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, GenerateEmbeddingInput,
     QuerySemanticMemoryInput, SearchByEmbeddingInput,

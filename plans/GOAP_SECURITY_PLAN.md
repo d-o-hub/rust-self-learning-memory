@@ -26,7 +26,7 @@
 | OAuth/JWT verification | ✅ Implemented (jsonwebtoken) | Low |
 | Dependency audits | ✅ cargo-audit in CI | Low |
 | Environment variable management | ✅ Implemented | Low |
-| Input validation | ✅ Hardened bounds | Low |
+| Input validation | ⚠️ Partial review needed | Medium |
 | Rate limiting | ⚠️ Needs tuning | Medium |
 | Audit logging | ⚠️ Needs verification | Medium |
 | MCP tool access control | ⚠️ Needs review | Medium |
@@ -52,7 +52,7 @@
 |----|------|----------|--------------|
 | WG-145.1 | Complete dependency audit (cargo-deny) | HIGH | None |
 | WG-145.2 | Verify OAuth/JWT production settings | HIGH | None |
-| WG-145.3 | Review input validation across MCP tools | ✅ | None |
+| WG-145.3 | Review input validation across MCP tools | MEDIUM | None |
 | WG-145.4 | Tune rate limiting for production | MEDIUM | WG-145.3 |
 | WG-145.5 | Verify audit logging works end-to-end | MEDIUM | None |
 | WG-145.6 | Run gitleaks scan on repository | HIGH | None |

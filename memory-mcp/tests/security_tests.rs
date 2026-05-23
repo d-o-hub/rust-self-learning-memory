@@ -486,10 +486,9 @@ async fn test_malformed_configuration_resistance() {
     }
 }
 
-/// Verify clamping of quality_threshold in QualityMetricsInput
+/// Verify clamping of quality_threshold logic
 #[test]
 fn test_quality_threshold_clamping_logic() {
-    // This test simulates the clamping logic implemented in QualityMetricsTool::execute
     let threshold_too_high = 1.5f32;
     let threshold_too_low = -0.5f32;
 
@@ -500,7 +499,7 @@ fn test_quality_threshold_clamping_logic() {
     assert_eq!(clamped_low, 0.0);
 }
 
-/// Verify clamping of min_success_rate in handle_analyze_patterns
+/// Verify clamping of min_success_rate logic
 #[test]
 fn test_min_success_rate_clamping_logic() {
     let rate_too_high = 2.0f64;
@@ -513,53 +512,10 @@ fn test_min_success_rate_clamping_logic() {
     assert_eq!(clamped_low, 0.0f32);
 }
 
-/// Verify field truncation logic in handle_query_memory
+/// Verify field truncation logic
 #[test]
 fn test_field_truncation_logic() {
     let mut fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
-    let max_fields = do_memory_mcp::constants::MAX_QUERY_FIELDS;
-
-    fields.truncate(max_fields);
-
-    assert_eq!(fields.len(), max_fields);
-    assert_eq!(fields[0], "field_0");
-    assert_eq!(fields[max_fields - 1], format!("field_{}", max_fields - 1));
-}
-
-/// Verify clamping of quality_threshold in QualityMetricsInput
-#[test]
-fn test_quality_threshold_clamping_logic() {
-    // This test simulates the clamping logic implemented in QualityMetricsTool::execute
-    let threshold_too_high = 1.5f32;
-    let threshold_too_low = -0.5f32;
-
-    let clamped_high = threshold_too_high.clamp(0.0, 1.0);
-    let clamped_low = threshold_too_low.clamp(0.0, 1.0);
-
-    assert_eq!(clamped_high, 1.0);
-    assert_eq!(clamped_low, 0.0);
-}
-
-/// Verify clamping of min_success_rate in handle_analyze_patterns
-#[test]
-fn test_min_success_rate_clamping_logic() {
-    let rate_too_high = 2.0f64;
-    let rate_too_low = -1.0f64;
-
-    let clamped_high = rate_too_high.clamp(0.0, 1.0) as f32;
-    let clamped_low = rate_too_low.clamp(0.0, 1.0) as f32;
-
-    assert_eq!(clamped_high, 1.0f32);
-    assert_eq!(clamped_low, 0.0f32);
-}
-
-/// Verify field truncation logic in handle_query_memory
-#[test]
-fn test_field_truncation_logic() {
-    let mut fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
-    // Using hardcoded value 20 here since we want to verify the logic,
-    // and importing the constant from the binary crate is tricky in a library test.
-    // Actually do_memory_mcp::constants::MAX_QUERY_FIELDS should work if it's pub.
     let max_fields = do_memory_mcp::constants::MAX_QUERY_FIELDS;
 
     fields.truncate(max_fields);

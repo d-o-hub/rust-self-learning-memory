@@ -388,12 +388,12 @@ pub async fn handle_embedding_provider_status(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
-    let input: EmbeddingProviderStatusInput = serde_json::from_value(args)?;
+    let input: EmbeddingProviderStatusInput = serde_json.from_value(args)?;
 
     let result = server.execute_embedding_provider_status_tool(input).await?;
 
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json.to_string_pretty(&result)?,
     }];
     Ok(content)
 }
@@ -402,7 +402,7 @@ pub async fn handle_embedding_provider_status(
 mod security_handler_tests {
     use super::*;
     use do_memory_core::SelfLearningMemory;
-    use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
+    use do_memory_mcp::SandboxConfig;
     use serde_json::json;
     use std::sync::Arc;
 

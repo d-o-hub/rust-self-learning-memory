@@ -397,3 +397,41 @@ pub async fn handle_embedding_provider_status(
     }];
     Ok(content)
 }
+
+#[cfg(test)]
+mod security_handler_tests {
+    use super::*;
+    use do_memory_core::SelfLearningMemory;
+    use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
+    use serde_json::json;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_handle_query_memory_field_truncation() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+            .await
+            .unwrap();
+        let many_fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
+        let args = json!({
+            "query": "test",
+            "fields": many_fields,
+            "limit": 5000
+        });
+        let _ = handle_query_memory(&mut server, Some(args)).await;
+    }
+
+    #[tokio::test]
+    async fn test_handle_analyze_patterns_clamping() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+            .await
+            .unwrap();
+        let args = json!({
+            "task_type": "test",
+            "min_success_rate": 5.0,
+            "limit": 5000
+        });
+        let _ = handle_analyze_patterns(&mut server, Some(args)).await;
+    }
+}

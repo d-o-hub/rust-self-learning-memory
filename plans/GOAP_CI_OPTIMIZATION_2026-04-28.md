@@ -87,12 +87,22 @@ Task 7: Verify benchmark skip works with label
 
 ## Success Criteria
 
-- [ ] PR build time reduced to <20 min (excluding benchmark-dependent PRs)
-- [ ] Benchmark workflow runs on perf-critical file changes
-- [ ] Benchmark workflow runs on main branch (unchanged)
-- [ ] `skip-benchmarks` label allows manual skip
-- [ ] AGENTS.md updated with CI optimization guidelines
-- [ ] No regression in quality gate coverage
+- [x] PR build time reduced to <20 min (excluding benchmark-dependent PRs) — Verified 2026-05-21: non-perf PRs ~15-18 min
+- [x] Benchmark workflow runs on perf-critical file changes — Verified 2026-05-21: `paths` filter active
+- [x] Benchmark workflow runs on main branch (unchanged) — Verified 2026-05-21: `push: branches: [main]` trigger
+- [x] `skip-benchmarks` label allows manual skip — Verified 2026-05-21: label check in benchmark job condition
+- [x] AGENTS.md updated with CI optimization guidelines — Verified 2026-05-21: consolidated section (was duplicated, fixed)
+- [x] No regression in quality gate coverage — Verified 2026-05-21: coverage workflow unchanged
+
+## Post-Implementation Analysis (2026-05-21)
+
+See `plans/FIX_CI_AND_RELEASE_STATE.md` for comprehensive analysis of current CI/release state.
+
+Key findings:
+- **All WGs 150-153 implemented in code**. WG-154 (ci-optimization skill) deferred as optional — covered by existing ci-fix + github-workflows skills.
+- **Release drift detected**: 157 unreleased commits since v0.1.31. Release-drift workflow has silent failure (missing `release-drift` label).
+- **AGENTS.md had duplicate CI Optimization section** — now consolidated.
+- **Coverage workflow has redundant disk cleanup** (`easimon/maximize-build-space` + `jlumbroso/free-disk-space`) — optimization opportunity.
 
 ## Execution Plan
 

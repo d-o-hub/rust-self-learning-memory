@@ -32,4 +32,5 @@ jobs:
           title: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }}"
           body: "Automated update of CHANGELOG.md."
           branch: "chore/update-changelog-${{ github.ref_name }}"
+          base: main
           labels: automated-pr

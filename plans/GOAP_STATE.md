@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-19 (WG-124 complete; PRs #569, #576 merged)
-- **Version**: `0.1.31` (workspace, released)
+- **Last Updated**: 2026-05-21 (v0.1.32 prep; CI/release analysis; WGs 150-154 tracked)
+- **Version**: `0.1.32` (workspace, preparing release)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -89,6 +89,18 @@
 | MemCollab cross-agent memory | WG-126 | ✅ Complete (PR #572) | feature-implement | MemCollab (arXiv:2603.23234) — trajectory distillation, contrastive adapter, collaborative prototypes |
 | Federated HDC multi-agent memory | WG-135 | 🔵 Evaluated (evaluation doc) | feature-implement | arXiv:2603.20037 |
 | CloudEvents EventEmitter | WG-149 | ✅ Complete | feature-implement | ADR-054 — CloudEvents 1.0 spec
+
+### Phase 5: CI Optimization (2026-04-28)
+
+| Task | WG | Status | Owner | Notes |
+|------|----|--------|-------|-------|
+| Update benchmarks.yml paths trigger | WG-150 | ✅ Complete | feature-implement | PRs use `paths` only, push uses `paths-ignore` |
+| Add skip-benchmarks label support | WG-151 | ✅ Complete | feature-implement | Label check in benchmark job condition |
+| Make benchmark informational (not required) | WG-152 | ✅ Complete | feature-implement | `regression-check` uses `continue-on-error` |
+| Update AGENTS.md with CI guidelines | WG-153 | ✅ Complete | agents-update | CI optimization section in AGENTS.md |
+| Create ci-optimization skill | WG-154 | 🔵 Deferred (optional) | skill-creator | Not needed; covered by ci-fix + github-workflows skills |
+
+**CI Optimization Result**: PR CI time reduced from ~50+ min to ~15-18 min for non-perf PRs. Benchmarks (~54 min) only run when perf-critical paths change or `skip-benchmarks` label is absent. See `plans/FIX_CI_AND_RELEASE_STATE.md` for 2026-05-21 analysis.
 
 ### WG-131 CascadeRetriever Status (Updated 2026-05-01)
 

@@ -97,9 +97,11 @@ jobs:
             gh issue close "$num" --comment "Superseded by new drift check" 2>/dev/null || true
           done
 
+          # Ensure the release-drift label exists (idempotent: succeeds if exists)
+          gh label create release-drift --color "D93F0B" --description "Auto-generated release drift alerts" 2>/dev/null || true
+
           # Create new issue
-          gh issue create --title "$TITLE" --body "$BODY" --label "release-drift" 2>/dev/null || \
-            echo "Could not create issue (label may not exist)"
+          gh issue create --title "$TITLE" --body "$BODY" --label "release-drift"
 
       - name: Summary
         run: |

@@ -113,5 +113,6 @@ insights-report/
 # Split file artifacts (from split command)
 /x??
 
-# Compiled ELF binaries in root
+# Compiled ELF binaries
 debug_config
+/bin/

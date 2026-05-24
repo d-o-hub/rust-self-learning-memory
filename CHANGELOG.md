@@ -2,6 +2,12 @@
 
 ### Added
 
+- Nothing yet
+
+## [0.1.32] - 2026-05-21
+
+### Added
+
 - **Procedural memory type** (WG-124) — Learned heuristics-as-skills (ParamAgent-inspired)
 - **Temporal graph edges** (WG-123) — Weighted traversal, pattern edges, significance weights (REMem, ICLR 2026)
 - **MemCollab cross-agent memory** (WG-126) — Trajectory distillation, contrastive adapter, collaborative prototypes
@@ -11,7 +17,7 @@
 
 ### Changed
 
-- **CI & Release hardening** — Fixed release-drift workflow silent failure, removed redundant coverage cleanup
+- **CI & Release hardening** — Fixed release-drift workflow silent failure, removed redundant coverage cleanup, fixed changelog workflow detached HEAD issue
 - **Embedding search optimization** — Brute-force batching in Turso storage
 - **Documentation refresh** — Updated README and docs to reflect current capabilities
 
@@ -20,12 +26,7 @@
 - **MCP input bounds** — Prevent resource exhaustion via input bounds clamping (CWE-770)
 - **Pre-existing clippy warnings** — Resolved all warnings, split oversized api.rs
 - **Dependency updates** — Bumped openssl from 0.10.79 to 0.10.80
-
-## [0.1.32] - 2026-05-21
-
-### Added
-
-- Nothing yet
+- **Changelog workflow** — Added `base: main` to fix detached HEAD failures on tag-triggered runs
 
 ## [0.1.31] - 2026-04-22
 

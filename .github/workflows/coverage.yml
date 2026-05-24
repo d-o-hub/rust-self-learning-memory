@@ -91,27 +91,6 @@ jobs:
           chmod +x scripts/setup-target-dir.sh
           ./scripts/setup-target-dir.sh coverage
 
-      - name: Free disk space (aggressive)
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Remove large unused tools and packages
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          # Optional: leave these for debugging if needed
-          # large-packages: true
-          # swap: true
-
-      - name: Log disk usage after cleanup
-        if: always()
-        run: |
-          echo "=== Disk Usage After Cleanup ==="
-          df -h /
-          echo ""
-          echo "=== Top 20 Directories by Size ==="
-          du -h -d1 / | sort -hr | head -n 20
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview

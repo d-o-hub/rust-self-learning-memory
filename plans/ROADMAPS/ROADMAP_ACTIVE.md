@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
+**Last Updated**: 2026-05-21 (v0.1.32 prep; 157 unreleased commits; CI workflow hardening)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -9,7 +9,18 @@
 
 ## Current State
 
-`v0.1.31` was released on 2026-04-30. Workspace and publishable crate versions are `0.1.31`.
+`v0.1.31` was released on 2026-04-22. Workspace version is `0.1.32` (preparing for release). 157 unreleased commits since v0.1.31 (7 feat, 47 fix).
+
+## Upcoming Sprint — v0.1.32 (In Preparation)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-123-127, WG-134 | Research-inspired features merged (temporal graph, procedural memory, MemCollab, gist, DAG) | ✅ Code complete |
+| WG-149 | CloudEvents EventEmitter | ✅ Code complete |
+| Fix release-drift | Fix silent failure in release-drift.yml | ✅ Fixed 2026-05-21 |
+| Coverage cleanup | Remove redundant disk cleanup | ✅ Fixed 2026-05-21 |
+| Version bump | Bump workspace to 0.1.32 | ✅ Done 2026-05-21 |
+| Release | Tag, GitHub Release, crates.io publish | 🔵 Pending |
 
 Verified publishable workspace packages at `0.1.31`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
 

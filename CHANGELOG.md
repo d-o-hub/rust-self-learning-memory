@@ -2,6 +2,29 @@
 
 ### Added
 
+- **Procedural memory type** (WG-124) — Learned heuristics-as-skills (ParamAgent-inspired)
+- **Temporal graph edges** (WG-123) — Weighted traversal, pattern edges, significance weights (REMem, ICLR 2026)
+- **MemCollab cross-agent memory** (WG-126) — Trajectory distillation, contrastive adapter, collaborative prototypes
+- **Semantic Gist Extraction + CogniRank Reranking** (WG-127) — CogitoRAG-inspired retrieval enhancement
+- **CloudEvents EventEmitter** (WG-149) — CloudEvents 1.0 spec integration (ADR-054)
+- **DAG-based state management** (WG-134) — ~86% token reduction for episode context
+
+### Changed
+
+- **CI & Release hardening** — Fixed release-drift workflow silent failure, removed redundant coverage cleanup
+- **Embedding search optimization** — Brute-force batching in Turso storage
+- **Documentation refresh** — Updated README and docs to reflect current capabilities
+
+### Fixed
+
+- **MCP input bounds** — Prevent resource exhaustion via input bounds clamping (CWE-770)
+- **Pre-existing clippy warnings** — Resolved all warnings, split oversized api.rs
+- **Dependency updates** — Bumped openssl from 0.10.79 to 0.10.80
+
+## [0.1.32] - 2026-05-21
+
+### Added
+
 - Nothing yet
 
 ## [0.1.31] - 2026-04-22

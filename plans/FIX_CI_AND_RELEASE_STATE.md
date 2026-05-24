@@ -178,7 +178,6 @@ All findings resolved as of 2026-05-24. v0.1.32 published successfully with:
 ### Additional Fix Discovered During Implementation
 
 **P2: Changelog workflow detached HEAD failure** — The `peter-evans/create-pull-request@v8` action requires an explicit `base` input when triggered by tag pushes (detached HEAD). Added `base: main` to `.github/workflows/changelog.yml`. This has been failing since at least v0.1.26.
-**P2: Changelog workflow detached HEAD failure** — The `peter-evans/create-pull-request@v8` action requires an explicit `base` input when triggered by tag pushes (detached HEAD). Added `base: main` to [REDACTED:HIGH_ENTROPY]. This has been failing since at least v0.1.26.
 **P2: CHANGELOG version attribution** — `[Unreleased]` entries were not moved to `[0.1.32]`, causing Codacy review to flag missing version attribution. Fixed by moving entries under correct header.
 
 ### codecov.yml Status

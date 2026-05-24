@@ -28,7 +28,7 @@ mod security_logic_tests {
         };
 
         let result = tool.execute(input_high).await.unwrap();
-        // Check that it was clamped (using epsilon-based comparison to satisfy Clippy)
+        // The QualityMetricsOutput struct has a 'quality_threshold' field
         assert!((result.quality_threshold - 1.0).abs() < f32::EPSILON);
 
         // Test value < 0.0

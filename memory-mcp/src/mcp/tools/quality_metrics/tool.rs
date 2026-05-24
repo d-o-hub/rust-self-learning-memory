@@ -63,19 +63,21 @@ impl QualityMetricsTool {
             input.time_range
         );
 
+        // Clamp quality threshold early (CWE-770)
+        let quality_threshold = input.quality_threshold.unwrap_or(0.7).clamp(0.0, 1.0);
+
         // Parse time range and get episodes
         let time_cutoff = self.parse_time_range(&input.time_range)?;
         let episodes = self.get_episodes_in_range(time_cutoff).await?;
 
         if episodes.is_empty() {
             info!("No episodes found in time range");
-            return Ok(self.empty_metrics(&input.time_range, input.quality_threshold));
+            return Ok(self.empty_metrics(&input.time_range, quality_threshold));
         }
 
         info!("Analyzing {} episodes for quality metrics", episodes.len());
 
         // Initialize quality assessor
-        let quality_threshold = input.quality_threshold.unwrap_or(0.7).clamp(0.0, 1.0);
         let config = QualityConfig::new(quality_threshold);
         let assessor = QualityAssessor::new(config);
 
@@ -391,11 +393,7 @@ impl QualityMetricsTool {
     }
 
     /// Create empty metrics for when no episodes are found
-    fn empty_metrics(
-        &self,
-        time_range: &str,
-        quality_threshold: Option<f32>,
-    ) -> QualityMetricsOutput {
+    fn empty_metrics(&self, time_range: &str, quality_threshold: f32) -> QualityMetricsOutput {
         let mut distribution = HashMap::new();
         distribution.insert("0.0-0.3 (Low)".to_string(), 0);
         distribution.insert("0.3-0.5 (Below Average)".to_string(), 0);
@@ -422,7 +420,7 @@ impl QualityMetricsTool {
                 "No episodes found in time range. Start using the memory system to collect data."
                     .to_string(),
             ],
-            quality_threshold: quality_threshold.unwrap_or(0.7),
+            quality_threshold,
         }
     }
 }

@@ -47,13 +47,10 @@ pub async fn handle_query_memory(
         .unwrap_or("relevance")
         .to_string();
     let fields = args.get("fields").and_then(|v| v.as_array()).map(|arr| {
-        let mut f: Vec<String> = arr
-            .iter()
+        arr.iter()
             .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect();
-        // Limit number of fields to prevent excessive JSON projection (CWE-770)
-        f.truncate(do_memory_mcp::constants::MAX_QUERY_FIELDS);
-        f
+            .take(do_memory_mcp::constants::MAX_QUERY_FIELDS)
+            .collect()
     });
 
     let result = server
@@ -97,8 +94,7 @@ pub async fn handle_execute_code(
         .await;
 
     Err(anyhow::anyhow!(
-        "Code execution is no longer available. The WASM sandbox was removed in v0.1.29. \
-         See ADR-052 for details."
+        "Code execution is no longer available. The WASM sandbox was removed in v0.1.29.          See ADR-052 for details."
     ))
 }
 
@@ -413,10 +409,8 @@ mod security_handler_tests {
             .await
             .unwrap();
 
-        // Verify truncation logic in isolation
-        let mut fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
-        fields.truncate(do_memory_mcp::constants::MAX_QUERY_FIELDS);
-        assert_eq!(fields.len(), 20, "Fields should be truncated to 20");
+        // Verify constant
+        assert_eq!(do_memory_mcp::constants::MAX_QUERY_FIELDS, 20);
 
         let many_fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
         let args = json!({
@@ -424,7 +418,7 @@ mod security_handler_tests {
             "fields": many_fields,
             "limit": 5000
         });
-        // Confirm handler runs with large input
+        // Confirm handler runs with large input without panic
         let _ = handle_query_memory(&mut server, Some(args)).await;
     }
 
@@ -435,23 +429,29 @@ mod security_handler_tests {
             .await
             .unwrap();
 
-        // Verify clamping logic explicitly
+        // Verify clamping logic explicitly (Upper Bound)
         let rate_high = 5.0f64;
         let rate_clamped = rate_high.clamp(0.0, 1.0) as f32;
-        assert!(
-            (rate_clamped - 1.0).abs() < f32::EPSILON,
-            "min_success_rate should be clamped to 1.0"
-        );
+        assert!((rate_clamped - 1.0).abs() < f32::EPSILON);
 
         let limit_high = 5000usize;
         let limit_clamped = limit_high.clamp(
             do_memory_mcp::constants::MIN_QUERY_LIMIT,
             do_memory_mcp::constants::MAX_SEARCH_LIMIT,
         );
-        assert_eq!(
-            limit_clamped, 100,
-            "analyze_patterns limit should be clamped to 100"
+        assert_eq!(limit_clamped, 100);
+
+        // Verify clamping logic explicitly (Lower Bound)
+        let rate_low = -0.5f64;
+        let rate_clamped_low = rate_low.clamp(0.0, 1.0) as f32;
+        assert!(rate_clamped_low.abs() < f32::EPSILON);
+
+        let limit_low = 0usize;
+        let limit_clamped_low = limit_low.clamp(
+            do_memory_mcp::constants::MIN_QUERY_LIMIT,
+            do_memory_mcp::constants::MAX_SEARCH_LIMIT,
         );
+        assert_eq!(limit_clamped_low, 1);
 
         let args = json!({
             "task_type": "test",

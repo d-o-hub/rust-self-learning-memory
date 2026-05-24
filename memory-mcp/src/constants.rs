@@ -18,6 +18,9 @@ pub const DEFAULT_QUERY_LIMIT: usize = 10;
 /// Default limit for analyze_patterns.
 pub const DEFAULT_ANALYZE_LIMIT: usize = 20;
 
+/// Maximum allowed number of fields for memory queries.
+pub const MAX_QUERY_FIELDS: usize = 20;
+
 // ──── Search / Recommend limits ────
 
 /// Maximum allowed limit for search_patterns.

@@ -739,11 +739,12 @@ dependencies = [
 
 [[package]]
 name = "chaotic_semantic_memory"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ff59e8a14baf8ea0c7f31a3616abba24db35daad1c5792ddd170a118b4bd54b"
+checksum = "ee5b0998d57a19bfaefdcbe5e09e97b41e5497f29061b7b1c3210588d7ade3d0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "base64 0.22.1",
  "bincode",
  "clap",
@@ -1438,7 +1439,7 @@ checksum = "2906d3628a885aa49a23b88e71f63e51ae8df41cd76652287f0a6179a11833a9"
 
 [[package]]
 name = "do-memory-benches"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1459,7 +1460,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-cli"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1494,7 +1495,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-core"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -1534,7 +1535,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-examples"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "do-memory-core",
@@ -1549,7 +1550,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-mcp"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -1577,7 +1578,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-redb"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1598,7 +1599,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-turso"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1626,7 +1627,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-test-utils"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1654,7 +1655,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "e2e-tests"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -5243,9 +5244,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
+checksum = "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
 dependencies = [
  "itoa",
  "memchr",

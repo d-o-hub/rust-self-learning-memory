@@ -390,6 +390,16 @@ pub async fn domain_stats(
     Ok(())
 }
 
+/// Set custom thresholds for a domain.
+///
+/// **WG-152 / ADR-055**: Custom per-domain threshold overrides require a
+/// persistence backend that does not yet exist in `SelfLearningMemory`. Rather
+/// than silently accept arguments and discard them, we return an explicit
+/// error so callers know the request was not honored.
+///
+/// Current adaptive-threshold behavior (no override needed):
+/// - Domains with 5+ completed episodes: adaptive calibration (median baseline)
+/// - Domains with <5 episodes: fixed defaults (60s, 10 steps)
 pub async fn set_threshold(
     domain: String,
     duration: Option<f32>,
@@ -398,34 +408,12 @@ pub async fn set_threshold(
     _config: &Config,
     _format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use colored::*;
-
-    println!("Setting custom thresholds for domain: {}", domain.bold());
-    println!();
-
-    if let Some(dur) = duration {
-        println!("  Duration threshold: {}s", dur.to_string().green());
-    }
-
-    if let Some(stp) = steps {
-        println!("  Step count threshold: {}", stp.to_string().green());
-    }
-
-    println!();
-    println!(
-        "{}",
-        "Note: Custom thresholds are not yet implemented in Phase 2.".yellow()
+    anyhow::bail!(
+        "Custom threshold overrides are not supported (no persistence backend).\n\
+         Requested: domain={domain}, duration={duration:?}, steps={steps:?}\n\
+         Adaptive calibration is used automatically once a domain has >=5 completed episodes.\n\
+         To inspect current calibration, run: `do-memory-cli eval show --domain {domain}`."
     );
-    println!(
-        "{}",
-        "This command will allow manual overrides in a future update.".yellow()
-    );
-    println!();
-    println!("Current behavior:");
-    println!("  - Domains with 5+ episodes: Use adaptive calibration (median as baseline)");
-    println!("  - Domains with <5 episodes: Use fixed thresholds (60s, 10 steps)");
-
-    Ok(())
 }
 
 fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {

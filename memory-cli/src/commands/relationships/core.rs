@@ -10,7 +10,10 @@ use crate::output::OutputFormat;
 use super::types::*;
 
 mod graph_utils;
-use graph_utils::{detect_cycle, render_text_tree};
+use graph_utils::render_text_tree;
+
+mod validation;
+use validation::validate_relationships;
 
 /// Add a relationship between two episodes
 #[allow(clippy::too_many_arguments)]
@@ -272,19 +275,55 @@ pub async fn find_related(
     }
 }
 
-/// Get detailed information about a relationship
+/// Get detailed information about a relationship (WG-150, ADR-055).
 pub async fn get_relationship_info(
     relationship_id: String,
-    _memory: &SelfLearningMemory,
+    memory: &SelfLearningMemory,
     _config: &Config,
-    _format: OutputFormat,
+    format: OutputFormat,
 ) -> anyhow::Result<()> {
-    // Note: Direct relationship lookup by ID requires storage layer support
-    // For now, we provide a helpful error message directing users to use list
-    anyhow::bail!(
-        "Direct relationship lookup by ID is not yet implemented. \
-         Use 'relationship list --episode <episode_id>' to see relationships for an episode."
-    );
+    let rel_id = Uuid::parse_str(&relationship_id)
+        .map_err(|e| anyhow::anyhow!("Invalid relationship UUID: {}", e))?;
+
+    let rel = memory
+        .get_relationship_by_id(rel_id)
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("Relationship {} not found", relationship_id))?;
+
+    // Look up source/target task descriptions (best-effort).
+    let source_task = memory
+        .get_episode(rel.from_episode_id)
+        .await
+        .ok()
+        .map(|e| e.task_description.clone())
+        .unwrap_or_default();
+    let target_task = memory
+        .get_episode(rel.to_episode_id)
+        .await
+        .ok()
+        .map(|e| e.task_description.clone())
+        .unwrap_or_default();
+
+    let result = InfoResult {
+        relationship_id: rel.id.to_string(),
+        relationship_type: format!("{:?}", rel.relationship_type),
+        source_episode_id: rel.from_episode_id.to_string(),
+        target_episode_id: rel.to_episode_id.to_string(),
+        source_task,
+        target_task,
+        priority: rel.metadata.priority,
+        reason: rel.metadata.reason.clone(),
+        created_by: rel.metadata.created_by.clone(),
+        created_at: Some(rel.created_at.to_rfc3339()),
+        custom_fields: rel
+            .metadata
+            .custom_fields
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    };
+
+    format.print_output(&result)
 }
 
 /// Generate a dependency graph for an episode
@@ -322,56 +361,6 @@ pub async fn generate_graph(
         edge_count: graph.edge_count(),
         output: output_str,
         format: format_name.to_string(),
-    };
-
-    output_format.print_output(&result)
-}
-
-/// Validate relationships for cycles
-pub async fn validate_relationships(
-    episode: Option<String>,
-    relationship_type: Option<RelationshipTypeArg>,
-    memory: &SelfLearningMemory,
-    _config: &Config,
-    output_format: OutputFormat,
-    _dry_run: bool,
-) -> anyhow::Result<()> {
-    let (ep_id, episode_str) = if let Some(ep) = episode {
-        let id =
-            Uuid::parse_str(&ep).map_err(|e| anyhow::anyhow!("Invalid episode UUID: {}", e))?;
-        (Some(id), Some(ep))
-    } else {
-        (None, None)
-    };
-
-    // Build graph from root episode
-    let check_id = ep_id.unwrap_or_else(|| {
-        // If no episode specified, we can't validate
-        Uuid::nil()
-    });
-
-    if check_id == Uuid::nil() {
-        anyhow::bail!(
-            "Global cycle validation is not yet implemented. \
-             Please specify an episode ID with --episode <id>."
-        );
-    }
-
-    let graph = memory.build_relationship_graph(check_id, 10).await?;
-
-    // Simple cycle detection using DFS
-    let has_cycle = detect_cycle(&graph, relationship_type.map(|t| t.to_core_type()));
-
-    let result = ValidateResult {
-        episode_id: episode_str,
-        has_cycle,
-        cycle_path: None, // Could be enhanced to return actual cycle path
-        message: if has_cycle {
-            "Cycle detected in relationships".to_string()
-        } else {
-            "No cycles detected".to_string()
-        },
-        checked_relationships: graph.edge_count(),
     };
 
     output_format.print_output(&result)

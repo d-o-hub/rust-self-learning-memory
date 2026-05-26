@@ -406,19 +406,40 @@ impl SelfLearningMemory {
         true
     }
 
-    #[allow(clippy::unused_async)]
+    /// Internal: fetch every relationship across all backends (WG-151, ADR-055).
+    ///
+    /// Order of preference: durable Turso store → in-memory fallback.
     async fn get_all_relationships_internal(&self) -> Result<Vec<EpisodeRelationship>> {
-        // For cycle detection, we would need to query all relationships
-        // For now, return empty - full implementation would query storage
-        if let Some(_storage) = &self.turso_storage {
-            // This would need a method to get all relationships
-            // For now, return empty vec
+        if let Some(storage) = &self.turso_storage {
+            return storage.get_all_relationships().await;
         }
-        if self.turso_storage.is_none() && self.cache_storage.is_none() {
-            let relationships = self.relationships_fallback.read().await;
-            return Ok(relationships.values().cloned().collect());
+        let relationships = self.relationships_fallback.read().await;
+        Ok(relationships.values().cloned().collect())
+    }
+
+    /// Public: fetch every relationship across all backends (WG-151, ADR-055).
+    ///
+    /// Used by CLI `relationship validate` (global mode) and any caller that
+    /// needs the full relationship inventory. O(N) in store size; callers
+    /// should be mindful of memory for very large stores.
+    pub async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
+        self.get_all_relationships_internal().await
+    }
+
+    /// Look up a single relationship by ID (WG-150, ADR-055).
+    ///
+    /// Returns `Ok(None)` when no relationship with the given ID exists.
+    pub async fn get_relationship_by_id(
+        &self,
+        relationship_id: Uuid,
+    ) -> Result<Option<EpisodeRelationship>> {
+        // Durable backend first.
+        if let Some(storage) = &self.turso_storage {
+            return storage.get_relationship_by_id(relationship_id).await;
         }
-        Ok(Vec::new())
+        // In-memory fallback.
+        let relationships = self.relationships_fallback.read().await;
+        Ok(relationships.get(&relationship_id).cloned())
     }
 }
 

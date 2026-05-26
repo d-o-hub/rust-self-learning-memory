@@ -1,10 +1,24 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-21 (v0.1.32 prep; CI workflow hardening; release-drift fix)
+**Last Updated**: 2026-05-22 (v0.1.32 missing-impl sprint mid-flight — 9 of 15 WGs landed; CI/release prep complete)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
-**Current Workspace Version**: 0.1.32 (preparing for release)
+**Current Workspace Version**: 0.1.32 (CI/release prep complete + sprint in flight)
+**Active Sprint**: v0.1.32 — see [GOAP_STATE.md](../GOAP_STATE.md), [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md)
+**Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
+
+## v0.1.32 Sprint Snapshot (verified 2026-05-22)
+
+| Phase | Done | Open |
+|-------|------|------|
+| P1 User contract | 5/6 | WG-154 (Mistral binary dequant) |
+| P2 Telemetry | 1/5 | WG-156/157/158/160 (hard-coded placeholders) |
+| P3 Internal debt | 2/4 | WG-161 cascade `analyze_query`, WG-162 `generate_simple_embedding` |
+| P4 Validation/release | 0/6 | Blocked on remaining 6 functional WGs |
+
+Re-audit command:
+`rg -in 'not yet implemented|// *Placeholder' memory-core/src memory-mcp/src memory-cli/src memory-storage-redb/src memory-storage-turso/src`
 
 ---
 

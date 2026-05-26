@@ -1,9 +1,41 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-21 (v0.1.32 prep; 157 unreleased commits; CI workflow hardening)
+**Last Updated**: 2026-05-22 (v0.1.32 sprint in flight — 9/15 WGs landed; CI/release prep complete)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
+**Active Sprint**: v0.1.32 — Missing Implementation Remediation ([ADR-055](../adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md), [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md))
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
+
+---
+
+## Active Sprint — v0.1.32 (In Flight, 60% complete)
+
+Source: 2026-05-21 `rg` audit of `memory-*/src/` found 15 advertised-but-unimplemented
+surfaces. 2026-05-22 re-audit confirms **9 WGs landed silently** (relationship-show,
+global-cycle, AgentFS, lifecycle emit, uptime, stale-test-comment, plus Cohere/eval
+resolved-by-typed-error) and **6 still open**. See
+[ADR-055](../adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md) for the
+decision matrix and [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md) for
+the WG-150..WG-170 detail; [GOAP_STATE.md](../GOAP_STATE.md) holds per-WG evidence.
+
+| Phase | WGs | Strategy | Status |
+|-------|-----|----------|--------|
+| P1 — User contract | WG-150..WG-155 | Sequential per crate | 🟢 5/6 (WG-154 Mistral binary dequant still open) |
+| P2 — Telemetry | WG-156..WG-160 | Parallel | 🟡 1/5 (only WG-159 uptime done; 156/157/158/160 open) |
+| P3 — Internal debt | WG-161..WG-164 | Parallel | 🟢 2/4 (WG-163, WG-164 done; WG-161, WG-162 open) |
+| P4 — Validation + release | WG-165..WG-170 | Sequential | 🟡 Pending P1–P3 closure |
+
+**Remaining sprint-exit work** (6 functional WGs + Phase 4):
+1. WG-154 — Mistral binary dequantization: implement per cookbook OR remove `binary` from `Encoding`.
+2. WG-156/157 — Replace `pattern_match_score=0.8` and `memory_usage_mb=50.0` placeholders in `time_series.rs`.
+3. WG-158 — Track real `episode_failures` counter for success rate in `monitoring/types.rs`.
+4. WG-160 — Wire `AtomicU64` counters into Turso cache `query_hits`, `query_misses`, `evictions`, `expirations`.
+5. WG-161 — Implement query-class heuristic for `estimate_api_call_probability` OR drop the method.
+6. WG-162 — `#[cfg(test)]`-gate or remove `generate_simple_embedding` (verify no prod callers first).
+7. Phase 4 — `cargo nextest run --all`, `cargo test --doc`, `./scripts/quality-gates.sh`, sprint-exit `rg` audit, workspace bump to `0.1.32`, CHANGELOG, `gh release create v0.1.32`.
+
+**Sprint-exit gate**: `rg -i "not yet implemented|placeholder" memory-*/src/` returns
+0 matches outside tests and SQL `?` builders.
 
 ---
 

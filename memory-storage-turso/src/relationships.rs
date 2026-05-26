@@ -272,6 +272,67 @@ impl TursoStorage {
         Ok(relationships.into_iter().map(|r| r.to_episode_id).collect())
     }
 
+    /// Fetch every relationship across the entire store (WG-150 / WG-151, ADR-055).
+    ///
+    /// Used by [`get_relationship_by_id`](Self::get_relationship_by_id) and by
+    /// global cycle validation in the CLI. O(N) in the number of stored
+    /// relationships; callers should cap input sizes for very large stores.
+    pub async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
+        let conn = self.get_connection().await?;
+        let stmt = conn
+            .prepare("SELECT * FROM episode_relationships")
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
+            })?;
+        let mut rows = stmt.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+        })?;
+        let mut relationships = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            relationships.push(self.row_to_relationship(&row)?);
+        }
+        debug!(
+            "Loaded {} relationships from durable store",
+            relationships.len()
+        );
+        Ok(relationships)
+    }
+
+    /// Look up a single relationship by its ID (WG-150, ADR-055).
+    ///
+    /// Returns `Ok(None)` when not found rather than an error so callers can
+    /// distinguish "missing" from "I/O failure".
+    pub async fn get_relationship_by_id(
+        &self,
+        relationship_id: Uuid,
+    ) -> Result<Option<EpisodeRelationship>> {
+        let conn = self.get_connection().await?;
+        let sql = format!(
+            "SELECT * FROM episode_relationships WHERE relationship_id = '{}'",
+            relationship_id
+        );
+        let stmt = conn.prepare(&sql).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
+        })?;
+        let mut rows = stmt.query(()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+        })?;
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
+        {
+            Ok(Some(self.row_to_relationship(&row)?))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Store a relationship between an episode and a pattern
     pub async fn store_episode_pattern_relationship(
         &self,

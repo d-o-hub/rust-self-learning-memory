@@ -109,6 +109,19 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_relationships(self, episode_id, direction).await
     }
 
+    async fn get_all_relationships(
+        &self,
+    ) -> Result<Vec<do_memory_core::episode::EpisodeRelationship>> {
+        super::TursoStorage::get_all_relationships(self).await
+    }
+
+    async fn get_relationship_by_id(
+        &self,
+        relationship_id: uuid::Uuid,
+    ) -> Result<Option<do_memory_core::episode::EpisodeRelationship>> {
+        super::TursoStorage::get_relationship_by_id(self, relationship_id).await
+    }
+
     async fn relationship_exists(
         &self,
         from_episode_id: uuid::Uuid,

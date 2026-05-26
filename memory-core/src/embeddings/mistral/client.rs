@@ -155,10 +155,31 @@ impl MistralEmbeddingProvider {
         }
     }
 
-    fn dequantize_binary_embeddings(&self, _packed: Vec<f32>) -> Result<Vec<f32>> {
-        // Convert packed binary representation back to float embeddings
-        // This is a simplified version - see Mistral's dequantization cookbook for full implementation
-        anyhow::bail!("Binary dequantization not yet implemented")
+    fn dequantize_binary_embeddings(&self, packed: Vec<f32>) -> Result<Vec<f32>> {
+        let total_dim = self.embedding_dimension();
+        let mut unpacked = Vec::with_capacity(total_dim);
+
+        for &val in &packed {
+            // Cast float value to an 8-bit unsigned integer representation
+            let byte = (val.round() as i64) as u8;
+
+            // Unpack 8 bits MSB first
+            for i in (0..8).rev() {
+                if unpacked.len() >= total_dim {
+                    break;
+                }
+                let bit = (byte >> i) & 1;
+                if self.config.output_dtype == OutputDtype::Binary {
+                    // Signed binary: 1 -> 1.0, 0 -> -1.0
+                    unpacked.push(if bit == 1 { 1.0 } else { -1.0 });
+                } else {
+                    // Unsigned binary (ubinary): 1 -> 1.0, 0 -> 0.0
+                    unpacked.push(if bit == 1 { 1.0 } else { 0.0 });
+                }
+            }
+        }
+
+        Ok(unpacked)
     }
 }
 
@@ -330,19 +351,29 @@ mod tests {
     }
 
     #[test]
-    fn test_binary_dequantization_not_implemented() -> anyhow::Result<()> {
-        let config = MistralConfig::codestral_binary();
+    fn test_binary_dequantization() -> anyhow::Result<()> {
+        let config = MistralConfig::codestral_binary().with_output_dimension(8);
         let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
 
-        let test_data = vec![1.0, 2.0, 3.0];
-        let result = provider.dequantize_binary_embeddings(test_data);
-        assert!(result.is_err());
-        assert!(
-            result
-                .unwrap_err()
-                .to_string()
-                .contains("not yet implemented")
-        );
+        // 127 is 01111111 in binary (MSB first: 0, then seven 1s)
+        let test_data = vec![127.0];
+        let result = provider.dequantize_binary_embeddings(test_data)?;
+        assert_eq!(result.len(), 8);
+        assert_eq!(result, vec![-1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_ubinary_dequantization() -> anyhow::Result<()> {
+        let config = MistralConfig::codestral_embed()
+            .with_output_dtype(OutputDtype::Ubinary)
+            .with_output_dimension(8);
+        let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
+
+        let test_data = vec![127.0];
+        let result = provider.dequantize_binary_embeddings(test_data)?;
+        assert_eq!(result.len(), 8);
+        assert_eq!(result, vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
         Ok(())
     }
 }

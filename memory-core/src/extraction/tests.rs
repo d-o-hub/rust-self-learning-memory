@@ -2,7 +2,8 @@
 
 use super::*;
 use crate::{
-    ComplexityLevel, Episode, ExecutionStep, OutcomeStats, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, Episode, ExecutionResult, ExecutionStep, OutcomeStats, TaskContext,
+    TaskOutcome, TaskType,
     pattern::{Pattern, PatternEffectiveness},
 };
 use chrono::Duration;
@@ -36,7 +37,10 @@ fn test_extract_from_complete_episode() {
 
     // Add some execution steps
     for i in 0..3 {
-        let step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
+        step.result = Some(ExecutionResult::Success {
+            output: format!("Step {i} completed"),
+        });
         episode.add_step(step);
     }
 
@@ -46,8 +50,14 @@ fn test_extract_from_complete_episode() {
     });
 
     let patterns = extractor.extract(&episode);
-    // Currently returns empty since extraction is not implemented
-    assert!(patterns.is_empty() || !patterns.is_empty());
+    // Episode has 3 steps with distinct tools, so a ToolSequence pattern should be extracted.
+    assert!(
+        patterns
+            .iter()
+            .any(|p| matches!(p, Pattern::ToolSequence { tools, .. } if tools.len() == 3)),
+        "expected ToolSequence pattern with 3 tools, got {:?}",
+        patterns
+    );
 }
 
 #[cfg(test)]

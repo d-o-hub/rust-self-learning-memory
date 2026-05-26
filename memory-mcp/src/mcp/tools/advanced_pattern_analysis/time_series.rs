@@ -51,12 +51,43 @@ impl TimeSeriesExtractor {
                 Some(score)
             }
             _PATTERN_MATCH_SCORE => {
-                // Simplified pattern matching score
-                Some(0.8) // Placeholder
+                // Compute from Episode's applied patterns or patterns list
+                if !episode.applied_patterns.is_empty() {
+                    let success = episode
+                        .applied_patterns
+                        .iter()
+                        .filter(|p| p.outcome.is_success())
+                        .count();
+                    Some(success as f64 / episode.applied_patterns.len() as f64)
+                } else if !all_episodes.is_empty() {
+                    // Fallback to pattern density relative to other episodes
+                    let max_patterns = all_episodes
+                        .iter()
+                        .map(|e| e.patterns.len())
+                        .max()
+                        .unwrap_or(0);
+                    if max_patterns > 0 {
+                        Some(episode.patterns.len() as f64 / max_patterns as f64)
+                    } else {
+                        Some(0.0)
+                    }
+                } else {
+                    Some(0.0)
+                }
             }
             _MEMORY_USAGE_MB => {
-                // Estimate memory usage
-                Some(50.0) // Placeholder
+                // Estimate memory usage of the current process using sysinfo
+                let mut system = sysinfo::System::new();
+                if let Ok(pid) = sysinfo::get_current_pid() {
+                    system.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), false);
+                    if let Some(process) = system.process(pid) {
+                        Some(process.memory() as f64 / 1024.0 / 1024.0)
+                    } else {
+                        Some(50.0)
+                    }
+                } else {
+                    Some(50.0)
+                }
             }
             _ => None,
         }

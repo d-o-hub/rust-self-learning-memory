@@ -1,10 +1,23 @@
 use clap::Subcommand;
 use serde::Serialize;
-use std::time::Duration;
+use std::sync::OnceLock;
+use std::time::{Duration, Instant};
 use tokio::time;
 
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
+
+/// Process start time, captured on first call (WG-159 / ADR-055).
+fn process_start_instant() -> Instant {
+    static START: OnceLock<Instant> = OnceLock::new();
+    *START.get_or_init(Instant::now)
+}
+
+/// Initialize process uptime tracking. Call once from `main` so health probes
+/// reflect actual process age rather than the time of the first probe.
+pub fn init_uptime() {
+    let _ = process_start_instant();
+}
 
 #[derive(Subcommand)]
 pub enum HealthCommands {
@@ -302,9 +315,9 @@ pub async fn health_check(
 
     // Get system metrics (simplified)
     let metrics = SystemMetrics {
-        memory_usage_mb: None,                     // Would need system monitoring
-        cpu_usage_percent: None,                   // Would need system monitoring
-        uptime_seconds: std::process::id() as u64, // Placeholder
+        memory_usage_mb: None,   // Would need system monitoring
+        cpu_usage_percent: None, // Would need system monitoring
+        uptime_seconds: process_start_instant().elapsed().as_secs(),
         active_connections: components.len(),
     };
 

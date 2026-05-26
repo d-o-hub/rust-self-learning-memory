@@ -204,6 +204,9 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Capture process start time for `health check`'s uptime metric (WG-159).
+    crate::commands::health::init_uptime();
+
     let cli = Cli::parse();
 
     // Initialize tracing

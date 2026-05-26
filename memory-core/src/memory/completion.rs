@@ -397,6 +397,16 @@ impl SelfLearningMemory {
         let audit_entry = episode_completed(&context, episode_id, &outcome_str, success);
         self.audit_logger.log(audit_entry);
 
+        // WG-163 / ADR-055: emit lifecycle event to internal broadcast + external CloudEvents.
+        self.emit_event_with_cloud(crate::types::MemoryEvent::EpisodeCompleted {
+            id: episode_id.to_string(),
+            reward: reward.total,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0),
+        });
+
         Ok(())
     }
 }

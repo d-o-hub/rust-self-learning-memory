@@ -182,7 +182,10 @@ impl SelfLearningMemory {
     }
 
     /// Emit a memory event to all subscribers.
-    #[allow(dead_code)] // WG-103: event emission not wired to lifecycle methods yet
+    ///
+    /// Kept for backward compatibility; lifecycle methods now use
+    /// [`emit_event_with_cloud`](Self::emit_event_with_cloud) (WG-163, ADR-055).
+    #[allow(dead_code)] // retained for downstream callers that don't need CloudEvents
     pub(super) fn emit_event(&self, event: MemoryEvent) {
         // Ignore send errors (happens when no receivers)
         let _ = self.event_sender.send(event);
@@ -203,7 +206,6 @@ impl SelfLearningMemory {
     /// # Panics
     ///
     /// Panics if called outside of a Tokio runtime context.
-    #[allow(dead_code)] // WG-149: wired when lifecycle methods call this instead of emit_event
     pub(super) fn emit_event_with_cloud(&self, event: MemoryEvent) {
         // Internal broadcast (existing behavior)
         let _ = self.event_sender.send(event.clone());

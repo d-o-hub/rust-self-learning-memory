@@ -2,7 +2,17 @@
 
 ### Added
 
-- Nothing yet
+- **Missing-implementation remediation sprint** (ADR-055, WG-150–164)
+  - `relationship show <id>` resolves relationships via storage layer (WG-150)
+  - `relationship validate` supports global cycle detection without `--episode` (WG-151)
+  - `eval --set-threshold` returns explicit error instead of silent no-op (WG-152)
+  - Cohere embedding provider returns error instead of silently falling back to Local (WG-153)
+  - Mistral binary/ubinary dequantization implemented with unit tests (WG-154)
+  - `pattern_match_score` computed from applied patterns, not hard-coded placeholder (WG-156)
+  - `memory_usage_mb` from `sysinfo` process memory instead of hard-coded 50.0 (WG-157)
+  - `uptime_seconds` via `OnceLock<Instant>` captured at startup (WG-159)
+  - CloudEvents lifecycle `emit_event_with_cloud` wired to episode create/complete (WG-163)
+  - Extraction test assertion replaced tautology with real check (WG-164)
 
 ## [0.1.32] - 2026-05-21
 

@@ -27,14 +27,16 @@ impl EmbeddingTools {
             "mistral" => EmbeddingProvider::Mistral,
             "azure" => EmbeddingProvider::AzureOpenAI,
             "cohere" => {
-                warnings.push(
-                    "Cohere provider not yet implemented, using Local as fallback".to_string(),
-                );
-                EmbeddingProvider::Local
+                // ADR-055 / WG-153: reject explicitly instead of silently falling
+                // back to Local. Silent provider substitution corrupts downstream
+                // embedding-dimension assumptions and surprises callers.
+                return Err(anyhow!(
+                    "Cohere provider is not implemented. Supported providers: openai, local, mistral, azure."
+                ));
             }
             _ => {
                 return Err(anyhow!(
-                    "Unsupported provider: {}. Supported providers: openai, local, mistral, azure, cohere",
+                    "Unsupported provider: {}. Supported providers: openai, local, mistral, azure",
                     input.provider
                 ));
             }

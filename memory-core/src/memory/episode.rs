@@ -3,7 +3,7 @@
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
 use crate::security::audit::{AuditContext, episode_created};
-use crate::types::{TaskContext, TaskType};
+use crate::types::{MemoryEvent, TaskContext, TaskType};
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
@@ -116,6 +116,16 @@ impl SelfLearningMemory {
             &task_type.to_string(),
         );
         self.audit_logger.log(audit_entry);
+
+        // WG-163 / ADR-055: emit lifecycle event to internal broadcast + external CloudEvents.
+        self.emit_event_with_cloud(MemoryEvent::EpisodeCreated {
+            id: episode_id.to_string(),
+            task: task_description.chars().take(100).collect(),
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0),
+        });
 
         episode_id
     }

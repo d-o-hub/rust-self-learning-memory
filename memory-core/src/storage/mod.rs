@@ -302,6 +302,34 @@ pub trait StorageBackend: Send + Sync {
         Ok(Vec::new())
     }
 
+    /// Fetch every relationship across the entire store (WG-150 / WG-151, ADR-055).
+    ///
+    /// Default implementation returns an empty `Vec` for backends that do not
+    /// support relationship listing.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails.
+    async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
+        Ok(Vec::new())
+    }
+
+    /// Look up a single relationship by its ID (WG-150, ADR-055).
+    ///
+    /// Default implementation returns `None`. Backends that index by
+    /// relationship ID should override this for O(1)/O(log N) lookup.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails.
+    async fn get_relationship_by_id(
+        &self,
+        relationship_id: Uuid,
+    ) -> Result<Option<EpisodeRelationship>> {
+        let _ = relationship_id;
+        Ok(None)
+    }
+
     /// Check if a relationship exists
     ///
     /// # Arguments

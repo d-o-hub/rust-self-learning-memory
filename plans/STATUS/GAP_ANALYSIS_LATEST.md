@@ -1,8 +1,20 @@
 # Gap Analysis — 2026-04-22 Audit (v0.1.30 Post-Release)
 
 **Generated**: 2026-04-22
+**Last Re-verified**: 2026-05-22 (v0.1.32 missing-implementation cluster — see footer)
 **Method**: Fresh metrics collection + ROADMAP_ACTIVE.md review
 **Scope**: Verify resolution of v0.1.22 gaps, assess current state
+
+> **2026-05-22 verification footer**: The 2026-05-21 audit found 15 missing-impl gaps
+> (WG-150..WG-164). Re-running the audit on 2026-05-22 confirms **9 resolved**
+> (WG-150/151/152/153/155/159/163/164 + bonus WG-152/153 as typed-error decisions)
+> and **6 still open**: WG-154 (Mistral binary dequantization), WG-156
+> (`pattern_match_score=0.8`), WG-157 (`memory_usage_mb=50.0`), WG-158
+> (`episode_success_rate=99.0`), WG-160 (Turso cache `query_hits/evictions=0`),
+> WG-161 (`estimate_api_call_probability` placeholder), WG-162
+> (`generate_simple_embedding` prod placeholder). Phase 4 (validation + version
+> bump + `gh release create v0.1.32`) is blocked on these 6. See
+> [`../GOAP_STATE.md`](../GOAP_STATE.md) for per-WG evidence.
 
 ---
 
@@ -56,6 +68,52 @@ The v0.1.22–v0.1.30 sprints have successfully resolved all gaps identified in 
 | `#[allow(dead_code)]` in prod src | 27 | ≤25 | Low | WG-102 audit partially complete; remaining are API reserves/future features |
 | 1 flaky test | 1/2902 failing | 0 | Low | Pre-existing; investigation pending |
 | Coverage below threshold | 60.97% | ≥90% | Medium | Historical; requires investment |
+
+---
+
+## NEW Gaps — Missing Implementation Audit (2026-05-21)
+
+**Method**: `rg -i "not yet implemented|placeholder|stub\b|fallback"` across
+`memory-{core,mcp,cli,storage-redb,storage-turso}/src/`. 15 advertised-but-unimplemented
+surfaces found. Tracked in [ADR-055](../adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md)
+and [GOAP_MISSING_IMPLEMENTATION_2026-05-21.md](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md).
+
+### P1 — User-facing contract gaps
+
+| # | Surface | File | Symptom | WG |
+|---|---------|------|---------|-----|
+| G1 | CLI `relationship show <id>` | `memory-cli/src/commands/relationships/core.rs:285` | `anyhow::bail!("...not yet implemented")` | WG-150 |
+| G2 | CLI global cycle validation | `memory-cli/src/commands/relationships/core.rs:355` | `bail!` when no `--episode` given | WG-151 |
+| G3 | CLI `eval --custom-thresholds` | `memory-cli/src/commands/eval.rs:417` | Prints "not yet implemented in Phase 2" | WG-152 |
+| G4 | Cohere embedding provider | `memory-mcp/.../configure.rs:31` | Silent fallback to Local (warning only) | WG-153 |
+| G5 | Mistral binary dequantization | `memory-core/src/embeddings/mistral/client.rs:161` | `bail!("Binary dequantization not yet implemented")` | WG-154 |
+| G6 | `test_agentfs_connection` MCP tool | `memory-mcp/.../external_signals/test_connection.rs` | Always reports "SDK unavailable" | WG-155 |
+
+### P2 — Telemetry truthfulness
+
+| # | Surface | File | Symptom | WG |
+|---|---------|------|---------|-----|
+| G7 | `pattern_match_score` | `memory-mcp/.../time_series.rs:55` | Hard-coded `0.8` | WG-156 |
+| G8 | `memory_usage_mb` | `memory-mcp/.../time_series.rs:59` | Hard-coded `50.0` | WG-157 |
+| G9 | `episode_success_rate` | `memory-mcp/src/monitoring/types.rs:363` | Hard-coded `99.0` | WG-158 |
+| G10 | `uptime_seconds` (CLI) | `memory-cli/src/commands/health.rs:307` | Returns `process::id()` (!) | WG-159 |
+| G11 | Turso cache `query_*`/`evictions`/`expirations` | `memory-storage-turso/src/cache/wrapper.rs:142` | All return `0` | WG-160 |
+
+### P3 — Internal debt
+
+| # | Surface | File | Symptom | WG |
+|---|---------|------|---------|-----|
+| G12 | Cascade `analyze_query` stub | `memory-core/src/retrieval/cascade/mod.rs:446` | Placeholder branch | WG-161 |
+| G13 | `generate_simple_embedding` | `memory-core/src/memory/retrieval/helpers.rs:59` | 10-dim hashed pseudo-embedding in prod | WG-162 |
+| G14 | WG-149 `emit_event` lifecycle | `memory-core/src/memory/types.rs:185`, `core/struct_priv.rs:90` | Helpers exist but `#[allow(dead_code)]` — not called | WG-163 |
+| G15 | Stale extraction test comment | `memory-core/src/extraction/tests.rs:49` | Contradicts working `PatternExtractor::extract` | WG-164 |
+
+### Sprint-exit criteria
+
+- `rg -i "not yet implemented" memory-*/src/` → 0 matches (excluding `tests*`)
+- `rg -i "placeholder" memory-*/src/` → 0 matches (excluding SQL `?"` builders and `tests*`)
+- Telemetry constants (`0.8`, `50.0`, `99.0`) replaced or variants removed
+- All 6 CLI/MCP commands either implemented or hidden behind `#[command(hide = true)]`
 
 ### v0.1.31 Planning Items (Not Gaps — Planned Work)
 

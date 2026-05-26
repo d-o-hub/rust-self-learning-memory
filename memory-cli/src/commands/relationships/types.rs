@@ -296,6 +296,47 @@ pub struct InfoResult {
     pub custom_fields: Vec<(String, String)>,
 }
 
+impl Output for InfoResult {
+    fn write_human<W: Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        writeln!(
+            writer,
+            "{} Relationship {}",
+            "→".blue().bold(),
+            self.relationship_id.dimmed()
+        )?;
+        writeln!(writer, "  Type:    {}", self.relationship_type)?;
+        writeln!(
+            writer,
+            "  Source:  {} ({})",
+            self.source_episode_id, self.source_task
+        )?;
+        writeln!(
+            writer,
+            "  Target:  {} ({})",
+            self.target_episode_id, self.target_task
+        )?;
+        if let Some(p) = self.priority {
+            writeln!(writer, "  Priority: {}", p)?;
+        }
+        if let Some(r) = &self.reason {
+            writeln!(writer, "  Reason:   {}", r)?;
+        }
+        if let Some(c) = &self.created_by {
+            writeln!(writer, "  Created by: {}", c)?;
+        }
+        if let Some(t) = &self.created_at {
+            writeln!(writer, "  Created at: {}", t)?;
+        }
+        if !self.custom_fields.is_empty() {
+            writeln!(writer, "  Custom fields:")?;
+            for (k, v) in &self.custom_fields {
+                writeln!(writer, "    {}: {}", k, v)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 /// Result structure for graph command
 #[derive(Debug, Serialize)]
 pub struct GraphResult {

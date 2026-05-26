@@ -86,7 +86,7 @@ pub struct SelfLearningMemory {
     pub(super) audit_logger: crate::security::audit::AuditLogger,
     /// Event broadcast channel sender for lifecycle notifications
     pub(super) event_sender: broadcast::Sender<MemoryEvent>,
-    /// External event emitter for CloudEvents interoperability (WG-149)
-    #[allow(dead_code)] // WG-149: unused in core variant until wired
+    /// External event emitter for CloudEvents interoperability (WG-149).
+    /// Wired into lifecycle by `emit_event_with_cloud` (WG-163, ADR-055).
     pub(super) event_emitter: Arc<dyn EventEmitter>,
 }

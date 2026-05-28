@@ -1,21 +1,21 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-22 (v0.1.32 sprint mid-flight verification; 9 of 15 WGs landed)
-- **Version**: `0.1.32` (workspace, CI/release prep complete + sprint in flight)
-- **Branch**: `main`
+- **Last Updated**: 2026-05-28 (v0.1.33 PR remediation — all 3 open PRs fixed, CI re-triggered)
+- **Version**: `0.1.32` (workspace; v0.1.33 bump pending release)
+- **Branch**: `v0.1.33/missing-impl-wg158-160-162` (PR #591 — Codacy + coverage fixed)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; in flight)**
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; released with residuals)**
 
 ---
 
-## v0.1.32 Sprint — Missing Implementation Remediation (In Flight, audited 2026-05-22)
+## v0.1.32 Sprint — Missing Implementation Remediation (Released 2026-05-24, audited 2026-05-26)
 
 - **ADR**: [ADR-055](adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md)
 - **GOAP Plan**: [`GOAP_MISSING_IMPLEMENTATION_2026-05-21.md`](GOAP_MISSING_IMPLEMENTATION_2026-05-21.md)
 - **Primary Goal**: Eliminate advertised-but-unimplemented CLI commands, MCP tools, embedding providers, and telemetry placeholders found by 2026-05-21 audit.
 - **Strategy**: Hybrid — Phase 1 sequential per crate; Phase 2/3 parallel; Phase 4 sequential validate+release.
-- **Progress (2026-05-22 verification, `rg` re-run + grep on memory-* crates)**: 10 of 15 functional WGs complete; **5 still open** (0 user contract, 4 telemetry, 2 internal debt — Phase 4 release not yet started).
+- **Progress (2026-05-26 post-release audit, `rg` re-run on memory-* crates)**: 12 of 15 functional WGs complete; **3 deferred to v0.1.33** (0 user contract, 2 telemetry, 1 internal debt). Phase 4 release ✅ — `v0.1.32` tag published 2026-05-24.
 
 ### Phase 1 — User Contract (P1)
 
@@ -32,18 +32,18 @@
 
 | WG | Gap | Owner Skill | Status | Evidence |
 |----|-----|-------------|--------|----------|
-| WG-156 | `pattern_match_score` hard-coded 0.8 | `feature-implement` | 🔴 Open | `time_series.rs:55` still `Some(0.8) // Placeholder` |
-| WG-157 | `memory_usage_mb` hard-coded 50.0 | `feature-implement` | 🔴 Open | `time_series.rs:59` still `Some(50.0) // Placeholder` |
-| WG-158 | `episode_success_rate` hard-coded 99.0 | `feature-implement` | 🔴 Open | `monitoring/types.rs:363` still `99.0; // Placeholder for error tracking` |
+| WG-156 | `pattern_match_score` hard-coded 0.8 | `feature-implement` | ✅ Complete (2026-05-26 audit) | `time_series.rs:54-78` computes from `Episode::applied_patterns` success ratio with density fallback |
+| WG-157 | `memory_usage_mb` hard-coded 50.0 | `feature-implement` | ✅ Complete (2026-05-26 audit) | `time_series.rs:79+` uses `sysinfo::System` for real process RSS |
+| WG-158 | `episode_success_rate` hard-coded 99.0 | `feature-implement` | ✅ Complete (v0.1.33) | `monitoring/types.rs:366-378` computes `successful / (successful + failed) * 100` from real outcomes; 4 unit tests added |
 | WG-159 | `uptime_seconds` returns `process::id()` | `feature-implement` | ✅ Complete | `OnceLock<Instant>` at `memory-cli/src/commands/health.rs:10`; captured in `main.rs:207` |
-| WG-160 | Turso cache query_hits/evictions = 0 | `feature-implement` | 🔴 Open | `cache/wrapper.rs:142` still `query_hits: 0, // Not yet implemented` |
+| WG-160 | Turso cache query_hits/evictions = 0 | `feature-implement` | ✅ Complete (v0.1.33) | `cache/wrapper.rs::stats()` now async; aggregates real `evictions`/`expirations` from underlying `AdaptiveCache` for episode/pattern/heuristic caches |
 
 ### Phase 3 — Internal Debt (P3)
 
 | WG | Gap | Owner Skill | Status | Evidence |
 |----|-----|-------------|--------|----------|
-| WG-161 | Cascade `analyze_query` stub | `feature-implement` | 🔴 Open | `retrieval/cascade/mod.rs:446` `estimate_api_call_probability` still returns 0.5 placeholder |
-| WG-162 | `generate_simple_embedding` prod placeholder | `code-quality` | 🔴 Open | `memory/retrieval/helpers.rs:59` still labeled placeholder |
+| WG-161 | Cascade `analyze_query` stub | `feature-implement` | ✅ Resolved-by-removal (2026-05-26 audit) | `retrieval/cascade/mod.rs` no longer defines `analyze_query`; cascade now in `concept_graph.rs`/`mod.rs` only |
+| WG-162 | `generate_simple_embedding` prod placeholder | `code-quality` | ✅ Complete (v0.1.33) | Renamed to `episode_feature_vector` in `helpers.rs:68`; docs clarify it is a structural fingerprint for MMR diversity, not a semantic embedding; call site at `context.rs:393` updated |
 | WG-163 | WG-149 `emit_event` not wired to lifecycle | `feature-implement` | ✅ Complete | `memory/episode.rs:120` + `memory/completion.rs:400` invoke `emit_event_with_cloud` |
 | WG-164 | Stale "extraction not implemented" comment | `code-quality` | ✅ Complete | `extraction/tests.rs` assertion is real (no stale comment) |
 
@@ -51,12 +51,12 @@
 
 | WG | Step | Status |
 |----|------|--------|
-| WG-165 | `cargo nextest run --all` | 🟡 Queued |
-| WG-166 | `cargo test --doc` | 🟡 Queued |
-| WG-167 | `./scripts/quality-gates.sh` (≥90%) | 🟡 Queued |
-| WG-168 | Sprint-exit `rg` audit (0 matches) | 🟡 Queued |
-| WG-169 | Bump workspace to `0.1.32` + CHANGELOG | 🟡 Queued |
-| WG-170 | `gh release create v0.1.32` (release-guard) | 🟡 Queued |
+| WG-165 | `cargo nextest run --all` | ✅ Passed (release CI 2026-05-24) |
+| WG-166 | `cargo test --doc` | ✅ Passed (release CI 2026-05-24) |
+| WG-167 | `./scripts/quality-gates.sh` (≥90%) | ✅ Passed (release CI 2026-05-24) |
+| WG-168 | Sprint-exit `rg` audit (0 matches) | 🟡 Partial — 3 residuals deferred (WG-158/160/162) |
+| WG-169 | Bump workspace to `0.1.32` + CHANGELOG | ✅ Complete (commit `7ecb1359` + CHANGELOG) |
+| WG-170 | `gh release create v0.1.32` (release-guard) | ✅ Complete — tag `v0.1.32` published 2026-05-24 |
 
 ---
 
@@ -284,6 +284,37 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | CSM integration | Not started | BM25+HDC+ConceptGraph cascade |
 
 ---
+
+---
+
+## v0.1.33 PR Remediation — Active (2026-05-28)
+
+Three open PRs were blocking the v0.1.33 release. All have been addressed:
+
+### PR #589 — Turso Batch Optimization
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Transaction leak in `_store_embeddings_batch_internal` | HIGH | Replaced `?` with explicit `match` + ROLLBACK on serde/prepare errors |
+| IN clause exceeding SQLITE_MAX_VARIABLE_NUMBER | MED | Chunked `item_ids` in batches of 500 via shared `chunk_item_ids`/`in_clause_placeholders` |
+| Patch coverage 75.4% (14 lines uncovered) | MED | Added `test_get_embeddings_batch_large` (600 items), `test_delete_embeddings_batch_large`, rollback test |
+| Coverage CI disk space | INFRA | Fixed via coverage.yml root-reserve increase |
+
+### PR #590 — Documentation Sync
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Inconsistent README examples (sync vs async) | MED | Unified to `SelfLearningMemory::new()` sync API |
+| Missing `complexity`/`framework`/`Some(language)` in second example | MED | Fixed `TaskContext` to match actual struct definition |
+
+### PR #591 — Residual WG Closures (this branch)
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Codacy ErrorProne: unused `task_file` variable | MED | Used `task_file` in `update_plan_progress` log output |
+| Coverage CI disk space failure | INFRA | Increased `root-reserve-mb` 512→8192, added `remove-docker-images`/`remove-swigpl` |
+
+### Next Steps
+1. Wait for all CI checks to pass on all 3 PRs
+2. Merge PRs in order: #589 → #590 → #591
+3. Bump workspace to v0.1.33
 
 ## Active Issues / Blockers
 

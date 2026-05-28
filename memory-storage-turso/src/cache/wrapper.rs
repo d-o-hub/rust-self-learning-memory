@@ -132,17 +132,42 @@ impl CachedTursoStorage {
         &self.config
     }
 
-    /// Get cache statistics
-    pub fn stats(&self) -> CacheStats {
+    /// Get cache statistics.
+    ///
+    /// Aggregates per-cache hit/miss counters with eviction/expiration
+    /// counts retrieved from the underlying adaptive caches. Query-level
+    /// caching (for `query_episodes_since` / `query_episodes_by_metadata`)
+    /// is not yet implemented, so `query_hits` and `query_misses` remain 0
+    /// until that path lands.
+    pub async fn stats(&self) -> CacheStats {
+        let mut evictions = 0u64;
+        let mut expirations = 0u64;
+
+        if let Some(ref cache) = self.episode_cache {
+            let m = cache.get_metrics().await;
+            evictions += m.base.evictions;
+            expirations += m.base.expirations;
+        }
+        if let Some(ref cache) = self.pattern_cache {
+            let m = cache.get_metrics().await;
+            evictions += m.base.evictions;
+            expirations += m.base.expirations;
+        }
+        if let Some(ref cache) = self.heuristic_cache {
+            let m = cache.get_metrics().await;
+            evictions += m.base.evictions;
+            expirations += m.base.expirations;
+        }
+
         CacheStats {
             episode_hits: self.stats.episode_hits.load(Ordering::Relaxed),
             episode_misses: self.stats.episode_misses.load(Ordering::Relaxed),
             pattern_hits: self.stats.pattern_hits.load(Ordering::Relaxed),
             pattern_misses: self.stats.pattern_misses.load(Ordering::Relaxed),
-            query_hits: 0, // Not yet implemented
+            query_hits: 0,
             query_misses: 0,
-            evictions: 0, // Requires async access, use cache_sizes() + stats for accurate count
-            expirations: 0,
+            evictions,
+            expirations,
         }
     }
 

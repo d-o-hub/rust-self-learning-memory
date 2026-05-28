@@ -107,7 +107,7 @@ fn bench_cache_episode_retrieval(c: &mut Criterion) {
     });
 
     // Report cache stats
-    let stats = cached.stats();
+    let stats = rt.block_on(cached.stats());
     println!("\nCache Stats:");
     println!("  Hit rate: {:.2}%", stats.episode_hit_rate() * 100.0);
     println!(
@@ -157,7 +157,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
         );
     }
 
-    let stats = cached.stats();
+    let stats = rt.block_on(cached.stats());
     println!("\nFinal Cache Stats:");
     println!("  Overall hit rate: {:.2}%", stats.hit_rate() * 100.0);
     println!(
@@ -264,7 +264,7 @@ fn bench_pattern_cache(c: &mut Criterion) {
         });
     });
 
-    let stats = cached.stats();
+    let stats = rt.block_on(cached.stats());
     println!("\nPattern Cache Stats:");
     println!("  Hit rate: {:.2}%", stats.pattern_hit_rate() * 100.0);
     println!(

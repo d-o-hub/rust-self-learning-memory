@@ -758,7 +758,10 @@ async fn test_store_embeddings_batch_transactional() {
     // We can't easily force an error in the mid-loop with the current implementation without more setup.
     // However, we can test that the transaction itself works by checking that either all or none are stored.
 
-    storage.store_embeddings_batch(embeddings.clone()).await.unwrap();
+    storage
+        .store_embeddings_batch(embeddings.clone())
+        .await
+        .unwrap();
 
     // Verify they exist
     for (id, _) in &embeddings {
@@ -785,6 +788,9 @@ async fn test_store_embeddings_batch_rollback() {
     if result.is_err() {
         // Verify rollback: valid_before_error should NOT be in the database
         let retrieved = storage.get_embedding("valid_before_error").await.unwrap();
-        assert!(retrieved.is_none(), "Transaction should have rolled back valid_before_error");
+        assert!(
+            retrieved.is_none(),
+            "Transaction should have rolled back valid_before_error"
+        );
     }
 }

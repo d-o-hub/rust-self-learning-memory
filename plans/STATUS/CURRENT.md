@@ -1,29 +1,23 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-28 (v0.1.33 PR remediation — all 3 PRs fixed, awaiting CI green)
-**Released Version**: v0.1.32 (GitHub Release, published 2026-05-24)
-**Current Workspace Version**: 0.1.33
-**Active Sprint**: v0.1.33 — PR remediation phase (fixing #589, #590, #591)
-**Branch**: `v0.1.33/missing-impl-wg158-160-162` (PR #591 branch, active)
+**Last Updated**: 2026-05-22 (v0.1.32 missing-impl sprint mid-flight — 9 of 15 WGs landed; CI/release prep complete)
+**Released Version**: v0.1.31 (crates.io + GitHub Release)
+**Current Workspace Version**: 0.1.32 (CI/release prep complete + sprint in flight)
+**Active Sprint**: v0.1.32 — see [GOAP_STATE.md](../GOAP_STATE.md), [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md)
+**Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
-## v0.1.33 Sprint — Complete (2026-05-28)
+## v0.1.32 Sprint Snapshot (verified 2026-05-22)
 
-| Phase | Done | Open | Notes |
-|-------|------|------|-------|
-| P1 User contract | 6/6 | — | — |
-| P2 Telemetry | 5/5 | — | WG-158, WG-160 closed |
-| P3 Internal debt | 4/4 | — | WG-162 closed |
-| P4 Validation/release | 6/6 | — | v0.1.32 tag published 2026-05-24 |
+| Phase | Done | Open |
+|-------|------|------|
+| P1 User contract | 5/6 | WG-154 (Mistral binary dequant) |
+| P2 Telemetry | 1/5 | WG-156/157/158/160 (hard-coded placeholders) |
+| P3 Internal debt | 2/4 | WG-161 cascade `analyze_query`, WG-162 `generate_simple_embedding` |
+| P4 Validation/release | 0/6 | Blocked on remaining 6 functional WGs |
 
-**WG-158** — Replaced hard-coded `99.0` success-rate placeholder with real computation from `successful_episodes_created` / `failed_episodes_created` counters. Added 4 unit tests. (`memory-mcp/src/monitoring/types.rs`)
-
-**WG-160** — Made `CachedTursoStorage::stats()` async; aggregates real evictions/expirations from underlying `AdaptiveCache`. Updated callers in `benches/` and `memory-storage-turso/tests/`. (`memory-storage-turso/src/cache/wrapper.rs`)
-
-**WG-162** — Renamed `generate_simple_embedding` → `episode_feature_vector`; clarified docs (structural fingerprint for MMR diversity, not a semantic embedding placeholder). Updated call site in `retrieval/context.rs`. (`memory-core/src/memory/retrieval/helpers.rs`)
-
-Re-audit command (should return zero matches):
+Re-audit command:
 `rg -in 'not yet implemented|// *Placeholder' memory-core/src memory-mcp/src memory-cli/src memory-storage-redb/src memory-storage-turso/src`
 
 ---
@@ -33,11 +27,11 @@ Re-audit command (should return zero matches):
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | ✅ v0.1.33 sprint complete (2026-05-28) |
+| Workspace version | 0.1.32 | — | ✅ Prepared for release (2026-05-21) |
 | Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 3,329 | — | 3,329 passing (2026-05-28) |
-| Skipped/ignored tests | 170 | ≤175 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
+| Skipped/ignored tests | 164 | ≤165 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
@@ -91,12 +85,9 @@ No open issues — all closed.
 
 ### Open PRs
 
-| # | Title | Author | Status | Issues Fixed |
-|---|-------|--------|--------|-------------|
-| 589 | Optimize Turso batch embedding operations | Jules | 🔄 CI re-triggered | Transaction leak (HIGH), IN clause chunking, coverage tests |
-| 590 | docs: sync README and agent docs | Jules | 🔄 CI re-triggered | Async/sync inconsistency, TaskContext fields |
-| 591 | feat: close residual placeholder WGs (WG-158, WG-160, WG-162) | d-o-hub | 🔄 CI re-triggered | Codacy ErrorProne, coverage disk space |
-
+| # | Title | Status |
+|---|-------|--------|
+| — | No open PRs | ✅ All merged |
 
 ### Recently Merged PRs
 

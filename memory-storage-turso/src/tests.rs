@@ -235,10 +235,19 @@ async fn test_get_embeddings_batch() {
 
     // Verify batch store with 100% success
     let batch_store = vec![
-        ("batch_store_1".to_string(), create_test_embedding_384_with_seed(0.5)),
-        ("batch_store_2".to_string(), create_test_embedding_384_with_seed(0.6)),
+        (
+            "batch_store_1".to_string(),
+            create_test_embedding_384_with_seed(0.5),
+        ),
+        (
+            "batch_store_2".to_string(),
+            create_test_embedding_384_with_seed(0.6),
+        ),
     ];
-    storage.store_embeddings_batch(batch_store.clone()).await.unwrap();
+    storage
+        .store_embeddings_batch(batch_store.clone())
+        .await
+        .unwrap();
 
     for (id, exp) in batch_store {
         let ret = storage.get_embedding(&id).await.unwrap().unwrap();
@@ -755,7 +764,9 @@ async fn test_get_embeddings_batch_decode_error() {
     conn.execute(
         &sql,
         libsql::params![embedding_id, id, "embedding", "not json", 384, "default"],
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     // Attempt batch retrieval - should fail due to decode error
     let result = storage.get_embeddings_batch(&[id.to_string()]).await;

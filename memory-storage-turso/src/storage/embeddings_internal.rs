@@ -247,11 +247,22 @@ impl TursoStorage {
         &self,
         embeddings: Vec<(String, Vec<f32>)>,
     ) -> Result<()> {
+        if embeddings.is_empty() {
+            return Ok(());
+        }
+
         let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        // Start transaction for batch insertion
+        conn.execute("BEGIN TRANSACTION", ())
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to begin txn: {}", e)))?;
+
         const SQL: &str = r#"
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model)
             VALUES (?, ?, ?, ?, vector32(?), ?, ?)
         "#;
+
         for (item_id, embedding) in embeddings {
             let embedding_json =
                 serde_json::to_string(&embedding).map_err(do_memory_core::Error::Serialization)?;
@@ -263,18 +274,34 @@ impl TursoStorage {
                 .map_err(|e| {
                     do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
                 })?;
-            stmt.execute(libsql::params![
-                embedding_id,
-                item_id,
-                "embedding",
-                embedding_json.clone(),
-                embedding_json,
-                embedding.len() as i64,
-                "default"
-            ])
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(format!("Failed to store batch: {}", e)))?;
+            if let Err(e) = stmt
+                .execute(libsql::params![
+                    embedding_id,
+                    item_id,
+                    "embedding",
+                    embedding_json.clone(),
+                    embedding_json,
+                    embedding.len() as i64,
+                    "default"
+                ])
+                .await
+            {
+                let _ = conn.execute("ROLLBACK", ()).await;
+                return Err(do_memory_core::Error::Storage(format!(
+                    "Failed to store batch: {}",
+                    e
+                )));
+            }
         }
+
+        if let Err(e) = conn.execute("COMMIT", ()).await {
+            let _ = conn.execute("ROLLBACK", ()).await;
+            return Err(do_memory_core::Error::Storage(format!(
+                "Failed to commit txn: {}",
+                e
+            )));
+        }
+
         Ok(())
     }
 
@@ -283,10 +310,50 @@ impl TursoStorage {
         &self,
         item_ids: &[String],
     ) -> Result<Vec<Option<Vec<f32>>>> {
-        let mut results = Vec::with_capacity(item_ids.len());
-        for item_id in item_ids {
-            results.push(self._get_embedding_internal(item_id, "embedding").await?);
+        if item_ids.is_empty() {
+            return Ok(Vec::new());
         }
+
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        // Build placeholders for IN clause
+        let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!(
+            "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'embedding' AND item_id IN ({})",
+            placeholders
+        );
+
+        // Build params
+        let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
+
+        let mut rows = conn
+            .query(&sql, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to query embeddings batch: {}", e))
+            })?;
+
+        let mut results_map = std::collections::HashMap::new();
+        while let Some(row) = rows.next().await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to fetch batch row: {}", e))
+        })? {
+            let item_id: String = row
+                .get(0)
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+            let embedding_data: String = row
+                .get(1)
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+
+            let embedding = self.decode_embedding_data(&embedding_data)?;
+            results_map.insert(item_id, embedding);
+        }
+
+        // Map results back to original order
+        let results = item_ids
+            .iter()
+            .map(|id| results_map.get(id).cloned())
+            .collect();
+
         Ok(results)
     }
 

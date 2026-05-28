@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 
 use super::super::SelfLearningMemory;
-use super::helpers::{episode_feature_vector, should_cache_episodes};
+use super::helpers::{generate_simple_embedding, should_cache_episodes};
 
 impl SelfLearningMemory {
     /// Retrieve relevant past episodes for a new task.
@@ -390,7 +390,7 @@ impl SelfLearningMemory {
                             .iter()
                             .find(|e| e.episode_id == scored.episode_id)
                             .map(|episode| {
-                                let embedding = episode_feature_vector(episode);
+                                let embedding = generate_simple_embedding(episode);
                                 crate::spatiotemporal::diversity::ScoredEpisode::new(
                                     episode.episode_id.to_string(),
                                     scored.relevance_score,

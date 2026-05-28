@@ -280,17 +280,15 @@ cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 #### Programmatic Usage
 
 ```rust
-use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel, TaskType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let memory = SelfLearningMemory::new();
+    let memory = SelfLearningMemory::new(Default::default()).await?;
 
     let context = TaskContext {
+        language: "rust".to_string(),
         domain: "web".to_string(),
-        language: Some("rust".to_string()),
-        framework: None,
-        complexity: ComplexityLevel::Moderate,
         tags: vec!["api".to_string()],
     };
 

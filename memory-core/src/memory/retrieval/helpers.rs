@@ -55,17 +55,9 @@ pub fn should_cache_episodes(episodes: &[Arc<Episode>]) -> bool {
     estimated_size < MAX_CACHEABLE_SIZE
 }
 
-/// Compute a structural feature vector for an episode used by MMR diversity scoring.
-///
-/// Returns a 10-dimensional fingerprint encoding domain hash, task type, complexity,
-/// language/framework presence, step count, reward, duration, tag count, and outcome.
-///
-/// This is **not** a semantic embedding — it intentionally captures structural
-/// (categorical and numeric) episode features so that diversity maximization can
-/// distinguish episodes that differ along these axes without depending on the
-/// external embedding provider. Semantic similarity is handled separately by the
-/// hierarchical retrieval pipeline.
-pub fn episode_feature_vector(episode: &Episode) -> Vec<f32> {
+/// Generate a simple embedding for an episode based on its metadata
+/// This is a placeholder until full embedding integration is complete
+pub fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
     let mut embedding = Vec::with_capacity(10);
 
     // Domain hash

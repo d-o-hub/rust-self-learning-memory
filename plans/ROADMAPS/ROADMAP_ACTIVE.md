@@ -1,9 +1,9 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-28 (v0.1.33 PR remediation — all 3 PRs fixed, awaiting CI green)
-**Released Version**: v0.1.32 (GitHub Release, published 2026-05-24)
-**Active Sprint**: v0.1.33 — PR Remediation ([GOAP plan](../GOAP_PR_REMEDIATION_2026-05-28.md))
-**Branch**: `v0.1.33/missing-impl-wg158-160-162` (PR #591), `perf/turso-batch-optimization-...` (PR #589), `jules-documentation-audit-...` (PR #590)
+**Last Updated**: 2026-05-22 (v0.1.32 sprint in flight — 9/15 WGs landed; CI/release prep complete)
+**Released Version**: v0.1.31 (crates.io + GitHub Release)
+**Active Sprint**: v0.1.32 — Missing Implementation Remediation ([ADR-055](../adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md), [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md))
+**Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---

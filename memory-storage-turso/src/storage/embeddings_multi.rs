@@ -223,29 +223,29 @@ impl TursoStorage {
             "embeddings_3072",
             "embeddings_other",
         ] {
-            for chunk in TursoStorage::chunk_item_ids(item_ids) {
-                let placeholders = TursoStorage::in_clause_placeholders(chunk.len());
-                let sql = format!(
-                    "DELETE FROM {} WHERE item_id IN ({})",
-                    table_name, placeholders
-                );
+            // Build placeholders for IN clause
+            let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+            let sql = format!(
+                "DELETE FROM {} WHERE item_id IN ({})",
+                table_name, placeholders
+            );
 
-                let params: Vec<libsql::Value> = chunk.iter().map(|id| id.clone().into()).collect();
+            // Build params
+            let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
 
-                let rows_affected = conn
-                    .execute(&sql, libsql::params_from_iter(params))
-                    .await
-                    .map_err(|e| {
-                        Error::Storage(format!(
-                            "Failed to delete embeddings batch from {}: {}",
-                            table_name, e
-                        ))
-                    })?;
+            let rows_affected = conn
+                .execute(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| {
+                    Error::Storage(format!(
+                        "Failed to delete embeddings batch from {}: {}",
+                        table_name, e
+                    ))
+                })?;
 
-                if rows_affected > 0 {
-                    total_deleted += rows_affected as usize;
-                    info!("Deleted {} embeddings from {}", rows_affected, table_name);
-                }
+            if rows_affected > 0 {
+                total_deleted += rows_affected as usize;
+                info!("Deleted {} embeddings from {}", rows_affected, table_name);
             }
         }
 
@@ -296,14 +296,62 @@ impl TursoStorage {
         &self,
         embeddings: Vec<(String, Vec<f32>)>,
     ) -> Result<()> {
+        if embeddings.is_empty() {
+            return Ok(());
+        }
+
         debug!(
             "Storing embedding batch with dimension-aware storage: {} items",
             embeddings.len()
         );
 
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        // Start transaction for batch insertion
+        conn.execute("BEGIN TRANSACTION", ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to begin txn: {}", e)))?;
+
         for (item_id, embedding) in embeddings {
-            self.store_embedding_dimension_aware(&item_id, "embedding", &embedding)
-                .await?;
+            let dimension = embedding.len();
+            let table_name = Self::get_embedding_table_name(dimension);
+            let embedding_json = serde_json::to_string(&embedding).map_err(Error::Serialization)?;
+            let embedding_id = self.generate_embedding_id(&item_id, "embedding");
+
+            let sql = format!(
+                r#"
+                INSERT OR REPLACE INTO {} (embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model)
+                VALUES (?, ?, ?, ?, vector32(?), ?, ?)
+                "#,
+                table_name
+            );
+
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, &sql)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            if let Err(e) = stmt
+                .execute(libsql::params![
+                    embedding_id,
+                    item_id,
+                    "embedding",
+                    embedding_json.clone(),
+                    embedding_json,
+                    dimension as i64,
+                    "default"
+                ])
+                .await
+            {
+                let _ = conn.execute("ROLLBACK", ()).await;
+                return Err(Error::Storage(format!("Failed to store batch item: {}", e)));
+            }
+        }
+
+        if let Err(e) = conn.execute("COMMIT", ()).await {
+            let _ = conn.execute("ROLLBACK", ()).await;
+            return Err(Error::Storage(format!("Failed to commit txn: {}", e)));
         }
 
         info!("Successfully stored embedding batch with dimension-aware storage");
@@ -315,19 +363,70 @@ impl TursoStorage {
         &self,
         item_ids: &[String],
     ) -> Result<Vec<Option<Vec<f32>>>> {
+        if item_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
         debug!(
             "Getting embedding batch with dimension-aware storage: {} items",
             item_ids.len()
         );
 
-        let mut results = Vec::with_capacity(item_ids.len());
+        let mut results_map = std::collections::HashMap::new();
+        let requested_ids: std::collections::HashSet<_> = item_ids.iter().cloned().collect();
+        let mut remaining_ids = requested_ids.clone();
 
-        for item_id in item_ids {
-            let embedding = self
-                .get_embedding_dimension_aware(item_id, "embedding")
-                .await?;
-            results.push(embedding);
+        // Try each dimension table
+        for table_name in [
+            "embeddings_1536",
+            "embeddings_384",
+            "embeddings_1024",
+            "embeddings_3072",
+            "embeddings_other",
+        ] {
+            if remaining_ids.is_empty() {
+                break;
+            }
+
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+            let id_list = remaining_ids.iter().cloned().collect::<Vec<_>>();
+            let placeholders = id_list.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+            let sql = format!(
+                "SELECT item_id, embedding_data FROM {} WHERE item_type = 'embedding' AND item_id IN ({})",
+                table_name, placeholders
+            );
+
+            let mut rows = conn
+                .query(
+                    &sql,
+                    libsql::params_from_iter(id_list.into_iter().map(libsql::Value::from)),
+                )
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query batch: {}", e)))?;
+
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(e.to_string()))?
+            {
+                let item_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let embedding_data: String =
+                    row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+
+                let embedding: Vec<f32> = serde_json::from_str(&embedding_data)
+                    .map_err(|e| Error::Storage(format!("Failed to parse embedding: {}", e)))?;
+
+                results_map.insert(item_id.clone(), embedding);
+                remaining_ids.remove(&item_id);
+            }
         }
+
+        // Map results back to original order
+        let results = item_ids
+            .iter()
+            .map(|id| results_map.get(id).cloned())
+            .collect();
 
         Ok(results)
     }

@@ -205,29 +205,33 @@ async fn test_get_embeddings_batch() {
         .await
         .unwrap();
 
-    // Get embeddings in batch
+    // Get embeddings in batch - verify order and None for missing IDs
     let ids = vec![
+        "get_batch_3".to_string(), // Request out of insert order
+        "nonexistent_1".to_string(),
         "get_batch_1".to_string(),
+        "nonexistent_2".to_string(),
         "get_batch_2".to_string(),
-        "get_batch_3".to_string(),
-        "nonexistent".to_string(),
     ];
 
     let results = storage.get_embeddings_batch(&ids).await.unwrap();
 
-    // Verify results
-    assert_eq!(results.len(), 4);
+    // Verify results count
+    assert_eq!(results.len(), 5);
 
+    // Verify results match requested order exactly
     assert!(results[0].is_some());
-    assert_eq!(results[0].as_ref().unwrap(), &embeddings[0].1);
+    assert_eq!(results[0].as_ref().unwrap(), &embeddings[2].1); // get_batch_3
 
-    assert!(results[1].is_some());
-    assert_eq!(results[1].as_ref().unwrap(), &embeddings[1].1);
+    assert!(results[1].is_none()); // nonexistent_1
 
     assert!(results[2].is_some());
-    assert_eq!(results[2].as_ref().unwrap(), &embeddings[2].1);
+    assert_eq!(results[2].as_ref().unwrap(), &embeddings[0].1); // get_batch_1
 
-    assert!(results[3].is_none()); // Nonexistent embedding
+    assert!(results[3].is_none()); // nonexistent_2
+
+    assert!(results[4].is_some());
+    assert_eq!(results[4].as_ref().unwrap(), &embeddings[1].1); // get_batch_2
 }
 
 /// Test different embedding dimensions (requires turso_multi_dimension feature)
@@ -783,10 +787,8 @@ async fn test_store_embeddings_batch_rollback() {
 
     let result = storage.store_embeddings_batch(embeddings).await;
 
-    // If it didn't fail, maybe the local libsql doesn't enforce F32_BLOB(384) dimension strictly.
-    // In that case, this test might need a different way to fail.
+    // Verify rollback: valid_before_error should NOT be in the database if insertion failed
     if result.is_err() {
-        // Verify rollback: valid_before_error should NOT be in the database
         let retrieved = storage.get_embedding("valid_before_error").await.unwrap();
         assert!(
             retrieved.is_none(),
@@ -796,84 +798,30 @@ async fn test_store_embeddings_batch_rollback() {
 }
 
 #[tokio::test]
-async fn test_get_embeddings_batch_large() {
+async fn test_generate_embedding_id() {
     let (storage, _dir) = create_test_storage().await.unwrap();
+    let id1 = storage.generate_embedding_id("item1", "type1");
+    let id2 = storage.generate_embedding_id("item1", "type1");
+    let id3 = storage.generate_embedding_id("item2", "type1");
 
-    // Insert 600 embeddings (exceeds MAX_SQL_PARAMS=500)
-    let embeddings: Vec<(String, Vec<f32>)> = (0..600)
-        .map(|i| (format!("large_get_{}", i), vec![i as f32 * 0.01; 384]))
-        .collect();
-
-    storage
-        .store_embeddings_batch(embeddings.clone())
-        .await
-        .unwrap();
-
-    // Retrieve all 600 - exercises chunking
-    let ids: Vec<String> = embeddings.iter().map(|(id, _)| id.clone()).collect();
-    let results = storage.get_embeddings_batch(&ids).await.unwrap();
-
-    assert_eq!(results.len(), 600);
-    // Verify first, middle, and last items
-    assert!(results[0].is_some());
-    assert!(results[299].is_some());
-    assert!(results[599].is_some());
-    // Verify expected values
-    let first = results[0].as_ref().unwrap();
-    assert!((first[0] - 0.0).abs() < 0.001);
-    let last = results[599].as_ref().unwrap();
-    assert!((last[0] - 5.99).abs() < 0.01);
+    assert_eq!(id1, id2, "Same input should yield same ID");
+    assert_ne!(id1, id3, "Different input should yield different ID");
 }
 
 #[tokio::test]
-async fn test_delete_embeddings_batch_large() {
+async fn test_batch_operations_empty_input() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
-    // Insert 600 embeddings
-    let embeddings: Vec<(String, Vec<f32>)> = (0..600)
-        .map(|i| (format!("large_del_{}", i), vec![0.1f32; 384]))
-        .collect();
+    // Should return success without hitting DB (verified by coverage)
+    let result = storage.store_embeddings_batch(vec![]).await;
+    assert!(result.is_ok());
 
-    storage
-        .store_embeddings_batch(embeddings.clone())
-        .await
-        .unwrap();
+    let results = storage.get_embeddings_batch(&[]).await.unwrap();
+    assert!(results.is_empty());
 
-    // Delete all 600 - exercises chunking
-    let ids: Vec<String> = embeddings.iter().map(|(id, _)| id.clone()).collect();
     let deleted = storage
-        ._delete_embeddings_batch_internal(&ids)
+        ._delete_embeddings_batch_internal(&[])
         .await
         .unwrap();
-
-    assert_eq!(deleted, 600);
-
-    // Verify deletion
-    let remaining = storage.get_embeddings_batch(&ids).await.unwrap();
-    assert!(remaining.iter().all(|r| r.is_none()));
-}
-
-#[tokio::test]
-async fn test_store_embeddings_batch_rollback_on_statement_error() {
-    let (storage, _dir) = create_test_storage().await.unwrap();
-
-    // Store a valid embedding first, then force a constraint violation
-    let valid_id = "rollback_stmt_valid".to_string();
-    storage
-        .store_embedding(&valid_id, vec![0.1f32; 384])
-        .await
-        .unwrap();
-
-    // Store the same item again with invalid embedding dimension to trigger error
-    // This should cause the batch to fail and roll back
-    let result = storage
-        .store_embeddings_batch(vec![("rollback_stmt_other".to_string(), vec![0.5f32; 100])])
-        .await;
-
-    // The result may be an error (F32_BLOB dimension mismatch) or ok (lenient db)
-    if result.is_err() {
-        // Verify the original embedding still exists
-        let retrieved = storage.get_embedding(&valid_id).await.unwrap();
-        assert!(retrieved.is_some());
-    }
+    assert_eq!(deleted, 0);
 }

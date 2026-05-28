@@ -232,6 +232,18 @@ async fn test_get_embeddings_batch() {
 
     assert!(results[4].is_some());
     assert_eq!(results[4].as_ref().unwrap(), &embeddings[1].1); // get_batch_2
+
+    // Verify batch store with 100% success
+    let batch_store = vec![
+        ("batch_store_1".to_string(), create_test_embedding_384_with_seed(0.5)),
+        ("batch_store_2".to_string(), create_test_embedding_384_with_seed(0.6)),
+    ];
+    storage.store_embeddings_batch(batch_store.clone()).await.unwrap();
+
+    for (id, exp) in batch_store {
+        let ret = storage.get_embedding(&id).await.unwrap().unwrap();
+        assert_eq!(ret, exp);
+    }
 }
 
 /// Test different embedding dimensions (requires turso_multi_dimension feature)
@@ -729,8 +741,19 @@ async fn test_get_embeddings_batch_decode_error() {
     // Insert malformed data directly into the table
     let id = "malformed_embedding";
     let embedding_id = storage.generate_embedding_id(id, "embedding");
+
+    #[cfg(feature = "turso_multi_dimension")]
+    let table = "embeddings_384";
+    #[cfg(not(feature = "turso_multi_dimension"))]
+    let table = "embeddings";
+
+    let sql = format!(
+        "INSERT INTO {} (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)",
+        table
+    );
+
     conn.execute(
-        "INSERT INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)",
+        &sql,
         libsql::params![embedding_id, id, "embedding", "not json", 384, "default"],
     ).await.unwrap();
 

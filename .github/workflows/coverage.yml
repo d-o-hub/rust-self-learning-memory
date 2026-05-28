@@ -17,6 +17,7 @@ env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
   CARGO_HOME: ${{ github.workspace }}/.cargo
+  RUSTUP_HOME: ${{ github.workspace }}/.rustup
 
 concurrency:
   group: coverage-${{ github.head_ref || github.run_id }}
@@ -70,8 +71,8 @@ jobs:
       - name: Maximize build space
         uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
-          root-reserve-mb: 1536
-          swap-size-mb: 512
+          root-reserve-mb: 8192
+          swap-size-mb: 2048
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'

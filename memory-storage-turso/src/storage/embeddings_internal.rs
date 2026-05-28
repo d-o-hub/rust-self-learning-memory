@@ -7,7 +7,26 @@ use tracing::debug;
 #[cfg(not(feature = "turso_multi_dimension"))]
 use tracing::info;
 
+pub(crate) const MAX_SQL_PARAMS: usize = 500;
+
 impl TursoStorage {
+    /// Process item_ids in chunks to avoid exceeding SQLITE_MAX_VARIABLE_NUMBER
+    pub(crate) fn chunk_item_ids(item_ids: &[String]) -> Vec<&[String]> {
+        item_ids.chunks(MAX_SQL_PARAMS).collect()
+    }
+
+    /// Build placeholders for an IN clause of the given count
+    pub(crate) fn in_clause_placeholders(count: usize) -> String {
+        let mut placeholders = String::with_capacity(count * 2);
+        for i in 0..count {
+            if i > 0 {
+                placeholders.push(',');
+            }
+            placeholders.push('?');
+        }
+        placeholders
+    }
+
     /// Store an embedding (internal implementation)
     pub(crate) async fn _store_embedding_internal(
         &self,
@@ -220,25 +239,28 @@ impl TursoStorage {
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
             let (conn, _conn_id) = self.get_connection_with_id().await?;
+            let mut total_affected = 0usize;
 
-            // Build placeholders for IN clause
-            let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-            let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
+            for chunk in Self::chunk_item_ids(item_ids) {
+                let placeholders = Self::in_clause_placeholders(chunk.len());
+                let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
 
-            // Build params
-            let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
+                let params: Vec<libsql::Value> = chunk.iter().map(|id| id.clone().into()).collect();
 
-            let rows_affected = conn
-                .execute(&sql, libsql::params_from_iter(params))
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!(
-                        "Failed to delete embeddings batch: {}",
-                        e
-                    ))
-                })?;
+                let rows_affected = conn
+                    .execute(&sql, libsql::params_from_iter(params))
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to delete embeddings batch: {}",
+                            e
+                        ))
+                    })?;
 
-            Ok(rows_affected as usize)
+                total_affected += rows_affected as usize;
+            }
+
+            Ok(total_affected)
         }
     }
 
@@ -263,21 +285,29 @@ impl TursoStorage {
             VALUES (?, ?, ?, ?, vector32(?), ?, ?)
         "#;
 
-        for (item_id, embedding) in embeddings {
-            let embedding_json =
-                serde_json::to_string(&embedding).map_err(do_memory_core::Error::Serialization)?;
-            let embedding_id = self.generate_embedding_id(&item_id, "embedding");
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare(&conn, SQL)
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-                })?;
+        for (item_id, embedding) in &embeddings {
+            let embedding_json = match serde_json::to_string(embedding) {
+                Ok(json) => json,
+                Err(e) => {
+                    let _ = conn.execute("ROLLBACK", ()).await;
+                    return Err(do_memory_core::Error::Serialization(e));
+                }
+            };
+            let embedding_id = self.generate_embedding_id(item_id, "embedding");
+            let stmt = match self.prepared_cache.get_or_prepare(&conn, SQL).await {
+                Ok(stmt) => stmt,
+                Err(e) => {
+                    let _ = conn.execute("ROLLBACK", ()).await;
+                    return Err(do_memory_core::Error::Storage(format!(
+                        "Failed to prepare statement: {}",
+                        e
+                    )));
+                }
+            };
             if let Err(e) = stmt
                 .execute(libsql::params![
                     embedding_id,
-                    item_id,
+                    item_id.clone(),
                     "embedding",
                     embedding_json.clone(),
                     embedding_json,
@@ -305,7 +335,7 @@ impl TursoStorage {
         Ok(())
     }
 
-    /// Get embeddings in batch
+    /// Get embeddings in batch with chunked IN clause to avoid SQLITE_MAX_VARIABLE_NUMBER
     pub(crate) async fn _get_embeddings_batch_internal(
         &self,
         item_ids: &[String],
@@ -315,40 +345,42 @@ impl TursoStorage {
         }
 
         let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        // Build placeholders for IN clause
-        let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        let sql = format!(
-            "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'embedding' AND item_id IN ({})",
-            placeholders
-        );
-
-        // Build params
-        let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
-
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to query embeddings batch: {}", e))
-            })?;
-
         let mut results_map = std::collections::HashMap::new();
-        while let Some(row) = rows.next().await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to fetch batch row: {}", e))
-        })? {
-            let item_id: String = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            let embedding_data: String = row
-                .get(1)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
 
-            let embedding = self.decode_embedding_data(&embedding_data)?;
-            results_map.insert(item_id, embedding);
+        for chunk in Self::chunk_item_ids(item_ids) {
+            let placeholders = Self::in_clause_placeholders(chunk.len());
+            let sql = format!(
+                "SELECT item_id, embedding_data FROM embeddings WHERE item_type = 'embedding' AND item_id IN ({})",
+                placeholders
+            );
+
+            let params: Vec<libsql::Value> = chunk.iter().map(|id| id.clone().into()).collect();
+
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to query embeddings batch: {}",
+                        e
+                    ))
+                })?;
+
+            while let Some(row) = rows.next().await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to fetch batch row: {}", e))
+            })? {
+                let item_id: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                let embedding_data: String = row
+                    .get(1)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+
+                let embedding = self.decode_embedding_data(&embedding_data)?;
+                results_map.insert(item_id, embedding);
+            }
         }
 
-        // Map results back to original order
         let results = item_ids
             .iter()
             .map(|id| results_map.get(id).cloned())

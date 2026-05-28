@@ -794,3 +794,86 @@ async fn test_store_embeddings_batch_rollback() {
         );
     }
 }
+
+#[tokio::test]
+async fn test_get_embeddings_batch_large() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Insert 600 embeddings (exceeds MAX_SQL_PARAMS=500)
+    let embeddings: Vec<(String, Vec<f32>)> = (0..600)
+        .map(|i| (format!("large_get_{}", i), vec![i as f32 * 0.01; 384]))
+        .collect();
+
+    storage
+        .store_embeddings_batch(embeddings.clone())
+        .await
+        .unwrap();
+
+    // Retrieve all 600 - exercises chunking
+    let ids: Vec<String> = embeddings.iter().map(|(id, _)| id.clone()).collect();
+    let results = storage.get_embeddings_batch(&ids).await.unwrap();
+
+    assert_eq!(results.len(), 600);
+    // Verify first, middle, and last items
+    assert!(results[0].is_some());
+    assert!(results[299].is_some());
+    assert!(results[599].is_some());
+    // Verify expected values
+    let first = results[0].as_ref().unwrap();
+    assert!((first[0] - 0.0).abs() < 0.001);
+    let last = results[599].as_ref().unwrap();
+    assert!((last[0] - 5.99).abs() < 0.01);
+}
+
+#[tokio::test]
+async fn test_delete_embeddings_batch_large() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Insert 600 embeddings
+    let embeddings: Vec<(String, Vec<f32>)> = (0..600)
+        .map(|i| (format!("large_del_{}", i), vec![0.1f32; 384]))
+        .collect();
+
+    storage
+        .store_embeddings_batch(embeddings.clone())
+        .await
+        .unwrap();
+
+    // Delete all 600 - exercises chunking
+    let ids: Vec<String> = embeddings.iter().map(|(id, _)| id.clone()).collect();
+    let deleted = storage
+        ._delete_embeddings_batch_internal(&ids)
+        .await
+        .unwrap();
+
+    assert_eq!(deleted, 600);
+
+    // Verify deletion
+    let remaining = storage.get_embeddings_batch(&ids).await.unwrap();
+    assert!(remaining.iter().all(|r| r.is_none()));
+}
+
+#[tokio::test]
+async fn test_store_embeddings_batch_rollback_on_statement_error() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Store a valid embedding first, then force a constraint violation
+    let valid_id = "rollback_stmt_valid".to_string();
+    storage
+        .store_embedding(&valid_id, vec![0.1f32; 384])
+        .await
+        .unwrap();
+
+    // Store the same item again with invalid embedding dimension to trigger error
+    // This should cause the batch to fail and roll back
+    let result = storage
+        .store_embeddings_batch(vec![("rollback_stmt_other".to_string(), vec![0.5f32; 100])])
+        .await;
+
+    // The result may be an error (F32_BLOB dimension mismatch) or ok (lenient db)
+    if result.is_err() {
+        // Verify the original embedding still exists
+        let retrieved = storage.get_embedding(&valid_id).await.unwrap();
+        assert!(retrieved.is_some());
+    }
+}

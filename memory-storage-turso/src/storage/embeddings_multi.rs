@@ -223,29 +223,29 @@ impl TursoStorage {
             "embeddings_3072",
             "embeddings_other",
         ] {
-            // Build placeholders for IN clause
-            let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-            let sql = format!(
-                "DELETE FROM {} WHERE item_id IN ({})",
-                table_name, placeholders
-            );
+            for chunk in TursoStorage::chunk_item_ids(item_ids) {
+                let placeholders = TursoStorage::in_clause_placeholders(chunk.len());
+                let sql = format!(
+                    "DELETE FROM {} WHERE item_id IN ({})",
+                    table_name, placeholders
+                );
 
-            // Build params
-            let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
+                let params: Vec<libsql::Value> = chunk.iter().map(|id| id.clone().into()).collect();
 
-            let rows_affected = conn
-                .execute(&sql, libsql::params_from_iter(params))
-                .await
-                .map_err(|e| {
-                    Error::Storage(format!(
-                        "Failed to delete embeddings batch from {}: {}",
-                        table_name, e
-                    ))
-                })?;
+                let rows_affected = conn
+                    .execute(&sql, libsql::params_from_iter(params))
+                    .await
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to delete embeddings batch from {}: {}",
+                            table_name, e
+                        ))
+                    })?;
 
-            if rows_affected > 0 {
-                total_deleted += rows_affected as usize;
-                info!("Deleted {} embeddings from {}", rows_affected, table_name);
+                if rows_affected > 0 {
+                    total_deleted += rows_affected as usize;
+                    info!("Deleted {} embeddings from {}", rows_affected, table_name);
+                }
             }
         }
 

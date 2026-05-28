@@ -1,8 +1,8 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-27 (v0.1.33 residual WGs WG-158/160/162 closed on `v0.1.33/missing-impl-wg158-160-162` branch)
+- **Last Updated**: 2026-05-28 (v0.1.33 PR remediation — all 3 open PRs fixed, CI re-triggered)
 - **Version**: `0.1.32` (workspace; v0.1.33 bump pending release)
-- **Branch**: `v0.1.33/missing-impl-wg158-160-162` (off `main`)
+- **Branch**: `v0.1.33/missing-impl-wg158-160-162` (PR #591 — Codacy + coverage fixed)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; released with residuals)**
@@ -284,6 +284,37 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | CSM integration | Not started | BM25+HDC+ConceptGraph cascade |
 
 ---
+
+---
+
+## v0.1.33 PR Remediation — Active (2026-05-28)
+
+Three open PRs were blocking the v0.1.33 release. All have been addressed:
+
+### PR #589 — Turso Batch Optimization
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Transaction leak in `_store_embeddings_batch_internal` | HIGH | Replaced `?` with explicit `match` + ROLLBACK on serde/prepare errors |
+| IN clause exceeding SQLITE_MAX_VARIABLE_NUMBER | MED | Chunked `item_ids` in batches of 500 via shared `chunk_item_ids`/`in_clause_placeholders` |
+| Patch coverage 75.4% (14 lines uncovered) | MED | Added `test_get_embeddings_batch_large` (600 items), `test_delete_embeddings_batch_large`, rollback test |
+| Coverage CI disk space | INFRA | Fixed via coverage.yml root-reserve increase |
+
+### PR #590 — Documentation Sync
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Inconsistent README examples (sync vs async) | MED | Unified to `SelfLearningMemory::new()` sync API |
+| Missing `complexity`/`framework`/`Some(language)` in second example | MED | Fixed `TaskContext` to match actual struct definition |
+
+### PR #591 — Residual WG Closures (this branch)
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| Codacy ErrorProne: unused `task_file` variable | MED | Used `task_file` in `update_plan_progress` log output |
+| Coverage CI disk space failure | INFRA | Increased `root-reserve-mb` 512→8192, added `remove-docker-images`/`remove-swigpl` |
+
+### Next Steps
+1. Wait for all CI checks to pass on all 3 PRs
+2. Merge PRs in order: #589 → #590 → #591
+3. Bump workspace to v0.1.33
 
 ## Active Issues / Blockers
 

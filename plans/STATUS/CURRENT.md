@@ -1,10 +1,10 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-28 (v0.1.33 sprint complete — WG-158, WG-160, WG-162 closed; branch `v0.1.33/missing-impl-wg158-160-162` ready for PR)
+**Last Updated**: 2026-05-28 (v0.1.33 PR remediation — all 3 PRs fixed, awaiting CI green)
 **Released Version**: v0.1.32 (GitHub Release, published 2026-05-24)
 **Current Workspace Version**: 0.1.33
-**Active Sprint**: v0.1.33 — all residual WGs complete (see [GOAP_STATE.md](../GOAP_STATE.md))
-**Branch**: `v0.1.33/missing-impl-wg158-160-162` (uncommitted changes, awaiting user commit/push)
+**Active Sprint**: v0.1.33 — PR remediation phase (fixing #589, #590, #591)
+**Branch**: `v0.1.33/missing-impl-wg158-160-162` (PR #591 branch, active)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
@@ -91,9 +91,12 @@ No open issues — all closed.
 
 ### Open PRs
 
-| # | Title | Status |
-|---|-------|--------|
-| — | No open PRs | ✅ All merged |
+| # | Title | Author | Status | Issues Fixed |
+|---|-------|--------|--------|-------------|
+| 589 | Optimize Turso batch embedding operations | Jules | 🔄 CI re-triggered | Transaction leak (HIGH), IN clause chunking, coverage tests |
+| 590 | docs: sync README and agent docs | Jules | 🔄 CI re-triggered | Async/sync inconsistency, TaskContext fields |
+| 591 | feat: close residual placeholder WGs (WG-158, WG-160, WG-162) | d-o-hub | 🔄 CI re-triggered | Codacy ErrorProne, coverage disk space |
+
 
 ### Recently Merged PRs
 

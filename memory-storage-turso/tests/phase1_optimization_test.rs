@@ -115,7 +115,7 @@ async fn test_cache_first_read_strategy() {
     );
 
     // Verify cache stats
-    let stats = cached_storage.stats();
+    let stats = cached_storage.stats().await;
     assert!(stats.episode_hits > 0, "Should have cache hits");
     assert!(
         stats.episode_hit_rate() > 0.0,
@@ -363,7 +363,7 @@ async fn test_end_to_end_optimization() {
     );
 
     // Print cache stats
-    let stats = cached_storage.stats();
+    let stats = cached_storage.stats().await;
     println!("Cache hit rate: {:.1}%", stats.episode_hit_rate() * 100.0);
     assert!(stats.episode_hits > 0, "Should have cache hits");
 }

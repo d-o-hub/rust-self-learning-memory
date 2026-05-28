@@ -67,14 +67,15 @@ jobs:
       # IMPORTANT: Maximize build space MUST run before checkout
       # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
-        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
+        uses: jlumbroso/free-disk-space@main
         with:
-          root-reserve-mb: 512
-          swap-size-mb: 2048
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Log disk usage before
         run: |
@@ -122,7 +123,7 @@ jobs:
           timeout 2400s cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
-            --exclude test-utils \
+            --exclude test-utils --exclude do-memory-mcp --exclude memory-mcp \
             --lcov --output-path lcov.info --jobs 4
           echo "Coverage report generated successfully"
         env:
@@ -145,7 +146,7 @@ jobs:
           timeout 3000s cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
-            --exclude test-utils \
+            --exclude test-utils --exclude do-memory-mcp --exclude memory-mcp \
             --lcov --output-path lcov-full.info --jobs 4 || \
             echo "Full coverage timed out, using library-only report"
           # Use full report if available, otherwise keep library report

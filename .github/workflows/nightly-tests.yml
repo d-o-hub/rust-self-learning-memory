@@ -40,14 +40,15 @@ jobs:
     steps:
       # Tier 1: Maximize build space
       - name: Maximize build space
-        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
+        uses: jlumbroso/free-disk-space@main
         with:
-          root-reserve-mb: 1024
-          swap-size-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Check disk space before build
         run: |
@@ -226,14 +227,15 @@ jobs:
     steps:
       - name: Maximize build space (Linux)
         if: runner.os == 'Linux'
-        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
+        uses: jlumbroso/free-disk-space@main
         with:
-          root-reserve-mb: 1024
-          swap-size-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Free disk space (macOS)
         if: runner.os == 'macOS'

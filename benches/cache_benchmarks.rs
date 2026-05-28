@@ -382,7 +382,7 @@ fn bench_cache_stats(c: &mut Criterion) {
                     let _ = cached.get_episode_cached(episode.episode_id).await.unwrap();
                 }
 
-                let stats = cached.stats();
+                let stats = cached.stats().await;
                 black_box(stats.hit_rate());
             });
         });
@@ -417,7 +417,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                 }
 
-                let stats = cached.stats();
+                let stats = cached.stats().await;
                 let hit_rate = stats.episode_hit_rate();
                 black_box(hit_rate);
             });
@@ -445,7 +445,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                 }
 
-                let stats = cached.stats();
+                let stats = cached.stats().await;
                 let hit_rate = stats.episode_hit_rate();
                 black_box(hit_rate);
             });

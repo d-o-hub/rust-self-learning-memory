@@ -59,7 +59,7 @@ async fn test_cached_storage_episode_operations() {
     assert!(retrieved2.is_some());
 
     // Get cache stats
-    let stats = cached_storage.stats();
+    let stats = cached_storage.stats().await;
     assert!(stats.episode_hits > 0, "Expected cache hits");
     assert!(stats.episode_hit_rate() > 0.0, "Expected positive hit rate");
 }
@@ -102,7 +102,7 @@ async fn test_cached_storage_pattern_operations() {
     }
 
     // Check cache stats
-    let stats = cached_storage.stats();
+    let stats = cached_storage.stats().await;
     assert!(stats.pattern_hits >= 2, "Expected at least 2 cache hits");
 }
 

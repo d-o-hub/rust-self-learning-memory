@@ -16,6 +16,8 @@ permissions:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+  CARGO_HOME: ${{ github.workspace }}/.cargo
+  RUSTUP_HOME: ${{ github.workspace }}/.rustup
 
 concurrency:
   group: coverage-${{ github.head_ref || github.run_id }}
@@ -76,7 +78,6 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-          remove-swigpl: 'true'
 
       - name: Log disk usage before
         run: |

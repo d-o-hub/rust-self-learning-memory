@@ -16,8 +16,7 @@ update_plan_progress() {
     local task_file=$1
     local status=$2
     local message=$3
-    # Update progress structurally inside the plans folder
-    echo -e "## [$(date +'%Y-%m-%d %H:%M:%S')] ${status}\n${message}\n" >> "${PLAN_DIR}/progress_log.md"
+    echo -e "## [$(date +'%Y-%m-%d %H:%M:%S')] task=${task_file} ${status}\n${message}\n" >> "${PLAN_DIR}/progress_log.md"
 }
 
 update_learnings() {

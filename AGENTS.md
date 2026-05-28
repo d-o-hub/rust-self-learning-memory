@@ -194,7 +194,13 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 
 ## MCP Server Interaction Patterns
 - The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
-- The server exposes tools like `query_memory`, `analyze_patterns`, `search_patterns`, `recommend_patterns`, `configure_embeddings`, `recommend_playbook`, and `checkpoint_episode` for episodic memory retrieval, pattern analysis, and complex task handoff.
+- The server exposes a comprehensive suite of tools defined in `docs/API_REFERENCE.md`, including:
+  - **Core/Monitoring**: `query_memory`, `analyze_patterns`, `health_check`, `get_metrics`
+  - **Patterns/Recommendations**: `advanced_pattern_analysis`, `search_patterns`, `recommend_patterns`, `recommend_playbook`, `explain_pattern`
+  - **Checkpoints/Handoff**: `checkpoint_episode`, `get_handoff_pack`, `resume_from_handoff`
+  - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `search_by_embedding`, `embedding_provider_status`
+  - **Episode Lifecycle**: `create_episode`, `add_episode_step`, `complete_episode`, `bulk_episodes`
+- Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
 
 ## Storage Optimization (Batch Eviction)
 - Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.

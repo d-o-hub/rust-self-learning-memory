@@ -117,13 +117,17 @@ pub struct MonitoringStats {
 pub struct EpisodeMetrics {
     /// Total episodes created
     pub total_episodes_created: u64,
+    /// Total successful episode creations
+    pub successful_episodes_created: u64,
+    /// Total failed episode creations
+    pub failed_episodes_created: u64,
     /// Episodes created in the last hour
     pub episodes_last_hour: u64,
     /// Episodes created in the last 24 hours
     pub episodes_last_24h: u64,
     /// Average episodes per hour
     pub avg_episodes_per_hour: f64,
-    /// Success rate for episode operations
+    /// Success rate for episode operations (percentage 0.0–100.0)
     pub episode_success_rate: f64,
     /// Episode creation timestamps (for rate calculation)
     pub episode_timestamps: Vec<u64>,
@@ -133,6 +137,8 @@ impl Default for EpisodeMetrics {
     fn default() -> Self {
         Self {
             total_episodes_created: 0,
+            successful_episodes_created: 0,
+            failed_episodes_created: 0,
             episodes_last_hour: 0,
             episodes_last_24h: 0,
             avg_episodes_per_hour: 0.0,
@@ -356,11 +362,71 @@ impl MonitoringStats {
                 self.episode_metrics.episodes_last_24h as f64 / 24.0;
         }
 
-        // Update success rate (simplified - assuming all recent episodes succeeded)
+        // Update success/failure tallies and compute real success rate
         if success {
-            self.episode_metrics.episode_success_rate = 100.0;
+            self.episode_metrics.successful_episodes_created += 1;
         } else {
-            self.episode_metrics.episode_success_rate = 99.0; // Placeholder for error tracking
+            self.episode_metrics.failed_episodes_created += 1;
         }
+
+        let total_outcomes = self.episode_metrics.successful_episodes_created
+            + self.episode_metrics.failed_episodes_created;
+        if total_outcomes > 0 {
+            self.episode_metrics.episode_success_rate =
+                (self.episode_metrics.successful_episodes_created as f64 / total_outcomes as f64)
+                    * 100.0;
+        }
+    }
+}
+
+#[cfg(test)]
+mod episode_success_rate_tests {
+    use super::*;
+
+    fn make_stats() -> MonitoringStats {
+        MonitoringStats::default()
+    }
+
+    #[test]
+    fn success_rate_starts_at_100_with_no_outcomes() {
+        let stats = make_stats();
+        assert_eq!(stats.episode_metrics.episode_success_rate, 100.0);
+        assert_eq!(stats.episode_metrics.successful_episodes_created, 0);
+        assert_eq!(stats.episode_metrics.failed_episodes_created, 0);
+    }
+
+    #[test]
+    fn success_rate_is_100_after_all_successes() {
+        let mut stats = make_stats();
+        for _ in 0..5 {
+            stats.record_episode_creation(true);
+        }
+        assert_eq!(stats.episode_metrics.successful_episodes_created, 5);
+        assert_eq!(stats.episode_metrics.failed_episodes_created, 0);
+        assert!((stats.episode_metrics.episode_success_rate - 100.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn success_rate_reflects_mixed_outcomes() {
+        let mut stats = make_stats();
+        // 3 successes + 1 failure → 75%
+        stats.record_episode_creation(true);
+        stats.record_episode_creation(true);
+        stats.record_episode_creation(false);
+        stats.record_episode_creation(true);
+
+        assert_eq!(stats.episode_metrics.successful_episodes_created, 3);
+        assert_eq!(stats.episode_metrics.failed_episodes_created, 1);
+        assert!((stats.episode_metrics.episode_success_rate - 75.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn success_rate_is_zero_after_all_failures() {
+        let mut stats = make_stats();
+        for _ in 0..4 {
+            stats.record_episode_creation(false);
+        }
+        assert_eq!(stats.episode_metrics.failed_episodes_created, 4);
+        assert!((stats.episode_metrics.episode_success_rate - 0.0).abs() < f64::EPSILON);
     }
 }

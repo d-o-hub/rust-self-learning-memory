@@ -314,15 +314,30 @@ async fn test_agents_md_categories_registered() {
     // Tools documented in AGENTS.md under "MCP Server Interaction Patterns"
     let expected_tools = vec![
         // Core/Monitoring
-        "query_memory", "analyze_patterns", "health_check", "get_metrics",
+        "query_memory",
+        "analyze_patterns",
+        "health_check",
+        "get_metrics",
         // Patterns/Recommendations
-        "advanced_pattern_analysis", "search_patterns", "recommend_patterns", "recommend_playbook", "explain_pattern",
+        "advanced_pattern_analysis",
+        "search_patterns",
+        "recommend_patterns",
+        "recommend_playbook",
+        "explain_pattern",
         // Checkpoints/Handoff
-        "checkpoint_episode", "get_handoff_pack", "resume_from_handoff",
+        "checkpoint_episode",
+        "get_handoff_pack",
+        "resume_from_handoff",
         // Embeddings
-        "configure_embeddings", "query_semantic_memory", "search_by_embedding", "embedding_provider_status",
+        "configure_embeddings",
+        "query_semantic_memory",
+        "search_by_embedding",
+        "embedding_provider_status",
         // Episode Lifecycle
-        "create_episode", "add_episode_step", "complete_episode", "bulk_episodes",
+        "create_episode",
+        "add_episode_step",
+        "complete_episode",
+        "bulk_episodes",
     ];
 
     for tool in expected_tools {

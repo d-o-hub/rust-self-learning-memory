@@ -1,5 +1,5 @@
 //! Test to verify that symbols used in README.md examples are exported.
-use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel, TaskType};
+use do_memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskType};
 
 #[test]
 fn verify_readme_symbols_exported() {

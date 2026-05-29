@@ -65,6 +65,17 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/* || true
           sudo apt-get clean || true
           df -h
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
       - name: Setup isolated target dir
         run: |
@@ -119,6 +130,17 @@ jobs:
           sudo rm -rf /opt/ghc/ 2>/dev/null || true
           docker system prune -af 2>/dev/null || true
           df -h
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
       - name: Setup isolated target dir
         run: |
@@ -167,6 +189,17 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
       - name: Setup isolated target dir
         run: |
@@ -218,6 +251,17 @@ jobs:
     timeout-minutes: 45    # Increased from 30 to accommodate slow coverage
     needs: [test, mcp-build, multi-platform]
     steps:
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
       - name: Setup isolated target dir
         run: |
@@ -267,6 +311,17 @@ jobs:
     timeout-minutes: 30  # Increased from 15 - workspace rustdoc builds are slow
     if: github.actor != 'dependabot[bot]'
     steps:
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Required for --baseline-branch

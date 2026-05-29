@@ -293,3 +293,43 @@ async fn test_core_tools_always_available() {
         );
     }
 }
+
+/// Verify that tools listed in AGENTS.md categories are registered.
+#[tokio::test]
+async fn test_agents_md_categories_registered() {
+    let server = MemoryMCPServer::new(
+        SandboxConfig::default(),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            batch_config: None,
+            ..Default::default()
+        })),
+    )
+    .await
+    .expect("Failed to create MCP server");
+
+    let advertised_tools = server.list_tools().await;
+    let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
+
+    // Tools documented in AGENTS.md under "MCP Server Interaction Patterns"
+    let expected_tools = vec![
+        // Core/Monitoring
+        "query_memory", "analyze_patterns", "health_check", "get_metrics",
+        // Patterns/Recommendations
+        "advanced_pattern_analysis", "search_patterns", "recommend_patterns", "recommend_playbook", "explain_pattern",
+        // Checkpoints/Handoff
+        "checkpoint_episode", "get_handoff_pack", "resume_from_handoff",
+        // Embeddings
+        "configure_embeddings", "query_semantic_memory", "search_by_embedding", "embedding_provider_status",
+        // Episode Lifecycle
+        "create_episode", "add_episode_step", "complete_episode", "bulk_episodes",
+    ];
+
+    for tool in expected_tools {
+        assert!(
+            advertised_names.contains(&tool),
+            "Tool '{}' is documented in AGENTS.md but not registered in the server",
+            tool
+        );
+    }
+}

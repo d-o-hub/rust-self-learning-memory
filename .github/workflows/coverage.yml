@@ -16,8 +16,6 @@ permissions:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
-  CARGO_HOME: ${{ github.workspace }}/.cargo
-  RUSTUP_HOME: ${{ github.workspace }}/.rustup
 
 concurrency:
   group: coverage-${{ github.head_ref || github.run_id }}
@@ -78,13 +76,6 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-          root-reserve-mb: 8192
-          swap-size-mb: 2048
-          remove-dotnet: true
-          remove-android: true
-          remove-haskell: true
-          remove-codeql: true
-          remove-docker-images: true
 
       - name: Log disk usage before
         run: |
@@ -132,7 +123,7 @@ jobs:
           timeout 2400s cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
-            --exclude test-utils --exclude do-memory-mcp --exclude memory-mcp \
+            --exclude test-utils \
             --lcov --output-path lcov.info --jobs 4
           echo "Coverage report generated successfully"
         env:
@@ -155,7 +146,7 @@ jobs:
           timeout 3000s cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
-            --exclude test-utils --exclude do-memory-mcp --exclude memory-mcp \
+            --exclude test-utils \
             --lcov --output-path lcov-full.info --jobs 4 || \
             echo "Full coverage timed out, using library-only report"
           # Use full report if available, otherwise keep library report

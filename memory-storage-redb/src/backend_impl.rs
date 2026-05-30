@@ -132,7 +132,7 @@ impl StorageBackend for RedbStorage {
         &self,
         relationship_id: Uuid,
     ) -> Result<Option<do_memory_core::episode::EpisodeRelationship>> {
-        self.get_relationship_by_id(relationship_id).await
+        RedbStorage::get_relationship_by_id(self, relationship_id).await
     }
 
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {

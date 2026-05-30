@@ -122,7 +122,9 @@ impl StorageBackend for RedbStorage {
         self.get_weighted_neighbors(episode_id).await
     }
 
-    async fn get_all_relationships(&self) -> Result<Vec<do_memory_core::episode::EpisodeRelationship>> {
+    async fn get_all_relationships(
+        &self,
+    ) -> Result<Vec<do_memory_core::episode::EpisodeRelationship>> {
         self.get_all_relationships().await
     }
 

@@ -417,7 +417,10 @@ pub async fn set_threshold(
 }
 
 fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {
-    let now = chrono::Utc::now();
+    format_time_relative(dt, chrono::Utc::now())
+}
+
+fn format_time_relative(dt: chrono::DateTime<chrono::Utc>, now: chrono::DateTime<chrono::Utc>) -> String {
     let diff = now - dt;
 
     if diff.num_seconds() < 60 {
@@ -430,5 +433,128 @@ fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {
         format!("{} days ago", diff.num_days())
     } else {
         format!("{} weeks ago", diff.num_weeks())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome, ExecutionStep, MemoryConfig};
+    use crate::config::Config;
+    use crate::output::OutputFormat;
+
+    async fn create_test_episode(
+        memory: &SelfLearningMemory,
+        domain: &str,
+        is_success: bool,
+    ) {
+        let context = TaskContext {
+            domain: domain.to_string(),
+            ..Default::default()
+        };
+        let id = memory.start_episode("test task".to_string(), context, TaskType::CodeGeneration).await;
+
+        // Add multiple steps to increase quality score
+        for i in 1..=5 {
+            let mut step = ExecutionStep::new(i, "test".to_string(), format!("test step {}", i));
+            step.latency_ms = 100;
+            memory.log_step(id, step).await;
+        }
+
+        let outcome = if is_success {
+            TaskOutcome::Success {
+                verdict: "done".to_string(),
+                artifacts: vec!["test.rs".to_string(), "test_spec.rs".to_string(), "README.md".to_string()],
+            }
+        } else {
+            TaskOutcome::Failure {
+                reason: "failed".to_string(),
+                error_details: None,
+            }
+        };
+
+        memory.complete_episode(id, outcome).await.expect("Failed to complete episode");
+    }
+
+    #[tokio::test]
+    async fn test_calibration_empty() {
+        let mut config = MemoryConfig::default();
+        config.quality_threshold = 0.0;
+        let memory = SelfLearningMemory::with_config(config);
+        let config = Config::default();
+
+        let result = calibration(None, false, 5, &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_calibration_with_data() {
+        let mut config = MemoryConfig::default();
+        config.quality_threshold = 0.0;
+        let memory = SelfLearningMemory::with_config(config);
+        let config = Config::default();
+
+        for _ in 0..6 {
+            create_test_episode(&memory, "domain-a", true).await;
+        }
+        for _ in 0..3 {
+            create_test_episode(&memory, "domain-b", true).await;
+        }
+
+        // Test with show_all = true
+        let result = calibration(None, true, 5, &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_ok());
+
+        // Test with filter
+        let result = calibration(Some("domain-a".to_string()), true, 5, &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_domain_stats_success() {
+        let mut config = MemoryConfig::default();
+        config.quality_threshold = 0.0;
+        let memory = SelfLearningMemory::with_config(config);
+        let config = Config::default();
+
+        create_test_episode(&memory, "test-domain", true).await;
+
+        let result = domain_stats("test-domain".to_string(), &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_domain_stats_not_found() {
+        let mut config = MemoryConfig::default();
+        config.quality_threshold = 0.0;
+        let memory = SelfLearningMemory::with_config(config);
+        let config = Config::default();
+
+        let result = domain_stats("non-existent".to_string(), &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No episodes found"));
+    }
+
+    #[tokio::test]
+    async fn test_set_threshold_error() {
+        let mut config = MemoryConfig::default();
+        config.quality_threshold = 0.0;
+        let memory = SelfLearningMemory::with_config(config);
+        let config = Config::default();
+
+        let result = set_threshold("domain".to_string(), Some(1.0), None, &memory, &config, OutputFormat::Json).await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Custom threshold overrides are not supported"));
+    }
+
+    #[test]
+    fn test_format_time() {
+        let now = chrono::DateTime::from_timestamp(1717171717, 0).unwrap();
+
+        assert_eq!(format_time_relative(now, now), "just now");
+        assert_eq!(format_time_relative(now - chrono::Duration::minutes(5), now), "5 minutes ago");
+        assert_eq!(format_time_relative(now - chrono::Duration::hours(2), now), "2 hours ago");
+        assert_eq!(format_time_relative(now - chrono::Duration::days(3), now), "3 days ago");
+        assert_eq!(format_time_relative(now - chrono::Duration::days(15), now), "2 weeks ago");
     }
 }

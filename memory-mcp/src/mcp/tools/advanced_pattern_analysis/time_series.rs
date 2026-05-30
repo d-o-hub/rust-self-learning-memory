@@ -104,3 +104,131 @@ impl Default for TimeSeriesExtractor {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType, TaskOutcome, ExecutionResult, ComplexityLevel};
+    use do_memory_core::episode::structs::{PatternApplication, ApplicationOutcome};
+    use uuid::Uuid;
+
+    fn create_mock_episode(latency_ms: u64, success: bool, complexity: ComplexityLevel) -> Episode {
+        let mut episode = Episode::new(
+            "test task".to_string(),
+            TaskContext {
+                domain: "test".to_string(),
+                complexity,
+                ..Default::default()
+            },
+            TaskType::CodeGeneration,
+        );
+
+        let mut step = ExecutionStep::new(1, "test".to_string(), "test step".to_string());
+        step.latency_ms = latency_ms;
+        step.result = Some(ExecutionResult::Success { output: "ok".to_string() });
+        episode.steps.push(step);
+
+        if success {
+            episode.outcome = Some(TaskOutcome::Success {
+                verdict: "success".to_string(),
+                artifacts: vec![],
+            });
+        } else {
+            episode.outcome = Some(TaskOutcome::Failure {
+                reason: "failed".to_string(),
+                error_details: None,
+            });
+        }
+
+        episode
+    }
+
+    #[test]
+    fn test_extract_metric_execution_time() {
+        let extractor = TimeSeriesExtractor::new();
+        let episode = create_mock_episode(150, true, ComplexityLevel::Simple);
+        let all = vec![episode.clone()];
+
+        let value = extractor.extract_metric("execution_time_ms", &episode, &all);
+        assert_eq!(value, Some(150.0));
+    }
+
+    #[test]
+    fn test_extract_metric_success_rate() {
+        let extractor = TimeSeriesExtractor::new();
+        let ep1 = create_mock_episode(100, true, ComplexityLevel::Simple);
+        let ep2 = create_mock_episode(100, false, ComplexityLevel::Simple);
+        let all = vec![ep1.clone(), ep2.clone()];
+
+        let value = extractor.extract_metric("success_rate", &ep1, &all);
+        assert_eq!(value, Some(50.0));
+    }
+
+    #[test]
+    fn test_extract_metric_complexity() {
+        let extractor = TimeSeriesExtractor::new();
+
+        let ep1 = create_mock_episode(100, true, ComplexityLevel::Simple);
+        assert_eq!(extractor.extract_metric("complexity_score", &ep1, &[]), Some(1.0));
+
+        let ep2 = create_mock_episode(100, true, ComplexityLevel::Moderate);
+        assert_eq!(extractor.extract_metric("complexity_score", &ep2, &[]), Some(2.0));
+
+        let ep3 = create_mock_episode(100, true, ComplexityLevel::Complex);
+        assert_eq!(extractor.extract_metric("complexity_score", &ep3, &[]), Some(3.0));
+    }
+
+    #[test]
+    fn test_extract_metric_pattern_match() {
+        let extractor = TimeSeriesExtractor::new();
+        let mut ep = create_mock_episode(100, true, ComplexityLevel::Simple);
+
+        // No patterns
+        assert_eq!(extractor.extract_metric("pattern_match_score", &ep, &[]), Some(0.0));
+
+        // With applied patterns
+        ep.applied_patterns.push(PatternApplication {
+            pattern_id: Uuid::new_v4(),
+            applied_at_step: 1,
+            outcome: ApplicationOutcome::Helped,
+            notes: None,
+        });
+        assert_eq!(extractor.extract_metric("pattern_match_score", &ep, &[]), Some(1.0));
+
+        // Fallback to pattern density
+        let mut ep_no_applied = create_mock_episode(100, true, ComplexityLevel::Simple);
+        ep_no_applied.patterns.push(Uuid::new_v4());
+        let mut ep_max = create_mock_episode(100, true, ComplexityLevel::Simple);
+        ep_max.patterns.push(Uuid::new_v4());
+        ep_max.patterns.push(Uuid::new_v4());
+        let all = vec![ep_no_applied.clone(), ep_max.clone()];
+        assert_eq!(extractor.extract_metric("pattern_match_score", &ep_no_applied, &all), Some(0.5));
+    }
+
+    #[test]
+    fn test_extract_metric_memory_usage() {
+        let extractor = TimeSeriesExtractor::new();
+        let ep = create_mock_episode(100, true, ComplexityLevel::Simple);
+
+        let value = extractor.extract_metric("memory_usage_mb", &ep, &[]);
+        assert!(value.is_some());
+        assert!(value.unwrap() > 0.0);
+    }
+
+    #[test]
+    fn test_extract_metric_none() {
+        let extractor = TimeSeriesExtractor::new();
+        let ep = create_mock_episode(100, true, ComplexityLevel::Simple);
+
+        assert_eq!(extractor.extract_metric("invalid_metric", &ep, &[]), None);
+    }
+
+    #[test]
+    fn test_meets_threshold() {
+        let extractor = TimeSeriesExtractor::new();
+
+        assert!(!extractor.meets_threshold(&[], 3));
+        assert!(!extractor.meets_threshold(&[1.0, 2.0], 3));
+        assert!(extractor.meets_threshold(&[1.0, 2.0, 3.0], 3));
+    }
+}

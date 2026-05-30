@@ -1,37 +1,55 @@
+//! Integration tests for relationship commands.
+//!
+//! This module provides behavior-oriented test coverage for relationship CLI core and validation logic.
+
+#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
+
 use do_memory_cli::test_utils::CliHarness;
 use predicates::prelude::*;
 use serde_json::Value;
 use uuid::Uuid;
 
+/// Extracts the last JSON object from the given stdout bytes.
+///
+/// This is useful because the CLI might output log messages or ANSI escape sequences
+/// before or after the actual JSON response.
 fn extract_json(stdout: &[u8]) -> Value {
     let stdout_str = String::from_utf8_lossy(stdout);
     let mut depth = 0;
     let mut start = None;
     let mut last_json = None;
-    let bytes = stdout_str.as_bytes();
-    for i in 0..bytes.len() {
-        if bytes[i] == b'{' {
+
+    for (i, &b) in stdout_str.as_bytes().iter().enumerate() {
+        if b == b'{' {
             if depth == 0 {
                 start = Some(i);
             }
             depth += 1;
-        } else if bytes[i] == b'}' {
-            if depth > 0 {
-                depth -= 1;
-                if depth == 0 {
-                    if let Some(s) = start {
-                        let candidate = &stdout_str[s..=i];
-                        if let Ok(json) = serde_json::from_str(candidate) {
-                            last_json = Some(json);
-                        }
-                    }
-                }
-            }
+            continue;
         }
+
+        if b != b'}' || depth == 0 {
+            continue;
+        }
+
+        depth -= 1;
+        if depth != 0 {
+            continue;
+        }
+
+        let Some(s) = start else {
+            continue;
+        };
+        let Ok(json) = serde_json::from_str::<Value>(&stdout_str[s..=i]) else {
+            continue;
+        };
+        last_json = Some(json);
     }
-    last_json.unwrap_or_else(|| panic!("Could not find JSON in output: {}", stdout_str))
+
+    last_json.expect("Could not find JSON in output")
 }
 
+/// Tests that the relationship add command works in dry-run mode.
 #[test]
 fn test_relationship_add_dry_run() {
     let harness = CliHarness::new();
@@ -58,6 +76,8 @@ fn test_relationship_add_dry_run() {
         .stdout(predicate::str::contains("Would create relationship:"));
 }
 
+/// Tests a full cycle of relationship operations: create episodes, add relationship,
+/// info, list, find, graph, validate (success and failure), and remove.
 #[test]
 fn test_relationship_full_cycle() {
     let harness = CliHarness::new();
@@ -73,8 +93,8 @@ fn test_relationship_full_cycle() {
     let json1 = extract_json(&out1);
     let ep1_id = json1["episode_id"]
         .as_str()
-        .or(json1["id"].as_str())
-        .unwrap()
+        .or_else(|| json1["id"].as_str())
+        .expect("Missing episode_id")
         .to_string();
 
     let out2 = harness
@@ -87,8 +107,8 @@ fn test_relationship_full_cycle() {
     let json2 = extract_json(&out2);
     let ep2_id = json2["episode_id"]
         .as_str()
-        .or(json2["id"].as_str())
-        .unwrap()
+        .or_else(|| json2["id"].as_str())
+        .expect("Missing episode_id")
         .to_string();
 
     // Add relationship
@@ -114,7 +134,7 @@ fn test_relationship_full_cycle() {
         .clone();
     let rel_id = extract_json(&out_rel)["relationship_id"]
         .as_str()
-        .unwrap()
+        .expect("Missing relationship_id")
         .to_string();
 
     // Info
@@ -139,7 +159,12 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert_eq!(extract_json(&out_list)["total_count"].as_u64().unwrap(), 1);
+    assert_eq!(
+        extract_json(&out_list)["total_count"]
+            .as_u64()
+            .expect("Missing total_count"),
+        1
+    );
 
     // Find
     let out_find = harness
@@ -156,7 +181,12 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert!(extract_json(&out_find)["total_count"].as_u64().unwrap() >= 1);
+    assert!(
+        extract_json(&out_find)["total_count"]
+            .as_u64()
+            .expect("Missing total_count")
+            >= 1
+    );
 
     // Graph
     harness
@@ -173,7 +203,9 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert!(!extract_json(&out_val1)["has_cycle"].as_bool().unwrap());
+    assert!(!extract_json(&out_val1)["has_cycle"]
+        .as_bool()
+        .expect("Missing has_cycle"));
 
     // Create cycle
     harness
@@ -205,7 +237,9 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert!(extract_json(&out_val2)["has_cycle"].as_bool().unwrap());
+    assert!(extract_json(&out_val2)["has_cycle"]
+        .as_bool()
+        .expect("Missing has_cycle"));
 
     // Remove
     harness
@@ -214,6 +248,7 @@ fn test_relationship_full_cycle() {
         .success();
 }
 
+/// Tests error handling for relationship commands with invalid inputs.
 #[test]
 fn test_relationship_errors() {
     let harness = CliHarness::new();

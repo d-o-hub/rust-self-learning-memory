@@ -53,6 +53,15 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Cross-domain pattern discovery to find analogous patterns
 - Async pattern extraction with queue-based workers
 - Pattern effectiveness tracking with decay over time
+
+### 🔄 Episode Checkpoints/Handoff
+- Pause and resume episodes using task checkpoints.
+- Pack and share execution state across environments via handoff features.
+- Enables distributed and asynchronous task completion by decoupling execution state from single-session lifecycle boundaries.
+
+### 🌊 CSM Cascading Retrieval
+- Optimizes semantic search performance by layering exact match, HDC similarity, graph expansion, and API-based retrieval.
+- Minimizes reliance on remote API calls while preserving retrieval accuracy for complex queries.
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
 

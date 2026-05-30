@@ -67,6 +67,7 @@ jobs:
       # IMPORTANT: Maximize build space MUST run before checkout
       # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false

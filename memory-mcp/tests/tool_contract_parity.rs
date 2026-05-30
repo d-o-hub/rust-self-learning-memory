@@ -308,8 +308,8 @@ async fn test_agents_md_categories_registered() {
     .await
     .expect("Failed to create MCP server");
 
-    let advertised_tools = server.list_tools().await;
-    let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
+    // We want to check all available tools, including extended ones that might not be loaded initially
+    let all_tool_names = server.tool_registry.list_tool_names();
 
     // Tools documented in AGENTS.md under "MCP Server Interaction Patterns"
     let expected_tools = vec![
@@ -342,7 +342,7 @@ async fn test_agents_md_categories_registered() {
 
     for tool in expected_tools {
         assert!(
-            advertised_names.contains(&tool),
+            all_tool_names.contains(&tool.to_string()),
             "Tool '{}' is documented in AGENTS.md but not registered in the server",
             tool
         );

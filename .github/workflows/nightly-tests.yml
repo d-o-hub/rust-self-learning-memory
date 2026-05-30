@@ -40,6 +40,7 @@ jobs:
     steps:
       # Tier 1: Maximize build space
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false

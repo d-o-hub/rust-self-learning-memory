@@ -66,6 +66,7 @@ jobs:
           sudo apt-get clean || true
           df -h
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -131,6 +132,7 @@ jobs:
           docker system prune -af 2>/dev/null || true
           df -h
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -190,6 +192,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -252,6 +255,7 @@ jobs:
     needs: [test, mcp-build, multi-platform]
     steps:
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -312,6 +316,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     steps:
       - name: Maximize build space
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false

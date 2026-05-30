@@ -180,10 +180,9 @@ impl RedbStorage {
                 do_memory_core::Error::Storage(format!("Iterator next failed: {}", e))
             })?;
             let bytes = value.value();
-            let relationship: EpisodeRelationship =
-                postcard::from_bytes(bytes).map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
-                })?;
+            let relationship: EpisodeRelationship = postcard::from_bytes(bytes).map_err(|e| {
+                do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
+            })?;
             relationships.push(relationship);
         }
 

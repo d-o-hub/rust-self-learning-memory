@@ -108,8 +108,11 @@ impl Default for TimeSeriesExtractor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType, TaskOutcome, ExecutionResult, ComplexityLevel};
-    use do_memory_core::episode::structs::{PatternApplication, ApplicationOutcome};
+    use do_memory_core::episode::structs::{ApplicationOutcome, PatternApplication};
+    use do_memory_core::{
+        ComplexityLevel, Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome,
+        TaskType,
+    };
     use uuid::Uuid;
 
     fn create_mock_episode(latency_ms: u64, success: bool, complexity: ComplexityLevel) -> Episode {
@@ -125,7 +128,9 @@ mod tests {
 
         let mut step = ExecutionStep::new(1, "test".to_string(), "test step".to_string());
         step.latency_ms = latency_ms;
-        step.result = Some(ExecutionResult::Success { output: "ok".to_string() });
+        step.result = Some(ExecutionResult::Success {
+            output: "ok".to_string(),
+        });
         episode.steps.push(step);
 
         if success {
@@ -169,13 +174,22 @@ mod tests {
         let extractor = TimeSeriesExtractor::new();
 
         let ep1 = create_mock_episode(100, true, ComplexityLevel::Simple);
-        assert_eq!(extractor.extract_metric("complexity_score", &ep1, &[]), Some(1.0));
+        assert_eq!(
+            extractor.extract_metric("complexity_score", &ep1, &[]),
+            Some(1.0)
+        );
 
         let ep2 = create_mock_episode(100, true, ComplexityLevel::Moderate);
-        assert_eq!(extractor.extract_metric("complexity_score", &ep2, &[]), Some(2.0));
+        assert_eq!(
+            extractor.extract_metric("complexity_score", &ep2, &[]),
+            Some(2.0)
+        );
 
         let ep3 = create_mock_episode(100, true, ComplexityLevel::Complex);
-        assert_eq!(extractor.extract_metric("complexity_score", &ep3, &[]), Some(3.0));
+        assert_eq!(
+            extractor.extract_metric("complexity_score", &ep3, &[]),
+            Some(3.0)
+        );
     }
 
     #[test]
@@ -184,7 +198,10 @@ mod tests {
         let mut ep = create_mock_episode(100, true, ComplexityLevel::Simple);
 
         // No patterns
-        assert_eq!(extractor.extract_metric("pattern_match_score", &ep, &[]), Some(0.0));
+        assert_eq!(
+            extractor.extract_metric("pattern_match_score", &ep, &[]),
+            Some(0.0)
+        );
 
         // With applied patterns
         ep.applied_patterns.push(PatternApplication {
@@ -193,7 +210,10 @@ mod tests {
             outcome: ApplicationOutcome::Helped,
             notes: None,
         });
-        assert_eq!(extractor.extract_metric("pattern_match_score", &ep, &[]), Some(1.0));
+        assert_eq!(
+            extractor.extract_metric("pattern_match_score", &ep, &[]),
+            Some(1.0)
+        );
 
         // Fallback to pattern density
         let mut ep_no_applied = create_mock_episode(100, true, ComplexityLevel::Simple);
@@ -202,7 +222,10 @@ mod tests {
         ep_max.patterns.push(Uuid::new_v4());
         ep_max.patterns.push(Uuid::new_v4());
         let all = vec![ep_no_applied.clone(), ep_max.clone()];
-        assert_eq!(extractor.extract_metric("pattern_match_score", &ep_no_applied, &all), Some(0.5));
+        assert_eq!(
+            extractor.extract_metric("pattern_match_score", &ep_no_applied, &all),
+            Some(0.5)
+        );
     }
 
     #[test]

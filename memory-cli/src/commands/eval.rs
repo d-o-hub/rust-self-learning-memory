@@ -420,7 +420,10 @@ fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {
     format_time_relative(dt, chrono::Utc::now())
 }
 
-fn format_time_relative(dt: chrono::DateTime<chrono::Utc>, now: chrono::DateTime<chrono::Utc>) -> String {
+fn format_time_relative(
+    dt: chrono::DateTime<chrono::Utc>,
+    now: chrono::DateTime<chrono::Utc>,
+) -> String {
     let diff = now - dt;
 
     if diff.num_seconds() < 60 {
@@ -439,20 +442,20 @@ fn format_time_relative(dt: chrono::DateTime<chrono::Utc>, now: chrono::DateTime
 #[cfg(test)]
 mod tests {
     use super::*;
-    use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome, ExecutionStep, MemoryConfig};
     use crate::config::Config;
     use crate::output::OutputFormat;
+    use do_memory_core::{
+        ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+    };
 
-    async fn create_test_episode(
-        memory: &SelfLearningMemory,
-        domain: &str,
-        is_success: bool,
-    ) {
+    async fn create_test_episode(memory: &SelfLearningMemory, domain: &str, is_success: bool) {
         let context = TaskContext {
             domain: domain.to_string(),
             ..Default::default()
         };
-        let id = memory.start_episode("test task".to_string(), context, TaskType::CodeGeneration).await;
+        let id = memory
+            .start_episode("test task".to_string(), context, TaskType::CodeGeneration)
+            .await;
 
         // Add multiple steps to increase quality score
         for i in 1..=5 {
@@ -464,7 +467,11 @@ mod tests {
         let outcome = if is_success {
             TaskOutcome::Success {
                 verdict: "done".to_string(),
-                artifacts: vec!["test.rs".to_string(), "test_spec.rs".to_string(), "README.md".to_string()],
+                artifacts: vec![
+                    "test.rs".to_string(),
+                    "test_spec.rs".to_string(),
+                    "README.md".to_string(),
+                ],
             }
         } else {
             TaskOutcome::Failure {
@@ -473,7 +480,10 @@ mod tests {
             }
         };
 
-        memory.complete_episode(id, outcome).await.expect("Failed to complete episode");
+        memory
+            .complete_episode(id, outcome)
+            .await
+            .expect("Failed to complete episode");
     }
 
     #[tokio::test]
@@ -506,7 +516,15 @@ mod tests {
         assert!(result.is_ok());
 
         // Test with filter
-        let result = calibration(Some("domain-a".to_string()), true, 5, &memory, &config, OutputFormat::Json).await;
+        let result = calibration(
+            Some("domain-a".to_string()),
+            true,
+            5,
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await;
         assert!(result.is_ok());
     }
 
@@ -519,7 +537,13 @@ mod tests {
 
         create_test_episode(&memory, "test-domain", true).await;
 
-        let result = domain_stats("test-domain".to_string(), &memory, &config, OutputFormat::Json).await;
+        let result = domain_stats(
+            "test-domain".to_string(),
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await;
         assert!(result.is_ok());
     }
 
@@ -530,9 +554,20 @@ mod tests {
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
-        let result = domain_stats("non-existent".to_string(), &memory, &config, OutputFormat::Json).await;
+        let result = domain_stats(
+            "non-existent".to_string(),
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("No episodes found"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("No episodes found")
+        );
     }
 
     #[tokio::test]
@@ -542,9 +577,22 @@ mod tests {
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
-        let result = set_threshold("domain".to_string(), Some(1.0), None, &memory, &config, OutputFormat::Json).await;
+        let result = set_threshold(
+            "domain".to_string(),
+            Some(1.0),
+            None,
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Custom threshold overrides are not supported"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Custom threshold overrides are not supported")
+        );
     }
 
     #[test]
@@ -552,9 +600,21 @@ mod tests {
         let now = chrono::DateTime::from_timestamp(1717171717, 0).unwrap();
 
         assert_eq!(format_time_relative(now, now), "just now");
-        assert_eq!(format_time_relative(now - chrono::Duration::minutes(5), now), "5 minutes ago");
-        assert_eq!(format_time_relative(now - chrono::Duration::hours(2), now), "2 hours ago");
-        assert_eq!(format_time_relative(now - chrono::Duration::days(3), now), "3 days ago");
-        assert_eq!(format_time_relative(now - chrono::Duration::days(15), now), "2 weeks ago");
+        assert_eq!(
+            format_time_relative(now - chrono::Duration::minutes(5), now),
+            "5 minutes ago"
+        );
+        assert_eq!(
+            format_time_relative(now - chrono::Duration::hours(2), now),
+            "2 hours ago"
+        );
+        assert_eq!(
+            format_time_relative(now - chrono::Duration::days(3), now),
+            "3 days ago"
+        );
+        assert_eq!(
+            format_time_relative(now - chrono::Duration::days(15), now),
+            "2 weeks ago"
+        );
     }
 }

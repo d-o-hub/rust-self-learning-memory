@@ -1,7 +1,7 @@
 //! Quality Gates - Automated threshold enforcement for CI/CD
 //!
 //! This test suite enforces quality standards across the codebase:
-//! - Test Coverage: > 90%
+//! - Test Coverage: > 70%
 //! - Pattern Accuracy: > 70%
 //! - Code Complexity: Average < 10
 //! - Security: 0 critical/high/medium vulnerabilities

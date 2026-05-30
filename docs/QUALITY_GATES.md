@@ -10,7 +10,7 @@ Quality gates are automated tests that enforce minimum standards across the code
 
 | Gate | Threshold | Description |
 |------|-----------|-------------|
-| **Test Coverage** | > 90% | Line coverage across all crates |
+| **Test Coverage** | > 70% | Line coverage across all crates |
 | **Pattern Accuracy** | > 70% | Pattern recognition accuracy (aspirational, baseline: 25%) |
 | **Code Complexity** | Avg < 10 | Average cyclomatic complexity |
 | **Security** | 0 vulns | Zero critical/high/medium vulnerabilities |
@@ -59,7 +59,7 @@ cargo test --test quality_gates quality_gates_summary -- --nocapture
 Quality gates can be configured via environment variables:
 
 ```bash
-export QUALITY_GATE_COVERAGE_THRESHOLD=90          # Minimum coverage %
+export QUALITY_GATE_COVERAGE_THRESHOLD=70          # Minimum coverage %
 export QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD=70   # Minimum pattern accuracy %
 export QUALITY_GATE_COMPLEXITY_THRESHOLD=10         # Maximum average complexity
 export QUALITY_GATE_SECURITY_THRESHOLD=0            # Maximum vulnerabilities
@@ -103,11 +103,11 @@ cargo install cargo-cyclomatic
 **Example Output:**
 ```
 === Quality Gate: Test Coverage ===
-Threshold: 90%
+Threshold: 70%
 Running coverage analysis...
 Current Coverage: 92.50%
-Required: 90.00%
-✅ Coverage gate PASSED: 92.50% >= 90.00%
+Required: 70.00%
+✅ Coverage gate PASSED: 92.50% >= 70.00%
 ```
 
 **If Failed:**

@@ -120,7 +120,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ### 🔍 Pattern Search Example
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
+use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -280,7 +280,7 @@ cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 #### Programmatic Usage
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

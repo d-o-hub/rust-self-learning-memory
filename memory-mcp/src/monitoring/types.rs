@@ -364,3 +364,18 @@ impl MonitoringStats {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_monitoring_config_default() {
+        let config = MonitoringConfig::default();
+        assert!(config.enabled);
+        assert_eq!(config.max_metrics_history, 1000);
+        assert_eq!(config.health_check_interval_secs, 30);
+        assert!(config.enable_performance_tracking);
+        assert!(config.enable_episode_tracking);
+    }
+}

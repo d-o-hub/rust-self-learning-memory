@@ -488,8 +488,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_calibration_empty() {
-        let mut config = MemoryConfig::default();
-        config.quality_threshold = 0.0;
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        };
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
@@ -499,8 +501,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_calibration_with_data() {
-        let mut config = MemoryConfig::default();
-        config.quality_threshold = 0.0;
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        };
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
@@ -530,8 +534,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_domain_stats_success() {
-        let mut config = MemoryConfig::default();
-        config.quality_threshold = 0.0;
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        };
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
@@ -549,8 +555,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_domain_stats_not_found() {
-        let mut config = MemoryConfig::default();
-        config.quality_threshold = 0.0;
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        };
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 
@@ -572,8 +580,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_set_threshold_error() {
-        let mut config = MemoryConfig::default();
-        config.quality_threshold = 0.0;
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        };
         let memory = SelfLearningMemory::with_config(config);
         let config = Config::default();
 

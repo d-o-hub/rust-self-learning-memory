@@ -228,6 +228,7 @@ jobs:
     steps:
       - name: Maximize build space (Linux)
         if: runner.os == 'Linux'
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false

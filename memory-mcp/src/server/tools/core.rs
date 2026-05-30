@@ -38,6 +38,12 @@ impl crate::server::MemoryMCPServer {
         loaded_tools
     }
 
+    /// Returns the names of all tools known to the registry (core + extended),
+    /// regardless of progressive disclosure state.
+    pub fn list_all_tool_names(&self) -> Vec<String> {
+        self.tool_registry.list_tool_names()
+    }
+
     /// Get a specific tool by name
     ///
     /// Loads the tool on-demand from the registry if not already loaded.

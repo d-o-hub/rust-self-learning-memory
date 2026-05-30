@@ -309,7 +309,7 @@ async fn test_agents_md_categories_registered() {
     .expect("Failed to create MCP server");
 
     // We want to check all available tools, including extended ones that might not be loaded initially
-    let all_tool_names = server.tool_registry.list_tool_names();
+    let all_tool_names = server.list_all_tool_names();
 
     // Tools documented in AGENTS.md under "MCP Server Interaction Patterns"
     let expected_tools = vec![

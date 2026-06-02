@@ -59,12 +59,14 @@ fn create_test_episode_with_size(id: Uuid, num_steps: usize) -> Episode {
     let mut steps = Vec::with_capacity(num_steps);
     for i in 0..num_steps {
         steps.push(do_memory_core::episode::ExecutionStep {
-            step_id: Uuid::new_v4(),
-            thought: format!("Step thought {}", i),
+            step_number: i + 1,
+            timestamp: chrono::Utc::now(),
+            tool: format!("tool_{}", i % 10),
             action: format!("Step action {}", i),
-            observation: format!("Step observation {}", i),
-            tool_calls: vec![],
-            duration: chrono::Duration::milliseconds(10),
+            parameters_json: "{}".to_string(),
+            result: None,
+            latency_ms: 10,
+            tokens_used: None,
             metadata: std::collections::HashMap::new(),
         });
     }
@@ -229,9 +231,12 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
                 // Benchmark 100 accesses:
                 // - 80 hits (randomly from the 20 primed IDs)
                 // - 20 misses (randomly generated new IDs)
+                let mut rng = rand::rng();
                 let mut access_ids = Vec::with_capacity(100);
+                let die = rand::distr::Uniform::new(0, ids.len()).unwrap();
                 for _ in 0..80 {
-                    access_ids.push(ids[rand::random::<usize>() % ids.len()]);
+                    use rand::distr::Distribution;
+                    access_ids.push(ids[die.sample(&mut rng)]);
                 }
                 for _ in 0..20 {
                     access_ids.push(Uuid::new_v4());
@@ -239,7 +244,6 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
 
                 // Shuffle access IDs
                 use rand::seq::SliceRandom;
-                let mut rng = rand::thread_rng();
                 access_ids.shuffle(&mut rng);
 
                 let start = std::time::Instant::now();

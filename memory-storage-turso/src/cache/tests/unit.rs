@@ -5,9 +5,8 @@
 
 use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
-use libsql::Builder;
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
-use std::sync::Arc;
+use libsql::Builder;
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -52,6 +51,8 @@ fn create_test_episode(id: Uuid) -> Episode {
         start_time: chrono::Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
+        tags: vec![],
+        checkpoints: vec![],
     }
 }
 

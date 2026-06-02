@@ -3,8 +3,6 @@
 //! Tests for cache miss/fill, absent values, and error propagation.
 
 use super::{CacheConfig, CachedTursoStorage};
-use do_memory_core::StorageBackend;
-use std::sync::atomic::Ordering;
 use uuid::Uuid;
 
 use super::create_test_episode;
@@ -127,10 +125,18 @@ async fn test_cache_hit_after_manual_storage_update() {
     // Manually update storage bypassing cache wrapper
     let mut updated_episode = episode.clone();
     updated_episode.task_description = "Updated manually".to_string();
-    cached.storage().store_episode(&updated_episode).await.unwrap();
+    cached
+        .storage()
+        .store_episode(&updated_episode)
+        .await
+        .unwrap();
 
     // Next cached read should still return OLD data because it's in the cache
-    let result = cached.get_episode_cached(episode_id).await.unwrap().unwrap();
+    let result = cached
+        .get_episode_cached(episode_id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(result.task_description, episode.task_description);
     assert_ne!(result.task_description, "Updated manually");
 
@@ -138,6 +144,10 @@ async fn test_cache_hit_after_manual_storage_update() {
     cached.clear_caches().await;
 
     // Now it should hit storage and get NEW data
-    let result2 = cached.get_episode_cached(episode_id).await.unwrap().unwrap();
+    let result2 = cached
+        .get_episode_cached(episode_id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(result2.task_description, "Updated manually");
 }

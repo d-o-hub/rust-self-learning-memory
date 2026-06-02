@@ -51,6 +51,24 @@ fn create_test_turso_storage() -> (TursoStorage, TempDir) {
 
 /// Create a test episode with realistic data
 fn create_test_episode(id: Uuid) -> Episode {
+    create_test_episode_with_size(id, 0)
+}
+
+/// Create a test episode with specific number of steps (for payload size testing)
+fn create_test_episode_with_size(id: Uuid, num_steps: usize) -> Episode {
+    let mut steps = Vec::with_capacity(num_steps);
+    for i in 0..num_steps {
+        steps.push(do_memory_core::episode::ExecutionStep {
+            step_id: Uuid::new_v4(),
+            thought: format!("Step thought {}", i),
+            action: format!("Step action {}", i),
+            observation: format!("Step observation {}", i),
+            tool_calls: vec![],
+            duration: chrono::Duration::milliseconds(10),
+            metadata: std::collections::HashMap::new(),
+        });
+    }
+
     Episode {
         episode_id: id,
         task_type: TaskType::CodeGeneration,
@@ -62,7 +80,7 @@ fn create_test_episode(id: Uuid) -> Episode {
             complexity: do_memory_core::types::ComplexityLevel::Moderate,
             tags: vec!["performance".to_string(), "test".to_string()],
         },
-        steps: vec![],
+        steps,
         outcome: None,
         reward: None,
         reflection: None,
@@ -146,6 +164,134 @@ fn bench_episode_retrieval_cached_10(c: &mut Criterion) {
                 for id in &ids {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                     black_box(id);
+                }
+                black_box(start.elapsed());
+            });
+        });
+    });
+
+    group.finish();
+}
+
+// ========== Additional Benchmarks ==========
+
+/// Benchmark cold read latency (first access after storage)
+fn bench_episode_cold_read(c: &mut Criterion) {
+    let mut group = c.benchmark_group("episode_cold_read");
+    group.sample_size(30);
+
+    group.bench_function("cold_access", |b| {
+        b.iter(|| {
+            let (storage, _dir) = create_test_turso_storage();
+            let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+
+            let episode_id = Uuid::new_v4();
+            let episode = create_test_episode(episode_id);
+
+            rt().block_on(async {
+                cached.store_episode_cached(&episode).await.unwrap();
+
+                // Benchmark first access - cache miss + fill
+                let start = std::time::Instant::now();
+                let _ = cached.get_episode_cached(episode_id).await.unwrap();
+                black_box(start.elapsed());
+            });
+        });
+    });
+
+    group.finish();
+}
+
+/// Benchmark mixed access patterns (80% hits, 20% misses)
+fn bench_mixed_access_80_20(c: &mut Criterion) {
+    let mut group = c.benchmark_group("mixed_access_80_20");
+    group.sample_size(30);
+
+    group.bench_function("100_accesses", |b| {
+        b.iter(|| {
+            let (storage, _dir) = create_test_turso_storage();
+            let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+
+            // 20 unique episodes
+            let ids: Vec<Uuid> = (0..20).map(|_| Uuid::new_v4()).collect();
+
+            rt().block_on(async {
+                for id in &ids {
+                    let episode = create_test_episode(*id);
+                    cached.store_episode_cached(&episode).await.unwrap();
+                }
+
+                // Prime the cache for all 20 episodes
+                for id in &ids {
+                    let _ = cached.get_episode_cached(*id).await.unwrap();
+                }
+
+                // Benchmark 100 accesses:
+                // - 80 hits (randomly from the 20 primed IDs)
+                // - 20 misses (randomly generated new IDs)
+                let mut access_ids = Vec::with_capacity(100);
+                for _ in 0..80 {
+                    access_ids.push(ids[rand::random::<usize>() % ids.len()]);
+                }
+                for _ in 0..20 {
+                    access_ids.push(Uuid::new_v4());
+                }
+
+                // Shuffle access IDs
+                use rand::seq::SliceRandom;
+                let mut rng = rand::thread_rng();
+                access_ids.shuffle(&mut rng);
+
+                let start = std::time::Instant::now();
+                for id in access_ids {
+                    let _ = cached.get_episode_cached(id).await.unwrap();
+                }
+                black_box(start.elapsed());
+            });
+        });
+    });
+
+    group.finish();
+}
+
+/// Compare cache overhead for small vs large episodes
+fn bench_payload_size_comparison(c: &mut Criterion) {
+    let mut group = c.benchmark_group("payload_size_comparison");
+    group.sample_size(20);
+
+    group.bench_function("small_episode_cached", |b| {
+        b.iter(|| {
+            let (storage, _dir) = create_test_turso_storage();
+            let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+            let id = Uuid::new_v4();
+            rt().block_on(async {
+                let ep = create_test_episode_with_size(id, 0);
+                cached.store_episode_cached(&ep).await.unwrap();
+                let _ = cached.get_episode_cached(id).await.unwrap(); // Prime
+
+                let start = std::time::Instant::now();
+                for _ in 0..10 {
+                    let _ = cached.get_episode_cached(id).await.unwrap();
+                }
+                black_box(start.elapsed());
+            });
+        });
+    });
+
+    group.bench_function("large_episode_cached", |b| {
+        b.iter(|| {
+            let (storage, _dir) = create_test_turso_storage();
+            let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+            let id = Uuid::new_v4();
+            rt().block_on(async {
+                // Large episode with 100 steps
+                let ep = create_test_episode_with_size(id, 100);
+                cached.store_episode_cached(&ep).await.unwrap();
+                let _ = cached.get_episode_cached(id).await.unwrap(); // Prime
+
+                let start = std::time::Instant::now();
+                for _ in 0..10 {
+                    let _ = cached.get_episode_cached(id).await.unwrap();
                 }
                 black_box(start.elapsed());
             });
@@ -658,6 +804,9 @@ criterion_group!(
     bench_cache_clear,
     bench_turso_with_cache_config,
     bench_cache_miss_vs_hit,
+    bench_episode_cold_read,
+    bench_mixed_access_80_20,
+    bench_payload_size_comparison,
 );
 
 criterion_main!(benches);

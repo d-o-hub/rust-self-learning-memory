@@ -12,6 +12,7 @@
 pub mod concurrent;
 pub mod integration;
 pub mod unit;
+pub mod wrapper_edge_cases;
 
 // Re-export test helpers for use in submodules
 pub use super::{CacheConfig, CachedTursoStorage};

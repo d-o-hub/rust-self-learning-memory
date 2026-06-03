@@ -1,10 +1,14 @@
-use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+//! Benchmarks for cosine similarity implementations.
+
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_core::embeddings::cosine_similarity;
-use rand::{Rng, thread_rng};
+use rand::distr::{Distribution, Uniform};
+use std::hint::black_box;
 
 fn generate_vector(dim: usize) -> Vec<f32> {
-    let mut rng = thread_rng();
-    (0..dim).map(|_| rng.gen_range(-1.0..1.0)).collect()
+    let mut rng = rand::rng();
+    let range = Uniform::new(-1.0, 1.0).unwrap();
+    (0..dim).map(|_| range.sample(&mut rng)).collect()
 }
 
 fn bench_cosine_similarity(c: &mut Criterion) {

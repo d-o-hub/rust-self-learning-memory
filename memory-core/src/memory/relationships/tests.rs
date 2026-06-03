@@ -76,57 +76,8 @@ async fn test_get_dependents_empty() {
     assert!(deps.is_empty());
 }
 
-#[tokio::test]
-async fn test_build_relationship_graph_single_node() {
+async fn setup_test_memory() -> (SelfLearningMemory, Uuid, Uuid) {
     let memory = SelfLearningMemory::new();
-
-    // Create an episode
-    let episode_id = memory
-        .start_episode(
-            "Test task".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-
-    let graph = memory
-        .build_relationship_graph(episode_id, 3)
-        .await
-        .unwrap();
-
-    assert_eq!(graph.root, episode_id);
-    assert_eq!(graph.node_count(), 1);
-    assert_eq!(graph.edge_count(), 0);
-}
-
-#[tokio::test]
-async fn test_get_episode_with_relationships() {
-    let memory = SelfLearningMemory::new();
-
-    // Create an episode
-    let episode_id = memory
-        .start_episode(
-            "Test task".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-
-    let result = memory
-        .get_episode_with_relationships(episode_id)
-        .await
-        .unwrap();
-
-    assert_eq!(result.episode.episode_id, episode_id);
-    assert!(result.outgoing.is_empty());
-    assert!(result.incoming.is_empty());
-    assert_eq!(result.total_relationships(), 0);
-}
-
-#[tokio::test]
-async fn test_add_remove_episode_relationship_success() {
-    let memory = SelfLearningMemory::new();
-
     let ep1 = memory
         .start_episode(
             "Task 1".to_string(),
@@ -141,6 +92,35 @@ async fn test_add_remove_episode_relationship_success() {
             TaskType::Testing,
         )
         .await;
+    (memory, ep1, ep2)
+}
+
+#[tokio::test]
+async fn test_build_relationship_graph_single_node() {
+    let (memory, ep1, _) = setup_test_memory().await;
+
+    let graph = memory.build_relationship_graph(ep1, 3).await.unwrap();
+
+    assert_eq!(graph.root, ep1);
+    assert_eq!(graph.node_count(), 1);
+    assert_eq!(graph.edge_count(), 0);
+}
+
+#[tokio::test]
+async fn test_get_episode_with_relationships() {
+    let (memory, ep1, _) = setup_test_memory().await;
+
+    let result = memory.get_episode_with_relationships(ep1).await.unwrap();
+
+    assert_eq!(result.episode.episode_id, ep1);
+    assert!(result.outgoing.is_empty());
+    assert!(result.incoming.is_empty());
+    assert_eq!(result.total_relationships(), 0);
+}
+
+#[tokio::test]
+async fn test_add_remove_episode_relationship_success() {
+    let (memory, ep1, ep2) = setup_test_memory().await;
 
     let rel_id = memory
         .add_episode_relationship(
@@ -169,22 +149,7 @@ async fn test_add_remove_episode_relationship_success() {
 
 #[tokio::test]
 async fn test_find_related_episodes_with_filters() {
-    let memory = SelfLearningMemory::new();
-
-    let ep1 = memory
-        .start_episode(
-            "Task 1".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-    let ep2 = memory
-        .start_episode(
-            "Task 2".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
+    let (memory, ep1, ep2) = setup_test_memory().await;
     let ep3 = memory
         .start_episode(
             "Task 3".to_string(),
@@ -224,22 +189,7 @@ async fn test_find_related_episodes_with_filters() {
 
 #[tokio::test]
 async fn test_build_relationship_graph_complex() {
-    let memory = SelfLearningMemory::new();
-
-    let ep1 = memory
-        .start_episode(
-            "Task 1".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-    let ep2 = memory
-        .start_episode(
-            "Task 2".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
+    let (memory, ep1, ep2) = setup_test_memory().await;
     let ep3 = memory
         .start_episode(
             "Task 3".to_string(),
@@ -276,22 +226,7 @@ async fn test_build_relationship_graph_complex() {
 
 #[tokio::test]
 async fn test_cycle_detection() {
-    let memory = SelfLearningMemory::new();
-
-    let ep1 = memory
-        .start_episode(
-            "Task 1".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-    let ep2 = memory
-        .start_episode(
-            "Task 2".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
+    let (memory, ep1, ep2) = setup_test_memory().await;
 
     // ep1 depends on ep2
     memory
@@ -320,22 +255,7 @@ async fn test_cycle_detection() {
 
 #[tokio::test]
 async fn test_get_all_relationships() {
-    let memory = SelfLearningMemory::new();
-
-    let ep1 = memory
-        .start_episode(
-            "Task 1".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-    let ep2 = memory
-        .start_episode(
-            "Task 2".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
+    let (memory, ep1, ep2) = setup_test_memory().await;
 
     memory
         .add_episode_relationship(
@@ -353,22 +273,7 @@ async fn test_get_all_relationships() {
 
 #[tokio::test]
 async fn test_get_relationship_by_id() {
-    let memory = SelfLearningMemory::new();
-
-    let ep1 = memory
-        .start_episode(
-            "Task 1".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
-    let ep2 = memory
-        .start_episode(
-            "Task 2".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        )
-        .await;
+    let (memory, ep1, ep2) = setup_test_memory().await;
 
     let rel_id = memory
         .add_episode_relationship(

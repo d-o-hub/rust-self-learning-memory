@@ -54,11 +54,16 @@ async fn create_test_episode(storage: &TursoStorage) -> Uuid {
     episode_id
 }
 
+async fn setup_test_storage() -> (TursoStorage, TempDir, Uuid, Uuid) {
+    let (storage, dir) = create_test_storage().await;
+    let ep1 = create_test_episode(&storage).await;
+    let ep2 = create_test_episode(&storage).await;
+    (storage, dir, ep1, ep2)
+}
+
 #[tokio::test]
 async fn test_add_relationship() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test relationship".to_string());
     let rel_id = storage
@@ -71,9 +76,7 @@ async fn test_add_relationship() {
 
 #[tokio::test]
 async fn test_get_relationships() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test".to_string());
     storage
@@ -98,9 +101,7 @@ async fn test_get_relationships() {
 
 #[tokio::test]
 async fn test_remove_relationship() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test".to_string());
     let rel_id = storage
@@ -122,9 +123,7 @@ async fn test_remove_relationship() {
 
 #[tokio::test]
 async fn test_relationship_exists() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let exists_before = storage
         .relationship_exists(from_id, to_id, RelationshipType::DependsOn)
@@ -147,9 +146,7 @@ async fn test_relationship_exists() {
 
 #[tokio::test]
 async fn test_get_dependencies() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
     let ep3 = create_test_episode(&storage).await;
 
     // ep1 depends on ep2 and ep3
@@ -174,9 +171,7 @@ async fn test_get_dependencies() {
 
 #[tokio::test]
 async fn test_weighted_relationships() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
 
     let mut metadata = RelationshipMetadata::with_reason("Weighted edge".to_string());
     metadata.weight = Some(0.75);
@@ -293,9 +288,7 @@ async fn test_get_weighted_neighbors() {
 
 #[tokio::test]
 async fn test_store_relationship() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let relationship = EpisodeRelationship::new(
         from_id,
@@ -319,9 +312,7 @@ async fn test_store_relationship() {
 
 #[tokio::test]
 async fn test_get_relationships_direction_both() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
     let ep3 = create_test_episode(&storage).await;
 
     // ep1 -> ep2
@@ -355,9 +346,7 @@ async fn test_get_relationships_direction_both() {
 
 #[tokio::test]
 async fn test_get_relationships_by_type() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     storage
         .add_relationship(
@@ -388,9 +377,7 @@ async fn test_get_relationships_by_type() {
 
 #[tokio::test]
 async fn test_get_dependent_episodes() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
 
     // ep2 depends on ep1
     storage
@@ -413,9 +400,7 @@ async fn test_get_dependent_episodes() {
 
 #[tokio::test]
 async fn test_get_all_relationships() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
 
     storage
         .add_relationship(
@@ -436,9 +421,7 @@ async fn test_get_all_relationships() {
 
 #[tokio::test]
 async fn test_get_relationship_by_id() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
 
     let rel_id = storage
         .add_relationship(

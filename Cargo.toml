@@ -51,7 +51,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tempfile = "3.27.0"
 proptest = "1.11"
 insta = { version = "1.47", features = ["json"] }
-serial_test = "3.5"
+serial_test = "3.4"
 assert_cmd = "2.2"
 predicates = "3.1"
 

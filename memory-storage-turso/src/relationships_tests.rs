@@ -54,11 +54,16 @@ async fn create_test_episode(storage: &TursoStorage) -> Uuid {
     episode_id
 }
 
+async fn setup_test_storage() -> (TursoStorage, TempDir, Uuid, Uuid) {
+    let (storage, dir) = create_test_storage().await;
+    let ep1 = create_test_episode(&storage).await;
+    let ep2 = create_test_episode(&storage).await;
+    (storage, dir, ep1, ep2)
+}
+
 #[tokio::test]
 async fn test_add_relationship() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test relationship".to_string());
     let rel_id = storage
@@ -71,9 +76,7 @@ async fn test_add_relationship() {
 
 #[tokio::test]
 async fn test_get_relationships() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test".to_string());
     storage
@@ -98,9 +101,7 @@ async fn test_get_relationships() {
 
 #[tokio::test]
 async fn test_remove_relationship() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let metadata = RelationshipMetadata::with_reason("Test".to_string());
     let rel_id = storage
@@ -122,9 +123,7 @@ async fn test_remove_relationship() {
 
 #[tokio::test]
 async fn test_relationship_exists() {
-    let (storage, _dir) = create_test_storage().await;
-    let from_id = create_test_episode(&storage).await;
-    let to_id = create_test_episode(&storage).await;
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
 
     let exists_before = storage
         .relationship_exists(from_id, to_id, RelationshipType::DependsOn)
@@ -147,9 +146,7 @@ async fn test_relationship_exists() {
 
 #[tokio::test]
 async fn test_get_dependencies() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
     let ep3 = create_test_episode(&storage).await;
 
     // ep1 depends on ep2 and ep3
@@ -174,9 +171,7 @@ async fn test_get_dependencies() {
 
 #[tokio::test]
 async fn test_weighted_relationships() {
-    let (storage, _dir) = create_test_storage().await;
-    let ep1 = create_test_episode(&storage).await;
-    let ep2 = create_test_episode(&storage).await;
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
 
     let mut metadata = RelationshipMetadata::with_reason("Weighted edge".to_string());
     metadata.weight = Some(0.75);
@@ -289,4 +284,165 @@ async fn test_get_weighted_neighbors() {
 
     assert_eq!(ep2_neighbor.1, 0.6);
     assert_eq!(pt1_neighbor.1, 0.4);
+}
+
+#[tokio::test]
+async fn test_store_relationship() {
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
+
+    let relationship = EpisodeRelationship::new(
+        from_id,
+        to_id,
+        RelationshipType::ParentChild,
+        RelationshipMetadata::with_reason("Pre-built relationship".to_string()),
+    );
+
+    storage
+        .store_relationship(&relationship)
+        .await
+        .expect("Failed to store relationship");
+
+    let rels = storage
+        .get_relationships(from_id, Direction::Outgoing)
+        .await
+        .expect("Failed to get relationships");
+    assert_eq!(rels.len(), 1);
+    assert_eq!(rels[0].id, relationship.id);
+}
+
+#[tokio::test]
+async fn test_get_relationships_direction_both() {
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
+    let ep3 = create_test_episode(&storage).await;
+
+    // ep1 -> ep2
+    storage
+        .add_relationship(
+            ep1,
+            ep2,
+            RelationshipType::RelatedTo,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    // ep3 -> ep1
+    storage
+        .add_relationship(
+            ep3,
+            ep1,
+            RelationshipType::RelatedTo,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let both = storage
+        .get_relationships(ep1, Direction::Both)
+        .await
+        .expect("Failed to get both directions");
+    assert_eq!(both.len(), 2);
+}
+
+#[tokio::test]
+async fn test_get_relationships_by_type() {
+    let (storage, _dir, from_id, to_id) = setup_test_storage().await;
+
+    storage
+        .add_relationship(
+            from_id,
+            to_id,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+    storage
+        .add_relationship(
+            from_id,
+            to_id,
+            RelationshipType::ParentChild,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let deps = storage
+        .get_relationships_by_type(from_id, RelationshipType::DependsOn, Direction::Outgoing)
+        .await
+        .unwrap();
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].relationship_type, RelationshipType::DependsOn);
+}
+
+#[tokio::test]
+async fn test_get_dependent_episodes() {
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
+
+    // ep2 depends on ep1
+    storage
+        .add_relationship(
+            ep2,
+            ep1,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let dependents = storage
+        .get_dependent_episodes(ep1)
+        .await
+        .expect("Failed to get dependents");
+    assert_eq!(dependents.len(), 1);
+    assert_eq!(dependents[0], ep2);
+}
+
+#[tokio::test]
+async fn test_get_all_relationships() {
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
+
+    storage
+        .add_relationship(
+            ep1,
+            ep2,
+            RelationshipType::RelatedTo,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let all = storage
+        .get_all_relationships()
+        .await
+        .expect("Failed to get all relationships");
+    assert_eq!(all.len(), 1);
+}
+
+#[tokio::test]
+async fn test_get_relationship_by_id() {
+    let (storage, _dir, ep1, ep2) = setup_test_storage().await;
+
+    let rel_id = storage
+        .add_relationship(
+            ep1,
+            ep2,
+            RelationshipType::RelatedTo,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let rel = storage
+        .get_relationship_by_id(rel_id)
+        .await
+        .expect("Failed to get relationship by ID");
+    assert!(rel.is_some());
+    assert_eq!(rel.unwrap().id, rel_id);
+
+    let not_found = storage
+        .get_relationship_by_id(Uuid::new_v4())
+        .await
+        .expect("Failed to get non-existent relationship");
+    assert!(not_found.is_none());
 }

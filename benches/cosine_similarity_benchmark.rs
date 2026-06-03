@@ -2,8 +2,7 @@
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_core::embeddings::cosine_similarity;
-use rand::distr::{Distribution, Uniform};
-use std::hint::black_box;
+use rand::{Rng, thread_rng};
 
 fn generate_vector(dim: usize) -> Vec<f32> {
     let mut rng = rand::rng();

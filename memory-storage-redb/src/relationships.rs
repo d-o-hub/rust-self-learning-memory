@@ -160,6 +160,43 @@ impl RedbStorage {
         Ok(())
     }
 
+    /// Get all relationships (StorageBackend trait)
+    pub async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
+        let read_txn = self
+            .db
+            .begin_read()
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
+        let table = read_txn
+            .open_table(RELATIONSHIPS_TABLE)
+            .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+
+        let mut relationships = Vec::new();
+        let iter = table.iter().map_err(|e| {
+            do_memory_core::Error::Storage(format!("Iterator creation failed: {}", e))
+        })?;
+
+        for item in iter {
+            let (_, value) = item.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Iterator next failed: {}", e))
+            })?;
+            let bytes = value.value();
+            let relationship: EpisodeRelationship = postcard::from_bytes(bytes).map_err(|e| {
+                do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
+            })?;
+            relationships.push(relationship);
+        }
+
+        Ok(relationships)
+    }
+
+    /// Get a relationship by its ID (StorageBackend trait)
+    pub async fn get_relationship_by_id(
+        &self,
+        relationship_id: Uuid,
+    ) -> Result<Option<EpisodeRelationship>> {
+        self.get_cached_relationship(relationship_id)
+    }
+
     /// Get a cached relationship by ID
     pub fn get_cached_relationship(
         &self,

@@ -125,7 +125,7 @@ impl StorageBackend for RedbStorage {
     async fn get_all_relationships(
         &self,
     ) -> Result<Vec<do_memory_core::episode::EpisodeRelationship>> {
-        RedbStorage::get_all_relationships(self).await
+        self.get_all_relationships().await
     }
 
     async fn get_relationship_by_id(

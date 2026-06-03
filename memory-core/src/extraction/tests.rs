@@ -55,7 +55,8 @@ fn test_extract_from_complete_episode() {
         patterns
             .iter()
             .any(|p| matches!(p, Pattern::ToolSequence { tools, .. } if tools.len() == 3)),
-        "expected ToolSequence pattern with 3 tools, got {patterns:?}"
+        "expected ToolSequence pattern with 3 tools, got {:?}",
+        patterns
     );
 }
 

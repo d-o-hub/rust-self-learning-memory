@@ -1,4 +1,10 @@
 ---
+# Owner: Fast PR feedback (format + clippy + doctests + ignore-test ceiling).
+# This workflow MUST stay lightweight. Heavy work belongs to:
+#   - ci.yml            (tests, mcp build, multi-platform tests, semver)
+#   - coverage.yml      (cargo llvm-cov + Codecov upload)
+#   - nightly-tests.yml (slow / #[ignore]'d tests, mutation testing)
+# See agent_docs/ci_guidance.md for the workflow ownership map.
 name: Quick Check
 
 on:

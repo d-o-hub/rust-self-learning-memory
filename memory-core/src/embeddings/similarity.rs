@@ -56,7 +56,7 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     let similarity = dot_product / (norm_a_sq * norm_b_sq).sqrt();
 
     // Normalize from [-1, 1] to [0, 1] range for semantic scores
-    ((similarity + 1.0) / 2.0).clamp(0.0, 1.0)
+    (similarity + 1.0) / 2.0
 }
 
 #[cfg(test)]
@@ -84,6 +84,17 @@ mod tests {
         let vec8 = vec![1.0, 2.0, 3.0];
         let similarity = cosine_similarity(&vec7, &vec8);
         assert_eq!(similarity, 0.0);
+    }
+
+    #[test]
+    fn test_cosine_similarity_empty() {
+        let vec1: Vec<f32> = vec![];
+        let vec2: Vec<f32> = vec![];
+        assert_eq!(cosine_similarity(&vec1, &vec2), 0.0);
+
+        let vec3 = vec![1.0, 2.0, 3.0];
+        assert_eq!(cosine_similarity(&vec1, &vec3), 0.0);
+        assert_eq!(cosine_similarity(&vec3, &vec1), 0.0);
     }
 
     #[test]

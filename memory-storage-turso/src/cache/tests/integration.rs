@@ -4,7 +4,10 @@
 //! Tests cover StorageBackend trait implementation and error handling.
 
 use super::{CacheConfig, CachedTursoStorage};
-use do_memory_core::StorageBackend;
+use crate::TursoStorage;
+use libsql::Builder;
+use do_memory_core::{Episode, Evidence, Heuristic, Pattern, StorageBackend, TaskContext, TaskType};
+use tempfile::TempDir;
 use uuid::Uuid;
 
 use super::create_test_episode;

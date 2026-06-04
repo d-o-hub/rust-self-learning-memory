@@ -4,7 +4,11 @@
 //! Tests cover thread safety and concurrent read/write operations.
 
 use super::{CacheConfig, CachedTursoStorage};
+use crate::TursoStorage;
+use libsql::Builder;
+use do_memory_core::{Episode, TaskContext, TaskType};
 use std::sync::Arc;
+use tempfile::TempDir;
 use uuid::Uuid;
 
 use super::create_test_episode;

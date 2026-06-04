@@ -1,8 +1,4 @@
 ---
-# Owner: broad / slow validation. Runs `#[ignore]`-marked integration tests,
-# slow mutation testing and cross-platform coverage that would blow the PR
-# budget if run on every push. This workflow is NOT required for PR merge;
-# see agent_docs/ci_guidance.md for the workflow ownership map.
 name: Nightly Full Tests
 
 # Runs all tests including slow integration tests marked with #[ignore]

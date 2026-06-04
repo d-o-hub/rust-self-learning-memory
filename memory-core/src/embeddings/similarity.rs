@@ -37,23 +37,25 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
         return 0.0;
     }
 
-    // Single-pass calculation of dot product and squared magnitudes
-    let mut dot_product = 0.0;
-    let mut norm_a_sq = 0.0;
-    let mut norm_b_sq = 0.0;
+    // High-precision accumulators to prevent overflow and precision loss
+    let mut dot_product = 0.0f64;
+    let mut norm_a_sq = 0.0f64;
+    let mut norm_b_sq = 0.0f64;
 
     for (&x, &y) in a.iter().zip(b.iter()) {
-        dot_product += x * y;
-        norm_a_sq += x * x;
-        norm_b_sq += y * y;
+        let x_f64 = x as f64;
+        let y_f64 = y as f64;
+        dot_product += x_f64 * y_f64;
+        norm_a_sq += x_f64 * x_f64;
+        norm_b_sq += y_f64 * y_f64;
     }
 
     if norm_a_sq <= 0.0 || norm_b_sq <= 0.0 {
         return 0.0;
     }
 
-    // Single sqrt call for denominator (magnitude_a * magnitude_b)
-    let similarity = dot_product / (norm_a_sq * norm_b_sq).sqrt();
+    // Stable denominator calculation to avoid potential product overflow
+    let similarity = (dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt())) as f32;
 
     // Normalize from [-1, 1] to [0, 1] range for semantic scores
     (similarity + 1.0) / 2.0

@@ -196,13 +196,10 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 - The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
 - The server exposes a comprehensive suite of tools defined in `docs/API_REFERENCE.md`, including:
   - **Core/Monitoring**: `query_memory`, `analyze_patterns`, `health_check`, `get_metrics`
-  - **Patterns/Recommendations**: `advanced_pattern_analysis`, `quality_metrics`, `search_patterns`, `recommend_patterns`, `recommend_playbook`, `explain_pattern`
-  - **Recommendation Attribution/Feedback**: `record_recommendation_session`, `record_recommendation_feedback`, `get_recommendation_stats`
+  - **Patterns/Recommendations**: `advanced_pattern_analysis`, `search_patterns`, `recommend_patterns`, `recommend_playbook`, `explain_pattern`
   - **Checkpoints/Handoff**: `checkpoint_episode`, `get_handoff_pack`, `resume_from_handoff`
-  - **Episode Lifecycle**: `bulk_episodes`, `create_episode`, `add_episode_step`, `complete_episode`, `get_episode`, `delete_episode`, `update_episode`, `get_episode_timeline`
-  - **Episode Tags**: `add_episode_tags`, `remove_episode_tags`, `set_episode_tags`, `get_episode_tags`, `search_episodes_by_tags`
-  - **Episode Relationships**: `add_episode_relationship`, `remove_episode_relationship`, `get_episode_relationships`, `find_related_episodes`, `check_relationship_exists`, `get_dependency_graph`, `validate_no_cycles`, `get_topological_order`
-  - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `test_embeddings`, `generate_embedding`, `search_by_embedding`, `embedding_provider_status`
+  - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `search_by_embedding`, `embedding_provider_status`
+  - **Episode Lifecycle**: `create_episode`, `add_episode_step`, `complete_episode`, `bulk_episodes`
 - Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
 
 ## Storage Optimization (Batch Eviction)

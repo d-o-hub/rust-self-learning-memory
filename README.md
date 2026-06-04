@@ -48,16 +48,6 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
-
-### 🗺️ Episode Checkpoints/Handoff
-- Checkpoint episodes mid-task for long-running workflows
-- Generate handoff packs to transfer state between agents or sessions
-- Resume execution from saved checkpoints
-
-### 🌊 CSM Cascading Retrieval
-- 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
-- 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API)
-- 50-70% reduction in external API embedding calls
 - Semantic pattern search with natural language queries
 - Intelligent pattern recommendations for tasks using multi-signal ranking
 - Cross-domain pattern discovery to find analogous patterns
@@ -222,7 +212,7 @@ cargo test --doc
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp do-memory-cli/.env.example .env
+cp memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -284,7 +274,7 @@ do-memory-cli playbook recommend "Implement JWT auth" --domain security
 cargo run --bin do-memory-mcp-server
 
 # Or run with custom config
-cargo run --bin do-memory-mcp-server -- --config mcp-config-do-memory.json
+cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 ```
 
 #### Programmatic Usage
@@ -318,7 +308,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
-| [Configuration Guide](do-memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
+| [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |

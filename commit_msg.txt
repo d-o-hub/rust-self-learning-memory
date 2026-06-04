@@ -1,8 +1,0 @@
-docs: update architecture, crate names, and feature docs
-
-Updates the README and other core documentation to reflect the latest state:
-- Adds dedicated subsections for "Episode Checkpoints/Handoff" and "CSM Cascading Retrieval".
-- Updates crate references to properly use `do-memory-*` across all descriptions, paths, and the architecture diagram.
-- Replaces general/marketing terms with concrete terminology.
-- Adds Pattern Ranking optimization (Schwartzian Transform) note to memory-core.
-- Adjusts MCP tool lists in AGENTS.md to exactly match the parity test definition.

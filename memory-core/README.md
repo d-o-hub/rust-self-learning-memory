@@ -18,7 +18,7 @@
 - **Smart Reflection**: Generate actionable insights and improvement recommendations from completed episodes
 - **Semantic Embeddings**: Optional multi-provider semantic search (OpenAI, Cohere, Ollama, local)
 - **Spatiotemporal Indexing**: Location and time-aware memory retrieval with k-d tree optimization
-- **Dual Storage**: Integration with Turso/libSQL (durable) and redb (cache) backends
+- **Dual Storage**: Seamless integration with Turso/libSQL (durable) and redb (cache) backends
 - **Async Pattern Learning**: Queue-based pattern extraction with worker pool and backpressure handling
 - **Monitoring**: Comprehensive metrics and performance tracking
 
@@ -223,9 +223,6 @@ All operations meet or exceed performance targets:
 | Episode Completion | < 500ms | ~3.8 µs | 130,890x faster |
 | Pattern Extraction | < 1000ms | ~10.4 µs | 95,880x faster |
 | Memory Retrieval | < 100ms | ~721 µs | 138x faster |
-
-### Pattern Ranking Optimization
-Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) to pre-calculate expensive sorting keys. This reduces complexity from O(N log N) to O(N) scoring calls, significantly improving pattern retrieval performance under heavy load.
 
 ## Quality Metrics
 

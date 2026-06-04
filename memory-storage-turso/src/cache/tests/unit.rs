@@ -5,9 +5,8 @@
 
 use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
+use do_memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
 use libsql::Builder;
-use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
-use std::sync::Arc;
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -32,27 +31,17 @@ async fn create_test_turso_storage() -> (TursoStorage, TempDir) {
 
 /// Create a test episode
 fn create_test_episode(id: Uuid) -> Episode {
-    Episode {
-        episode_id: id,
-        task_type: TaskType::CodeGeneration,
-        task_description: format!("Test episode {}", id),
-        context: TaskContext {
+    let mut episode = Episode::new(
+        format!("Test episode {}", id),
+        TaskContext {
             domain: "test".to_string(),
             language: Some("rust".to_string()),
             ..Default::default()
         },
-        steps: vec![],
-        outcome: None,
-        reward: None,
-        reflection: None,
-        patterns: vec![],
-        heuristics: vec![],
-        applied_patterns: vec![],
-        salient_features: None,
-        start_time: chrono::Utc::now(),
-        end_time: None,
-        metadata: std::collections::HashMap::new(),
-    }
+        TaskType::CodeGeneration,
+    );
+    episode.episode_id = id;
+    episode
 }
 
 /// Create a test pattern
@@ -74,19 +63,11 @@ fn create_test_pattern(id: Uuid) -> Pattern {
 
 /// Create a test heuristic
 fn create_test_heuristic(id: Uuid) -> Heuristic {
-    Heuristic {
-        heuristic_id: id,
-        condition: "condition".to_string(),
-        action: "action".to_string(),
-        confidence: 0.75,
-        evidence: Evidence {
-            episode_ids: vec![],
-            success_rate: 0.75,
-            sample_size: 10,
-        },
-        created_at: chrono::Utc::now(),
-        updated_at: chrono::Utc::now(),
-    }
+    let mut h = Heuristic::new("condition".to_string(), "action".to_string(), 0.75);
+    h.heuristic_id = id;
+    h.evidence.success_rate = 0.75;
+    h.evidence.sample_size = 10;
+    h
 }
 
 // ========== Unit Tests ==========

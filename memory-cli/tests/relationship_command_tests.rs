@@ -203,9 +203,11 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert!(!extract_json(&out_val1)["has_cycle"]
-        .as_bool()
-        .expect("Missing has_cycle"));
+    assert!(
+        !extract_json(&out_val1)["has_cycle"]
+            .as_bool()
+            .expect("Missing has_cycle")
+    );
 
     // Create cycle
     harness
@@ -237,9 +239,11 @@ fn test_relationship_full_cycle() {
         .get_output()
         .stdout
         .clone();
-    assert!(extract_json(&out_val2)["has_cycle"]
-        .as_bool()
-        .expect("Missing has_cycle"));
+    assert!(
+        extract_json(&out_val2)["has_cycle"]
+            .as_bool()
+            .expect("Missing has_cycle")
+    );
 
     // Remove
     harness

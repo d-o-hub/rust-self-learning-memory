@@ -5,7 +5,7 @@
 
 use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
-use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
+use do_memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
 use libsql::Builder;
 use tempfile::TempDir;
 use uuid::Uuid;

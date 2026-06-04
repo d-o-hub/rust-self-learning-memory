@@ -15,7 +15,7 @@
 #![allow(clippy::default_trait_access)]
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use do_memory_benches::TokioExecutor;
-use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
+use do_memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
 use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use rand::distr::Distribution;
 use rand::seq::SliceRandom;
@@ -106,7 +106,11 @@ fn create_test_pattern(id: Uuid) -> Pattern {
 
 /// Create a test heuristic
 fn create_test_heuristic(id: Uuid) -> Heuristic {
-    let mut h = Heuristic::new("benchmark_condition".to_string(), "benchmark_action".to_string(), 0.8);
+    let mut h = Heuristic::new(
+        "benchmark_condition".to_string(),
+        "benchmark_action".to_string(),
+        0.8,
+    );
     h.heuristic_id = id;
     h.evidence.success_rate = 0.8;
     h.evidence.sample_size = 15;

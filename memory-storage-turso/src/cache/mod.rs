@@ -104,6 +104,9 @@ pub mod query_cache;
 mod ttl_config;
 mod wrapper;
 
+#[cfg(test)]
+mod tests;
+
 pub use adaptive_ttl::{AdaptiveTTLCache, CacheEntry, CacheStats, CacheStatsSnapshot};
 pub use config::{CacheConfig, CacheStats as LegacyCacheStats};
 pub use integration::{CachedQueryStorage, InvalidationMessage};

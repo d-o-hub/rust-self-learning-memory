@@ -12,13 +12,12 @@
 pub mod concurrent;
 pub mod integration;
 pub mod unit;
-pub mod wrapper_edge_cases;
 
 // Re-export test helpers for use in submodules
 pub use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
-use do_memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
 use libsql::Builder;
+use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -43,17 +42,27 @@ pub async fn create_test_turso_storage() -> (TursoStorage, TempDir) {
 
 /// Create a test episode
 pub fn create_test_episode(id: Uuid) -> Episode {
-    let mut episode = Episode::new(
-        format!("Test episode {}", id),
-        TaskContext {
+    Episode {
+        episode_id: id,
+        task_type: TaskType::CodeGeneration,
+        task_description: format!("Test episode {}", id),
+        context: TaskContext {
             domain: "test".to_string(),
             language: Some("rust".to_string()),
             ..Default::default()
         },
-        TaskType::CodeGeneration,
-    );
-    episode.episode_id = id;
-    episode
+        steps: vec![],
+        outcome: None,
+        reward: None,
+        reflection: None,
+        patterns: vec![],
+        heuristics: vec![],
+        applied_patterns: vec![],
+        salient_features: None,
+        start_time: chrono::Utc::now(),
+        end_time: None,
+        metadata: std::collections::HashMap::new(),
+    }
 }
 
 /// Create a test pattern
@@ -75,9 +84,17 @@ pub fn create_test_pattern(id: Uuid) -> Pattern {
 
 /// Create a test heuristic
 pub fn create_test_heuristic(id: Uuid) -> Heuristic {
-    let mut h = Heuristic::new("condition".to_string(), "action".to_string(), 0.75);
-    h.heuristic_id = id;
-    h.evidence.success_rate = 0.75;
-    h.evidence.sample_size = 10;
-    h
+    Heuristic {
+        heuristic_id: id,
+        condition: "condition".to_string(),
+        action: "action".to_string(),
+        confidence: 0.75,
+        evidence: Evidence {
+            episode_ids: vec![],
+            success_rate: 0.75,
+            sample_size: 10,
+        },
+        created_at: chrono::Utc::now(),
+        updated_at: chrono::Utc::now(),
+    }
 }

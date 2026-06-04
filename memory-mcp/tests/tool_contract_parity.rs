@@ -343,7 +343,8 @@ async fn test_agents_md_categories_registered() {
     for tool in expected_tools {
         assert!(
             all_tool_names.contains(&tool.to_string()),
-            "Tool '{tool}' is documented in AGENTS.md but not registered in the server"
+            "Tool '{}' is documented in AGENTS.md but not registered in the server",
+            tool
         );
     }
 }

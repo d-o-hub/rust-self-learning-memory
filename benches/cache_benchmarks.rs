@@ -17,7 +17,7 @@ use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use do_memory_benches::TokioExecutor;
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
-use rand::distr::{Distribution, Uniform};
+use rand::distributions::Distribution;
 use rand::seq::SliceRandom;
 use std::hint::black_box;
 use tempfile::TempDir;
@@ -224,9 +224,9 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
                     // Prepare 100 accesses:
                     // - 80 hits (randomly from the 20 primed IDs)
                     // - 20 misses (randomly generated new IDs)
-                    let mut rng = rand::rng();
+                    let mut rng = rand::thread_rng();
                     let mut access_ids = Vec::with_capacity(100);
-                    let die = Uniform::new(0, ids.len()).unwrap();
+                    let die = rand::distributions::Uniform::new(0, ids.len());
                     for _ in 0..80 {
                         access_ids.push(ids[die.sample(&mut rng)]);
                     }

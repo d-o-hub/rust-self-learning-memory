@@ -412,7 +412,7 @@ mod security_handler_tests {
         // Verify constant
         assert_eq!(do_memory_mcp::constants::MAX_QUERY_FIELDS, 20);
 
-        let many_fields: Vec<String> = (0..100).map(|i| format!("field_{i}")).collect();
+        let many_fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
         let args = json!({
             "query": "test",
             "fields": many_fields,

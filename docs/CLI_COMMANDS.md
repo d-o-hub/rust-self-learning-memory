@@ -497,6 +497,6 @@ do-memory-cli config wizard
 ## See Also
 
 <!-- NOTE: CONFIG_WIZARD.md is planned documentation -->
-- [Configuration Guide](../memory-cli/CONFIGURATION_GUIDE.md) - Complete configuration reference
+- [Configuration Guide](../do-memory-cli/CONFIGURATION_GUIDE.md) - Complete configuration reference
 - [Config Commands (CLI Reference)](#config-commands) - All config subcommands
 - [Local Database Setup](./LOCAL_DATABASE_SETUP.md) - Database implementation details

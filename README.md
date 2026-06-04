@@ -48,6 +48,16 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
+
+### 🗺️ Episode Checkpoints/Handoff
+- Checkpoint episodes mid-task for long-running workflows
+- Generate handoff packs to transfer state between agents or sessions
+- Resume execution from saved checkpoints
+
+### 🌊 CSM Cascading Retrieval
+- 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
+- 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API)
+- 50-70% reduction in external API embedding calls
 - Semantic pattern search with natural language queries
 - Intelligent pattern recommendations for tasks using multi-signal ranking
 - Cross-domain pattern discovery to find analogous patterns
@@ -212,7 +222,7 @@ cargo test --doc
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp memory-cli/.env.example .env
+cp do-memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -222,7 +232,7 @@ mkdir -p ./data ./backups
 
 ```bash
 # Run interactive configuration wizard
-do-memory-cli config wizard
+do-do-memory-cli config wizard
 
 # Follow the prompts to configure:
 # - Database (local SQLite or remote Turso)
@@ -230,10 +240,10 @@ do-memory-cli config wizard
 # - CLI (output format, progress bars, batch size)
 
 # Validate configuration
-do-memory-cli config validate
+do-do-memory-cli config validate
 
 # Check configuration status
-do-memory-cli config check
+do-do-memory-cli config check
 ```
 
 Configuration Wizard provides interactive step-by-step setup with sensible defaults and validation.
@@ -242,29 +252,29 @@ Configuration Wizard provides interactive step-by-step setup with sensible defau
 
 ```bash
 # Create an episode
-do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
+do-do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
 # List episodes
-do-memory-cli episode list --limit 10
+do-do-memory-cli episode list --limit 10
 
 # Search episodes
-do-memory-cli episode search "authentication" --limit 5
+do-do-memory-cli episode search "authentication" --limit 5
 
 # Search patterns semantically
-do-memory-cli pattern search --query "How to build REST API" --limit 5
+do-do-memory-cli pattern search --query "How to build REST API" --limit 5
 
 # Analyze patterns
-do-memory-cli pattern list --min-confidence 0.8
+do-do-memory-cli pattern list --min-confidence 0.8
 
 # Tag management
-do-memory-cli tag add <episode-id> "important"
-do-memory-cli tag search "important"
+do-do-memory-cli tag add <episode-id> "important"
+do-do-memory-cli tag search "important"
 
 # Health check
-do-memory-cli health check
+do-do-memory-cli health check
 
 # Playbook recommendation
-do-memory-cli playbook recommend "Implement JWT auth" --domain security
+do-do-memory-cli playbook recommend "Implement JWT auth" --domain security
 ```
 
 #### MCP Server
@@ -274,7 +284,7 @@ do-memory-cli playbook recommend "Implement JWT auth" --domain security
 cargo run --bin do-memory-mcp-server
 
 # Or run with custom config
-cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
+cargo run --bin do-memory-mcp-server -- --config mcp-config-do-memory.json
 ```
 
 #### Programmatic Usage
@@ -308,7 +318,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
-| [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
+| [Configuration Guide](do-memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |

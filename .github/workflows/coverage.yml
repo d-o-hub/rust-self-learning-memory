@@ -64,11 +64,8 @@ jobs:
       contents: read
     timeout-minutes: 60    # Extended timeout for comprehensive coverage
     steps:
-      # IMPORTANT: Maximize build space MUST run before checkout.
-      # This provides 7-8 GB guaranteed space gain via LVM consolidation.
-      # Coverage instrumentation roughly doubles target/ size compared to a
-      # normal build, so this step is required to keep this workflow
-      # ENOSPC-free on github-hosted ubuntu runners (see issue #596).
+      # IMPORTANT: Maximize build space MUST run before checkout
+      # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
         if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@main

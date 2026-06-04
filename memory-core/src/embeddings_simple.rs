@@ -41,21 +41,7 @@ impl Default for EmbeddingConfig {
 /// Calculate cosine similarity between two vectors
 #[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
-    if a.len() != b.len() || a.is_empty() {
-        return 0.0;
-    }
-
-    let dot_product: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
-    let magnitude_a: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
-    let magnitude_b: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
-
-    if magnitude_a == 0.0 || magnitude_b == 0.0 {
-        return 0.0;
-    }
-
-    // Normalize from [-1, 1] to [0, 1] range
-    let similarity = dot_product / (magnitude_a * magnitude_b);
-    (similarity + 1.0) / 2.0
+    crate::embeddings::cosine_similarity(a, b)
 }
 
 /// Simple text to embedding converter (mock implementation)

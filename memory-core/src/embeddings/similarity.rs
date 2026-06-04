@@ -33,24 +33,31 @@ pub struct SimilarityMetadata {
 /// Higher scores indicate greater similarity.
 #[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
-    if a.len() != b.len() {
+    if a.len() != b.len() || a.is_empty() {
         return 0.0;
     }
 
-    if a.is_empty() {
+    // High-precision accumulators to prevent overflow and precision loss
+    let mut dot_product = 0.0f64;
+    let mut norm_a_sq = 0.0f64;
+    let mut norm_b_sq = 0.0f64;
+
+    for (&x, &y) in a.iter().zip(b.iter()) {
+        let x_f64 = x as f64;
+        let y_f64 = y as f64;
+        dot_product += x_f64 * y_f64;
+        norm_a_sq += x_f64 * x_f64;
+        norm_b_sq += y_f64 * y_f64;
+    }
+
+    if norm_a_sq <= 0.0 || norm_b_sq <= 0.0 {
         return 0.0;
     }
 
-    let dot_product: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
-    let magnitude_a: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
-    let magnitude_b: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
+    // Stable denominator calculation to avoid potential product overflow
+    let similarity = (dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt())) as f32;
 
-    if magnitude_a == 0.0 || magnitude_b == 0.0 {
-        return 0.0;
-    }
-
-    // Normalize from [-1, 1] to [0, 1] range
-    let similarity = dot_product / (magnitude_a * magnitude_b);
+    // Normalize from [-1, 1] to [0, 1] range for semantic scores
     (similarity + 1.0) / 2.0
 }
 
@@ -79,5 +86,31 @@ mod tests {
         let vec8 = vec![1.0, 2.0, 3.0];
         let similarity = cosine_similarity(&vec7, &vec8);
         assert_eq!(similarity, 0.0);
+    }
+
+    #[test]
+    fn test_cosine_similarity_empty() {
+        let vec1: Vec<f32> = vec![];
+        let vec2: Vec<f32> = vec![];
+        assert_eq!(cosine_similarity(&vec1, &vec2), 0.0);
+
+        let vec3 = vec![1.0, 2.0, 3.0];
+        assert_eq!(cosine_similarity(&vec1, &vec3), 0.0);
+        assert_eq!(cosine_similarity(&vec3, &vec1), 0.0);
+    }
+
+    #[test]
+    fn test_cosine_similarity_zero_magnitude() {
+        let vec1 = vec![0.0, 0.0, 0.0];
+        let vec2 = vec![1.0, 2.0, 3.0];
+        assert_eq!(cosine_similarity(&vec1, &vec2), 0.0);
+
+        let vec3 = vec![1.0, 2.0, 3.0];
+        let vec4 = vec![0.0, 0.0, 0.0];
+        assert_eq!(cosine_similarity(&vec3, &vec4), 0.0);
+
+        let vec5 = vec![0.0, 0.0, 0.0];
+        let vec6 = vec![0.0, 0.0, 0.0];
+        assert_eq!(cosine_similarity(&vec5, &vec6), 0.0);
     }
 }

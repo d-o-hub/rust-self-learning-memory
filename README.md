@@ -222,7 +222,7 @@ cargo test --doc
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp do-memory-cli/.env.example .env
+cp memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -232,7 +232,7 @@ mkdir -p ./data ./backups
 
 ```bash
 # Run interactive configuration wizard
-do-do-memory-cli config wizard
+do-memory-cli config wizard
 
 # Follow the prompts to configure:
 # - Database (local SQLite or remote Turso)
@@ -240,10 +240,10 @@ do-do-memory-cli config wizard
 # - CLI (output format, progress bars, batch size)
 
 # Validate configuration
-do-do-memory-cli config validate
+do-memory-cli config validate
 
 # Check configuration status
-do-do-memory-cli config check
+do-memory-cli config check
 ```
 
 Configuration Wizard provides interactive step-by-step setup with sensible defaults and validation.
@@ -252,29 +252,29 @@ Configuration Wizard provides interactive step-by-step setup with sensible defau
 
 ```bash
 # Create an episode
-do-do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
+do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
 # List episodes
-do-do-memory-cli episode list --limit 10
+do-memory-cli episode list --limit 10
 
 # Search episodes
-do-do-memory-cli episode search "authentication" --limit 5
+do-memory-cli episode search "authentication" --limit 5
 
 # Search patterns semantically
-do-do-memory-cli pattern search --query "How to build REST API" --limit 5
+do-memory-cli pattern search --query "How to build REST API" --limit 5
 
 # Analyze patterns
-do-do-memory-cli pattern list --min-confidence 0.8
+do-memory-cli pattern list --min-confidence 0.8
 
 # Tag management
-do-do-memory-cli tag add <episode-id> "important"
-do-do-memory-cli tag search "important"
+do-memory-cli tag add <episode-id> "important"
+do-memory-cli tag search "important"
 
 # Health check
-do-do-memory-cli health check
+do-memory-cli health check
 
 # Playbook recommendation
-do-do-memory-cli playbook recommend "Implement JWT auth" --domain security
+do-memory-cli playbook recommend "Implement JWT auth" --domain security
 ```
 
 #### MCP Server
@@ -284,7 +284,7 @@ do-do-memory-cli playbook recommend "Implement JWT auth" --domain security
 cargo run --bin do-memory-mcp-server
 
 # Or run with custom config
-cargo run --bin do-memory-mcp-server -- --config mcp-config-do-memory.json
+cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 ```
 
 #### Programmatic Usage
@@ -318,7 +318,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
-| [Configuration Guide](do-memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
+| [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |
@@ -434,7 +434,7 @@ MEMORY_MAX_EPISODES_CACHE=1000
 MEMORY_CACHE_TTL_SECONDS=3600
 
 # CLI config
-MEMORY_CLI_CONFIG=./do-memory-cli.toml
+MEMORY_CLI_CONFIG=./memory-cli.toml
 
 # Embeddings (CLI/MCP)
 EMBEDDING_PROVIDER=openai|mistral|azure|local

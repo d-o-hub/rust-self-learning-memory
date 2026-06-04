@@ -17,7 +17,7 @@ use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use do_memory_benches::TokioExecutor;
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
-use rand::distr::{Distribution, Uniform};
+use rand::distributions::Distribution;
 use rand::seq::SliceRandom;
 use std::hint::black_box;
 use tempfile::TempDir;
@@ -56,46 +56,31 @@ fn create_test_episode(id: Uuid) -> Episode {
 
 /// Create a test episode with specific number of steps (for payload size testing)
 fn create_test_episode_with_size(id: Uuid, num_steps: usize) -> Episode {
-    let mut steps = Vec::with_capacity(num_steps);
-    for i in 0..num_steps {
-        steps.push(do_memory_core::episode::ExecutionStep {
-            step_number: i + 1,
-            timestamp: chrono::Utc::now(),
-            tool: format!("tool_{}", i % 10),
-            action: format!("Step action {}", i),
-            parameters_json: "{}".to_string(),
-            result: None,
-            latency_ms: 10,
-            tokens_used: None,
-            metadata: std::collections::HashMap::new(),
-        });
-    }
-
-    Episode {
-        episode_id: id,
-        task_type: TaskType::CodeGeneration,
-        task_description: format!("Benchmark episode {}", id),
-        context: TaskContext {
+    let mut episode = Episode::new(
+        format!("Benchmark episode {}", id),
+        TaskContext {
             domain: "benchmark".to_string(),
             language: Some("rust".to_string()),
             framework: Some("tokio".to_string()),
             complexity: do_memory_core::types::ComplexityLevel::Moderate,
             tags: vec!["performance".to_string(), "test".to_string()],
         },
-        steps,
-        outcome: None,
-        reward: None,
-        reflection: None,
-        patterns: vec![],
-        heuristics: vec![],
-        applied_patterns: vec![],
-        salient_features: None,
-        start_time: chrono::Utc::now(),
-        end_time: None,
-        metadata: std::collections::HashMap::new(),
-        tags: Vec::new(),
-        checkpoints: Vec::new(),
+        TaskType::CodeGeneration,
+    );
+
+    episode.episode_id = id;
+
+    for i in 0..num_steps {
+        let mut step = do_memory_core::episode::ExecutionStep::new(
+            i + 1,
+            format!("tool_{}", i % 10),
+            format!("Step action {}", i),
+        );
+        step.latency_ms = 10;
+        episode.add_step(step);
     }
+
+    episode
 }
 
 /// Create a test pattern
@@ -147,7 +132,7 @@ fn bench_episode_retrieval_cached_10(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with 10 episodes
@@ -162,11 +147,11 @@ fn bench_episode_retrieval_cached_10(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(*id).await.unwrap();
                     }
 
-                    (cached, ids, _dir)
+                    (cached, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, ids, _dir) = setup;
+                let (cached, ids, _temp_dir) = setup;
                 for id in &ids {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                     black_box(id);
@@ -190,18 +175,18 @@ fn bench_episode_cold_read(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     let episode_id = Uuid::new_v4();
                     let episode = create_test_episode(episode_id);
                     cached.store_episode_cached(&episode).await.unwrap();
 
-                    (cached, episode_id, _dir)
+                    (cached, episode_id, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, episode_id, _dir) = setup;
+                let (cached, episode_id, _temp_dir) = setup;
                 // Benchmark first access - cache miss + fill
                 let _ = cached.get_episode_cached(episode_id).await.unwrap();
             },
@@ -221,7 +206,7 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // 20 unique episodes
@@ -239,9 +224,9 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
                     // Prepare 100 accesses:
                     // - 80 hits (randomly from the 20 primed IDs)
                     // - 20 misses (randomly generated new IDs)
-                    let mut rng = rand::rng();
+                    let mut rng = rand::thread_rng();
                     let mut access_ids = Vec::with_capacity(100);
-                    let die = Uniform::new(0, ids.len()).unwrap();
+                    let die = rand::distributions::Uniform::new(0, ids.len());
                     for _ in 0..80 {
                         access_ids.push(ids[die.sample(&mut rng)]);
                     }
@@ -252,11 +237,11 @@ fn bench_mixed_access_80_20(c: &mut Criterion) {
                     // Shuffle access IDs
                     access_ids.shuffle(&mut rng);
 
-                    (cached, access_ids, _dir)
+                    (cached, access_ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, access_ids, _dir) = setup;
+                let (cached, access_ids, _temp_dir) = setup;
                 for id in access_ids {
                     let _ = cached.get_episode_cached(id).await.unwrap();
                 }
@@ -277,18 +262,18 @@ fn bench_payload_size_comparison(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
                     let id = Uuid::new_v4();
                     let ep = create_test_episode_with_size(id, 0);
                     cached.store_episode_cached(&ep).await.unwrap();
                     let _ = cached.get_episode_cached(id).await.unwrap(); // Prime
 
-                    (cached, id, _dir)
+                    (cached, id, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, id, _dir) = setup;
+                let (cached, id, _temp_dir) = setup;
                 for _ in 0..10 {
                     let _ = cached.get_episode_cached(id).await.unwrap();
                 }
@@ -301,7 +286,7 @@ fn bench_payload_size_comparison(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
                     let id = Uuid::new_v4();
                     // Large episode with 100 steps
@@ -309,11 +294,11 @@ fn bench_payload_size_comparison(c: &mut Criterion) {
                     cached.store_episode_cached(&ep).await.unwrap();
                     let _ = cached.get_episode_cached(id).await.unwrap(); // Prime
 
-                    (cached, id, _dir)
+                    (cached, id, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, id, _dir) = setup;
+                let (cached, id, _temp_dir) = setup;
                 for _ in 0..10 {
                     let _ = cached.get_episode_cached(id).await.unwrap();
                 }
@@ -334,7 +319,7 @@ fn bench_episode_retrieval_cached_50(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with 50 episodes
@@ -349,11 +334,11 @@ fn bench_episode_retrieval_cached_50(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(*id).await.unwrap();
                     }
 
-                    (cached, ids, _dir)
+                    (cached, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, ids, _dir) = setup;
+                let (cached, ids, _temp_dir) = setup;
                 for id in &ids {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                     black_box(id);
@@ -375,7 +360,7 @@ fn bench_episode_retrieval_cached_100(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with 100 episodes
@@ -390,11 +375,11 @@ fn bench_episode_retrieval_cached_100(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(*id).await.unwrap();
                     }
 
-                    (cached, ids, _dir)
+                    (cached, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, ids, _dir) = setup;
+                let (cached, ids, _temp_dir) = setup;
                 for id in &ids {
                     let _ = cached.get_episode_cached(*id).await.unwrap();
                     black_box(id);
@@ -416,7 +401,7 @@ fn bench_episode_retrieval_uncached(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
 
                     // Pre-populate without cache
                     let ids: Vec<Uuid> = (0..100).map(|_| Uuid::new_v4()).collect();
@@ -425,11 +410,11 @@ fn bench_episode_retrieval_uncached(c: &mut Criterion) {
                         storage.store_episode(&episode).await.unwrap();
                     }
 
-                    (storage, ids, _dir)
+                    (storage, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (storage, ids, _dir) = setup;
+                let (storage, ids, _temp_dir) = setup;
                 // Benchmark uncached retrieval
                 for id in &ids {
                     let _ = storage.get_episode(*id).await.unwrap();
@@ -452,16 +437,16 @@ fn bench_episode_write(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
                     let episodes: Vec<Episode> = (0..10)
                         .map(|_| create_test_episode(Uuid::new_v4()))
                         .collect();
-                    (cached, episodes, _dir)
+                    (cached, episodes, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, episodes, _dir) = setup;
+                let (cached, episodes, _temp_dir) = setup;
                 for episode in &episodes {
                     cached.store_episode_cached(episode).await.unwrap();
                 }
@@ -484,7 +469,7 @@ fn bench_pattern_retrieval_cached(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with 50 patterns
@@ -499,11 +484,11 @@ fn bench_pattern_retrieval_cached(c: &mut Criterion) {
                         let _ = cached.get_pattern_cached(*id).await.unwrap();
                     }
 
-                    (cached, ids, _dir)
+                    (cached, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, ids, _dir) = setup;
+                let (cached, ids, _temp_dir) = setup;
                 for id in &ids {
                     let _ = cached.get_pattern_cached(*id).await.unwrap();
                     black_box(id);
@@ -527,7 +512,7 @@ fn bench_heuristic_retrieval_cached(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with 50 heuristics
@@ -542,11 +527,11 @@ fn bench_heuristic_retrieval_cached(c: &mut Criterion) {
                         let _ = cached.get_heuristic_cached(*id).await.unwrap();
                     }
 
-                    (cached, ids, _dir)
+                    (cached, ids, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, ids, _dir) = setup;
+                let (cached, ids, _temp_dir) = setup;
                 for id in &ids {
                     let _ = cached.get_heuristic_cached(*id).await.unwrap();
                     black_box(id);
@@ -570,7 +555,7 @@ fn bench_cache_stats(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     for _ in 0..100 {
@@ -581,11 +566,11 @@ fn bench_cache_stats(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(episode.episode_id).await.unwrap();
                     }
 
-                    (cached, _dir)
+                    (cached, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, _dir) = setup;
+                let (cached, _temp_dir) = setup;
                 let stats = cached.stats();
                 black_box(stats.hit_rate());
             },
@@ -605,7 +590,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with episodes
@@ -623,11 +608,11 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(*id).await.unwrap();
                     }
 
-                    (cached, _dir)
+                    (cached, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, _dir) = setup;
+                let (cached, _temp_dir) = setup;
                 let stats = cached.stats();
                 let hit_rate = stats.episode_hit_rate();
                 black_box(hit_rate);
@@ -640,7 +625,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate with episodes
@@ -658,11 +643,11 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
                         let _ = cached.get_episode_cached(*id).await.unwrap();
                     }
 
-                    (cached, _dir)
+                    (cached, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, _dir) = setup;
+                let (cached, _temp_dir) = setup;
                 let stats = cached.stats();
                 let hit_rate = stats.episode_hit_rate();
                 black_box(hit_rate);
@@ -685,7 +670,7 @@ fn bench_cache_creation(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || rt().block_on(async { create_test_turso_storage_async().await }),
             |setup| async move {
-                let (storage, _dir) = setup;
+                let (storage, _temp_dir) = setup;
                 let cached = CachedTursoStorage::new(
                     storage,
                     CacheConfig {
@@ -703,7 +688,7 @@ fn bench_cache_creation(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || rt().block_on(async { create_test_turso_storage_async().await }),
             |setup| async move {
-                let (storage, _dir) = setup;
+                let (storage, _temp_dir) = setup;
                 let cached = CachedTursoStorage::new(
                     storage,
                     CacheConfig {
@@ -721,7 +706,7 @@ fn bench_cache_creation(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || rt().block_on(async { create_test_turso_storage_async().await }),
             |setup| async move {
-                let (storage, _dir) = setup;
+                let (storage, _temp_dir) = setup;
                 let cached = CachedTursoStorage::new(
                     storage,
                     CacheConfig {
@@ -739,7 +724,7 @@ fn bench_cache_creation(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || rt().block_on(async { create_test_turso_storage_async().await }),
             |setup| async move {
-                let (storage, _dir) = setup;
+                let (storage, _temp_dir) = setup;
                 let cached = CachedTursoStorage::new(storage, CacheConfig::default());
                 black_box(cached);
             },
@@ -759,7 +744,7 @@ fn bench_cache_clear(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate cache with 100 episodes
@@ -767,11 +752,11 @@ fn bench_cache_clear(c: &mut Criterion) {
                         let episode = create_test_episode(Uuid::new_v4());
                         cached.store_episode_cached(&episode).await.unwrap();
                     }
-                    (cached, _dir)
+                    (cached, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, _dir) = setup;
+                let (cached, _temp_dir) = setup;
                 // Benchmark clear
                 cached.clear_caches().await;
             },
@@ -783,7 +768,7 @@ fn bench_cache_clear(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     // Pre-populate cache with 1000 episodes
@@ -791,11 +776,11 @@ fn bench_cache_clear(c: &mut Criterion) {
                         let episode = create_test_episode(Uuid::new_v4());
                         cached.store_episode_cached(&episode).await.unwrap();
                     }
-                    (cached, _dir)
+                    (cached, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, _dir) = setup;
+                let (cached, _temp_dir) = setup;
                 // Benchmark clear
                 cached.clear_caches().await;
             },
@@ -823,7 +808,7 @@ fn bench_turso_with_cache_config(c: &mut Criterion) {
                 })
             },
             |setup| async move {
-                let (_dir, db_path) = setup;
+                let (_temp_dir, db_path) = setup;
                 let config = TursoConfig::default();
                 let storage = TursoStorage::with_config(
                     &format!("file:{}", db_path.to_string_lossy()),
@@ -854,18 +839,18 @@ fn bench_cache_miss_vs_hit(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     let episode_id = Uuid::new_v4();
                     let episode = create_test_episode(episode_id);
                     cached.store_episode_cached(&episode).await.unwrap();
 
-                    (cached, episode_id, _dir)
+                    (cached, episode_id, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, episode_id, _dir) = setup;
+                let (cached, episode_id, _temp_dir) = setup;
                 // First access - cache miss
                 let _ = cached.get_episode_cached(episode_id).await.unwrap();
             },
@@ -877,7 +862,7 @@ fn bench_cache_miss_vs_hit(c: &mut Criterion) {
         b.to_async(TokioExecutor).iter_batched(
             || {
                 rt().block_on(async {
-                    let (storage, _dir) = create_test_turso_storage_async().await;
+                    let (storage, temp_dir) = create_test_turso_storage_async().await;
                     let cached = CachedTursoStorage::new(storage, CacheConfig::default());
 
                     let episode_id = Uuid::new_v4();
@@ -887,11 +872,11 @@ fn bench_cache_miss_vs_hit(c: &mut Criterion) {
                     // First access - populate cache
                     let _ = cached.get_episode_cached(episode_id).await.unwrap();
 
-                    (cached, episode_id, _dir)
+                    (cached, episode_id, temp_dir)
                 })
             },
             |setup| async move {
-                let (cached, episode_id, _dir) = setup;
+                let (cached, episode_id, _temp_dir) = setup;
                 // Subsequent access - cache hit
                 let _ = cached.get_episode_cached(episode_id).await.unwrap();
             },

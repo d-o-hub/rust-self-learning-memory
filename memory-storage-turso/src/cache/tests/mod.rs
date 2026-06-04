@@ -75,17 +75,9 @@ pub fn create_test_pattern(id: Uuid) -> Pattern {
 
 /// Create a test heuristic
 pub fn create_test_heuristic(id: Uuid) -> Heuristic {
-    Heuristic {
-        heuristic_id: id,
-        condition: "condition".to_string(),
-        action: "action".to_string(),
-        confidence: 0.75,
-        evidence: Evidence {
-            episode_ids: vec![],
-            success_rate: 0.75,
-            sample_size: 10,
-        },
-        created_at: chrono::Utc::now(),
-        updated_at: chrono::Utc::now(),
-    }
+    let mut h = Heuristic::new("condition".to_string(), "action".to_string(), 0.75);
+    h.heuristic_id = id;
+    h.evidence.success_rate = 0.75;
+    h.evidence.sample_size = 10;
+    h
 }

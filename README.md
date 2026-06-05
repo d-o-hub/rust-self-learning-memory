@@ -48,6 +48,16 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
+
+### 🗺️ Episode Checkpoints/Handoff
+- Checkpoint episodes mid-task for long-running workflows
+- Generate handoff packs to transfer state between agents or sessions
+- Resume execution from saved checkpoints
+
+### 🌊 CSM Cascading Retrieval
+- 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
+- 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API)
+- 50-70% reduction in external API embedding calls
 - Semantic pattern search with natural language queries
 - Intelligent pattern recommendations for tasks using multi-signal ranking
 - Cross-domain pattern discovery to find analogous patterns
@@ -424,7 +434,7 @@ MEMORY_MAX_EPISODES_CACHE=1000
 MEMORY_CACHE_TTL_SECONDS=3600
 
 # CLI config
-MEMORY_CLI_CONFIG=./do-memory-cli.toml
+MEMORY_CLI_CONFIG=./memory-cli.toml
 
 # Embeddings (CLI/MCP)
 EMBEDDING_PROVIDER=openai|mistral|azure|local

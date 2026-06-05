@@ -42,7 +42,7 @@ let metadata = RelationshipMetadata {
     priority: Some(8),
     custom_fields: {
         let mut map = std::collections::HashMap::new();
-        map.insert("project".to_string(), "memory-system".to_string());
+        map.insert("project".to_string(), "do-memory-system".to_string());
         map.insert("ticket".to_string(), "ENG-123".to_string());
         map
     },

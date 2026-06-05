@@ -55,16 +55,16 @@ ab -n 200 -c 10 http://localhost:8080/api/episodes
 ```bash
 # Emergency: Disable rate limiting
 export MCP_RATE_LIMIT_ENABLED=false
-sudo systemctl restart memory-service
+sudo systemctl restart do-memory-service
 
 # Emergency: Enable critical audit logging
 export MEMORY_AUDIT_LEVEL=critical
 export MEMORY_AUDIT_OUTPUT=stderr
-sudo systemctl restart memory-service
+sudo systemctl restart do-memory-service
 
 # Emergency: Block all writes
 export MCP_RATE_LIMIT_WRITE_RPS=0
-sudo systemctl restart memory-service
+sudo systemctl restart do-memory-service
 ```
 
 ## Security Architecture

@@ -20,6 +20,8 @@ mod episode_handlers;
 mod external_signal_handlers;
 mod feature_handlers;
 mod memory_handlers;
+#[cfg(test)]
+mod memory_handlers_tests;
 mod relationship_handlers;
 mod tag_handlers;
 

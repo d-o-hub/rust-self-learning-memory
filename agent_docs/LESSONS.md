@@ -69,3 +69,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Root Cause: Simply subtracting the count of all invalidated hashes from the total cache size didn't account for entries that might have already been physically evicted by the LRU policy.
 - Solution: Changed the calculation to only count invalidated hashes that are still physically present in the cache (using `peek()`).
 - Key insight: When combining LRU eviction with lazy invalidation, logical size calculations must intersect the two sets to remain accurate.
+
+## LESSON-011: GitHub Actions upload-artifact LCA causes deep nesting on download
+
+- Issue: PR #609 benchmark workflow uploaded successfully (5.4 MB) but downstream "Check for Performance Regression" job posted "⚠️ Benchmark artifacts not available" because `bench_results.txt` was nowhere to be found at the workspace root.
+- Root Cause: `actions/upload-artifact@v7` computes the **least common ancestor (LCA)** of all input paths. Mixing workspace-relative paths (e.g., `./bench_results.txt`) with `${{ runner.temp }}/cargo-target/criterion/` produced an LCA of `/home/runner/work`. The archive stored `bench_results.txt` at `rust-self-learning-memory/rust-self-learning-memory/bench_results.txt` and criterion files at `_temp/cargo-target/criterion/...`. After `download-artifact@v8` extraction, `bench_results.txt` lived at `<workspace>/rust-self-learning-memory/rust-self-learning-memory/bench_results.txt`, not at the workspace root where the regression check looked.
+- Solution: Co-locate all upload inputs under a single parent. Copy workspace-relative files into `${{ runner.temp }}/cargo-target/` and upload only that directory so the LCA is `${{ runner.temp }}/cargo-target/`. Add `if-no-files-found: error` to surface silent failures instead of masking them.
+- Reference: <https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions>; local docs: `agent_docs/github_actions_patterns.md` ("Upload Artifact LCA Pitfall (2026-06-05)").

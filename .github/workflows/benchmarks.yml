@@ -319,13 +319,31 @@ jobs:
             cat bench_results.txt
            } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Stage benchmark results for upload
+        # Co-locate bench_results.txt with the criterion directory under
+        # ${{ runner.temp }} so the upload-artifact LCA is a stable root.
+        # Mixing workspace-relative paths (e.g. ./bench_results.txt) with
+        # ${{ runner.temp }}/... would otherwise compute the LCA as
+        # /home/runner/work, nesting files several directories deep on
+        # download and breaking downstream jobs that look for
+        # bench_results.txt at the workspace root.
+        run: |
+          set -euo pipefail
+          if [ ! -s bench_results.txt ]; then
+            echo "❌ bench_results.txt missing or empty before staging"
+            exit 1
+          fi
+          mkdir -p "${{ runner.temp }}/cargo-target"
+          cp bench_results.txt "${{ runner.temp }}/cargo-target/bench_results.txt"
+          echo "Staged files for upload:"
+          ls -la "${{ runner.temp }}/cargo-target/" | head -20
+
       - name: Archive benchmark results
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-${{ github.sha }}
-          path: |
-            bench_results.txt
-            ${{ runner.temp }}/cargo-target/criterion/
+          path: ${{ runner.temp }}/cargo-target/
+          if-no-files-found: error
           retention-days: 90
 
   # Separate job for storing benchmark results on main branch

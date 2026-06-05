@@ -127,3 +127,25 @@ pub const MAX_EXTERNAL_SAMPLES: usize = 10_000;
 
 /// Maximum allowed length for AgentFS database path.
 pub const MAX_DB_PATH_LEN: usize = 4096;
+
+// ──── Advanced analysis limits ────
+
+/// Maximum allowed number of variables in a time series analysis.
+pub const MAX_SERIES_VARS: usize = 10;
+
+/// Maximum allowed data points per variable in a time series.
+pub const MAX_SERIES_POINTS: usize = 1000;
+
+/// Maximum allowed length for metric type identifier.
+pub const MAX_METRICS_TYPE_LEN: usize = 100;
+
+// ──── Advanced analysis limits ────
+
+/// Maximum allowed number of variables in a time series analysis.
+pub const MAX_SERIES_VARS: usize = 10;
+
+/// Maximum allowed data points per variable in a time series.
+pub const MAX_SERIES_POINTS: usize = 1000;
+
+/// Maximum allowed length for metric type identifier.
+pub const MAX_METRICS_TYPE_LEN: usize = 100;

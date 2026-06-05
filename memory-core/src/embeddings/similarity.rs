@@ -43,8 +43,8 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     let mut norm_b_sq = 0.0f64;
 
     for (&x, &y) in a.iter().zip(b.iter()) {
-        let x_f64 = x as f64;
-        let y_f64 = y as f64;
+        let x_f64 = f64::from(x);
+        let y_f64 = f64::from(y);
         dot_product += x_f64 * y_f64;
         norm_a_sq += x_f64 * x_f64;
         norm_b_sq += y_f64 * y_f64;

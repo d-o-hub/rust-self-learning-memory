@@ -22,8 +22,6 @@ mod feature_handlers;
 mod memory_handlers;
 #[cfg(test)]
 mod memory_handlers_tests;
-#[cfg(test)]
-mod memory_handlers_tests;
 mod relationship_handlers;
 mod tag_handlers;
 

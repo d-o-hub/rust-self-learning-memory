@@ -228,6 +228,8 @@ mod cache_tests {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
             },
             storage: crate::config::types::StorageConfig {
                 max_episodes_cache: 1000,

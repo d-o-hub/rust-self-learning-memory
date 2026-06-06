@@ -138,6 +138,8 @@ mod tests {
             turso_url: None,
             turso_token: None,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
         let errors = validate_database_config(&config);
         assert!(!errors.is_empty());
@@ -149,6 +151,8 @@ mod tests {
             turso_url: None,
             turso_token: None,
             redb_path: Some("/tmp/test.redb".to_string()),
+            storage_mode: None,
+            db_path: None,
         };
         let errors = validate_database_config(&config);
         assert!(errors.is_empty());

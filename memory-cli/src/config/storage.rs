@@ -107,27 +107,25 @@ async fn initialize_turso_storage(
     let storage_mode = db_config.storage_mode.as_deref().unwrap_or("remote");
 
     match storage_mode {
-        "memory" => {
-            match do_memory_storage_turso::TursoStorage::new_in_memory().await {
-                Ok(turso) => {
-                    if let Err(e) = turso.initialize_schema().await {
-                        status_messages.push(format!(
-                            "Warning: Failed to initialize in-memory Turso schema: {}",
-                            e
-                        ));
-                    } else {
-                        storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
-                        status_messages.push("In-memory Turso storage initialized".to_string());
-                    }
-                }
-                Err(e) => {
+        "memory" => match do_memory_storage_turso::TursoStorage::new_in_memory().await {
+            Ok(turso) => {
+                if let Err(e) = turso.initialize_schema().await {
                     status_messages.push(format!(
-                        "Warning: Failed to create in-memory Turso storage: {}",
+                        "Warning: Failed to initialize in-memory Turso schema: {}",
                         e
                     ));
+                } else {
+                    storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
+                    status_messages.push("In-memory Turso storage initialized".to_string());
                 }
             }
-        }
+            Err(e) => {
+                status_messages.push(format!(
+                    "Warning: Failed to create in-memory Turso storage: {}",
+                    e
+                ));
+            }
+        },
         "local" => {
             let path = db_config
                 .db_path
@@ -174,10 +172,8 @@ async fn initialize_turso_storage(
                 match do_memory_storage_turso::TursoStorage::new(turso_url, token).await {
                     Ok(turso) => {
                         if let Err(e) = turso.initialize_schema().await {
-                            status_messages.push(format!(
-                                "Warning: Failed to initialize Turso schema: {}",
-                                e
-                            ));
+                            status_messages
+                                .push(format!("Warning: Failed to initialize Turso schema: {}", e));
                         } else {
                             storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
                             status_messages
@@ -499,15 +495,11 @@ async fn try_setup_fallback_storage(
                         return create_fallback_with_redb(turso_storage, memory_config).await;
                         #[cfg(not(feature = "redb"))]
                         {
+                            let turso_arc = Arc::new(turso_storage);
                             let memory = SelfLearningMemory::with_storage(
                                 memory_config,
-                                Arc::new(turso_storage),
-                                SelfLearningMemory::with_config(memory_config.clone())
-                                    .storage_backends()
-                                    .1
-                                    .unwrap_or_else(|| {
-                                        Arc::new(do_memory_storage_redb::InMemoryStorage::new())
-                                    }),
+                                turso_arc.clone(),
+                                turso_arc,
                             );
                             Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
                         }

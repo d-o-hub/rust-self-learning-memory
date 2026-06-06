@@ -75,7 +75,6 @@ pub mod validation;
 
 use crate::embeddings::SemanticService;
 use crate::types::MemoryConfig;
-use std::path::Path;
 use std::sync::Arc;
 
 // Re-export pattern search types for public API
@@ -138,7 +137,6 @@ impl SelfLearningMemory {
     pub fn semantic_service(&self) -> Option<&Arc<SemanticService>> {
         self.semantic_service.as_ref()
     }
-
 
     /// Get a reference to the batch configuration.
     ///

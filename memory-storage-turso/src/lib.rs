@@ -125,8 +125,8 @@ pub mod transport;
 mod lib_impls;
 
 // Re-export public types from lib_impls
-pub use lib_impls::{StorageMode, TursoConfig};
 pub use lib_impls::TursoStorage;
+pub use lib_impls::{StorageMode, TursoConfig};
 
 // Cache exports
 pub use cache::query_cache::{AdvancedCacheStats, AdvancedQueryCache, QueryKey};

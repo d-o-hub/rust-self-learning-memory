@@ -34,7 +34,24 @@ pub async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory
             }
             "memory" => {
                 info!("Memory system initialized with in-memory storage (explicit)");
-                return Ok(Arc::new(SelfLearningMemory::with_in_memory_storage().await?));
+
+                // Use the new named constructor from do_memory_storage_turso
+                let storage = do_memory_storage_turso::TursoStorage::new_in_memory().await?;
+                storage.initialize_schema().await?;
+
+                // Also initialize an in-memory redb for caching
+                let cache = Arc::new(
+                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
+                        .await?,
+                );
+
+                let memory = SelfLearningMemory::with_storage(
+                    MemoryConfig::default(),
+                    Arc::new(storage),
+                    cache,
+                );
+
+                return Ok(Arc::new(memory));
             }
             "remote" => {
                 if let Ok(memory) = initialize_dual_storage().await {
@@ -42,7 +59,10 @@ pub async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory
                     return Ok(memory);
                 }
             }
-            _ => warn!("Unknown MEMORY_STORAGE_MODE: {}, following default order", mode),
+            _ => warn!(
+                "Unknown MEMORY_STORAGE_MODE: {}, following default order",
+                mode
+            ),
         }
     }
 

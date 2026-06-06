@@ -23,6 +23,7 @@
 //! - Helper functions
 
 use do_memory_core::*;
+#[cfg(feature = "turso")]
 use tempfile::{TempDir, tempdir};
 use uuid::Uuid;
 

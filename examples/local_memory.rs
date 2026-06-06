@@ -22,7 +22,18 @@ async fn main() -> anyhow::Result<()> {
     }
 
     info!("Connecting to local database at {}", db_path);
-    let memory = SelfLearningMemory::with_local_storage(db_path).await?;
+    // Use the new named constructor from do_memory_storage_turso
+    let storage = do_memory_storage_turso::TursoStorage::new_local(db_path).await?;
+    storage.initialize_schema().await?;
+
+    // Use an in-memory redb for caching
+    let cache = std::sync::Arc::new(do_memory_storage_redb::InMemoryStorage::new());
+
+    let memory = SelfLearningMemory::with_storage(
+        do_memory_core::MemoryConfig::default(),
+        std::sync::Arc::new(storage),
+        cache,
+    );
 
     // 2. Start an episode for a task
     let context = TaskContext::default();

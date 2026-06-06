@@ -7,11 +7,13 @@
 
 use do_memory_core::Result;
 use libsql::{Builder, Database};
+use std::path::Path;
 use std::sync::Arc;
 use tracing::info;
 
 use super::super::{
-    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, TursoConfig,
+    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, StorageMode,
+    TursoConfig,
 };
 #[cfg(feature = "keepalive-pool")]
 use super::super::{KeepAliveConfig, KeepAlivePool};
@@ -49,6 +51,40 @@ impl TursoStorage {
     /// ```
     pub async fn new(url: &str, token: &str) -> Result<Self> {
         Self::with_config(url, token, TursoConfig::default()).await
+    }
+
+    /// Connect to a local SQLite file. No auth token required.
+    /// Uses libsql::Builder::new_local() under the hood.
+    pub async fn new_local(path: impl AsRef<Path>) -> Result<Self> {
+        let path_str = path.as_ref().to_string_lossy();
+        let url = if path_str.starts_with("file:") {
+            path_str.to_string()
+        } else {
+            format!("file:{}", path_str)
+        };
+        Self::new(&url, "").await
+    }
+
+    /// In-memory SQLite database. Useful for tests and ephemeral agents.
+    /// Data is lost when the instance is dropped.
+    pub async fn new_in_memory() -> Result<Self> {
+        Self::new(":memory:", "").await
+    }
+
+    /// Connect to a remote Turso / libSQL server.
+    pub async fn new_remote(url: impl Into<String>, auth_token: impl Into<String>) -> Result<Self> {
+        let url_str = url.into();
+        let token_str = auth_token.into();
+        Self::new(&url_str, &token_str).await
+    }
+
+    /// Create a new storage instance from a StorageMode.
+    pub async fn from_storage_mode(mode: StorageMode) -> Result<Self> {
+        match mode {
+            StorageMode::Local { path } => Self::new_local(path).await,
+            StorageMode::InMemory => Self::new_in_memory().await,
+            StorageMode::Remote { url, auth_token } => Self::new_remote(url, auth_token).await,
+        }
     }
 
     /// Create a Turso storage instance from an existing Database

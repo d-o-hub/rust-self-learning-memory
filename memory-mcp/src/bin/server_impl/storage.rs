@@ -17,11 +17,35 @@ use tracing::{info, warn};
 /// Initialize the memory system with appropriate storage backends
 ///
 /// This function tries storage backends in order of preference:
-/// 1. Turso local (default, no configuration needed)
-/// 2. Turso cloud + redb (if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set)
-/// 3. redb-only (fallback when Turso is unavailable)
-/// 4. In-memory (last resort)
+/// 1. Named storage mode (if MEMORY_STORAGE_MODE is set)
+/// 2. Turso local (default, no configuration needed)
+/// 3. Turso cloud + redb (if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set)
+/// 4. redb-only (fallback when Turso is unavailable)
+/// 5. In-memory (last resort)
 pub async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
+    // Check for explicit storage mode override
+    if let Ok(mode) = std::env::var("MEMORY_STORAGE_MODE") {
+        match mode.to_lowercase().as_str() {
+            "local" => {
+                if let Ok(memory) = initialize_turso_local().await {
+                    info!("Memory system initialized with Turso local database (explicit)");
+                    return Ok(memory);
+                }
+            }
+            "memory" => {
+                info!("Memory system initialized with in-memory storage (explicit)");
+                return Ok(Arc::new(SelfLearningMemory::with_in_memory_storage().await?));
+            }
+            "remote" => {
+                if let Ok(memory) = initialize_dual_storage().await {
+                    info!("Memory system initialized with remote Turso (explicit)");
+                    return Ok(memory);
+                }
+            }
+            _ => warn!("Unknown MEMORY_STORAGE_MODE: {}, following default order", mode),
+        }
+    }
+
     // Try Turso local first (default behavior)
     if let Ok(memory) = initialize_turso_local().await {
         info!("Memory system initialized with Turso local database (default)");
@@ -157,8 +181,15 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     info!("Attempting to initialize Turso local database (default)...");
 
     // Use local Turso database file
-    let turso_url =
-        std::env::var("TURSO_DATABASE_URL").unwrap_or_else(|_| "file:./data/memory.db".to_string());
+    let turso_url = std::env::var("MEMORY_DB_PATH")
+        .map(|p| format!("file:{}", p))
+        .or_else(|_| std::env::var("TURSO_DATABASE_URL"))
+        .unwrap_or_else(|_| {
+            format!(
+                "file:{}",
+                do_memory_core::memory::default_db_path().to_string_lossy()
+            )
+        });
 
     // For local files, no token is needed
     let turso_token = if turso_url.starts_with("file:") {

@@ -25,6 +25,10 @@ pub struct DatabaseConfig {
     pub turso_token: Option<String>,
     /// redb database path for local cache storage
     pub redb_path: Option<String>,
+    /// Storage mode: "remote", "local", or "memory"
+    pub storage_mode: Option<String>,
+    /// Explicit database path for local mode
+    pub db_path: Option<String>,
 }
 
 /// Storage configuration for memory system behavior

@@ -97,6 +97,14 @@ struct Cli {
     #[arg(long)]
     dry_run: bool,
 
+    /// Storage mode to use (remote, local, memory)
+    #[arg(long, env = "MEMORY_STORAGE_MODE")]
+    storage_mode: Option<String>,
+
+    /// Path to the local SQLite database file
+    #[arg(long, env = "MEMORY_DB_PATH")]
+    db_path: Option<PathBuf>,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -221,10 +229,18 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Load configuration with validation
-    let config = match &cli.config {
+    let mut config = match &cli.config {
         Some(path) => load_config_with_validation(Some(path.as_ref()))?,
         None => load_config_with_validation(None)?,
     };
+
+    // Apply CLI overrides
+    if let Some(mode) = cli.storage_mode {
+        config.database.storage_mode = Some(mode);
+    }
+    if let Some(path) = cli.db_path {
+        config.database.db_path = Some(path.to_string_lossy().to_string());
+    }
 
     // Create memory system with storage backends
     let storage_result = initialize_storage(&config).await?;

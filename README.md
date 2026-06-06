@@ -215,16 +215,24 @@ cargo test --doc
 ./scripts/quality-gates.sh
 ```
 
-### Local Database Setup
+### Local Database Setup (Zero Credentials)
+
+The system supports a first-class local-only mode that requires no Turso account or cloud credentials.
 
 ```bash
-# Quick setup with the provided script
-./scripts/setup-local-db.sh
+# Via CLI (using auto-detected OS data directory)
+do-memory-cli --storage-mode local episode list
 
-# Or manual setup
-cp memory-cli/.env.example .env
-mkdir -p ./data ./backups
+# Via CLI (specifying a custom path)
+do-memory-cli --storage-mode local --db-path ./data/memory.db episode list
+
+# Via Environment Variables
+export MEMORY_STORAGE_MODE=local
+export MEMORY_DB_PATH=./data/memory.db
+do-memory-cli episode list
 ```
+
+For programmatic usage, see the [Local Development example](#local-development-no-credentials).
 
 ### Basic Usage
 
@@ -289,12 +297,31 @@ cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 
 #### Programmatic Usage
 
+**Local Development (No Credentials)**
+
+```rust
+use do_memory_core::SelfLearningMemory;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // 1. Local file-based storage
+    let memory = SelfLearningMemory::with_local_storage("./data/memory.db").await?;
+
+    // 2. Or in-memory storage (ephemeral)
+    // let memory = SelfLearningMemory::with_in_memory_storage().await?;
+
+    Ok(())
+}
+```
+
+**Episode Recording**
+
 ```rust
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let memory = SelfLearningMemory::new(Default::default()).await?;
+    let memory = SelfLearningMemory::new();
 
     let context = TaskContext {
         language: "rust".to_string(),

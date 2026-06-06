@@ -2,6 +2,36 @@
 //!
 //! This module contains the TursoConfig struct and its implementation.
 
+use std::path::PathBuf;
+
+/// Storage mode for Turso storage
+#[derive(Debug, Clone)]
+pub enum StorageMode {
+    /// Local file-based SQLite via libsql
+    Local {
+        /// Path to the SQLite database file
+        path: PathBuf,
+    },
+    /// In-memory SQLite (tests, ephemeral agents)
+    InMemory,
+    /// Remote Turso Cloud / libSQL server
+    Remote {
+        /// Database URL
+        url: String,
+        /// Authentication token
+        auth_token: String,
+    },
+}
+
+impl Default for StorageMode {
+    fn default() -> Self {
+        StorageMode::Remote {
+            url: String::new(),
+            auth_token: String::new(),
+        }
+    }
+}
+
 /// Configuration for Turso storage
 #[derive(Debug, Clone)]
 pub struct TursoConfig {

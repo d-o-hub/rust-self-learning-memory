@@ -69,11 +69,13 @@ pub mod step_buffer;
 mod tags;
 #[cfg(test)]
 mod tests;
+pub use init::default_db_path;
 pub mod types;
 pub mod validation;
 
 use crate::embeddings::SemanticService;
 use crate::types::MemoryConfig;
+use std::path::Path;
 use std::sync::Arc;
 
 // Re-export pattern search types for public API
@@ -137,6 +139,7 @@ impl SelfLearningMemory {
         self.semantic_service.as_ref()
     }
 
+
     /// Get a reference to the batch configuration.
     ///
     /// Returns `Some(&BatchConfig)` if step batching is enabled,
@@ -154,5 +157,19 @@ impl SelfLearningMemory {
     #[must_use]
     pub fn quality_threshold(&self) -> f32 {
         self.config.quality_threshold
+    }
+
+    /// Get the storage backends for this memory system.
+    ///
+    /// Returns `(Option<Arc<dyn StorageBackend>>, Option<Arc<dyn StorageBackend>>)`
+    /// where the first element is the primary storage and the second is the cache.
+    #[must_use]
+    pub fn storage_backends(
+        &self,
+    ) -> (
+        Option<Arc<dyn crate::storage::StorageBackend>>,
+        Option<Arc<dyn crate::storage::StorageBackend>>,
+    ) {
+        (self.turso_storage.clone(), self.cache_storage.clone())
     }
 }

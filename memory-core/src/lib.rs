@@ -84,6 +84,23 @@
 //!
 //! ## Quick Start
 //!
+//! ### Local Development (No Credentials)
+//!
+//! ```no_run
+//! use do_memory_core::SelfLearningMemory;
+//!
+//! #[tokio::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     // Use a local SQLite database file
+//!     let memory = SelfLearningMemory::with_local_storage("./data/memory.db").await?;
+//!
+//!     // Or use an in-memory database for testing
+//!     // let memory = SelfLearningMemory::with_in_memory_storage().await?;
+//!
+//!     Ok(())
+//! }
+//! ```
+//!
 //! ### Basic Episode Recording
 //!
 //! ```no_run

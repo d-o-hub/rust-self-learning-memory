@@ -1495,6 +1495,7 @@ dependencies = [
  "chaotic_semantic_memory",
  "chrono",
  "criterion",
+ "dirs",
  "do-memory-core",
  "do-memory-storage-redb",
  "do-memory-storage-turso",

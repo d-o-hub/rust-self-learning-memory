@@ -1,5 +1,6 @@
 ---
 source: memory-cli/tests/snapshot_tests.rs
+assertion_line: 20
 expression: stdout
 ---
 Command-line interface for Self-Learning Memory System
@@ -44,6 +45,16 @@ Options:
 
       --dry-run
           Show what would be done without executing
+
+      --storage-mode <STORAGE_MODE>
+          Storage mode to use (remote, local, memory)
+
+          [env: MEMORY_STORAGE_MODE=]
+
+      --db-path <DB_PATH>
+          Path to the local SQLite database file
+
+          [env: MEMORY_DB_PATH=]
 
   -h, --help
           Print help (see a summary with '-h')

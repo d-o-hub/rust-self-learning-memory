@@ -1,11 +1,14 @@
 use super::*;
 use do_memory_core::episode::Episode;
 use do_memory_core::{TaskContext, TaskType};
-use std::sync::Arc;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> (TursoStorage, TempDir) {
-    let (storage, dir) = do_memory_test_utils::temp_local_storage().await;
+    let dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let path = dir.path().join("test_memory.db");
+    let storage = TursoStorage::new_local(&path)
+        .await
+        .expect("Failed to create local storage");
     storage.initialize_schema().await.unwrap();
     (storage, dir)
 }

@@ -16,6 +16,8 @@ fn create_test_config_with_embeddings(enabled: bool, api_key_env: Option<String>
             turso_url: None,
             turso_token: None,
             redb_path: Some(":memory:".to_string()),
+            storage_mode: None,
+            db_path: None,
         },
         storage: StorageConfig {
             max_episodes_cache: 100,

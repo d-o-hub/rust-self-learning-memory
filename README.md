@@ -232,7 +232,7 @@ export MEMORY_DB_PATH=./data/memory.db
 do-memory-cli episode list
 ```
 
-For programmatic usage, see the [Local Development example](#local-development-no-credentials).
+For programmatic usage, see the [Local Development example](#local-offline-development).
 
 ### Basic Usage
 
@@ -297,10 +297,11 @@ cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 
 #### Programmatic Usage
 
-**Local Development (No Credentials)**
+##### Local Offline Development
 
 ```rust
 use do_memory_core::SelfLearningMemory;
+use do_memory_storage_turso::SelfLearningMemoryExt; // Required for convenience constructors
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

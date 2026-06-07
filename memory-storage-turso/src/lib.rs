@@ -128,6 +128,43 @@ mod lib_impls;
 pub use lib_impls::TursoStorage;
 pub use lib_impls::{StorageMode, TursoConfig};
 
+/// Extension trait for `SelfLearningMemory` to provide convenience constructors
+/// using the Turso storage backend.
+#[async_trait::async_trait]
+pub trait SelfLearningMemoryExt {
+    /// Create a memory system with local SQLite storage.
+    async fn with_local_storage(path: impl AsRef<std::path::Path> + Send) -> Result<do_memory_core::memory::SelfLearningMemory>;
+    /// Create a memory system with in-memory SQLite storage.
+    async fn with_in_memory_storage() -> Result<do_memory_core::memory::SelfLearningMemory>;
+}
+
+#[async_trait::async_trait]
+impl SelfLearningMemoryExt for do_memory_core::memory::SelfLearningMemory {
+    async fn with_local_storage(path: impl AsRef<std::path::Path> + Send) -> Result<do_memory_core::memory::SelfLearningMemory> {
+        let storage = TursoStorage::new_local(path).await?;
+        storage.initialize_schema().await?;
+
+        let cache = std::sync::Arc::new(do_memory_storage_redb::InMemoryStorage::new());
+        Ok(do_memory_core::memory::SelfLearningMemory::with_storage(
+            do_memory_core::MemoryConfig::default(),
+            std::sync::Arc::new(storage),
+            cache
+        ))
+    }
+
+    async fn with_in_memory_storage() -> Result<do_memory_core::memory::SelfLearningMemory> {
+        let storage = TursoStorage::new_in_memory().await?;
+        storage.initialize_schema().await?;
+
+        let cache = std::sync::Arc::new(do_memory_storage_redb::InMemoryStorage::new());
+        Ok(do_memory_core::memory::SelfLearningMemory::with_storage(
+            do_memory_core::MemoryConfig::default(),
+            std::sync::Arc::new(storage),
+            cache
+        ))
+    }
+}
+
 // Cache exports
 pub use cache::query_cache::{AdvancedCacheStats, AdvancedQueryCache, QueryKey};
 pub use cache::{

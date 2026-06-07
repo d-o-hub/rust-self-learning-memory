@@ -8,11 +8,17 @@ pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError>
     let mut errors = Vec::new();
 
     // Check if at least one storage option is configured
-    if config.turso_url.is_none() && config.redb_path.is_none() {
+    let is_local_or_memory =
+        matches!(config.storage_mode.as_deref(), Some("local") | Some("memory"));
+
+    if config.turso_url.is_none() && config.redb_path.is_none() && !is_local_or_memory {
         errors.push(ValidationError {
             field: "database".to_string(),
             message: "At least one database configuration is required".to_string(),
-            suggestion: Some("Configure either turso_url or redb_path".to_string()),
+            suggestion: Some(
+                "Configure either turso_url, redb_path, or set storage_mode to 'local' or 'memory'"
+                    .to_string(),
+            ),
             context: Some("No durable storage backend configured".to_string()),
         });
     }
@@ -143,6 +149,32 @@ mod tests {
         };
         let errors = validate_database_config(&config);
         assert!(!errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_local_mode() {
+        let config = DatabaseConfig {
+            turso_url: None,
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("local".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_memory_mode() {
+        let config = DatabaseConfig {
+            turso_url: None,
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("memory".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(errors.is_empty());
     }
 
     #[test]

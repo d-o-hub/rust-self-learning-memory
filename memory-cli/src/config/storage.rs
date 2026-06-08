@@ -1,12 +1,10 @@
 //! Storage initialization module – unified backend setup logic.
 
-mod storage_config;
-
+use super::storage_config::create_memory_config;
 use super::types::{Config, DatabaseConfig};
 use anyhow::{Context, Result};
 use do_memory_core::{MemoryConfig, SelfLearningMemory, StorageBackend};
 use std::sync::Arc;
-pub use storage_config::create_memory_config;
 
 /// Storage initialization result with detailed information
 pub struct StorageInitResult {

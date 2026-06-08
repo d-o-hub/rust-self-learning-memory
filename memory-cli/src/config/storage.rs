@@ -499,7 +499,12 @@ async fn try_setup_fallback_storage(
                             let memory = SelfLearningMemory::with_storage(
                                 memory_config,
                                 turso_arc,
-                                Arc::new(do_memory_storage_redb::InMemoryStorage::new()),
+                                Arc::new(
+                                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(
+                                        ":memory:",
+                                    ))
+                                    .await?,
+                                ),
                             );
                             Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
                         }

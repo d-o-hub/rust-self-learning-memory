@@ -133,22 +133,30 @@ pub use lib_impls::{StorageMode, TursoConfig};
 #[async_trait::async_trait]
 pub trait SelfLearningMemoryExt {
     /// Create a memory system with local SQLite storage.
-    async fn with_local_storage(path: impl AsRef<std::path::Path> + Send) -> Result<do_memory_core::memory::SelfLearningMemory>;
+    async fn with_local_storage(
+        path: impl AsRef<std::path::Path> + Send,
+    ) -> Result<do_memory_core::memory::SelfLearningMemory>;
     /// Create a memory system with in-memory SQLite storage.
     async fn with_in_memory_storage() -> Result<do_memory_core::memory::SelfLearningMemory>;
 }
 
 #[async_trait::async_trait]
 impl SelfLearningMemoryExt for do_memory_core::memory::SelfLearningMemory {
-    async fn with_local_storage(path: impl AsRef<std::path::Path> + Send) -> Result<do_memory_core::memory::SelfLearningMemory> {
+    async fn with_local_storage(
+        path: impl AsRef<std::path::Path> + Send,
+    ) -> Result<do_memory_core::memory::SelfLearningMemory> {
         let storage = TursoStorage::new_local(path).await?;
         storage.initialize_schema().await?;
 
-        let cache = std::sync::Arc::new(do_memory_storage_redb::InMemoryStorage::new());
+        let cache = std::sync::Arc::new(
+            do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?,
+        );
         Ok(do_memory_core::memory::SelfLearningMemory::with_storage(
             do_memory_core::MemoryConfig::default(),
             std::sync::Arc::new(storage),
-            cache
+            cache,
         ))
     }
 
@@ -156,11 +164,15 @@ impl SelfLearningMemoryExt for do_memory_core::memory::SelfLearningMemory {
         let storage = TursoStorage::new_in_memory().await?;
         storage.initialize_schema().await?;
 
-        let cache = std::sync::Arc::new(do_memory_storage_redb::InMemoryStorage::new());
+        let cache = std::sync::Arc::new(
+            do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?,
+        );
         Ok(do_memory_core::memory::SelfLearningMemory::with_storage(
             do_memory_core::MemoryConfig::default(),
             std::sync::Arc::new(storage),
-            cache
+            cache,
         ))
     }
 }

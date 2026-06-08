@@ -279,8 +279,6 @@ async fn initialize_redb_storage(
     Ok((storage, status_messages))
 }
 
-
-
 /// Determine storage combination and create memory system
 async fn determine_storage_combination(
     config: &Config,

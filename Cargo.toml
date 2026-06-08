@@ -41,7 +41,7 @@ redb = "4.1"
 
 # UUID and time
 uuid = { version = "1.23", features = ["v4", "serde"] }
-chrono = { version = "0.4.44", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 
 # Logging and tracing
 tracing = "0.1.44"
@@ -51,7 +51,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tempfile = "3.27.0"
 proptest = "1.11"
 insta = { version = "1.47", features = ["json"] }
-serial_test = "3.4"
+serial_test = "3.5"
 assert_cmd = "2.2"
 predicates = "3.1"
 

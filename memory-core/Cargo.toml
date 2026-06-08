@@ -110,7 +110,7 @@ tempfile = { workspace = true }
 do-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
-serial_test = "3.5"
+serial_test = "3.4"
 criterion = "0.8"
 proptest = "1.11"
 insta = "1.47"

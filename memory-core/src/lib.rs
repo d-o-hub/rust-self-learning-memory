@@ -88,7 +88,6 @@
 //!
 //! ```no_run
 //! use do_memory_core::SelfLearningMemory;
-//! use do_memory_storage_turso::SelfLearningMemoryExt;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

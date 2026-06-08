@@ -1,5 +1,4 @@
 use super::*;
-use crate::TursoConfig;
 use do_memory_core::episode::Episode;
 use do_memory_core::{TaskContext, TaskType};
 use tempfile::TempDir;
@@ -7,12 +6,7 @@ use tempfile::TempDir;
 async fn create_test_storage() -> (TursoStorage, TempDir) {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let path = dir.path().join("test_memory.db");
-    let url = format!("file:{}", path.to_string_lossy());
-    let config = TursoConfig {
-        enable_pooling: false,
-        ..TursoConfig::default()
-    };
-    let storage = TursoStorage::with_config(&url, "", config)
+    let storage = TursoStorage::new_local(&path)
         .await
         .expect("Failed to create local storage");
     storage.initialize_schema().await.unwrap();

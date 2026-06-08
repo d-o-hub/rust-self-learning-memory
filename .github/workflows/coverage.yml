@@ -158,7 +158,7 @@ jobs:
           RUST_LOG: info
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v6
         with:
           files: ./lcov.info
           fail_ci_if_error: false

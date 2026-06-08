@@ -35,7 +35,6 @@ pub mod loader;
 pub mod progressive;
 pub mod simple;
 pub mod storage;
-pub mod storage_config;
 pub mod types;
 pub mod validator;
 pub mod wizard;

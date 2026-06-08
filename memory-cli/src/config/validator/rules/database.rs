@@ -8,10 +8,7 @@ pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError>
     let mut errors = Vec::new();
 
     // Check if at least one storage option is configured
-    let is_local_or_memory = matches!(
-        config.storage_mode.as_deref(),
-        Some("local") | Some("memory")
-    );
+    let is_local_or_memory = matches!(config.storage_mode.as_deref(), Some("local" | "memory"));
 
     if config.turso_url.is_none() && config.redb_path.is_none() && !is_local_or_memory {
         errors.push(ValidationError {

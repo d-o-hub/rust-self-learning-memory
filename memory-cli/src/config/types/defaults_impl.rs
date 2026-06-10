@@ -9,6 +9,8 @@ impl Default for DatabaseConfig {
             turso_url: defaults::detect_turso_url(),
             turso_token: defaults::detect_turso_token(),
             redb_path: Some(defaults::detect_redb_path()),
+            storage_mode: None,
+            db_path: None,
         }
     }
 }

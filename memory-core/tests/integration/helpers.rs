@@ -67,7 +67,7 @@ impl TestEnvironment {
         let redb_path = temp_dir.path().join("cache.redb");
 
         // Create Turso storage
-        let turso = TursoStorage::new(&turso_url, "").await?;
+        let turso = TursoStorage::new_local(&db_path).await?;
         turso.initialize_schema().await?;
         let turso_arc = Arc::new(turso);
 
@@ -106,7 +106,7 @@ impl TestEnvironment {
         let redb_path = temp_dir.path().join("cache.redb");
 
         // Create Turso storage
-        let turso = TursoStorage::new(&turso_url, "").await?;
+        let turso = TursoStorage::new_local(&db_path).await?;
         turso.initialize_schema().await?;
         let turso_arc = Arc::new(turso);
 

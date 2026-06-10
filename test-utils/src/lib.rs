@@ -23,6 +23,8 @@
 //! - Helper functions
 
 use do_memory_core::*;
+#[cfg(feature = "turso")]
+use tempfile::{TempDir, tempdir};
 use uuid::Uuid;
 
 /// Create a test episode with minimal configuration
@@ -173,6 +175,25 @@ pub fn create_test_reflection() -> Reflection {
         insights: vec!["Use caching".to_string()],
         generated_at: chrono::Utc::now(),
     }
+}
+
+/// Create an in-memory Turso storage instance for testing
+#[cfg(feature = "turso")]
+pub async fn in_memory_storage() -> do_memory_storage_turso::TursoStorage {
+    do_memory_storage_turso::TursoStorage::new_in_memory()
+        .await
+        .expect("Failed to create in-memory storage")
+}
+
+/// Create a temporary local Turso storage instance for testing
+#[cfg(feature = "turso")]
+pub async fn temp_local_storage() -> (do_memory_storage_turso::TursoStorage, TempDir) {
+    let dir = tempdir().expect("Failed to create temp dir");
+    let path = dir.path().join("test_memory.db");
+    let storage = do_memory_storage_turso::TursoStorage::new_local(&path)
+        .await
+        .expect("Failed to create local storage");
+    (storage, dir)
 }
 
 // Re-export multi-dimension test utilities

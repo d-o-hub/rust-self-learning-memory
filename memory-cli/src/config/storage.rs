@@ -104,30 +104,96 @@ async fn initialize_turso_storage(
     let mut storage = None;
     let mut status_messages = Vec::new();
 
-    if let Some(turso_url) = &db_config.turso_url {
-        let token = db_config.turso_token.as_deref().unwrap_or("");
+    let storage_mode = db_config.storage_mode.as_deref().unwrap_or("remote");
 
-        match do_memory_storage_turso::TursoStorage::new(turso_url, token).await {
+    match storage_mode {
+        "memory" => match do_memory_storage_turso::TursoStorage::new_in_memory().await {
             Ok(turso) => {
                 if let Err(e) = turso.initialize_schema().await {
-                    status_messages
-                        .push(format!("Warning: Failed to initialize Turso schema: {}", e));
+                    status_messages.push(format!(
+                        "Warning: Failed to initialize in-memory Turso schema: {}",
+                        e
+                    ));
                 } else {
                     storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
-                    status_messages.push(format!("Turso storage initialized: {}", turso_url));
+                    status_messages.push("In-memory Turso storage initialized".to_string());
                 }
             }
             Err(e) => {
-                status_messages.push(format!("Warning: Failed to create Turso storage: {}", e));
+                status_messages.push(format!(
+                    "Warning: Failed to create in-memory Turso storage: {}",
+                    e
+                ));
+            }
+        },
+        "local" => {
+            let path = db_config
+                .db_path
+                .as_ref()
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(do_memory_core::memory::default_db_path);
+
+            if let Some(parent) = path.parent() {
+                tokio::fs::create_dir_all(parent).await.context(format!(
+                    "Failed to create directory for local database: {}",
+                    parent.display()
+                ))?;
+            }
+
+            match do_memory_storage_turso::TursoStorage::new_local(&path).await {
+                Ok(turso) => {
+                    if let Err(e) = turso.initialize_schema().await {
+                        status_messages.push(format!(
+                            "Warning: Failed to initialize local Turso schema: {}",
+                            e
+                        ));
+                    } else {
+                        storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
+                        status_messages.push(format!(
+                            "Local Turso storage initialized: {}",
+                            path.display()
+                        ));
+                    }
+                }
+                Err(e) => {
+                    status_messages.push(format!(
+                        "Warning: Failed to create local Turso storage at {}: {}",
+                        path.display(),
+                        e
+                    ));
+                }
             }
         }
-    }
+        _ => {
+            // Default to remote
+            if let Some(turso_url) = &db_config.turso_url {
+                let token = db_config.turso_token.as_deref().unwrap_or("");
 
-    // If no explicit Turso config, try local SQLite fallback
-    if storage.is_none() {
-        let (local_storage, local_messages) = try_local_sqlite_fallback(db_config).await?;
-        storage = local_storage;
-        status_messages.extend(local_messages);
+                match do_memory_storage_turso::TursoStorage::new(turso_url, token).await {
+                    Ok(turso) => {
+                        if let Err(e) = turso.initialize_schema().await {
+                            status_messages
+                                .push(format!("Warning: Failed to initialize Turso schema: {}", e));
+                        } else {
+                            storage = Some(Arc::new(turso) as Arc<dyn StorageBackend>);
+                            status_messages
+                                .push(format!("Turso storage initialized: {}", turso_url));
+                        }
+                    }
+                    Err(e) => {
+                        status_messages
+                            .push(format!("Warning: Failed to create Turso storage: {}", e));
+                    }
+                }
+            }
+
+            // If no explicit Turso config, try local SQLite fallback
+            if storage.is_none() {
+                let (local_storage, local_messages) = try_local_sqlite_fallback(db_config).await?;
+                storage = local_storage;
+                status_messages.extend(local_messages);
+            }
+        }
     }
 
     Ok((storage, status_messages))
@@ -429,15 +495,16 @@ async fn try_setup_fallback_storage(
                         return create_fallback_with_redb(turso_storage, memory_config).await;
                         #[cfg(not(feature = "redb"))]
                         {
+                            let turso_arc = Arc::new(turso_storage);
                             let memory = SelfLearningMemory::with_storage(
                                 memory_config,
-                                Arc::new(turso_storage),
-                                SelfLearningMemory::with_config(memory_config.clone())
-                                    .storage_backends()
-                                    .1
-                                    .unwrap_or_else(|| {
-                                        Arc::new(do_memory_storage_redb::InMemoryStorage::new())
-                                    }),
+                                turso_arc,
+                                Arc::new(
+                                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(
+                                        ":memory:",
+                                    ))
+                                    .await?,
+                                ),
                             );
                             Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
                         }

@@ -7,11 +7,13 @@
 
 use do_memory_core::Result;
 use libsql::{Builder, Database};
+use std::path::Path;
 use std::sync::Arc;
 use tracing::info;
 
 use super::super::{
-    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, TursoConfig,
+    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, StorageMode,
+    TursoConfig,
 };
 #[cfg(feature = "keepalive-pool")]
 use super::super::{KeepAliveConfig, KeepAlivePool};
@@ -49,6 +51,64 @@ impl TursoStorage {
     /// ```
     pub async fn new(url: &str, token: &str) -> Result<Self> {
         Self::with_config(url, token, TursoConfig::default()).await
+    }
+
+    /// Build a [`TursoConfig`] suited to local/in-memory SQLite backends.
+    ///
+    /// Connection pooling and the keep-alive background task are network
+    /// optimizations for remote libSQL servers. They provide no benefit for a
+    /// single local SQLite file and actively cause problems: a keep-alive task
+    /// holds libsql connections that, when dropped outside a Tokio runtime (for
+    /// example as a `#[tokio::test]` runtime tears down), abort with SIGSEGV.
+    /// Local modes therefore use a single direct connection.
+    fn local_config() -> TursoConfig {
+        TursoConfig {
+            enable_pooling: false,
+            #[cfg(feature = "keepalive-pool")]
+            enable_keepalive: false,
+            ..TursoConfig::default()
+        }
+    }
+
+    /// Connect to a local SQLite file. No auth token required.
+    /// Uses `libsql::Builder::new_local()` directly so we never go through the
+    /// remote-style URL parsing path; a `file:` URL would be re-parsed by the
+    /// libsql builder and is not needed for a local file connection.
+    pub async fn new_local(path: impl AsRef<Path>) -> Result<Self> {
+        let db = Builder::new_local(path.as_ref())
+            .build()
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to connect to local Turso: {e}"))
+            })?;
+        Self::assemble_from_db(db, Self::local_config()).await
+    }
+
+    /// In-memory SQLite database. Useful for tests and ephemeral agents.
+    /// Data is lost when the instance is dropped.
+    /// Uses `libsql::Builder::new_local(":memory:")` for a true embedded
+    /// in-memory database (does not route through the remote URL path).
+    pub async fn new_in_memory() -> Result<Self> {
+        let db = Builder::new_local(":memory:").build().await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to connect to in-memory Turso: {e}"))
+        })?;
+        Self::assemble_from_db(db, Self::local_config()).await
+    }
+
+    /// Connect to a remote Turso / libSQL server.
+    pub async fn new_remote(url: impl Into<String>, auth_token: impl Into<String>) -> Result<Self> {
+        let url_str = url.into();
+        let token_str = auth_token.into();
+        Self::new(&url_str, &token_str).await
+    }
+
+    /// Create a new storage instance from a StorageMode.
+    pub async fn from_storage_mode(mode: StorageMode) -> Result<Self> {
+        match mode {
+            StorageMode::Local { path } => Self::new_local(path).await,
+            StorageMode::InMemory => Self::new_in_memory().await,
+            StorageMode::Remote { url, auth_token } => Self::new_remote(url, auth_token).await,
+        }
     }
 
     /// Create a Turso storage instance from an existing Database
@@ -141,6 +201,13 @@ impl TursoStorage {
             })?
         };
 
+        Self::assemble_from_db(db, config).await
+    }
+
+    /// Build the `Self` value (pool, keep-alive, prepared cache) from an
+    /// already-constructed `libsql::Database`. This is the shared post-build
+    /// pipeline used by every constructor so the wiring lives in one place.
+    async fn assemble_from_db(db: Database, config: TursoConfig) -> Result<Self> {
         let db = Arc::new(db);
 
         // Create connection pool if enabled

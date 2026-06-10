@@ -39,6 +39,8 @@ proptest! {
             turso_url: None,
             turso_token,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -54,6 +56,8 @@ proptest! {
             turso_url: None,
             turso_token: None,
             redb_path: Some(path),
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -71,6 +75,8 @@ proptest! {
             turso_url: Some(url),
             turso_token: Some("test-token".to_string()),
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -86,6 +92,8 @@ proptest! {
             turso_url: Some(whitespace),
             turso_token: None,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -102,6 +110,8 @@ proptest! {
             turso_url: Some(url),
             turso_token: None,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -121,6 +131,8 @@ proptest! {
             turso_url: Some(url),
             turso_token: None,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
 
         let result = validate_database_config(&db);
@@ -254,6 +266,8 @@ proptest! {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
             },
             StorageConfig {
                 max_episodes_cache: cache_size,
@@ -314,6 +328,8 @@ proptest! {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
             },
             StorageConfig {
                 max_episodes_cache: cache_size,
@@ -350,6 +366,8 @@ proptest! {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
             },
             StorageConfig {
                 max_episodes_cache: cache_size,

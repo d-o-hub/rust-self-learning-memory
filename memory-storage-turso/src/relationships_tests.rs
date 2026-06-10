@@ -1,42 +1,15 @@
 use super::*;
 use do_memory_core::episode::Episode;
 use do_memory_core::{TaskContext, TaskType};
-use std::sync::Arc;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> (TursoStorage, TempDir) {
-    let dir = TempDir::new().expect("Failed to create temp dir");
-    let db_path = dir.path().join("test.db");
-
-    let db = libsql::Builder::new_local(&db_path)
-        .build()
+    let dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let path = dir.path().join("test_memory.db");
+    let storage = TursoStorage::new_local(&path)
         .await
-        .expect("Failed to create test database");
-
-    let storage = TursoStorage {
-        db: Arc::new(db),
-        pool: None,
-        #[cfg(feature = "keepalive-pool")]
-        keepalive_pool: None,
-        adaptive_pool: None,
-        caching_pool: None,
-        prepared_cache: Arc::new(crate::PreparedStatementCache::with_config(
-            crate::PreparedCacheConfig::default(),
-        )),
-        config: crate::TursoConfig::default(),
-        #[cfg(feature = "compression")]
-        compression_stats: Arc::new(std::sync::Mutex::new(
-            crate::CompressionStatistics::default(),
-        )),
-        #[cfg(feature = "adaptive-ttl")]
-        episode_cache: None,
-    };
-
-    storage
-        .initialize_schema()
-        .await
-        .expect("Failed to initialize schema");
-
+        .expect("Failed to create local storage");
+    storage.initialize_schema().await.unwrap();
     (storage, dir)
 }
 

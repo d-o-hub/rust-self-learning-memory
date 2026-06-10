@@ -1,10 +1,10 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-22 (v0.1.32 missing-impl sprint mid-flight — 9 of 15 WGs landed; CI/release prep complete)
+**Last Updated**: 2026-06-10 (PR #611 open with CI failures; CI fix session completed 2026-06-09)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
-**Current Workspace Version**: 0.1.32 (CI/release prep complete + sprint in flight)
+**Current Workspace Version**: 0.1.32 (sprint in flight — v0.1.32 not yet released)
 **Active Sprint**: v0.1.32 — see [GOAP_STATE.md](../GOAP_STATE.md), [GOAP plan](../GOAP_MISSING_IMPLEMENTATION_2026-05-21.md)
-**Branch**: `main` (clean)
+**Branch**: `feat/turso-local-mode-12832947082971821257` (PR #611 open, CI failing)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
@@ -81,13 +81,25 @@ Re-audit command:
 
 ### Open Issues
 
-No open issues — all closed.
+| # | Title | Labels | Status |
+|---|-------|--------|--------|
+| [#610](https://github.com/d-o-hub/rust-self-learning-memory/issues/610) | feat(turso): expose local/offline mode as a first-class config path | jules | 🔴 Open — blocked on PR #611 CI |
 
 ### Open PRs
 
-| # | Title | Status |
-|---|-------|--------|
-| — | No open PRs | ✅ All merged |
+| # | Title | Branch | CI Status |
+|---|-------|--------|-----------|
+| [#611](https://github.com/d-o-hub/rust-self-learning-memory/pull/611) | Expose local/offline mode as a first-class config path | `feat/turso-local-mode` | 🔴 Failing (Tests, Multi-Platform ubuntu/macos, Coverage) |
+
+**PR #611 CI failures** (last run 2026-06-08):
+- `Tests` — FAILURE: SIGSEGV in turso relationship tests under `keepalive-pool` feature
+- `Multi-Platform Test (ubuntu-latest)` — FAILURE: same root cause
+- `Multi-Platform Test (macos-latest)` — FAILURE: same root cause
+- `Code Coverage Analysis` — FAILURE: CLI `test_cli_help_output` snapshot mismatch
+
+**CI fix plan**: See [`plans/GOAP_PR611_CI_FIX_2026-06-09.md`](../GOAP_PR611_CI_FIX_2026-06-09.md) for
+root cause analysis and fix (local_config disables pooling+keepalive for SQLite; snapshot regen). Fix was
+authored 2026-06-09 and needs to be pushed to the PR branch to trigger re-run.
 
 ### Recently Merged PRs
 

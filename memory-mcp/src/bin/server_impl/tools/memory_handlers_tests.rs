@@ -14,7 +14,7 @@ async fn test_handle_query_memory_field_truncation() {
     // Verify constant
     assert_eq!(do_memory_mcp::constants::MAX_QUERY_FIELDS, 20);
 
-    let many_fields: Vec<String> = (0..100).map(|i| format!("field_{}", i)).collect();
+    let many_fields: Vec<String> = (0..100).map(|i| format!("field_{i}")).collect();
     let args = json!({
         "query": "test",
         "fields": many_fields,
@@ -71,7 +71,7 @@ async fn test_advanced_analysis_truncation() {
         .unwrap();
     let mut data = std::collections::HashMap::new();
     for i in 0..20 {
-        data.insert(format!("v{}", i), vec![0.0; 2000]);
+        data.insert(format!("v{i}"), vec![0.0; 2000]);
     }
     let _ = handle_advanced_pattern_analysis(
         &mut server,
@@ -88,7 +88,7 @@ async fn test_advanced_analysis_within_series_limit() {
         .unwrap();
     let mut data = std::collections::HashMap::new();
     for i in 0..5 {
-        data.insert(format!("v{}", i), vec![0.0; 2000]);
+        data.insert(format!("v{i}"), vec![0.0; 2000]);
     }
     let _ = handle_advanced_pattern_analysis(
         &mut server,

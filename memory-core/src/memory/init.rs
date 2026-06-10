@@ -13,9 +13,18 @@ use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryConfig};
 use std::collections::HashMap;
+use std::path::PathBuf;
 #[allow(unused_imports)]
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore, broadcast};
+
+/// Get the default database path in the OS-appropriate data directory.
+pub fn default_db_path() -> PathBuf {
+    dirs::data_local_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("do-memory")
+        .join("memory.db")
+}
 
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]

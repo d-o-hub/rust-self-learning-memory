@@ -1,20 +1,24 @@
 # Gap Analysis — 2026-04-22 Audit (v0.1.30 Post-Release)
 
 **Generated**: 2026-04-22
-**Last Re-verified**: 2026-05-22 (v0.1.32 missing-implementation cluster — see footer)
+**Last Re-verified**: 2026-06-10 (PR #611 open with CI failures; 6 WGs from v0.1.32 sprint still open — see footer)
 **Method**: Fresh metrics collection + ROADMAP_ACTIVE.md review
 **Scope**: Verify resolution of v0.1.22 gaps, assess current state
 
-> **2026-05-22 verification footer**: The 2026-05-21 audit found 15 missing-impl gaps
-> (WG-150..WG-164). Re-running the audit on 2026-05-22 confirms **9 resolved**
-> (WG-150/151/152/153/155/159/163/164 + bonus WG-152/153 as typed-error decisions)
-> and **6 still open**: WG-154 (Mistral binary dequantization), WG-156
-> (`pattern_match_score=0.8`), WG-157 (`memory_usage_mb=50.0`), WG-158
+> **2026-06-10 verification footer**: PR #611 (feat: local/offline mode, issue #610) is open on
+> branch `feat/turso-local-mode-12832947082971821257` with 4 CI failures (Tests, Multi-Platform ×2,
+> Coverage). Root cause: SIGSEGV in turso relationship tests under `keepalive-pool` feature
+> (`new_local` routed through pooling config) + CLI help snapshot mismatch. Fix documented in
+> `plans/GOAP_PR611_CI_FIX_2026-06-09.md` — fix adds `local_config()` (pooling=false,
+> keepalive=false) and regenerates snapshot via `cargo insta accept`. Fix not yet pushed to branch.
+>
+> The 2026-05-21 audit found 15 missing-impl gaps (WG-150..WG-164). As of 2026-06-10 **6 still
+> open**: WG-156 (`pattern_match_score=0.8`), WG-157 (`memory_usage_mb=50.0`), WG-158
 > (`episode_success_rate=99.0`), WG-160 (Turso cache `query_hits/evictions=0`),
 > WG-161 (`estimate_api_call_probability` placeholder), WG-162
 > (`generate_simple_embedding` prod placeholder). Phase 4 (validation + version
-> bump + `gh release create v0.1.32`) is blocked on these 6. See
-> [`../GOAP_STATE.md`](../GOAP_STATE.md) for per-WG evidence.
+> bump + `gh release create v0.1.32`) is blocked on these 6 AND on PR #611 merge.
+> See [`../GOAP_STATE.md`](../GOAP_STATE.md) for per-WG evidence and PR #611 fix plan.
 
 ---
 

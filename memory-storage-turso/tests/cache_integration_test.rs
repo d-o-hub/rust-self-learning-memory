@@ -8,15 +8,13 @@
 #![allow(clippy::uninlined_format_args)]
 
 use do_memory_core::{Episode, Pattern, PatternId, Result, StorageBackend, TaskContext, TaskType};
-use do_memory_storage_turso::{CacheConfig, PreparedCacheConfig, TursoStorage};
+use do_memory_storage_turso::{CacheConfig, PreparedCacheConfig};
+use do_memory_test_utils::temp_local_storage;
 use std::time::Duration;
-use tempfile::TempDir;
 
-async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
-    let dir = TempDir::new()?;
-    let db_path = dir.path().join("test.db");
-
-    let storage = TursoStorage::new(&format!("file:{}", db_path.display()), "").await?;
+async fn create_test_storage() -> Result<(do_memory_storage_turso::TursoStorage, tempfile::TempDir)>
+{
+    let (storage, dir) = temp_local_storage().await;
     storage.initialize_schema().await?;
 
     Ok((storage, dir))

@@ -12,5 +12,5 @@ mod helpers_cache;
 mod storage;
 
 // Re-export public types
-pub use config::TursoConfig;
+pub use config::{StorageMode, TursoConfig};
 pub use storage::TursoStorage;

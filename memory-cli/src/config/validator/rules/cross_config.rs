@@ -59,6 +59,8 @@ mod tests {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
             },
             storage: StorageConfig {
                 max_episodes_cache: 1000,

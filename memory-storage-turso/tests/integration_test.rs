@@ -11,19 +11,12 @@
 #![allow(clippy::uninlined_format_args)]
 
 use do_memory_core::{Episode, TaskContext, TaskType};
-use do_memory_storage_turso::{EpisodeQuery, TursoStorage};
-use tempfile::TempDir;
+use do_memory_storage_turso::EpisodeQuery;
+use do_memory_test_utils::temp_local_storage;
 
-async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
-    let dir = TempDir::new()?;
-    let db_path = dir.path().join("test.db");
-
-    // Create Turso storage with local file database
-    let url = format!(
-        "file://{}",
-        db_path.to_str().expect("temp path should be valid UTF-8")
-    );
-    let storage = TursoStorage::new(&url, "").await?;
+async fn create_test_storage()
+-> anyhow::Result<(do_memory_storage_turso::TursoStorage, tempfile::TempDir)> {
+    let (storage, dir) = temp_local_storage().await;
     storage.initialize_schema().await?;
     Ok((storage, dir))
 }

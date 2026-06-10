@@ -33,6 +33,8 @@ impl ConfigPreset {
                         } else {
                             "./data/cache.redb".to_string()
                         }), // CI uses in-memory
+                        storage_mode: Some("local".to_string()),
+                        db_path: None,
                     },
                     storage: StorageConfig {
                         max_episodes_cache: if info.is_ci {
@@ -73,6 +75,8 @@ impl ConfigPreset {
                             .or(Some("file:./data/memory.db".to_string())),
                         turso_token: defaults::detect_turso_token(),
                         redb_path: Some("./data/cache.redb".to_string()), // Consistent path
+                        storage_mode: Some("remote".to_string()),
+                        db_path: None,
                     },
                     storage: StorageConfig {
                         max_episodes_cache: std::cmp::min(5000, defaults::suggest_cache_size()),
@@ -92,6 +96,8 @@ impl ConfigPreset {
                     turso_url: None,
                     turso_token: None,
                     redb_path: Some(":memory:".to_string()),
+                    storage_mode: Some("memory".to_string()),
+                    db_path: None,
                 },
                 storage: StorageConfig {
                     max_episodes_cache: 100, // Minimal for testing

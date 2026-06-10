@@ -8,11 +8,38 @@ pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError>
     let mut errors = Vec::new();
 
     // Check if at least one storage option is configured
-    if config.turso_url.is_none() && config.redb_path.is_none() {
+    let is_local_or_memory = matches!(config.storage_mode.as_deref(), Some("local" | "memory"));
+
+    // Validate that `storage_mode` is one of the recognized values.
+    // An unrecognized value (anything other than "remote", "local", or
+    // "memory") is a hard error: silently treating it as a valid mode
+    // would either fall through to the wrong backend or be ignored
+    // entirely, both of which mask configuration mistakes.
+    if let Some(mode) = config.storage_mode.as_deref() {
+        if !matches!(mode, "remote" | "local" | "memory") {
+            errors.push(ValidationError {
+                field: "database.storage_mode".to_string(),
+                message: format!(
+                    "Unrecognized storage_mode '{}': expected one of 'remote', 'local', 'memory'",
+                    mode
+                ),
+                suggestion: Some(
+                    "Set storage_mode to 'remote', 'local', or 'memory' (or remove the field)"
+                        .to_string(),
+                ),
+                context: Some("Storage backend selection".to_string()),
+            });
+        }
+    }
+
+    if config.turso_url.is_none() && config.redb_path.is_none() && !is_local_or_memory {
         errors.push(ValidationError {
             field: "database".to_string(),
             message: "At least one database configuration is required".to_string(),
-            suggestion: Some("Configure either turso_url or redb_path".to_string()),
+            suggestion: Some(
+                "Configure either turso_url, redb_path, or set storage_mode to 'local' or 'memory'"
+                    .to_string(),
+            ),
             context: Some("No durable storage backend configured".to_string()),
         });
     }
@@ -138,9 +165,73 @@ mod tests {
             turso_url: None,
             turso_token: None,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         };
         let errors = validate_database_config(&config);
         assert!(!errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_local_mode() {
+        let config = DatabaseConfig {
+            turso_url: None,
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("local".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_memory_mode() {
+        let config = DatabaseConfig {
+            turso_url: None,
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("memory".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_remote_mode() {
+        // "remote" is a recognized storage_mode and should not produce an
+        // error by itself (although the user must also supply a turso_url
+        // for the connection to be useful).
+        let config = DatabaseConfig {
+            turso_url: Some("libsql://example.com".to_string()),
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("remote".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_database_config_unrecognized_storage_mode() {
+        // Anything that is not "remote", "local", or "memory" must be
+        // rejected so we do not silently fall through to the wrong backend.
+        let config = DatabaseConfig {
+            turso_url: Some("libsql://example.com".to_string()),
+            turso_token: None,
+            redb_path: None,
+            storage_mode: Some("postgres".to_string()),
+            db_path: None,
+        };
+        let errors = validate_database_config(&config);
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.field == "database.storage_mode" && e.message.contains("postgres")),
+            "expected a validation error mentioning the unrecognized mode, got: {errors:?}"
+        );
     }
 
     #[test]
@@ -149,6 +240,8 @@ mod tests {
             turso_url: None,
             turso_token: None,
             redb_path: Some("/tmp/test.redb".to_string()),
+            storage_mode: None,
+            db_path: None,
         };
         let errors = validate_database_config(&config);
         assert!(errors.is_empty());

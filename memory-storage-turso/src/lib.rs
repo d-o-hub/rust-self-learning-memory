@@ -228,3 +228,27 @@ pub use transport::{
 //
 // Helper methods are in:
 // - lib_impls::helpers (get_connection, get_count, etc.)
+
+#[cfg(test)]
+mod ext_tests {
+    use super::*;
+    use do_memory_core::memory::SelfLearningMemory;
+
+    #[tokio::test]
+    async fn test_with_in_memory_storage() {
+        let memory = SelfLearningMemory::with_in_memory_storage().await.unwrap();
+        let (primary, cache) = memory.storage_backends();
+        assert!(primary.is_some());
+        assert!(cache.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_with_local_storage() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.db");
+        let memory = SelfLearningMemory::with_local_storage(&path).await.unwrap();
+        let (primary, cache) = memory.storage_backends();
+        assert!(primary.is_some());
+        assert!(cache.is_some());
+    }
+}

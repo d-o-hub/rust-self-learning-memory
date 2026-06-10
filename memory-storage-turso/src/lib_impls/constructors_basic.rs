@@ -278,3 +278,54 @@ impl TursoStorage {
         Ok(storage)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::StorageMode;
+
+    #[tokio::test]
+    async fn test_new_in_memory_creates_storage() {
+        let storage = TursoStorage::new_in_memory().await.unwrap();
+        storage.initialize_schema().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_new_local_rejects_insecure_url() {
+        // new() via with_config should reject http:// URLs
+        let result = TursoStorage::new("http://localhost:8080", "token").await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_new_remote_requires_token() {
+        let result = TursoStorage::new_remote("libsql://localhost:8080", "").await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_from_storage_mode_in_memory() {
+        let storage = TursoStorage::from_storage_mode(StorageMode::InMemory)
+            .await
+            .unwrap();
+        storage.initialize_schema().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_from_storage_mode_remote_rejects_empty_token() {
+        let result = TursoStorage::from_storage_mode(StorageMode::Remote {
+            url: "libsql://example.turso.io".into(),
+            auth_token: String::new(),
+        })
+        .await;
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_storage_mode_default_is_local() {
+        match StorageMode::default() {
+            StorageMode::Local { .. } => {}
+            other => panic!("Expected Local, got {other:?}"),
+        }
+    }
+}

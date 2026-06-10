@@ -279,3 +279,91 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
 fn strip_file_prefix(s: &str) -> &str {
     s.strip_prefix("file:").unwrap_or(s)
 }
+
+#[cfg(test)]
+#[allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_initialize_turso_local_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        let db_path = dir.path().join("test.db");
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::set_var("MEMORY_DB_PATH", db_path.to_str().unwrap());
+            std::env::set_var(
+                "REDB_CACHE_PATH",
+                dir.path().join("cache.redb").to_str().unwrap(),
+            );
+        }
+        let result = initialize_turso_local().await;
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::remove_var("MEMORY_DB_PATH");
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_initialize_redb_only_storage_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::set_var(
+                "REDB_CACHE_PATH",
+                dir.path().join("cache.redb").to_str().unwrap(),
+            );
+        }
+        let result = initialize_redb_only_storage().await;
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_initialize_memory_system_in_memory_mode() {
+        let dir = tempfile::tempdir().unwrap();
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::set_var("MEMORY_STORAGE_MODE", "memory");
+            std::env::set_var(
+                "REDB_CACHE_PATH",
+                dir.path().join("cache.redb").to_str().unwrap(),
+            );
+        }
+        let result = initialize_memory_system().await;
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::remove_var("MEMORY_STORAGE_MODE");
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_initialize_memory_system_unknown_mode_falls_back() {
+        let dir = tempfile::tempdir().unwrap();
+        let db_path = dir.path().join("test.db");
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::set_var("MEMORY_STORAGE_MODE", "unknown_xyz");
+            std::env::set_var("MEMORY_DB_PATH", db_path.to_str().unwrap());
+            std::env::set_var(
+                "REDB_CACHE_PATH",
+                dir.path().join("cache.redb").to_str().unwrap(),
+            );
+        }
+        let result = initialize_memory_system().await;
+        // SAFETY: single-threaded test environment
+        unsafe {
+            std::env::remove_var("MEMORY_STORAGE_MODE");
+            std::env::remove_var("MEMORY_DB_PATH");
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+        assert!(result.is_ok());
+    }
+}

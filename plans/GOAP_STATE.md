@@ -1,11 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-05-22 (v0.1.32 sprint mid-flight verification; 9 of 15 WGs landed)
-- **Version**: `0.1.32` (workspace, CI/release prep complete + sprint in flight)
-- **Branch**: `main`
+- **Last Updated**: 2026-06-10 (PR #611 open with CI failures; CI fix session 2026-06-09 documented; 6 WGs still open in v0.1.32 missing-impl sprint)
+- **Version**: `0.1.32` (workspace, sprint in flight — v0.1.32 not yet released)
+- **Branch**: `feat/turso-local-mode-12832947082971821257` (PR #611 open)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; in flight)**
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; in flight)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**
 
 ---
 
@@ -16,6 +16,31 @@
 - **Primary Goal**: Eliminate advertised-but-unimplemented CLI commands, MCP tools, embedding providers, and telemetry placeholders found by 2026-05-21 audit.
 - **Strategy**: Hybrid — Phase 1 sequential per crate; Phase 2/3 parallel; Phase 4 sequential validate+release.
 - **Progress (2026-05-22 verification, `rg` re-run + grep on memory-* crates)**: 10 of 15 functional WGs complete; **5 still open** (0 user contract, 4 telemetry, 2 internal debt — Phase 4 release not yet started).
+
+### v0.1.32 Feature Addition — PR #611 (2026-06-06)
+
+**Issue**: [#610](https://github.com/d-o-hub/rust-self-learning-memory/issues/610) — feat(turso): expose local/offline mode  
+**PR**: [#611](https://github.com/d-o-hub/rust-self-learning-memory/pull/611) — Expose local/offline mode as a first-class config path  
+**ADR**: ADR-056 — Local Storage No Connection Pooling  
+**Branch**: `feat/turso-local-mode-12832947082971821257`  
+**CI Status (2026-06-08)**: 🔴 4 checks failing
+
+| Check | Status | Root Cause |
+|-------|--------|------------|
+| Tests | ❌ FAILURE | SIGSEGV in turso relationship tests with `keepalive-pool` feature enabled |
+| Multi-Platform (ubuntu) | ❌ FAILURE | Same SIGSEGV |
+| Multi-Platform (macos) | ❌ FAILURE | Same SIGSEGV |
+| Code Coverage Analysis | ❌ FAILURE | CLI `test_cli_help_output` snapshot mismatch |
+
+**Root cause** (documented in `GOAP_PR611_CI_FIX_2026-06-09.md`):
+- `new_local`/`new_in_memory` routed through `TursoConfig::default()` which has `enable_pooling=true` + `enable_keepalive=true`
+- Background task holding libsql connections drops outside `#[tokio::test]` runtime → SIGSEGV
+- Fix: `local_config()` with `enable_pooling=false`, `enable_keepalive=false`
+- Snapshot mismatch: clap trailing whitespace stripped from hand-edited `.snap` file; fix via `cargo insta accept`
+
+**Fix status**: Documented (2026-06-09), not yet applied to branch.
+
+**Next action**: Apply fixes from `plans/GOAP_PR611_CI_FIX_2026-06-09.md` to `feat/turso-local-mode-12832947082971821257` and push.
 
 ### Phase 1 — User Contract (P1)
 

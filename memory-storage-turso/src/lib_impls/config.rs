@@ -25,9 +25,13 @@ pub enum StorageMode {
 
 impl Default for StorageMode {
     fn default() -> Self {
-        StorageMode::Remote {
-            url: String::new(),
-            auth_token: String::new(),
+        // Default to local file-based SQLite using the workspace's default
+        // database path. The previous default of `Remote { url: "", ... }`
+        // silently produced an empty URL that failed at runtime; choosing
+        // `Local` keeps `Default::default()` safe to use as a placeholder
+        // and matches the new first-class local mode path.
+        StorageMode::Local {
+            path: do_memory_core::memory::default_db_path(),
         }
     }
 }

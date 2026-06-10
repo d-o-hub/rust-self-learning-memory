@@ -1,4 +1,5 @@
 //! Local memory example demonstrating zero-credential SQLite storage.
+#![allow(clippy::doc_markdown)]
 
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::{ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
@@ -20,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
         std::fs::create_dir_all(parent)?;
     }
 
-    println!("Connecting to local database at {}", db_path);
+    println!("Connecting to local database at {db_path}");
     // Use the new named constructor from do_memory_storage_turso
     let storage = do_memory_storage_turso::TursoStorage::new_local(db_path).await?;
     storage.initialize_schema().await?;
@@ -30,8 +31,10 @@ async fn main() -> anyhow::Result<()> {
         do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
     );
 
-    let mut config = do_memory_core::MemoryConfig::default();
-    config.quality_threshold = 0.0; // Lower threshold for demonstration
+    let config = do_memory_core::MemoryConfig {
+        quality_threshold: 0.0, // Lower threshold for demonstration
+        ..Default::default()
+    };
 
     let memory = SelfLearningMemory::with_storage(config, std::sync::Arc::new(storage), cache);
 
@@ -45,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await;
 
-    println!("Started episode: {}", episode_id);
+    println!("Started episode: {episode_id}");
 
     // 3. Log an execution step
     let mut step = ExecutionStep::new(
@@ -73,7 +76,8 @@ async fn main() -> anyhow::Result<()> {
 
     // 5. Retrieve the episode to verify it was stored
     let episodes = memory.get_all_episodes().await?;
-    println!("Total episodes in local storage: {}", episodes.len());
+    let episodes_len = episodes.len();
+    println!("Total episodes in local storage: {episodes_len}");
 
     Ok(())
 }

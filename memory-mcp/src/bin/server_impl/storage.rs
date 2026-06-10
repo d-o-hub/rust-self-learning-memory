@@ -200,41 +200,43 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
 pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>> {
     info!("Attempting to initialize Turso local database (default)...");
 
-    // Use local Turso database file
-    let turso_url = std::env::var("MEMORY_DB_PATH")
-        .map(|p| format!("file:{}", p))
-        .or_else(|_| std::env::var("TURSO_DATABASE_URL"))
-        .unwrap_or_else(|_| {
-            format!(
-                "file:{}",
-                do_memory_core::memory::default_db_path().to_string_lossy()
-            )
-        });
-
-    // For local files, no token is needed
-    let turso_token = if turso_url.starts_with("file:") {
-        "".to_string()
+    // Resolve the local database path. Precedence:
+    // 1. `MEMORY_DB_PATH` env var (the explicit local-mode knob)
+    // 2. `TURSO_DATABASE_URL` env var if it points at a local file
+    //    (strip the `file:` prefix used by the libsql URL syntax)
+    // 3. `do_memory_core::memory::default_db_path()` (workspace default)
+    //
+    // We always end up with a real on-disk path so we can call
+    // `TursoStorage::new_local` directly without going through the
+    // remote-style URL parsing path.
+    let db_path: std::path::PathBuf = if let Ok(p) = std::env::var("MEMORY_DB_PATH") {
+        std::path::PathBuf::from(strip_file_prefix(&p))
+    } else if let Ok(url) = std::env::var("TURSO_DATABASE_URL") {
+        if url.starts_with("file:") || url.starts_with("libsql://") {
+            // For backwards compatibility: only treat `file:` URLs as local
+            // paths; ignore `libsql://` (that should use the remote path).
+            if url.starts_with("file:") {
+                std::path::PathBuf::from(strip_file_prefix(&url))
+            } else {
+                do_memory_core::memory::default_db_path()
+            }
+        } else {
+            // No protocol prefix: treat as a plain file path.
+            std::path::PathBuf::from(url)
+        }
     } else {
-        std::env::var("TURSO_AUTH_TOKEN").unwrap_or_default()
+        do_memory_core::memory::default_db_path()
     };
 
-    info!("Connecting to Turso database at {}", turso_url);
+    info!(
+        "Connecting to local Turso database at {}",
+        db_path.display()
+    );
 
-    // Initialize Turso storage with basic config for local use
-    #[allow(clippy::field_reassign_with_default)]
-    let turso_config = TursoConfig {
-        max_retries: 1, // Fewer retries for local
-        retry_base_delay_ms: 50,
-        retry_max_delay_ms: 1000,
-        enable_pooling: false, // No pooling needed for local
-        compression_threshold: 1024,
-        compress_episodes: true,
-        compress_patterns: true,
-        compress_embeddings: true,
-        ..Default::default()
-    };
-
-    let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;
+    // Local file connections use a single direct connection (no pool / no
+    // keep-alive). This matches the in-storage `TursoConfig::default()`
+    // used by `TursoStorage::new_local`/`new_in_memory`.
+    let turso_storage = TursoStorage::new_local(&db_path).await?;
     turso_storage.initialize_schema().await?;
 
     // Initialize redb cache storage for performance
@@ -271,4 +273,9 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
 
     info!("Successfully initialized Turso local + redb cache storage");
     Ok(Arc::new(memory))
+}
+
+/// Strip an optional `file:` URL prefix from a path or URL string.
+fn strip_file_prefix(s: &str) -> &str {
+    s.strip_prefix("file:").unwrap_or(s)
 }

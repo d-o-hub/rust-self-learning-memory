@@ -1,10 +1,23 @@
-use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+//! Cosine Similarity Performance Benchmarks
+//!
+//! Benchmarks for the cosine_similarity function across various vector dimensions.
+
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_core::embeddings::cosine_similarity;
-use rand::{Rng, thread_rng};
+use rand::RngExt;
+use rand::rng;
+use std::hint::black_box;
 
 fn generate_vector(dim: usize) -> Vec<f32> {
-    let mut rng = thread_rng();
-    (0..dim).map(|_| rng.gen_range(-1.0..1.0)).collect()
+    let mut rng = rng();
+    (0..dim).map(|_| rng.random_range(-1.0..1.0)).collect()
 }
 
 fn bench_cosine_similarity(c: &mut Criterion) {

@@ -4,5 +4,6 @@
 
 pub mod episode_tests;
 pub mod lazy_loading_tests;
+pub mod mod_tests;
 pub mod retrieval_tests;
 pub mod semantic_tests;

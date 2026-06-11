@@ -491,4 +491,47 @@ mod tests {
         assert_eq!(stats.episode_hits, 1);
         assert_eq!(stats.query_hits, 0);
     }
+
+    #[test]
+    fn test_cache_stats_hit_rate() {
+        let stats = CacheStats {
+            episode_hits: 8,
+            episode_misses: 2,
+            pattern_hits: 0,
+            pattern_misses: 0,
+            query_hits: 0,
+            query_misses: 0,
+            evictions: 0,
+            expirations: 0,
+        };
+        assert!((stats.hit_rate() - 0.8).abs() < f64::EPSILON);
+        assert!((stats.episode_hit_rate() - 0.8).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_cache_stats_zero_requests() {
+        let stats = CacheStats::default();
+        assert_eq!(stats.hit_rate(), 0.0);
+        assert_eq!(stats.query_hit_rate(), 0.0);
+    }
+
+    #[test]
+    fn test_cache_stats_query_hit_rate() {
+        let stats = CacheStats {
+            query_hits: 3,
+            query_misses: 7,
+            ..Default::default()
+        };
+        assert!((stats.query_hit_rate() - 0.3).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_cache_stats_pattern_hit_rate() {
+        let stats = CacheStats {
+            pattern_hits: 5,
+            pattern_misses: 5,
+            ..Default::default()
+        };
+        assert!((stats.pattern_hit_rate() - 0.5).abs() < f64::EPSILON);
+    }
 }

@@ -49,3 +49,65 @@ impl CacheStatsInner {
         self.expirations.fetch_add(1, Ordering::Relaxed);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cache_stats_inner_default() {
+        let stats = CacheStatsInner::default();
+        let snapshot = stats.snapshot();
+        assert_eq!(snapshot.episode_hits, 0);
+        assert_eq!(snapshot.query_hits, 0);
+        assert_eq!(snapshot.evictions, 0);
+        assert_eq!(snapshot.expirations, 0);
+    }
+
+    #[test]
+    fn test_record_query_hit() {
+        let stats = CacheStatsInner::default();
+        stats.record_query_hit();
+        stats.record_query_hit();
+        assert_eq!(stats.query_hits.load(Ordering::Relaxed), 2);
+    }
+
+    #[test]
+    fn test_record_query_miss() {
+        let stats = CacheStatsInner::default();
+        stats.record_query_miss();
+        assert_eq!(stats.query_misses.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn test_record_eviction() {
+        let stats = CacheStatsInner::default();
+        stats.record_eviction();
+        stats.record_eviction();
+        stats.record_eviction();
+        assert_eq!(stats.evictions.load(Ordering::Relaxed), 3);
+    }
+
+    #[test]
+    fn test_record_expiration() {
+        let stats = CacheStatsInner::default();
+        stats.record_expiration();
+        assert_eq!(stats.expirations.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn test_snapshot_after_mutations() {
+        let stats = CacheStatsInner::default();
+        stats.record_query_hit();
+        stats.record_query_hit();
+        stats.record_query_miss();
+        stats.record_eviction();
+        stats.record_expiration();
+
+        let snap = stats.snapshot();
+        assert_eq!(snap.query_hits, 2);
+        assert_eq!(snap.query_misses, 1);
+        assert_eq!(snap.evictions, 1);
+        assert_eq!(snap.expirations, 1);
+    }
+}

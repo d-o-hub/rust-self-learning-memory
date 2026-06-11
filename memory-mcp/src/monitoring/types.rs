@@ -388,4 +388,63 @@ mod tests {
         assert!(config.enable_performance_tracking);
         assert!(config.enable_episode_tracking);
     }
+
+    #[test]
+    fn test_episode_metrics_default() {
+        let m = EpisodeMetrics::default();
+        assert_eq!(m.total_episodes_created, 0);
+        assert_eq!(m.total_episode_failures, 0);
+        assert_eq!(m.episode_success_rate, 100.0);
+    }
+
+    #[test]
+    fn test_record_episode_creation_success() {
+        let mut stats = MonitoringStats::new();
+        stats.record_episode_creation(true);
+        assert_eq!(stats.episode_metrics.total_episodes_created, 1);
+        assert_eq!(stats.episode_metrics.total_episode_failures, 0);
+        assert_eq!(stats.episode_metrics.episode_success_rate, 100.0);
+    }
+
+    #[test]
+    fn test_record_episode_creation_failure() {
+        let mut stats = MonitoringStats::new();
+        stats.record_episode_creation(false);
+        assert_eq!(stats.episode_metrics.total_episodes_created, 1);
+        assert_eq!(stats.episode_metrics.total_episode_failures, 1);
+        // 0 successes / 1 total = 0%
+        assert_eq!(stats.episode_metrics.episode_success_rate, 0.0);
+    }
+
+    #[test]
+    fn test_record_episode_mixed_success_failure() {
+        let mut stats = MonitoringStats::new();
+        // 3 success, 1 failure
+        stats.record_episode_creation(true);
+        stats.record_episode_creation(true);
+        stats.record_episode_creation(true);
+        stats.record_episode_creation(false);
+        assert_eq!(stats.episode_metrics.total_episodes_created, 4);
+        assert_eq!(stats.episode_metrics.total_episode_failures, 1);
+        // 3/4 = 75%
+        assert!((stats.episode_metrics.episode_success_rate - 75.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_record_request_updates_avg_response_time() {
+        let mut stats = MonitoringStats::new();
+        stats.record_request(true, 100);
+        stats.record_request(true, 200);
+        assert_eq!(stats.total_requests, 2);
+        assert_eq!(stats.successful_requests, 2);
+        assert!((stats.avg_response_time_ms - 150.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_update_system_metrics() {
+        let mut stats = MonitoringStats::new();
+        stats.update_system_metrics(128.5, 42.0);
+        assert!((stats.memory_usage_mb - 128.5).abs() < f64::EPSILON);
+        assert!((stats.cpu_usage_percent - 42.0).abs() < f64::EPSILON);
+    }
 }

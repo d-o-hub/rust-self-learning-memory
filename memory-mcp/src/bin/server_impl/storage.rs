@@ -284,8 +284,10 @@ fn strip_file_prefix(s: &str) -> &str {
 #[allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_turso_local_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("test.db");
@@ -307,6 +309,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_redb_only_storage_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         // SAFETY: single-threaded test environment
@@ -325,6 +328,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_memory_system_in_memory_mode() {
         let dir = tempfile::tempdir().unwrap();
         // SAFETY: single-threaded test environment
@@ -345,6 +349,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_memory_system_unknown_mode_falls_back() {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("test.db");

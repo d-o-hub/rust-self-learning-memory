@@ -284,18 +284,14 @@ fn strip_file_prefix(s: &str) -> &str {
 #[allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
 mod tests {
     use super::*;
-    use parking_lot::Mutex;
-
-    // Use a global mutex to serialize tests that modify environment variables
-    // to prevent race conditions in CI.
-    static TEST_LOCK: Mutex<()> = Mutex::new(());
+    use serial_test::serial;
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_turso_local_succeeds() {
-        let _lock = TEST_LOCK.lock();
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("test.db");
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::set_var("MEMORY_DB_PATH", db_path.to_str().unwrap());
             std::env::set_var(
@@ -304,7 +300,7 @@ mod tests {
             );
         }
         let result = initialize_turso_local().await;
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::remove_var("MEMORY_DB_PATH");
             std::env::remove_var("REDB_CACHE_PATH");
@@ -313,10 +309,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_redb_only_storage_succeeds() {
-        let _lock = TEST_LOCK.lock();
         let dir = tempfile::tempdir().unwrap();
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::set_var(
                 "REDB_CACHE_PATH",
@@ -324,7 +320,7 @@ mod tests {
             );
         }
         let result = initialize_redb_only_storage().await;
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::remove_var("REDB_CACHE_PATH");
         }
@@ -332,10 +328,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_memory_system_in_memory_mode() {
-        let _lock = TEST_LOCK.lock();
         let dir = tempfile::tempdir().unwrap();
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::set_var("MEMORY_STORAGE_MODE", "memory");
             std::env::set_var(
@@ -344,7 +340,7 @@ mod tests {
             );
         }
         let result = initialize_memory_system().await;
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::remove_var("MEMORY_STORAGE_MODE");
             std::env::remove_var("REDB_CACHE_PATH");
@@ -353,11 +349,11 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_initialize_memory_system_unknown_mode_falls_back() {
-        let _lock = TEST_LOCK.lock();
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("test.db");
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::set_var("MEMORY_STORAGE_MODE", "unknown_xyz");
             std::env::set_var("MEMORY_DB_PATH", db_path.to_str().unwrap());
@@ -367,7 +363,7 @@ mod tests {
             );
         }
         let result = initialize_memory_system().await;
-        // SAFETY: Synchronized by TEST_LOCK
+        // SAFETY: Synchronized by #[serial]
         unsafe {
             std::env::remove_var("MEMORY_STORAGE_MODE");
             std::env::remove_var("MEMORY_DB_PATH");

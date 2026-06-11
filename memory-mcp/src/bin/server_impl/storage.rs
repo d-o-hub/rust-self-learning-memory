@@ -12,7 +12,6 @@ use do_memory_storage_redb::{CacheConfig, RedbStorage};
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::path::Path;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tracing::{info, warn};
 
 /// Initialize the memory system with appropriate storage backends
@@ -285,6 +284,7 @@ fn strip_file_prefix(s: &str) -> &str {
 #[allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
 mod tests {
     use super::*;
+    use tokio::sync::Mutex;
 
     // Use a global mutex to serialize tests that modify environment variables
     // to prevent race conditions in CI.

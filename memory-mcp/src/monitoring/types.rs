@@ -117,13 +117,15 @@ pub struct MonitoringStats {
 pub struct EpisodeMetrics {
     /// Total episodes created
     pub total_episodes_created: u64,
+    /// Total episode creation failures
+    pub total_episode_failures: u64,
     /// Episodes created in the last hour
     pub episodes_last_hour: u64,
     /// Episodes created in the last 24 hours
     pub episodes_last_24h: u64,
     /// Average episodes per hour
     pub avg_episodes_per_hour: f64,
-    /// Success rate for episode operations
+    /// Success rate for episode operations (percentage 0-100)
     pub episode_success_rate: f64,
     /// Episode creation timestamps (for rate calculation)
     pub episode_timestamps: Vec<u64>,
@@ -133,6 +135,7 @@ impl Default for EpisodeMetrics {
     fn default() -> Self {
         Self {
             total_episodes_created: 0,
+            total_episode_failures: 0,
             episodes_last_hour: 0,
             episodes_last_24h: 0,
             avg_episodes_per_hour: 0.0,
@@ -356,11 +359,16 @@ impl MonitoringStats {
                 self.episode_metrics.episodes_last_24h as f64 / 24.0;
         }
 
-        // Update success rate (simplified - assuming all recent episodes succeeded)
-        if success {
-            self.episode_metrics.episode_success_rate = 100.0;
-        } else {
-            self.episode_metrics.episode_success_rate = 99.0; // Placeholder for error tracking
+        // Track failures and compute running success rate
+        if !success {
+            self.episode_metrics.total_episode_failures =
+                self.episode_metrics.total_episode_failures.saturating_add(1);
+        }
+        let total = self.episode_metrics.total_episodes_created;
+        if total > 0 {
+            let failures = self.episode_metrics.total_episode_failures;
+            self.episode_metrics.episode_success_rate =
+                ((total - failures) as f64 / total as f64) * 100.0;
         }
     }
 }

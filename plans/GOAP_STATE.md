@@ -1,11 +1,30 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-06-10 (Remote repository analysis complete; no workflow adaptations required)
+- **Last Updated**: 2026-06-11 (CI health sweep — PR #616 clippy block + nightly slow-test timeout analyzed)
 - **Version**: `0.1.32` (workspace, sprint in flight — v0.1.32 not yet released)
-- **Branch**: `feat/turso-local-mode-12832947082971821257` (PR #611 open)
+- **Branch**: `main` (1 commit ahead of `origin/main`)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; in flight)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; in flight)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 clippy block & nightly timeout)**
+
+---
+
+## CI Health Sweep (2026-06-11)
+
+**Task**: Analyze failing CI, open PRs/issues, and missing implementation; document GOAP + ADR.
+
+**Findings**:
+- **Open PRs**: 1 — PR #616 (`perf(encoder): optimize cosine similarity`, Jules bot). ❌ CI red.
+  - Root cause: `clippy::await_holding_lock` — PR holds a `parking_lot::Mutex` guard across `.await` in `memory-mcp/src/bin/server_impl/storage.rs` tests. Cascades to CI/Coverage/Security/Perf via `wait-on-check`. `main` is clean.
+  - PR is cut from a stale base and deletes recent `plans/*` files (would regress docs).
+- **Open Issues**: none.
+- **Nightly Full Tests (main)**: ❌ — `should_scale_processing_with_different_worker_counts` TIMEOUT (120s, `#[ignore]` slow test); regular-tests exit-95 = runner disk-space (infra); mutation testing = 2h ceiling.
+- **Missing impl**: WG-156–162 stubs still present (e.g. `query_hits: 0 // Not yet implemented`); tracked in `GOAP_PRE_EXISTING_ISSUES_FOLLOWUP_2026-06-09.md`.
+
+**Plan Documents**:
+- `plans/GOAP_CI_ANALYSIS_2026-06-11.md` — GOAP action plan (A1–A5)
+- `plans/adr/ADR-057-CI-Health-PR616-Nightly-Timeout.md` — decision record
+- `plans/CODE_CHANGES_CI_REMEDIATION_2026-06-11.md` — detailed before/after code changes
 
 ---
 

@@ -361,8 +361,10 @@ impl MonitoringStats {
 
         // Track failures and compute running success rate
         if !success {
-            self.episode_metrics.total_episode_failures =
-                self.episode_metrics.total_episode_failures.saturating_add(1);
+            self.episode_metrics.total_episode_failures = self
+                .episode_metrics
+                .total_episode_failures
+                .saturating_add(1);
         }
         let total = self.episode_metrics.total_episodes_created;
         if total > 0 {

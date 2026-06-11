@@ -286,6 +286,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "upstream libsql memory corruption SIGSEGV (ADR-027)"]
     async fn test_initialize_turso_local_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("test.db");

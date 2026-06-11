@@ -32,10 +32,10 @@ pub struct SimilarityMetadata {
 /// giving a similarity score between -1 and 1 (normalized to 0-1 for convenience).
 /// Higher scores indicate greater similarity.
 ///
-/// # Optimization (v2):
-/// 1. Uses f32 accumulators to enable LLVM SIMD autovectorization.
-/// 2. Reduces sqrt calls from two to one by calculating sqrt(norm_a_sq * norm_b_sq).
-/// 3. Uses a single zip pass for all dot-product and magnitude calculations.
+/// # Optimization:
+/// 1. Uses f32 accumulators to enable LLVM SIMD autovectorization (AVX/SSE/NEON).
+/// 2. Uses a single pass for dot-product and magnitude calculations.
+/// 3. Maintains dynamic range stability by using individual square roots.
 #[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() || a.is_empty() {
@@ -46,8 +46,9 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     let mut norm_a_sq = 0.0f32;
     let mut norm_b_sq = 0.0f32;
 
-    // Single pass for dot product and norms calculation.
-    // Using f32 enables compiler SIMD autovectorization (AVX/SSE/NEON).
+    // Single pass with f32 enables SIMD autovectorization.
+    // f32 is sufficient for embedding similarity and provides a ~4-8x speedup over f64
+    // when properly vectorized by the compiler.
     for (&x, &y) in a.iter().zip(b.iter()) {
         dot_product += x * y;
         norm_a_sq += x * x;
@@ -58,9 +59,9 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
         return 0.0;
     }
 
-    // Optimization: One sqrt instead of two.
-    // similarity = dot / (sqrt(a) * sqrt(b)) = dot / sqrt(a * b)
-    let similarity = dot_product / (norm_a_sq * norm_b_sq).sqrt();
+    // We keep individual sqrt calls to maintain dynamic range stability and avoid
+    // potential product overflow/underflow before the sqrt is taken.
+    let similarity = dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt());
 
     // Normalize from [-1, 1] to [0, 1] range for semantic scores
     (similarity + 1.0) / 2.0

@@ -36,8 +36,8 @@ impl MemoryMCPServer {
         let db_path = std::env::var("AGENTFS_DB_PATH").ok();
         let configured = db_path.is_some();
         let enabled = configured;
-        let (connected, last_error) = if let Some(ref _path) = db_path {
-            match Result::<(), &str>::Err("SDK not integrated") {
+        let (connected, last_error) = if let Some(ref path) = db_path {
+            match agentfs_sdk::ToolCalls::new(path).await {
                 Ok(_) => (true, None),
                 Err(e) => (false, Some(format!("Connection failed: {e}"))),
             }

@@ -27,7 +27,7 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 # Local dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.32", features = ["agentfs"] }
+do-memory-core = { path = "../memory-core", version = "0.1.32", features = [] }
 do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.32" }
 do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.32" }
 
@@ -39,8 +39,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 # Additional dependencies
 chrono = { workspace = true }
 rand = { workspace = true }
-agentfs-sdk = "0.6.4"
-sysinfo = "0.39"
+sysinfo = "0.38"
 
 base64 = "0.22.1"
 jsonwebtoken = { version = "10.4.0", optional = true, features = ["rust_crypto"] }
@@ -59,6 +58,7 @@ embeddings = []
 streaming-impl = []
 
 [dev-dependencies]
+serial_test = "3.5"
 jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
@@ -106,8 +106,6 @@ path = "tests/jsonrpc_fuzz_tests.rs"
 [[test]]
 name = "mcp_tool_coverage_tests"
 path = "tests/mcp_tool_coverage_tests.rs"
-
-# Security-critical for sandbox operations
 
 # Inherit workspace lints
 

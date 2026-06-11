@@ -1483,7 +1483,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "serial_test",
- "sysinfo",
+ "sysinfo 0.39.3",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -1553,7 +1553,6 @@ dependencies = [
 name = "do-memory-mcp"
 version = "0.1.32"
 dependencies = [
- "agentfs-sdk",
  "anyhow",
  "base64 0.22.1",
  "chrono",
@@ -1568,7 +1567,8 @@ dependencies = [
  "rand 0.10.1",
  "serde",
  "serde_json",
- "sysinfo",
+ "serial_test",
+ "sysinfo 0.38.4",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -1673,7 +1673,7 @@ dependencies = [
  "regex",
  "serde_json",
  "serial_test",
- "sysinfo",
+ "sysinfo 0.39.3",
  "tempfile",
  "tokio",
  "uuid",
@@ -5681,6 +5681,20 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "sysinfo"
+version = "0.38.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92ab6a2f8bfe508deb3c6406578252e491d299cbbf3bc0529ecc3313aee4a52f"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows",
 ]
 
 [[package]]

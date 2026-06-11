@@ -59,9 +59,9 @@ impl MemoryMCPServer {
 
         // Attempt real connection test using SDK
         let (success, message, error, toolcall_count) =
-            match agentfs_sdk::ToolCalls::new(&db_path).await {
-                Ok(tc) => {
-                    let count = tc.stats().await.ok().map(|s| s.len());
+            match Result::<std::convert::Infallible, &str>::Err("SDK not integrated") {
+                Ok(_tc) => {
+                    let count: Option<usize> = None; // tc.stats().await.ok().map(|s| s.len());
                     (
                         true,
                         "Successfully connected to AgentFS database".to_string(),

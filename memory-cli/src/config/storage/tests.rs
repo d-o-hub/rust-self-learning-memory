@@ -98,3 +98,58 @@ async fn redb_only_storage_persists_across_reinitialization() {
 
     assert_eq!(episode.task_description, "persist me");
 }
+
+#[test]
+fn test_extract_db_path_from_file_url() {
+    assert_eq!(super::extract_db_path("file:/tmp/test.db"), "/tmp/test.db");
+}
+
+#[test]
+fn test_extract_db_path_plain_path() {
+    assert_eq!(super::extract_db_path("/tmp/test.db"), "/tmp/test.db");
+}
+
+#[test]
+fn test_create_memory_config_defaults() {
+    let config = Config::default();
+    let mc = super::create_memory_config(&config);
+    // Should not panic and produce a valid MemoryConfig
+    assert!(mc.enable_summarization);
+    assert!(mc.enable_spatiotemporal_indexing);
+}
+
+#[test]
+fn test_storage_type_debug() {
+    // Cover Debug impl for StorageType
+    assert_eq!(format!("{:?}", StorageType::Turso), "Turso");
+    assert_eq!(format!("{:?}", StorageType::Memory), "Memory");
+    assert_eq!(format!("{:?}", StorageType::Redb), "Redb");
+    assert_eq!(format!("{:?}", StorageType::None), "None");
+}
+
+#[test]
+fn test_storage_type_clone() {
+    // Cover Clone impl for StorageType
+    let s = StorageType::LocalSqlite;
+    let s2 = s.clone();
+    assert!(matches!(s2, StorageType::LocalSqlite));
+}
+
+#[tokio::test]
+#[serial]
+async fn memory_only_fallback_when_no_storage_configured() {
+    let _guard = LocalDatabaseUrlGuard::set_invalid();
+    let mut config = Config::default();
+    config.database.turso_url = None;
+    config.database.turso_token = None;
+    config.database.redb_path = None;
+
+    let storage = initialize_storage(&config)
+        .await
+        .expect("should fall back to memory storage");
+
+    assert!(matches!(
+        storage.storage_info.primary_storage,
+        StorageType::Memory
+    ));
+}

@@ -101,6 +101,7 @@ mod config;
 pub mod integration;
 pub mod invalidation;
 pub mod query_cache;
+mod stats;
 mod ttl_config;
 mod wrapper;
 

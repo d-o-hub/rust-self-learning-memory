@@ -73,6 +73,53 @@ fn test_estimate_api_call_probability() {
 }
 
 #[test]
+fn test_estimate_api_short_query_low_probability() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    // Short keyword query — should favor BM25, low API probability
+    let prob = retriever.estimate_api_call_probability("rust error");
+    assert!(
+        prob < 0.3,
+        "short keyword query should have low prob: {prob}"
+    );
+}
+
+#[test]
+fn test_estimate_api_long_query_higher_probability() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    // Long abstract query — more likely needs semantic embedding
+    let prob = retriever.estimate_api_call_probability(
+        "explain the theoretical foundations of memory-augmented neural networks in detail",
+    );
+    assert!(
+        prob > 0.3,
+        "long abstract query should have higher prob: {prob}"
+    );
+}
+
+#[test]
+fn test_estimate_api_code_tokens_lower_probability() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    // Code tokens (with :: and _) are BM25-friendly — should reduce probability vs pure prose
+    let prose_prob = retriever.estimate_api_call_probability(
+        "explain the theoretical foundations of memory augmented neural networks in detail",
+    );
+    let code_prob = retriever
+        .estimate_api_call_probability("fix memory::storage::cache::wrapper::CacheStats::hit_rate");
+    // Code tokens should reduce probability compared to same-length prose
+    assert!(
+        code_prob <= prose_prob,
+        "code tokens should not increase prob: code={code_prob} prose={prose_prob}"
+    );
+}
+
+#[test]
+fn test_estimate_api_empty_query() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    let prob = retriever.estimate_api_call_probability("");
+    assert!((0.0..=1.0).contains(&prob));
+}
+
+#[test]
 fn test_config_custom_values() {
     let config = CascadeConfig {
         top_k: 5,

@@ -291,6 +291,7 @@ mod tests {
     static TEST_LOCK: Mutex<()> = Mutex::const_new(());
 
     #[tokio::test]
+    #[ignore = "upstream libsql memory corruption SIGSEGV (ADR-027)"]
     async fn test_initialize_turso_local_succeeds() {
         let _lock = TEST_LOCK.lock().await;
         let dir = tempfile::tempdir().unwrap();

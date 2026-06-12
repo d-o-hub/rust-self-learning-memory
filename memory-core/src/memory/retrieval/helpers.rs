@@ -55,8 +55,11 @@ pub fn should_cache_episodes(episodes: &[Arc<Episode>]) -> bool {
     estimated_size < MAX_CACHEABLE_SIZE
 }
 
-/// Generate a simple embedding for an episode based on its metadata
-/// This is a placeholder until full embedding integration is complete
+/// Generate a lightweight 10-dimensional embedding for an episode based on its metadata.
+///
+/// Uses deterministic feature hashing (domain, task type, complexity, language,
+/// framework, step count, reward, duration, pattern count, outcome) to produce
+/// a CPU-only embedding when no external embedding provider is configured.
 pub fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
     let mut embedding = Vec::with_capacity(10);
 

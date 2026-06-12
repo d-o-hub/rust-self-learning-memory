@@ -87,4 +87,44 @@ cargo build --workspace
 ## Success Criteria
 - All CI jobs pass
 - No new warnings introduced
+
+## Codecov Patch Coverage Gap Fix
+
+When Codecov reports "Patch coverage is X% with N lines missing coverage":
+
+### Step 1: Parse the Report
+Identify files with missing lines from the Codecov comment:
+```
+| File | Patch % | Missing Lines |
+|------|---------|---------------|
+| path/to/file.rs | 0.00% | 24 Missing |
+```
+
+### Step 2: Locate Uncovered Code
+For each file, read the specific lines identified. They are typically:
+- New functions without tests
+- Extracted submodules (refactored code moved to new files)
+- Changed branches not exercised by existing tests
+
+### Step 3: Write Targeted Tests
+Add tests to the existing `#[cfg(test)] mod tests` in each file, or to a sibling test file:
+- For new public functions: unit test exercising the function directly
+- For new structs: test Default, Debug, Clone impls + key methods
+- For refactored code: test that the extracted module works identically to before
+- For branch coverage: test each match arm / if-else branch
+
+### Step 4: Verify
+```bash
+cargo nextest run -p <crate> -E 'test(<test_name_pattern>)'
+cargo clippy --workspace -- -D warnings
+```
+
+### Step 5: Commit
+Single atomic commit: `test(coverage): add tests for Codecov patch gaps in N files`
+
+### Common Patterns
+- **Extracted submodule** (e.g. `stats.rs` from `wrapper.rs`): test the new module's public API directly
+- **New monitoring metric**: test the recording method + snapshot/getter
+- **New heuristic function**: test boundary conditions (empty input, short/long input, edge cases)
+- **New StorageType enum**: test Debug, Clone, and pattern matching
 - Changes committed if needed

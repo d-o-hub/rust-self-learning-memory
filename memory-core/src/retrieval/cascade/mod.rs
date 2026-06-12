@@ -438,36 +438,61 @@ impl CascadeRetriever {
         &self.config
     }
 
-    /// Estimate the number of API calls that would be saved for a query.
+    /// Estimate the probability that a query would require an API call.
     ///
-    /// Returns 1.0 if the query would likely require an API call,
-    /// or 0.0 if CPU-local tiers would likely suffice.
-    pub fn estimate_api_call_probability(&self, _query: &str) -> f32 {
-        // Placeholder - in full implementation, this would analyze
-        // query characteristics (length, keywords, complexity)
-        // to estimate probability of needing API fallback
-        0.5
-    }
-}
+    /// Returns a value in [0.0, 1.0] where:
+    /// - 0.0 means CPU-local tiers (BM25/HDC/ConceptGraph) are very likely to suffice
+    /// - 1.0 means an API embedding call is almost certainly needed
+    ///
+    /// Heuristic: short keyword-rich queries resolve via BM25 (low probability);
+    /// long abstract queries with few known terms need semantic embedding (high probability).
+    pub fn estimate_api_call_probability(&self, query: &str) -> f32 {
+        let len = query.len() as f32;
+        let word_count = query.split_whitespace().count() as f32;
 
-/// Weight computation for query-length-dependent tier weighting.
-///
-/// Short queries favor BM25 (keyword matching), long queries favor
-/// HDC/semantic matching.
-#[cfg(feature = "csm")]
-pub fn compute_tier_weights(query: &str) -> (f32, f32, f32) {
-    let len = query.len();
-    if len < 20 {
-        // Short query: favor keyword matching
-        (0.7, 0.2, 0.1)
-    } else if len < 100 {
-        // Medium query: balanced weighting
-        (0.4, 0.4, 0.2)
-    } else {
-        // Long query: favor semantic matching
-        (0.2, 0.5, 0.3)
+        // Base probability from query length — short queries favor BM25
+        let length_factor: f32 = if len < 20.0 {
+            0.1
+        } else if len < 50.0 {
+            0.25
+        } else if len < 100.0 {
+            0.5
+        } else {
+            0.7
+        };
+
+        // Keyword density — queries with many short words are more BM25-friendly
+        let avg_word_len = if word_count > 0.0 {
+            len / word_count
+        } else {
+            10.0
+        };
+        let keyword_factor: f32 = if avg_word_len < 5.0 {
+            0.0 // Short words = good keyword match candidates
+        } else if avg_word_len < 8.0 {
+            0.15
+        } else {
+            0.3 // Long words = more semantic, harder for BM25
+        };
+
+        // Concept-level boost — code-like tokens (identifiers, paths) are BM25-friendly
+        let code_token_count = query
+            .split_whitespace()
+            .filter(|w| w.contains('_') || w.contains("::") || w.contains('/'))
+            .count() as f32;
+        let code_factor: f32 = if word_count > 0.0 && code_token_count / word_count > 0.3 {
+            -0.15 // Many code tokens boost BM25 relevance
+        } else {
+            0.0
+        };
+
+        (length_factor + keyword_factor + code_factor).clamp(0.0, 1.0)
     }
 }
 
 #[cfg(test)]
 mod tests;
+#[cfg(feature = "csm")]
+pub mod weights;
+#[cfg(feature = "csm")]
+pub use weights::compute_tier_weights;

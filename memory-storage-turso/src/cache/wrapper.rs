@@ -4,6 +4,7 @@
 #![allow(clippy::uninlined_format_args)]
 
 use super::config::{CacheConfig, CacheStats};
+use super::stats::CacheStatsInner;
 use crate::TursoStorage;
 use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
@@ -14,7 +15,7 @@ use do_memory_core::{
 };
 use do_memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::Ordering;
 use uuid::Uuid;
 
 /// Cached wrapper around TursoStorage
@@ -39,17 +40,6 @@ pub struct CachedTursoStorage {
 
     /// Cache statistics
     stats: CacheStatsInner,
-}
-
-/// Internal cache statistics with atomic counters
-#[derive(Default)]
-struct CacheStatsInner {
-    episode_hits: AtomicU64,
-    episode_misses: AtomicU64,
-    pattern_hits: AtomicU64,
-    pattern_misses: AtomicU64,
-    heuristic_hits: AtomicU64,
-    heuristic_misses: AtomicU64,
 }
 
 impl CachedTursoStorage {
@@ -134,16 +124,7 @@ impl CachedTursoStorage {
 
     /// Get cache statistics
     pub fn stats(&self) -> CacheStats {
-        CacheStats {
-            episode_hits: self.stats.episode_hits.load(Ordering::Relaxed),
-            episode_misses: self.stats.episode_misses.load(Ordering::Relaxed),
-            pattern_hits: self.stats.pattern_hits.load(Ordering::Relaxed),
-            pattern_misses: self.stats.pattern_misses.load(Ordering::Relaxed),
-            query_hits: 0, // Not yet implemented
-            query_misses: 0,
-            evictions: 0, // Requires async access, use cache_sizes() + stats for accurate count
-            expirations: 0,
-        }
+        self.stats.snapshot()
     }
 
     /// Get episode with caching
@@ -283,6 +264,26 @@ impl CachedTursoStorage {
         if let Some(ref cache) = self.heuristic_cache {
             cache.clear().await;
         }
+    }
+
+    /// Record a query cache hit
+    pub fn record_query_hit(&self) {
+        self.stats.record_query_hit();
+    }
+
+    /// Record a query cache miss
+    pub fn record_query_miss(&self) {
+        self.stats.record_query_miss();
+    }
+
+    /// Record a cache eviction
+    pub fn record_eviction(&self) {
+        self.stats.record_eviction();
+    }
+
+    /// Record a cache expiration
+    pub fn record_expiration(&self) {
+        self.stats.record_expiration();
     }
 
     /// Get cache sizes
@@ -489,5 +490,48 @@ mod tests {
         };
         assert_eq!(stats.episode_hits, 1);
         assert_eq!(stats.query_hits, 0);
+    }
+
+    #[test]
+    fn test_cache_stats_hit_rate() {
+        let stats = CacheStats {
+            episode_hits: 8,
+            episode_misses: 2,
+            pattern_hits: 0,
+            pattern_misses: 0,
+            query_hits: 0,
+            query_misses: 0,
+            evictions: 0,
+            expirations: 0,
+        };
+        assert!((stats.hit_rate() - 0.8).abs() < f64::EPSILON);
+        assert!((stats.episode_hit_rate() - 0.8).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_cache_stats_zero_requests() {
+        let stats = CacheStats::default();
+        assert_eq!(stats.hit_rate(), 0.0);
+        assert_eq!(stats.query_hit_rate(), 0.0);
+    }
+
+    #[test]
+    fn test_cache_stats_query_hit_rate() {
+        let stats = CacheStats {
+            query_hits: 3,
+            query_misses: 7,
+            ..Default::default()
+        };
+        assert!((stats.query_hit_rate() - 0.3).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_cache_stats_pattern_hit_rate() {
+        let stats = CacheStats {
+            pattern_hits: 5,
+            pattern_misses: 5,
+            ..Default::default()
+        };
+        assert!((stats.pattern_hit_rate() - 0.5).abs() < f64::EPSILON);
     }
 }

@@ -48,18 +48,18 @@ crates (`do-memory-core`, `do-memory-mcp`, `do-memory-cli`, `do-memory-benches`,
 have been fixed. The workspace `cargo check --workspace` and `cargo fmt --all`
 both pass cleanly.
 
-### P2 — Sprint Backlog (v0.1.33 candidate)
+### P2 — Sprint Backlog (Resolved 2026-06-14)
 
 | WG | Description | Owner Skill | Status | Notes |
 |----|-------------|-------------|--------|-------|
-| WG-156 | `pattern_match_score` hard-coded 0.8 | `feature-implement` | 🔴 Open | `time_series.rs:55` |
-| WG-157 | `memory_usage_mb` hard-coded 50.0 | `feature-implement` | 🔴 Open | `time_series.rs:59` |
-| WG-158 | `episode_success_rate` hard-coded 99.0 | `feature-implement` | 🔴 Open | `monitoring/types.rs:363` |
-| WG-160 | Turso cache query_hits/evictions = 0 | `feature-implement` | 🔴 Open | `cache/wrapper.rs:142` |
-| WG-161 | Cascade `analyze_query` stub | `feature-implement` | 🔴 Open | `retrieval/cascade/mod.rs:446` |
-| WG-162 | `generate_simple_embedding` placeholder | `code-quality` | 🔴 Open | `memory/retrieval/helpers.rs:59` |
+| WG-156 | `pattern_match_score` hard-coded 0.8 | `feature-implement` | ✅ Complete | `time_series.rs` computes from `applied_patterns` success ratio + pattern density fallback |
+| WG-157 | `memory_usage_mb` hard-coded 50.0 | `feature-implement` | ✅ Complete | `time_series.rs` uses `sysinfo` for actual process memory; 50.0 is fallback on sysinfo failure |
+| WG-158 | `episode_success_rate` hard-coded 99.0 | `feature-implement` | ✅ Complete | `monitoring/types.rs` `record_episode_creation` computes from actual success/failure counts |
+| WG-160 | Turso cache query_hits/evictions = 0 | `feature-implement` | ✅ Complete | `query_hits: 0` now only in test fixtures (commit `6a43deae`) |
+| WG-161 | Cascade `analyze_query` stub | `feature-implement` | ✅ Complete | `estimate_api_call_probability` uses real heuristics (length, keyword density, code tokens) |
+| WG-162 | `generate_simple_embedding` placeholder | `code-quality` | ✅ Complete | Implements 10-dim feature hashing (domain, task type, complexity, steps, reward, etc.) |
 
-**Reference**: `plans/GOAP_STATE.md` (v0.1.32 sprint — 6 of 15 WGs still open).
+**Reference**: `plans/GOAP_STATE.md` (v0.1.32 sprint — all 15 functional WGs complete).
 
 ### P3 — Documentation Cleanup (v0.1.33 candidate)
 
@@ -88,10 +88,10 @@ both pass cleanly.
 - ✅ Fix `uninlined_format_args` across 5 files (memory-core, memory-mcp, examples)
 - ✅ Fix `field_reassign_with_default` in `examples/local_memory.rs`
 
-### Phase 2 — Sprint Backlog (v0.1.33)
-- Decompose WG-156 through WG-162 into atomic subtasks
-- Assign to `feature-implement` / `code-quality` skills
-- Validate with `cargo clippy --workspace --all-targets -- -D warnings` + `cargo test --workspace`
+### Phase 2 — Sprint Backlog ✅ Complete (2026-06-14 re-audit)
+- All 6 WGs (WG-156 through WG-162) confirmed implemented in current `main`
+- No additional atomic subtasks needed
+- Validated with `cargo clippy -p do-memory-core --all-targets -- -D warnings` + `cargo nextest run -p do-memory-core`
 
 ### Phase 3 — Docs Health
 - Run `scripts/check-docs-integrity.sh` and catalogue all broken links

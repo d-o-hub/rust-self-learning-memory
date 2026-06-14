@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 #[allow(unused_imports)]
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::{RwLock, Semaphore, broadcast};
 
 /// Get the default database path in the OS-appropriate data directory.
@@ -313,5 +314,22 @@ pub fn enable_async_extraction(
 pub async fn start_workers(memory: &super::SelfLearningMemory) {
     if let Some(queue) = &memory.pattern_queue {
         queue.start_workers().await;
+    }
+}
+
+/// Stop async pattern extraction workers gracefully.
+///
+/// Waits for the queue to drain (workers finish processing current items),
+/// then signals workers to shut down. Returns `true` if the queue emptied
+/// within the timeout, `false` otherwise.
+pub async fn stop_workers(memory: &super::SelfLearningMemory, timeout: Duration) -> bool {
+    if let Some(queue) = &memory.pattern_queue {
+        // Drain first: workers check the shutdown flag between items,
+        // so we must let the queue empty before signaling shutdown.
+        let drained = queue.wait_until_empty(timeout).await;
+        queue.shutdown().await;
+        drained
+    } else {
+        true
     }
 }

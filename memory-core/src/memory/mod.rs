@@ -132,6 +132,15 @@ impl SelfLearningMemory {
         init::start_workers(self).await;
     }
 
+    /// Stop async pattern extraction workers gracefully.
+    ///
+    /// Signals workers to shut down and waits for the queue to drain
+    /// up to the given timeout. Returns `true` if the queue emptied
+    /// within the timeout, `false` otherwise.
+    pub async fn stop_workers(&self, timeout: std::time::Duration) -> bool {
+        init::stop_workers(self, timeout).await
+    }
+
     /// Get a reference to semantic service (if configured)
     #[must_use]
     pub fn semantic_service(&self) -> Option<&Arc<SemanticService>> {

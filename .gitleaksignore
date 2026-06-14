@@ -71,3 +71,11 @@ e734961e3945646d5f2805fdf44009f38af9a1bb:plans/skills-cli-invocation-best-practi
 3e8fe9b39ba6120ea35278e54c059e03d8b3e0d9:plans/skills-cli-invocation-best-practices.md:generic-api-key:899
 # Agentic payments example with private_key_hex (historical file)
 3e8fe9b39ba6120ea35278e54c059e03d8b3e0d9:.claude/agents/payments/agentic-payments.md:generic-api-key:35
+
+# Scheduled gitleaks full-history scan false positives (2026-06-14, ADR-058 B1)
+# Bad-practice example in code-quality docs ("YOUR_TOKEN_HERE" placeholder)
+9c31639f:.agents/skills/code-quality/quality-dimensions.md:generic-api-key:473
+# Doc example with curl-auth-header in historical plans file
+3e8fe9b3:plans/skills-cli-invocation-best-practices.md:curl-auth-header:899
+# Placeholder API key in payments documentation (commit c7d5b9b1)
+c7d5b9b1:.claude/agents/payments/agentic-payments.md:generic-api-key:35

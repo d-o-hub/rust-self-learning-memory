@@ -46,18 +46,16 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 
 `v0.1.32` was released on 2026-05-24. Workspace version is `0.1.32`. PR #620 merged 2026-06-14 with final CI fixes.
 
-## Upcoming Sprint — v0.1.32 (In Preparation)
+## v0.1.32 Release — COMPLETE ✅ (Released 2026-05-24)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-123-127, WG-134 | Research-inspired features merged (temporal graph, procedural memory, MemCollab, gist, DAG) | ✅ Code complete |
-| WG-149 | CloudEvents EventEmitter | ✅ Code complete |
-| Fix release-drift | Fix silent failure in release-drift.yml | ✅ Fixed 2026-05-21 |
-| Coverage cleanup | Remove redundant disk cleanup | ✅ Fixed 2026-05-21 |
+| WG-123-127, WG-134 | Research-inspired features merged | ✅ Shipped in v0.1.32 |
+| WG-149 | CloudEvents EventEmitter | ✅ Shipped in v0.1.32 |
 | Version bump | Bump workspace to 0.1.32 | ✅ Done 2026-05-21 |
-| Release | Tag, GitHub Release, crates.io publish | 🔵 Pending |
+| Release | Tag, GitHub Release, crates.io publish | ✅ Released 2026-05-24 |
 
-Verified publishable workspace packages at `0.1.31`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
+Verified publishable workspace packages at `0.1.32`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
 
 The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
 
@@ -370,6 +368,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.32 | 2026-05 | Missing-impl remediation (15 WGs), telemetry stubs, local/offline mode, cosine-similarity perf, CI health fixes (ADR-057/058), release-drift closure |
 | v0.1.31 | 2026-04 | CSM integration (BM25+HDC+ConceptGraph via crate dependency), BundleAccumulator, hierarchical reranking, skills consolidation (31 skills, ≤35 target met), release verification |
 | v0.1.30 | 2026-04 | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill, zero-copy retrieval caching, CSM pattern adoption (WG-103/104) |
 | v0.1.29 | 2026-04 | WASM sandbox removal (-6,982 LOC), Turso native vector search (vector_top_k/DiskANN), file splitting (6 files), release workflow improvements |

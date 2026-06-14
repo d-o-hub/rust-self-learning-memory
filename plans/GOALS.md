@@ -6,223 +6,32 @@
 
 ---
 
-## v0.1.31 Sprint Goals (Planning 🔵)
+## v0.1.33 Sprint Goals (Release Drift Resolution)
 
-### Source: Release/package verification + efficiency analysis (2026-04-20)
+### Source: Issue #623 — 60 unreleased commits since v0.1.32
 
-`v0.1.30` is already released, and publishable workspace crates remain at `0.1.30`. The refreshed sprint goal is to lower CPU cost and prompt/token cost before the next version bump.
+`v0.1.32` is released (2026-05-24). The workspace has accumulated 60 unreleased commits including telemetry stub implementations, CI hardening, cosine similarity optimization, local/offline mode, and gitleaks remediation. The sprint goal is to release v0.1.33 to clear the drift.
 
 ### GOAP Execution Model
 
 - **Coordinator skills**: `goap-agent`, `agent-coordination`
-- **Implementation skills**: `feature-implement`, `performance`, `agents-update`
+- **Implementation skills**: `feature-implement`, `code-quality`
 - **Validation skills**: `code-quality`, `test-runner`, `architecture-validation`
-- **Learning/retention skills**: `memory-context`, `learn`
 
-### Phase 0: Release & Package Truth
+### Phase 4: Validation & Release (v0.1.32 — COMPLETE ✅)
 
-1. **WG-111**: Verify `v0.1.30` release and package parity
-   - Priority: P0
-   - Owner: github-release-best-practices
-   - GOAP skills: `goap-agent`, `github-release-best-practices`, `agents-update`
-   - Target: Confirm latest GitHub release + publishable crate versions are all `0.1.30`
-   - Dependencies: None
-
-2. **WG-112**: Version bump to `0.1.31`
-   - Priority: P0
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `code-quality`, `test-runner`
-   - Target: Bump workspace + publishable crates, update CHANGELOG after efficiency work lands
-   - Dependencies: WG-111
-
-3. **WG-113**: Refresh stale status/roadmap/GOAP truth sources
-   - Priority: P0
-   - Owner: agents-update
-   - GOAP skills: `goap-agent`, `agents-update`
-   - Target: Align release/version/package statements across `plans/`
-   - Dependencies: None
-
-### Phase 1: CPU Efficiency
-
-4. **WG-114**: Reduce QueryCache contention
-   - Priority: P1
-   - Owner: performance
-   - GOAP skills: `goap-agent`, `performance`, `test-runner`
-   - Target: Validate `parking_lot::RwLock` and benchmark lock contention on hot retrieval paths
-
-5. **WG-115**: Wire real cached retrieval into Turso integration
-   - Priority: P1
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
-   - Target: Replace placeholder cached episode/pattern queries with storage-backed implementations
-
-6. **WG-116**: Tune compression/cache CPU budget
-   - Priority: P1
-   - Owner: performance
-   - GOAP skills: `goap-agent`, `performance`, `code-quality`
-   - Target: Measure compression thresholds and zero-copy cache tradeoffs to avoid wasted CPU cycles
-
-### Phase 1.5: CSM Integration (CPU-Local Retrieval)
-
-7. **WG-128**: Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier
-   - Priority: P0
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
-   - Target: Eliminate embedding API calls for exact/keyword matches (50-70% query savings)
-   - Paper: arXiv:2602.23368 ("Keyword search is all you need")
-   - Dependencies: None
-
-8. **WG-129**: Wire HDC text encoder as local embedding fallback
-   - Priority: P1
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `test-runner`
-   - Target: CPU-only embedding when API unavailable; replaces placeholder in `embeddings/local.rs`
-   - Dependencies: WG-128
-
-9. **WG-130**: Add ConceptGraph ontology expansion for synonym retrieval
-   - Priority: P1
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`
-   - Target: Domain-term synonym expansion without LLM calls via curated graph
-   - Dependencies: WG-129
-
-10. **WG-131**: Implement cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API)
-    - Priority: P1
-    - Owner: feature-implement
-    - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
-    - Target: Route queries through cheapest tier first; API calls as fallback only
-    - Result: ✅ Complete — all 4 tiers (BM25 + HDC + ConceptGraph + API fallback), 30 tests
-    - Dependencies: WG-128, WG-129, WG-130
-
-### Phase 2: Token Efficiency
-
-11. **WG-117**: Implement `BundleAccumulator` sliding window
-   - Priority: P1
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
-   - Target: Bound retrieved context by recency-weighted window instead of flat accumulation
-
-12. **WG-118**: Add hierarchical/gist reranking
-   - Priority: P1
-   - Owner: feature-implement
-   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
-   - Target: Return fewer, denser context items to reduce prompt tokens without hurting retrieval quality
-
-13. **WG-119**: Compact high-frequency skills/docs
-     - Priority: P2
-     - Owner: agents-update
-     - GOAP skills: `goap-agent`, `agents-update`, `learn`
-     - Target: Reduce prompt token load from large high-frequency agent docs and skills
-
-### Phase 3: Research-Inspired Retrieval Upgrades
-
-14. **WG-120**: Add reconstructive retrieval windows
-     - Priority: P2
-     - Owner: feature-implement
-     - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`
-     - Target: Expand top-k hits into bounded local windows to preserve useful context with fewer irrelevant tokens
-    - Paper: E-mem (arXiv:2601.21714)
-
-15. **WG-121**: Add execution-signature retrieval
-     - Priority: P2
-     - Owner: feature-implement
-     - GOAP skills: `goap-agent`, `feature-implement`, `performance`
-     - Target: Rank traces by tools/errors/step-shape in addition to embeddings to reduce noisy retrieval
-    - Paper: APEX-EM (arXiv:2603.29093)
-
-16. **WG-122**: Add scope-before-search shard routing
-     - Priority: P2
-     - Owner: feature-implement
-     - GOAP skills: `goap-agent`, `feature-implement`, `performance`
-     - Target: Reduce candidate set size before vector search to lower CPU and token waste
-    - Paper: ShardMemo (arXiv:2601.21545)
-
-### Backlog (Future)
-
-17. **WG-123**: ✅ Complete — Temporal graph edges in episode store (PR #570)
-    - Priority: P3 → Complete
-    - Owner: feature-implement
-    - Paper: REMem (ICLR 2026, arXiv:2602.13530)
-    - Result: Weighted traversal queries, episode-to-pattern relationships, significance weights (0.0-1.0), path-finding with weights, storage schema updates
-
-18. **WG-124**: ✅ Complete — Procedural memory type (PR #569)
-    - Priority: P3 → Complete
-    - Owner: feature-implement
-    - Paper: ParamAgent (2026) — three-tier memory architecture
-    - Status: PR #569 merged via admin (pre-existing libsql SIGSEGV, ADR-027)
-
-19. **WG-125**: Routing-Free MoE evaluation
-    - Priority: P3
-    - Owner: code-reviewer
-    - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
-
-20. **WG-126**: ✅ Complete — Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, PR #572)
-    - Priority: P3 → Complete
-    - Owner: feature-implement
-    - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
-    - Result: Trajectory distillation (episodes→compact representations), contrastive triplet adapter, collaborative prototype management/sharing, Tier-0 collaboration check in retrieval
-
-21. **WG-127**: ✅ Complete — Semantic gist extraction + CogniRank reranking (CogitoRAG, PR #568)
-    - Priority: P3 → Complete
-    - Owner: feature-implement
-    - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
-    - Result: Semantic gist extraction from episodes, CogniRank reranking for retrieval, gist-based retrieval pipeline
-
-22. **WG-132**: ✅ Complete — Evaluate LottaLoRA-inspired local classifier for episode types
-    - Priority: P3
-    - Owner: feature-implement
-    - Paper: arXiv:2604.08749 (Apr 2026) — random scaffolds + LoRA adapters, reservoir computing + HDC
-    - Result: Evaluation document at `plans/WG-132_LottaLoRA_Evaluation.md`
-
-23. **WG-133**: ✅ Complete — Align memory architecture with Anatomy of Agentic Memory taxonomy
-    - Priority: P3
-    - Owner: agents-update
-    - Paper: arXiv:2602.19320 — structured taxonomy of 4 memory structures for LLM agents
-    - Result: Evaluation document at `plans/WG-133_AgenticMemoryTaxonomy_Evaluation.md`
-
-24. **WG-134**: ✅ Complete — DAG-based state management for episode context (86% token reduction)
-    - Priority: P2 → Complete
-    - Owner: feature-implement
-    - Paper: arXiv:2602.22398 — DAG-based conversation state, reference impl for Claude Code
-    - Result: ~1,320 LOC in `memory-core/src/context/dag/`, 24 tests, ADR-054
-
-25. **WG-135**: 🔵 Evaluated — Federated HDC for multi-agent memory sharing (evaluation doc)
-    - Priority: P3
-    - Owner: feature-implement
-    - Paper: arXiv:2603.20037 — HDC prototype exchange instead of full embedding sync
-    - Result: Evaluation document at `plans/WG-135_FederatedHDC_Evaluation.md`
-
-26. **WG-136**: Create `performance` skill (referenced but missing)
-    - Priority: P1
-    - Owner: skill-creator
-    - Target: Unblock WG-114/116 owners; standardize benchmarking workflow
-
-27. **WG-137**: Prune skills from 40 → ≤35
-    - Priority: P1
-    - Owner: agents-update
-    - Target: Merge parallel-execution→agent-coordination, task-decomposition→goap-agent, codebase-locator→codebase-analyzer, codebase-consolidation→codebase-analyzer, remove yaml-validator
-
-28. **WG-138**: Fix STATUS/CURRENT.md contradictions (dead_code 35 vs 41)
-    - Priority: P0
-    - Owner: agents-update
-    - Target: Single source of truth for quality metrics
-
-29. **WG-139**: Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09)
-    - Priority: P1
-    - Owner: agents-update
-    - Target: Rerun all metrics against current v0.1.30 codebase
-
-30. **WG-149**: ✅ Complete — Implement CloudEvents EventEmitter
-    - Priority: P1
-    - Owner: feature-implement
-    - GOAP skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
-    - Target: Standardized event emission for external interoperability via CloudEvents 1.0
-    - Result: CloudEvent struct (1.0 spec), EventEmitter trait, LogEmitter, NoOpEmitter, HttpEmitter (http-emitter feature), EventEmitterMode enum + config env vars
-    - Dependencies: None
+| WG | Step | Status |
+|----|------|--------|
+| WG-165 | `cargo nextest run --all` | ✅ Complete |
+| WG-166 | `cargo test --doc` | ✅ Complete |
+| WG-167 | `./scripts/quality-gates.sh` (≥90%) | ✅ Complete |
+| WG-168 | Sprint-exit `rg` audit (0 matches) | ✅ Complete |
+| WG-169 | Bump workspace to `0.1.33` + CHANGELOG | 🔧 In progress |
+| WG-170 | `gh release create v0.1.33` (release-guard) | 🟡 Queued |
 
 ---
 
-## v0.1.30 Sprint Goals (Complete ✅)
+## v0.1.32 Sprint Goals (Complete ✅)
 
 ### Cross-Repo Impact Analysis Source
 

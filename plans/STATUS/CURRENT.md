@@ -1,21 +1,20 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-06-14 (v0.1.32 released; all 15 WGs complete; PR #620 merged)
+**Last Updated**: 2026-06-14 (v0.1.33 release in progress; 60 unreleased commits since v0.1.32)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
-**Current Workspace Version**: 0.1.32
-**Active Sprint**: v0.1.33 — Post-release maintenance
+**Current Workspace Version**: 0.1.33
+**Active Sprint**: v0.1.33 — Release drift resolution (issue #623)
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
-## v0.1.32 Sprint — COMPLETE ✅ (Released 2026-05-24)
+## v0.1.33 Sprint — IN PROGRESS
 
 | Phase | Done | Open |
 |-------|------|------|
-| P1 User contract | 6/6 | — |
-| P2 Telemetry | 5/5 | — |
-| P3 Internal debt | 4/4 | — |
-| P4 Validation/release | 6/6 | — |
+| P1–P3 Missing implementation | 15/15 | — |
+| P4 Validation + release (v0.1.32) | 6/6 | — |
+| P5 Release drift fix (v0.1.33) | 2/4 | Version bump, CHANGELOG, tag+release |
 
 Re-audit command:
 `rg -in 'not yet implemented|// *Placeholder' memory-core/src memory-mcp/src memory-cli/src memory-storage-redb/src memory-storage-turso/src`
@@ -27,9 +26,9 @@ Re-audit command:
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.32 | — | ✅ Prepared for release (2026-05-21) |
-| Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
+| Workspace version | 0.1.33 | — | 🔧 In progress (issue #623) |
+| Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.32`  |
 | Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
 | Skipped/ignored tests | 164 | ≤165 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |

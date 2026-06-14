@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-06-14 (comprehensive analysis — issue #619 release drift, scheduled gitleaks false positives, nightly slow-test still red)
-- **Version**: `0.1.32` (workspace — v0.1.32 **not yet released**; 54 unreleased commits per #619)
+- **Last Updated**: 2026-06-14 (v0.1.33 release in progress; issue #623 release drift; PR #622 merged)
+- **Version**: `0.1.33` (workspace — v0.1.33 release pending; 60 unreleased commits per #623)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -96,13 +96,24 @@
 
 ---
 
-## v0.1.32 Sprint — Missing Implementation Remediation (In Flight, audited 2026-06-14)
+## v0.1.33 Sprint — Release Drift Resolution (In Flight)
 
-- **ADR**: [ADR-055](adr/ADR-055-Missing-Implementation-Remediation-v0.1.32.md)
-- **GOAP Plan**: [`GOAP_MISSING_IMPLEMENTATION_2026-05-21.md`](GOAP_MISSING_IMPLEMENTATION_2026-05-21.md)
-- **Primary Goal**: Eliminate advertised-but-unimplemented CLI commands, MCP tools, embedding providers, and telemetry placeholders found by 2026-05-21 audit.
-- **Strategy**: Hybrid — Phase 1 sequential per crate; Phase 2/3 parallel; Phase 4 sequential validate+release.
-- **Progress (2026-06-14 verification)**: **15 of 15 functional WGs complete** (all Phase 1/2/3 items resolved). Phase 4 release not yet started.
+- **Issue**: [#623](https://github.com/d-o-hub/rust-self-learning-memory/issues/623) — 60 unreleased commits since v0.1.32
+- **ADR**: ADR-058 (CI Health), ADR-055 (Missing Implementation Remediation)
+- **Strategy**: Sequential — gitleaks fix (B1 ✅) → slow test fix (B3 ✅) → WG-156/162 re-audit (B4 ✅) → release v0.1.33
+
+### Progress
+
+| Action | Description | Status |
+|--------|-------------|--------|
+| B1 | Add 3 gitleaks false-positive fingerprints | ✅ Done (PR #620) |
+| B3 | Bound slow test; stop worker pools between iterations | ✅ Done (PR #620) |
+| B4 | Re-audit WG-156–162 stubs | ✅ Done (PR #620) |
+| B2 | Cut v0.1.33 release (close #623) | 🔧 In progress |
+
+---
+
+## v0.1.32 Sprint — COMPLETE ✅ (Released 2026-05-24)
 
 ### v0.1.32 Feature Addition — PR #611 (2026-06-06)
 

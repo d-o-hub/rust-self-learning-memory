@@ -86,20 +86,16 @@
 //!
 //! ### Local Development (No Credentials)
 //!
+//! Use `do-memory-storage-turso` for durable local storage:
+//!
 //! ```no_run
 //! use do_memory_core::SelfLearningMemory;
 //!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     // Use a local SQLite database file
-//!     let memory = SelfLearningMemory::with_local_storage("./data/memory.db").await?;
-//!
-//!     // Or use an in-memory database for testing
-//!     // let memory = SelfLearningMemory::with_in_memory_storage().await?;
-//!
-//!     Ok(())
-//! }
+//! // In-memory storage for quick testing (no dependencies)
+//! let memory = SelfLearningMemory::new();
 //! ```
+//!
+//! For local SQLite storage, see the `do_memory_storage_turso::SelfLearningMemoryExt` trait.
 //!
 //! ### Basic Episode Recording
 //!

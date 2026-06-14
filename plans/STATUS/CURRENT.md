@@ -30,7 +30,7 @@ Re-audit command:
 | Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.32`  |
 | Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
-| Skipped/ignored tests | 164 | ≤165 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Skipped/ignored tests | 172 | ≤180 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027), 10 performance benchmarks |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |

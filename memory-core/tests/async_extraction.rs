@@ -285,12 +285,17 @@ async fn should_recover_from_worker_errors_and_continue_processing() {
     let stats = memory.get_queue_stats().await.unwrap();
     assert!(stats.total_processed >= 1);
 }
-
 #[tokio::test]
 #[ignore = "slow integration test - runs for >60s, run explicitly with --ignored"]
 async fn should_scale_processing_with_different_worker_counts() {
-    // Given/When/Then: Testing worker pool with different worker counts
-    for worker_count in [1, 2, 4, 8] {
+    // Given/When/Then: Testing worker pool with different worker counts.
+    // Each iteration creates a fresh memory instance and shuts it down
+    // cleanly via stop_workers() to avoid leaking worker tasks (ADR-057 A3).
+    // Uses 3 episodes to keep per-iteration time well under nextest 120s
+    // timeout even with 1 worker (pattern extraction ~6s/episode).
+    let episode_count = 3;
+
+    for worker_count in [1, 4, 8] {
         // Given: Memory system configured with specific worker count
         let config = QueueConfig {
             worker_count,
@@ -303,10 +308,9 @@ async fn should_scale_processing_with_different_worker_counts() {
         );
         memory.start_workers().await;
 
-        let episode_count = 20;
         let start = std::time::Instant::now();
 
-        // When: Creating and completing multiple episodes
+        // When: Creating and completing episodes
         for i in 0..episode_count {
             let episode_id = create_test_episode(&memory, &format!("Task {i}"), 3).await;
             memory
@@ -321,18 +325,30 @@ async fn should_scale_processing_with_different_worker_counts() {
                 .unwrap();
         }
 
-        // When: Waiting for all to process
-        sleep(Duration::from_secs(3)).await;
+        // Drain-poll: stop_workers drains the queue first (workers
+        // finish processing current items), then signals shutdown.
+        // 60s timeout is generous; ~18s expected for 1 worker * 3 eps.
+        let drained = memory.stop_workers(Duration::from_secs(60)).await;
 
         let duration = start.elapsed();
         let stats = memory.get_queue_stats().await.unwrap();
 
         println!(
-            "Workers: {}, Episodes: {}, Duration: {:?}, Processed: {}, Failed: {}",
-            worker_count, episode_count, duration, stats.total_processed, stats.total_failed
+            "Workers: {}, Episodes: {}, Duration: {:?}, \
+             Processed: {}, Failed: {}, Drained: {}",
+            worker_count,
+            episode_count,
+            duration,
+            stats.total_processed,
+            stats.total_failed,
+            drained,
         );
 
-        // Then: Queue should be empty after processing
+        // Then: Workers should have drained the queue before stopping
+        assert!(
+            drained,
+            "Workers ({worker_count}) should drain queue within timeout"
+        );
         assert_eq!(stats.current_queue_size, 0, "Queue should be empty");
     }
 }

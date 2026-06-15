@@ -1,5 +1,3 @@
-#![allow(clippy::ignore_without_reason)]
-
 use crate::patterns::predictive::{
     dbscan::{AdaptiveDBSCAN, DBSCANConfig},
     kdtree::{KDTree, Point},
@@ -9,6 +7,7 @@ use crate::patterns::statistical::{
 };
 use std::time::Instant;
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_dbscan_scalability() {
     let sizes = vec![100, 500, 1000, 2000, 5000];
@@ -43,6 +42,7 @@ fn benchmark_dbscan_scalability() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_bocpd_scalability() {
     let sizes = vec![100, 500, 1000, 2000, 5000];
@@ -78,6 +78,7 @@ fn benchmark_bocpd_scalability() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_kdtree_performance() {
     let sizes = vec![100, 500, 1000, 1500];
@@ -117,6 +118,7 @@ fn benchmark_kdtree_performance() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_pattern_extraction() {
     use crate::patterns::predictive::extraction::{ExtractionConfig, PatternExtractor};
@@ -155,6 +157,7 @@ fn benchmark_pattern_extraction() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_compatibility_assessment() {
     use crate::patterns::compatibility::{AssessmentConfig, CompatibilityAssessor, PatternContext};
@@ -244,6 +247,7 @@ fn benchmark_compatibility_assessment() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_memory_usage() {
     let is_ci = std::env::var("CI").is_ok();
@@ -290,7 +294,7 @@ fn benchmark_memory_usage() {
     assert!(estimated_mb < 500.0, "Memory usage should be reasonable");
 }
 
-#[cfg_attr(not(feature = "streaming-impl"), ignore)]
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_streaming_performance() {
     let is_ci = std::env::var("CI").is_ok();
@@ -339,6 +343,7 @@ fn benchmark_streaming_performance() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_concurrent_analysis() {
     use std::thread;
@@ -373,6 +378,7 @@ fn benchmark_concurrent_analysis() {
     }
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_real_world_workload() {
     let mut dbscan = AdaptiveDBSCAN::new(DBSCANConfig::default()).unwrap();
@@ -416,6 +422,7 @@ fn benchmark_real_world_workload() {
     );
 }
 
+#[ignore = "performance benchmark - run with --run-ignored"]
 #[test]
 fn benchmark_accuracy_performance_tradeoff() {
     let configs = vec![(0.1, 2, 1000), (0.5, 5, 500), (1.0, 10, 200)];

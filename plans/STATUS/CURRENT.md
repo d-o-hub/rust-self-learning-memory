@@ -14,7 +14,7 @@
 |-------|------|------|
 | P1–P3 Missing implementation | 15/15 | — |
 | P4 Validation + release (v0.1.32) | 6/6 | — |
-| P5 Release drift fix (v0.1.33) | 2/4 | Version bump, CHANGELOG, tag+release |
+| P5 Release drift fix (v0.1.33) | 4/4 | Version bump, CHANGELOG, tag+release |
 
 Re-audit command:
 `rg -in 'not yet implemented|// *Placeholder' memory-core/src memory-mcp/src memory-cli/src memory-storage-redb/src memory-storage-turso/src`
@@ -26,9 +26,9 @@ Re-audit command:
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | 🔧 In progress (issue #623) |
-| Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.32`  |
+| Workspace version | 0.1.33 | — | ✅ Release drift resolved |
+| Latest GitHub release | v0.1.33 | — | ✅ Published 2026-06-15 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.33`  |
 | Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
 | Skipped/ignored tests | 172 | ≤180 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027), 10 performance benchmarks |
 | Timed-out tests | 0 | 0 | ✅ |

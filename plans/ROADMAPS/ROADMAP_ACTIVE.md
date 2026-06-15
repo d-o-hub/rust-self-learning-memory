@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-06-14 (v0.1.32 released; all 15 functional WGs complete; PR #620 merged)
+**Last Updated**: 2026-06-14 (v0.1.33 release in progress; all WGs complete; PR #622 merged)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
-**Active Sprint**: v0.1.33 — Post-release maintenance
+**Active Sprint**: v0.1.33 — Release drift resolution
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -44,7 +44,7 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 
 ## Current State
 
-`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.32`. PR #620 merged 2026-06-14 with final CI fixes.
+`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` (in progress). PRs #620 and #622 merged 2026-06-14. Issue #623 (release drift) resolved by v0.1.33 release.
 
 ## v0.1.32 Release — COMPLETE ✅ (Released 2026-05-24)
 

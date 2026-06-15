@@ -19,7 +19,9 @@ set -e
 # Coverage sprint added 24 ignored tests (ADR-027: libsql memory corruption bug in CI)
 # Coverage tests added 4 more for resilient/embedding tests requiring TursoStorage
 # New baseline: 161, ceiling with buffer: 165
-IGNORED_TEST_CEILING=165
+# v0.1.33: Added 10 #[ignore] benchmark tests (performance_benchmarks.rs) + 1 fluent test
+# New baseline: 172, ceiling with buffer: 180
+IGNORED_TEST_CEILING=180
 
 # Colors for output
 RED='\033[0;31m'

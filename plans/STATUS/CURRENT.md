@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-06-14 (v0.1.33 release in progress; 60 unreleased commits since v0.1.32)
-**Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
+**Last Updated**: 2026-06-15 (v0.1.33 released; issue #623 resolved)
+**Released Version**: v0.1.33 (crates.io + GitHub Release, 2026-06-15)
 **Current Workspace Version**: 0.1.33
 **Active Sprint**: v0.1.33 — Release drift resolution (issue #623)
 **Branch**: `main`

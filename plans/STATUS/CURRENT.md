@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-06-14 (v0.1.33 release in progress; 60 unreleased commits since v0.1.32)
-**Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
+**Released Version**: v0.1.33 (crates.io + GitHub Release, 2026-06-14)
 **Current Workspace Version**: 0.1.33
 **Active Sprint**: v0.1.33 — Release drift resolution (issue #623)
 **Branch**: `main`
@@ -26,9 +26,9 @@ Re-audit command:
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | 🔧 In progress (issue #623) |
-| Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.32`  |
+| Workspace version | 0.1.33 | — | ✅ Ready for release |
+| Latest GitHub release | v0.1.33 | — | ✅ Published 2026-06-14 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.33` |
 | Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
 | Skipped/ignored tests | 172 | ≤180 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027), 10 performance benchmarks |
 | Timed-out tests | 0 | 0 | ✅ |

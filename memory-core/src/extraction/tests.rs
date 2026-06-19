@@ -328,4 +328,48 @@ mod utils_tests {
         let ranked = super::utils::rank_patterns(patterns, &TaskContext::default());
         assert_eq!(ranked.len(), 1);
     }
+
+    #[test]
+    fn test_rank_patterns_coverage_gap() {
+        // Test case for duplicate tools and tags to cover optimized paths
+        let patterns = vec![
+            Pattern::ToolSequence {
+                id: uuid::Uuid::new_v4(),
+                tools: vec!["tool1".to_string(), "tool1".to_string()], // Duplicate tool
+                context: TaskContext {
+                    tags: vec!["async".to_string(), "async".to_string()], // Duplicate tag
+                    ..Default::default()
+                },
+                success_rate: 0.8,
+                avg_latency: Duration::milliseconds(100),
+                occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
+            },
+            Pattern::ToolSequence {
+                id: uuid::Uuid::new_v4(),
+                tools: vec!["tool2".to_string()],
+                context: TaskContext {
+                    tags: vec![], // Empty tags
+                    ..Default::default()
+                },
+                success_rate: 0.8,
+                avg_latency: Duration::milliseconds(100),
+                occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
+            },
+        ];
+
+        // 1. Query with non-empty tags against pattern with empty tags
+        let query_context_with_tags = TaskContext {
+            tags: vec!["async".to_string()],
+            ..Default::default()
+        };
+        let ranked1 = super::utils::rank_patterns(patterns.clone(), &query_context_with_tags);
+        assert_eq!(ranked1.len(), 2);
+
+        // 2. Query with empty tags against pattern with non-empty tags
+        let query_context_empty_tags = TaskContext::default();
+        let ranked2 = super::utils::rank_patterns(patterns, &query_context_empty_tags);
+        assert_eq!(ranked2.len(), 2);
+    }
 }

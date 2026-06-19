@@ -85,7 +85,15 @@ fn calculate_pattern_score(
     match pattern {
         Pattern::ToolSequence { tools, .. } => {
             // Prefer patterns with diverse tool usage
-            let unique_tools = tools.iter().collect::<HashSet<_>>().len();
+            // Optimization: Avoid HashSet for small tool sequences (max 5)
+            let mut unique_tools = 0;
+            let mut seen: Vec<&String> = Vec::with_capacity(tools.len());
+            for tool in tools {
+                if !seen.contains(&tool) {
+                    unique_tools += 1;
+                    seen.push(tool);
+                }
+            }
             score += (unique_tools as f64 / tools.len() as f64) * 20.0;
         }
         Pattern::ErrorRecovery { .. } => {
@@ -179,13 +187,27 @@ fn calculate_context_similarity(
     factors += 1.0;
 
     // Tag overlap (variable weight based on overlap)
+    // Optimization: Avoid re-allocating HashSet for 'a.tags'.
+    // We use the pre-calculated query_tags HashSet for efficient lookups.
     if !a.tags.is_empty() || !query_tags.is_empty() {
-        let a_tags: HashSet<_> = a.tags.iter().collect();
-        let intersection = a_tags.intersection(query_tags).count();
-        let union = a_tags.union(query_tags).count();
+        let mut intersection_count = 0;
+        let mut a_unique_count = 0;
+        let mut seen_in_a = Vec::with_capacity(a.tags.len());
 
-        if union > 0 {
-            similarity += (intersection as f64 / union as f64) * 0.7;
+        for tag in &a.tags {
+            if !seen_in_a.contains(&tag) {
+                a_unique_count += 1;
+                seen_in_a.push(tag);
+                if query_tags.contains(tag) {
+                    intersection_count += 1;
+                }
+            }
+        }
+
+        let union_count = query_tags.len() + a_unique_count - intersection_count;
+
+        if union_count > 0 {
+            similarity += (intersection_count as f64 / union_count as f64) * 0.7;
         }
         factors += 1.0;
     }

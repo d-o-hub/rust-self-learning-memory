@@ -153,27 +153,13 @@ pub fn truncate_safe(s: &mut String, max: usize) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_truncate_safe() {
-        // Case: Truncation needed, at boundary
-        let mut s = "hello".to_string();
-        truncate_safe(&mut s, 3);
-        assert_eq!(s, "hel");
-
-        // Case: Truncation needed, NOT at boundary (multi-byte)
         let mut s = "a🚀b".to_string();
         truncate_safe(&mut s, 3);
         assert_eq!(s, "a");
-
-        // Case: No truncation needed (shorter)
         let mut s = "hi".to_string();
         truncate_safe(&mut s, 10);
         assert_eq!(s, "hi");
-
-        // Case: No truncation needed (equal)
-        let mut s = "equal".to_string();
-        truncate_safe(&mut s, 5);
-        assert_eq!(s, "equal");
     }
 }

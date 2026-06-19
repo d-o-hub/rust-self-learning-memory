@@ -45,7 +45,7 @@ dialoguer = "0.12"
 
 # Platform and system utilities for smart defaults
 dirs = "6.0"
-sysinfo = "0.39"
+sysinfo = "0.38"
 
 # Test utilities dependencies
 assert_cmd = "2.2"

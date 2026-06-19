@@ -138,3 +138,12 @@ pub const MAX_SERIES_POINTS: usize = 1000;
 
 /// Maximum allowed length for metric type identifier.
 pub const MAX_METRICS_TYPE_LEN: usize = 100;
+
+/// Truncate a string to a maximum length in a UTF-8 safe manner.
+pub fn truncate_safe(s: &mut String, max: usize) {
+    if s.len() > max {
+        let mut end = max;
+        while !s.is_char_boundary(end) { end -= 1; }
+        s.truncate(end);
+    }
+}

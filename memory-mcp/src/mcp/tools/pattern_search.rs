@@ -79,8 +79,12 @@ pub struct ScoreBreakdownResult {
 /// Execute search_patterns tool
 pub async fn execute(
     memory: &SelfLearningMemory,
-    input: SearchPatternsInput,
+    mut input: SearchPatternsInput,
 ) -> anyhow::Result<Value> {
+    crate::constants::truncate_safe(&mut input.query, crate::constants::MAX_TASK_DESCRIPTION_LEN);
+    crate::constants::truncate_safe(&mut input.domain, crate::constants::MAX_METRICS_TYPE_LEN);
+    input.tags.truncate(crate::constants::MAX_TAGS_PER_OPERATION);
+
     // Build context
     let context = TaskContext {
         domain: input.domain.clone(),
@@ -213,8 +217,13 @@ fn default_recommendation_limit() -> usize {
 /// Execute recommend_patterns tool
 pub async fn execute_recommend(
     memory: &SelfLearningMemory,
-    input: RecommendPatternsInput,
+    mut input: RecommendPatternsInput,
 ) -> anyhow::Result<Value> {
+    let max_desc = crate::constants::MAX_TASK_DESCRIPTION_LEN;
+    crate::constants::truncate_safe(&mut input.task_description, max_desc);
+    crate::constants::truncate_safe(&mut input.domain, crate::constants::MAX_METRICS_TYPE_LEN);
+    input.tags.truncate(crate::constants::MAX_TAGS_PER_OPERATION);
+
     // Build context
     let context = TaskContext {
         domain: input.domain.clone(),

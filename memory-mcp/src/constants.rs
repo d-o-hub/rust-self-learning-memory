@@ -149,13 +149,35 @@ pub fn truncate_safe(s: &mut String, max: usize) {
         s.truncate(end);
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_truncate_safe() {
+        // Case 1: Truncation needed (regular ASCII)
+        let mut s = "hello".to_string();
+        truncate_safe(&mut s, 3);
+        assert_eq!(s, "hel");
+
+        // Case 2: No truncation needed (s.len() < max)
+        let mut s = "hi".to_string();
+        truncate_safe(&mut s, 10);
+        assert_eq!(s, "hi");
+
+        // Case 3: No truncation needed (s.len() == max)
+        let mut s = "equal".to_string();
+        truncate_safe(&mut s, 5);
+        assert_eq!(s, "equal");
+
+        // Case 4: UTF-8 safe truncation (🚀 is 4 bytes)
         let mut s = "a🚀b".to_string();
         truncate_safe(&mut s, 3);
         assert_eq!(s, "a");
+
+        let mut s = "a🚀b".to_string();
+        truncate_safe(&mut s, 5);
+        assert_eq!(s, "a🚀");
     }
 }

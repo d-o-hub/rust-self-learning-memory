@@ -86,7 +86,7 @@ fn calculate_pattern_score(
         Pattern::ToolSequence { tools, .. } => {
             // Prefer patterns with diverse tool usage
             // Optimization: Avoid HashSet for small tool sequences (max 5)
-            let mut unique_tools = 0;
+            let mut unique_tools: usize = 0;
             let mut seen: Vec<&String> = Vec::with_capacity(tools.len());
             for tool in tools {
                 if !seen.contains(&tool) {

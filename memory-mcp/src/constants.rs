@@ -156,28 +156,24 @@ mod tests {
 
     #[test]
     fn test_truncate_safe() {
-        // Case 1: Truncation needed (regular ASCII)
+        // Case: Truncation needed, at boundary
         let mut s = "hello".to_string();
         truncate_safe(&mut s, 3);
         assert_eq!(s, "hel");
 
-        // Case 2: No truncation needed (s.len() < max)
-        let mut s = "hi".to_string();
-        truncate_safe(&mut s, 10);
-        assert_eq!(s, "hi");
-
-        // Case 3: No truncation needed (s.len() == max)
-        let mut s = "equal".to_string();
-        truncate_safe(&mut s, 5);
-        assert_eq!(s, "equal");
-
-        // Case 4: UTF-8 safe truncation (🚀 is 4 bytes)
+        // Case: Truncation needed, NOT at boundary (multi-byte)
         let mut s = "a🚀b".to_string();
         truncate_safe(&mut s, 3);
         assert_eq!(s, "a");
 
-        let mut s = "a🚀b".to_string();
+        // Case: No truncation needed (shorter)
+        let mut s = "hi".to_string();
+        truncate_safe(&mut s, 10);
+        assert_eq!(s, "hi");
+
+        // Case: No truncation needed (equal)
+        let mut s = "equal".to_string();
         truncate_safe(&mut s, 5);
-        assert_eq!(s, "a🚀");
+        assert_eq!(s, "equal");
     }
 }

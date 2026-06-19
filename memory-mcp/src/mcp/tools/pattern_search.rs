@@ -83,7 +83,9 @@ pub async fn execute(
 ) -> anyhow::Result<Value> {
     crate::constants::truncate_safe(&mut input.query, crate::constants::MAX_TASK_DESCRIPTION_LEN);
     crate::constants::truncate_safe(&mut input.domain, crate::constants::MAX_METRICS_TYPE_LEN);
-    input.tags.truncate(crate::constants::MAX_TAGS_PER_OPERATION);
+    input
+        .tags
+        .truncate(crate::constants::MAX_TAGS_PER_OPERATION);
 
     // Build context
     let context = TaskContext {
@@ -222,7 +224,9 @@ pub async fn execute_recommend(
     let max_desc = crate::constants::MAX_TASK_DESCRIPTION_LEN;
     crate::constants::truncate_safe(&mut input.task_description, max_desc);
     crate::constants::truncate_safe(&mut input.domain, crate::constants::MAX_METRICS_TYPE_LEN);
-    input.tags.truncate(crate::constants::MAX_TAGS_PER_OPERATION);
+    input
+        .tags
+        .truncate(crate::constants::MAX_TAGS_PER_OPERATION);
 
     // Build context
     let context = TaskContext {

@@ -143,7 +143,9 @@ pub const MAX_METRICS_TYPE_LEN: usize = 100;
 pub fn truncate_safe(s: &mut String, max: usize) {
     if s.len() > max {
         let mut end = max;
-        while !s.is_char_boundary(end) { end -= 1; }
+        while !s.is_char_boundary(end) {
+            end -= 1;
+        }
         s.truncate(end);
     }
 }

@@ -219,15 +219,8 @@ fn default_recommendation_limit() -> usize {
 /// Execute recommend_patterns tool
 pub async fn execute_recommend(
     memory: &SelfLearningMemory,
-    mut input: RecommendPatternsInput,
+    input: RecommendPatternsInput,
 ) -> anyhow::Result<Value> {
-    let max_desc = crate::constants::MAX_TASK_DESCRIPTION_LEN;
-    crate::constants::truncate_safe(&mut input.task_description, max_desc);
-    crate::constants::truncate_safe(&mut input.domain, crate::constants::MAX_METRICS_TYPE_LEN);
-    input
-        .tags
-        .truncate(crate::constants::MAX_TAGS_PER_OPERATION);
-
     // Build context
     let context = TaskContext {
         domain: input.domain.clone(),
@@ -286,5 +279,19 @@ mod tests {
         };
 
         assert_eq!(input.limit, 3);
+    }
+
+    #[tokio::test]
+    async fn test_execute_truncates_input() {
+        let memory = SelfLearningMemory::new();
+        let input = SearchPatternsInput {
+            query: "a".repeat(crate::constants::MAX_TASK_DESCRIPTION_LEN + 1),
+            domain: "b".repeat(crate::constants::MAX_METRICS_TYPE_LEN + 1),
+            tags: vec!["t".to_string(); crate::constants::MAX_TAGS_PER_OPERATION + 1],
+            limit: 5,
+            min_relevance: 0.3,
+            filter_by_domain: false,
+        };
+        let _ = execute(&memory, input).await;
     }
 }

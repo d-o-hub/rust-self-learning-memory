@@ -149,11 +149,9 @@ pub fn truncate_safe(s: &mut String, max: usize) {
         s.truncate(end);
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_truncate_safe() {
         let mut s = "a🚀b".to_string();

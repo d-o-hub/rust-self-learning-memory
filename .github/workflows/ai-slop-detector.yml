@@ -33,7 +33,7 @@ jobs:
     steps:
       # ── 0. Checkout ────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # ── 1. Heuristic scoring (pure JS, no external calls) ──────────────────
       - name: Stage 1 — Heuristic scoring

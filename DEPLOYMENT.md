@@ -33,7 +33,7 @@ The rust-self-learning-memory system consists of:
 - **RAM**: 4GB minimum (8GB+ recommended)
 - **Disk**: 10GB minimum for cache and logs
 - **Network**: Stable connection to Turso (latency <100ms recommended)
-- **Rust**: 1.70+ (for building from source)
+- **Rust**: 1.94.0+ (for building from source)
 
 ## Environment Configuration
 

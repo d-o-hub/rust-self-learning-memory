@@ -57,7 +57,7 @@ jobs:
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup isolated target dir
         run: |
@@ -249,7 +249,7 @@ jobs:
           sudo rm -rf /private/var/log/diagnosticPerusal || true
           df -h
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup isolated target dir
         run: |
@@ -324,7 +324,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120  # Mutation testing is slow
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup isolated target dir
         run: |
           chmod +x scripts/setup-target-dir.sh

@@ -86,7 +86,7 @@ jobs:
           echo "=== Top 20 Directories by Size ==="
           du -h -d1 / | sort -hr | head -n 20
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup isolated target dir
         run: |
@@ -188,7 +188,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download coverage artifact
         uses: actions/download-artifact@v8

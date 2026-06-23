@@ -6,11 +6,10 @@
 
 mod combination;
 
-use super::types::{Config, DatabaseConfig};
+use super::types::Config;
 use anyhow::Context;
 use anyhow::Result;
-use do_memory_core::{MemoryConfig, SelfLearningMemory, StorageBackend};
-use std::sync::Arc;
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
 
 /// Storage initialization result with detailed information
 pub struct StorageInitResult {

@@ -209,13 +209,12 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             .await?;
 
         for episode in episodes {
-            if let Some(stored_agent_name) = episode.metadata.get("agent_name") {
-                if stored_agent_name == agent_name {
-                    if let Some(metrics_json) = episode.metadata.get("metrics_data") {
-                        let metrics: AgentMetrics = serde_json::from_str(metrics_json)?;
-                        return Ok(Some(metrics));
-                    }
-                }
+            if let Some(stored_agent_name) = episode.metadata.get("agent_name")
+                && stored_agent_name == agent_name
+                && let Some(metrics_json) = episode.metadata.get("metrics_data")
+            {
+                let metrics: AgentMetrics = serde_json::from_str(metrics_json)?;
+                return Ok(Some(metrics));
             }
         }
 
@@ -330,13 +329,12 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             .await?;
 
         for episode in episodes {
-            if let Some(stored_task_type) = episode.metadata.get("task_type") {
-                if stored_task_type == task_type {
-                    if let Some(metrics_json) = episode.metadata.get("metrics_data") {
-                        let metrics: TaskMetrics = serde_json::from_str(metrics_json)?;
-                        return Ok(Some(metrics));
-                    }
-                }
+            if let Some(stored_task_type) = episode.metadata.get("task_type")
+                && stored_task_type == task_type
+                && let Some(metrics_json) = episode.metadata.get("metrics_data")
+            {
+                let metrics: TaskMetrics = serde_json::from_str(metrics_json)?;
+                return Ok(Some(metrics));
             }
         }
 

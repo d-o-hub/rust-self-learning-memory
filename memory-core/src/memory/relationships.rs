@@ -164,12 +164,11 @@ impl SelfLearningMemory {
         direction: Direction,
     ) -> Result<Vec<EpisodeRelationship>> {
         // Try cache first
-        if let Some(cache) = &self.cache_storage {
-            if let Ok(rels) = cache.get_relationships(episode_id, direction).await {
-                if !rels.is_empty() {
-                    return Ok(rels);
-                }
-            }
+        if let Some(cache) = &self.cache_storage
+            && let Ok(rels) = cache.get_relationships(episode_id, direction).await
+            && !rels.is_empty()
+        {
+            return Ok(rels);
         }
 
         // Fall back to durable storage
@@ -390,18 +389,17 @@ impl SelfLearningMemory {
     /// Check if a relationship matches the given filter criteria.
     fn matches_filter(rel: &EpisodeRelationship, filter: &RelationshipFilter) -> bool {
         // Filter by type
-        if let Some(ref rel_type) = filter.relationship_type {
-            if rel.relationship_type != *rel_type {
-                return false;
-            }
+        if let Some(ref rel_type) = filter.relationship_type
+            && rel.relationship_type != *rel_type
+        {
+            return false;
         }
         // Filter by priority
-        if let Some(min_priority) = filter.min_priority {
-            if let Some(priority) = rel.metadata.priority {
-                if priority < min_priority {
-                    return false;
-                }
-            }
+        if let Some(min_priority) = filter.min_priority
+            && let Some(priority) = rel.metadata.priority
+            && priority < min_priority
+        {
+            return false;
         }
         true
     }

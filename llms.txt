@@ -42,6 +42,10 @@ cargo nextest run --all
 ./scripts/code-quality.sh fmt
 ./scripts/code-quality.sh clippy --workspace
 
+# Harness
+./scripts/harness-check.sh <sensor>
+# (Available sensors: fmt, clippy, build, test, doc, docs-integrity, quality, release, ignored-tests, memory)
+
 # All quality gates
 ./scripts/quality-gates.sh
 ```
@@ -97,6 +101,7 @@ do-memory-cli pattern extract --episode-id <uuid>
 ## Documentation
 
 - `AGENTS.md` - Agent coding guidelines
+- `HARNESS.md` - Agent harness map (guides to sensors)
 - `plans/ROADMAPS/ROADMAP_ACTIVE.md` - Current roadmap
 - `plans/STATUS/CURRENT.md` - Current status
 - `agent_docs/` - Detailed documentation

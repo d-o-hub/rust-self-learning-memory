@@ -55,6 +55,15 @@ Measure learning effectiveness over N episodes:
 - Search latency should stay <100ms
 - Retrieval relevance should improve
 
+Run evaluation:
+```bash
+./scripts/run-evals.sh memory-harness
+```
+or
+```bash
+./scripts/harness-check.sh memory
+```
+
 ## Tools to Record
 
 | Tool | Record As |

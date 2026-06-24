@@ -1,0 +1,44 @@
+name: Fuzzing
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly at midnight on Sunday
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Duration to run fuzzing per target (seconds)'
+        required: true
+        default: '300'
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Fuzz MCP JSON-RPC
+        run: |
+          cargo fuzz run fuzz_mcp_jsonrpc -- -max_total_time=${{ github.event.inputs.duration || '300' }}
+
+      - name: Fuzz Postcard Roundtrip
+        run: |
+          cargo fuzz run fuzz_postcard_roundtrip -- -max_total_time=${{ github.event.inputs.duration || '300' }}
+
+      - name: Fuzz Search Matchers
+        run: |
+          cargo fuzz run fuzz_search_matchers -- -max_total_time=${{ github.event.inputs.duration || '300' }}
+
+      - name: Upload Crash Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts/

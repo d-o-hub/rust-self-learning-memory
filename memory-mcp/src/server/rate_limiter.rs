@@ -151,7 +151,7 @@ impl RateLimiter {
 
         // Periodic stale bucket cleanup (every ~1000 calls)
         let count = self.call_count.fetch_add(1, Ordering::Relaxed) + 1;
-        if count % 1000 == 0 {
+        if count.is_multiple_of(1000) {
             self.cleanup_stale_buckets(self.config.stale_threshold);
         }
 
@@ -187,7 +187,9 @@ impl RateLimiter {
         if allowed {
             trace!(
                 "Rate limit check passed for client: {} (op: {:?}, remaining: {})",
-                client_id, operation, remaining
+                client_id,
+                operation,
+                remaining
             );
             RateLimitResult {
                 allowed: true,
@@ -374,21 +376,15 @@ mod tests {
         };
 
         let headers = limiter.get_headers(&result);
-        assert!(
-            headers
-                .iter()
-                .any(|(k, v)| k == "X-RateLimit-Limit" && v == "100")
-        );
-        assert!(
-            headers
-                .iter()
-                .any(|(k, v)| k == "X-RateLimit-Remaining" && v == "50")
-        );
-        assert!(
-            headers
-                .iter()
-                .any(|(k, v)| k == "X-RateLimit-Reset" && v == "30")
-        );
+        assert!(headers
+            .iter()
+            .any(|(k, v)| k == "X-RateLimit-Limit" && v == "100"));
+        assert!(headers
+            .iter()
+            .any(|(k, v)| k == "X-RateLimit-Remaining" && v == "50"));
+        assert!(headers
+            .iter()
+            .any(|(k, v)| k == "X-RateLimit-Reset" && v == "30"));
     }
 
     #[test]

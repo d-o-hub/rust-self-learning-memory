@@ -278,7 +278,7 @@ fn error_handling_recoverable_rate_limit_exceeded() {
 
 #[test]
 fn error_handling_recoverable_io() {
-    let io_err = std::io::Error::new(std::io::ErrorKind::Other, "tmp");
+    let io_err = std::io::Error::other("tmp");
     assert!(Error::Io(io_err).is_recoverable());
 }
 

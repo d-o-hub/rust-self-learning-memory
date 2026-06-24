@@ -100,7 +100,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run actionlint
-        uses: reviewdog/action-actionlint@2471c261e59263a23a311ca475960459c049e25d
+        uses: reviewdog/action-actionlint@be0761e4c1bab7cfdfca56cd03d4bb6253e39a4a
         with:
           fail_level: error
           filter_mode: nofilter

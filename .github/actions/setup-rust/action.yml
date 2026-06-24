@@ -41,7 +41,7 @@ runs:
         ./scripts/setup-target-dir.sh "${{ inputs.job-name }}"
 
     - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+      uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
       with:
         components: ${{ inputs.components }}
         targets: ${{ inputs.targets }}

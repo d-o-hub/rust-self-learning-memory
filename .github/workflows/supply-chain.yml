@@ -17,10 +17,12 @@ jobs:
     name: Dependency Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
       - name: Install cargo-deny
         run: cargo install --locked cargo-deny
@@ -32,10 +34,12 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
       - name: Install cargo-cyclonedx
         run: cargo install --locked cargo-cyclonedx
@@ -44,7 +48,7 @@ jobs:
         run: cargo cyclonedx --all --format json
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: sbom
           path: '*.json'

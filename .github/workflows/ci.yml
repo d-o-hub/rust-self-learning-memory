@@ -97,7 +97,7 @@ jobs:
             --exclude do-memory-test-utils
       - name: Upload nextest JUnit (test)
         if: always()
-        uses: actions/upload-artifact@4cec5d8e17ad28b66f7af4947936a650d0ee89f5 # v4.6.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-test
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -154,7 +154,7 @@ jobs:
           timeout 600s cargo nextest run --profile ci -p do-memory-mcp || exit 1
       - name: Upload nextest JUnit (mcp-build)
         if: always()
-        uses: actions/upload-artifact@4cec5d8e17ad28b66f7af4947936a650d0ee89f5 # v4.6.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-mcp-build
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -218,7 +218,7 @@ jobs:
           fi
       - name: Upload nextest JUnit (multi-platform)
         if: always()
-        uses: actions/upload-artifact@4cec5d8e17ad28b66f7af4947936a650d0ee89f5 # v4.6.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-multi-platform-${{ matrix.os }}
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -281,7 +281,7 @@ jobs:
         env:
           RUST_LOG: info
       - name: Upload coverage
-        uses: codecov/codecov-action@13ce0d2d655010360fd2f99eb60897f5240361cd # v5.1.2
+        uses: codecov/codecov-action@cb6530fbecd68d5f1ee7a3dcd113450ea8d5d6d4 # v5.1.2
         with:
           files: ./lcov.info
           fail_ci_if_error: false
@@ -316,7 +316,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 
       - name: Cache semver baseline
-        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e79d13c99a0d # v4.2.1
         with:
           path: |
             ~/.cargo/semver-checks

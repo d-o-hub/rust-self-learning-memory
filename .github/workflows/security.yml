@@ -61,7 +61,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@f691689252ba2ca26645362e92c4749f75960010 # v2.3.2
+        uses: gitleaks/gitleaks-action@1f2d10fb689bc07a5f56f48d6db61f5bbbe772fa # v2.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for premium features
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload audit report artifact
         if: always()
-        uses: actions/upload-artifact@4cec5d8e17ad28b66f7af4947936a650d0ee89f5 # v4.6.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: audit-report
           path: audit-report.json
@@ -146,6 +146,6 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@897170e73f19c8b8f286367317501b2d9ecdf47d # v2.0.11
+        uses: embarkstudios/cargo-deny-action@34899fc7ba81ca6268d5947a7a16b4649013fea1 # v2.0.11
         with:
           command: check

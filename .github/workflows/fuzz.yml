@@ -21,8 +21,17 @@ jobs:
         with:
           components: llvm-tools
 
+      - name: Cache cargo-fuzz
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-fuzz
+          key: ${{ runner.os }}-cargo-fuzz
+
       - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz
+        run: |
+          if ! command -v cargo-fuzz &> /dev/null; then
+            cargo install cargo-fuzz
+          fi
 
       - name: Fuzz MCP JSON-RPC
         continue-on-error: true

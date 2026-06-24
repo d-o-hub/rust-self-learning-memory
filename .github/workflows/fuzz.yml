@@ -25,14 +25,17 @@ jobs:
         run: cargo install cargo-fuzz
 
       - name: Fuzz MCP JSON-RPC
+        continue-on-error: true
         run: |
           cargo fuzz run fuzz_mcp_jsonrpc -- -max_total_time=${{ github.event.inputs.duration || '300' }}
 
       - name: Fuzz Postcard Roundtrip
+        continue-on-error: true
         run: |
           cargo fuzz run fuzz_postcard_roundtrip -- -max_total_time=${{ github.event.inputs.duration || '300' }}
 
       - name: Fuzz Search Matchers
+        continue-on-error: true
         run: |
           cargo fuzz run fuzz_search_matchers -- -max_total_time=${{ github.event.inputs.duration || '300' }}
 

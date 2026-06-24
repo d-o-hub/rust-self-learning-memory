@@ -42,7 +42,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
-          fail-on-no-checks: false
 
   # Comprehensive coverage analysis - runs independently
   # This job does NOT block the main CI workflow
@@ -94,10 +93,9 @@ jobs:
           chmod +x scripts/setup-target-dir.sh
           ./scripts/setup-target-dir.sh coverage
 
-      - uses: uses: ./.github/actions/setup-rust
+      - uses: ./.github/actions/setup-rust
         with:
           job-name: setup
-        with:
           components: llvm-tools-preview
 
       - name: Install mold linker

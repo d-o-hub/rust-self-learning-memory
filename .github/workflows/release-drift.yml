@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 

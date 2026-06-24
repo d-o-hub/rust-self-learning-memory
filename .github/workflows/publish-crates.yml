@@ -31,12 +31,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -93,12 +91,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -156,12 +152,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -219,12 +213,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks

@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Rust
-        uses: uses: ./.github/actions/setup-rust
+        uses: ./.github/actions/setup-rust
         with:
           job-name: setup
 

@@ -6,6 +6,10 @@ inputs:
   job-name:
     description: "Identifier for the target directory isolation"
     required: true
+  toolchain:
+    description: "Rust toolchain to use"
+    required: false
+    default: "stable"
   components:
     description: "Rust components to install"
     required: false
@@ -43,6 +47,7 @@ runs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
       with:
+        toolchain: ${{ inputs.toolchain }}
         components: ${{ inputs.components }}
         targets: ${{ inputs.targets }}
 

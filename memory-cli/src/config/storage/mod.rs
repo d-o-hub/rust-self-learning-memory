@@ -6,10 +6,11 @@
 
 mod combination;
 
-use super::types::Config;
+use super::types::{Config, DatabaseConfig};
 use anyhow::Context;
 use anyhow::Result;
-use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_core::{MemoryConfig, SelfLearningMemory, StorageBackend};
+use std::sync::Arc;
 
 /// Storage initialization result with detailed information
 pub struct StorageInitResult {
@@ -63,9 +64,11 @@ pub async fn initialize_storage(config: &Config) -> Result<StorageInitResult> {
     let (turso_storage, turso_messages) = (None, Vec::new());
 
     #[cfg(feature = "redb")]
-    let (redb_storage, redb_messages) = initialize_redb_storage(&config.database).await?;
+    let (redb_storage, redb_messages): (Option<Arc<dyn StorageBackend>>, Vec<String>) =
+        initialize_redb_storage(&config.database).await?;
     #[cfg(not(feature = "redb"))]
-    let (redb_storage, redb_messages) = (None, Vec::new());
+    let (redb_storage, redb_messages): (Option<Arc<dyn StorageBackend>>, Vec<String>) =
+        (None, Vec::new());
 
     // Combine status messages
     storage_info.status_messages.extend(turso_messages.clone());

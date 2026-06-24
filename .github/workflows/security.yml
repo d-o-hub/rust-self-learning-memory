@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@v1.8.0
+        uses: lewagon/wait-on-check-action@e106c5c43d8c56d782030e38605e5ad391811558 # v1.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           allowed-conclusions: success,skipped,cancelled
@@ -57,11 +57,11 @@ jobs:
       }}
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v3.0.0
+        uses: gitleaks/gitleaks-action@f691689252ba2ca26645362e92c4749f75960010 # v2.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for premium features
@@ -76,7 +76,7 @@ jobs:
   #   if: github.event_name == 'pull_request'
   #   timeout-minutes: 10
   #   steps:
-  #     - uses: actions/checkout@v7
+  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
   #     - uses: actions/dependency-review-action@v4.8.2
   #       with:
   #         fail-on-severity: moderate
@@ -99,23 +99,26 @@ jobs:
       }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh security-supply-chain-audit
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2.9.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: security-supply-chain-audit
+
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked
+
       - name: Run cargo audit
         run: cargo audit
+
       - name: Upload audit report
         if: always()
         run: cargo audit --json > audit-report.json
+
       - name: Upload audit report artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@4cec5d8e17ad28b66f7af4947936a650d0ee89f5 # v4.6.0
         with:
           name: audit-report
           path: audit-report.json
@@ -140,9 +143,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@v2
+        uses: EmbarkStudios/cargo-deny-action@897170e73f19c8b8f286367317501b2d9ecdf47d # v2.0.11
         with:
           command: check

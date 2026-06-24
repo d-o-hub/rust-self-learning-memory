@@ -1,5 +1,29 @@
 # GitHub Actions Patterns
 
+## Centralized Rust Setup (ADR-032 / 2026 Best Practices)
+All Rust workflows MUST use the local composite action `.github/actions/setup-rust` instead of repeating setup logic. This ensures consistency across target directory isolation, toolchain installation, mold linker setup, and caching.
+
+```yaml
+- name: Setup Rust
+  uses: ./.github/actions/setup-rust
+  with:
+    job-name: my-job-id          # Required: unique ID for target dir isolation
+    components: clippy, rustfmt  # Optional: default "" (dtolnay/rust-toolchain detects from file)
+    install-nextest: "true"      # Optional: default "false"
+```
+
+## Action Pinning Policy (CRITICAL)
+All third-party actions MUST be pinned to immutable SHAs to prevent supply-chain attacks and ensure reproducibility.
+
+- **Rule**: Use `@<SHA>` instead of `@vX`.
+- **Exception**: Local actions (e.g., `uses: ./.github/actions/setup-rust`) do not require SHAs.
+- **Maintenance**: Use Dependabot to manage SHA updates while preserving major version comments.
+
+Example:
+```yaml
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+```
+
 ## Job Dependency (CRITICAL)
 When a job has `needs: [upstream-job]` and upstream is conditionally skipped:
 - **Problem**: Downstream jobs skip by default when dependency skips

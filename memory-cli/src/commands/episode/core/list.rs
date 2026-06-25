@@ -99,8 +99,8 @@ pub async fn list_episodes(
 
     episodes.retain(|episode| {
         let episode_start = episode.start_time.with_timezone(&Utc);
-        let after_since = since_date.map_or(true, |d| episode_start >= d);
-        let before_until = until_date.map_or(true, |d| episode_start <= d);
+        let after_since = since_date.is_none_or(|d| episode_start >= d);
+        let before_until = until_date.is_none_or(|d| episode_start <= d);
         after_since && before_until
     });
 

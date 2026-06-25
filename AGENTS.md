@@ -4,6 +4,8 @@
 - **Build**: `./scripts/build-rust.sh dev|release|check|clean`
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
+- **Harness Map**: `HARNESS.md`
+- **Harness Check**: `./scripts/harness-check.sh <sensor>`
 - **Quality Gates**: `./scripts/quality-gates.sh`
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 
@@ -30,7 +32,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 6. `cargo nextest run -p <crate>`
 7. `cargo nextest run --all`
 8. `cargo test --doc`
-9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
+9. `./scripts/harness-check.sh quality` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
 10. `git status` - verify all changes staged
 
 ## Core Invariants (Never Break)

@@ -262,6 +262,6 @@ impl TaskMetrics {
 
         // Simple moving average update (could be made more sophisticated)
         let current_rate = if record.success { 1.0 } else { 0.0 };
-        *agent_rate = (*agent_rate + current_rate) / 2.0;
+        *agent_rate = f64::midpoint(*agent_rate, current_rate);
     }
 }

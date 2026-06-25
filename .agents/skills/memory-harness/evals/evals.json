@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Learning effectiveness",
+      "description": "Verify the memory system extracts patterns and maintains search performance over time.",
+      "exec": "./.agents/skills/memory-harness/evaluate-learning.sh"
+    }
+  ]
+}

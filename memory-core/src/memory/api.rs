@@ -256,10 +256,10 @@ impl SelfLearningMemory {
     /// Retrieve a procedural memory by ID
     pub async fn get_procedural_memory(&self, id: uuid::Uuid) -> Result<Option<ProceduralMemory>> {
         // Try cache first
-        if let Some(storage) = &self.cache_storage {
-            if let Ok(Some(procedural)) = storage.get_procedural(id).await {
-                return Ok(Some(procedural));
-            }
+        if let Some(storage) = &self.cache_storage
+            && let Ok(Some(procedural)) = storage.get_procedural(id).await
+        {
+            return Ok(Some(procedural));
         }
 
         // Try durable storage
@@ -312,10 +312,10 @@ impl SelfLearningMemory {
         }
 
         // Try cache storage if no durable storage available
-        if let Some(storage) = &self.cache_storage {
-            if let Ok(results) = storage.query_procedural(limit).await {
-                return Ok(results);
-            }
+        if let Some(storage) = &self.cache_storage
+            && let Ok(results) = storage.query_procedural(limit).await
+        {
+            return Ok(results);
         }
 
         // Fallback to in-memory

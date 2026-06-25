@@ -253,18 +253,18 @@ impl SelfLearningMemory {
                     );
 
                     // Phase 3: Remove evicted episodes from spatiotemporal index
-                    if let Some(ref index) = self.spatiotemporal_index {
-                        if let Ok(mut index_write) = index.try_write() {
-                            let mut removed_count = 0;
-                            for evicted_id in &evicted_ids {
-                                index_write.remove(*evicted_id);
-                                removed_count += 1;
-                            }
-                            debug!(
-                                evicted_count = removed_count,
-                                "Removed evicted episodes from spatiotemporal index"
-                            );
+                    if let Some(ref index) = self.spatiotemporal_index
+                        && let Ok(mut index_write) = index.try_write()
+                    {
+                        let mut removed_count = 0;
+                        for evicted_id in &evicted_ids {
+                            index_write.remove(*evicted_id);
+                            removed_count += 1;
                         }
+                        debug!(
+                            evicted_count = removed_count,
+                            "Removed evicted episodes from spatiotemporal index"
+                        );
                     }
                 }
             }
@@ -274,16 +274,16 @@ impl SelfLearningMemory {
         let episode_ref = &episode;
 
         // Store updated episode in backends
-        if let Some(cache) = &self.cache_storage {
-            if let Err(e) = cache.store_episode(episode_ref).await {
-                warn!("Failed to store completed episode in cache: {}", e);
-            }
+        if let Some(cache) = &self.cache_storage
+            && let Err(e) = cache.store_episode(episode_ref).await
+        {
+            warn!("Failed to store completed episode in cache: {}", e);
         }
 
-        if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(episode_ref).await {
-                warn!("Failed to store completed episode in Turso: {}", e);
-            }
+        if let Some(turso) = &self.turso_storage
+            && let Err(e) = turso.store_episode(episode_ref).await
+        {
+            warn!("Failed to store completed episode in Turso: {}", e);
         }
 
         // Store episode summary if generated

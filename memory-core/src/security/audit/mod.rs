@@ -131,11 +131,11 @@ impl AuditLogger {
             return;
         }
 
-        if let Some(ref sender) = self.sender {
-            if let Err(e) = sender.send(entry) {
-                // Only log error at debug level to avoid infinite loop
-                debug!("Failed to send audit entry: {}", e);
-            }
+        if let Some(ref sender) = self.sender
+            && let Err(e) = sender.send(entry)
+        {
+            // Only log error at debug level to avoid infinite loop
+            debug!("Failed to send audit entry: {}", e);
         }
     }
 

@@ -344,19 +344,19 @@ pub async fn health_status(
     let mut status = HealthStatus::Healthy;
 
     // Check storage connectivity
-    if let Some(turso) = memory.turso_storage() {
-        if let Err(e) = turso.get_episode(uuid::Uuid::new_v4()).await {
-            issues.push(format!("Turso storage unavailable: {}", e));
-            status = HealthStatus::Unhealthy;
-        }
+    if let Some(turso) = memory.turso_storage()
+        && let Err(e) = turso.get_episode(uuid::Uuid::new_v4()).await
+    {
+        issues.push(format!("Turso storage unavailable: {}", e));
+        status = HealthStatus::Unhealthy;
     }
 
-    if let Some(cache) = memory.cache_storage() {
-        if let Err(e) = cache.get_episode(uuid::Uuid::new_v4()).await {
-            issues.push(format!("redb cache unavailable: {}", e));
-            if status == HealthStatus::Healthy {
-                status = HealthStatus::Degraded;
-            }
+    if let Some(cache) = memory.cache_storage()
+        && let Err(e) = cache.get_episode(uuid::Uuid::new_v4()).await
+    {
+        issues.push(format!("redb cache unavailable: {}", e));
+        if status == HealthStatus::Healthy {
+            status = HealthStatus::Degraded;
         }
     }
 
@@ -410,19 +410,19 @@ pub async fn health_monitor(
         let mut status = HealthStatus::Healthy;
 
         // Check storage connectivity
-        if let Some(turso) = memory.turso_storage() {
-            if let Err(e) = turso.get_episode(uuid::Uuid::new_v4()).await {
-                issues.push(format!("Turso: {}", e));
-                status = HealthStatus::Unhealthy;
-            }
+        if let Some(turso) = memory.turso_storage()
+            && let Err(e) = turso.get_episode(uuid::Uuid::new_v4()).await
+        {
+            issues.push(format!("Turso: {}", e));
+            status = HealthStatus::Unhealthy;
         }
 
-        if let Some(cache) = memory.cache_storage() {
-            if let Err(e) = cache.get_episode(uuid::Uuid::new_v4()).await {
-                issues.push(format!("redb: {}", e));
-                if status == HealthStatus::Healthy {
-                    status = HealthStatus::Degraded;
-                }
+        if let Some(cache) = memory.cache_storage()
+            && let Err(e) = cache.get_episode(uuid::Uuid::new_v4()).await
+        {
+            issues.push(format!("redb: {}", e));
+            if status == HealthStatus::Healthy {
+                status = HealthStatus::Degraded;
             }
         }
 
@@ -441,11 +441,11 @@ pub async fn health_monitor(
         }
 
         // Check if we should stop
-        if let Some(total) = total_duration {
-            if start_time.elapsed() >= total {
-                println!("Monitoring duration completed");
-                break;
-            }
+        if let Some(total) = total_duration
+            && start_time.elapsed() >= total
+        {
+            println!("Monitoring duration completed");
+            break;
         }
 
         // Wait for next check

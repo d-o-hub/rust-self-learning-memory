@@ -192,7 +192,7 @@ impl SignalMerger {
         match self.conflict_resolution {
             ConflictResolution::PreferExternal => external,
             ConflictResolution::PreferInternal => internal,
-            ConflictResolution::Average => (internal + external) / 2.0,
+            ConflictResolution::Average => f32::midpoint(internal, external),
             ConflictResolution::WeightByConfidence => {
                 // Weight by confidence (external confidence assumed in external value)
                 let internal_weight = self.internal_weight;

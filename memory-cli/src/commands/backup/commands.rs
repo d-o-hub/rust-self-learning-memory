@@ -64,10 +64,10 @@ pub async fn create_backup(
     };
 
     // Ensure parent directory exists
-    if let Some(parent) = path.parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent).await?;
-        }
+    if let Some(parent) = path.parent()
+        && !parent.exists()
+    {
+        fs::create_dir_all(parent).await?;
     }
 
     // If path is a directory, append a default filename
@@ -191,13 +191,13 @@ pub async fn restore_backup(
                 }
 
                 // Try cache storage (fast access)
-                if let Some(cache) = memory.cache_storage() {
-                    if cache.store_episode(&ep).await.is_err() {
-                        errors.push(format!(
-                            "Failed to restore episode {} to cache",
-                            ep.episode_id
-                        ));
-                    }
+                if let Some(cache) = memory.cache_storage()
+                    && cache.store_episode(&ep).await.is_err()
+                {
+                    errors.push(format!(
+                        "Failed to restore episode {} to cache",
+                        ep.episode_id
+                    ));
                 }
 
                 if stored {

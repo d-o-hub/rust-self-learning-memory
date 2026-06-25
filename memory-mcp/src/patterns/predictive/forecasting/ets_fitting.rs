@@ -305,11 +305,11 @@ impl super::engine::ForecastingEngine {
         let mut best_acf = 0.0;
 
         for period in 2..=max_period.min(24) {
-            if let Some(acf) = self.calculate_autocorrelation(series, period) {
-                if acf.abs() > best_acf {
-                    best_acf = acf.abs();
-                    best_period = period;
-                }
+            if let Some(acf) = self.calculate_autocorrelation(series, period)
+                && acf.abs() > best_acf
+            {
+                best_acf = acf.abs();
+                best_period = period;
             }
         }
         best_period

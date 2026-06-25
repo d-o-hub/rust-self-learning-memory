@@ -164,15 +164,15 @@ impl<V: Clone + Send + Sync + 'static> AdaptiveCache<V> {
         let now = Instant::now();
         let mut state = self.state.write().await;
 
-        if let Some(entry) = state.entries.get_mut(&id) {
-            if !entry.is_expired(now) {
-                // Clone value first before any further borrows
-                let value = entry.value.clone();
-                entry.record_access(now, &self.config);
-                state.metrics.base.hits += 1;
-                state.update_metrics(self.config.hot_threshold, self.config.cold_threshold);
-                return Some(value);
-            }
+        if let Some(entry) = state.entries.get_mut(&id)
+            && !entry.is_expired(now)
+        {
+            // Clone value first before any further borrows
+            let value = entry.value.clone();
+            entry.record_access(now, &self.config);
+            state.metrics.base.hits += 1;
+            state.update_metrics(self.config.hot_threshold, self.config.cold_threshold);
+            return Some(value);
         }
 
         state.metrics.base.misses += 1;

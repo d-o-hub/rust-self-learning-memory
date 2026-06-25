@@ -2,9 +2,11 @@
 
 ## Project Overview
 
-A Rust-based self-learning memory system with episodic memory, pattern extraction, and intelligent retrieval capabilities.
+A Rust-based self-learning memory system with episodic memory,
+pattern extraction, and intelligent retrieval capabilities.
 
-**Repository**: https://github.com/d-o-hub/rust-self-learning-memory
+**Repository**:
+<https://github.com/d-o-hub/rust-self-learning-memory>
 **Language**: Rust (Edition 2024)
 **Current Version**: 0.1.30
 
@@ -13,8 +15,8 @@ A Rust-based self-learning memory system with episodic memory, pattern extractio
 ### Crates
 
 | Crate | Purpose |
-|-------|---------|
-| `do-memory-core` | Core memory types, episode management, pattern extraction |
+| :--- | :--- |
+| `do-memory-core` | Core memory, episode mgmt, pattern extraction |
 | `do-memory-storage-turso` | Turso/libSQL persistent storage backend |
 | `do-memory-storage-redb` | redb cache storage backend |
 | `do-memory-mcp` | MCP server implementation |
@@ -44,7 +46,8 @@ cargo nextest run --all
 
 # Harness
 ./scripts/harness-check.sh <sensor>
-# (Available sensors: fmt, clippy, build, test, doc, docs-integrity, quality, release, ignored-tests, memory)
+# (Available sensors: fmt, clippy, build, test, doc,
+# docs-integrity, quality, release, ignored-tests, memory)
 
 # All quality gates
 ./scripts/quality-gates.sh
@@ -81,6 +84,7 @@ export TURSO_AUTH_TOKEN=""
 Binary: `do-memory-mcp-server`
 
 Tools available:
+
 - Episode: create, log_step, complete, list, get
 - Pattern: extract, search, list, effectiveness
 - Memory: store, retrieve, search
@@ -116,6 +120,7 @@ do-memory-cli pattern extract --episode-id <uuid>
 ## Quality Gates
 
 Before commit:
+
 1. `./scripts/code-quality.sh fmt`
 2. `./scripts/code-quality.sh clippy --workspace`
 3. `cargo nextest run --all`

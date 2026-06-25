@@ -72,11 +72,10 @@ run_eval() {
 
     echo -ne "  - $name ... "
 
-    # Run the command relative to skill directory or project root?
-    # Usually eval commands should be runnable from project root.
+    # Run the command via bash -c for safety (evals are defined in project evals.json)
     local output
     if [ "$VERBOSE" = true ]; then
-      if eval "$cmd"; then
+      if bash -c "$cmd"; then
         echo -e "${GREEN}PASS${NC}"
       else
         echo -e "${RED}FAIL${NC}"
@@ -84,7 +83,7 @@ run_eval() {
         failed=$((failed + 1))
       fi
     else
-      output=$(eval "$cmd" 2>&1) || {
+      output=$(bash -c "$cmd" 2>&1) || {
         echo -e "${RED}FAIL${NC}"
         echo -e "    Command: $cmd"
         echo -e "    Output:\n$output"

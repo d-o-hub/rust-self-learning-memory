@@ -64,7 +64,7 @@ run_eval() {
   # Execute each test
   # For now, we assume tests have an 'exec' field with a bash command
   local failed=0
-  for (( i=0; i<test_count; i++ )); do
+  for (( i=0; i<$test_count; i++ )); do
     local name
     name=$(jq -r ".tests[$i].name" "$eval_file")
     local cmd
@@ -72,10 +72,11 @@ run_eval() {
 
     echo -ne "  - $name ... "
 
-    # Run the command via bash -c for safety (evals are defined in project evals.json)
+    # Run the command relative to skill directory or project root?
+    # Usually eval commands should be runnable from project root.
     local output
     if [ "$VERBOSE" = true ]; then
-      if bash -c "$cmd"; then
+      if eval "$cmd"; then
         echo -e "${GREEN}PASS${NC}"
       else
         echo -e "${RED}FAIL${NC}"
@@ -83,7 +84,7 @@ run_eval() {
         failed=$((failed + 1))
       fi
     else
-      output=$(bash -c "$cmd" 2>&1) || {
+      output=$(eval "$cmd" 2>&1) || {
         echo -e "${RED}FAIL${NC}"
         echo -e "    Command: $cmd"
         echo -e "    Output:\n$output"

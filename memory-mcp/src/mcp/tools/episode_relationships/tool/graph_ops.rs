@@ -206,14 +206,14 @@ impl EpisodeRelationshipTools {
         }
 
         for id in &episode_ids {
-            if !sorted_ids.contains(id) {
-                if let Ok(episode) = self.memory.get_episode(*id).await {
-                    order.push(TopologicalEpisode {
-                        episode_id: id.to_string(),
-                        task_description: episode.task_description.clone(),
-                        position: order.len() + 1,
-                    });
-                }
+            if !sorted_ids.contains(id)
+                && let Ok(episode) = self.memory.get_episode(*id).await
+            {
+                order.push(TopologicalEpisode {
+                    episode_id: id.to_string(),
+                    task_description: episode.task_description.clone(),
+                    position: order.len() + 1,
+                });
             }
         }
 

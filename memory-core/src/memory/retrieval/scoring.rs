@@ -137,17 +137,17 @@ impl SelfLearningMemory {
         }
 
         // Check language match
-        if let Some(lang) = language_lower {
-            if condition_lower.contains(lang) {
-                score += 0.8;
-            }
+        if let Some(lang) = language_lower
+            && condition_lower.contains(lang)
+        {
+            score += 0.8;
         }
 
         // Check framework match
-        if let Some(framework) = framework_lower {
-            if condition_lower.contains(framework) {
-                score += 0.5;
-            }
+        if let Some(framework) = framework_lower
+            && condition_lower.contains(framework)
+        {
+            score += 0.5;
         }
 
         // Check tag overlap

@@ -107,14 +107,11 @@ impl AsyncCompressor {
         // Fallback if ratio is too poor
         if payload.compression_ratio > self.config.min_acceptable_ratio
             && algorithm != CompressionAlgorithm::Lz4
+            && let Ok(lz4_payload) = CompressedPayload::compress_lz4(data)
+            && lz4_payload.compression_ratio < payload.compression_ratio
         {
-            // Try LZ4 as fallback
-            if let Ok(lz4_payload) = CompressedPayload::compress_lz4(data) {
-                if lz4_payload.compression_ratio < payload.compression_ratio {
-                    stats.record_algorithm_fallback();
-                    return Ok(lz4_payload);
-                }
-            }
+            stats.record_algorithm_fallback();
+            return Ok(lz4_payload);
         }
 
         stats.record_compression_time(elapsed);

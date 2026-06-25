@@ -107,7 +107,7 @@ impl OutputDtype {
     pub fn response_size(self, output_dimension: usize) -> usize {
         if self.is_bit_packed() {
             // Bit-packed: 1/8 of dimension (rounded up)
-            (output_dimension + 7) / 8
+            output_dimension.div_ceil(8)
         } else {
             output_dimension
         }

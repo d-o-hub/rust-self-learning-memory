@@ -159,10 +159,10 @@ impl MonitoringStorage {
     /// Loads metrics from cache first, falling back to durable storage.
     pub async fn load_agent_metrics(&self, agent_name: &str) -> Result<Option<AgentMetrics>> {
         // Try cache first for faster access
-        if let Some(storage) = &self.cache_storage {
-            if let Some(metrics) = storage.load_agent_metrics(agent_name).await? {
-                return Ok(Some(metrics));
-            }
+        if let Some(storage) = &self.cache_storage
+            && let Some(metrics) = storage.load_agent_metrics(agent_name).await?
+        {
+            return Ok(Some(metrics));
         }
 
         // Fall back to durable storage
@@ -200,10 +200,10 @@ impl MonitoringStorage {
     /// Load task metrics by task type
     pub async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>> {
         // Try cache first for faster access
-        if let Some(storage) = &self.cache_storage {
-            if let Some(metrics) = storage.load_task_metrics(task_type).await? {
-                return Ok(Some(metrics));
-            }
+        if let Some(storage) = &self.cache_storage
+            && let Some(metrics) = storage.load_task_metrics(task_type).await?
+        {
+            return Ok(Some(metrics));
         }
 
         // Fall back to durable storage

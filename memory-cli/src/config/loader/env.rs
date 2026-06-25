@@ -43,10 +43,10 @@ pub fn load_config_from_defaults() -> Option<(PathBuf, ConfigFormat)> {
 
     for path_str in &default_paths {
         let path = Path::new(path_str);
-        if path.exists() {
-            if let Ok(format) = detect_format_from_path(path) {
-                return Some((path.to_path_buf(), format));
-            }
+        if path.exists()
+            && let Ok(format) = detect_format_from_path(path)
+        {
+            return Some((path.to_path_buf(), format));
         }
     }
     None

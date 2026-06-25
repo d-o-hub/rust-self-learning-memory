@@ -74,14 +74,14 @@ impl ConfigWizard {
         )?;
 
         // Ensure parent directory exists
-        if let Some(parent) = Path::new(path).parent() {
-            if !parent.as_os_str().is_empty() {
-                std::fs::create_dir_all(parent).context(format!(
-                    "Failed to create directory '{}'. Check write permissions.",
-                    parent.display()
-                ))?;
-                println!("✓ Created directory: {}", parent.display());
-            }
+        if let Some(parent) = Path::new(path).parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent).context(format!(
+                "Failed to create directory '{}'. Check write permissions.",
+                parent.display()
+            ))?;
+            println!("✓ Created directory: {}", parent.display());
         }
 
         // Write configuration file

@@ -130,11 +130,11 @@ impl CachedTursoStorage {
     /// Get episode with caching
     pub async fn get_episode_cached(&self, id: Uuid) -> Result<Option<Episode>> {
         // Check cache first
-        if let Some(ref cache) = self.episode_cache {
-            if let Some(episode) = cache.get_and_record(id).await {
-                self.stats.episode_hits.fetch_add(1, Ordering::Relaxed);
-                return Ok(Some(episode));
-            }
+        if let Some(ref cache) = self.episode_cache
+            && let Some(episode) = cache.get_and_record(id).await
+        {
+            self.stats.episode_hits.fetch_add(1, Ordering::Relaxed);
+            return Ok(Some(episode));
         }
 
         // Cache miss - fetch from storage
@@ -158,11 +158,11 @@ impl CachedTursoStorage {
         let cache_key = id;
 
         // Check cache first
-        if let Some(ref cache) = self.pattern_cache {
-            if let Some(pattern) = cache.get_and_record(cache_key).await {
-                self.stats.pattern_hits.fetch_add(1, Ordering::Relaxed);
-                return Ok(Some(pattern));
-            }
+        if let Some(ref cache) = self.pattern_cache
+            && let Some(pattern) = cache.get_and_record(cache_key).await
+        {
+            self.stats.pattern_hits.fetch_add(1, Ordering::Relaxed);
+            return Ok(Some(pattern));
         }
 
         // Cache miss - fetch from storage
@@ -182,11 +182,11 @@ impl CachedTursoStorage {
     /// Get heuristic with caching
     pub async fn get_heuristic_cached(&self, id: Uuid) -> Result<Option<Heuristic>> {
         // Check cache first
-        if let Some(ref cache) = self.heuristic_cache {
-            if let Some(heuristic) = cache.get_and_record(id).await {
-                self.stats.heuristic_hits.fetch_add(1, Ordering::Relaxed);
-                return Ok(Some(heuristic));
-            }
+        if let Some(ref cache) = self.heuristic_cache
+            && let Some(heuristic) = cache.get_and_record(id).await
+        {
+            self.stats.heuristic_hits.fetch_add(1, Ordering::Relaxed);
+            return Ok(Some(heuristic));
         }
 
         // Cache miss - fetch from storage

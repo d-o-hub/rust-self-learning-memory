@@ -192,17 +192,17 @@ impl ShardRouter {
         }
 
         // Check time range - must be within range if specified
-        if let Some(range) = &filter.time_range
-            && !range.contains(ep.created_at)
-        {
-            return false;
+        if let Some(range) = &filter.time_range {
+            if !range.contains(ep.created_at) {
+                return false;
+            }
         }
 
         // Check min success rate if specified
-        if let Some(min_rate) = filter.min_success_rate
-            && ep.success_rate < min_rate
-        {
-            return false;
+        if let Some(min_rate) = filter.min_success_rate {
+            if ep.success_rate < min_rate {
+                return false;
+            }
         }
 
         true

@@ -57,18 +57,18 @@ impl MemoryMCPServer {
         });
 
         // Apply field projection if requested
-        if let Some(fields_value) = args.get("fields")
-            && let Some(field_array) = fields_value.as_array()
-        {
-            let field_list: Vec<String> = field_array
-                .iter()
-                .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                .collect();
+        if let Some(fields_value) = args.get("fields") {
+            if let Some(field_array) = fields_value.as_array() {
+                let field_list: Vec<String> = field_array
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
 
-            if !field_list.is_empty() {
-                use crate::server::tools::field_projection::FieldSelector;
-                let selector = FieldSelector::new(field_list.into_iter().collect());
-                return selector.apply(&result);
+                if !field_list.is_empty() {
+                    use crate::server::tools::field_projection::FieldSelector;
+                    let selector = FieldSelector::new(field_list.into_iter().collect());
+                    return selector.apply(&result);
+                }
             }
         }
 

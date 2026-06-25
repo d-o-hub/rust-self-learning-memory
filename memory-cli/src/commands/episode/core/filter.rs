@@ -30,11 +30,12 @@ fn load_filters(filter_dir: &PathBuf) -> Vec<SavedFilter> {
 
     let mut filters = Vec::new();
     for entry in entries.filter_map(|e| e.ok()) {
-        if entry.path().extension().is_some_and(|ext| ext == "json")
-            && let Ok(content) = fs::read_to_string(entry.path())
-            && let Ok(filter) = serde_json::from_str::<SavedFilter>(&content)
-        {
-            filters.push(filter);
+        if entry.path().extension().is_some_and(|ext| ext == "json") {
+            if let Ok(content) = fs::read_to_string(entry.path()) {
+                if let Ok(filter) = serde_json::from_str::<SavedFilter>(&content) {
+                    filters.push(filter);
+                }
+            }
         }
     }
     filters

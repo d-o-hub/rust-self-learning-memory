@@ -172,10 +172,10 @@ async fn analyze_domain_patterns(
             total_episodes += 1;
             patterns_found += episode.patterns.len();
 
-            if let Some(reward) = &episode.reward
-                && reward.total > 0.0
-            {
-                successful_episodes += 1;
+            if let Some(reward) = &episode.reward {
+                if reward.total > 0.0 {
+                    successful_episodes += 1;
+                }
             }
         }
     }

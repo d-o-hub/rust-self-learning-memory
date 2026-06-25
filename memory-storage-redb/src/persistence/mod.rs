@@ -245,10 +245,10 @@ impl CachePersistence {
         }
 
         // Check save interval
-        if let Some(last) = *self.last_save.read()
-            && last.elapsed() < self.config.save_interval
-        {
-            return false;
+        if let Some(last) = *self.last_save.read() {
+            if last.elapsed() < self.config.save_interval {
+                return false;
+            }
         }
 
         true

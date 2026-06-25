@@ -155,23 +155,23 @@ impl AuditLogger {
 
                 let new_path = base_path.with_extension(format!("log.{}", i));
 
-                if old_path.exists()
-                    && let Err(e) = tokio::fs::rename(&old_path, &new_path).await
-                {
-                    warn!(
-                        "Failed to rotate log file {:?} to {:?}: {}",
-                        old_path, new_path, e
-                    );
+                if old_path.exists() {
+                    if let Err(e) = tokio::fs::rename(&old_path, &new_path).await {
+                        warn!(
+                            "Failed to rotate log file {:?} to {:?}: {}",
+                            old_path, new_path, e
+                        );
+                    }
                 }
             }
 
             // Remove oldest file if it exists
             let oldest_path =
                 base_path.with_extension(format!("log.{}", self.config.max_rotated_files));
-            if oldest_path.exists()
-                && let Err(e) = tokio::fs::remove_file(&oldest_path).await
-            {
-                warn!("Failed to remove oldest log file {:?}: {}", oldest_path, e);
+            if oldest_path.exists() {
+                if let Err(e) = tokio::fs::remove_file(&oldest_path).await {
+                    warn!("Failed to remove oldest log file {:?}: {}", oldest_path, e);
+                }
             }
 
             // Reopen file for writing

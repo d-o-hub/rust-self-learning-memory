@@ -12,74 +12,73 @@ impl EpisodeFilter {
     #[must_use]
     pub fn matches(&self, episode: &Episode) -> bool {
         // Check tags - ANY match
-        if let Some(ref tags) = self.with_any_tags
-            && !tags.is_empty()
-        {
-            let has_any_tag = tags.iter().any(|tag| episode.context.tags.contains(tag));
-            if !has_any_tag {
-                return false;
+        if let Some(ref tags) = self.with_any_tags {
+            if !tags.is_empty() {
+                let has_any_tag = tags.iter().any(|tag| episode.context.tags.contains(tag));
+                if !has_any_tag {
+                    return false;
+                }
             }
         }
 
         // Check tags - ALL match
-        if let Some(ref tags) = self.with_all_tags
-            && !tags.is_empty()
-        {
-            let has_all_tags = tags.iter().all(|tag| episode.context.tags.contains(tag));
-            if !has_all_tags {
-                return false;
+        if let Some(ref tags) = self.with_all_tags {
+            if !tags.is_empty() {
+                let has_all_tags = tags.iter().all(|tag| episode.context.tags.contains(tag));
+                if !has_all_tags {
+                    return false;
+                }
             }
         }
 
         // Check task types
-        if let Some(ref types) = self.task_types
-            && !types.contains(&episode.task_type)
-        {
-            return false;
+        if let Some(ref types) = self.task_types {
+            if !types.contains(&episode.task_type) {
+                return false;
+            }
         }
 
         // Check domains
-        if let Some(ref domains) = self.domains
-            && !domains.contains(&episode.context.domain)
-        {
-            return false;
+        if let Some(ref domains) = self.domains {
+            if !domains.contains(&episode.context.domain) {
+                return false;
+            }
         }
 
         // Check date range - start date
-        if let Some(from) = self.date_from
-            && episode.start_time < from
-        {
-            return false;
+        if let Some(from) = self.date_from {
+            if episode.start_time < from {
+                return false;
+            }
         }
 
         // Check date range - end date
-        if let Some(to) = self.date_to
-            && episode.start_time > to
-        {
-            return false;
+        if let Some(to) = self.date_to {
+            if episode.start_time > to {
+                return false;
+            }
         }
 
         // Check completed status
-        if let Some(completed) = self.completed_only
-            && completed
-            && !episode.is_complete()
-        {
-            return false;
+        if let Some(completed) = self.completed_only {
+            if completed && !episode.is_complete() {
+                return false;
+            }
         }
 
         // Check archived status
         let is_archived = episode.metadata.contains_key("archived_at");
 
-        if let Some(true) = self.archived_only
-            && !is_archived
-        {
-            return false;
+        if let Some(true) = self.archived_only {
+            if !is_archived {
+                return false;
+            }
         }
 
-        if let Some(true) = self.exclude_archived
-            && is_archived
-        {
-            return false;
+        if let Some(true) = self.exclude_archived {
+            if is_archived {
+                return false;
+            }
         }
 
         // Check success status
@@ -135,10 +134,10 @@ impl EpisodeFilter {
         }
 
         // Check search text with configurable search mode
-        if let Some(ref search) = self.search_text
-            && !self.matches_search_text(episode, search)
-        {
-            return false;
+        if let Some(ref search) = self.search_text {
+            if !self.matches_search_text(episode, search) {
+                return false;
+            }
         }
 
         true

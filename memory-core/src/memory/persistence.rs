@@ -13,48 +13,48 @@ use super::SelfLearningMemory;
 
 impl SelfLearningMemory {
     pub(crate) async fn persist_recommendation_session(&self, session: &RecommendationSession) {
-        if let Some(storage) = &self.turso_storage
-            && let Err(err) = storage.store_recommendation_session(session).await
-        {
-            warn!(
-                session_id = %session.session_id,
-                episode_id = %session.episode_id,
-                error = %err,
-                "Failed to persist recommendation session to durable storage"
-            );
+        if let Some(storage) = &self.turso_storage {
+            if let Err(err) = storage.store_recommendation_session(session).await {
+                warn!(
+                    session_id = %session.session_id,
+                    episode_id = %session.episode_id,
+                    error = %err,
+                    "Failed to persist recommendation session to durable storage"
+                );
+            }
         }
 
-        if let Some(cache) = &self.cache_storage
-            && let Err(err) = cache.store_recommendation_session(session).await
-        {
-            warn!(
-                session_id = %session.session_id,
-                episode_id = %session.episode_id,
-                error = %err,
-                "Failed to persist recommendation session to cache storage"
-            );
+        if let Some(cache) = &self.cache_storage {
+            if let Err(err) = cache.store_recommendation_session(session).await {
+                warn!(
+                    session_id = %session.session_id,
+                    episode_id = %session.episode_id,
+                    error = %err,
+                    "Failed to persist recommendation session to cache storage"
+                );
+            }
         }
     }
 
     pub(crate) async fn persist_recommendation_feedback(&self, feedback: &RecommendationFeedback) {
-        if let Some(storage) = &self.turso_storage
-            && let Err(err) = storage.store_recommendation_feedback(feedback).await
-        {
-            warn!(
-                session_id = %feedback.session_id,
-                error = %err,
-                "Failed to persist recommendation feedback to durable storage"
-            );
+        if let Some(storage) = &self.turso_storage {
+            if let Err(err) = storage.store_recommendation_feedback(feedback).await {
+                warn!(
+                    session_id = %feedback.session_id,
+                    error = %err,
+                    "Failed to persist recommendation feedback to durable storage"
+                );
+            }
         }
 
-        if let Some(cache) = &self.cache_storage
-            && let Err(err) = cache.store_recommendation_feedback(feedback).await
-        {
-            warn!(
-                session_id = %feedback.session_id,
-                error = %err,
-                "Failed to persist recommendation feedback to cache storage"
-            );
+        if let Some(cache) = &self.cache_storage {
+            if let Err(err) = cache.store_recommendation_feedback(feedback).await {
+                warn!(
+                    session_id = %feedback.session_id,
+                    error = %err,
+                    "Failed to persist recommendation feedback to cache storage"
+                );
+            }
         }
     }
 

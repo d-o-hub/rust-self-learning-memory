@@ -51,10 +51,10 @@ pub(super) async fn validate_relationships(
     let mut nodes: std::collections::HashSet<Uuid> = std::collections::HashSet::new();
     let total = all_rels.len();
     for rel in all_rels {
-        if let Some(ref ft) = filter_type
-            && rel.relationship_type != *ft
-        {
-            continue;
+        if let Some(ref ft) = filter_type {
+            if rel.relationship_type != *ft {
+                continue;
+            }
         }
         adjacency
             .entry(rel.from_episode_id)

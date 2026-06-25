@@ -158,12 +158,11 @@ impl PreparedStatementCache {
         });
 
         // Check if we need to evict at statement level
-        if conn_cache.len() >= self.config.max_size
-            && !conn_cache.statements.contains_key(sql)
-            && let Some(evicted) = conn_cache.evict_lru()
-        {
-            debug!("Evicted cached statement: {}", evicted);
-            self.stats.write().record_eviction();
+        if conn_cache.len() >= self.config.max_size && !conn_cache.statements.contains_key(sql) {
+            if let Some(evicted) = conn_cache.evict_lru() {
+                debug!("Evicted cached statement: {}", evicted);
+                self.stats.write().record_eviction();
+            }
         }
 
         // Insert the new statement metadata
@@ -199,10 +198,10 @@ impl PreparedStatementCache {
     pub fn is_cached(&self, conn_id: ConnectionId, sql: &str) -> bool {
         let mut cache = self.cache.write();
 
-        if let Some(conn_cache) = cache.get_mut(&conn_id)
-            && let Some(stmt) = conn_cache.get(sql)
-        {
-            return !stmt.needs_refresh(&self.config);
+        if let Some(conn_cache) = cache.get_mut(&conn_id) {
+            if let Some(stmt) = conn_cache.get(sql) {
+                return !stmt.needs_refresh(&self.config);
+            }
         }
 
         false
@@ -266,14 +265,14 @@ impl PreparedStatementCache {
             }
         }
 
-        if let Some(id) = oldest
-            && cache.remove(&id).is_some()
-        {
-            warn!(
-                "Evicted connection cache for {:?} (max connections exceeded)",
-                id
-            );
-            self.stats.write().record_connection_eviction();
+        if let Some(id) = oldest {
+            if cache.remove(&id).is_some() {
+                warn!(
+                    "Evicted connection cache for {:?} (max connections exceeded)",
+                    id
+                );
+                self.stats.write().record_connection_eviction();
+            }
         }
     }
 

@@ -161,17 +161,17 @@ impl AgentMonitor {
         }
 
         // Persist to storage if configured (do this first to avoid borrowing issues)
-        if self.config.enable_persistence
-            && let Some(storage) = &self.storage
-        {
-            // Store execution record for persistence
-            if let Err(e) = storage.store_execution_record(&record).await {
-                tracing::error!("Failed to store execution record: {}", e);
-            }
+        if self.config.enable_persistence {
+            if let Some(storage) = &self.storage {
+                // Store execution record for persistence
+                if let Err(e) = storage.store_execution_record(&record).await {
+                    tracing::error!("Failed to store execution record: {}", e);
+                }
 
-            // Update agent metrics
-            if let Err(e) = self.update_and_store_agent_metrics(&record).await {
-                tracing::error!("Failed to update agent metrics: {}", e);
+                // Update agent metrics
+                if let Err(e) = self.update_and_store_agent_metrics(&record).await {
+                    tracing::error!("Failed to update agent metrics: {}", e);
+                }
             }
         }
 

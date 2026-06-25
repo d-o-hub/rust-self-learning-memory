@@ -236,6 +236,30 @@ mod tests {
     }
 
     #[test]
+    fn test_sequence_similarity_swapped() {
+        let seq1 = vec!["a".to_string(), "b".to_string()];
+        let seq2 = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+
+        let sim1 = sequence_similarity(&seq1, &seq2);
+        let sim2 = sequence_similarity(&seq2, &seq1);
+
+        assert_eq!(sim1, sim2);
+        // 2 out of 3 match
+        assert!(sim1 > 0.6 && sim1 < 0.7);
+    }
+
+    #[test]
+    fn test_string_similarity_swapped() {
+        let s1 = "rust";
+        let s2 = "rustacean";
+
+        let sim1 = string_similarity(s1, s2);
+        let sim2 = string_similarity(s2, s1);
+
+        assert_eq!(sim1, sim2);
+    }
+
+    #[test]
     fn test_context_similarity() {
         let ctx1 = TaskContext {
             domain: "web-api".to_string(),

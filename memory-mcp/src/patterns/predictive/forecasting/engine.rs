@@ -208,11 +208,11 @@ impl ForecastingEngine {
         let mut best_aic = f64::INFINITY;
 
         for model_spec in models_to_try {
-            if let Ok(result) = self.fit_ets_model(series, &model_spec) {
-                if result.aic < best_aic {
-                    best_aic = result.aic;
-                    best_result = Some(result);
-                }
+            if let Ok(result) = self.fit_ets_model(series, &model_spec)
+                && result.aic < best_aic
+            {
+                best_aic = result.aic;
+                best_result = Some(result);
             }
         }
 

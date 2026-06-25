@@ -242,10 +242,10 @@ impl AuditConfig {
             };
         }
 
-        if let Ok(retention) = std::env::var("MEMORY_AUDIT_RETENTION_DAYS") {
-            if let Ok(days) = retention.parse() {
-                config.retention_days = days;
-            }
+        if let Ok(retention) = std::env::var("MEMORY_AUDIT_RETENTION_DAYS")
+            && let Ok(days) = retention.parse()
+        {
+            config.retention_days = days;
         }
 
         config

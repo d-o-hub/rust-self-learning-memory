@@ -102,10 +102,10 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to iterate heuristics: {}", e)))?;
 
             for (count, result) in iter.enumerate() {
-                if let Some(max) = limit {
-                    if count >= max {
-                        break;
-                    }
+                if let Some(max) = limit
+                    && count >= max
+                {
+                    break;
                 }
 
                 let (_, bytes_guard) = result.map_err(|e| {

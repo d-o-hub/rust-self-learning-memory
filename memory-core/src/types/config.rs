@@ -320,22 +320,22 @@ impl MemoryConfig {
             );
         }
 
-        if let Ok(lambda) = std::env::var("MEMORY_DIVERSITY_LAMBDA") {
-            if let Ok(value) = lambda.parse::<f32>() {
-                config.diversity_lambda = value.clamp(0.0, 1.0);
-            }
+        if let Ok(lambda) = std::env::var("MEMORY_DIVERSITY_LAMBDA")
+            && let Ok(value) = lambda.parse::<f32>()
+        {
+            config.diversity_lambda = value.clamp(0.0, 1.0);
         }
 
-        if let Ok(bias) = std::env::var("MEMORY_TEMPORAL_BIAS") {
-            if let Ok(value) = bias.parse::<f32>() {
-                config.temporal_bias_weight = value.clamp(0.0, 1.0);
-            }
+        if let Ok(bias) = std::env::var("MEMORY_TEMPORAL_BIAS")
+            && let Ok(value) = bias.parse::<f32>()
+        {
+            config.temporal_bias_weight = value.clamp(0.0, 1.0);
         }
 
-        if let Ok(clusters) = std::env::var("MEMORY_MAX_CLUSTERS") {
-            if let Ok(value) = clusters.parse::<usize>() {
-                config.max_clusters_to_search = value;
-            }
+        if let Ok(clusters) = std::env::var("MEMORY_MAX_CLUSTERS")
+            && let Ok(value) = clusters.parse::<usize>()
+        {
+            config.max_clusters_to_search = value;
         }
 
         // Phase 3 (Enhanced) - Semantic search configuration
@@ -361,10 +361,10 @@ impl MemoryConfig {
             );
         }
 
-        if let Ok(threshold) = std::env::var("MEMORY_SIMILARITY_THRESHOLD") {
-            if let Ok(value) = threshold.parse::<f32>() {
-                config.semantic_similarity_threshold = value.clamp(0.0, 1.0);
-            }
+        if let Ok(threshold) = std::env::var("MEMORY_SIMILARITY_THRESHOLD")
+            && let Ok(value) = threshold.parse::<f32>()
+        {
+            config.semantic_similarity_threshold = value.clamp(0.0, 1.0);
         }
 
         // Security - Audit logging configuration from environment

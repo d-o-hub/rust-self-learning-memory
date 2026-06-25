@@ -54,7 +54,7 @@ EOF
 # Validate crate name
 validate_crate() {
   local crate="$1"
-  if [[ ! "$crate" =~ ^[a-z0-9_]+$ ]]; then
+  if [[ ! "$crate" =~ ^[a-z0-9_-]+$ ]]; then
     log_error "Invalid crate name: $crate"
     return 1
   fi

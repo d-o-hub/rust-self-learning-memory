@@ -64,7 +64,7 @@ run_eval() {
   # Execute each test
   # For now, we assume tests have an 'exec' field with a bash command
   local failed=0
-  for (( i=0; i<$test_count; i++ )); do
+  for (( i=0; i<test_count; i++ )); do
     local name
     name=$(jq -r ".tests[$i].name" "$eval_file")
     local cmd

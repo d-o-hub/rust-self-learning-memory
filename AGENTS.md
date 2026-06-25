@@ -206,6 +206,7 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
   - **Episode Relationships**: `add_episode_relationship`, `remove_episode_relationship`, `get_episode_relationships`, `find_related_episodes`, `check_relationship_exists`, `get_dependency_graph`, `validate_no_cycles`, `get_topological_order`
   - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `test_embeddings`, `generate_embedding`, `search_by_embedding`, `embedding_provider_status`
 - Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
+- **Agent Skills**: Integration patterns and workflow playbooks are defined in `.agents/skills/` (e.g., `goap-agent`, `agent-coordination`).
 
 ## Storage Optimization (Batch Eviction)
 - Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.

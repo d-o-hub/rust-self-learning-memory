@@ -77,14 +77,18 @@ impl crate::server::MemoryMCPServer {
     /// ```
     pub async fn query_memory(
         &self,
-        query: String,
-        domain: String,
+        mut query: String,
+        mut domain: String,
         task_type: Option<String>,
         limit: usize,
         sort: String,
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
+
+        // Truncate inputs to prevent resource exhaustion (CWE-770)
+        crate::constants::truncate_safe(&mut query, crate::constants::MAX_TASK_DESCRIPTION_LEN);
+        crate::constants::truncate_safe(&mut domain, crate::constants::MAX_METRICS_TYPE_LEN);
 
         // Start monitoring request
         let request_id = format!(
@@ -253,12 +257,15 @@ impl crate::server::MemoryMCPServer {
     /// ```
     pub async fn analyze_patterns(
         &self,
-        task_type: String,
+        mut task_type: String,
         min_success_rate: f32,
         limit: usize,
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("analyze_patterns").await;
+
+        // Truncate input to prevent resource exhaustion (CWE-770)
+        crate::constants::truncate_safe(&mut task_type, crate::constants::MAX_METRICS_TYPE_LEN);
 
         debug!(
             "Analyzing patterns: task_type='{}', min_success_rate={}, limit={}",

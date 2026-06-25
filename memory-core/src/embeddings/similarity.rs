@@ -64,7 +64,7 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     let similarity = dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt());
 
     // Normalize from [-1, 1] to [0, 1] range for semantic scores
-    (similarity + 1.0) / 2.0
+    f32::midpoint(similarity, 1.0)
 }
 #[cfg(test)]
 mod tests {

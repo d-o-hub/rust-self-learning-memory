@@ -58,17 +58,16 @@ impl ConfigCache {
 
         if let Some(entry) = entries.get(path) {
             // Check if file has been modified
-            if let Ok(metadata) = std::fs::metadata(path) {
-                if let Ok(current_mtime) = metadata.modified() {
-                    if current_mtime == entry.mtime {
-                        // Cache hit - increment hit counter
-                        if let Ok(mut hits) = self.hits.lock() {
-                            *hits += 1;
-                        }
-                        tracing::debug!("Config cache hit for: {}", path.display());
-                        return Some(entry.config.clone());
-                    }
+            if let Ok(metadata) = std::fs::metadata(path)
+                && let Ok(current_mtime) = metadata.modified()
+                && current_mtime == entry.mtime
+            {
+                // Cache hit - increment hit counter
+                if let Ok(mut hits) = self.hits.lock() {
+                    *hits += 1;
                 }
+                tracing::debug!("Config cache hit for: {}", path.display());
+                return Some(entry.config.clone());
             }
         }
 
@@ -85,21 +84,21 @@ impl ConfigCache {
     /// If the cache lock is poisoned, this method logs a warning and attempts
     /// to recover by using the poisoned lock's data.
     pub fn insert(&self, path: PathBuf, config: Config) {
-        if let Ok(metadata) = std::fs::metadata(&path) {
-            if let Ok(mtime) = metadata.modified() {
-                let entry = CacheEntry { config, mtime };
-                let mut entries = match self.entries.lock() {
-                    Ok(guard) => guard,
-                    Err(poisoned) => {
-                        tracing::warn!(
-                            "ConfigCache: entries lock poisoned during insert, recovering: {}",
-                            poisoned
-                        );
-                        poisoned.into_inner()
-                    }
-                };
-                entries.insert(path, entry);
-            }
+        if let Ok(metadata) = std::fs::metadata(&path)
+            && let Ok(mtime) = metadata.modified()
+        {
+            let entry = CacheEntry { config, mtime };
+            let mut entries = match self.entries.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    tracing::warn!(
+                        "ConfigCache: entries lock poisoned during insert, recovering: {}",
+                        poisoned
+                    );
+                    poisoned.into_inner()
+                }
+            };
+            entries.insert(path, entry);
         }
     }
 

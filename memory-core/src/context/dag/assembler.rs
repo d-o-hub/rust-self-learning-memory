@@ -285,16 +285,16 @@ impl DagContextAssembler {
         let mut unique = Vec::new();
 
         // Check each context field
-        if let Some(ref lang) = episode.context.language {
-            if !shared_values.contains(lang) {
-                unique.push(format!("language:{lang}"));
-            }
+        if let Some(ref lang) = episode.context.language
+            && !shared_values.contains(lang)
+        {
+            unique.push(format!("language:{lang}"));
         }
 
-        if let Some(ref fw) = episode.context.framework {
-            if !shared_values.contains(fw) {
-                unique.push(format!("framework:{fw}"));
-            }
+        if let Some(ref fw) = episode.context.framework
+            && !shared_values.contains(fw)
+        {
+            unique.push(format!("framework:{fw}"));
         }
 
         if !shared_values.contains(&episode.context.domain) {

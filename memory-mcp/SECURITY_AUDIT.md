@@ -344,7 +344,7 @@ Limited. While the process object can be accessed, it cannot be used for:
 - ✅ `cargo clippy` - 0 warnings
 - ✅ `cargo build` - Builds successfully
 - ✅ `cargo test` - All tests pass
-- ✅ MSRV compliance - Rust 1.70.0+
+- ✅ MSRV compliance - Rust 1.94.0+
 
 ---
 

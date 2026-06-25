@@ -145,10 +145,10 @@ pub fn apply_isolation(
                         use libc::{setgid, setuid};
 
                         // Drop GID first if specified
-                        if let Some(gid_val) = _gid {
-                            if setgid(gid_val) != 0 {
-                                return Err(std::io::Error::last_os_error());
-                            }
+                        if let Some(gid_val) = _gid
+                            && setgid(gid_val) != 0
+                        {
+                            return Err(std::io::Error::last_os_error());
                         }
 
                         // Drop UID

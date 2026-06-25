@@ -33,11 +33,12 @@ pub(super) fn extract_key_insights(episode: &Episode) -> Vec<String> {
     }
 
     // Extract from outcome artifacts (if meaningful)
-    if let Some(crate::types::TaskOutcome::Success { artifacts, .. }) = &episode.outcome {
-        if !artifacts.is_empty() && artifacts.len() <= 5 {
-            // Only include if reasonable number of artifacts
-            insights.push(format!("Artifacts produced: {}", artifacts.join(", ")));
-        }
+    if let Some(crate::types::TaskOutcome::Success { artifacts, .. }) = &episode.outcome
+        && !artifacts.is_empty()
+        && artifacts.len() <= 5
+    {
+        // Only include if reasonable number of artifacts
+        insights.push(format!("Artifacts produced: {}", artifacts.join(", ")));
     }
 
     // Deduplicate insights

@@ -145,14 +145,13 @@ impl crate::server::MemoryMCPServer {
                     {
                         return true;
                     }
-                    if let Some(result) = &step.result {
-                        if serde_json::to_string(result)
+                    if let Some(result) = &step.result
+                        && serde_json::to_string(result)
                             .unwrap_or_default()
                             .to_lowercase()
                             .contains(&query_lc)
-                        {
-                            return true;
-                        }
+                    {
+                        return true;
                     }
                 }
                 false

@@ -62,10 +62,10 @@ impl MetricsCollector {
         // Update core metrics
         self.metrics.record_query(success, duration_us);
 
-        if let Some(bytes) = bytes_transferred {
-            if success {
-                self.metrics.record_bytes_read(bytes);
-            }
+        if let Some(bytes) = bytes_transferred
+            && success
+        {
+            self.metrics.record_bytes_read(bytes);
         }
 
         // Update operation-specific latency

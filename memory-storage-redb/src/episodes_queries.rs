@@ -141,10 +141,10 @@ impl RedbStorage {
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 // Check if metadata contains the key-value pair
-                if let Some(metadata_value) = episode.metadata.get(key_str.as_str()) {
-                    if metadata_value == value_str.as_str() {
-                        episodes.push(episode);
-                    }
+                if let Some(metadata_value) = episode.metadata.get(key_str.as_str())
+                    && metadata_value == value_str.as_str()
+                {
+                    episodes.push(episode);
                 }
             }
 

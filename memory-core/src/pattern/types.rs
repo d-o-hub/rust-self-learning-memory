@@ -38,7 +38,7 @@ pub(super) fn merge_decision_point(stats1: &mut OutcomeStats, stats2: &OutcomeSt
 
 /// Merge two ErrorRecovery pattern statistics
 pub(super) fn merge_error_recovery(sr1: &mut f32, sr2: f32) {
-    *sr1 = (*sr1 + sr2) / 2.0;
+    *sr1 = f32::midpoint(*sr1, sr2);
 }
 
 /// Merge two ContextPattern pattern statistics

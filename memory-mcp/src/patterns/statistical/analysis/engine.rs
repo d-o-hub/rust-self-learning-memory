@@ -95,10 +95,10 @@ impl StatisticalEngine {
             .collect();
 
         for (var1, var2) in pairs {
-            if let (Some(data1), Some(data2)) = (data.get(var1), data.get(var2)) {
-                if let Some(corr_result) = self.calculate_correlation(var1, var2, data1, data2)? {
-                    results.push(corr_result);
-                }
+            if let (Some(data1), Some(data2)) = (data.get(var1), data.get(var2))
+                && let Some(corr_result) = self.calculate_correlation(var1, var2, data1, data2)?
+            {
+                results.push(corr_result);
             }
         }
 
@@ -198,14 +198,14 @@ impl StatisticalEngine {
             let bocpd_results = bocpd.detect_changepoints(series)?;
 
             for bocpd_result in bocpd_results {
-                if let Some(changepoint_index) = bocpd_result.changepoint_index {
-                    if changepoint_index < series.len() {
-                        results.push(ChangepointResult {
-                            index: changepoint_index,
-                            confidence: bocpd_result.confidence,
-                            change_type: ChangeType::MeanShift,
-                        });
-                    }
+                if let Some(changepoint_index) = bocpd_result.changepoint_index
+                    && changepoint_index < series.len()
+                {
+                    results.push(ChangepointResult {
+                        index: changepoint_index,
+                        confidence: bocpd_result.confidence,
+                        change_type: ChangeType::MeanShift,
+                    });
                 }
             }
 

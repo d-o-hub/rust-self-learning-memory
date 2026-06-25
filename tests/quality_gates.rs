@@ -383,10 +383,11 @@ fn parse_pattern_accuracy(stdout: &str, _stderr: &str) -> f64 {
         if line.contains("Quality Score:") {
             let parts: Vec<&str> = line.split_whitespace().collect();
             for (i, part) in parts.iter().enumerate() {
-                if part == &"Score:" && i + 1 < parts.len() {
-                    if let Ok(score) = parts[i + 1].parse::<f64>() {
-                        quality_score = Some(score);
-                    }
+                if part == &"Score:"
+                    && i + 1 < parts.len()
+                    && let Ok(score) = parts[i + 1].parse::<f64>()
+                {
+                    quality_score = Some(score);
                 }
             }
         }

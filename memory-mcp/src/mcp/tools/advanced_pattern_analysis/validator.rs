@@ -53,15 +53,15 @@ impl InputValidator {
     /// Validate analysis configuration
     fn validate_config(&self, config: &Option<AnalysisConfig>) -> Result<()> {
         if let Some(cfg) = config {
-            if let Some(sig) = cfg.significance_level {
-                if !(0.0..=1.0).contains(&sig) {
-                    return Err(anyhow!("Significance level must be between 0.0 and 1.0"));
-                }
+            if let Some(sig) = cfg.significance_level
+                && !(0.0..=1.0).contains(&sig)
+            {
+                return Err(anyhow!("Significance level must be between 0.0 and 1.0"));
             }
-            if let Some(sens) = cfg.anomaly_sensitivity {
-                if !(0.0..=1.0).contains(&sens) {
-                    return Err(anyhow!("Anomaly sensitivity must be between 0.0 and 1.0"));
-                }
+            if let Some(sens) = cfg.anomaly_sensitivity
+                && !(0.0..=1.0).contains(&sens)
+            {
+                return Err(anyhow!("Anomaly sensitivity must be between 0.0 and 1.0"));
             }
         }
 

@@ -377,13 +377,12 @@ where
             .iter()
             .min_by_key(|(_, entry)| entry.last_accessed)
             .map(|(key, _)| key.clone())
+            && let Some(entry) = entries.remove(&oldest_key)
         {
-            if let Some(entry) = entries.remove(&oldest_key) {
-                // Estimate bytes (simplified - just use size of value)
-                let estimated_bytes = std::mem::size_of_val(&entry.value) as u64;
-                self.stats.record_eviction(estimated_bytes);
-                debug!("Evicted oldest entry");
-            }
+            // Estimate bytes (simplified - just use size of value)
+            let estimated_bytes = std::mem::size_of_val(&entry.value) as u64;
+            self.stats.record_eviction(estimated_bytes);
+            debug!("Evicted oldest entry");
         }
     }
 

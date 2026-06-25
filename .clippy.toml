@@ -1,5 +1,5 @@
 # Clippy configuration - Updated for memory backend system
-msrv = "1.70"
+msrv = "1.94.0"
 
 # Type system and complexity
 type-complexity-threshold = 1000

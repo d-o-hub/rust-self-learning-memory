@@ -27,16 +27,17 @@ pub fn validate_database_config_full(config: &DatabaseConfig) -> ValidationResul
     let mut warnings = Vec::new();
 
     // Add warnings from original logic
-    if let Some(turso_url) = &config.turso_url {
-        if !turso_url.trim().is_empty() && !database::is_valid_turso_url(turso_url) {
-            warnings.push(ValidationWarning {
-                field: "database.turso_url".to_string(),
-                message: format!("Turso URL format may be invalid: {}", turso_url),
-                suggestion: Some(
-                    "Ensure URL follows format: libsql://host/db or file:path".to_string(),
-                ),
-            });
-        }
+    if let Some(turso_url) = &config.turso_url
+        && !turso_url.trim().is_empty()
+        && !database::is_valid_turso_url(turso_url)
+    {
+        warnings.push(ValidationWarning {
+            field: "database.turso_url".to_string(),
+            message: format!("Turso URL format may be invalid: {}", turso_url),
+            suggestion: Some(
+                "Ensure URL follows format: libsql://host/db or file:path".to_string(),
+            ),
+        });
     }
 
     if config.turso_url.is_some() && config.turso_token.is_none() {
@@ -47,19 +48,17 @@ pub fn validate_database_config_full(config: &DatabaseConfig) -> ValidationResul
         });
     }
 
-    if config.turso_url.is_none() {
-        if let Some(redb_path) = config.redb_path.as_ref() {
-            if redb_path.starts_with("libsql://") {
-                warnings.push(ValidationWarning {
-                    field: "database.redb_path".to_string(),
-                    message: "redb_path contains what looks like a remote URL".to_string(),
-                    suggestion: Some(
-                        "Use turso_url for remote databases and redb_path for local files"
-                            .to_string(),
-                    ),
-                });
-            }
-        }
+    if config.turso_url.is_none()
+        && let Some(redb_path) = config.redb_path.as_ref()
+        && redb_path.starts_with("libsql://")
+    {
+        warnings.push(ValidationWarning {
+            field: "database.redb_path".to_string(),
+            message: "redb_path contains what looks like a remote URL".to_string(),
+            suggestion: Some(
+                "Use turso_url for remote databases and redb_path for local files".to_string(),
+            ),
+        });
     }
 
     let is_valid = errors.is_empty();

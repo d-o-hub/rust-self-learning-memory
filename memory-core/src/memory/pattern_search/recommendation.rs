@@ -68,12 +68,11 @@ pub async fn search_patterns_semantic(
 
     for pattern in patterns {
         // Apply pre-filters
-        if config.filter_by_domain {
-            if let Some(pattern_ctx) = pattern.context() {
-                if pattern_ctx.domain != context.domain {
-                    continue;
-                }
-            }
+        if config.filter_by_domain
+            && let Some(pattern_ctx) = pattern.context()
+            && pattern_ctx.domain != context.domain
+        {
+            continue;
         }
 
         // Note: TaskContext doesn't have task_type field in current implementation

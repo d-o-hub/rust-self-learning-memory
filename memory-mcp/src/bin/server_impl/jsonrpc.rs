@@ -78,10 +78,10 @@ fn extract_client_id(params: Option<&serde_json::Value>, client_id_header: &str)
             }
 
             // Try to extract from headers in meta
-            if let Some(headers) = meta.get("headers") {
-                if let Some(client_id) = headers.get(client_id_header).and_then(|v| v.as_str()) {
-                    return ClientId::from_string(client_id);
-                }
+            if let Some(headers) = meta.get("headers")
+                && let Some(client_id) = headers.get(client_id_header).and_then(|v| v.as_str())
+            {
+                return ClientId::from_string(client_id);
             }
         }
 

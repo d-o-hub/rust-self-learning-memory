@@ -190,13 +190,12 @@ impl PatternExtractionQueue {
                             );
 
                             // Update stats
-                            let current_size = {
+                            let mut s = stats.write().await;
+                            s.total_processed += 1;
+                            s.current_queue_size = {
                                 let q = queue.lock().await;
                                 q.len()
                             };
-                            let mut s = stats.write().await;
-                            s.total_processed += 1;
-                            s.current_queue_size = current_size;
                         }
                         Err(e) => {
                             error!(

@@ -125,7 +125,7 @@ impl super::HierarchicalRetriever {
                     // Calculate cosine similarity between query and episode embeddings
                     // Note: cosine_similarity returns a value in [-1, 1], normalize to [0, 1]
                     let similarity = crate::embeddings::cosine_similarity(query_emb, &episode_emb);
-                    f32::midpoint(similarity, 1.0) // Normalize from [-1, 1] to [0, 1]
+                    (similarity + 1.0) / 2.0 // Normalize from [-1, 1] to [0, 1]
                 } else {
                     // Fallback to text-based similarity
                     calculate_text_similarity(

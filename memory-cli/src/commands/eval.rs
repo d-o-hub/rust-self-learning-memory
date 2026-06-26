@@ -282,10 +282,10 @@ pub async fn calibration(
 
     for (domain, stats) in &stats_cache.stats {
         // Apply filters
-        if let Some(ref filter) = domain_filter
-            && domain != filter
-        {
-            continue;
+        if let Some(ref filter) = domain_filter {
+            if domain != filter {
+                continue;
+            }
         }
 
         if !show_all && stats.episode_count < min_episodes {

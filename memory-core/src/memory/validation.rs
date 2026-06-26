@@ -123,21 +123,22 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
     if let Some(params_obj) = step.parameters().as_object() {
         for (key, value) in params_obj {
             // Check for common artifact-like field names
-            if (key.contains("artifact")
+            if key.contains("artifact")
                 || key.contains("data")
                 || key.contains("content")
-                || key.contains("file"))
-                && let Some(string_value) = value.as_str()
+                || key.contains("file")
             {
-                #[allow(clippy::excessive_nesting)]
-                if string_value.len() > MAX_ARTIFACT_SIZE {
-                    return Err(Error::InvalidInput(format!(
-                        "Artifact '{}' size {} exceeds maximum {} bytes ({}MB)",
-                        key,
-                        string_value.len(),
-                        MAX_ARTIFACT_SIZE,
-                        MAX_ARTIFACT_SIZE / 1_000_000
-                    )));
+                if let Some(string_value) = value.as_str() {
+                    #[allow(clippy::excessive_nesting)]
+                    if string_value.len() > MAX_ARTIFACT_SIZE {
+                        return Err(Error::InvalidInput(format!(
+                            "Artifact '{}' size {} exceeds maximum {} bytes ({}MB)",
+                            key,
+                            string_value.len(),
+                            MAX_ARTIFACT_SIZE,
+                            MAX_ARTIFACT_SIZE / 1_000_000
+                        )));
+                    }
                 }
             }
         }

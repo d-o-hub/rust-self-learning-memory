@@ -175,10 +175,11 @@ impl EnhancedPatternApplicator {
             tool.typical_contexts
                 .iter()
                 .find_map(|tc| tc.language.as_ref()),
-        ) && context_lang == tool_lang_context
-        {
-            compatibility += 0.25;
-            factors_considered += 1;
+        ) {
+            if context_lang == tool_lang_context {
+                compatibility += 0.25;
+                factors_considered += 1;
+            }
         }
 
         // Framework compatibility (20% weight)
@@ -187,10 +188,11 @@ impl EnhancedPatternApplicator {
             tool.typical_contexts
                 .iter()
                 .find_map(|tc| tc.framework.as_ref()),
-        ) && context_framework == tool_framework_context
-        {
-            compatibility += 0.20;
-            factors_considered += 1;
+        ) {
+            if context_framework == tool_framework_context {
+                compatibility += 0.20;
+                factors_considered += 1;
+            }
         }
 
         // Complexity compatibility (15% weight)

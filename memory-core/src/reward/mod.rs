@@ -216,15 +216,15 @@ impl RewardCalculator {
             }
 
             // Check for quality-related metadata
-            if let Some(coverage_str) = episode.metadata.get("test_coverage")
-                && let Ok(coverage) = coverage_str.parse::<f32>()
-            {
-                // Bonus for high test coverage (>80%)
-                #[allow(clippy::excessive_nesting)]
-                if coverage > 80.0 {
-                    quality += 0.15;
-                } else if coverage > 60.0 {
-                    quality += 0.1;
+            if let Some(coverage_str) = episode.metadata.get("test_coverage") {
+                if let Ok(coverage) = coverage_str.parse::<f32>() {
+                    // Bonus for high test coverage (>80%)
+                    #[allow(clippy::excessive_nesting)]
+                    if coverage > 80.0 {
+                        quality += 0.15;
+                    } else if coverage > 60.0 {
+                        quality += 0.1;
+                    }
                 }
             }
         }
@@ -246,11 +246,12 @@ impl RewardCalculator {
         }
 
         // Check for linting/formatting indicators
-        if episode.metadata.contains_key("clippy_warnings")
-            && let Some(warnings) = episode.metadata.get("clippy_warnings")
-            && warnings == "0"
-        {
-            quality += 0.05;
+        if episode.metadata.contains_key("clippy_warnings") {
+            if let Some(warnings) = episode.metadata.get("clippy_warnings") {
+                if warnings == "0" {
+                    quality += 0.05;
+                }
+            }
         }
 
         // Clamp to reasonable bounds (0.5 to 1.5)

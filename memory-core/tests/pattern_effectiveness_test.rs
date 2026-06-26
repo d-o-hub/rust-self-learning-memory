@@ -50,7 +50,7 @@ fn test_pattern_effectiveness_record_application() {
     assert_eq!(effectiveness.application_success_rate(), 0.5);
 
     // Check moving average of reward delta
-    let expected_avg = f32::midpoint(0.2, -0.1);
+    let expected_avg = (0.2 + (-0.1)) / 2.0;
     assert!((effectiveness.avg_reward_delta - expected_avg).abs() < 0.001);
 }
 
@@ -223,7 +223,7 @@ fn test_pattern_effectiveness_with_negative_reward() {
     assert_eq!(effectiveness.application_success_rate(), 0.5);
 
     // Average reward delta should be negative
-    let expected_avg = f32::midpoint(-0.2, -0.3);
+    let expected_avg = (-0.2 + -0.3) / 2.0;
     assert!((effectiveness.avg_reward_delta - expected_avg).abs() < 0.001);
 
     // Effectiveness score should be low

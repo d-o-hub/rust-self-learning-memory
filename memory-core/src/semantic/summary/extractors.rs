@@ -129,11 +129,10 @@ pub fn extract_key_steps(episode: &Episode, max_key_steps: usize) -> Vec<String>
     // Include steps mentioned in salient features
     if let Some(ref features) = episode.salient_features {
         for decision in &features.critical_decisions {
-            if let Some(step_num) = extract_step_number(decision)
-                && step_num > 0
-                && step_num <= episode.steps.len()
-            {
-                step_indices.push(step_num - 1);
+            if let Some(step_num) = extract_step_number(decision) {
+                if step_num > 0 && step_num <= episode.steps.len() {
+                    step_indices.push(step_num - 1);
+                }
             }
         }
     }
@@ -164,11 +163,10 @@ pub fn extract_key_steps(episode: &Episode, max_key_steps: usize) -> Vec<String>
         }
 
         // Keep last
-        if let Some(&last) = step_indices.last()
-            && !prioritized.contains(&last)
-            && prioritized.len() < max_key_steps
-        {
-            prioritized.push(last);
+        if let Some(&last) = step_indices.last() {
+            if !prioritized.contains(&last) && prioritized.len() < max_key_steps {
+                prioritized.push(last);
+            }
         }
 
         // Fill remaining with middle steps

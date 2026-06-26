@@ -64,11 +64,9 @@ pub async fn initialize_storage(config: &Config) -> Result<StorageInitResult> {
     let (turso_storage, turso_messages) = (None, Vec::new());
 
     #[cfg(feature = "redb")]
-    let (redb_storage, redb_messages): (Option<Arc<dyn StorageBackend>>, Vec<String>) =
-        initialize_redb_storage(&config.database).await?;
+    let (redb_storage, redb_messages) = initialize_redb_storage(&config.database).await?;
     #[cfg(not(feature = "redb"))]
-    let (redb_storage, redb_messages): (Option<Arc<dyn StorageBackend>>, Vec<String>) =
-        (None, Vec::new());
+    let (redb_storage, redb_messages) = (None, Vec::new());
 
     // Combine status messages
     storage_info.status_messages.extend(turso_messages.clone());

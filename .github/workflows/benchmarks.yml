@@ -52,7 +52,6 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.8.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          allowed-conclusions: success,skipped,cancelled
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10

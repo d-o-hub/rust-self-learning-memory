@@ -2,12 +2,6 @@
 
 **CRITICAL**: Always check docs.rs for breaking changes before upgrading.
 
-## Toolchain and MSRV Policy
-- **Pinned Toolchain**: The project pins a specific Rust toolchain version in `rust-toolchain.toml` (currently `1.94.0`) to ensure build reproducibility.
-- **MSRV**: The Minimum Supported Rust Version (MSRV) is set to the same pinned version (`1.94.0`) and is declared in `Cargo.toml`.
-- **Clippy**: The `.clippy.toml` file also enforces this MSRV for linting consistency.
-- **Upgrades**: Upgrading the toolchain or MSRV requires a coordinated update across all three files and a verification of the dependency graph's compatibility.
-
 ## redb 3.x
 - `begin_read()` moved to `ReadableDatabase` trait - must import:
   ```rust

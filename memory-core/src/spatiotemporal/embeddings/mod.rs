@@ -287,10 +287,10 @@ impl ContextAwareEmbeddings {
         let base_embedding = self.base_embeddings.embed_text(text).await?;
 
         // Apply task-specific adaptation if available
-        if let Some(task) = task_type
-            && let Some(adapter) = self.task_adapters.get(&task)
-        {
-            return Ok(adapter.adapt(base_embedding));
+        if let Some(task) = task_type {
+            if let Some(adapter) = self.task_adapters.get(&task) {
+                return Ok(adapter.adapt(base_embedding));
+            }
         }
 
         // Fallback to base embedding

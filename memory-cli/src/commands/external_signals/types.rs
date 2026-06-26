@@ -323,11 +323,11 @@ impl ProviderTestResponse {
     ) -> anyhow::Result<()> {
         use colored::*;
 
-        if let Some(details) = details
-            && let Ok(pretty) = serde_json::to_string_pretty(details)
-        {
-            for line in pretty.lines() {
-                writeln!(writer, "   {}", line.dimmed())?;
+        if let Some(details) = details {
+            if let Ok(pretty) = serde_json::to_string_pretty(details) {
+                for line in pretty.lines() {
+                    writeln!(writer, "   {}", line.dimmed())?;
+                }
             }
         }
         Ok(())

@@ -1,0 +1,114 @@
+name: Mutation Testing
+
+# Mutation testing validates test suite effectiveness by injecting faults
+# and checking if tests fail. This is a targeted workspace signal.
+
+on:
+  schedule:
+    # Run at 3 AM UTC every day (staggered after nightly tests)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'Packages to test (comma separated, e.g. "do-memory-core,do-memory-mcp")'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 360 # Mutation testing is very slow, giving it 6 hours
+    steps:
+      - name: Maximize build space
+        if: runner.os == 'Linux'
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: mutation-testing
+          # Always save cache for mutation testing as it relies heavily on incremental compilation
+          save-cache: "true"
+
+      - name: Install cargo-mutants
+        run: cargo install --locked cargo-mutants
+
+      - name: Run mutation testing
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: |
+          if [ -n "$PACKAGES" ]; then
+            IFS=',' read -ra PKGS <<< "$PACKAGES"
+            ARGS=""
+            for pkg in "${PKGS[@]}"; do
+              ARGS="$ARGS --package $pkg"
+            done
+            echo "Running mutation testing for packages: $PACKAGES"
+            cargo mutants $ARGS
+          else
+            # Default to targeted workspace coverage as defined in Cargo.toml metadata
+            # or explicitly list the primary packages if metadata is not yet fully parsed by the tool
+            echo "Running mutation testing for workspace (targeted packages)"
+            cargo mutants --package do-memory-core \
+                          --package do-memory-mcp \
+                          --package do-memory-storage-redb \
+                          --package do-memory-storage-turso \
+                          --package do-memory-cli
+          fi
+        continue-on-error: true # Informational - do not block CI
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          if [ -d "mutants.out" ]; then
+            echo "### Mutation Testing Summary" > mutants.out/summary.md
+            if [ -f "mutants.out/mutants.json" ]; then
+              # Basic extraction of stats if jq is available
+              if command -v jq > /dev/null; then
+                KILLED=$(jq '[.mutants[] | select(.outcome == "Killed")] | length' mutants.out/mutants.json)
+                SURVIVED=$(jq '[.mutants[] | select(.outcome == "Survived")] | length' mutants.out/mutants.json)
+                TIMEOUTS=$(jq '[.mutants[] | select(.outcome == "Timeout")] | length' mutants.out/mutants.json)
+                TOTAL=$(jq '.mutants | length' mutants.out/mutants.json)
+                echo "- **Total Mutants**: $TOTAL" >> mutants.out/summary.md
+                echo "- **Killed**: $KILLED" >> mutants.out/summary.md
+                echo "- **Survived**: $SURVIVED" >> mutants.out/summary.md
+                echo "- **Timeouts**: $TIMEOUTS" >> mutants.out/summary.md
+                if [ "$TOTAL" -gt 0 ]; then
+                  SCORE=$(echo "scale=2; $KILLED * 100 / $TOTAL" | bc)
+                  echo "- **Mutation Score**: $SCORE%" >> mutants.out/summary.md
+                fi
+              else
+                echo "Stats extraction requires jq" >> mutants.out/summary.md
+              fi
+            else
+              echo "mutants.json not found" >> mutants.out/summary.md
+            fi
+            cat mutants.out/summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload mutation report
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: always()
+        with:
+          name: mutation-report
+          path: mutants.out/
+          retention-days: 14

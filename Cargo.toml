@@ -127,6 +127,30 @@ cognitive_complexity = "warn"
 too_many_arguments = "warn"
 type_complexity = "allow"  # Complex types are common in this codebase
 
+# Mutation testing configuration
+[workspace.metadata.cargo-mutants]
+timeout = 300
+jobs = 4
+examine_re = [
+    "memory-core/src/pattern/similarity\\.rs",
+    "memory-core/src/embeddings/similarity\\.rs",
+    "memory-core/src/extraction/utils\\.rs",
+    "memory-mcp/src/jsonrpc\\.rs",
+    "memory-mcp/src/protocol/handlers\\.rs",
+    "memory-storage-redb/src/cache/.*",
+    "memory-storage-turso/src/cache/.*",
+    "memory-cli/src/main\\.rs",
+    "memory-cli/src/commands/mod\\.rs",
+]
+exclude_re = [
+    "tests/",
+    "benches/",
+    "examples/",
+    "test-utils/",
+    ".*_tests\\.rs",
+    "memory-core/src/memory/tests/",
+]
+
 # The profile that 'dist' will build with
 [profile.dist]
 inherits = "release"

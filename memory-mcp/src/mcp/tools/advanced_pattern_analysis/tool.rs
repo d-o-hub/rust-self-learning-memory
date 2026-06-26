@@ -210,9 +210,15 @@ impl AdvancedPatternAnalysisTool {
     ) -> Result<HashMap<String, Vec<f64>>> {
         info!("Extracting time series data from memory episodes");
 
+        // Truncate inputs to prevent resource exhaustion (CWE-770)
+        let mut query = query.to_string();
+        let mut domain = domain.to_string();
+        crate::constants::truncate_safe(&mut query, crate::constants::MAX_TASK_DESCRIPTION_LEN);
+        crate::constants::truncate_safe(&mut domain, crate::constants::MAX_METRICS_TYPE_LEN);
+
         // Query memory for relevant episodes (returns Vec<Arc<Episode>>)
         let context = do_memory_core::TaskContext {
-            domain: domain.to_string(),
+            domain: domain.clone(),
             language: None,
             framework: None,
             complexity: do_memory_core::ComplexityLevel::Moderate,
@@ -221,7 +227,7 @@ impl AdvancedPatternAnalysisTool {
 
         let arc_episodes = self
             .memory
-            .retrieve_relevant_context(query.to_string(), context, limit)
+            .retrieve_relevant_context(query, context, limit)
             .await;
 
         if arc_episodes.is_empty() {

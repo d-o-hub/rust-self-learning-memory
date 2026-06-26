@@ -1,7 +1,7 @@
 # Security Operations Guide
 
 **Version**: v0.1.13  
-**Last Updated**: 2026-02-01  
+**Last Modified**: 2026-02-01
 **Audience**: Security Teams, DevOps, System Administrators  
 **Classification**: Internal Use  
 
@@ -643,6 +643,6 @@ echo "Compliance evidence: $OUTPUT_DIR.tar.gz"
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-02-01  
+**Last Modified**: 2026-02-01
 **Maintained By**: Security Team  
 **Next Review**: 2026-03-01

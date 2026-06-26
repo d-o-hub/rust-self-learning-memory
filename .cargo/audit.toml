@@ -72,4 +72,10 @@ ignore = [
     # Mitigation: do-memory-mcp uses HMAC (HS256) exclusively, not RSA.
     # rsa is a transitive dependency of jsonwebtoken we don't directly use.
     "RUSTSEC-2023-0071",
+
+    # RUSTSEC-2026-0183: git2 unsoundness in Remote::list()
+    "RUSTSEC-2026-0183",
+
+    # RUSTSEC-2026-0184: git2 unsoundness with Signature
+    "RUSTSEC-2026-0184",
 ]

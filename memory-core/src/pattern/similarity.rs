@@ -18,39 +18,44 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 }
 
 /// Calculate edit distance (Levenshtein) between two sequences
-#[allow(clippy::needless_range_loop)]
+///
+/// Optimization: Uses O(min(N, M)) space by only keeping track of the current row.
+/// This reduces memory allocation from O(N*M) to O(min(N, M)) and allocations from O(N) to O(1).
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
+    // Ensure seq2 is the shorter sequence to minimize space usage
+    let (seq1, seq2) = if seq1.len() < seq2.len() {
+        (seq2, seq1)
+    } else {
+        (seq1, seq2)
+    };
+
     let len1 = seq1.len();
     let len2 = seq2.len();
 
-    if len1 == 0 {
-        return len2;
-    }
     if len2 == 0 {
         return len1;
     }
 
-    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
+    // Initial row: distances from empty seq1 to prefixes of seq2
+    let mut row: Vec<usize> = (0..=len2).collect();
 
-    // Initialize first row and column
-    for i in 0..=len1 {
-        matrix[i][0] = i;
-    }
-    for j in 0..=len2 {
-        matrix[0][j] = j;
-    }
-
-    // Fill matrix
     for i in 1..=len1 {
+        let mut prev_diag = row[0]; // Represents matrix[i-1][j-1]
+        row[0] = i; // Represents matrix[i][0]
         for j in 1..=len2 {
+            let old_row_j = row[j]; // matrix[i-1][j] before update
             let cost = usize::from(seq1[i - 1] != seq2[j - 1]);
-            matrix[i][j] = (matrix[i - 1][j] + 1) // deletion
-                .min(matrix[i][j - 1] + 1) // insertion
-                .min(matrix[i - 1][j - 1] + cost); // substitution
+
+            // row[j] is matrix[i-1][j] (deletion)
+            // row[j-1] is matrix[i][j-1] (insertion)
+            // prev_diag is matrix[i-1][j-1] (substitution)
+            row[j] = (row[j] + 1).min(row[j - 1] + 1).min(prev_diag + cost);
+
+            prev_diag = old_row_j;
         }
     }
 
-    matrix[len1][len2]
+    row[len2]
 }
 
 /// Calculate similarity between two strings using normalized edit distance
@@ -72,37 +77,36 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
 }
 
 /// Calculate edit distance for character sequences
-#[allow(clippy::needless_range_loop)]
+///
+/// Optimization: Uses O(min(N, M)) space by only keeping track of the current row.
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
+    let (chars1, chars2) = if chars1.len() < chars2.len() {
+        (chars2, chars1)
+    } else {
+        (chars1, chars2)
+    };
+
     let len1 = chars1.len();
     let len2 = chars2.len();
 
-    if len1 == 0 {
-        return len2;
-    }
     if len2 == 0 {
         return len1;
     }
 
-    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
-
-    for i in 0..=len1 {
-        matrix[i][0] = i;
-    }
-    for j in 0..=len2 {
-        matrix[0][j] = j;
-    }
+    let mut row: Vec<usize> = (0..=len2).collect();
 
     for i in 1..=len1 {
+        let mut prev_diag = row[0];
+        row[0] = i;
         for j in 1..=len2 {
+            let old_row_j = row[j];
             let cost = usize::from(chars1[i - 1] != chars2[j - 1]);
-            matrix[i][j] = (matrix[i - 1][j] + 1)
-                .min(matrix[i][j - 1] + 1)
-                .min(matrix[i - 1][j - 1] + cost);
+            row[j] = (row[j] + 1).min(row[j - 1] + 1).min(prev_diag + cost);
+            prev_diag = old_row_j;
         }
     }
 
-    matrix[len1][len2]
+    row[len2]
 }
 
 /// Calculate similarity between two ToolSequence patterns
@@ -229,6 +233,30 @@ mod tests {
         // "hello" vs "hallo" - one character different
         let sim = string_similarity("hello", "hallo");
         assert!(sim > 0.7 && sim < 0.9);
+    }
+
+    #[test]
+    fn test_sequence_similarity_swapped() {
+        let seq1 = vec!["a".to_string(), "b".to_string()];
+        let seq2 = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+
+        let sim1 = sequence_similarity(&seq1, &seq2);
+        let sim2 = sequence_similarity(&seq2, &seq1);
+
+        assert_eq!(sim1, sim2);
+        // 2 out of 3 match
+        assert!(sim1 > 0.6 && sim1 < 0.7);
+    }
+
+    #[test]
+    fn test_string_similarity_swapped() {
+        let s1 = "rust";
+        let s2 = "rustacean";
+
+        let sim1 = string_similarity(s1, s2);
+        let sim2 = string_similarity(s2, s1);
+
+        assert_eq!(sim1, sim2);
     }
 
     #[test]

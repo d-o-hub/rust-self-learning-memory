@@ -300,10 +300,10 @@ let result = {
 #### redb 3.x (from 2.x)
 - `begin_read()` moved to `ReadableDatabase` trait:
   ```rust
-  // OLD (redb 2.x)
+  // redb 2.x
   let txn = db.begin_read()?;
 
-  // NEW (redb 3.x) - must import trait
+  // redb 3.x - must import trait
   use redb::ReadableDatabase;
   let txn = db.begin_read()?;
   ```
@@ -312,22 +312,22 @@ let result = {
 #### rand 0.10 (from 0.8/0.9)
 - Function renames:
   ```rust
-  // OLD
+  // rand 0.9 and earlier
   let mut rng = rand::thread_rng();
   let value: f64 = rng.gen();
   let range_val = rng.gen_range(0.0..1.0);
 
-  // NEW
+  // rand 0.10+
   let mut rng = rand::rng();
   let value: f64 = rng.random();
   let range_val = rng.random_range(0.0..1.0);
   ```
 - Trait import change:
   ```rust
-  // OLD
+  // rand 0.9 and earlier
   use rand::Rng;
 
-  // NEW - use RngExt for user-level methods
+  // rand 0.10+ - use RngExt for user-level methods
   use rand::RngExt;
   ```
 - Keep `rand` and `rand_chacha` versions aligned (both 0.10)

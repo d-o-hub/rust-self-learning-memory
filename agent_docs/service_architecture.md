@@ -42,6 +42,7 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
   - `optimized_validator/` - Risk and compatibility (mod.rs, context.rs, applicator.rs)
   - `dbscan/` - DBSCAN clustering (detector.rs)
   - Clustering algorithms and quality scoring
+  - Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys, reducing complexity to O(N) scoring calls.
 - `embeddings/` - Vector embeddings for semantic search (~3,600 LOC)
   - `openai/` - OpenAI provider (split: client.rs)
   - `circuit_breaker.rs` - Resilience for API calls

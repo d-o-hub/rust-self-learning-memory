@@ -13,9 +13,21 @@ impl EmbeddingTools {
     #[instrument(skip(self, input), fields(query = %input.query))]
     pub async fn execute_query_semantic_memory(
         &self,
-        input: QuerySemanticMemoryInput,
+        mut input: QuerySemanticMemoryInput,
     ) -> Result<QuerySemanticMemoryOutput> {
         let start_time = std::time::Instant::now();
+
+        // Truncate inputs to prevent resource exhaustion (CWE-770)
+        crate::constants::truncate_safe(
+            &mut input.query,
+            crate::constants::MAX_TASK_DESCRIPTION_LEN,
+        );
+        if let Some(domain) = &mut input.domain {
+            crate::constants::truncate_safe(domain, crate::constants::MAX_METRICS_TYPE_LEN);
+        }
+        if let Some(task_type) = &mut input.task_type {
+            crate::constants::truncate_safe(task_type, crate::constants::MAX_METRICS_TYPE_LEN);
+        }
 
         info!("Executing semantic memory query: '{}'", input.query);
 

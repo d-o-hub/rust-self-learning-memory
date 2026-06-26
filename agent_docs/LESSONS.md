@@ -36,7 +36,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 
 - Issue: The MCP server used simplified JWT parsing that skipped signature verification, allowing token forgery.
 - Root Cause: Development-only validation logic was left in place without enforcing secure production defaults.
-- Solution: Use established libraries like `jsonwebtoken` for verification. Enforce mandatory secret configuration for production modes and include security tests for signature and claim (iss, aud, exp, sub) validation.
+- Solution: Use robust libraries like `jsonwebtoken` for verification. Enforce mandatory secret configuration for production modes and include security tests for signature and claim (iss, aud, exp, sub) validation.
 
 ## LESSON-006: CI Optimization - paths-based benchmark triggering
 

@@ -4,8 +4,6 @@
 - **Build**: `./scripts/build-rust.sh dev|release|check|clean`
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
-- **Harness Map**: `HARNESS.md`
-- **Harness Check**: `./scripts/harness-check.sh <sensor>`
 - **Quality Gates**: `./scripts/quality-gates.sh`
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 
@@ -32,7 +30,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 6. `cargo nextest run -p <crate>`
 7. `cargo nextest run --all`
 8. `cargo test --doc`
-9. `./scripts/harness-check.sh quality` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
+9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
 10. `git status` - verify all changes staged
 
 ## Core Invariants (Never Break)
@@ -206,7 +204,6 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
   - **Episode Relationships**: `add_episode_relationship`, `remove_episode_relationship`, `get_episode_relationships`, `find_related_episodes`, `check_relationship_exists`, `get_dependency_graph`, `validate_no_cycles`, `get_topological_order`
   - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `test_embeddings`, `generate_embedding`, `search_by_embedding`, `embedding_provider_status`
 - Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
-- **Agent Skills**: Integration patterns and workflow playbooks are defined in `.agents/skills/` (e.g., `goap-agent`, `agent-coordination`).
 
 ## Storage Optimization (Batch Eviction)
 - Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.

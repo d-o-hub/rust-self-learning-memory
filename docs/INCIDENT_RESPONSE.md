@@ -1,7 +1,7 @@
 # Incident Response Procedures
 
 **Version**: 1.0
-**Last Modified**: 2026-02-01
+**Last Updated**: 2026-02-01
 **Status**: Production Ready
 
 ## Overview
@@ -987,5 +987,5 @@ Full Report: [Link to detailed report]
 ---
 
 **Document Version**: 1.0
-**Last Modified**: 2026-02-01
+**Last Updated**: 2026-02-01
 **Next Review**: 2026-05-01

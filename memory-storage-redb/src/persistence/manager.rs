@@ -75,17 +75,17 @@ impl PersistenceManager {
                 }
 
                 // Get snapshot from provider
-                if let Some(snapshot) = snapshot_provider()
-                    && persistence.should_save(snapshot.len())
-                {
-                    match persistence.save_snapshot(&snapshot, None) {
-                        Ok(count) => {
-                            debug!("Background save completed: {} entries", count);
-                            let mut last = last_snapshot.write();
-                            *last = Some(snapshot);
-                        }
-                        Err(e) => {
-                            error!("Background save failed: {}", e);
+                if let Some(snapshot) = snapshot_provider() {
+                    if persistence.should_save(snapshot.len()) {
+                        match persistence.save_snapshot(&snapshot, None) {
+                            Ok(count) => {
+                                debug!("Background save completed: {} entries", count);
+                                let mut last = last_snapshot.write();
+                                *last = Some(snapshot);
+                            }
+                            Err(e) => {
+                                error!("Background save failed: {}", e);
+                            }
                         }
                     }
                 }
@@ -129,16 +129,16 @@ impl PersistenceManager {
         self.stop_background_task();
 
         // Save final snapshot if provided and enabled
-        if let Some(snapshot) = final_snapshot
-            && self.config.enabled
-        {
-            info!("Saving final cache snapshot ({} entries)", snapshot.len());
-            match self.persistence.save_snapshot(&snapshot, None) {
-                Ok(count) => {
-                    info!("Final cache snapshot saved: {} entries", count);
-                }
-                Err(e) => {
-                    error!("Failed to save final cache snapshot: {}", e);
+        if let Some(snapshot) = final_snapshot {
+            if self.config.enabled {
+                info!("Saving final cache snapshot ({} entries)", snapshot.len());
+                match self.persistence.save_snapshot(&snapshot, None) {
+                    Ok(count) => {
+                        info!("Final cache snapshot saved: {} entries", count);
+                    }
+                    Err(e) => {
+                        error!("Failed to save final cache snapshot: {}", e);
+                    }
                 }
             }
         }

@@ -77,8 +77,7 @@ cargo build -p do-memory-cli
 ## Development Setup
 
 ### Prerequisites
-- Rust toolchain: Pinned to `1.94.0` (see `rust-toolchain.toml`)
-- MSRV: `1.94.0` (declared in `Cargo.toml` as `workspace.package.rust-version`)
+- Rust toolchain (see `rust-toolchain.toml`)
 - SQLite (for local development)
 - Docker (optional, for Turso)
 - `cargo-llvm-cov` for coverage (install with `cargo install cargo-llvm-cov`)

@@ -1,7 +1,7 @@
 # API Reference
 
 **Version**: v0.1.22 (current workspace release)
-**Last Modified**: 2026-03-24
+**Last Updated**: 2026-03-24
 **Protocol**: MCP over JSON-RPC 2.0 (protocol negotiation supports `2025-11-25` and `2024-11-05`)
 
 ---

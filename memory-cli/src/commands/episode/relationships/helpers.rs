@@ -183,10 +183,10 @@ fn has_cycle_util(
         }
 
         // Check relationship type filter
-        if let Some(ref rel_type) = relationship_type
-            && edge.relationship_type != *rel_type
-        {
-            continue;
+        if let Some(ref rel_type) = relationship_type {
+            if edge.relationship_type != *rel_type {
+                continue;
+            }
         }
 
         let neighbor = edge.to_episode_id;

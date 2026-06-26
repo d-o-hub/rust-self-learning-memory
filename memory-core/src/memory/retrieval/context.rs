@@ -110,7 +110,7 @@ impl SelfLearningMemory {
 
             // Log cache metrics periodically (every 100 hits)
             let metrics = self.query_cache.metrics();
-            if metrics.hits.is_multiple_of(100) {
+            if metrics.hits % 100 == 0 {
                 info!(
                     hit_rate = format!("{:.1}%", metrics.hit_rate() * 100.0),
                     cache_size = format!("{}/{}", metrics.size, metrics.capacity),
@@ -149,32 +149,36 @@ impl SelfLearningMemory {
                 .unwrap_or_else(Utc::now);
 
             // Prefer cache first with higher limit for backfill
-            if let Some(cache) = &self.cache_storage
-                && let Ok(fetched) = cache
+            if let Some(cache) = &self.cache_storage {
+                if let Ok(fetched) = cache
                     .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
                     .await
-                && !fetched.is_empty()
-            {
-                let mut episodes = self.episodes_fallback.write().await;
-                for ep in fetched {
-                    episodes
-                        .entry(ep.episode_id)
-                        .or_insert_with(|| Arc::new(ep));
+                {
+                    if !fetched.is_empty() {
+                        let mut episodes = self.episodes_fallback.write().await;
+                        for ep in fetched {
+                            episodes
+                                .entry(ep.episode_id)
+                                .or_insert_with(|| Arc::new(ep));
+                        }
+                    }
                 }
             }
 
             // Then durable storage with higher limit for backfill
-            if let Some(turso) = &self.turso_storage
-                && let Ok(fetched) = turso
+            if let Some(turso) = &self.turso_storage {
+                if let Ok(fetched) = turso
                     .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
                     .await
-                && !fetched.is_empty()
-            {
-                let mut episodes = self.episodes_fallback.write().await;
-                for ep in fetched {
-                    episodes
-                        .entry(ep.episode_id)
-                        .or_insert_with(|| Arc::new(ep));
+                {
+                    if !fetched.is_empty() {
+                        let mut episodes = self.episodes_fallback.write().await;
+                        for ep in fetched {
+                            episodes
+                                .entry(ep.episode_id)
+                                .or_insert_with(|| Arc::new(ep));
+                        }
+                    }
                 }
             }
         }

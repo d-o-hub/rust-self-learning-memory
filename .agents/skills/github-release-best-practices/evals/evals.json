@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Release consistency",
+      "description": "Verify release state consistency.",
+      "exec": "./scripts/verify-release-state.sh"
+    }
+  ]
+}

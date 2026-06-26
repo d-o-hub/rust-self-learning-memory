@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "ADR compliance",
+      "description": "Verify the codebase complies with ADRs.",
+      "exec": "./scripts/validate-consolidation.sh"
+    }
+  ]
+}

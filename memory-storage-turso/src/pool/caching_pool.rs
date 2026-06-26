@@ -247,7 +247,7 @@ impl CachingPool {
         })?;
 
         Ok(ConnectionGuard {
-            pool: std::ptr::from_ref::<Self>(self) as usize, // Store as pointer-sized integer
+            pool: self as *const Self as usize, // Store as pointer-sized integer
             connection: Some(connection),
             _permit: Some(permit),
         })

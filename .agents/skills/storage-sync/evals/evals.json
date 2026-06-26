@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Dual storage sync",
+      "description": "Verify sync between Turso and redb.",
+      "exec": "cargo test -p do-memory-storage-turso sync"
+    }
+  ]
+}

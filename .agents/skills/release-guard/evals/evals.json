@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Pre-release checks",
+      "description": "Verify all pre-release checks pass.",
+      "exec": "./scripts/release-manager.sh validate"
+    }
+  ]
+}

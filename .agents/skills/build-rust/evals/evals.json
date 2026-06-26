@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Build successful",
+      "description": "Verify the project builds correctly.",
+      "exec": "./scripts/build-rust.sh check"
+    }
+  ]
+}

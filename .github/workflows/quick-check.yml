@@ -25,23 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh quick-check
-
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
+          job-name: quick-check
           components: rustfmt, clippy
-
-      - name: Install mold linker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mold
-
-      - uses: Swatinem/rust-cache@v2.9.1
 
       - name: Validate YAML frontmatter
         run: |

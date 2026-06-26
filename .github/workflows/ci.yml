@@ -33,14 +33,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@96d9100b431964d10e0136aff8b9ccb92470505e
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc # v1.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
-          fail-on-no-checks: false
 
   # Core testing - optimized for speed with proper timeouts
   test:
@@ -67,7 +66,7 @@ jobs:
           df -h
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -77,19 +76,14 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-test
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - name: Install mold linker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mold
-      - name: Install nextest
-        run: cargo install --locked cargo-nextest
-        shell: bash
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: ci-test
+          install-nextest: "true"
+
       - name: Run tests with timeout protection
         run: |
           # Run the practical workspace test surface for required CI checks.
@@ -101,7 +95,7 @@ jobs:
             --exclude do-memory-test-utils
       - name: Upload nextest JUnit (test)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-test
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -133,7 +127,7 @@ jobs:
           df -h
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -143,29 +137,22 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-mcp-build
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - name: Install mold linker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Install nextest
-        run: cargo install --locked cargo-nextest
-        shell: bash
+          job-name: ci-mcp-build
+          install-nextest: "true"
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
       - name: Build and test (default)
         run: |
           timeout 600s cargo build -p do-memory-mcp || exit 1
           timeout 600s cargo nextest run --profile ci -p do-memory-mcp || exit 1
       - name: Upload nextest JUnit (mcp-build)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-mcp-build
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -193,7 +180,7 @@ jobs:
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -203,22 +190,15 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-multi-platform-${{ matrix.os }}
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - name: Install mold linker (Linux only)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Install nextest
-        run: cargo install --locked cargo-nextest
+          job-name: ci-multi-platform-${{ matrix.os }}
+          install-nextest: "true"
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
       - name: Run tests on ${{ matrix.os }}
         run: |
           # Cross-platform timeout wrapper with extended time (1800s = 30min)
@@ -236,7 +216,7 @@ jobs:
           fi
       - name: Upload nextest JUnit (multi-platform)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: nextest-junit-multi-platform-${{ matrix.os }}
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -256,7 +236,7 @@ jobs:
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -266,24 +246,20 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-quality-gates
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
+          job-name: ci-quality-gates
           components: clippy, rustfmt, llvm-tools-preview
-      - name: Install mold linker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+          install-llvm-cov: "true"
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
       - name: Install required tools
-        run: cargo install --locked cargo-llvm-cov cargo-audit
+        run: cargo install --locked cargo-audit
         shell: bash
+
       - name: Security Audit
         run: |
           # Security audit with 20 minute timeout
@@ -303,7 +279,7 @@ jobs:
         env:
           RUST_LOG: info
       - name: Upload coverage
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@cb6530fbecd68d5f1ee7a3dcd113450ea8d5d6d4 # v5.1.2
         with:
           files: ./lcov.info
           fail_ci_if_error: false
@@ -317,7 +293,7 @@ jobs:
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -327,19 +303,18 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0  # Required for --baseline-branch
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-semver-check
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+          job-name: ci-semver-check
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
       - name: Cache semver baseline
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.1
         with:
           path: |
             ~/.cargo/semver-checks

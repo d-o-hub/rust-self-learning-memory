@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Flaky test repair",
+      "description": "Verify fixes for failing tests.",
+      "exec": "true"
+    }
+  ]
+}

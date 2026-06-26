@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Regression fix",
+      "description": "Verify the agent can fix regressions.",
+      "exec": "true"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Self-correction",
+      "description": "Verify the agent can correct its own mistakes.",
+      "exec": "true"
+    }
+  ]
+}

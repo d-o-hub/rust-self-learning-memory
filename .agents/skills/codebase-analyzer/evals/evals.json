@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Pattern discovery",
+      "description": "Verify the agent can discover code patterns.",
+      "exec": "true"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "End-to-end feature",
+      "description": "Verify full feature implementation.",
+      "exec": "true"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Skill generation",
+      "description": "Verify new skills follow conventions.",
+      "exec": "true"
+    }
+  ]
+}

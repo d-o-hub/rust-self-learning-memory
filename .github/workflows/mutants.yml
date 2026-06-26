@@ -53,14 +53,16 @@ jobs:
         run: cargo install --locked cargo-mutants
 
       - name: Run mutation testing
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
         run: |
-          if [ -n "${{ github.event.inputs.packages }}" ]; then
-            IFS=',' read -ra PKGS <<< "${{ github.event.inputs.packages }}"
+          if [ -n "$PACKAGES" ]; then
+            IFS=',' read -ra PKGS <<< "$PACKAGES"
             ARGS=""
             for pkg in "${PKGS[@]}"; do
               ARGS="$ARGS --package $pkg"
             done
-            echo "Running mutation testing for packages: ${{ github.event.inputs.packages }}"
+            echo "Running mutation testing for packages: $PACKAGES"
             cargo mutants $ARGS
           else
             # Default to targeted workspace coverage as defined in Cargo.toml metadata

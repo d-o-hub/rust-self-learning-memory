@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "CLI command execution",
+      "description": "Verify CLI operations.",
+      "exec": "cargo test -p do-memory-cli"
+    }
+  ]
+}

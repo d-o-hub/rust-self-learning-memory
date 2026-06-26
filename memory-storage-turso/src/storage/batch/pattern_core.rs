@@ -255,7 +255,7 @@ impl TursoStorage {
                 }
             }
 
-            if progress.current_batch.is_multiple_of(10) || progress.is_complete() {
+            if progress.current_batch % 10 == 0 || progress.is_complete() {
                 info!(
                     "Progress: {:.1}% ({}/{} batches, {}/{} items)",
                     progress.percent_complete(),

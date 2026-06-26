@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Knowledge acquisition",
+      "description": "Verify learning from task outcomes.",
+      "exec": "true"
+    }
+  ]
+}

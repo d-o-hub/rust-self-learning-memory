@@ -156,13 +156,13 @@ impl RelationshipManager {
         }
 
         // Validation step 4: Validate priority (if present)
-        if let Some(priority) = metadata.priority
-            && !(1..=10).contains(&priority)
-        {
-            return Err(ValidationError::InvalidPriority {
-                priority,
-                valid_range: (1, 10),
-            });
+        if let Some(priority) = metadata.priority {
+            if !(1..=10).contains(&priority) {
+                return Err(ValidationError::InvalidPriority {
+                    priority,
+                    valid_range: (1, 10),
+                });
+            }
         }
 
         // Create the relationship

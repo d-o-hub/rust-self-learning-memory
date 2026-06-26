@@ -13,11 +13,12 @@ const MAX_REPETITIONS: usize = 100;
 
 /// Check if a captured repetition count exceeds the maximum
 fn check_repetition_count(capture: Option<Match<'_>>, max: usize) -> Result<(), String> {
-    if let Some(m) = capture
-        && let Ok(count) = m.as_str().parse::<usize>()
-        && count > max
-    {
-        return Err(format!("Repetition count {count} exceeds maximum {max}"));
+    if let Some(m) = capture {
+        if let Ok(count) = m.as_str().parse::<usize>() {
+            if count > max {
+                return Err(format!("Repetition count {count} exceeds maximum {max}"));
+            }
+        }
     }
     Ok(())
 }
@@ -67,12 +68,12 @@ pub fn validate_regex_pattern(pattern: &str) -> Result<(), String> {
     ];
 
     for (pattern_regex, description) in &nested_quantifiers {
-        if let Ok(re) = Regex::new(pattern_regex)
-            && re.is_match(pattern)
-        {
-            return Err(format!(
-                "Pattern contains potentially dangerous {description}: {pattern}"
-            ));
+        if let Ok(re) = Regex::new(pattern_regex) {
+            if re.is_match(pattern) {
+                return Err(format!(
+                    "Pattern contains potentially dangerous {description}: {pattern}"
+                ));
+            }
         }
     }
 

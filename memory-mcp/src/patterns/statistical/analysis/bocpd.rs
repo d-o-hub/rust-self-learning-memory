@@ -37,16 +37,16 @@ impl SimpleBOCPD {
             self.update_state(value)?;
 
             // Check for changepoint
-            if let Some(prob) = self.extract_changepoint()?
-                && prob > self.config.alert_threshold
-            {
-                results.push(BOCPDResult {
-                    changepoint_index: Some(i),
-                    changepoint_probability: prob,
-                    map_run_length: self.compute_map_run_length(),
-                    run_length_distribution: self.normalize_distribution(),
-                    confidence: prob.min(1.0),
-                });
+            if let Some(prob) = self.extract_changepoint()? {
+                if prob > self.config.alert_threshold {
+                    results.push(BOCPDResult {
+                        changepoint_index: Some(i),
+                        changepoint_probability: prob,
+                        map_run_length: self.compute_map_run_length(),
+                        run_length_distribution: self.normalize_distribution(),
+                        confidence: prob.min(1.0),
+                    });
+                }
             }
         }
 

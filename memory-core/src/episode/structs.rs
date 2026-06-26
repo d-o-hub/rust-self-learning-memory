@@ -288,11 +288,11 @@ impl Episode {
     /// Remove a tag from this episode
     /// Returns `true` if tag was removed, `false` if not found
     pub fn remove_tag(&mut self, tag: &str) -> bool {
-        if let Ok(normalized) = Self::normalize_tag(tag)
-            && let Some(pos) = self.tags.iter().position(|t| t == &normalized)
-        {
-            self.tags.remove(pos);
-            return true;
+        if let Ok(normalized) = Self::normalize_tag(tag) {
+            if let Some(pos) = self.tags.iter().position(|t| t == &normalized) {
+                self.tags.remove(pos);
+                return true;
+            }
         }
         false
     }

@@ -92,15 +92,15 @@ impl Config {
         }
 
         // 2) Respect TURSO_URL and TURSO_TOKEN env overrides explicitly
-        if let Ok(url) = env::var("TURSO_URL")
-            && !url.is_empty()
-        {
-            config.database.turso_url = Some(url);
+        if let Ok(url) = env::var("TURSO_URL") {
+            if !url.is_empty() {
+                config.database.turso_url = Some(url);
+            }
         }
-        if let Ok(token) = env::var("TURSO_TOKEN")
-            && !token.is_empty()
-        {
-            config.database.turso_token = Some(token);
+        if let Ok(token) = env::var("TURSO_TOKEN") {
+            if !token.is_empty() {
+                config.database.turso_token = Some(token);
+            }
         }
 
         // 3) If using in-memory redb (common in tests/CI), enforce small cache size deterministically

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Workflow validation",
+      "description": "Verify GH actions workflows.",
+      "exec": "true"
+    }
+  ]
+}

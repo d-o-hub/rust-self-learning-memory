@@ -45,13 +45,13 @@ pub(super) fn generate_insights(episode: &Episode, max_items: usize) -> Vec<Stri
     }
 
     // Insight from execution time per step
-    if let Some(avg_latency) = helpers::calculate_average_latency(episode)
-        && avg_latency > 5000
-    {
-        // > 5 seconds
-        insights.push(format!(
-            "High average step latency: {avg_latency}ms - consider optimization"
-        ));
+    if let Some(avg_latency) = helpers::calculate_average_latency(episode) {
+        if avg_latency > 5000 {
+            // > 5 seconds
+            insights.push(format!(
+                "High average step latency: {avg_latency}ms - consider optimization"
+            ));
+        }
     }
 
     // Limit to max items

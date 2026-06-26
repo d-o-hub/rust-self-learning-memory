@@ -360,27 +360,28 @@ const context = {};
         // Check if execution was successful
         if output.status.success() {
             // Try to parse structured output
-            if let Some(result_line) = stdout.lines().last()
-                && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(result_line)
-                && let Some(true) = parsed.get("success").and_then(|v| v.as_bool())
-            {
-                return Ok(ExecutionResult::Success {
-                    output: parsed
-                        .get("result")
-                        .map(|v| v.to_string())
-                        .unwrap_or_default(),
-                    stdout: parsed
-                        .get("stdout")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
-                    stderr: parsed
-                        .get("stderr")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
-                    execution_time_ms: elapsed_ms,
-                });
+            if let Some(result_line) = stdout.lines().last() {
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(result_line) {
+                    if let Some(true) = parsed.get("success").and_then(|v| v.as_bool()) {
+                        return Ok(ExecutionResult::Success {
+                            output: parsed
+                                .get("result")
+                                .map(|v| v.to_string())
+                                .unwrap_or_default(),
+                            stdout: parsed
+                                .get("stdout")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            stderr: parsed
+                                .get("stderr")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            execution_time_ms: elapsed_ms,
+                        });
+                    }
+                }
             }
 
             // Fallback to raw stdout
@@ -406,24 +407,25 @@ const context = {};
             };
 
             // Try to parse structured error
-            if let Some(error_line) = stderr.lines().last()
-                && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(error_line)
-                && let Some(error_msg) = parsed.get("error").and_then(|v| v.as_str())
-            {
-                return Ok(ExecutionResult::Error {
-                    message: error_msg.to_string(),
-                    error_type,
-                    stdout: parsed
-                        .get("stdout")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
-                    stderr: parsed
-                        .get("stderr")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
-                });
+            if let Some(error_line) = stderr.lines().last() {
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(error_line) {
+                    if let Some(error_msg) = parsed.get("error").and_then(|v| v.as_str()) {
+                        return Ok(ExecutionResult::Error {
+                            message: error_msg.to_string(),
+                            error_type,
+                            stdout: parsed
+                                .get("stdout")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            stderr: parsed
+                                .get("stderr")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                        });
+                    }
+                }
             }
 
             Ok(ExecutionResult::Error {

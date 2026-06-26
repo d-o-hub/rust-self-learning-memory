@@ -43,11 +43,12 @@ impl CausalAnalyzer {
             .collect();
 
         for (var1, var2) in pairs {
-            if let (Some(data1), Some(data2)) = (data.get(var1), data.get(var2))
-                && let Some(causal_result) =
+            if let (Some(data1), Some(data2)) = (data.get(var1), data.get(var2)) {
+                if let Some(causal_result) =
                     self.analyze_pair_causality(var1, var2, data1, data2)?
-            {
-                results.push(causal_result);
+                {
+                    results.push(causal_result);
+                }
             }
         }
 
@@ -77,11 +78,11 @@ impl CausalAnalyzer {
         let mut best_lag = 0;
 
         for lag in 1..=max_lag {
-            if let Some(cross_corr) = self.cross_correlation(cause_data, effect_data, lag)
-                && cross_corr.abs() > max_cross_corr.abs()
-            {
-                max_cross_corr = cross_corr;
-                best_lag = lag;
+            if let Some(cross_corr) = self.cross_correlation(cause_data, effect_data, lag) {
+                if cross_corr.abs() > max_cross_corr.abs() {
+                    max_cross_corr = cross_corr;
+                    best_lag = lag;
+                }
             }
         }
 

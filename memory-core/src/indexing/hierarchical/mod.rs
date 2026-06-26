@@ -212,12 +212,12 @@ impl HierarchicalIndex {
     /// Query episodes by task type within a domain.
     #[must_use]
     pub fn query_by_task_type(&self, domain: &str, task_type: TaskType, limit: usize) -> Vec<Uuid> {
-        if let Some(domain_index) = self.domains.get(domain)
-            && let Some(task_type_index) = domain_index.task_types.get(&task_type)
-        {
-            let mut results = self.collect_from_temporal_index(&task_type_index.temporal_index);
-            results.truncate(limit);
-            return results;
+        if let Some(domain_index) = self.domains.get(domain) {
+            if let Some(task_type_index) = domain_index.task_types.get(&task_type) {
+                let mut results = self.collect_from_temporal_index(&task_type_index.temporal_index);
+                results.truncate(limit);
+                return results;
+            }
         }
 
         Vec::new()
@@ -322,10 +322,10 @@ impl HierarchicalIndex {
         task_type: TaskType,
         bucket: TimeBucket,
     ) -> Vec<Uuid> {
-        if let Some(domain_index) = self.domains.get(domain)
-            && let Some(task_type_index) = domain_index.task_types.get(&task_type)
-        {
-            return task_type_index.temporal_index.query_bucket(&bucket);
+        if let Some(domain_index) = self.domains.get(domain) {
+            if let Some(task_type_index) = domain_index.task_types.get(&task_type) {
+                return task_type_index.temporal_index.query_bucket(&bucket);
+            }
         }
         Vec::new()
     }
@@ -337,12 +337,12 @@ impl HierarchicalIndex {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Vec<Uuid> {
-        if let Some(domain_index) = self.domains.get(domain)
-            && let Some(task_type_index) = domain_index.task_types.get(&task_type)
-        {
-            return task_type_index
-                .temporal_index
-                .query_range(start, end, usize::MAX);
+        if let Some(domain_index) = self.domains.get(domain) {
+            if let Some(task_type_index) = domain_index.task_types.get(&task_type) {
+                return task_type_index
+                    .temporal_index
+                    .query_range(start, end, usize::MAX);
+            }
         }
         Vec::new()
     }

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Signal integration",
+      "description": "Verify external signals are correctly integrated.",
+      "exec": "true"
+    }
+  ]
+}

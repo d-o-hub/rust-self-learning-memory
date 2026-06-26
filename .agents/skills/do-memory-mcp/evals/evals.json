@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "MCP Tool Registry",
+      "description": "Verify that all MCP tools are correctly registered and discoverable.",
+      "exec": "cargo test -p do-memory-mcp tool_registry"
+    }
+  ]
+}

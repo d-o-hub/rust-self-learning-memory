@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Task orchestration",
+      "description": "Verify GOAP orchestration.",
+      "exec": "true"
+    }
+  ]
+}

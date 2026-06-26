@@ -173,12 +173,12 @@ impl QueryCache {
         }
 
         let cache = self.query_memory_cache.read();
-        if let Some(entry) = cache.get(key)
-            && !entry.is_expired()
-        {
-            // Clone from Arc (cheaper than deep clone for shared entries)
-            *self.hits.write() += 1;
-            return Some((**entry.data_arc()).clone());
+        if let Some(entry) = cache.get(key) {
+            if !entry.is_expired() {
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
+                return Some((**entry.data_arc()).clone());
+            }
         }
         *self.misses.write() += 1;
         None
@@ -209,12 +209,12 @@ impl QueryCache {
         }
 
         let cache = self.analyze_patterns_cache.read();
-        if let Some(entry) = cache.get(key)
-            && !entry.is_expired()
-        {
-            // Clone from Arc (cheaper than deep clone for shared entries)
-            *self.hits.write() += 1;
-            return Some((**entry.data_arc()).clone());
+        if let Some(entry) = cache.get(key) {
+            if !entry.is_expired() {
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
+                return Some((**entry.data_arc()).clone());
+            }
         }
         *self.misses.write() += 1;
         None
@@ -245,12 +245,12 @@ impl QueryCache {
         }
 
         let cache = self.execute_code_cache.read();
-        if let Some(entry) = cache.get(key)
-            && !entry.is_expired()
-        {
-            // Clone from Arc (cheaper than deep clone for shared entries)
-            *self.hits.write() += 1;
-            return Some((**entry.data_arc()).clone());
+        if let Some(entry) = cache.get(key) {
+            if !entry.is_expired() {
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
+                return Some((**entry.data_arc()).clone());
+            }
         }
         *self.misses.write() += 1;
         None

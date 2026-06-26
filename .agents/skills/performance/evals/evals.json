@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Performance targets",
+      "description": "Verify the project meets performance targets.",
+      "exec": "cargo bench -p do-memory-benches"
+    }
+  ]
+}

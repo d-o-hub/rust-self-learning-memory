@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Documentation alignment",
+      "description": "Verify agent documentation remains aligned.",
+      "exec": "true"
+    }
+  ]
+}

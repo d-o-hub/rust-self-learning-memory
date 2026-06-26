@@ -17,16 +17,17 @@ pub(super) fn extract_parameter_decisions(
     // Look for strategy, approach, method parameters
     for key in obj.keys() {
         let key_lower = key.to_lowercase();
-        if (key_lower.contains("strategy")
+        if key_lower.contains("strategy")
             || key_lower.contains("approach")
             || key_lower.contains("method")
-            || key_lower.contains("algorithm"))
-            && let Some(value) = obj.get(key)
+            || key_lower.contains("algorithm")
         {
-            decisions.push(format!(
-                "Chose {key} = {} (step {step_number})",
-                value.to_string().trim_matches('"'),
-            ));
+            if let Some(value) = obj.get(key) {
+                decisions.push(format!(
+                    "Chose {key} = {} (step {step_number})",
+                    value.to_string().trim_matches('"'),
+                ));
+            }
         }
     }
 }

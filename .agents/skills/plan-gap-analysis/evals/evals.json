@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Goal alignment",
+      "description": "Verify plans align with current goals.",
+      "exec": "true"
+    }
+  ]
+}

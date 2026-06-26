@@ -305,6 +305,37 @@ cargo bench -p do-memory-benches -- --save-baseline main
 ## Testing Commands Summary
 
 ```bash
+## Fuzz Testing
+
+The project uses `cargo-fuzz` for fuzzing high-risk parser and serialization boundaries. Fuzz targets are located in the `fuzz/` directory, which is excluded from the main workspace.
+
+### Running Fuzzers Locally
+
+```bash
+# Install cargo-fuzz (once)
+cargo install cargo-fuzz
+
+# List available fuzz targets
+cargo fuzz list
+
+# Run a specific fuzz target
+cargo fuzz run fuzz_mcp_jsonrpc
+
+# Run for a specific duration
+cargo fuzz run fuzz_mcp_jsonrpc -- -max_total_time=60
+```
+
+### Fuzz Targets
+- `fuzz_mcp_jsonrpc`: MCP JSON-RPC request parsing and response generation.
+- `fuzz_postcard_roundtrip`: Postcard serialization roundtrip for core episode types.
+- `fuzz_search_matchers`: Fuzzy and regex search matcher robustness.
+
+### Handling Crashes
+If a fuzzer finds a crash, it will be saved in `fuzz/artifacts/<target>/`. You can replay the crash using:
+```bash
+cargo fuzz run <target> <path_to_artifact>
+```
+
 # Quick test (preferred)
 cargo nextest run --all
 cargo test --doc

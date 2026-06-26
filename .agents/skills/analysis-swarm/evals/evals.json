@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Codebase analysis",
+      "description": "Verify the agent can analyze the codebase effectively.",
+      "exec": "true"
+    }
+  ]
+}

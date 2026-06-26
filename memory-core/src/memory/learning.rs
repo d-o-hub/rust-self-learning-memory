@@ -38,16 +38,16 @@ impl SelfLearningMemory {
             pattern_ids.push(pattern_id);
 
             // Store in backends
-            if let Some(cache) = &self.cache_storage
-                && let Err(e) = cache.store_pattern(&pattern).await
-            {
-                warn!("Failed to store pattern in cache: {}", e);
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
             }
 
-            if let Some(turso) = &self.turso_storage
-                && let Err(e) = turso.store_pattern(&pattern).await
-            {
-                warn!("Failed to store pattern in Turso: {}", e);
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
             }
 
             patterns.insert(pattern_id, pattern);
@@ -98,22 +98,22 @@ impl SelfLearningMemory {
         }
 
         // Update episode with pattern and heuristic IDs in storage backends
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(&episode).await
-        {
-            warn!(
-                "Failed to update episode with patterns and heuristics in cache: {}",
-                e
-            );
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!(
+                    "Failed to update episode with patterns and heuristics in cache: {}",
+                    e
+                );
+            }
         }
 
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_episode(&episode).await
-        {
-            warn!(
-                "Failed to update episode with patterns and heuristics in Turso: {}",
-                e
-            );
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!(
+                    "Failed to update episode with patterns and heuristics in Turso: {}",
+                    e
+                );
+            }
         }
 
         // Re-insert the updated episode into the in-memory cache
@@ -159,16 +159,16 @@ impl SelfLearningMemory {
             pattern_ids.push(pattern_id);
 
             // Store in backends
-            if let Some(cache) = &self.cache_storage
-                && let Err(e) = cache.store_pattern(&pattern).await
-            {
-                warn!("Failed to store pattern in cache: {}", e);
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
             }
 
-            if let Some(turso) = &self.turso_storage
-                && let Err(e) = turso.store_pattern(&pattern).await
-            {
-                warn!("Failed to store pattern in Turso: {}", e);
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
             }
 
             patterns.insert(pattern_id, pattern);
@@ -177,16 +177,16 @@ impl SelfLearningMemory {
         episode.patterns = pattern_ids;
 
         // Update episode with pattern IDs in storage backends
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(&episode).await
-        {
-            warn!("Failed to update episode with patterns in cache: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to update episode with patterns in cache: {}", e);
+            }
         }
 
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_episode(&episode).await
-        {
-            warn!("Failed to update episode with patterns in Turso: {}", e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to update episode with patterns in Turso: {}", e);
+            }
         }
 
         // Re-insert the updated episode into the in-memory cache
@@ -306,16 +306,16 @@ impl SelfLearningMemory {
         );
 
         // Store updated heuristic in backends
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_heuristic(heuristic).await
-        {
-            warn!("Failed to store updated heuristic in cache: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_heuristic(heuristic).await {
+                warn!("Failed to store updated heuristic in cache: {}", e);
+            }
         }
 
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_heuristic(heuristic).await
-        {
-            warn!("Failed to store updated heuristic in Turso: {}", e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_heuristic(heuristic).await {
+                warn!("Failed to store updated heuristic in Turso: {}", e);
+            }
         }
 
         Ok(())

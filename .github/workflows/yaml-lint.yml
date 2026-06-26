@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@v1.8.0
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           allowed-conclusions: success,skipped,cancelled
@@ -44,7 +44,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
-          fail-on-no-checks: false
 
   yamllint:
     name: YAML Syntax Validation
@@ -62,10 +61,10 @@ jobs:
       }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
         with:
           python-version: '3.x'
 
@@ -98,10 +97,10 @@ jobs:
       }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run actionlint
-        uses: reviewdog/action-actionlint@v1.72.0
+        uses: reviewdog/action-actionlint@be0761e4c1bab7cfdfca56cd03d4bb6253e39a4a
         with:
           fail_level: error
           filter_mode: nofilter

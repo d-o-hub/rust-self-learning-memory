@@ -24,13 +24,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # ── Extract n-gram phrases + update patterns file ─────────────────────
       - name: Learn from labeled issue
-        uses: actions/github-script@v9
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         env:
           LABEL: ${{ github.event.label.name }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -193,7 +193,7 @@ jobs:
             core.info('Patterns file updated.');
 
       - name: Create Pull Request for updated AI slop patterns
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
         with:
           commit-message: "chore(ai-slop): learn from issue #${{ github.event.issue.number }} (${{ github.event.label.name }}) [skip ci]"
           title: "chore(ai-slop): learn from issue #${{ github.event.issue.number }}"

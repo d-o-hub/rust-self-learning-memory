@@ -14,10 +14,6 @@ name: Performance Benchmarks
   pull_request:
     branches:
       - main
-    # Only run benchmarks when perf-critical code changes
-    # This reduces CI time from ~50+ min to ~15 min for non-performance PRs
-    # Note: GitHub Actions doesn't support paths + paths-ignore combo, so we
-    # list all perf-critical paths here. Tests/** are excluded via pattern.
     paths:
       - 'memory-core/src/**/*.rs'
       - 'memory-storage-turso/src/**/*.rs'
@@ -28,46 +24,36 @@ name: Performance Benchmarks
       - 'Cargo.lock'
       - '.github/workflows/benchmarks.yml'
   schedule:
-    # Run weekly on Monday at 00:00 UTC
     - cron: '0 0 * * 1'
-  workflow_dispatch:  # Allow manual triggers
+  workflow_dispatch:
 
-# Cancel outdated benchmark runs - prevents concurrent runs conflicting
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
-  # Wait for quick check to pass on PRs (skip for Dependabot to avoid timeout)
   check-quick-check:
     name: Check Quick Check Status
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    # Only run on PRs and never for Dependabot to avoid timeout issues
     if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     timeout-minutes: 30
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@v1.8.0
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           allowed-conclusions: success,skipped,cancelled
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
-          # Timeout in minutes for waiting on workflows
           running-workflow-name: Quick Check
-          # Allow this check to fail without failing the job
-          fail-on-no-checks: false
 
   benchmark:
     name: Run Benchmarks
     runs-on: ubuntu-latest
-    # Only depend on check-quick-check for PRs, skip dependency for other triggers
     needs: [check-quick-check]
-    # Run if not Dependabot, no skip-benchmarks label, and either not a PR or quick-check passed/skipped
-    # Use always() to evaluate condition even when dependency was skipped (push events)
     if: >-
       ${{
         always() &&
@@ -79,10 +65,8 @@ jobs:
         )
       }}
     permissions:
-      # Note: Dynamic permissions not supported by actionlint
-      # Using 'read' for safety - 'write' only needed for main branch benchmark storage
       contents: read
-      actions: write   # Required for caching
+      actions: write
     timeout-minutes: 70
     env:
       RUSTC_WRAPPER: sccache
@@ -93,24 +77,21 @@ jobs:
     steps:
       - name: Set build directories
         shell: bash
-        # shellcheck disable=SC2086
         run: |
           echo "CARGO_TARGET_DIR=${{ runner.temp }}/cargo-target" >> $GITHUB_ENV
           echo "SCCACHE_DIR=${{ runner.temp }}/sccache" >> $GITHUB_ENV
+
       - name: Check disk space with minimum threshold
         run: |
           echo "=== Disk Space Check ==="
           df -h
-          # Get available space in GB on root partition
           AVAILABLE_GB=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           MIN_REQUIRED_GB=10
-
           echo "Available: ${AVAILABLE_GB}GB, Required: ${MIN_REQUIRED_GB}GB"
           if [ "$AVAILABLE_GB" -lt "$MIN_REQUIRED_GB" ]; then
             echo "❌ ERROR: Insufficient disk space. Have ${AVAILABLE_GB}GB, need ${MIN_REQUIRED_GB}GB"
             exit 1
           fi
-
           echo "✅ Sufficient disk space available"
 
       - name: Free disk space (benchmark cleanup)
@@ -123,45 +104,38 @@ jobs:
           echo "=== Disk Space After Cleanup ==="
           df -h
 
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          fetch-depth: 0  # Fetch all history for comparison
+          fetch-depth: 0
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
+          job-name: benchmarks
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
           components: rustfmt, clippy
+
       - name: Install sccache
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@c1952a69c392b2c5f2eaa845b56120fff5fe49d3
         with:
           tool: sccache
+
       - name: Cache sccache
-        uses: actions/cache@v5
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: ${{ runner.temp }}/sccache
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-bench-sccache-
 
-      - name: Cache Rust dependencies and build artifacts
-        uses: Swatinem/rust-cache@v2.9.1
-        with:
-          shared-key: "bench"
-          cache-on-failure: true
-
       - name: Run benchmarks with comprehensive timeout protection
-        timeout-minutes: 55  # Leave buffer before job timeout
+        timeout-minutes: 55
         run: |
            echo "=== Starting Benchmark Suite ==="
            echo "Start time: $(date)"
-
-           # Track overall execution time
            START_TIME=$(date +%s)
-           MAX_TOTAL_TIME=3300  # 55 minutes in seconds
+           MAX_TOTAL_TIME=3300
 
-           # Run the full benchmark surface declared in benches/Cargo.toml.
-           # This keeps CI coverage aligned with the bench crate definition.
            mapfile -t bench_names < <(awk '
              /^\[\[bench\]\]$/ { in_bench = 1; next }
              /^\[/ && $0 != "[[bench]]" { in_bench = 0 }
@@ -182,9 +156,8 @@ jobs:
            FAIL_COUNT=0
 
            for bench_name in "${bench_names[@]}"; do
-              # Check if we're approaching overall timeout
-              CURRENT_TIME=$(date +%s)
-              ELAPSED=$((CURRENT_TIME - START_TIME))
+             CURRENT_TIME=$(date +%s)
+             ELAPSED=$((CURRENT_TIME - START_TIME))
              REMAINING=$((MAX_TOTAL_TIME - ELAPSED))
 
              if [ "$REMAINING" -lt 60 ]; then
@@ -192,18 +165,15 @@ jobs:
                break
              fi
 
-              # Default per-benchmark timeout is 5 minutes, with longer windows
-              # for known heavier suites.
-              timeout="300"
-              case "$bench_name" in
-                storage_operations|concurrent_operations|phase3_retrieval_accuracy|phase3_cache_performance)
-                  timeout="600"
-                  ;;
-              esac
+             timeout="300"
+             case "$bench_name" in
+               storage_operations|concurrent_operations|phase3_retrieval_accuracy|phase3_cache_performance)
+                 timeout="600"
+                 ;;
+             esac
 
-              # Use the smaller of individual timeout or remaining time
-              if [ "$timeout" -gt "$REMAINING" ]; then
-                timeout="$REMAINING"
+             if [ "$timeout" -gt "$REMAINING" ]; then
+               timeout="$REMAINING"
              fi
 
              echo ""
@@ -227,7 +197,6 @@ jobs:
            echo "Failed/Timeout: $FAIL_COUNT"
            echo "End time: $(date)"
 
-           # Check if we have any benchmark results
            criterion_dir="$CARGO_TARGET_DIR/criterion"
            if [ ! -d "$criterion_dir" ] || [ -z "$(find "$criterion_dir" -name "*.json" 2>/dev/null)" ]; then
              echo "⚠️ No benchmark results found, using dummy results"
@@ -238,25 +207,17 @@ jobs:
 
       - name: Convert Criterion output to bencher format
         run: |
-           # Parse Criterion JSON output and convert to bencher format
            bench_results_file="bench_results.txt"
            criterion_dir="$CARGO_TARGET_DIR/criterion"
-
-           # Only process if criterion results exist (otherwise keep dummy from previous step)
            if [ -d "$criterion_dir" ] && [ -n "$(find "$criterion_dir" -name "estimates.json" 2>/dev/null)" ]; then
-             : > "$bench_results_file"  # Clear only if we have real results to process
-
-             # Use process substitution to avoid subshell issue with pipe
+             : > "$bench_results_file"
              while IFS= read -r json_file; do
                bench_name=$(echo "$json_file" | sed "s|$criterion_dir/||" | \
                  sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
-
                mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
                  grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
-
                std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
                  grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
-
                if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
                  if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
                    echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
@@ -265,17 +226,13 @@ jobs:
                  fi
                fi
              done < <(find "$criterion_dir" -type f -path "*/new/estimates.json")
-
              sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
              mv "${bench_results_file}.tmp" "$bench_results_file"
            fi
-
-           # Verify we have results, fall back to dummy if not
            if [ ! -s bench_results.txt ]; then
              echo "Warning: No benchmark results found, using dummy data!"
              ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
            fi
-
            echo "Generated benchmark results:"
            echo "Total benchmark entries: $(wc -l < bench_results.txt)"
            head -20 bench_results.txt
@@ -283,51 +240,10 @@ jobs:
       - name: Cleanup sccache
         if: always()
         run: |
-          # Limit sccache size to prevent unbounded growth
           sccache --stop-server || true
-          # Show final stats before cleanup
           sccache --show-stats || true
 
-      - name: Show sccache stats
-        if: always()
-        run: sccache --show-stats || true
-
-      - name: Download previous benchmark results
-        uses: actions/cache@v5
-        with:
-          path: ./cache
-          key: benchmark-results-${{ github.ref }}
-
-      - name: Stash uncommitted changes before benchmark storage
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: |
-          # Stash any uncommitted changes (like Cargo.lock updates)
-          # to allow clean branch switching for benchmark storage
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Stashing uncommitted changes..."
-            git stash push -m "Temporary stash for benchmark action"
-          fi
-
-      - name: Compare with baseline
-        run: |
-          {
-            echo "## Benchmark Results"
-            echo ""
-            echo "Benchmarks completed successfully."
-            echo ""
-            echo "See PERFORMANCE_BASELINES.md for target metrics."
-            echo ""
-            cat bench_results.txt
-           } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Stage benchmark results for upload
-        # Co-locate bench_results.txt with the criterion directory under
-        # ${{ runner.temp }} so the upload-artifact LCA is a stable root.
-        # Mixing workspace-relative paths (e.g. ./bench_results.txt) with
-        # ${{ runner.temp }}/... would otherwise compute the LCA as
-        # /home/runner/work, nesting files several directories deep on
-        # download and breaking downstream jobs that look for
-        # bench_results.txt at the workspace root.
         run: |
           set -euo pipefail
           if [ ! -s bench_results.txt ]; then
@@ -340,46 +256,38 @@ jobs:
           ls -la "${{ runner.temp }}/cargo-target/" | head -20
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: benchmark-results-${{ github.sha }}
           path: ${{ runner.temp }}/cargo-target/
           if-no-files-found: error
           retention-days: 90
 
-  # Separate job for storing benchmark results on main branch
-  # This job has write permissions needed for auto-push
   store-benchmark:
     name: Store Benchmark Results
     runs-on: ubuntu-latest
     needs: benchmark
-    # Only run on main branch pushes (not PRs)
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.benchmark.result == 'success'
     permissions:
-      contents: write  # Required for auto-push
+      contents: write
       actions: read
     timeout-minutes: 10
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-
       - name: Download benchmark results
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: benchmark-results-${{ github.sha }}
-
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1.22.1
+        uses: benchmark-action/github-action-benchmark@d48d326b4ca9ba73ca0cd0d59f108f9e02a381c7
         with:
           name: Rust Benchmarks
           tool: 'cargo'
           output-file-path: bench_results.txt
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          # Alert with commit comment on detecting possible performance regression
           alert-threshold: '110%'
           comment-on-alert: true
           fail-on-alert: false
@@ -389,60 +297,38 @@ jobs:
     name: Check for Performance Regression
     runs-on: ubuntu-latest
     needs: benchmark
-    # Only run on PRs when benchmark succeeded and not Dependabot
     if: >-
       github.event_name == 'pull_request' &&
       github.actor != 'dependabot[bot]' &&
       needs.benchmark.result == 'success'
-
     permissions:
       contents: read
-      pull-requests: write  # Required for commenting on PRs
-      issues: write         # Required for actions/github-script@v9 PR comments
+      pull-requests: write
+      issues: write
     timeout-minutes: 30
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Download benchmark results
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: benchmark-results-${{ github.sha }}
-        continue-on-error: true  # Continue even if artifact download fails
-
+        continue-on-error: true
       - name: Check for regression
         run: |
           if [ ! -f "bench_results.txt" ]; then
-            echo "⚠️ No benchmark results found - benchmark job may have failed or produced no artifacts"
-            echo "Performance regression check skipped"
+            echo "⚠️ No benchmark results found"
             exit 0
           fi
-
           echo "✅ Benchmark results found"
-          echo "Performance regression check completed"
-          echo "See PERFORMANCE_BASELINES.md for baseline comparison"
-
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v9
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           script: |
               const fs = require('fs');
-
-              // Check if file exists before trying to read it
               if (!fs.existsSync('bench_results.txt')) {
-                console.log('bench_results.txt not found, posting minimal comment');
-
-                const errorMsg = `## Performance Benchmark Results\n\n` +
-                  `⚠️ **Benchmark artifacts not available**\n\n` +
-                  `The benchmark workflow completed but did not produce artifacts.\n` +
-                  `This may indicate:\n` +
-                  `- Benchmarks timed out or failed\n` +
-                  `- No benchmark results were generated\n` +
-                  `- Artifact upload failed\n\n` +
-                  `See workflow logs for details.`;
-
+                const errorMsg = `## Performance Benchmark Results\n\n⚠️ **Benchmark artifacts not available**`;
                 github.rest.issues.createComment({
                   issue_number: context.issue.number,
                   owner: context.repo.owner,
@@ -451,25 +337,8 @@ jobs:
                 });
                 return;
               }
-
               const results = fs.readFileSync('bench_results.txt', 'utf8');
-
-              const body = `## Performance Benchmark Results
-
-              <details>
-              <summary>Click to expand benchmark results</summary>
-
-              \`\`\`
-              ${results}
-              \`\`\`
-
-              </details>
-
-              See [PERFORMANCE_BASELINES.md](\
-              https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) \
-              for baseline comparison.
-              `;
-
+              const body = `## Performance Benchmark Results\n\n<details><summary>Click to expand</summary>\n\n\`\`\`\n${results}\n\`\`\`\n\n</details>`;
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,

@@ -26,15 +26,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -86,15 +86,15 @@ jobs:
     needs: [publish-core]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -147,15 +147,15 @@ jobs:
     needs: [publish-redb]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
@@ -208,15 +208,15 @@ jobs:
     needs: [publish-redb, publish-turso]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: setup
 
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks

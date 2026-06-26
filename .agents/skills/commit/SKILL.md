@@ -17,6 +17,7 @@ Enforce code quality before every commit.
    - Runs all tests with strict warnings
    - Checks security vulnerabilities
    - Verifies code quality standards
+   - Checks for `.py` or `.sh` files in repository root (forbidden)
 
    **If quality gates FAIL**: STOP. Fix issues before proceeding.
 

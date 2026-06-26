@@ -185,7 +185,7 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 | ADRs | `plans/adr/` |
 
 ## Disk Space
-- **No Temporary Files in Root**: Never create temporary files, logs, or trial outputs in the repository root. Use `plans/` for design-related notes or `target/` for build/test artifacts.
+- **No Temporary Files in Root**: Never create temporary files, logs, trial outputs, or one-off scripts (`.py`, `.sh`, etc.) in the repository root. Use `plans/` for design-related notes, `target/` for build/test artifacts, or `scripts/` for reusable tooling.
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`
 - Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set)
 - For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)

@@ -52,6 +52,7 @@ Unified skill for Rust code quality and clean code development.
 | Deep nesting | Extract methods |
 | Large functions | Split (<50 LOC) |
 | Deadlocks | Release locks before `.await` |
+| `.py`/`.sh` in root | Move to `scripts/` or delete if one-off |
 
 ## Dependency Monitoring
 

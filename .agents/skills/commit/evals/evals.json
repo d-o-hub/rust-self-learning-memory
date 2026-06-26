@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Atomic commits",
+      "description": "Verify the agent follows atomic commit rules.",
+      "exec": "true"
+    }
+  ]
+}

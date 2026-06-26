@@ -33,9 +33,9 @@ impl DBSCANConfig {
 
         // Use the median of kth distances as epsilon
         kth_distances.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        let median = if kth_distances.len().is_multiple_of(2) {
+        let median = if kth_distances.len() % 2 == 0 {
             let mid = kth_distances.len() / 2;
-            f64::midpoint(kth_distances[mid - 1], kth_distances[mid])
+            (kth_distances[mid - 1] + kth_distances[mid]) / 2.0
         } else {
             kth_distances[kth_distances.len() / 2]
         };

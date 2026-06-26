@@ -180,13 +180,13 @@ fn analyze_execution_flow(episode: &Episode) -> Option<String> {
 }
 
 fn analyze_context_success_factors(episode: &Episode) -> Option<String> {
-    if let Some(language) = &episode.context.language
-        && episode.successful_steps_count() > 5
-    {
-        return Some(format!(
-            "Successfully leveraged {}-specific tools and patterns in {} domain",
-            language, episode.context.domain
-        ));
+    if let Some(language) = &episode.context.language {
+        if episode.successful_steps_count() > 5 {
+            return Some(format!(
+                "Successfully leveraged {}-specific tools and patterns in {} domain",
+                language, episode.context.domain
+            ));
+        }
     }
 
     if !episode.context.tags.is_empty() {

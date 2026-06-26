@@ -203,7 +203,7 @@ impl ChangepointDetector {
         let stats2 = compute_segment_stats(data2);
 
         // Calculate effect size (Cohen's d)
-        let pooled_std = f64::midpoint(stats1.std_dev.powi(2), stats2.std_dev.powi(2)).sqrt();
+        let pooled_std = ((stats1.std_dev.powi(2) + stats2.std_dev.powi(2)) / 2.0).sqrt();
         let effect_size = if pooled_std > 1e-10 {
             (stats2.mean - stats1.mean) / pooled_std
         } else {
@@ -354,7 +354,7 @@ impl ChangepointDetector {
 
         // Standardized mean difference
         let pooled_std =
-            f64::midpoint(before_stats.std_dev.powi(2), after_stats.std_dev.powi(2)).sqrt();
+            ((before_stats.std_dev.powi(2) + after_stats.std_dev.powi(2)) / 2.0).sqrt();
         if pooled_std > 1e-10 {
             (after_stats.mean - before_stats.mean).abs() / pooled_std
         } else {

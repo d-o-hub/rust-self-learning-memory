@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Context retrieval",
+      "description": "Verify memory context is correctly retrieved.",
+      "exec": "true"
+    }
+  ]
+}

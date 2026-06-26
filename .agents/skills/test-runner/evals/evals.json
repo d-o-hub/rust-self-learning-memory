@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Workspace tests",
+      "description": "Verify all workspace tests pass.",
+      "exec": "cargo test --workspace"
+    }
+  ]
+}

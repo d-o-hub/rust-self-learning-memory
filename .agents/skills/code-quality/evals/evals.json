@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Formatting and Lints",
+      "description": "Verify the code follows style and quality standards.",
+      "exec": "./scripts/code-quality.sh check"
+    }
+  ]
+}

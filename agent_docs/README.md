@@ -20,12 +20,10 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 | 12 | `dependency_upgrades.md` | Upgrade workflow and dependency-risk handling |
 | 13 | `session_state_preservation.md` | Preserve context across long multi-step sessions |
 | 14 | `LESSONS.md` | Verbose workflow learnings paired with distilled AGENTS notes |
-| 15 | `../HARNESS.md` | Mapping of feedforward guides to feedback sensors |
 
 ## Quick Links
 
 - **Primary guidance**: `../AGENTS.md`
-- **Harness Map**: `../HARNESS.md`
 - **Architecture decisions**: `../plans/adr/`
 - **Active roadmap**: `../plans/ROADMAPS/ROADMAP_ACTIVE.md`
 - **GOAP state**: `../plans/GOAP_STATE.md`

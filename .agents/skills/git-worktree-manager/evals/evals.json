@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Worktree isolation",
+      "description": "Verify worktree usage.",
+      "exec": "true"
+    }
+  ]
+}

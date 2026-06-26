@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Test pattern extraction",
+      "description": "Verify patterns are correctly extracted from tests.",
+      "exec": "true"
+    }
+  ]
+}

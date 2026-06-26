@@ -1,0 +1,42 @@
+[package]
+name = "do-memory-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde_json = "1.0"
+postcard = { version = "1.1", features = ["alloc"] }
+arbitrary = { version = "1.3", features = ["derive"] }
+
+[dependencies.do-memory-core]
+path = "../memory-core"
+features = ["proptest-arbitrary"]
+
+[dependencies.do-memory-mcp]
+path = "../memory-mcp"
+
+[[bin]]
+name = "fuzz_mcp_jsonrpc"
+path = "fuzz_targets/fuzz_mcp_jsonrpc.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_postcard_roundtrip"
+path = "fuzz_targets/fuzz_postcard_roundtrip.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_search_matchers"
+path = "fuzz_targets/fuzz_search_matchers.rs"
+test = false
+doc = false
+bench = false

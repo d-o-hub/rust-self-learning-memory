@@ -87,19 +87,19 @@ impl SelfLearningMemory {
         }
 
         // Delete from cache storage (redb)
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.delete_episode(episode_id).await
-        {
-            warn!("Failed to delete episode from cache storage: {}", e);
-            // Continue with deletion from other backends
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.delete_episode(episode_id).await {
+                warn!("Failed to delete episode from cache storage: {}", e);
+                // Continue with deletion from other backends
+            }
         }
 
         // Delete from durable storage (Turso)
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.delete_episode(episode_id).await
-        {
-            warn!("Failed to delete episode from durable storage: {}", e);
-            return Err(e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.delete_episode(episode_id).await {
+                warn!("Failed to delete episode from durable storage: {}", e);
+                return Err(e);
+            }
         }
 
         info!("Successfully deleted episode: {}", episode_id);
@@ -144,18 +144,18 @@ impl SelfLearningMemory {
         }
 
         // Cache storage (redb)
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(&episode).await
-        {
-            warn!("Failed to update episode in cache storage: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to update episode in cache storage: {}", e);
+            }
         }
 
         // Durable storage (Turso)
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_episode(&episode).await
-        {
-            warn!("Failed to update episode in durable storage: {}", e);
-            return Err(e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to update episode in durable storage: {}", e);
+                return Err(e);
+            }
         }
 
         info!("Successfully archived episode: {}", episode_id);
@@ -201,17 +201,17 @@ impl SelfLearningMemory {
             episodes.insert(episode_id, Arc::new(episode.clone()));
         }
 
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(&episode).await
-        {
-            warn!("Failed to update episode in cache storage: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to update episode in cache storage: {}", e);
+            }
         }
 
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_episode(&episode).await
-        {
-            warn!("Failed to update episode in durable storage: {}", e);
-            return Err(e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to update episode in durable storage: {}", e);
+                return Err(e);
+            }
         }
 
         info!("Successfully restored episode: {}", episode_id);
@@ -251,21 +251,21 @@ impl SelfLearningMemory {
         let mut changes_made = false;
 
         // Update description if provided
-        if let Some(new_description) = description
-            && episode.task_description != new_description
-        {
-            episode.task_description = new_description;
-            changes_made = true;
-            debug!("Updated task description for episode: {}", episode_id);
+        if let Some(new_description) = description {
+            if episode.task_description != new_description {
+                episode.task_description = new_description;
+                changes_made = true;
+                debug!("Updated task description for episode: {}", episode_id);
+            }
         }
 
         // Merge metadata if provided
-        if let Some(new_metadata) = metadata
-            && !new_metadata.is_empty()
-        {
-            episode.metadata.extend(new_metadata);
-            changes_made = true;
-            debug!("Updated metadata for episode: {}", episode_id);
+        if let Some(new_metadata) = metadata {
+            if !new_metadata.is_empty() {
+                episode.metadata.extend(new_metadata);
+                changes_made = true;
+                debug!("Updated metadata for episode: {}", episode_id);
+            }
         }
 
         if !changes_made {
@@ -291,10 +291,10 @@ impl SelfLearningMemory {
         }
 
         // Update cache storage
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(episode).await
-        {
-            warn!("Failed to update episode in cache storage: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to update episode in cache storage: {}", e);
+            }
         }
 
         // Update durable storage

@@ -90,16 +90,16 @@ impl SelfLearningMemory {
         );
 
         // Store in cache first (fast), then Turso (durable)
-        if let Some(cache) = &self.cache_storage
-            && let Err(e) = cache.store_episode(&episode).await
-        {
-            warn!("Failed to store episode in cache: {}", e);
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to store episode in cache: {}", e);
+            }
         }
 
-        if let Some(turso) = &self.turso_storage
-            && let Err(e) = turso.store_episode(&episode).await
-        {
-            warn!("Failed to store episode in Turso: {}", e);
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to store episode in Turso: {}", e);
+            }
         }
 
         // Always store in fallback for in-memory access
@@ -259,16 +259,16 @@ impl SelfLearningMemory {
                 episode.add_step(step);
 
                 // Update in storage backends
-                if let Some(cache) = &self.cache_storage
-                    && let Err(e) = cache.store_episode(&episode).await
-                {
-                    warn!("Failed to update episode in cache: {}", e);
+                if let Some(cache) = &self.cache_storage {
+                    if let Err(e) = cache.store_episode(&episode).await {
+                        warn!("Failed to update episode in cache: {}", e);
+                    }
                 }
 
-                if let Some(turso) = &self.turso_storage
-                    && let Err(e) = turso.store_episode(&episode).await
-                {
-                    warn!("Failed to update episode in Turso: {}", e);
+                if let Some(turso) = &self.turso_storage {
+                    if let Err(e) = turso.store_episode(&episode).await {
+                        warn!("Failed to update episode in Turso: {}", e);
+                    }
                 }
 
                 // Re-insert the updated episode as Arc
@@ -360,16 +360,16 @@ impl SelfLearningMemory {
             }
 
             // Update in storage backends
-            if let Some(cache) = &self.cache_storage
-                && let Err(e) = cache.store_episode(&episode).await
-            {
-                warn!("Failed to flush episode to cache: {}", e);
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_episode(&episode).await {
+                    warn!("Failed to flush episode to cache: {}", e);
+                }
             }
 
-            if let Some(turso) = &self.turso_storage
-                && let Err(e) = turso.store_episode(&episode).await
-            {
-                warn!("Failed to flush episode to Turso: {}", e);
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_episode(&episode).await {
+                    warn!("Failed to flush episode to Turso: {}", e);
+                }
             }
 
             // Re-insert the updated episode as Arc

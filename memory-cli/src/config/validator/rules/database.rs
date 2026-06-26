@@ -15,21 +15,21 @@ pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError>
     // "memory") is a hard error: silently treating it as a valid mode
     // would either fall through to the wrong backend or be ignored
     // entirely, both of which mask configuration mistakes.
-    if let Some(mode) = config.storage_mode.as_deref()
-        && !matches!(mode, "remote" | "local" | "memory")
-    {
-        errors.push(ValidationError {
-            field: "database.storage_mode".to_string(),
-            message: format!(
-                "Unrecognized storage_mode '{}': expected one of 'remote', 'local', 'memory'",
-                mode
-            ),
-            suggestion: Some(
-                "Set storage_mode to 'remote', 'local', or 'memory' (or remove the field)"
-                    .to_string(),
-            ),
-            context: Some("Storage backend selection".to_string()),
-        });
+    if let Some(mode) = config.storage_mode.as_deref() {
+        if !matches!(mode, "remote" | "local" | "memory") {
+            errors.push(ValidationError {
+                field: "database.storage_mode".to_string(),
+                message: format!(
+                    "Unrecognized storage_mode '{}': expected one of 'remote', 'local', 'memory'",
+                    mode
+                ),
+                suggestion: Some(
+                    "Set storage_mode to 'remote', 'local', or 'memory' (or remove the field)"
+                        .to_string(),
+                ),
+                context: Some("Storage backend selection".to_string()),
+            });
+        }
     }
 
     if config.turso_url.is_none() && config.redb_path.is_none() && !is_local_or_memory {
@@ -64,17 +64,17 @@ pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError>
     }
 
     // Validate redb path if provided
-    if let Some(redb_path) = &config.redb_path
-        && redb_path.trim().is_empty()
-    {
-        errors.push(ValidationError {
-            field: "database.redb_path".to_string(),
-            message: "redb path cannot be empty".to_string(),
-            suggestion: Some(
-                "Provide a valid file path or use ':memory:' for in-memory storage".to_string(),
-            ),
-            context: Some("Local cache storage".to_string()),
-        });
+    if let Some(redb_path) = &config.redb_path {
+        if redb_path.trim().is_empty() {
+            errors.push(ValidationError {
+                field: "database.redb_path".to_string(),
+                message: "redb path cannot be empty".to_string(),
+                suggestion: Some(
+                    "Provide a valid file path or use ':memory:' for in-memory storage".to_string(),
+                ),
+                context: Some("Local cache storage".to_string()),
+            });
+        }
     }
 
     errors

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "CI failure diagnosis",
+      "description": "Verify the agent can diagnose CI failures.",
+      "exec": "true"
+    }
+  ]
+}

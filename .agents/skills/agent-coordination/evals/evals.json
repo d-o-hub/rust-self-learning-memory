@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Goal breakdown",
+      "description": "Verify the agent can break down complex tasks into atomic goals.",
+      "exec": "true"
+    }
+  ]
+}

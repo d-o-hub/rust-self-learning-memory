@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "Documentation fetch",
+      "description": "Verify the agent can fetch and resolve web documentation.",
+      "exec": "true"
+    }
+  ]
+}

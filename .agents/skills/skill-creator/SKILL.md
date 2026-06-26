@@ -69,5 +69,6 @@ skill-name/
 - **Write specific descriptions** - Include trigger terms users would naturally use
 - **Link supporting files** - From SKILL.md using markdown links
 - **Validate structure** - Check YAML syntax and file organization
+- **No `.py` or `.sh` files in root** - Place scripts in `scripts/` or within the skill directory. Never create one-off scripts in the repository root.
 
 See **[naming.md](naming.md)** for naming conventions and **[templates.md](templates.md)** for ready-to-use templates.

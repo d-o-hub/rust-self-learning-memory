@@ -76,3 +76,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Root Cause: `actions/upload-artifact@v7` computes the **least common ancestor (LCA)** of all input paths. Mixing workspace-relative paths (e.g., `./bench_results.txt`) with `${{ runner.temp }}/cargo-target/criterion/` produced an LCA of `/home/runner/work`. The archive stored `bench_results.txt` at `rust-self-learning-memory/rust-self-learning-memory/bench_results.txt` and criterion files at `_temp/cargo-target/criterion/...`. After `download-artifact@v8` extraction, `bench_results.txt` lived at `<workspace>/rust-self-learning-memory/rust-self-learning-memory/bench_results.txt`, not at the workspace root where the regression check looked.
 - Solution: Co-locate all upload inputs under a single parent. Copy workspace-relative files into `${{ runner.temp }}/cargo-target/` and upload only that directory so the LCA is `${{ runner.temp }}/cargo-target/`. Add `if-no-files-found: error` to surface silent failures instead of masking them.
 - Reference: <https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions>; local docs: `agent_docs/github_actions_patterns.md` ("Upload Artifact LCA Pitfall (2026-06-05)").
+
+## LESSON-012: One-off scripts in root create maintenance burden
+
+- Issue: `cleanup_yaml.py` and `remove_redundant_cache.py` were committed to the repository root as one-off CI cleanup utilities.
+- Root Cause: Ad-hoc scripts created during CI fixes were committed directly to root without considering long-term maintenance or placement conventions.
+- Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
+- Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.

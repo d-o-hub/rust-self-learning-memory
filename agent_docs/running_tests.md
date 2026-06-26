@@ -126,6 +126,26 @@ QUALITY_GATE_SKIP_OPTIONAL=true ./scripts/quality-gates.sh
 # GOAP checks run as non-blocking (cannot be skipped)
 ```
 
+### Mutation Testing
+
+Mutation testing (via `cargo-mutants`) is used as a targeted signal to validate test suite effectiveness. Configuration is centralized in the root `Cargo.toml`.
+
+```bash
+# Install cargo-mutants
+cargo install --locked cargo-mutants
+
+# Run mutation testing using workspace configuration (targets specific high-value modules)
+cargo mutants
+
+# Run for a specific package
+cargo mutants --package do-memory-core
+
+# Run for a specific module (overrides workspace defaults)
+cargo mutants -f memory-core/src/pattern/similarity.rs
+```
+
+Mutation testing is integrated into a dedicated GitHub Actions workflow (`mutants.yml`) that runs nightly and can be triggered manually.
+
 > **Note**: GOAP checks run as non-blocking checks and cannot be skipped. They check documentation hygiene and feedback loop markers.
 
 ## Performance Testing

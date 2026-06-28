@@ -1,11 +1,43 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-06-14 (v0.1.33 release in progress; issue #623 release drift; PR #622 merged)
-- **Version**: `0.1.33` (workspace — v0.1.33 release pending; 60 unreleased commits per #623)
+- **Last Updated**: 2026-06-28 (v0.1.33 release still pending; 94 commits since v0.1.32; issue #674 active)
+- **Version**: `0.1.33` (workspace — **no git tag exists**; 94 unreleased commits per #674)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; largely resolved via `6a43deae`)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 clippy block & nightly timeout; PR #616 merged, action A3 still pending)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift #619, nightly slow-test)**
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+
+---
+
+## Comprehensive Analysis (2026-06-28)
+
+**Task**: Analyze codebase for improvements; document in `plans/` (GOAP orchestrated).
+
+**Findings**:
+- **Open Issues**: 3 — **#674** (release drift: 94 unreleased commits since v0.1.32), **#652** (llms.txt automation), **#653** (VERSION file evaluation).
+- **Open PRs**: 0.
+- **Push CI (main)**: ✅ Green (latest: `850bf69d` 2026-06-26).
+- **Scheduled Security**: ❌ — Gitleaks still detects 3 false positives (`.gitleaksignore` has 81 entries but misses these 3). Same root cause as ADR-058.
+- **Nightly Full Tests**: ❌ — Disk exit-95 (runner infra). Node.js 20 deprecation warnings on checkout/upload-artifact actions.
+- **Mutation Testing**: ❌ Cancelled — 6h ceiling always hit (scope too broad).
+- **Clippy `--all-features`**: ❌ 5 findings in `memory-core/src/embeddings/mistral/client.rs` (4 excessive_nesting + 1 unnecessary_wraps).
+- **File size gate**: 1 violation — `cache/wrapper.rs` at 537 LOC.
+- **Architecture**: Non-CSM cascade fallback returns empty result silently.
+- **Security audit**: 2 allowed git2 warnings (transitive via agentfs-sdk).
+
+**Recent improvements since last analysis (2026-06-14 → 2026-06-28)**:
+- Fuzz harness added (`14d756bd`) — parser/serialization boundaries
+- Agent harness map + eval/sensor workflow (`1884f300`)
+- Edit distance space complexity optimized (`14173bbd`)
+- GitHub Actions pinned to stable SHAs (`1b234d11`, `d828cc90`)
+- MCP input bounds hardened (multiple commits)
+- actions/checkout bumped from v6→v7 (`a6c20fc4`)
+- Codacy script injection in mutants.yml fixed (`19a17257`)
+- Root one-off scripts cleaned (`850bf69d`)
+
+**Plan Document**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md` — 10 work groups (WG-175..WG-184) across 5 phases.
+
+**Next actions**: WG-175 cut v0.1.33 release → WG-176 gitleaks fingerprints → WG-177-179 CI fixes → WG-180-181 clippy/LOC → WG-182-184 arch/DevX.
 
 ---
 

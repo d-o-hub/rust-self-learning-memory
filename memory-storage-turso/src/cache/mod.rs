@@ -104,6 +104,7 @@ pub mod query_cache;
 mod stats;
 mod ttl_config;
 mod wrapper;
+mod wrapper_backend;
 
 pub use adaptive_ttl::{AdaptiveTTLCache, CacheEntry, CacheStats, CacheStatsSnapshot};
 pub use config::{CacheConfig, CacheStats as LegacyCacheStats};

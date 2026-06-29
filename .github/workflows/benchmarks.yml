@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
+        uses: lewagon/wait-on-check-action@96d9100b431964d10e0136aff8b9ccb92470505e
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
@@ -103,7 +103,7 @@ jobs:
           echo "=== Disk Space After Cleanup ==="
           df -h
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
 
@@ -115,12 +115,12 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install sccache
-        uses: taiki-e/install-action@c1952a69c392b2c5f2eaa845b56120fff5fe49d3
+        uses: taiki-e/install-action@9bcaee1dcae34154180f412e2fa69355a7cda9f6
         with:
           tool: sccache
 
       - name: Cache sccache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/sccache
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
@@ -255,7 +255,7 @@ jobs:
           ls -la "${{ runner.temp }}/cargo-target/" | head -20
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: benchmark-results-${{ github.sha }}
           path: ${{ runner.temp }}/cargo-target/
@@ -272,15 +272,15 @@ jobs:
       actions: read
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
       - name: Download benchmark results
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: benchmark-results-${{ github.sha }}
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@d48d326b4ca9ba73ca0cd0d59f108f9e02a381c7
+        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba
         with:
           name: Rust Benchmarks
           tool: 'cargo'
@@ -307,9 +307,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Download benchmark results
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: benchmark-results-${{ github.sha }}
         continue-on-error: true
@@ -322,7 +322,7 @@ jobs:
           echo "✅ Benchmark results found"
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
               const fs = require('fs');

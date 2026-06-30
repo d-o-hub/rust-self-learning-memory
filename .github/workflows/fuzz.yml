@@ -16,7 +16,7 @@ jobs:
     env:
       FUZZ_DURATION: ${{ github.event.inputs.duration || '300' }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
@@ -24,7 +24,7 @@ jobs:
           components: llvm-tools
 
       - name: Cache cargo-fuzz
-        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cargo/bin/cargo-fuzz
           key: ${{ runner.os }}-cargo-fuzz

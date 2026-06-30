@@ -33,12 +33,12 @@ jobs:
     steps:
       # ── 0. Checkout ────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       # ── 1. Heuristic scoring (pure JS, no external calls) ──────────────────
       - name: Stage 1 — Heuristic scoring
         id: heuristic
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -183,7 +183,7 @@ jobs:
       # ── 2. AUTO-CLOSE: score >= 5 ─────────────────────────────────────────
       - name: Stage 1 — Auto-close high-confidence spam
         if: steps.heuristic.outputs.verdict == 'spam_high'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -223,7 +223,7 @@ jobs:
       - name: Stage 2 — openrouter/free classification
         id: ai
         if: steps.heuristic.outputs.verdict == 'spam_medium'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -305,7 +305,7 @@ jobs:
           steps.heuristic.outputs.verdict == 'spam_medium' &&
           steps.ai.outputs.verdict == 'SPAM' &&
           fromJSON(steps.ai.outputs.confidence) >= 70
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -347,7 +347,7 @@ jobs:
         if: |
           steps.heuristic.outputs.verdict == 'spam_medium' &&
           (steps.ai.outputs.verdict != 'SPAM' || fromJSON(steps.ai.outputs.confidence) < 70)
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -394,7 +394,7 @@ jobs:
           } catch(e) { console.warn('Stats: ' + e.message); }
           EOF
       - name: Create Pull Request for updated AI slop stats
-        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
         with:
           commit-message: "chore(ai-slop): stats #${{ github.event.issue.number }} [skip ci]"
           title: "chore(ai-slop): update stats for #${{ github.event.issue.number }}"

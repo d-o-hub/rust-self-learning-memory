@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
 
@@ -26,7 +26,7 @@ jobs:
         run: git-cliff --config cliff.toml --output CHANGELOG.md
 
       - name: Create Pull Request for updated changelog
-        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
         with:
           commit-message: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }} [skip ci]"
           title: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }}"

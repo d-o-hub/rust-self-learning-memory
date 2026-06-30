@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-06-15 (v0.1.33 released; issue #623 resolved)
-**Released Version**: v0.1.33 (crates.io + GitHub Release, 2026-06-15)
-**Active Sprint**: v0.1.33 — Release drift resolution
+**Last Updated**: 2026-06-28 (v0.1.33 release pending; 94 unreleased commits; issue #674)
+**Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
+**Active Sprint**: v0.1.33 — Release + CI Health + Quality (WG-175..184)
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -44,7 +44,9 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 
 ## Current State
 
-`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` (in progress). PRs #620 and #622 merged 2026-06-14. Issue #623 (release drift) resolved by v0.1.33 release.
+`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` but **no git tag or GitHub release exists** — 94 commits unreleased (issue #674). PRs #620 and #622 merged 2026-06-14. Recent work: fuzz harness, agent eval workflow, edit distance optimization, MCP input bounds, actions pinned. Push CI green; scheduled Security/Nightly still failing (false positives + infra).
+
+**Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 
 ## v0.1.32 Release — COMPLETE ✅ (Released 2026-05-24)
 

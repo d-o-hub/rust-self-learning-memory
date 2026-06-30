@@ -204,8 +204,10 @@ impl CascadeRetriever {
 
         #[cfg(not(feature = "csm"))]
         {
-            // Placeholder implementation - returns empty results
-            // query is intentionally unused in placeholder mode
+            tracing::warn!(
+                "CSM feature not enabled; cascade retrieval returns empty results. \
+                 Enable the `csm` feature for BM25/HDC/ConceptGraph retrieval."
+            );
             let _ = query;
             CascadeResult {
                 episode_ids: Vec::new(),

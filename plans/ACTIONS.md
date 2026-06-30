@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
+- **Last Updated**: 2026-06-28 (WG-175..184 queued; release drift 94 commits)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -30,45 +30,94 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
 - Import `RngExt` for user-level RNG methods
 - Keep `rand` and `rand_chacha` versions aligned
 
-## Active Actions (v0.1.33 Sprint — Release Drift Resolution)
+## Active Actions (v0.1.33 Sprint — Release + CI + Quality)
 
 ### GOAP Skills in Use
 
 - **Coordinator**: `goap-agent`
 - **Validation**: `code-quality`, `test-runner`, `architecture-validation`
 - **Release**: `github-release-best-practices`, `release-guard`
+- **CI**: `ci-fix`
 
-### Phase 4: Validation & Release (v0.1.33)
+### Phase 1: Release (Closes #674)
 
-- **ACT-170**: Version bump workspace to `0.1.33`
-   - Goal: WG-169
-   - Skills: `goap-agent`, `feature-implement`, `code-quality`
-   - Action: Update `Cargo.toml` workspace version, publishable crate versions, regenerate `Cargo.lock`, update CHANGELOG
-   - Dependencies: None
-   - Status: 🔧 In progress
-
-- **ACT-171**: Cut v0.1.33 release per #623
-   - Goal: WG-170
+- **ACT-175**: Tag and release v0.1.33
+   - Goal: WG-175
    - Skills: `goap-agent`, `github-release-best-practices`, `release-guard`
-   - Action: `./scripts/release-manager.sh validate` → `verify-release-state.sh --check-tag --check-unreleased` → `release-manager.sh full --execute`
-   - Dependencies: ACT-170
+   - Action: Generate CHANGELOG for 94 commits since v0.1.32 → `gh release create v0.1.33`
+   - Dependencies: None (push CI is green)
    - Status: 🟡 Queued
 
-### Phase 5: Benchmark Stabilization
+### Phase 2: CI Health
 
-- **ACT-172**: Mark performance benchmark tests as `#[ignore]`
-   - Goal: CI stability
-   - Skills: `code-quality`
-   - Action: Add `#[ignore]` to all benchmark tests in `performance_benchmarks.rs` to prevent flaky CI failures
+- **ACT-176**: Add 3 missing gitleaks fingerprints
+   - Goal: WG-176
+   - Skills: `ci-fix`
+   - Action: Run gitleaks locally to get fingerprints → append to `.gitleaksignore`
    - Dependencies: None
-   - Status: ✅ Done
+   - Status: 🟡 Queued
 
-- **ACT-173**: Fix doctest compilation and mark flaky Turso test
-   - Goal: CI stability
-   - Skills: `code-quality`
-   - Action: Fix doctest errors, mark flaky Turso test
+- **ACT-177**: Add disk cleanup step to nightly-tests.yml
+   - Goal: WG-177
+   - Skills: `ci-fix`
+   - Action: Add `df -h && docker system prune -af` step before build in nightly workflow
    - Dependencies: None
-   - Status: ✅ Done (PR #622)
+   - Status: 🟡 Queued
+
+- **ACT-178**: Scope mutation testing to memory-core + 2h ceiling
+   - Goal: WG-178
+   - Skills: `ci-fix`
+   - Action: Update `mutants.yml` to target only `memory-core/src` with `timeout: 7200`
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+- **ACT-179**: Bump upload-artifact to Node 24-compatible version
+   - Goal: WG-179
+   - Skills: `ci-fix`
+   - Action: Update `actions/upload-artifact` SHA across all workflows to latest v4+ that targets Node 24
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+### Phase 3: Code Quality
+
+- **ACT-180**: Fix clippy `--all-features` lints in mistral/client.rs
+   - Goal: WG-180
+   - Skills: `code-quality`
+   - Action: Extract nested match arms into helpers; remove unnecessary Result wrapper from `dequantize_binary_embeddings`
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+- **ACT-181**: Split cache/wrapper.rs below 500 LOC
+   - Goal: WG-181
+   - Skills: `code-quality`
+   - Action: Extract bulk/batch operations into `cache/wrapper_ops.rs`; keep core wrapper at <500 LOC
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+### Phase 4: Architecture
+
+- **ACT-182**: Add tracing::warn! to non-CSM cascade fallback
+   - Goal: WG-182
+   - Skills: `feature-implement`
+   - Action: Add `tracing::warn!("CSM feature not enabled; cascade retrieval returns empty results")` to the `#[cfg(not(feature = "csm"))]` branch
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+### Phase 5: DevX Backlog
+
+- **ACT-183**: Implement llms.txt generator (closes #652)
+   - Goal: WG-183
+   - Skills: `feature-implement`
+   - Action: Create `scripts/generate-llms-txt.sh` that concatenates README, AGENTS.md, and key docs into `llms.txt`/`llms-full.txt`
+   - Dependencies: None
+   - Status: 🟡 Queued
+
+- **ACT-184**: ADR for VERSION file decision (closes #653)
+   - Goal: WG-184
+   - Skills: `goap-agent`
+   - Action: Write ADR-059 evaluating VERSION file vs Cargo.toml workspace version; recommend keeping Cargo.toml as single source
+   - Dependencies: None
+   - Status: 🟡 Queued
 
 ### Phase 4: Research Backlog (Deferred until CPU/token wins are landed)
 

@@ -1,11 +1,44 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-06-28 (v0.1.33 release still pending; 94 commits since v0.1.32; issue #674 active)
-- **Version**: `0.1.33` (workspace — **no git tag exists**; 94 unreleased commits per #674)
+- **Last Updated**: 2026-06-30 (v0.1.33 release still pending; dependency updates + CI quality merged; issue #674 active)
+- **Version**: `0.1.33` (workspace — **no git tag exists**; ~100 unreleased commits per #674)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+
+---
+
+## Dependency & CI Maintenance (2026-06-30)
+
+**Task**: Merge all open PRs (4 Dependabot + 1 CI/quality) in correct dependency order.
+
+**PRs Merged** (in order):
+1. **PR #675** — `fix(ci,quality): WG-176..182 CI health + code quality` → Merged 2026-06-30T09:43:27Z
+   - Fixed gitleaks fingerprints, clippy --all-features lints, cache/wrapper.rs split, cascade tracing
+   - Workflow fixes: disk cleanup, mutation scoping, upload-artifact bump
+   - **Completes**: WG-176, WG-177, WG-178, WG-179, WG-180, WG-181, WG-182
+2. **PR #682** — `fix(deps): remove stale advisory ignores and update anyhow` → Merged 2026-06-30T10:10:58Z
+   - Removed 6 stale RUSTSEC advisory ignores from deny.toml
+   - Updated anyhow 1.0.102 → 1.0.103 (fixes RUSTSEC-2026-0190)
+   - `cargo deny check` now passes cleanly
+3. **PR #681** — `ci(deps): bump the actions-all group across 1 directory with 13 updates` → Merged 2026-06-30T11:10:33Z
+   - Bumped actions/checkout, actions/github-script, peter-evans/create-pull-request, etc.
+   - Resolves Node.js 20 deprecation warnings
+4. **PR #684** — `chore(deps): bump the rust-patch-minor group across 1 directory with 2 updates` → Merged 2026-06-30T11:14:54Z
+5. **PR #678** — `chore(deps): bump sysinfo from 0.38.4 to 0.39.5 in the rust-major group` → Auto-merge enabled, pending CI
+
+**Key outcomes**:
+- All GitHub Actions checks pass (Codacy, Quick PR Check, Dependency Audit, CodeQL, etc.)
+- `cargo deny check` passes cleanly (6 stale advisories removed, anyhow advisory fixed)
+- GitHub Actions updated to latest versions (Node 24 compatible)
+- Dependency audit clean: no outstanding advisories require ignoring (except existing rustls-webpki transitive)
+
+**Follow-up tasks**:
+- WG-175: Cut v0.1.33 release (now more urgent — additional commits since analysis)
+- WG-183: llms.txt generator (issue #652)
+- WG-184: ADR for VERSION file decision (issue #653)
+- Monitor PR #678 auto-merge completion
 
 ---
 

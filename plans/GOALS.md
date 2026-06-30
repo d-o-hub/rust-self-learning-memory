@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-06-28 (WG-175..184 queued; release drift 94 commits)
+- **Last Updated**: 2026-06-30 (WG-176..182 complete via PR #675; dependency maintenance done)
 - **Source ADR**: ADR-037, ADR-052, ADR-053, ADR-057, ADR-058 (Accepted)
 - **Status**: Active
 
@@ -8,9 +8,9 @@
 
 ## v0.1.33 Sprint Goals (Release Drift Resolution)
 
-### Source: Issue #674 — 94 unreleased commits since v0.1.32
+### Source: Issue #674 — ~100 unreleased commits since v0.1.32
 
-`v0.1.32` is released (2026-05-24). The workspace has accumulated 94 unreleased commits including telemetry stub implementations, CI hardening, fuzz harness, MCP input bounds, action pinning, edit distance optimization, and agent eval workflows. No v0.1.33 tag exists despite the workspace bump.
+`v0.1.32` is released (2026-05-24). The workspace has accumulated ~100 unreleased commits including telemetry stub implementations, CI hardening, fuzz harness, MCP input bounds, action pinning, edit distance optimization, agent eval workflows, and now CI/quality fixes + dependency updates. No v0.1.33 tag exists despite the workspace bump.
 
 ### GOAP Execution Model
 
@@ -25,27 +25,27 @@
 |----|------|--------|
 | WG-175 | Tag + release v0.1.33 (CHANGELOG + `gh release create`) | 🟡 Queued |
 
-### Phase 2: CI Health (P2)
+### Phase 2: CI Health (P2) — ✅ COMPLETE
 
 | WG | Step | Status |
 |----|------|--------|
-| WG-176 | Add 3 missing gitleaks fingerprints to `.gitleaksignore` | 🟡 Queued |
-| WG-177 | Add disk cleanup step to `nightly-tests.yml` | 🟡 Queued |
-| WG-178 | Scope mutation testing to `memory-core` + reduce timeout to 2h | 🟡 Queued |
-| WG-179 | Bump `actions/upload-artifact` to Node 24-compatible SHA | 🟡 Queued |
+| WG-176 | Add 3 missing gitleaks fingerprints to `.gitleaksignore` | ✅ PR #675 |
+| WG-177 | Add disk cleanup step to `nightly-tests.yml` | ✅ PR #675 |
+| WG-178 | Scope mutation testing to `memory-core` + reduce timeout to 2h | ✅ PR #675 |
+| WG-179 | Bump `actions/upload-artifact` to Node 24-compatible SHA | ✅ PR #675 + #681 |
 
-### Phase 3: Code Quality (P2)
-
-| WG | Step | Status |
-|----|------|--------|
-| WG-180 | Fix 5 clippy lints in `mistral/client.rs` (--all-features) | 🟡 Queued |
-| WG-181 | Split `cache/wrapper.rs` below 500 LOC gate | 🟡 Queued |
-
-### Phase 4: Architecture (P3)
+### Phase 3: Code Quality (P2) — ✅ COMPLETE
 
 | WG | Step | Status |
 |----|------|--------|
-| WG-182 | Add `tracing::warn!` to non-CSM cascade fallback | 🟡 Queued |
+| WG-180 | Fix 5 clippy lints in `mistral/client.rs` (--all-features) | ✅ PR #675 |
+| WG-181 | Split `cache/wrapper.rs` below 500 LOC gate | ✅ PR #675 |
+
+### Phase 4: Architecture (P3) — ✅ COMPLETE
+
+| WG | Step | Status |
+|----|------|--------|
+| WG-182 | Add `tracing::warn!` to non-CSM cascade fallback | ✅ PR #675 |
 
 ### Phase 5: DevX Backlog (P3)
 
@@ -53,6 +53,15 @@
 |----|------|--------|
 | WG-183 | Implement llms.txt generator script (closes #652) | 🟡 Queued |
 | WG-184 | Write ADR for VERSION file decision (closes #653) | 🟡 Queued |
+
+### Dependency Maintenance (2026-06-30) — ✅ COMPLETE
+
+| PR | Description | Status |
+|----|-------------|--------|
+| #682 | Remove 6 stale advisory ignores + update anyhow (RUSTSEC-2026-0190) | ✅ Merged |
+| #681 | Bump 13 GitHub Actions to latest (Node 24 compatible) | ✅ Merged |
+| #684 | Bump rust-patch-minor group (2 updates) | ✅ Merged |
+| #678 | Bump sysinfo 0.38.4 → 0.39.5 (major) | ✅ Auto-merge enabled |
 
 ---
 

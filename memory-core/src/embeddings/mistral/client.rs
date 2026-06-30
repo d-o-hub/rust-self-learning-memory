@@ -139,47 +139,44 @@ impl MistralEmbeddingProvider {
     }
 
     // Handle different output dtypes
-    fn process_embedding_response(&self, data: Vec<f32>) -> Result<Vec<f32>> {
+    fn process_embedding_response(&self, data: Vec<f32>) -> Vec<f32> {
         match self.config.output_dtype {
-            OutputDtype::Float => Ok(data),
-            OutputDtype::Int8 | OutputDtype::Uint8 => {
-                // Convert integer embeddings back to float for uniform interface
-                // In production, you might want to keep as integers for efficiency
-                Ok(data)
-            }
+            OutputDtype::Float | OutputDtype::Int8 | OutputDtype::Uint8 => data,
             OutputDtype::Binary | OutputDtype::Ubinary => {
                 // Dequantize binary embeddings
-                // See: https://colab.research.google.com/github/mistralai/cookbook/blob/main/mistral/embeddings/dequantization.ipynb
+                // See: <https://colab.research.google.com/github/mistralai/cookbook/blob/main/mistral/embeddings/dequantization.ipynb>
                 self.dequantize_binary_embeddings(data)
             }
         }
     }
 
-    fn dequantize_binary_embeddings(&self, packed: Vec<f32>) -> Result<Vec<f32>> {
+    fn dequantize_binary_embeddings(&self, packed: Vec<f32>) -> Vec<f32> {
         let total_dim = self.embedding_dimension();
+        let signed = self.config.output_dtype == OutputDtype::Binary;
         let mut unpacked = Vec::with_capacity(total_dim);
 
         for &val in &packed {
-            // Cast float value to an 8-bit unsigned integer representation
             let byte = (val.round() as i64) as u8;
-
-            // Unpack 8 bits MSB first
-            for i in (0..8).rev() {
-                if unpacked.len() >= total_dim {
-                    break;
-                }
-                let bit = (byte >> i) & 1;
-                if self.config.output_dtype == OutputDtype::Binary {
-                    // Signed binary: 1 -> 1.0, 0 -> -1.0
-                    unpacked.push(if bit == 1 { 1.0 } else { -1.0 });
-                } else {
-                    // Unsigned binary (ubinary): 1 -> 1.0, 0 -> 0.0
-                    unpacked.push(if bit == 1 { 1.0 } else { 0.0 });
-                }
-            }
+            self.unpack_byte(byte, signed, total_dim, &mut unpacked);
         }
 
-        Ok(unpacked)
+        unpacked
+    }
+
+    /// Unpack 8 bits from a byte into the output vector (MSB first).
+    fn unpack_byte(&self, byte: u8, signed: bool, total_dim: usize, out: &mut Vec<f32>) {
+        for i in (0..8).rev() {
+            if out.len() >= total_dim {
+                return;
+            }
+            let bit = (byte >> i) & 1;
+            let value = if signed {
+                if bit == 1 { 1.0 } else { -1.0 }
+            } else {
+                f32::from(bit)
+            };
+            out.push(value);
+        }
     }
 }
 
@@ -208,7 +205,7 @@ impl EmbeddingProvider for MistralEmbeddingProvider {
             .clone();
 
         // Process based on output dtype
-        let processed = self.process_embedding_response(embedding)?;
+        let processed = self.process_embedding_response(embedding);
 
         // Validate dimension
         let expected = self.config.expected_response_size();
@@ -245,7 +242,7 @@ impl EmbeddingProvider for MistralEmbeddingProvider {
         // Extract and process embeddings
         let mut embeddings = Vec::with_capacity(response.data.len());
         for embedding_data in response.data {
-            let processed = self.process_embedding_response(embedding_data.embedding)?;
+            let processed = self.process_embedding_response(embedding_data.embedding);
             embeddings.push(processed);
         }
 

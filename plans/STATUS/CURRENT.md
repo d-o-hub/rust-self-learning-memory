@@ -1,23 +1,26 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-06-15 (v0.1.33 released; issue #623 resolved)
-**Released Version**: v0.1.33 (crates.io + GitHub Release, 2026-06-15)
-**Current Workspace Version**: 0.1.33
-**Active Sprint**: v0.1.34 — Next Sprint
+**Last Updated**: 2026-06-28 (v0.1.33 release pending — 94 unreleased commits; issue #674)
+**Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
+**Workspace Version**: 0.1.33 (no tag — release drift)
+**Active Sprint**: v0.1.33 — Release + CI Health + Quality
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
-## v0.1.33 Sprint — COMPLETE ✅
+## v0.1.33 Sprint — IN PROGRESS
 
-| Phase | Done | Open |
-|-------|------|------|
-| P1–P3 Missing implementation | 15/15 | — |
-| P4 Validation + release (v0.1.32) | 6/6 | — |
-| P5 Release drift fix (v0.1.33) | 2/4 | Version bump, CHANGELOG, tag+release |
+| Phase | WGs | Strategy | Status |
+|-------|-----|----------|--------|
+| P1 — Release | WG-175 | Sequential | 🟡 Queued |
+| P2 — CI Health | WG-176..WG-179 | Parallel | 🟡 Queued |
+| P3 — Code Quality | WG-180..WG-181 | Parallel | 🟡 Queued |
+| P4 — Architecture | WG-182 | Sequential | 🟡 Queued |
+| P5 — DevX Backlog | WG-183..WG-184 | Parallel | 🟡 Queued |
 
-Re-audit command:
-`rg -in 'not yet implemented|// *Placeholder' memory-core/src memory-mcp/src memory-cli/src memory-storage-redb/src memory-storage-turso/src`
+**Blocking**: None (push CI is green; all phases are ready to execute)
+
+**Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 
 ---
 
@@ -26,25 +29,24 @@ Re-audit command:
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | 🔧 In progress (issue #623) |
+| Workspace version | 0.1.33 | — | 🔴 No tag/release (94 commits since v0.1.32) |
 | Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.32`  |
-| Total tests | 3,282 | — | 3,282 passing (2026-05-16) |
-| Skipped/ignored tests | 172 | ≤180 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027), 10 performance benchmarks |
-| Timed-out tests | 0 | 0 | ✅ |
-| Failing doctests | 0 | 0 | ✅ |
-| Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 0 | ≤25 | ✅ Met (all 38 eliminated; removed unused params, cfg-gated test-only utils, verified 2026-05-17) |
-| CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
-| Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
-| Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
-| Skills LOC | ~3,500 | ≤4,000 | ✅ Compact high-frequency skills |
-| Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 17 | ≥13 | ✅ Exceeds target |
-| Property test occurrences | 154 | — | New metric (2026-04-22) |
-| Broken markdown links | 0 active | ≤80 | ✅ |
-| Clippy | Clean | Clean | ✅ |
-| Format | Clean | Clean | ✅ |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.33` in workspace  |
+| Commits since v0.1.32 | 94 | 0 | 🔴 Release drift (#674) |
+| Clippy (default features) | Clean | Clean | ✅ |
+| Clippy (--all-features) | 5 findings | 0 | 🔴 WG-180 |
+| Production src files >500 LOC | 1 (537) | 0 | 🟡 WG-181 |
+| Push CI (main) | Green | Green | ✅ |
+| Scheduled Security | Failing | Green | 🔴 WG-176 |
+| Nightly Full Tests | Failing | Green | 🔴 WG-177 |
+| Mutation Testing | Cancelled (6h) | Completes | 🔴 WG-178 |
+| Fuzzing | Green | Green | ✅ |
+| Security audit | 2 allowed warnings | ≤2 allowed | ✅ (git2 transitive) |
+| Open issues | 3 | 0 | 🟡 |
+| Open PRs | 0 | 0 | ✅ |
+| Fuzz harness | Present | Present | ✅ |
+| Property test files | 17 | ≥13 | ✅ |
+| MSRV | Rust 2024 / stable 1.95.0 | — | ✅ |
 
 ## v0.1.30 Sprint Highlights
 
@@ -76,28 +78,37 @@ Re-audit command:
 
 ---
 
-## Open Items (2026-05-16 Validation)
+## Open Items (2026-06-28 Analysis)
 
 ### Open Issues
 
 | # | Title | Labels | Status |
 |---|-------|--------|--------|
-| [#610](https://github.com/d-o-hub/rust-self-learning-memory/issues/610) | feat(turso): expose local/offline mode as a first-class config path | jules | 🔴 Open — blocked on PR #611 CI |
+| [#674](https://github.com/d-o-hub/rust-self-learning-memory/issues/674) | ⚠️ Release drift: 94 unreleased commits since v0.1.32 | release-drift | 🔴 Open — WG-175 |
+| [#652](https://github.com/d-o-hub/rust-self-learning-memory/issues/652) | Automate llms.txt and full LLM context generation | — | 🔴 Open — WG-183 |
+| [#653](https://github.com/d-o-hub/rust-self-learning-memory/issues/653) | Evaluate VERSION file adoption | — | 🔴 Open — WG-184 |
 
 ### Open PRs
 
-| # | Title | Branch | CI Status |
-|---|-------|--------|-----------|
-| [#611](https://github.com/d-o-hub/rust-self-learning-memory/pull/611) | Expose local/offline mode as a first-class config path | `feat/turso-local-mode` | 🔴 Failing (Tests, Multi-Platform ubuntu/macos, Coverage) |
+None.
 
-**PR #611 CI failures** (last run 2026-06-08):
-- `Tests` — FAILURE: SIGSEGV in turso relationship tests under `keepalive-pool` feature
-- `Multi-Platform Test (ubuntu-latest)` — FAILURE: same root cause
-- `Multi-Platform Test (macos-latest)` — FAILURE: same root cause
-- `Code Coverage Analysis` — FAILURE: CLI `test_cli_help_output` snapshot mismatch
+### CI Health
 
-**CI fix plan**: See [`plans/GOAP_PR611_CI_FIX_2026-06-09.md`](../GOAP_PR611_CI_FIX_2026-06-09.md) for
-root cause analysis and fix (local_config disables pooling+keepalive for SQLite; snapshot regen). Fix was
+| Workflow | Status | Root Cause |
+|----------|--------|------------|
+| Push CI (main) | ✅ Green | — |
+| Security (scheduled) | ❌ Failing | 3 gitleaks false positives (WG-176) |
+| Nightly Full Tests | ❌ Failing | Disk exit-95 infra (WG-177) |
+| Mutation Testing | ❌ Cancelled | 6h ceiling exceeded (WG-178) |
+| Fuzzing | ✅ Green | — |
+
+### Code Quality
+
+| Finding | Location | WG |
+|---------|----------|-----|
+| 4× excessive_nesting + 1× unnecessary_wraps | `mistral/client.rs` | WG-180 |
+| File >500 LOC (537) | `cache/wrapper.rs` | WG-181 |
+| Non-CSM cascade returns empty silently | `cascade/mod.rs:207` | WG-182 |
 authored 2026-06-09 and needs to be pushed to the PR branch to trigger re-run.
 
 ### Recently Merged PRs

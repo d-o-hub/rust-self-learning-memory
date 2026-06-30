@@ -26,7 +26,7 @@ jobs:
   mutation-testing:
     name: Mutation Testing
     runs-on: ubuntu-latest
-    timeout-minutes: 360 # Mutation testing is very slow, giving it 6 hours
+    timeout-minutes: 120 # Scoped to memory-core only; should complete within 2h
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'
@@ -68,11 +68,7 @@ jobs:
             # Default to targeted workspace coverage as defined in Cargo.toml metadata
             # or explicitly list the primary packages if metadata is not yet fully parsed by the tool
             echo "Running mutation testing for workspace (targeted packages)"
-            cargo mutants --package do-memory-core \
-                          --package do-memory-mcp \
-                          --package do-memory-storage-redb \
-                          --package do-memory-storage-turso \
-                          --package do-memory-cli
+            cargo mutants --package do-memory-core
           fi
         continue-on-error: true # Informational - do not block CI
 
@@ -106,7 +102,7 @@ jobs:
           fi
 
       - name: Upload mutation report
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: mutation-report

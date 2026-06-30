@@ -1,33 +1,58 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-19 (WG-124 completed; all active WGs complete)
-- **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
+- **Last Updated**: 2026-06-28 (WG-175..184 queued; release drift 94 commits)
+- **Source ADR**: ADR-037, ADR-052, ADR-053, ADR-057, ADR-058 (Accepted)
 - **Status**: Active
 
 ---
 
 ## v0.1.33 Sprint Goals (Release Drift Resolution)
 
-### Source: Issue #623 — 60 unreleased commits since v0.1.32
+### Source: Issue #674 — 94 unreleased commits since v0.1.32
 
-`v0.1.32` is released (2026-05-24). The workspace has accumulated 60 unreleased commits including telemetry stub implementations, CI hardening, cosine similarity optimization, local/offline mode, and gitleaks remediation. The sprint goal is to release v0.1.33 to clear the drift.
+`v0.1.32` is released (2026-05-24). The workspace has accumulated 94 unreleased commits including telemetry stub implementations, CI hardening, fuzz harness, MCP input bounds, action pinning, edit distance optimization, and agent eval workflows. No v0.1.33 tag exists despite the workspace bump.
 
 ### GOAP Execution Model
 
 - **Coordinator skills**: `goap-agent`, `agent-coordination`
-- **Implementation skills**: `feature-implement`, `code-quality`
+- **Implementation skills**: `feature-implement`, `code-quality`, `ci-fix`
 - **Validation skills**: `code-quality`, `test-runner`, `architecture-validation`
+- **Release skills**: `github-release-best-practices`, `release-guard`
 
-### Phase 4: Validation & Release (v0.1.32 — COMPLETE ✅)
+### Phase 1: Release (P1 — Closes #674)
 
 | WG | Step | Status |
 |----|------|--------|
-| WG-165 | `cargo nextest run --all` | ✅ Complete |
-| WG-166 | `cargo test --doc` | ✅ Complete |
-| WG-167 | `./scripts/quality-gates.sh` (≥90%) | ✅ Complete |
-| WG-168 | Sprint-exit `rg` audit (0 matches) | ✅ Complete |
-| WG-169 | Bump workspace to `0.1.33` + CHANGELOG | 🔧 In progress |
-| WG-170 | `gh release create v0.1.33` (release-guard) | 🟡 Queued |
+| WG-175 | Tag + release v0.1.33 (CHANGELOG + `gh release create`) | 🟡 Queued |
+
+### Phase 2: CI Health (P2)
+
+| WG | Step | Status |
+|----|------|--------|
+| WG-176 | Add 3 missing gitleaks fingerprints to `.gitleaksignore` | 🟡 Queued |
+| WG-177 | Add disk cleanup step to `nightly-tests.yml` | 🟡 Queued |
+| WG-178 | Scope mutation testing to `memory-core` + reduce timeout to 2h | 🟡 Queued |
+| WG-179 | Bump `actions/upload-artifact` to Node 24-compatible SHA | 🟡 Queued |
+
+### Phase 3: Code Quality (P2)
+
+| WG | Step | Status |
+|----|------|--------|
+| WG-180 | Fix 5 clippy lints in `mistral/client.rs` (--all-features) | 🟡 Queued |
+| WG-181 | Split `cache/wrapper.rs` below 500 LOC gate | 🟡 Queued |
+
+### Phase 4: Architecture (P3)
+
+| WG | Step | Status |
+|----|------|--------|
+| WG-182 | Add `tracing::warn!` to non-CSM cascade fallback | 🟡 Queued |
+
+### Phase 5: DevX Backlog (P3)
+
+| WG | Step | Status |
+|----|------|--------|
+| WG-183 | Implement llms.txt generator script (closes #652) | 🟡 Queued |
+| WG-184 | Write ADR for VERSION file decision (closes #653) | 🟡 Queued |
 
 ---
 

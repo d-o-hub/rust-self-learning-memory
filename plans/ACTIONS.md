@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-06-28 (WG-175..184 queued; release drift 94 commits)
+- **Last Updated**: 2026-06-30 (WG-176..182 complete via PR #675; deps maintenance done)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -55,28 +55,28 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `ci-fix`
    - Action: Run gitleaks locally to get fingerprints → append to `.gitleaksignore`
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30)
 
 - **ACT-177**: Add disk cleanup step to nightly-tests.yml
    - Goal: WG-177
    - Skills: `ci-fix`
    - Action: Add `df -h && docker system prune -af` step before build in nightly workflow
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30)
 
 - **ACT-178**: Scope mutation testing to memory-core + 2h ceiling
    - Goal: WG-178
    - Skills: `ci-fix`
    - Action: Update `mutants.yml` to target only `memory-core/src` with `timeout: 7200`
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30)
 
 - **ACT-179**: Bump upload-artifact to Node 24-compatible version
    - Goal: WG-179
    - Skills: `ci-fix`
    - Action: Update `actions/upload-artifact` SHA across all workflows to latest v4+ that targets Node 24
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675 + PR #681, merged 2026-06-30)
 
 ### Phase 3: Code Quality
 
@@ -85,14 +85,14 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `code-quality`
    - Action: Extract nested match arms into helpers; remove unnecessary Result wrapper from `dequantize_binary_embeddings`
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30)
 
 - **ACT-181**: Split cache/wrapper.rs below 500 LOC
    - Goal: WG-181
    - Skills: `code-quality`
    - Action: Extract bulk/batch operations into `cache/wrapper_ops.rs`; keep core wrapper at <500 LOC
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30 — extracted to wrapper_backend.rs)
 
 ### Phase 4: Architecture
 
@@ -101,7 +101,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `feature-implement`
    - Action: Add `tracing::warn!("CSM feature not enabled; cascade retrieval returns empty results")` to the `#[cfg(not(feature = "csm"))]` branch
    - Dependencies: None
-   - Status: 🟡 Queued
+   - Status: ✅ Complete (PR #675, merged 2026-06-30)
 
 ### Phase 5: DevX Backlog
 

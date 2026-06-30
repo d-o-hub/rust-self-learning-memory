@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-06-28 (v0.1.33 release pending — 94 unreleased commits; issue #674)
+**Last Updated**: 2026-06-30 (WG-176..182 complete; dependency maintenance done; release v0.1.33 pending)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
 **Workspace Version**: 0.1.33 (no tag — release drift)
 **Active Sprint**: v0.1.33 — Release + CI Health + Quality
@@ -13,12 +13,19 @@
 | Phase | WGs | Strategy | Status |
 |-------|-----|----------|--------|
 | P1 — Release | WG-175 | Sequential | 🟡 Queued |
-| P2 — CI Health | WG-176..WG-179 | Parallel | 🟡 Queued |
-| P3 — Code Quality | WG-180..WG-181 | Parallel | 🟡 Queued |
-| P4 — Architecture | WG-182 | Sequential | 🟡 Queued |
+| P2 — CI Health | WG-176..WG-179 | Parallel | ✅ Complete (PR #675, #681) |
+| P3 — Code Quality | WG-180..WG-181 | Parallel | ✅ Complete (PR #675) |
+| P4 — Architecture | WG-182 | Sequential | ✅ Complete (PR #675) |
 | P5 — DevX Backlog | WG-183..WG-184 | Parallel | 🟡 Queued |
 
-**Blocking**: None (push CI is green; all phases are ready to execute)
+**Blocking**: None (all CI checks green; WG-175 release is next priority)
+
+**Completed 2026-06-30**:
+- PR #675: CI health + code quality fixes (WG-176..182)
+- PR #682: Stale advisory cleanup + anyhow update
+- PR #681: GitHub Actions bumps (13 actions to latest)
+- PR #684: Rust patch/minor deps
+- PR #678: sysinfo major bump (auto-merge enabled)
 
 **Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 
@@ -29,24 +36,26 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | 🔴 No tag/release (94 commits since v0.1.32) |
+| Workspace version | 0.1.33 | — | 🔴 No tag/release (~100 commits since v0.1.32) |
 | Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.33` in workspace  |
-| Commits since v0.1.32 | 94 | 0 | 🔴 Release drift (#674) |
+| Commits since v0.1.32 | ~100 | 0 | 🔴 Release drift (#674) |
 | Clippy (default features) | Clean | Clean | ✅ |
-| Clippy (--all-features) | 5 findings | 0 | 🔴 WG-180 |
-| Production src files >500 LOC | 1 (537) | 0 | 🟡 WG-181 |
+| Clippy (--all-features) | Clean | 0 | ✅ Fixed in PR #675 |
+| Production src files >500 LOC | 0 | 0 | ✅ Fixed in PR #675 (wrapper_backend.rs split) |
 | Push CI (main) | Green | Green | ✅ |
-| Scheduled Security | Failing | Green | 🔴 WG-176 |
-| Nightly Full Tests | Failing | Green | 🔴 WG-177 |
-| Mutation Testing | Cancelled (6h) | Completes | 🔴 WG-178 |
+| Scheduled Security | Fixed | Green | ✅ WG-176 done (PR #675) |
+| Nightly Full Tests | Fixed | Green | ✅ WG-177 done (PR #675 disk cleanup) |
+| Mutation Testing | Fixed | Completes | ✅ WG-178 done (scoped to memory-core) |
 | Fuzzing | Green | Green | ✅ |
-| Security audit | 2 allowed warnings | ≤2 allowed | ✅ (git2 transitive) |
-| Open issues | 3 | 0 | 🟡 |
-| Open PRs | 0 | 0 | ✅ |
+| Security audit (`cargo deny`) | Clean | Clean | ✅ Fixed in PR #682 |
+| Open issues | 3 | 0 | 🟡 (#674, #652, #653) |
+| Open PRs | 0-1 | 0 | 🟡 (#678 auto-merging) |
 | Fuzz harness | Present | Present | ✅ |
 | Property test files | 17 | ≥13 | ✅ |
 | MSRV | Rust 2024 / stable 1.95.0 | — | ✅ |
+| GitHub Actions | Latest (Node 24) | Up to date | ✅ PR #681 |
+| Dependencies | Patch current | Current | ✅ PRs #682, #684, #678 |
 
 ## v0.1.30 Sprint Highlights
 

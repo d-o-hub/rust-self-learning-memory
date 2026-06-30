@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-06-28 (v0.1.33 release pending; 94 unreleased commits; issue #674)
+**Last Updated**: 2026-06-30 (WG-176..182 complete; dependency maintenance done; v0.1.33 release pending)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
 **Active Sprint**: v0.1.33 — Release + CI Health + Quality (WG-175..184)
 **Branch**: `main`
@@ -44,7 +44,16 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 
 ## Current State
 
-`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` but **no git tag or GitHub release exists** — 94 commits unreleased (issue #674). PRs #620 and #622 merged 2026-06-14. Recent work: fuzz harness, agent eval workflow, edit distance optimization, MCP input bounds, actions pinned. Push CI green; scheduled Security/Nightly still failing (false positives + infra).
+`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` but **no git tag or GitHub release exists** — ~100 commits unreleased (issue #674).
+
+**2026-06-30 Progress**:
+- PR #675 merged: WG-176..182 complete (gitleaks, disk cleanup, mutation scoping, upload-artifact, clippy lints, wrapper split, cascade tracing)
+- PR #682 merged: deny.toml stale advisories removed, anyhow updated
+- PR #681 merged: 13 GitHub Actions bumped to latest (Node 24 compatible)
+- PR #684 merged: Rust patch/minor deps updated
+- PR #678: sysinfo major bump (auto-merge pending)
+
+**Remaining**: WG-175 (cut v0.1.33 release), WG-183 (llms.txt), WG-184 (VERSION ADR)
 
 **Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 

@@ -116,3 +116,6 @@ insights-report/
 # Compiled ELF binaries
 debug_config
 /bin/
+
+# Generated full LLM context (artifact only; compact llms.txt is tracked)
+/llms-full.txt

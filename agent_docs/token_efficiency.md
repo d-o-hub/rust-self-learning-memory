@@ -21,3 +21,15 @@
 - `find . -name` in Bash → Use Glob tool
 - `cat file` in Bash → Use Read tool
 - Multiple cargo commands → Use `./scripts/quality-gates.sh`
+
+## LLM Context Files (`llms.txt`)
+
+Load `llms.txt` for a compact, high-signal project overview (purpose, crate map,
+commands, invariants, doc links) instead of scanning many files.
+
+- **`llms.txt`** — tracked, compact. Regenerate with `scripts/generate-llms-txt.sh`.
+  Do not hand-edit; the version is sourced from the workspace `Cargo.toml`.
+- **`llms-full.txt`** — artifact only (git-ignored). Generate with
+  `scripts/generate-llms-txt.sh --full` when a full context dump is needed.
+- **CI freshness**: `scripts/generate-llms-txt.sh --check` fails if `llms.txt`
+  drifts from the generator output.

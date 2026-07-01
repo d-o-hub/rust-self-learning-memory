@@ -116,6 +116,14 @@ cargo build --features csm
 
 **Docs**: `agent_docs/csm_integration.md` for full cascade pipeline (WG-128 through WG-131).
 
+## Release Process (MANDATORY)
+**NEVER manually create GitHub releases.** Always use the automated workflow:
+1. Bump version in `Cargo.toml`
+2. Commit + push to `main`
+3. Push git tag: `git tag v<VERSION> && git push origin v<VERSION>`
+4. `release.yml` workflow triggers automatically (preflight → build → create release)
+5. Do NOT use `gh release create` manually — the workflow handles everything
+
 ## Security
 - Use env vars (never hardcode)
 - Parameterized SQL

@@ -61,7 +61,7 @@ fn create_patterns(count: usize) -> Vec<Pattern> {
                 avg_duration_secs: 0.5,
             },
             context: TaskContext::default(),
-            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
         })
         .collect()
 }

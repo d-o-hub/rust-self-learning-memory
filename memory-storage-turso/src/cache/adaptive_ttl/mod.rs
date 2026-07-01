@@ -6,7 +6,7 @@
 //! - Tracks statistics (hit rate, avg TTL, evictions)
 //! - Provides thread-safe operations
 //!
-//! ## Architecture
+//! #Architecture
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────┐
@@ -30,7 +30,6 @@
 //! ```
 
 use super::ttl_config::{TTLConfig, TTLConfigError};
-#[path = "adaptive_ttl_stats.rs"]
 mod stats;
 pub use stats::{CacheStats, CacheStatsSnapshot};
 use std::collections::HashMap;
@@ -160,7 +159,7 @@ where
 {
     /// Create a new adaptive TTL cache with the given configuration
     ///
-    /// # Errors
+    /// Errors
     ///
     /// Returns `TTLConfigError` if the configuration is invalid
     pub fn new(config: TTLConfig) -> Result<Self, TTLConfigError> {
@@ -441,5 +440,4 @@ impl<K, V> Drop for AdaptiveTTLCache<K, V> {
 }
 
 #[cfg(test)]
-#[path = "adaptive_ttl_tests.rs"]
 mod tests;

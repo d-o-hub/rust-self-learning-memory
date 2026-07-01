@@ -15,7 +15,7 @@
 #![allow(clippy::uninlined_format_args)]
 
 use chrono::Utc;
-use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+use do_memory_core::episode::{CapacityManager, EvictionPolicy};
 use do_memory_core::pre_storage::SalientFeatures;
 use do_memory_core::semantic::EpisodeSummary;
 use do_memory_core::{Episode, RewardScore, TaskContext, TaskOutcome, TaskType};

@@ -87,7 +87,7 @@ async fn test_cached_storage_pattern_operations() {
             avg_duration_secs: 0.5,
         },
         context: TaskContext::default(),
-        effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+        effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
     };
     let pattern_id = pattern.id();
 

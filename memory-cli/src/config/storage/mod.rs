@@ -300,7 +300,7 @@ pub(super) fn create_memory_config(config: &Config) -> MemoryConfig {
         concurrency: do_memory_core::ConcurrencyConfig::default(),
         // Phase 2 (GENESIS) - Capacity management
         max_episodes: None, // No capacity limit by default
-        eviction_policy: Some(do_memory_core::episodic::EvictionPolicy::RelevanceWeighted),
+        eviction_policy: Some(do_memory_core::episode::EvictionPolicy::RelevanceWeighted),
         // Phase 2 (GENESIS) - Semantic summarization
         enable_summarization: true,
         summary_min_length: 100,

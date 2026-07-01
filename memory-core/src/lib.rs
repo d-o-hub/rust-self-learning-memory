@@ -149,7 +149,7 @@
 //!
 //! ```no_run
 //! use do_memory_core::memory::SelfLearningMemory;
-//! use do_memory_core::patternss::HybridPatternExtractor;
+//! use do_memory_core::patterns::HybridPatternExtractor;
 //! use do_memory_core::episode::Episode;
 //!
 //! # #[tokio::main]

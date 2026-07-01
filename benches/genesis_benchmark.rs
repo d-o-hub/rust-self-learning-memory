@@ -24,7 +24,7 @@ use do_memory_benches::benchmark_helpers::{
 };
 use do_memory_core::{
     Episode,
-    episodic::{CapacityManager, EvictionPolicy},
+    episode::{CapacityManager, EvictionPolicy},
     semantic::SemanticSummarizer,
     types::{TaskOutcome, TaskType},
 };

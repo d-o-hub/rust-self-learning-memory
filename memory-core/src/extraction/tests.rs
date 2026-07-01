@@ -4,7 +4,7 @@ use super::*;
 use crate::{
     ComplexityLevel, Episode, ExecutionResult, ExecutionStep, OutcomeStats, TaskContext,
     TaskOutcome, TaskType,
-    pattern::{Pattern, PatternEffectiveness},
+    patterns::{Pattern, PatternEffectiveness},
 };
 use chrono::Duration;
 

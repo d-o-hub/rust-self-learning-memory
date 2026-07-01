@@ -49,8 +49,8 @@ mod provider;
 #[cfg(feature = "local-embeddings")]
 mod real_model;
 mod semantic_service;
-pub mod simple;
 mod similarity;
+pub mod simple;
 mod storage;
 mod utils;
 

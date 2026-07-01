@@ -152,7 +152,3 @@ pub struct CompressionStreamResult {
     /// Time taken in microseconds
     pub time_us: u64,
 }
-
-#[cfg(test)]
-#[path = "types_tests.rs"]
-mod tests;

@@ -32,6 +32,7 @@
 //! assert!(episode.is_complete());
 //! ```
 
+pub mod capacity;
 pub mod graph_algorithms;
 pub mod relationship_errors;
 pub mod relationship_manager;
@@ -39,7 +40,6 @@ pub mod relationship_manager;
 mod relationship_manager_tests;
 pub mod relationships;
 pub mod retention;
-pub mod capacity;
 pub mod structs;
 pub mod validation;
 

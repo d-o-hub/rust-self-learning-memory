@@ -136,8 +136,8 @@ pub async fn handle_list_tools(
     }
 }
 
-// --- Helper functions for error responses ---
-
+// --- Helper functions for error responses (available for future use in server_impl modules) ---
+#[allow(dead_code)]
 fn error_response(
     id: Option<serde_json::Value>,
     code: i32,
@@ -157,11 +157,13 @@ fn error_response(
 }
 
 /// Helper for standard JSON-RPC internal error (-32603)
+#[allow(dead_code)]
 fn internal_error(id: Option<serde_json::Value>, detail: &str) -> JsonRpcResponse {
     error_response(id, -32603, "Internal error", detail)
 }
 
 /// Helper for standard JSON-RPC invalid params error (-32602)
+#[allow(dead_code)]
 fn invalid_params(id: Option<serde_json::Value>, detail: &str) -> JsonRpcResponse {
     error_response(id, -32602, "Invalid params", detail)
 }

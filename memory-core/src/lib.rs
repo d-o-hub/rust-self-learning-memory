@@ -262,12 +262,12 @@ pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use patterns::{
-    Heuristic, Pattern, PatternEffectiveness,
     Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,
     ChangepointDetector, ClusterCentroid, ClusteringConfig, DBSCANAnomalyDetector,
     DBSCANClusterResult, DBSCANConfig, DBSCANStats, EffectivenessTracker, EpisodeCluster,
-    FeatureWeights, PatternClusterer, PatternMetrics, PatternUsage, PatternValidator,
-    SegmentComparison, SegmentComparisonConfig, SegmentStats, UsageStats, ValidationConfig,
+    FeatureWeights, Heuristic, Pattern, PatternClusterer, PatternEffectiveness, PatternMetrics,
+    PatternUsage, PatternValidator, SegmentComparison, SegmentComparisonConfig, SegmentStats,
+    UsageStats, ValidationConfig,
 };
 pub use procedural::ProceduralMemory;
 pub use reflection::ReflectionGenerator;

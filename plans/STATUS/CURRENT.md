@@ -16,7 +16,8 @@
 | P2 — CI Health | WG-176..WG-179 | Parallel | ✅ Complete (PR #675, #681) |
 | P3 — Code Quality | WG-180..WG-181 | Parallel | ✅ Complete (PR #675) |
 | P4 — Architecture | WG-182 | Sequential | ✅ Complete (PR #675) |
-| P5 — DevX Backlog | WG-183..WG-184 | Parallel | 🟡 Queued |
+| P5 — DevX Backlog | WG-183..WG-184 | Parallel | 🟢 WG-183 done; WG-184 queued |
+| P6 — Code Health | WG-185 | Parallel | ✅ WG-185 done (LOC boundary splits) |
 
 **Blocking**: None (all CI checks green; WG-175 release is next priority)
 
@@ -94,7 +95,7 @@
 | # | Title | Labels | Status |
 |---|-------|--------|--------|
 | [#674](https://github.com/d-o-hub/rust-self-learning-memory/issues/674) | ⚠️ Release drift: 94 unreleased commits since v0.1.32 | release-drift | 🔴 Open — WG-175 |
-| [#652](https://github.com/d-o-hub/rust-self-learning-memory/issues/652) | Automate llms.txt and full LLM context generation | — | 🔴 Open — WG-183 |
+| [#652](https://github.com/d-o-hub/rust-self-learning-memory/issues/652) | Automate llms.txt and full LLM context generation | — | 🟢 Resolved — WG-183 (`scripts/generate-llms-txt.sh`) |
 | [#653](https://github.com/d-o-hub/rust-self-learning-memory/issues/653) | Evaluate VERSION file adoption | — | 🔴 Open — WG-184 |
 
 ### Open PRs

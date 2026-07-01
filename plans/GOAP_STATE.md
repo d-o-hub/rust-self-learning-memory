@@ -36,9 +36,34 @@
 
 **Follow-up tasks**:
 - WG-175: Cut v0.1.33 release (now more urgent — additional commits since analysis)
-- WG-183: llms.txt generator (issue #652)
+- ✅ WG-183: llms.txt generator (issue #652) — DONE (`scripts/generate-llms-txt.sh`)
 - WG-184: ADR for VERSION file decision (issue #653)
 - Monitor PR #678 auto-merge completion
+
+---
+
+## WG-185 + WG-183 Execution (2026-07-01)
+
+**Branch**: `feat/wg185-loc-splits-llms-generator`
+**Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-30.md`
+
+**WG-185 — LOC boundary splits** (both files were at exactly 500 LOC, the gate limit):
+- `memory-core/src/retrieval/cascade/mod.rs`: 500 → 420 LOC. Extracted
+  `CascadeConfig`/`TierResult`/`CascadeResult` into new `cascade/types.rs` (re-exported).
+- `memory-cli/src/commands/tag/core.rs`: 500 → 382 LOC. Extracted `search_by_tags`
+  into new `core/search_ops.rs`.
+- Fixed pre-existing unused-variable warning in `cascade/weights.rs` tests (`cg` → `_cg`).
+
+**WG-183 — llms.txt generator (closes #652)**:
+- Added `scripts/generate-llms-txt.sh` (compact `llms.txt` tracked + regenerated;
+  `--full` emits git-ignored `llms-full.txt` artifact; `--check` for CI freshness).
+- Version sourced from `Cargo.toml`; crate map from `cargo metadata`.
+- Regenerated `llms.txt` (was stale at v0.1.30 → now v0.1.33).
+- Documented in `agent_docs/token_efficiency.md`; `.gitignore` excludes `llms-full.txt`.
+
+**Verification**: clippy clean (core+cli default; core `--features csm`), fmt clean,
+2009 tests pass, 165 doctests pass, `cargo doc` clean, docs-integrity unchanged
+(only pre-existing archive-only broken links remain).
 
 ---
 

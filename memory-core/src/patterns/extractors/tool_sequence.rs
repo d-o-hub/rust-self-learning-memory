@@ -4,7 +4,7 @@
 
 use super::PatternExtractor as PatternExtractorTrait;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Duration;
@@ -103,7 +103,7 @@ impl PatternExtractorTrait for ToolSequenceExtractor {
                 success_rate,
                 avg_latency,
                 occurrence_count: 1,
-                effectiveness: crate::pattern::PatternEffectiveness::new(),
+                effectiveness: crate::patterns::PatternEffectiveness::new(),
             });
         }
 

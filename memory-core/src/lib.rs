@@ -225,14 +225,12 @@ pub mod constants;
 pub mod context;
 pub mod embeddings;
 pub mod episode;
-pub mod episodic;
 pub mod error;
 pub mod extraction;
 pub mod indexing;
 pub mod learning;
 pub mod memory;
 pub mod monitoring;
-pub mod pattern;
 pub mod patterns;
 pub mod pre_storage;
 pub mod procedural;
@@ -248,12 +246,8 @@ pub mod sync;
 pub use sync::StorageSynchronizer;
 pub mod types;
 
-// Semantic embeddings module (simplified version)
-pub mod embeddings_simple;
-
 // Re-export commonly used types
-pub use episode::{Episode, ExecutionStep, PatternId};
-pub use episodic::{CapacityManager, EvictionPolicy};
+pub use episode::{CapacityManager, Episode, EvictionPolicy, ExecutionStep, PatternId};
 pub use error::{CacheError, Error, RelationshipError, Result};
 pub use extraction::PatternExtractor;
 pub use indexing::{
@@ -267,8 +261,8 @@ pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
-pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
+    Heuristic, Pattern, PatternEffectiveness,
     Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,
     ChangepointDetector, ClusterCentroid, ClusteringConfig, DBSCANAnomalyDetector,
     DBSCANClusterResult, DBSCANConfig, DBSCANStats, EffectivenessTracker, EpisodeCluster,

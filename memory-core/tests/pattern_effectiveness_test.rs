@@ -3,7 +3,7 @@
 use chrono::Duration;
 use do_memory_core::TaskType;
 use do_memory_core::episode::{ApplicationOutcome, Episode, PatternId};
-use do_memory_core::pattern::{Pattern, PatternEffectiveness};
+use do_memory_core::patterns::{Pattern, PatternEffectiveness};
 use do_memory_core::types::{ComplexityLevel, TaskContext};
 
 #[test]

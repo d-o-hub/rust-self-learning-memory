@@ -7,7 +7,7 @@ use super::{
     PatternExtractor as PatternExtractorTrait, ToolSequenceExtractor, cluster_similar_patterns,
 };
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use anyhow::Result;
 use async_trait::async_trait;
 use std::sync::Arc;

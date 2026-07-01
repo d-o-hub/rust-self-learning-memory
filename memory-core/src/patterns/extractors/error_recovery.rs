@@ -4,7 +4,7 @@
 
 use super::PatternExtractor as PatternExtractorTrait;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::{ExecutionResult, TaskOutcome};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -104,7 +104,7 @@ impl PatternExtractorTrait for ErrorRecoveryExtractor {
                     recovery_steps,
                     success_rate,
                     context: episode.context.clone(),
-                    effectiveness: crate::pattern::PatternEffectiveness::new(),
+                    effectiveness: crate::patterns::PatternEffectiveness::new(),
                 });
             }
         }

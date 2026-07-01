@@ -4,7 +4,7 @@ use super::planned_step::PlannedStep;
 use super::risk::RiskAssessment;
 use super::tool::Tool;
 use super::validator::OptimizedPatternValidator;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use anyhow::Result;
 

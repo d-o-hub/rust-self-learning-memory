@@ -30,7 +30,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     ///
     /// let manager = CapacityManager::new(1000, EvictionPolicy::RelevanceWeighted);
     /// assert!(manager.can_store(0));
@@ -56,7 +56,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     ///
     /// let manager = CapacityManager::new(100, EvictionPolicy::LRU);
     /// assert!(manager.can_store(50));
@@ -86,7 +86,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```no_run
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     /// use do_memory_core::{Episode, TaskContext, TaskType};
     ///
     /// let manager = CapacityManager::new(2, EvictionPolicy::LRU);
@@ -139,7 +139,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```no_run
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     /// use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
     ///
     /// let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);

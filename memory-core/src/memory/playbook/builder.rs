@@ -5,7 +5,7 @@
 use uuid::Uuid;
 
 use super::types::{PlaybookStep, PlaybookSynthesisSource};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 
 // Helper functions to reduce nesting in synthesize_steps
 

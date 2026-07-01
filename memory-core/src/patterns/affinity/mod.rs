@@ -13,7 +13,7 @@
 //! Reference: <https://zhaoc5.github.io/DyMoE/> (Section 3.1-3.2)
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use serde::{Deserialize, Serialize};
 
 /// Default threshold for affinity clarity gating.

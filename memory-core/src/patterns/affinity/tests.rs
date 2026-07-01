@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::episode::{Episode, ExecutionStep};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 
@@ -60,7 +60,7 @@ fn create_test_pattern(domain: &str, success_rate: f32) -> Pattern {
         success_rate,
         avg_latency: chrono::Duration::milliseconds(100),
         occurrence_count: 5,
-        effectiveness: crate::pattern::PatternEffectiveness::new(),
+        effectiveness: crate::patterns::PatternEffectiveness::new(),
     }
 }
 

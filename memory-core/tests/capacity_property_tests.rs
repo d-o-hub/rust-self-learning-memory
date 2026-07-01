@@ -4,7 +4,7 @@
 //! episode lifecycle (creation → steps → completion) and capacity management
 //! (`can_store`, eviction, relevance scoring).
 
-use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+use do_memory_core::episode::{CapacityManager, EvictionPolicy};
 use do_memory_core::*;
 use proptest::prelude::*;
 

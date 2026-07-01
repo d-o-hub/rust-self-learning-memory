@@ -2,7 +2,7 @@
 
 use crate::context::{BundleAccumulator, BundleConfig, BundleStats, ContextItem, ContextItemType};
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::{TaskContext, TaskType};
 use chrono::{Duration, Utc};
 use std::sync::Arc;
@@ -24,7 +24,7 @@ pub(super) fn create_test_episode_with_id(description: &str, days_ago: i64) -> A
 }
 
 fn create_test_pattern_with_id(name: &str, days_ago: i64) -> Arc<Pattern> {
-    use crate::pattern::PatternEffectiveness;
+    use crate::patterns::PatternEffectiveness;
     use chrono::Duration as ChronoDuration;
 
     // Create a ToolSequence pattern for testing

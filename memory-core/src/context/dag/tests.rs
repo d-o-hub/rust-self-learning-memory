@@ -836,8 +836,8 @@ fn test_full_pipeline_empty_bundle() {
 #[test]
 fn test_full_pipeline_episodes_only_filter() {
     use crate::context::{BundleAccumulator, ContextItem};
-    use crate::pattern::Pattern;
-    use crate::pattern::PatternEffectiveness;
+    use crate::patterns::Pattern;
+    use crate::patterns::PatternEffectiveness;
 
     // Create episodes
     let ep1 = Arc::new(create_test_episode(

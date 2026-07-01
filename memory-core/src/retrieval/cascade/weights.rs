@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_long_query_favors_semantic() {
         let query = "a".repeat(120);
-        let (bm25, hdc, cg) = compute_tier_weights(&query);
+        let (bm25, hdc, _cg) = compute_tier_weights(&query);
         assert!(hdc > bm25);
     }
 

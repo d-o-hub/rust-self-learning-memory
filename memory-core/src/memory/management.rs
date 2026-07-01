@@ -332,7 +332,7 @@ impl SelfLearningMemory {
     /// # Returns
     ///
     /// Vector of all heuristics
-    pub async fn get_all_heuristics(&self) -> Result<Vec<crate::pattern::Heuristic>> {
+    pub async fn get_all_heuristics(&self) -> Result<Vec<crate::patterns::Heuristic>> {
         let heuristics = self.heuristics_fallback.read().await;
         Ok(heuristics.values().cloned().collect())
     }

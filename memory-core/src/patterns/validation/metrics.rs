@@ -4,7 +4,7 @@
 //! pattern matching, and similarity calculations.
 
 use super::rules::{PatternMetrics, PatternValidator, ValidationConfig};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use std::collections::HashMap;
 use tracing::{debug, instrument};
 use uuid::Uuid;
@@ -235,7 +235,7 @@ mod tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
-                effectiveness: crate::pattern::PatternEffectiveness::new(),
+                effectiveness: crate::patterns::PatternEffectiveness::new(),
             },
             Pattern::ErrorRecovery {
                 id: Uuid::new_v4(),
@@ -243,7 +243,7 @@ mod tests {
                 recovery_steps: vec!["retry".to_string()],
                 success_rate: 0.8,
                 context: create_test_context(),
-                effectiveness: crate::pattern::PatternEffectiveness::new(),
+                effectiveness: crate::patterns::PatternEffectiveness::new(),
             },
         ];
 
@@ -273,7 +273,7 @@ mod tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
-                effectiveness: crate::pattern::PatternEffectiveness::new(),
+                effectiveness: crate::patterns::PatternEffectiveness::new(),
             },
             Pattern::ErrorRecovery {
                 id: Uuid::new_v4(),
@@ -281,7 +281,7 @@ mod tests {
                 recovery_steps: vec!["retry".to_string()],
                 success_rate: 0.8,
                 context: create_test_context(),
-                effectiveness: crate::pattern::PatternEffectiveness::new(),
+                effectiveness: crate::patterns::PatternEffectiveness::new(),
             },
         ];
 
@@ -293,7 +293,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         }];
 
         let metrics = validator.calculate_metrics(&ground_truth, &extracted);

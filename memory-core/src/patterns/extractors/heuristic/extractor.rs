@@ -1,7 +1,7 @@
 //! Heuristic extractor implementation
 
 use crate::episode::Episode;
-use crate::pattern::Heuristic;
+use crate::patterns::Heuristic;
 use crate::types::{Evidence, TaskOutcome};
 use anyhow::{Context as AnyhowContext, Result};
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ use super::extraction::{extract_action, extract_condition, is_decision_action};
 /// # Examples
 ///
 /// ```no_run
-/// use do_memory_core::patterns::extractors::heuristic::HeuristicExtractor;
+/// use do_memory_core::patternss::extractors::heuristic::HeuristicExtractor;
 /// use do_memory_core::Episode;
 ///
 /// let extractor = HeuristicExtractor::new();

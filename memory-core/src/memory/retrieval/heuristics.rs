@@ -62,7 +62,7 @@ impl SelfLearningMemory {
         &self,
         context: &TaskContext,
         limit: usize,
-    ) -> Vec<crate::pattern::Heuristic> {
+    ) -> Vec<crate::patterns::Heuristic> {
         let heuristics = self.heuristics_fallback.read().await;
 
         debug!(

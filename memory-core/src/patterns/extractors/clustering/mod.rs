@@ -2,7 +2,7 @@
 //!
 //! Provides functionality to deduplicate similar patterns using clustering.
 
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use std::collections::HashSet;
 
 mod cluster_types;
@@ -86,7 +86,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -96,7 +96,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         };
 
         let test_patterns = vec![pattern1.clone(), pattern2.clone(), pattern1.clone()];

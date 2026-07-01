@@ -8,7 +8,7 @@ type EpisodeMap = tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>;
 
 use crate::Result;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use chrono::{TimeZone, Utc};
 use std::collections::HashMap;
 use std::sync::Arc;

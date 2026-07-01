@@ -4,7 +4,7 @@
 //! Each extractor specializes in a different pattern type.
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use anyhow::Result;
 use async_trait::async_trait;
 

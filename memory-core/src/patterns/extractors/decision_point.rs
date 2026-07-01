@@ -4,7 +4,7 @@
 
 use super::PatternExtractor as PatternExtractorTrait;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::OutcomeStats;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -78,7 +78,7 @@ impl PatternExtractorTrait for DecisionPointExtractor {
                     action: step.tool.clone(),
                     outcome_stats,
                     context: episode.context.clone(),
-                    effectiveness: crate::pattern::PatternEffectiveness::new(),
+                    effectiveness: crate::patterns::PatternEffectiveness::new(),
                 });
             }
         }

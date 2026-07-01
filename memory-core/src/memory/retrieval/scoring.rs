@@ -119,7 +119,7 @@ impl SelfLearningMemory {
     /// - Tag overlap: +0.3 per matching tag
     pub(super) fn calculate_heuristic_relevance(
         &self,
-        heuristic: &crate::pattern::Heuristic,
+        heuristic: &crate::patterns::Heuristic,
         domain_lower: &str,
         language_lower: Option<&str>,
         framework_lower: Option<&str>,
@@ -301,7 +301,7 @@ mod tests {
     #[test]
     fn test_calculate_heuristic_relevance() {
         let memory = SelfLearningMemory::new();
-        let heuristic = crate::pattern::Heuristic {
+        let heuristic = crate::patterns::Heuristic {
             heuristic_id: Uuid::new_v4(),
             condition: "In rust web-api using axum".to_string(),
             action: "Use middleware".to_string(),

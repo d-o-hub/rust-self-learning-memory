@@ -2,7 +2,7 @@
 //!
 //! Provides clustering logic for specific pattern types.
 
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
@@ -141,7 +141,7 @@ fn merge_error_recovery_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
             recovery_steps: unique_steps,
             success_rate: total_success_rate / count as f32,
             context: context.clone(),
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         })
     } else {
         None
@@ -266,6 +266,6 @@ pub fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
         recommended_approach: combined_approach,
         evidence: all_evidence,
         success_rate: avg_success_rate,
-        effectiveness: crate::pattern::PatternEffectiveness::new(),
+        effectiveness: crate::patterns::PatternEffectiveness::new(),
     })
 }

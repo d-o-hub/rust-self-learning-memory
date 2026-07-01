@@ -3,7 +3,7 @@
 //! Provides pattern validation logic including confidence checking,
 //! effectiveness tracking, and pattern matching rules.
 
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{debug, instrument};
@@ -240,7 +240,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 10,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         };
 
         let low_conf_pattern = Pattern::ToolSequence {
@@ -250,7 +250,7 @@ mod tests {
             success_rate: 0.5,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 3,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         };
 
         assert!(validator.validate_confidence(&high_conf_pattern));

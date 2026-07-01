@@ -6,7 +6,7 @@
 use crate::memory::playbook::{
     PlaybookGenerator, PlaybookRequest, RecommendedPlaybook, ReflectionData,
 };
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
 use crate::types::TaskType;

@@ -13,7 +13,7 @@ fn test_memory_config_default() {
     assert_eq!(config.max_episodes, None); // Unlimited by default
     assert!(matches!(
         config.eviction_policy,
-        Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+        Some(crate::episode::EvictionPolicy::RelevanceWeighted)
     ));
     assert!(config.enable_summarization);
     assert_eq!(config.summary_min_length, 100);
@@ -37,7 +37,7 @@ fn test_memory_config_from_env_defaults() {
     assert_eq!(config.max_episodes, None);
     assert!(matches!(
         config.eviction_policy,
-        Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+        Some(crate::episode::EvictionPolicy::RelevanceWeighted)
     ));
     assert!(config.enable_summarization);
 }
@@ -58,7 +58,7 @@ fn test_memory_config_from_env_with_values() {
     assert_eq!(config.max_episodes, Some(10000));
     assert!(matches!(
         config.eviction_policy,
-        Some(crate::episodic::EvictionPolicy::LRU)
+        Some(crate::episode::EvictionPolicy::LRU)
     ));
     assert!(!config.enable_summarization);
 
@@ -176,23 +176,23 @@ fn test_storage_config_custom_values() {
 #[test]
 fn test_memory_config_eviction_policy_variants() {
     let test_cases = vec![
-        ("lru", crate::episodic::EvictionPolicy::LRU),
-        ("LRU", crate::episodic::EvictionPolicy::LRU),
+        ("lru", crate::episode::EvictionPolicy::LRU),
+        ("LRU", crate::episode::EvictionPolicy::LRU),
         (
             "relevanceweighted",
-            crate::episodic::EvictionPolicy::RelevanceWeighted,
+            crate::episode::EvictionPolicy::RelevanceWeighted,
         ),
         (
             "relevance_weighted",
-            crate::episodic::EvictionPolicy::RelevanceWeighted,
+            crate::episode::EvictionPolicy::RelevanceWeighted,
         ),
         (
             "relevance-weighted",
-            crate::episodic::EvictionPolicy::RelevanceWeighted,
+            crate::episode::EvictionPolicy::RelevanceWeighted,
         ),
         (
             "RelevanceWeighted",
-            crate::episodic::EvictionPolicy::RelevanceWeighted,
+            crate::episode::EvictionPolicy::RelevanceWeighted,
         ),
     ];
 
@@ -227,7 +227,7 @@ fn test_memory_config_invalid_eviction_policy() {
     assert!(
         matches!(
             config.eviction_policy,
-            Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+            Some(crate::episode::EvictionPolicy::RelevanceWeighted)
         ),
         "Expected RelevanceWeighted fallback, got {:?}",
         config.eviction_policy

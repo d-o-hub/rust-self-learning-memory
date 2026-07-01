@@ -1,6 +1,6 @@
 use crate::Result;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::storage::StorageBackend;
 use std::sync::Arc;
 use uuid::Uuid;

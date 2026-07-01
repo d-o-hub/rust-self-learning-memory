@@ -29,7 +29,7 @@ impl ProceduralMemory {
             description,
             context,
             steps,
-            effectiveness: crate::pattern::PatternEffectiveness::default(),
+            effectiveness: crate::patterns::PatternEffectiveness::default(),
             source_episodes: Vec::new(),
             source_patterns: Vec::new(),
             created_at: now,

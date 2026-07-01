@@ -4,7 +4,7 @@
 
 use super::PatternExtractor as PatternExtractorTrait;
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskOutcome;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -121,7 +121,7 @@ impl PatternExtractorTrait for ContextPatternExtractor {
             recommended_approach,
             evidence: vec![episode.episode_id],
             success_rate,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         });
 
         Ok(patterns)

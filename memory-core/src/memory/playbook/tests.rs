@@ -1,8 +1,8 @@
 //! Tests for playbook module
 
 use super::*;
-use crate::pattern::Pattern;
-use crate::pattern::PatternEffectiveness;
+use crate::patterns::Pattern;
+use crate::patterns::PatternEffectiveness;
 use crate::semantic::EpisodeSummary;
 use crate::types::{ComplexityLevel, OutcomeStats, TaskContext, TaskType};
 use chrono::Utc;

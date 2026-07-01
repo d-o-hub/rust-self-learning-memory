@@ -3,7 +3,7 @@
 //! Pattern clustering engine for grouping and deduplicating patterns.
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::patterns::clustering::{ClusterCentroid, ClusteringConfig, EpisodeCluster};
 use crate::types::TaskContext;
 use std::collections::HashMap;

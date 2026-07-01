@@ -6,7 +6,7 @@ use crate::episode::ExecutionStep;
 use crate::error::{Error, Result};
 use crate::memory::SelfLearningMemory;
 use crate::memory::pattern_search::PatternSearchResult;
-use crate::pattern::Heuristic;
+use crate::patterns::Heuristic;
 use chrono::Utc;
 use tracing::{info, instrument, warn};
 use uuid::Uuid;
@@ -251,7 +251,7 @@ async fn generate_suggested_next_steps(
 
     for pattern in patterns {
         match &pattern {
-            crate::pattern::Pattern::ToolSequence { tools, .. } => {
+            crate::patterns::Pattern::ToolSequence { tools, .. } => {
                 let remaining_tools: Vec<_> = tools
                     .iter()
                     .filter(|t| !episode.steps.iter().any(|s| &s.tool == *t))
@@ -267,7 +267,7 @@ async fn generate_suggested_next_steps(
                     ));
                 }
             }
-            crate::pattern::Pattern::DecisionPoint {
+            crate::patterns::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 suggestions.push(format!("Consider: {condition} (then {action})"));

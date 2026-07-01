@@ -1,7 +1,7 @@
 //! Episode completion and pattern learning
 
 use crate::error::{Error, Result};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskOutcome;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};

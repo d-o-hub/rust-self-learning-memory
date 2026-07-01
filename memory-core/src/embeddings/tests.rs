@@ -31,7 +31,7 @@ fn create_test_pattern() -> Pattern {
         success_rate: 1.0,
         avg_latency: Duration::milliseconds(100),
         occurrence_count: 1,
-        effectiveness: crate::pattern::PatternEffectiveness::default(),
+        effectiveness: crate::patterns::PatternEffectiveness::default(),
     }
 }
 

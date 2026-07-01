@@ -1,6 +1,6 @@
 //! Tests for pattern extraction and management
 
-use crate::pattern::*;
+use crate::patterns::*;
 use crate::types::ComplexityLevel;
 use chrono::Duration;
 use uuid::Uuid;

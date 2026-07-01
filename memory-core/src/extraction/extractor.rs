@@ -1,7 +1,7 @@
 //! Core pattern extractor implementation
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use chrono::Duration;
 use tracing::{debug, instrument};
 

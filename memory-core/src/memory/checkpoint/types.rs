@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::episode::ExecutionStep;
 use crate::memory::pattern_search::PatternSearchResult;
-use crate::pattern::Heuristic;
+use crate::patterns::Heuristic;
 
 /// Metadata for an episode checkpoint.
 ///

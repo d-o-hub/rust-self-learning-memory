@@ -6,6 +6,8 @@
 //! The capacity manager enforces storage limits and intelligently evicts
 //! low-relevance episodes using a combination of quality scores and recency.
 
+pub mod calculator;
+pub mod management;
 pub mod manager;
 pub mod policy;
 

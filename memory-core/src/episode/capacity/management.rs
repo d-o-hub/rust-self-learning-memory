@@ -13,7 +13,7 @@ impl CapacityManager {
     /// Evict episodes using LRU policy.
     ///
     /// Returns the oldest episodes (by `end_time` or `start_time`).
-    fn evict_lru(&self, episodes: &[Episode], count: usize) -> Vec<Uuid> {
+    pub(super) fn evict_lru(&self, episodes: &[Episode], count: usize) -> Vec<Uuid> {
         let mut episodes_with_time: Vec<_> = episodes
             .iter()
             .map(|e| {
@@ -36,7 +36,7 @@ impl CapacityManager {
     /// Evict episodes using relevance-weighted policy.
     ///
     /// Returns episodes with lowest relevance scores.
-    fn evict_relevance_weighted(&self, episodes: &[Episode], count: usize) -> Vec<Uuid> {
+    pub(super) fn evict_relevance_weighted(&self, episodes: &[Episode], count: usize) -> Vec<Uuid> {
         let mut episodes_with_scores: Vec<_> = episodes
             .iter()
             .map(|e| {

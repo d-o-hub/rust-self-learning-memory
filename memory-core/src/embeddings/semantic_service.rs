@@ -1,7 +1,7 @@
 //! Semantic service for embedding operations.
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use anyhow::Result;
 
@@ -371,15 +371,15 @@ impl SemanticService {
 
         // Pattern description based on type
         let description = match pattern {
-            crate::pattern::Pattern::ToolSequence { tools, .. } => {
+            crate::patterns::Pattern::ToolSequence { tools, .. } => {
                 format!("Tool sequence: {}", tools.join(" -> "))
             }
-            crate::pattern::Pattern::DecisionPoint {
+            crate::patterns::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 format!("Decision: if {condition} then {action}")
             }
-            crate::pattern::Pattern::ErrorRecovery {
+            crate::patterns::Pattern::ErrorRecovery {
                 error_type,
                 recovery_steps,
                 ..
@@ -390,7 +390,7 @@ impl SemanticService {
                     recovery_steps.join(" -> ")
                 )
             }
-            crate::pattern::Pattern::ContextPattern {
+            crate::patterns::Pattern::ContextPattern {
                 context_features,
                 recommended_approach,
                 ..

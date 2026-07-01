@@ -44,8 +44,8 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     let capacity_manager = if let Some(max_episodes) = config.max_episodes {
         let eviction_policy = config
             .eviction_policy
-            .unwrap_or(crate::episodic::EvictionPolicy::RelevanceWeighted);
-        Some(crate::episodic::CapacityManager::new(
+            .unwrap_or(crate::episode::EvictionPolicy::RelevanceWeighted);
+        Some(crate::episode::CapacityManager::new(
             max_episodes,
             eviction_policy,
         ))
@@ -179,8 +179,8 @@ pub fn with_storage(
     let capacity_manager = if let Some(max_episodes) = config.max_episodes {
         let eviction_policy = config
             .eviction_policy
-            .unwrap_or(crate::episodic::EvictionPolicy::RelevanceWeighted);
-        Some(crate::episodic::CapacityManager::new(
+            .unwrap_or(crate::episode::EvictionPolicy::RelevanceWeighted);
+        Some(crate::episode::CapacityManager::new(
             max_episodes,
             eviction_policy,
         ))

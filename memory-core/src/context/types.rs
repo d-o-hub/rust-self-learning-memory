@@ -4,7 +4,7 @@
 //! with bounded capacity and priority scoring.
 
 use crate::episode::Episode;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

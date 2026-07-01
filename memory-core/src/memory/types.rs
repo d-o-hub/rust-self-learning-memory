@@ -5,7 +5,7 @@ use crate::learning::queue::PatternExtractionQueue;
 use crate::memory::attribution::RecommendationTracker;
 use crate::memory::playbook::PlaybookGenerator;
 use crate::monitoring::AgentMonitor;
-use crate::pattern::{Heuristic, Pattern};
+use crate::patterns::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::procedural::ProceduralMemory;
@@ -100,7 +100,7 @@ pub struct SelfLearningMemory {
 
     // Phase 2 (GENESIS) - Capacity management
     /// Capacity manager for episodic storage with eviction policies
-    pub(super) capacity_manager: Option<crate::episodic::CapacityManager>,
+    pub(super) capacity_manager: Option<crate::episode::CapacityManager>,
 
     // Phase 2 (GENESIS) - Semantic summarization
     /// Semantic summarizer for episode compression

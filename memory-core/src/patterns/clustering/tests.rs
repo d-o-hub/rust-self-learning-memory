@@ -7,8 +7,8 @@
 mod tests {
     use crate::Episode;
     use crate::ExecutionStep;
-    use crate::pattern::Pattern;
-    use crate::pattern::PatternEffectiveness;
+    use crate::patterns::Pattern;
+    use crate::patterns::PatternEffectiveness;
     use crate::patterns::{ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome};
     use chrono::Utc;

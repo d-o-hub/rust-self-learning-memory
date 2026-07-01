@@ -128,3 +128,106 @@ pub async fn search_by_tags(
 
     format.print_output(&result)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::SelfLearningMemory;
+
+    #[test]
+    fn test_min_tag_search_limit_is_one() {
+        assert_eq!(MIN_TAG_SEARCH_LIMIT, 1);
+    }
+
+    #[test]
+    fn test_max_tag_search_limit_is_one_thousand() {
+        assert_eq!(MAX_TAG_SEARCH_LIMIT, 1000);
+    }
+
+    #[tokio::test]
+    async fn test_search_by_tags_empty_tags_returns_error() {
+        let memory = SelfLearningMemory::new();
+        let result = search_by_tags(
+            vec![],
+            false,
+            false,
+            false,
+            10,
+            &memory,
+            OutputFormat::Human,
+            false,
+        )
+        .await;
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("At least one tag must be specified"));
+    }
+
+    #[tokio::test]
+    async fn test_search_by_tags_dry_run() {
+        let memory = SelfLearningMemory::new();
+        let result = search_by_tags(
+            vec!["rust".to_string()],
+            true,
+            true,
+            true,
+            5,
+            &memory,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_search_by_tags_limit_clamped_below() {
+        let memory = SelfLearningMemory::new();
+        let result = search_by_tags(
+            vec!["rust".to_string()],
+            false,
+            false,
+            false,
+            0,
+            &memory,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_search_by_tags_limit_clamped_above() {
+        let memory = SelfLearningMemory::new();
+        let result = search_by_tags(
+            vec!["rust".to_string()],
+            false,
+            false,
+            false,
+            9999,
+            &memory,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_search_by_tags_exact_match() {
+        let memory = SelfLearningMemory::new();
+        let result = search_by_tags(
+            vec!["rust".to_string()],
+            false,
+            false,
+            false,
+            10,
+            &memory,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
+}

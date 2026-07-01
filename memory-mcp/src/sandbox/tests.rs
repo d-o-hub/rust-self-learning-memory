@@ -182,6 +182,46 @@ async fn test_process_execution_blocking() {
 }
 
 #[tokio::test]
+async fn test_security_bypass_attempts() {
+    set_once();
+    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+    let context = create_test_context();
+
+    // 1. Whitespace bypass
+    let code1 = "const fs = require (  'fs'   );";
+    let result1 = sandbox.execute(code1, context.clone()).await.unwrap();
+    assert!(matches!(result1, ExecutionResult::SecurityViolation { violation_type: SecurityViolationType::FileSystemAccess, .. }));
+
+    // 2. Template literal bypass
+    let code2 = "const fs = require(`fs`);";
+    let result2 = sandbox.execute(code2, context.clone()).await.unwrap();
+    assert!(matches!(result2, ExecutionResult::SecurityViolation { violation_type: SecurityViolationType::FileSystemAccess, .. }));
+
+    // 3. Newline bypass
+    let code3 = "const fs = require(\n'fs'\n);";
+    let result3 = sandbox.execute(code3, context.clone()).await.unwrap();
+    assert!(matches!(result3, ExecutionResult::SecurityViolation { violation_type: SecurityViolationType::FileSystemAccess, .. }));
+
+    // 4. Malicious code (Function constructor)
+    let code4 = "const f = new Function('return process');";
+    let result4 = sandbox.execute(code4, context.clone()).await.unwrap();
+    assert!(matches!(result4, ExecutionResult::SecurityViolation { violation_type: SecurityViolationType::MaliciousCode, .. }));
+
+    // 5. Runtime obfuscation bypass (split string)
+    // This should NOT be caught by detect_security_violations (static analysis),
+    // but should fail at runtime because 'require' is shadowed and deleted.
+    let code5 = "const r = 'req' + 'uire'; const fs = global[r]('fs');";
+    let result5 = sandbox.execute(code5, context.clone()).await.unwrap();
+    match result5 {
+        ExecutionResult::Error { message, .. } => {
+            // Expected runtime error since require is not available
+            assert!(message.contains("is not a function") || message.contains("cannot read property"));
+        }
+        other => panic!("Expected runtime error for split-string bypass, got: {:?}", other),
+    }
+}
+
+#[tokio::test]
 async fn test_infinite_loop_detection() {
     timeout(Duration::from_secs(10), async {
         set_once();

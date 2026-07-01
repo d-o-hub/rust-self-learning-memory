@@ -475,6 +475,39 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 ---
 
+## Release Process (MANDATORY)
+
+**NEVER manually create GitHub releases.** Always use the automated workflow.
+
+### How releases work
+1. Bump version in `Cargo.toml` (workspace)
+2. Update `CHANGELOG.md` / `ROADMAP_ACTIVE.md` / `STATUS/CURRENT.md`
+3. Commit + push to `main`
+4. Push a git tag: `git tag v<VERSION> && git push origin v<VERSION>`
+5. The `release.yml` workflow triggers automatically on tag push:
+   - Preflight: verifies tag matches `Cargo.toml` version
+   - Builds multi-platform artifacts via `cargo-dist`
+   - Creates GitHub Release with changelog + artifacts
+6. The `release-drift.yml` monitors unreleased commits and auto-creates drift issues
+
+### What NOT to do
+- Do NOT use `gh release create` manually
+- Do NOT create releases from non-main branches
+- Do NOT skip the preflight tag-version check
+- Do NOT bypass the workflow for "quick releases"
+
+### Release readiness checklist
+- [ ] All required CI checks green on `main`
+- [ ] `cargo nextest run --all` passes
+- [ ] `cargo test --doc` passes
+- [ ] `./scripts/quality-gates.sh` passes (≥90% coverage)
+- [ ] `./scripts/code-quality.sh clippy --workspace` clean
+- [ ] Version bumped in `Cargo.toml`
+- [ ] Changelog updated
+- [ ] Tag pushed (triggers workflow)
+
+---
+
 ## Key Metrics
 
 | Metric | Value | Target |

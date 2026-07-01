@@ -61,24 +61,44 @@ pub fn read_next_message<R: BufRead + Read>(reader: &mut R) -> io::Result<Option
         if low.starts_with("content-length:") {
             // Parse length
             let parts: Vec<&str> = trimmed.splitn(2, ':').collect();
-            let len: usize = parts
-                .get(1)
-                .map(|s| s.trim().parse().ok().unwrap_or(0))
-                .unwrap_or(0);
+            let len_str = parts.get(1).map(|s| s.trim()).unwrap_or("");
+            let len: usize = len_str.parse().map_err(|e| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("Malformed Content-Length header value '{}': {}", len_str, e),
+                )
+            })?;
+
+            if len == 0 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Content-Length header value is zero",
+                ));
+            }
 
             // Consume remaining header lines until we reach an empty line
+            let mut has_content_type = false;
             loop {
                 let mut hline = String::new();
                 let hn = reader.read_line(&mut hline)?;
-                if hn == 0 || hline.trim().is_empty() {
+                if hn == 0 {
                     break;
+                }
+                let htrimmed = hline.trim();
+                if htrimmed.is_empty() {
+                    break;
+                }
+
+                if htrimmed.to_ascii_lowercase().starts_with("content-type:") {
+                    has_content_type = true;
                 }
             }
 
-            // Read exact number of bytes for the content
-            if len == 0 {
-                continue;
+            if !has_content_type {
+                tracing::warn!("LSP message missing Content-Type header");
             }
+
+            // Read exact number of bytes for the content
             let mut buf = vec![0u8; len];
             reader.read_exact(&mut buf)?;
             return Ok(Some((String::from_utf8_lossy(&buf).to_string(), true)));

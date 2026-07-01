@@ -88,21 +88,16 @@ pub async fn handle_initialize(
         }),
         Err(e) => {
             error!("Failed to serialize initialize response: {}", e);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: "Internal error".to_string(),
-                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
-                }),
-            })
+            Some(internal_error(
+                request.id,
+                &format!("Response serialization failed: {e}"),
+            ))
         }
     }
 }
 
 /// Handle tools/list request
+#[deprecated = "Use handle_list_tools_with_lazy instead"]
 pub async fn handle_list_tools(
     request: JsonRpcRequest,
     tools: Vec<McpTool>,
@@ -122,21 +117,46 @@ pub async fn handle_list_tools(
         }),
         Err(e) => {
             error!("Failed to serialize list_tools response: {}", e);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: "Internal error".to_string(),
-                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
-                }),
-            })
+            Some(internal_error(
+                request.id,
+                &format!("Response serialization failed: {e}"),
+            ))
         }
     }
 }
 
+// --- Helper functions for error responses ---
+
+fn error_response(
+    id: Option<serde_json::Value>,
+    code: i32,
+    message: &str,
+    detail: &str,
+) -> JsonRpcResponse {
+    JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id,
+        result: None,
+        error: Some(JsonRpcError {
+            code,
+            message: message.to_string(),
+            data: Some(json!({ "details": detail })),
+        }),
+    }
+}
+
+/// Helper for standard JSON-RPC internal error (-32603)
+fn internal_error(id: Option<serde_json::Value>, detail: &str) -> JsonRpcResponse {
+    error_response(id, -32603, "Internal error", detail)
+}
+
+/// Helper for standard JSON-RPC invalid params error (-32602)
+fn invalid_params(id: Option<serde_json::Value>, detail: &str) -> JsonRpcResponse {
+    error_response(id, -32602, "Invalid params", detail)
+}
+
 /// Handle shutdown request
+#[deprecated]
 pub async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
     request.id.as_ref()?;
@@ -202,18 +222,10 @@ pub fn handle_list_tools_with_lazy(
             }),
             Err(e) => {
                 error!("Failed to serialize list_tools response: {}", e);
-                Some(JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32603,
-                        message: "Internal error".to_string(),
-                        data: Some(
-                            json!({"details": format!("Response serialization failed: {}", e)}),
-                        ),
-                    }),
-                })
+                Some(internal_error(
+                    request.id,
+                    &format!("Response serialization failed: {e}"),
+                ))
             }
         }
     } else {
@@ -239,18 +251,10 @@ pub fn handle_list_tools_with_lazy(
             }),
             Err(e) => {
                 error!("Failed to serialize list_tools response: {}", e);
-                Some(JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32603,
-                        message: "Internal error".to_string(),
-                        data: Some(
-                            json!({"details": format!("Response serialization failed: {}", e)}),
-                        ),
-                    }),
-                })
+                Some(internal_error(
+                    request.id,
+                    &format!("Response serialization failed: {e}"),
+                ))
             }
         }
     }
@@ -285,16 +289,10 @@ where
     let tool_name = match tool_name {
         Some(name) => name,
         None => {
-            return Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Invalid params".to_string(),
-                    data: Some(json!({"details": "Missing required parameter: name"})),
-                }),
-            });
+            return Some(invalid_params(
+                request.id,
+                "Missing required parameter: name",
+            ));
         }
     };
 
@@ -320,33 +318,21 @@ where
                 }),
                 Err(e) => {
                     error!("Failed to serialize describe_tool response: {}", e);
-                    Some(JsonRpcResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: None,
-                        error: Some(JsonRpcError {
-                            code: -32603,
-                            message: "Internal error".to_string(),
-                            data: Some(
-                                json!({"details": format!("Response serialization failed: {}", e)}),
-                            ),
-                        }),
-                    })
+                    Some(internal_error(
+                        request.id,
+                        &format!("Response serialization failed: {e}"),
+                    ))
                 }
             }
         }
         None => {
             info!("Tool not found: {}", tool_name);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Tool not found".to_string(),
-                    data: Some(json!({"tool_name": tool_name})),
-                }),
-            })
+            Some(error_response(
+                request.id,
+                -32602,
+                "Tool not found",
+                &format!("Tool not found: {tool_name}"),
+            ))
         }
     }
 }
@@ -384,16 +370,10 @@ where
             .map(String::from)
             .collect::<Vec<_>>(),
         None => {
-            return Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Invalid params".to_string(),
-                    data: Some(json!({"details": "Missing required parameter: names (array)"})),
-                }),
-            });
+            return Some(invalid_params(
+                request.id,
+                "Missing required parameter: names (array)",
+            ));
         }
     };
 
@@ -421,16 +401,10 @@ where
         }),
         Err(e) => {
             error!("Failed to serialize describe_tools response: {}", e);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: "Internal error".to_string(),
-                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
-                }),
-            })
+            Some(internal_error(
+                request.id,
+                &format!("Response serialization failed: {e}"),
+            ))
         }
     }
 }

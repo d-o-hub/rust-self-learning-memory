@@ -118,26 +118,35 @@ fn deeply_nested_json_object() {
 // ============================================================================
 
 #[test]
-fn content_length_zero_skips_to_next() {
-    // Content-Length: 0 should be skipped, then read the next line
+fn content_length_zero_returns_error() {
+    // PR #708 made Content-Length: 0 an explicit error (errored InvalidData)
+    // rather than silently skipping to the next line. The strict contract is:
+    // zero is not a valid message framing — callers should reconnect/restart.
     let input = "Content-Length: 0\r\n\r\n{\"id\":1,\"method\":\"ping\"}\n";
     let mut cursor = Cursor::new(input.as_bytes().to_vec());
-    let result = read_next_message(&mut cursor).unwrap();
-    assert!(result.is_some());
-    let (msg, is_lsp) = result.unwrap();
-    assert!(!is_lsp); // The JSON line is read as line-delimited, not LSP
-    assert!(msg.contains("\"method\":\"ping\""));
+    let result = read_next_message(&mut cursor);
+    let err = result.expect_err("Content-Length: 0 must surface as io::Error");
+    assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
+    assert!(
+        err.to_string()
+            .contains("Content-Length header value is zero"),
+        "error message must explain the failure: got {err}",
+    );
 }
 
 #[test]
-fn content_length_negative_treated_as_zero() {
-    // Negative value should parse to error -> unwrap_or(0) -> skipped
+fn content_length_negative_returns_error() {
+    // PR #708 made negative Content-Length values an explicit parse error
+    // (errored InvalidData) rather than coercing to 0 and silently skipping.
     let input = "Content-Length: -5\r\n\r\n{\"id\":1,\"method\":\"ping\"}\n";
     let mut cursor = Cursor::new(input.as_bytes().to_vec());
-    let result = read_next_message(&mut cursor).unwrap();
-    assert!(result.is_some());
-    let (msg, _) = result.unwrap();
-    assert!(msg.contains("\"method\":\"ping\""));
+    let result = read_next_message(&mut cursor);
+    let err = result.expect_err("Negative Content-Length must surface as io::Error");
+    assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
+    assert!(
+        err.to_string().contains("Malformed Content-Length"),
+        "error message must explain the parse failure: got {err}",
+    );
 }
 
 #[test]

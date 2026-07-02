@@ -19,45 +19,37 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 
 /// Calculate edit distance (Levenshtein) between two sequences
 ///
-/// Optimization: Uses a single rolling buffer to reduce space complexity from O(N*M) to O(min(N,M)).
-/// This significantly reduces memory allocations and improves cache locality.
+/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
-    let (s1, s2) = if seq1.len() < seq2.len() {
-        (seq2, seq1)
-    } else {
+    let (short, long) = if seq1.len() < seq2.len() {
         (seq1, seq2)
+    } else {
+        (seq2, seq1)
     };
 
-    let len1 = s1.len();
-    let len2 = s2.len();
+    let short_len = short.len();
+    let long_len = long.len();
 
-    if len2 == 0 {
-        return len1;
+    if short_len == 0 {
+        return long_len;
     }
 
-    // current_row[j] will hold the Levenshtein distance between s1[..i] and s2[..j]
-    let mut current_row: Vec<usize> = (0..=len2).collect();
+    // Only need two rows of the matrix at any time
+    let mut prev_row: Vec<usize> = (0..=short_len).collect();
+    let mut curr_row = vec![0; short_len + 1];
 
-    for i in 1..=len1 {
-        let mut previous_diagonal = current_row[0];
-        current_row[0] = i;
-
-        for j in 1..=len2 {
-            let previous_diagonal_save = current_row[j];
-            let cost = usize::from(s1[i - 1] != s2[j - 1]);
-
-            // current_row[j] (before update) is matrix[i-1][j]
-            // current_row[j-1] is matrix[i][j-1]
-            // previous_diagonal is matrix[i-1][j-1]
-            current_row[j] = (current_row[j] + 1)
-                .min(current_row[j - 1] + 1)
-                .min(previous_diagonal + cost);
-
-            previous_diagonal = previous_diagonal_save;
+    for i in 1..=long_len {
+        curr_row[0] = i;
+        for j in 1..=short_len {
+            let cost = usize::from(long[i - 1] != short[j - 1]);
+            curr_row[j] = (prev_row[j] + 1) // deletion
+                .min(curr_row[j - 1] + 1) // insertion
+                .min(prev_row[j - 1] + cost); // substitution
         }
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    current_row[len2]
+    prev_row[short_len]
 }
 
 /// Calculate similarity between two strings using normalized edit distance
@@ -80,40 +72,37 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
 
 /// Calculate edit distance for character sequences
 ///
-/// Optimization: Uses a single rolling buffer to reduce space complexity from O(N*M) to O(min(N,M)).
+/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
-    let (c1, c2) = if chars1.len() < chars2.len() {
-        (chars2, chars1)
-    } else {
+    let (short, long) = if chars1.len() < chars2.len() {
         (chars1, chars2)
+    } else {
+        (chars2, chars1)
     };
 
-    let len1 = c1.len();
-    let len2 = c2.len();
+    let short_len = short.len();
+    let long_len = long.len();
 
-    if len2 == 0 {
-        return len1;
+    if short_len == 0 {
+        return long_len;
     }
 
-    let mut current_row: Vec<usize> = (0..=len2).collect();
+    // Only need two rows of the matrix at any time
+    let mut prev_row: Vec<usize> = (0..=short_len).collect();
+    let mut curr_row = vec![0; short_len + 1];
 
-    for i in 1..=len1 {
-        let mut previous_diagonal = current_row[0];
-        current_row[0] = i;
-
-        for j in 1..=len2 {
-            let previous_diagonal_save = current_row[j];
-            let cost = usize::from(c1[i - 1] != c2[j - 1]);
-
-            current_row[j] = (current_row[j] + 1)
-                .min(current_row[j - 1] + 1)
-                .min(previous_diagonal + cost);
-
-            previous_diagonal = previous_diagonal_save;
+    for i in 1..=long_len {
+        curr_row[0] = i;
+        for j in 1..=short_len {
+            let cost = usize::from(long[i - 1] != short[j - 1]);
+            curr_row[j] = (prev_row[j] + 1) // deletion
+                .min(curr_row[j - 1] + 1) // insertion
+                .min(prev_row[j - 1] + cost); // substitution
         }
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    current_row[len2]
+    prev_row[short_len]
 }
 
 /// Calculate similarity between two ToolSequence patterns

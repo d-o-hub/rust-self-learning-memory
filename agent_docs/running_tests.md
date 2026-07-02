@@ -328,7 +328,7 @@ cargo fuzz run fuzz_mcp_jsonrpc -- -max_total_time=60
 ### Fuzz Targets
 - `fuzz_mcp_jsonrpc`: MCP JSON-RPC request parsing and response generation.
 - `fuzz_postcard_roundtrip`: Postcard serialization roundtrip for core episode types.
-- `fuzz_search_matchers`: Fuzzy and regex search matcher robustness.
+- `fuzz_search_matchers`: Fuzzy and regex search matcher reliability.
 
 ### Handling Crashes
 If a fuzzer finds a crash, it will be saved in `fuzz/artifacts/<target>/`. You can replay the crash using:

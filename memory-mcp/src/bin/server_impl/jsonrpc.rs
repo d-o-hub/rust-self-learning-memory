@@ -1,5 +1,6 @@
 //! JSON-RPC server infrastructure
 
+#[allow(deprecated)]
 use super::core::{
     handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
     handle_protected_resource_metadata, handle_shutdown,

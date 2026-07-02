@@ -74,6 +74,7 @@ impl MemoryMCPServer {
                 TaskOutcome::Success { .. } => "success",
                 TaskOutcome::PartialSuccess { .. } => "partial_success",
                 TaskOutcome::Failure { .. } => "failure",
+                TaskOutcome::Abstained { .. } => "abstained",
             }),
         }))
     }

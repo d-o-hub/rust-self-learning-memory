@@ -153,6 +153,15 @@ pub enum TaskOutcome {
         /// Detailed error information (optional)
         error_details: Option<String>,
     },
+    /// Agent determined continued execution is infeasible.
+    Abstained {
+        /// Human-readable reason for abstention
+        reason: String,
+        /// Step number at which the agent decided to stop
+        stopped_at_step: usize,
+        /// Signals retrieved from environment that triggered abstention
+        infeasibility_signals: Vec<String>,
+    },
 }
 
 /// Result of executing a single step within an episode.
@@ -217,6 +226,7 @@ impl std::fmt::Display for TaskOutcome {
             TaskOutcome::Success { verdict, .. } => write!(f, "success: {verdict}"),
             TaskOutcome::Failure { reason, .. } => write!(f, "failure: {reason}"),
             TaskOutcome::PartialSuccess { verdict, .. } => write!(f, "partial success: {verdict}"),
+            TaskOutcome::Abstained { reason, .. } => write!(f, "abstained: {reason}"),
         }
     }
 }

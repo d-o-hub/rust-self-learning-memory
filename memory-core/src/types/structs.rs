@@ -113,6 +113,10 @@ pub struct RewardScore {
     pub quality_multiplier: f32,
     /// Learning bonus (for discovering patterns, improvements)
     pub learning_bonus: f32,
+    /// Reward for timely abstention (0.0 = no abstention or late,
+    /// positive = early correct stop, negative = should have abstained but didn't).
+    /// Range: -0.5 to +0.5
+    pub abstention_score: f32,
 }
 
 /// Generated reflection analyzing episode execution.

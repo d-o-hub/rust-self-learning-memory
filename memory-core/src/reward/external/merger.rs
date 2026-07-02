@@ -231,6 +231,7 @@ mod tests {
             complexity_bonus: 1.1,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
+                abstention_score: 0.0,
         }
     }
 

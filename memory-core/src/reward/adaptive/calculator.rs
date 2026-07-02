@@ -103,6 +103,7 @@ impl AdaptiveRewardCalculator {
             complexity_bonus,
             quality_multiplier,
             learning_bonus,
+            abstention_score: 0.0, // Adaptive calculator doesn't support abstention yet
         }
     }
 
@@ -121,6 +122,7 @@ impl AdaptiveRewardCalculator {
                 }
             }
             Some(TaskOutcome::Failure { .. }) => 0.0,
+            Some(TaskOutcome::Abstained { .. }) => 0.3,
             None => 0.0,
         }
     }

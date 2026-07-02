@@ -191,6 +191,69 @@ fn multiple_content_length_headers() {
 }
 
 // ============================================================================
+// Strict Content-Length Validation Fuzz (PR #708 contract)
+//
+// The two example tests above pin `Err(InvalidData)` for the canonical
+// `Content-Length: 0` and `Content-Length: -5` cases. This proptest fuzzes the
+// same `InvalidData` contract across a wider class of bad inputs so the strict
+// behavior cannot regress to silent-skip.
+// ============================================================================
+
+proptest! {
+    /// Any malformed `Content-Length` value (zero, negative zero, negative
+    /// integers, non-numeric, overflowing, junk characters, hex prefix) must
+    /// surface as `io::Error(InvalidData)` from `read_next_message`. Does
+    /// **not** cover valid positive integers with a missing body — that
+    /// exercises the separate `read_exact` path which yields
+    /// `UnexpectedEof` (also a strict error, but a different code path).
+    #[test]
+    fn content_length_malformed_returns_invalid_data_error(
+        bad_value in prop_oneof![
+            // Zero and zero-similar — parse to 0, then `len == 0` error.
+            Just("0".to_string()),
+            Just("-0".to_string()),
+            Just("+0".to_string()),
+            // Negative integers — `usize::FromStr` rejects the leading `-`.
+            Just("-1".to_string()),
+            Just("-9999".to_string()),
+            // Non-numeric / format / Unicode / whitespace variants.
+            Just("abc".to_string()),
+            Just("12.5".to_string()),
+            Just("0xFF".to_string()),
+            Just(String::new()),
+            Just("   ".to_string()),
+            Just("\u{200B}1".to_string()), // zero-width space in front
+            // Overflow `usize` on 64-bit — parse fails.
+            Just("99999999999999999999".to_string()),
+            Just("18446744073709551616".to_string()),
+            // Random alphabetic strings — never parse as decimal `usize`.
+            "[a-zA-Z]+",
+            // Digits must NOT start or end: pure-digit strings parse
+            // successfully and exercise the separate `read_exact` EOF
+            // path (not this prop's contract).
+            "[a-zA-Z][0-9]{1,4}[a-zA-Z]+",
+            "[ \\t]{1,2}[0-9]+[a-zA-Z]+",
+            // Hex prefix — `usize::FromStr` is decimal-only.
+            "0[xX][0-9a-fA-F]+",
+        ],
+    ) {
+        let input = format!("Content-Length: {bad_value}\r\n\r\n");
+        let mut cursor = Cursor::new(input.into_bytes());
+        let result = read_next_message(&mut cursor);
+        let err = result.unwrap_err();
+        prop_assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
+        // The wording is owned by `read_next_message` in
+        // `memory-mcp/src/jsonrpc.rs` (`format!("Malformed Content-Length header
+        // value '{}': …", …)` and `format!("Content-Length header value is
+        // zero")`); treat the message as a regression-protected public API.
+        prop_assert!(
+            err.to_string().contains("Content-Length"),
+            "error message must mention 'Content-Length' for diagnosability: got {err}",
+        );
+    }
+}
+
+// ============================================================================
 // JSON-RPC Response Construction Invariants (proptest)
 // ============================================================================
 

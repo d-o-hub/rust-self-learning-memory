@@ -1,5 +1,6 @@
 //! JSON-RPC server infrastructure
 
+#[allow(deprecated)]
 use super::core::{
     handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
     handle_protected_resource_metadata, handle_shutdown,
@@ -372,6 +373,7 @@ pub async fn handle_request(
         "tools/describe_batch" => handle_describe_tools(request, mcp_server).await,
         "tools/call" => handle_call_tool(request, mcp_server).await,
         "batch/execute" => handle_batch_execute(request, mcp_server).await,
+        #[allow(deprecated)]
         "shutdown" => handle_shutdown(request).await,
         "completion/complete" => handle_completion_complete(request).await,
         "elicitation/request" => handle_elicitation_request(request, elicitation_tracker).await,

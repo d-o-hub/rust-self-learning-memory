@@ -265,23 +265,16 @@ impl CodeSandbox {
         let context_json =
             serde_json::to_string(context).context("Failed to serialize execution context")?;
 
-        // Escape user code for safe inclusion in template
-        // This prevents command injection and script termination attacks
-        let escaped_code = user_code
-            .replace('\\', "\\\\") // Escape backslashes first
-            .replace('`', "\\`") // Escape template literal backticks
-            .replace("${", "\\${") // Escape template literal expressions
-            // Note: Newlines, carriage returns, and tabs are NOT escaped
-            // They work correctly in JavaScript template literals
-            .replace("\x00", "\\x00") // Escape null bytes
-            .replace("\x0b", "\\x0b") // Escape vertical tabs
-            .replace("\x0c", "\\x0c"); // Escape form feeds
+        // Base64 encode user code to prevent injection attacks (Severity 2 fix)
+        use base64::Engine;
+        let encoded_code = base64::engine::general_purpose::STANDARD.encode(user_code);
 
         // Create wrapper that:
         // 1. Sets up restricted environment
         // 2. Provides context to user code
         // 3. Captures output and errors
         // 4. Enforces timeout
+        // 5. Uses Base64 decoding to execute user code safely (prevents injection)
         let wrapper = format!(
             r#"
 'use strict';
@@ -321,13 +314,16 @@ const context = {};
             throw new Error('TIMEOUT_EXCEEDED');
         }}, {});
 
-        // User code execution
-        const userFn = async () => {{
-            const console = safeConsole;
-            {};
-        }};
+        // User code execution via Base64 to prevent injection
+        const userCode = Buffer.from('{}', 'base64').toString('utf8');
 
-        const result = await userFn();
+        // We use an async function constructor to execute the code safely
+        // Note: we've deleted global.Function, but we can still create functions
+        // using the async function constructor which we'll isolate.
+        const AsyncFunction = Object.getPrototypeOf(async function(){{}}).constructor;
+        const userFn = new AsyncFunction('console', 'context', userCode);
+
+        const result = await userFn(safeConsole, context);
         clearTimeout(timeout);
 
         // Output results using real console
@@ -338,10 +334,10 @@ const context = {};
             stderr: errors.join('\n'),
         }}));
     }} catch (error) {{
+        // Severity 3 fix: Remove stack trace from error response to prevent leakage
         __realConsole.error(JSON.stringify({{
             success: false,
             error: error.message,
-            stack: error.stack,
             stdout: outputs.join('\n'),
             stderr: errors.join('\n'),
         }}));
@@ -349,7 +345,7 @@ const context = {};
     }}
 }})(undefined, undefined, undefined, undefined, undefined);
 "#,
-            context_json, self.config.max_execution_time_ms, escaped_code
+            context_json, self.config.max_execution_time_ms, encoded_code
         );
 
         Ok(wrapper)

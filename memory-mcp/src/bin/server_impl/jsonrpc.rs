@@ -300,7 +300,7 @@ pub async fn run_jsonrpc_server(
 }
 
 /// Handle a JSON-RPC request with rate limiting
-#[allow(clippy::excessive_nesting)]
+#[allow(clippy::excessive_nesting, deprecated)]
 pub async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,

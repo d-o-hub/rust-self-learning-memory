@@ -1,7 +1,7 @@
 //! Unit tests for JSON-RPC header error handling
 
-use std::io::{self, Cursor};
 use do_memory_mcp::jsonrpc::read_next_message;
+use std::io::{self, Cursor};
 
 #[test]
 fn test_read_next_message_malformed_content_length_abc() {
@@ -42,13 +42,19 @@ fn test_read_next_message_zero_content_length() {
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.kind(), io::ErrorKind::InvalidData);
-    assert!(err.to_string().contains("Content-Length header value is zero"));
+    assert!(
+        err.to_string()
+            .contains("Content-Length header value is zero")
+    );
 }
 
 #[test]
 fn test_read_next_message_with_content_type() {
     let payload = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"test\"}";
-    let header = format!("Content-Length: {}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n", payload.len());
+    let header = format!(
+        "Content-Length: {}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n",
+        payload.len()
+    );
     let mut data = header.into_bytes();
     data.extend_from_slice(payload.as_bytes());
     let mut cursor = Cursor::new(data);

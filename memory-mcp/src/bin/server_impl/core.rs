@@ -13,7 +13,6 @@ use do_memory_mcp::protocol::{
     DescribeToolResult, DescribeToolsResult, ListToolStubsResult, ListToolsResult, McpTool,
     ToolStub,
 };
-#[allow(deprecated)]
 pub use do_memory_mcp::protocol::{
     OAuthConfig, ProtectedResourceMetadata, handle_initialize, handle_shutdown,
 };

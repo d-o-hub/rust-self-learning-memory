@@ -155,8 +155,13 @@ fn invalid_params(id: Option<serde_json::Value>, detail: &str) -> JsonRpcRespons
     error_response(id, -32602, "Invalid params", detail)
 }
 
-/// Handle shutdown request
-#[deprecated]
+/// Handle shutdown request.
+///
+/// Per the JSON-RPC 2.0 spec, returns
+/// `{"jsonrpc":"2.0","id":<id>,"result":null}` when the request carries
+/// an `id`, and `None` (no response) for notifications (no `id`).
+/// See `memory-mcp/tests/jsonrpc_shutdown_integration_test.rs` for the
+/// contract test.
 pub async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
     request.id.as_ref()?;

@@ -16,11 +16,24 @@
 //!
 //! The sandbox uses a defense-in-depth approach with multiple security layers:
 //!
-//! - **Input Validation**: All code is scanned for malicious patterns before execution
+//! - **Input Validation**: All code is scanned for malicious patterns before execution using `RegexSet`
 //! - **Process Isolation**: Code runs in a separate Node.js process with restricted permissions
 //! - **Resource Limits**: CPU and memory usage are constrained
 //! - **Timeout Enforcement**: Long-running code is terminated
 //! - **Access Controls**: Network and filesystem access are denied by default
+//!
+//! ## Limitations
+//!
+//! The security scanning implemented in this module uses static analysis (regular expressions)
+//! to detect malicious patterns. While robust against common bypasses (whitespace, quotes, split strings),
+//! it is a heuristic-based approach and has inherent limitations:
+//!
+//! 1. **Runtime Obfuscation**: Complex runtime string manipulation or dynamic property access
+//!    (e.g., `global['pro' + 'cess']`) may bypass static checks.
+//! 2. **Context Blindness**: Regular expressions lack full AST (Abstract Syntax Tree) awareness,
+//!    meaning they might occasionally flag benign code or miss sophisticated escapes.
+//! 3. **Defense in Depth**: This scanner is the first layer of defense. It should be used
+//!    in conjunction with OS-level isolation (containers, cgroups, namespaces) for maximum security.
 //!
 //! ## Example
 //!
@@ -59,15 +72,96 @@ use crate::types::{
     ErrorType, ExecutionContext, ExecutionResult, SandboxConfig, SecurityViolationType,
 };
 use anyhow::{Context, Result};
+use regex::RegexSet;
 use std::process::Stdio;
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tokio::process::Command;
 use tracing::{debug, warn};
+use which::which;
+
+static FS_PATTERNS: OnceLock<RegexSet> = OnceLock::new();
+static NETWORK_PATTERNS: OnceLock<RegexSet> = OnceLock::new();
+static PROCESS_PATTERNS: OnceLock<RegexSet> = OnceLock::new();
+static MALICIOUS_PATTERNS: OnceLock<RegexSet> = OnceLock::new();
 
 /// Secure code execution sandbox
 #[derive(Debug)]
 pub struct CodeSandbox {
     config: SandboxConfig,
+}
+
+fn fs_patterns() -> &'static RegexSet {
+    FS_PATTERNS.get_or_init(|| {
+        RegexSet::new([
+            r#"require\s*\(\s*['`"]fs['`"]\s*\)"#,
+            r#"import\s+.*\s+from\s+['`"]fs['`"]"#,
+            r#"import\s*\{\s*.*\s*\}\s*from\s+['`"]fs['`"]"#,
+            r#"import\s*\(\s*['`"]fs['`"]\s*\)"#,
+            r#"\breadFile\b"#,
+            r#"\bwriteFile\b"#,
+            r#"\bmkdir\b"#,
+            r#"\brmdir\b"#,
+            r#"\bunlink\b"#,
+            r#"\b__dirname\b"#,
+            r#"\b__filename\b"#,
+        ])
+        .expect("Valid FS regex patterns")
+    })
+}
+
+fn network_patterns() -> &'static RegexSet {
+    NETWORK_PATTERNS.get_or_init(|| {
+        RegexSet::new([
+            r#"require\s*\(\s*['`"]http['`"]\s*\)"#,
+            r#"require\s*\(\s*['`"]https['`"]\s*\)"#,
+            r#"require\s*\(\s*['`"]net['`"]\s*\)"#,
+            r#"import\s+.*\s+from\s+['`"]http['`"]"#,
+            r#"import\s+.*\s+from\s+['`"]https['`"]"#,
+            r#"import\s+.*\s+from\s+['`"]net['`"]"#,
+            r#"import\s*\{\s*.*\s*\}\s*from\s+['`"]http['`"]"#,
+            r#"import\s*\{\s*.*\s*\}\s*from\s+['`"]https['`"]"#,
+            r#"import\s*\{\s*.*\s*\}\s*from\s+['`"]net['`"]"#,
+            r#"import\s*\(\s*['`"]http['`"]\s*\)"#,
+            r#"import\s*\(\s*['`"]https['`"]\s*\)"#,
+            r#"import\s*\(\s*['`"]net['`"]\s*\)"#,
+            r#"\bfetch\s*\("#,
+            r#"\bXMLHttpRequest\b"#,
+            r#"\bWebSocket\b"#,
+        ])
+        .expect("Valid network regex patterns")
+    })
+}
+
+fn process_patterns() -> &'static RegexSet {
+    PROCESS_PATTERNS.get_or_init(|| {
+        RegexSet::new([
+            r#"require\s*\(\s*['`"]child_process['`"]\s*\)"#,
+            r#"import\s+.*\s+from\s+['`"]child_process['`"]"#,
+            r#"import\s*\{\s*.*\s*\}\s*from\s+['`"]child_process['`"]"#,
+            r#"import\s*\(\s*['`"]child_process['`"]\s*\)"#,
+            r#"\bexec\s*\("#,
+            r#"\bexecSync\s*\("#,
+            r#"\bspawn\s*\("#,
+            r#"\bspawnSync\s*\("#,
+            r#"\bfork\s*\("#,
+            r#"\bexecFile\s*\("#,
+            r#"\bprocess\.exit\b"#,
+        ])
+        .expect("Valid process regex patterns")
+    })
+}
+
+fn malicious_patterns() -> &'static RegexSet {
+    MALICIOUS_PATTERNS.get_or_init(|| {
+        RegexSet::new([
+            r#"\beval\s*\("#,
+            r#"\bFunction\s*\("#,
+            r#"while\s*\(\s*true\s*\)"#,
+            r#"for\s*\(\s*;\s*;\s*\)"#,
+        ])
+        .expect("Valid malicious regex patterns")
+    })
 }
 
 impl CodeSandbox {
@@ -80,6 +174,9 @@ impl CodeSandbox {
         if config.max_memory_mb == 0 {
             anyhow::bail!("max_memory_mb must be greater than 0");
         }
+
+        // Pre-flight check: validate Node.js is available at construction time
+        which("node").context("Node.js not found in PATH — required for sandbox execution")?;
 
         Ok(Self { config })
     }
@@ -135,81 +232,28 @@ impl CodeSandbox {
     /// Detect potential security violations in code
     fn detect_security_violations(&self, code: &str) -> Option<SecurityViolationType> {
         // Check for file system access attempts
-        if !self.config.allow_filesystem {
-            let fs_patterns = [
-                "require('fs')",
-                "require(\"fs\")",
-                "require(`fs`)",
-                "import fs from",
-                "import * as fs",
-                "readFile",
-                "writeFile",
-                "mkdir",
-                "rmdir",
-                "unlink",
-                "__dirname",
-                "__filename",
-            ];
-
-            for pattern in &fs_patterns {
-                if code.contains(pattern) {
-                    return Some(SecurityViolationType::FileSystemAccess);
-                }
-            }
+        if !self.config.allow_filesystem && fs_patterns().is_match(code) {
+            return Some(SecurityViolationType::FileSystemAccess);
         }
 
         // Check for network access attempts
-        if !self.config.allow_network {
-            let network_patterns = [
-                "require('http')",
-                "require('https')",
-                "require('net')",
-                "fetch(",
-                "XMLHttpRequest",
-                "WebSocket",
-                "import('http')",
-                "import('https')",
-            ];
-
-            for pattern in &network_patterns {
-                if code.contains(pattern) {
-                    return Some(SecurityViolationType::NetworkAccess);
-                }
-            }
+        if !self.config.allow_network && network_patterns().is_match(code) {
+            return Some(SecurityViolationType::NetworkAccess);
         }
 
         // Check for subprocess execution attempts
-        if !self.config.allow_subprocesses {
-            let process_patterns = [
-                "require('child_process')",
-                "exec(",
-                "execSync(",
-                "spawn(",
-                "spawnSync(",
-                "fork(",
-                "execFile(",
-                "process.exit",
-            ];
+        if !self.config.allow_subprocesses && process_patterns().is_match(code) {
+            return Some(SecurityViolationType::ProcessExecution);
+        }
 
-            for pattern in &process_patterns {
-                if code.contains(pattern) {
-                    return Some(SecurityViolationType::ProcessExecution);
-                }
+        // Check for potential infinite loops and malicious code (eval, Function)
+        if malicious_patterns().is_match(code) {
+            let matches = malicious_patterns().matches(code);
+            // 0, 1 = eval, Function
+            // 2, 3 = while(true), for(;;)
+            if matches.matched(2) || matches.matched(3) {
+                return Some(SecurityViolationType::InfiniteLoop);
             }
-        }
-
-        // Check for potential infinite loops (basic heuristic)
-        let loop_count = code.matches("while(true)").count()
-            + code.matches("for(;;)").count()
-            + code.matches("while (true)").count()
-            + code.matches("for (;;)").count();
-
-        if loop_count > 0 {
-            return Some(SecurityViolationType::InfiniteLoop);
-        }
-
-        // Check for eval and Function constructor (code injection risks)
-        if code.contains("eval(") || code.contains("Function(") {
             return Some(SecurityViolationType::MaliciousCode);
         }
 
@@ -242,12 +286,18 @@ impl CodeSandbox {
             r#"
 'use strict';
 
-// Disable dangerous globals
+// Capture necessary globals before they are deleted/shadowed
+const __realProcess = process;
+const __realConsole = console;
+
+// Disable dangerous globals at the top level
 delete global.process;
 delete global.require;
 delete global.module;
 delete global.__dirname;
 delete global.__filename;
+delete global.eval;
+delete global.Function;
 
 // Set up restricted console
 const outputs = [];
@@ -264,7 +314,7 @@ const safeConsole = {{
 const context = {};
 
 // Main execution wrapper
-(async () => {{
+(async (process, require, module, __filename, __dirname) => {{
     try {{
         // Set timeout to prevent infinite loops
         const timeout = setTimeout(() => {{
@@ -280,24 +330,24 @@ const context = {};
         const result = await userFn();
         clearTimeout(timeout);
 
-        // Output results
-        console.log(JSON.stringify({{
+        // Output results using real console
+        __realConsole.log(JSON.stringify({{
             success: true,
             result: result,
             stdout: outputs.join('\n'),
             stderr: errors.join('\n'),
         }}));
     }} catch (error) {{
-        console.error(JSON.stringify({{
+        __realConsole.error(JSON.stringify({{
             success: false,
             error: error.message,
             stack: error.stack,
             stdout: outputs.join('\n'),
             stderr: errors.join('\n'),
         }}));
-        process.exit(1);
+        __realProcess.exit(1);
     }}
-}})();
+}})(undefined, undefined, undefined, undefined, undefined);
 "#,
             context_json, self.config.max_execution_time_ms, escaped_code
         );

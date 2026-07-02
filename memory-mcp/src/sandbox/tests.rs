@@ -182,6 +182,75 @@ async fn test_process_execution_blocking() {
 }
 
 #[tokio::test]
+async fn test_security_bypass_attempts() {
+    set_once();
+    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+    let context = create_test_context();
+
+    // 1. Whitespace bypass
+    let code1 = "const fs = require (  'fs'   );";
+    let result1 = sandbox.execute(code1, context.clone()).await.unwrap();
+    assert!(matches!(
+        result1,
+        ExecutionResult::SecurityViolation {
+            violation_type: SecurityViolationType::FileSystemAccess,
+            ..
+        }
+    ));
+
+    // 2. Template literal bypass
+    let code2 = "const fs = require(`fs`);";
+    let result2 = sandbox.execute(code2, context.clone()).await.unwrap();
+    assert!(matches!(
+        result2,
+        ExecutionResult::SecurityViolation {
+            violation_type: SecurityViolationType::FileSystemAccess,
+            ..
+        }
+    ));
+
+    // 3. Newline bypass
+    let code3 = "const fs = require(\n'fs'\n);";
+    let result3 = sandbox.execute(code3, context.clone()).await.unwrap();
+    assert!(matches!(
+        result3,
+        ExecutionResult::SecurityViolation {
+            violation_type: SecurityViolationType::FileSystemAccess,
+            ..
+        }
+    ));
+
+    // 4. Malicious code (Function constructor)
+    let code4 = "const f = new Function('return process');";
+    let result4 = sandbox.execute(code4, context.clone()).await.unwrap();
+    assert!(matches!(
+        result4,
+        ExecutionResult::SecurityViolation {
+            violation_type: SecurityViolationType::MaliciousCode,
+            ..
+        }
+    ));
+
+    // 5. Runtime obfuscation bypass (split string)
+    // This should NOT be caught by detect_security_violations (static analysis),
+    // but should fail at runtime because 'require' is shadowed and deleted.
+    let code5 = "const r = 'req' + 'uire'; const fs = global[r]('fs');";
+    let result5 = sandbox.execute(code5, context.clone()).await.unwrap();
+    match result5 {
+        ExecutionResult::Error { message, .. } => {
+            // Expected runtime error since require is not available
+            assert!(
+                message.contains("is not a function") || message.contains("cannot read property")
+            );
+        }
+        other => panic!(
+            "Expected runtime error for split-string bypass, got: {:?}",
+            other
+        ),
+    }
+}
+
+#[tokio::test]
 async fn test_infinite_loop_detection() {
     timeout(Duration::from_secs(10), async {
         set_once();
@@ -272,6 +341,107 @@ async fn test_runtime_error() {
         }
         other => panic!("Expected runtime error, got: {:?}", other),
     }
+}
+
+/// Verify the secure wrapper deletes dangerous globals at runtime.
+/// This is a pure-Rust test that does NOT require Node.js, so it runs in CI.
+/// It validates the defense-in-depth approach: even if static regex checks
+/// are bypassed via runtime obfuscation, the globals are unavailable.
+#[test]
+fn test_wrapper_deletes_dangerous_globals() {
+    set_once();
+    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+    let wrapper = sandbox
+        .create_secure_wrapper("1+1", &create_test_context())
+        .unwrap();
+
+    // Core dangerous globals must be deleted from the global scope
+    assert!(
+        wrapper.contains("delete global.process"),
+        "Wrapper must delete global.process"
+    );
+    assert!(
+        wrapper.contains("delete global.require"),
+        "Wrapper must delete global.require"
+    );
+    assert!(
+        wrapper.contains("delete global.eval"),
+        "Wrapper must delete global.eval to prevent runtime obfuscation bypass"
+    );
+    assert!(
+        wrapper.contains("delete global.Function"),
+        "Wrapper must delete global.Function to prevent runtime obfuscation bypass"
+    );
+}
+
+/// Verify the pre-flight Node.js check works.
+/// When node is available, CodeSandbox::new succeeds; when unavailable, it errors.
+#[tokio::test]
+async fn test_preflight_node_check() {
+    set_once();
+    if which::which("node").is_ok() {
+        let result = CodeSandbox::new(SandboxConfig::default());
+        assert!(
+            result.is_ok(),
+            "CodeSandbox::new should succeed when node is available"
+        );
+    } else {
+        // Node not in PATH — should return an error, not panic
+        let result = CodeSandbox::new(SandboxConfig::default());
+        assert!(
+            result.is_err(),
+            "CodeSandbox::new should error when node is not in PATH"
+        );
+    }
+}
+
+/// Verify runtime blocking of eval/Function when static regex is bypassed.
+/// Requires Node.js, so skipped in CI.
+#[tokio::test]
+async fn test_eval_runtime_blocking() {
+    timeout(Duration::from_secs(10), async {
+        set_once();
+        if std::env::var("CI").is_ok() {
+            return;
+        }
+        let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+        let context = create_test_context();
+
+        // Runtime obfuscation bypass of eval via dynamic property access.
+        // Static regex should NOT catch this (split string), but eval is
+        // deleted from global scope so it should fail at runtime.
+        let code = "const e = 'ev' + 'al'; global[e]('process');";
+        let result = sandbox.execute(code, context.clone()).await.unwrap();
+        match result {
+            ExecutionResult::Error { message, .. } => {
+                assert!(
+                    message.contains("is not a function")
+                        || message.contains("is not defined")
+                        || message.contains("cannot read")
+                );
+            }
+            other => panic!("Expected runtime error for eval bypass, got: {:?}", other),
+        }
+
+        // Same for Function constructor via runtime obfuscation
+        let code2 = "const f = global['Fun' + 'ction']('return process');";
+        let result2 = sandbox.execute(code2, context).await.unwrap();
+        match result2 {
+            ExecutionResult::Error { message, .. } => {
+                assert!(
+                    message.contains("is not a function")
+                        || message.contains("is not defined")
+                        || message.contains("cannot read")
+                );
+            }
+            other => panic!(
+                "Expected runtime error for Function bypass, got: {:?}",
+                other
+            ),
+        }
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]

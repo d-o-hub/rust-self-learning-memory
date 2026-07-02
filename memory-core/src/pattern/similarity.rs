@@ -18,38 +18,39 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 }
 
 /// Calculate edit distance (Levenshtein) between two sequences
-///
-/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+#[allow(clippy::needless_range_loop)]
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
-    let (short, long) = if seq1.len() < seq2.len() {
-        (seq1, seq2)
-    } else {
-        (seq2, seq1)
-    };
+    let len1 = seq1.len();
+    let len2 = seq2.len();
 
-    let short_len = short.len();
-    let long_len = long.len();
-
-    if short_len == 0 {
-        return long_len;
+    if len1 == 0 {
+        return len2;
+    }
+    if len2 == 0 {
+        return len1;
     }
 
-    // Only need two rows of the matrix at any time to calculate the next state
-    let mut prev_row: Vec<usize> = (0..=short_len).collect();
-    let mut curr_row = vec![0; short_len + 1];
+    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
 
-    for i in 1..=long_len {
-        curr_row[0] = i;
-        for j in 1..=short_len {
-            let cost = usize::from(long[i - 1] != short[j - 1]);
-            curr_row[j] = (prev_row[j] + 1) // deletion
-                .min(curr_row[j - 1] + 1) // insertion
-                .min(prev_row[j - 1] + cost); // substitution
+    // Initialize first row and column
+    for i in 0..=len1 {
+        matrix[i][0] = i;
+    }
+    for j in 0..=len2 {
+        matrix[0][j] = j;
+    }
+
+    // Fill matrix
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            let cost = usize::from(seq1[i - 1] != seq2[j - 1]);
+            matrix[i][j] = (matrix[i - 1][j] + 1) // deletion
+                .min(matrix[i][j - 1] + 1) // insertion
+                .min(matrix[i - 1][j - 1] + cost); // substitution
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[short_len]
+    matrix[len1][len2]
 }
 
 /// Calculate similarity between two strings using normalized edit distance
@@ -71,38 +72,37 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
 }
 
 /// Calculate edit distance for character sequences
-///
-/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+#[allow(clippy::needless_range_loop)]
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
-    let (short, long) = if chars1.len() < chars2.len() {
-        (chars1, chars2)
-    } else {
-        (chars2, chars1)
-    };
+    let len1 = chars1.len();
+    let len2 = chars2.len();
 
-    let short_len = short.len();
-    let long_len = long.len();
-
-    if short_len == 0 {
-        return long_len;
+    if len1 == 0 {
+        return len2;
+    }
+    if len2 == 0 {
+        return len1;
     }
 
-    // Only need two rows of the matrix at any time to calculate the next state
-    let mut prev_row: Vec<usize> = (0..=short_len).collect();
-    let mut curr_row = vec![0; short_len + 1];
+    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
 
-    for i in 1..=long_len {
-        curr_row[0] = i;
-        for j in 1..=short_len {
-            let cost = usize::from(long[i - 1] != short[j - 1]);
-            curr_row[j] = (prev_row[j] + 1) // deletion
-                .min(curr_row[j - 1] + 1) // insertion
-                .min(prev_row[j - 1] + cost); // substitution
+    for i in 0..=len1 {
+        matrix[i][0] = i;
+    }
+    for j in 0..=len2 {
+        matrix[0][j] = j;
+    }
+
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            let cost = usize::from(chars1[i - 1] != chars2[j - 1]);
+            matrix[i][j] = (matrix[i - 1][j] + 1)
+                .min(matrix[i][j - 1] + 1)
+                .min(matrix[i - 1][j - 1] + cost);
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[short_len]
+    matrix[len1][len2]
 }
 
 /// Calculate similarity between two ToolSequence patterns

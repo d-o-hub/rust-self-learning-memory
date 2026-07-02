@@ -198,6 +198,7 @@ impl Output for TagShowResult {
                 "Success" => Color::Green,
                 "PartialSuccess" => Color::Yellow,
                 "Failure" => Color::Red,
+                "Abstained" => Color::Cyan,
                 _ => Color::White,
             };
             writeln!(writer, "Outcome: {}", outcome.color(outcome_color))?;

@@ -127,8 +127,8 @@ pub fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
     embedding.push(match &episode.outcome {
         Some(crate::types::TaskOutcome::Success { .. }) => 1.0,
         Some(crate::types::TaskOutcome::PartialSuccess { .. }) => 0.5,
-        Some(crate::types::TaskOutcome::Failure { .. }) => 0.0,
         Some(crate::types::TaskOutcome::Abstained { .. }) => 0.3,
+        Some(crate::types::TaskOutcome::Failure { .. }) => 0.0,
         None => 0.5,
     });
 

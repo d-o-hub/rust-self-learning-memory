@@ -211,6 +211,7 @@ impl RecommendationTracker {
                 fb.outcome,
                 crate::types::TaskOutcome::Success { .. }
                     | crate::types::TaskOutcome::PartialSuccess { .. }
+                    | crate::types::TaskOutcome::Abstained { .. }
             ) {
                 successful_applications += fb.applied_pattern_ids.len();
             }

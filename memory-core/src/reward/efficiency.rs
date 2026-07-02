@@ -1,20 +1,17 @@
 //! Efficiency multiplier calculation based on duration and step count
 
 use crate::episode::Episode;
-use crate::reward::constants::{
-    EFFICIENT_DURATION_SECS, EFFICIENT_STEP_COUNT, MAX_EFFICIENCY_MULTIPLIER,
-    MIN_EFFICIENCY_MULTIPLIER,
-};
-use crate::types::TaskOutcome;
+use super::constants::*;
+
+/// Thresholds for abstention timeliness
+const EARLY_ABSTENTION_THRESHOLD: usize = 3;
+const LATE_ABSTENTION_THRESHOLD: usize = 10;
 
 /// Computes an abstention timeliness bonus/penalty.
 ///
 /// - Early abstention (stopped_at_step < EARLY_ABSTENTION_THRESHOLD) → positive bonus
 /// - Late abstention (stopped_at_step >= LATE_ABSTENTION_THRESHOLD) → penalty
 /// - Failure with many steps (should have abstained but didn't) → penalty
-const EARLY_ABSTENTION_THRESHOLD: usize = 3;
-const LATE_ABSTENTION_THRESHOLD: usize = 10;
-
 pub fn calculate_abstention_score(episode: &Episode) -> f32 {
     match &episode.outcome {
         Some(TaskOutcome::Abstained {
@@ -146,6 +143,41 @@ mod tests {
 
         let efficiency = calculator.calculate(&episode);
         assert!(efficiency > 1.0);
+    }
+
+    #[test]
+    fn test_early_abstention_score_is_positive() {
+        let mut ep = create_test_episode();
+        ep.outcome = Some(TaskOutcome::Abstained {
+            reason: "Tool unavailable".to_string(),
+            stopped_at_step: 1,
+            infeasibility_signals: vec!["tool_not_found".to_string()],
+        });
+        // Add 1 step to steps vec
+        let score = calculate_abstention_score(&ep);
+        assert!(score > 0.0, "Early abstention should yield positive score");
+    }
+
+    #[test]
+    fn test_late_failure_abstention_penalty() {
+        let mut ep = create_test_episode();
+        ep.outcome = Some(TaskOutcome::Failure {
+            reason: "Exhausted all options".to_string(),
+            error_details: None,
+        });
+        // Simulate 15 steps
+        for i in 0..15 {
+            ep.steps.push(ExecutionStep::new(
+                i,
+                "tool".to_string(),
+                "action".to_string(),
+            ));
+        }
+        let score = calculate_abstention_score(&ep);
+        assert!(
+            score < 0.0,
+            "Late failure should yield negative abstention score"
+        );
     }
 
     #[test]

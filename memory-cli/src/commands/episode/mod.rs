@@ -77,6 +77,7 @@ mod tests {
         assert_eq!(TaskOutcome::Success, TaskOutcome::Success);
         assert_eq!(TaskOutcome::PartialSuccess, TaskOutcome::PartialSuccess);
         assert_eq!(TaskOutcome::Failure, TaskOutcome::Failure);
+        assert_eq!(TaskOutcome::Abstained, TaskOutcome::Abstained);
     }
 
     #[test]

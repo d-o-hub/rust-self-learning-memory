@@ -3,10 +3,10 @@
 use super::types::FeedbackCommands;
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
-use anyhow::{Result, anyhow};
-use do_memory_core::SelfLearningMemory;
+use anyhow::{anyhow, Result};
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use do_memory_core::types::TaskOutcome;
+use do_memory_core::SelfLearningMemory;
 use serde::Serialize;
 use std::io::Write;
 use uuid::Uuid;
@@ -227,9 +227,14 @@ async fn record_feedback(
             reason: message,
             error_details: None,
         },
+        "abstained" | "abstain" => TaskOutcome::Abstained {
+            reason: message,
+            stopped_at_step: 0,
+            infeasibility_signals: vec!["manual_feedback".to_string()],
+        },
         _ => {
             return Err(anyhow!(
-                "Invalid outcome '{}'. Must be: success, partial, or failure",
+                "Invalid outcome '{}'. Must be: success, partial, failure, or abstained",
                 outcome_str
             ));
         }

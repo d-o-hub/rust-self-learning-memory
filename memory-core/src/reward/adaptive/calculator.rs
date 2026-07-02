@@ -81,9 +81,10 @@ impl AdaptiveRewardCalculator {
         let complexity_bonus = self.calculate_complexity_bonus(episode);
         let quality_multiplier = self.calculate_quality_multiplier(episode);
         let learning_bonus = self.calculate_learning_bonus(episode);
+        let abstention_score = crate::reward::calculate_abstention_score(episode);
 
         // Calculate total: base reward * multipliers + bonuses
-        let total = (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
+        let total = (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus + abstention_score;
 
         debug!(
             base = base,
@@ -91,6 +92,7 @@ impl AdaptiveRewardCalculator {
             complexity_bonus = complexity_bonus,
             quality_multiplier = quality_multiplier,
             learning_bonus = learning_bonus,
+            abstention_score = abstention_score,
             total = total,
             adaptive = domain_stats.map(|s| s.is_reliable()).unwrap_or(false),
             "Calculated adaptive reward score"
@@ -103,7 +105,7 @@ impl AdaptiveRewardCalculator {
             complexity_bonus,
             quality_multiplier,
             learning_bonus,
-            abstention_score: 0.0, // Adaptive calculator doesn't support abstention yet
+            abstention_score,
         }
     }
 
@@ -122,6 +124,8 @@ impl AdaptiveRewardCalculator {
                 }
             }
             Some(TaskOutcome::Failure { .. }) => 0.0,
+            // Abstention is not failure: base is 0.3 (above failure, below partial)
+            // The abstention_score component in RewardScore handles timeliness.
             Some(TaskOutcome::Abstained { .. }) => 0.3,
             None => 0.0,
         }

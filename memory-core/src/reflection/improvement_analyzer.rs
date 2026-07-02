@@ -15,6 +15,9 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
         Some(TaskOutcome::PartialSuccess { failed, .. }) if !failed.is_empty() => {
             improvements.push(format!("Failed {} subtask(s)", failed.len()));
         }
+        Some(TaskOutcome::Abstained { reason, .. }) => {
+            improvements.push(format!("Task abstained: {reason}"));
+        }
         _ => {}
     }
 

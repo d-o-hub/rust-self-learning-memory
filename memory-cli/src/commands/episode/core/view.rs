@@ -71,6 +71,7 @@ pub async fn view_episode(
             "complexity_bonus": r.complexity_bonus,
             "quality_multiplier": r.quality_multiplier,
             "learning_bonus": r.learning_bonus,
+            "abstention_score": r.abstention_score,
         })),
         "reflection": episode.reflection.as_ref().map(|r| serde_json::json!({
             "successes": r.successes,

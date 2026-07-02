@@ -140,9 +140,6 @@ impl EmbeddingTools {
                         TaskOutcome::Failure { reason, .. } => {
                             format!("Failure: {}", reason)
                         }
-                        TaskOutcome::Abstained { reason, .. } => {
-                            format!("Abstained: {}", reason)
-                        }
                     });
 
                     EmbeddingSearchResult {

@@ -103,6 +103,7 @@ impl EpisodeFilter {
                             TaskOutcome::PartialSuccess { .. }
                         )
                         | (OutcomeType::Failure, TaskOutcome::Failure { .. })
+                        | (OutcomeType::Abstained, TaskOutcome::Abstained { .. })
                 );
                 if !matches_outcome {
                     return false;

@@ -15,7 +15,6 @@ fn outcome_score(episode: &Episode) -> u8 {
         Some(TaskOutcome::Success { .. }) => 3,
         Some(TaskOutcome::PartialSuccess { .. }) => 2,
         Some(TaskOutcome::Failure { .. }) => 1,
-        Some(TaskOutcome::Abstained { .. }) => 1, // Between failure and partial in core; clamped to u8 scale
         None => 0,
     }
 }

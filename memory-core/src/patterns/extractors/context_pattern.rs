@@ -52,6 +52,7 @@ impl ContextPatternExtractor {
                     0.5
                 }
             }
+            Some(TaskOutcome::Abstained { .. }) => 0.3,
             _ => 0.0,
         }
     }

@@ -16,10 +16,7 @@
 
 // Public modules
 pub mod adaptive;
-pub mod base;
-pub mod constants;
 pub mod domain_stats;
-pub mod efficiency;
 
 #[cfg(feature = "agentfs")]
 pub mod external;
@@ -30,6 +27,9 @@ pub mod tests;
 // Re-export for convenience
 pub use adaptive::AdaptiveRewardCalculator;
 pub use domain_stats::{DomainStatistics, DomainStatisticsCache};
+
+mod efficiency;
+pub use efficiency::calculate_abstention_score;
 
 use crate::episode::Episode;
 use crate::types::{ComplexityLevel, RewardScore, TaskOutcome};
@@ -89,15 +89,11 @@ impl RewardCalculator {
         let complexity_bonus = self.calculate_complexity_bonus(episode);
         let quality_multiplier = self.calculate_quality_multiplier(episode);
         let learning_bonus = self.calculate_learning_bonus(episode);
-        let abstention_score = efficiency::calculate_abstention_score(episode);
+        let abstention_score = calculate_abstention_score(episode);
 
-        // Calculate total: (base reward + abstention_score) * multipliers + bonuses
-        // Note: abstention_score is added to base to reflect it's an outcome-related adjustment
-        let total = ((base + abstention_score).max(0.0)
-            * efficiency
-            * complexity_bonus
-            * quality_multiplier)
-            + learning_bonus;
+        // Calculate total: base reward * multipliers + bonuses
+        let total =
+            (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus + abstention_score;
 
         debug!(
             base = base,
@@ -137,6 +133,8 @@ impl RewardCalculator {
                 }
             }
             Some(TaskOutcome::Failure { .. }) => 0.0,
+            // Abstention is not failure: base is 0.3 (above failure, below partial)
+            // The abstention_score component in RewardScore handles timeliness.
             Some(TaskOutcome::Abstained { .. }) => 0.3,
             None => 0.0, // Not completed
         }

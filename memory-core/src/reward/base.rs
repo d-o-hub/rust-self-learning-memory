@@ -84,4 +84,15 @@ mod tests {
         let episode = create_test_episode();
         assert_eq!(calculate_base_reward(&episode), 0.0);
     }
+
+    #[test]
+    fn test_abstention_base_reward() {
+        let mut ep = create_test_episode();
+        ep.outcome = Some(TaskOutcome::Abstained {
+            reason: "Empty search results after 2 attempts".to_string(),
+            stopped_at_step: 2,
+            infeasibility_signals: vec!["empty_result".to_string()],
+        });
+        assert_eq!(calculate_base_reward(&ep), 0.3);
+    }
 }

@@ -72,7 +72,11 @@ pub(super) fn analyze_success_patterns(episode: &Episode) -> Vec<String> {
     // Only analyze if episode was successful
     let is_success = matches!(
         episode.outcome,
-        Some(TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. })
+        Some(
+            TaskOutcome::Success { .. }
+                | TaskOutcome::PartialSuccess { .. }
+                | TaskOutcome::Abstained { .. }
+        )
     );
 
     if !is_success || episode.steps.is_empty() {

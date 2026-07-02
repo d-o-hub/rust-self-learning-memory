@@ -79,7 +79,7 @@ pub(super) fn extract_critical_decisions(episode: &Episode) -> Vec<String> {
                 decisions.push(format!("Failure reason: {reason}"));
             }
             crate::types::TaskOutcome::Abstained { reason, .. } => {
-                decisions.push(format!("Abstained reason: {reason}"));
+                decisions.push(format!("Abstained: {reason}"));
             }
         }
     }

@@ -281,6 +281,8 @@ pub enum TaskOutcome {
     PartialSuccess,
     /// Task failed
     Failure,
+    /// Agent determined continued execution is infeasible.
+    Abstained,
 }
 
 #[derive(Debug, Clone, PartialEq, ValueEnum)]

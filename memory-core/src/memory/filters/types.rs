@@ -18,6 +18,8 @@ pub enum OutcomeType {
     PartialSuccess,
     /// Only failure outcomes
     Failure,
+    /// Only abstained outcomes
+    Abstained,
 }
 
 /// Comprehensive filter for querying episodes

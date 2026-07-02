@@ -224,9 +224,9 @@ impl DBSCANAnomalyDetector {
                 features.push(1.0); // Partial
             }
             Some(crate::types::TaskOutcome::Abstained { .. }) => {
-                features.push(0.0); // Not success
-                features.push(0.0); // Not failure
-                features.push(0.3); // Abstained (between failure and partial)
+                features.push(0.0);
+                features.push(0.0);
+                features.push(0.5); // Between failure and partial
             }
             None => {
                 features.push(0.5); // Unknown

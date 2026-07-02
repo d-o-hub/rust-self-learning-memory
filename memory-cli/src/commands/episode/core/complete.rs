@@ -46,6 +46,11 @@ pub async fn complete_episode(
             reason: "Task failed via CLI".to_string(),
             error_details: Some("Marked as failed by user".to_string()),
         },
+        TaskOutcome::Abstained => CoreTaskOutcome::Abstained {
+            reason: "Task abstained via CLI".to_string(),
+            stopped_at_step: 0, // Not applicable from high-level CLI
+            infeasibility_signals: vec!["manual_abstention".to_string()],
+        },
     };
 
     // Complete the episode

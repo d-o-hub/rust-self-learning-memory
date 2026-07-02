@@ -335,6 +335,7 @@ mod tests {
             complexity_bonus: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
+                abstention_score: 0.0,
         });
         episode.complete(TaskOutcome::Success {
             verdict: "Done".to_string(),
@@ -392,6 +393,7 @@ mod tests {
             complexity_bonus: 1.1,
             quality_multiplier: 1.0,
             learning_bonus: 0.3,
+                abstention_score: 0.0,
         });
 
         let score = manager.extract_quality_score(&episode);

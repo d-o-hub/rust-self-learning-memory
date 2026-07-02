@@ -15,7 +15,9 @@ mod error_recovery;
 pub mod heuristic;
 mod hybrid;
 mod tool_sequence;
+pub mod abstention_pattern;
 
+pub use abstention_pattern::{AbstentionPattern, extract_abstention_pattern};
 pub use clustering::{cluster_similar_patterns, deduplicate_patterns};
 pub use context_pattern::ContextPatternExtractor;
 pub use decision_point::DecisionPointExtractor;

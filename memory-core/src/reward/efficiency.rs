@@ -1,7 +1,41 @@
 //! Efficiency multiplier calculation based on duration and step count
 
 use crate::episode::Episode;
-use super::constants::*;
+use crate::types::TaskOutcome;
+use crate::reward::constants::{
+    EFFICIENT_DURATION_SECS, EFFICIENT_STEP_COUNT, MAX_EFFICIENCY_MULTIPLIER,
+    MIN_EFFICIENCY_MULTIPLIER,
+};
+
+/// Computes an abstention timeliness bonus/penalty.
+///
+/// - Early abstention (stopped_at_step < EARLY_ABSTENTION_THRESHOLD) → positive bonus
+/// - Late abstention (stopped_at_step >= LATE_ABSTENTION_THRESHOLD) → penalty
+/// - Failure with many steps (should have abstained but didn't) → penalty
+const EARLY_ABSTENTION_THRESHOLD: usize = 3;
+const LATE_ABSTENTION_THRESHOLD: usize = 10;
+
+pub fn calculate_abstention_score(episode: &Episode) -> f32 {
+    match &episode.outcome {
+        Some(TaskOutcome::Abstained { stopped_at_step, .. }) => {
+            if *stopped_at_step <= EARLY_ABSTENTION_THRESHOLD {
+                0.5  // Rewarded: agent stopped early
+            } else if *stopped_at_step >= LATE_ABSTENTION_THRESHOLD {
+                -0.3 // Penalized: agent waited too long
+            } else {
+                // Linear interpolation in the middle zone
+                let range = (LATE_ABSTENTION_THRESHOLD - EARLY_ABSTENTION_THRESHOLD) as f32;
+                let pos = (*stopped_at_step - EARLY_ABSTENTION_THRESHOLD) as f32;
+                0.5 - (0.8 * pos / range)
+            }
+        }
+        Some(TaskOutcome::Failure { .. }) if episode.steps.len() > LATE_ABSTENTION_THRESHOLD => {
+            // Should-have-abstained penalty: ran many steps before failing
+            -0.2
+        }
+        _ => 0.0,
+    }
+}
 
 /// Calculator for efficiency metrics
 pub struct EfficiencyCalculator {

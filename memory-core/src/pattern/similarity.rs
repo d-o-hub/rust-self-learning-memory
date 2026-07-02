@@ -34,7 +34,7 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
         return long_len;
     }
 
-    // Only need two rows of the matrix at any time
+    // Only need two rows of the matrix at any time to calculate the next state
     let mut prev_row: Vec<usize> = (0..=short_len).collect();
     let mut curr_row = vec![0; short_len + 1];
 
@@ -87,7 +87,7 @@ fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
         return long_len;
     }
 
-    // Only need two rows of the matrix at any time
+    // Only need two rows of the matrix at any time to calculate the next state
     let mut prev_row: Vec<usize> = (0..=short_len).collect();
     let mut curr_row = vec![0; short_len + 1];
 

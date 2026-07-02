@@ -1,5 +1,6 @@
 //! JSON-RPC server infrastructure
 
+#[allow(deprecated)]
 use super::core::{
     handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
     handle_protected_resource_metadata, handle_shutdown,
@@ -299,7 +300,7 @@ pub async fn run_jsonrpc_server(
 }
 
 /// Handle a JSON-RPC request with rate limiting
-#[allow(clippy::excessive_nesting)]
+#[allow(clippy::excessive_nesting, deprecated)]
 pub async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,

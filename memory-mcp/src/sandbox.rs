@@ -296,6 +296,8 @@ delete global.require;
 delete global.module;
 delete global.__dirname;
 delete global.__filename;
+delete global.eval;
+delete global.Function;
 
 // Set up restricted console
 const outputs = [];

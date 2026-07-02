@@ -164,6 +164,7 @@ pub fn create_test_reward(total: f32) -> RewardScore {
         complexity_bonus: 1.1,
         learning_bonus: 1.0,
         quality_multiplier: 1.0,
+        abstention_score: 0.0,
     }
 }
 

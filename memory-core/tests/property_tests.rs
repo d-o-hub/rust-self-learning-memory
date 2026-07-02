@@ -56,6 +56,7 @@ proptest! {
             complexity_bonus,
             quality_multiplier,
             learning_bonus,
+            abstention_score: 0.0,
         };
 
         let json = serde_json::to_string(&score).expect("serialize to JSON");
@@ -643,6 +644,7 @@ mod postcard_tests {
                 complexity_bonus: 1.0,
                 quality_multiplier: 1.0,
                 learning_bonus: 0.0,
+                abstention_score: 0.0,
             };
 
             let serialized = postcard::to_allocvec(&score).expect("postcard serialize");

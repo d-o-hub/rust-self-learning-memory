@@ -218,6 +218,7 @@ proptest! {
             complexity_bonus,
             quality_multiplier,
             learning_bonus,
+            abstention_score: 0.0,
         };
 
         let bytes = postcard::to_allocvec(&score).expect("postcard serialize");

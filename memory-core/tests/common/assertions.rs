@@ -258,6 +258,7 @@ mod tests {
             efficiency: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
+            abstention_score: 0.0,
             total: 1.1,
         };
 
@@ -272,6 +273,7 @@ mod tests {
             efficiency: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
+            abstention_score: 0.0,
             total: 0.0,
         };
 
@@ -286,6 +288,7 @@ mod tests {
             efficiency: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
+            abstention_score: 0.0,
             total: 1.1,
         };
 

@@ -132,7 +132,7 @@ mod tests {
 
         // Add just a few steps
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -158,7 +158,7 @@ mod tests {
 
         // Add many steps
         for i in 0..50 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

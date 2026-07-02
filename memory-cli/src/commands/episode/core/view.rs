@@ -31,6 +31,7 @@ pub async fn view_episode(
                 do_memory_core::TaskOutcome::Success { .. } => "success",
                 do_memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
                 do_memory_core::TaskOutcome::Failure { .. } => "failure",
+                do_memory_core::TaskOutcome::Abstained { .. } => "abstained",
             },
         })
     });

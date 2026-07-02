@@ -44,7 +44,7 @@ sysinfo = "0.38"
 which = "4"
 regex = { workspace = true }
 
-base64 = "0.22.1"
+base64 = { workspace = true }
 jsonwebtoken = { version = "10.4.0", optional = true, features = ["rust_crypto"] }
 
 [target.'cfg(unix)'.dependencies]

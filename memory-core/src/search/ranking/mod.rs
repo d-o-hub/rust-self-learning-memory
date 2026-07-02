@@ -288,6 +288,7 @@ pub fn calculate_success_score(episode: &Episode) -> f64 {
         match outcome {
             crate::types::TaskOutcome::Success { .. } => 1.0,
             crate::types::TaskOutcome::PartialSuccess { .. } => 0.6,
+            crate::types::TaskOutcome::Abstained { .. } => 0.4,
             crate::types::TaskOutcome::Failure { .. } => 0.2,
         }
     } else {

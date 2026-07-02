@@ -308,7 +308,15 @@ impl EpisodeRetentionPolicy {
         // Keep episodes that are not failed or have patterns/heuristics
         match episode.outcome.as_ref() {
             None => true,
-            Some(o) if !matches!(o, crate::types::TaskOutcome::Failure { .. }) => true,
+            Some(o)
+                if !matches!(
+                    o,
+                    crate::types::TaskOutcome::Failure { .. }
+                        | crate::types::TaskOutcome::Abstained { .. }
+                ) =>
+            {
+                true
+            }
             Some(_) => self.check_references(episode),
         }
     }

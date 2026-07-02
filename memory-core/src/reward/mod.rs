@@ -28,6 +28,9 @@ pub mod tests;
 pub use adaptive::AdaptiveRewardCalculator;
 pub use domain_stats::{DomainStatistics, DomainStatisticsCache};
 
+mod efficiency;
+pub use efficiency::calculate_abstention_score;
+
 use crate::episode::Episode;
 use crate::types::{ComplexityLevel, RewardScore, TaskOutcome};
 use tracing::{debug, instrument};
@@ -86,9 +89,11 @@ impl RewardCalculator {
         let complexity_bonus = self.calculate_complexity_bonus(episode);
         let quality_multiplier = self.calculate_quality_multiplier(episode);
         let learning_bonus = self.calculate_learning_bonus(episode);
+        let abstention_score = calculate_abstention_score(episode);
 
         // Calculate total: base reward * multipliers + bonuses
-        let total = (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
+        let total =
+            (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus + abstention_score;
 
         debug!(
             base = base,
@@ -96,6 +101,7 @@ impl RewardCalculator {
             complexity_bonus = complexity_bonus,
             quality_multiplier = quality_multiplier,
             learning_bonus = learning_bonus,
+            abstention_score = abstention_score,
             total = total,
             "Calculated reward score"
         );
@@ -107,6 +113,7 @@ impl RewardCalculator {
             complexity_bonus,
             quality_multiplier,
             learning_bonus,
+            abstention_score,
         }
     }
 
@@ -126,6 +133,9 @@ impl RewardCalculator {
                 }
             }
             Some(TaskOutcome::Failure { .. }) => 0.0,
+            // Abstention is not failure: base is 0.3 (above failure, below partial)
+            // The abstention_score component in RewardScore handles timeliness.
+            Some(TaskOutcome::Abstained { .. }) => 0.3,
             None => 0.0, // Not completed
         }
     }

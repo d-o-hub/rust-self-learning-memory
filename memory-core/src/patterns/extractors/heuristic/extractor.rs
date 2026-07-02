@@ -93,13 +93,13 @@ impl HeuristicExtractor {
             return Ok(Vec::new());
         }
 
-        // Only extract from successful episodes
-        let is_successful = matches!(
+        // Only extract from successful or abstained episodes
+        let is_eligible = matches!(
             episode.outcome,
-            Some(TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. })
+            Some(TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. } | TaskOutcome::Abstained { .. })
         );
 
-        if !is_successful {
+        if !is_eligible {
             return Ok(Vec::new());
         }
 
@@ -107,6 +107,7 @@ impl HeuristicExtractor {
         let success_rate = match &episode.outcome {
             Some(TaskOutcome::Success { .. }) => 1.0,
             Some(TaskOutcome::PartialSuccess { .. }) => 0.5,
+            Some(TaskOutcome::Abstained { .. }) => 0.3,
             _ => 0.0,
         };
 

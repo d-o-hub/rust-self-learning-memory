@@ -44,6 +44,7 @@ impl ErrorRecoveryExtractor {
         match outcome {
             Some(TaskOutcome::Success { .. }) => 1.0,
             Some(TaskOutcome::PartialSuccess { .. }) => 0.5,
+            Some(TaskOutcome::Abstained { .. }) => 0.3,
             _ => 0.0,
         }
     }

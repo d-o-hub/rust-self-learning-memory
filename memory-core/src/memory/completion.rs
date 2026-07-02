@@ -392,6 +392,7 @@ impl SelfLearningMemory {
             TaskOutcome::Success { verdict, .. } => verdict.clone(),
             TaskOutcome::PartialSuccess { verdict, .. } => verdict.clone(),
             TaskOutcome::Failure { reason, .. } => reason.clone(),
+            TaskOutcome::Abstained { reason, .. } => reason.clone(),
         };
         let success = matches!(outcome, TaskOutcome::Success { .. });
         let audit_entry = episode_completed(&context, episode_id, &outcome_str, success);

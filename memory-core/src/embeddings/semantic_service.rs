@@ -359,6 +359,9 @@ impl SemanticService {
                 crate::types::TaskOutcome::Failure { reason, .. } => {
                     let _ = write!(text, ". outcome: failure - {reason}");
                 }
+                crate::types::TaskOutcome::Abstained { reason, .. } => {
+                    let _ = write!(text, ". outcome: abstained - {reason}");
+                }
             }
         }
 

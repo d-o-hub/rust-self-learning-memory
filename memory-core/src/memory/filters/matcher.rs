@@ -103,6 +103,7 @@ impl EpisodeFilter {
                             TaskOutcome::PartialSuccess { .. }
                         )
                         | (OutcomeType::Failure, TaskOutcome::Failure { .. })
+                        | (OutcomeType::Abstained, TaskOutcome::Abstained { .. })
                 );
                 if !matches_outcome {
                     return false;
@@ -223,6 +224,7 @@ impl EpisodeFilter {
                 TaskOutcome::Success { verdict, .. } => verdict.as_str(),
                 TaskOutcome::PartialSuccess { verdict, .. } => verdict.as_str(),
                 TaskOutcome::Failure { reason, .. } => reason.as_str(),
+                TaskOutcome::Abstained { reason, .. } => reason.as_str(),
             };
             texts.push(outcome_text);
         }

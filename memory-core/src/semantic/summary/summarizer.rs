@@ -352,6 +352,9 @@ impl SemanticSummarizer {
                         format!("Outcome: Failure - {reason}")
                     }
                 }
+                TaskOutcome::Abstained { reason, .. } => {
+                    format!("Outcome: Abstained - {reason}")
+                }
             };
             parts.push(format!("{outcome_text}."));
         }

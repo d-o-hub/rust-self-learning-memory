@@ -232,7 +232,7 @@ do-memory-cli pattern list --semantic-search "error handling"
 |----------|---------------------|---------|
 | Privacy-sensitive | Local | Data stays on your machine |
 | High volume | Local | No API costs |
-| Best quality | OpenAI (3-large) | State-of-the-art embeddings |
+| Best quality | OpenAI (3-large) | High-accuracy embeddings |
 | Code-specific | Mistral (codestral) | Optimized for code |
 | Cost-sensitive | Local | Free option available |
 

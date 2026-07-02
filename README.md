@@ -46,14 +46,16 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
 
-### 🗺️ Episode Checkpoints/Handoff
+### 🔄 Episode Checkpoints and Handoff
 - Checkpoint episodes mid-task for long-running workflows
 - Generate handoff packs to transfer state between agents or sessions
 - Resume execution from saved checkpoints
+- State preservation with findings and pending actions
 
 ### 🌊 CSM Cascading Retrieval
 - 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
-- 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API)
+- 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API Embeddings)
+- Hyperdimensional computing (HDC) binary vectors for zero-API similarity search
 - 50-70% reduction in external API embedding calls
 - Semantic pattern search with natural language queries
 - Intelligent pattern recommendations for tasks using multi-signal ranking
@@ -62,16 +64,6 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Pattern effectiveness tracking with decay over time
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
-
-### 🔄 Episode Checkpoints and Handoff
-- Mid-task progress snapshots for long-running task pauses
-- Handoff capability for passing tasks across specialized agents
-- State preservation with findings and pending actions
-
-### 🌊 CSM Cascading Retrieval
-- Hyperdimensional computing (HDC) binary vectors for zero-API similarity search
-- Tiered retrieval fallback: BM25 -> HDC -> ConceptGraph -> API Embeddings
-- Dramatically reduces external embedding API costs
 
 ### 🔒 Secure Code Sandbox (conditional)
 - Wasmtime WASM sandbox for safe code execution when enabled/available
@@ -529,13 +521,13 @@ batch_size = 100
 │  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
-         ┌─────────────────────┼─────────────────────┐
-         │                     │                     │
-┌───────────▼───────────┐  ┌───────────▼───────────┐  ┌────────▼────────┐
-│do-memory-storage-turso│  │do-memory-storage-redb │  │  In-Memory      │
-│                       │  │                       │  │                 │
-│     libSQL/Remote     │  │      Fast Access      │  │  Temporary      │
-└───────────────────────┘  └───────────────────────┘  └─────────────────┘
+            ┌──────────────────┴──────┬────────────────────────┐
+            │                         │                        │
+┌───────────▼───────────┐ ┌───────────▼───────────┐ ┌───────────▼───────────┐
+│do-memory-storage-turso│ │do-memory-storage-redb │ │do-memory-storage-redb │
+│                       │ │                       │ │                       │
+│     libSQL/Remote     │ │      Fast Access      │ │  In-Memory/Temporary  │
+└───────────────────────┘ └───────────────────────┘ └───────────────────────┘
 ```
 
 ## MCP Server Tools

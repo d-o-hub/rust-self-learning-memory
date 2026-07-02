@@ -1,17 +1,19 @@
 //! End-to-end JSON-RPC `shutdown` integration test
 //!
-//! Locks in the behavior introduced by PR #708: Content-Length framed `shutdown`
-//! requests must reach the dispatch layer and produce the contract response
+//! Locks in the behavior introduced by PR #708 (Strict JSON-RPC
+//! Content-Length validation) and the deprecation cleanup in ADR-060
+//! Option 1: Content-Length framed `shutdown` requests must reach the
+//! dispatch layer and produce the contract response
 //! (`{"jsonrpc":"2.0","id":<id>,"result":null}`), while notification-style
 //! shutdown messages (no `id`) must return no response.
 //!
-//! This covers the full path:
+//! Covers the full path:
 //!   stdin bytes → `read_next_message` (Content-Length header) → `JsonRpcRequest`
 //!   → `protocol::handle_shutdown` → `JsonRpcResponse` → `write_response_with_length`.
 //!
-//! References: PR #708 (Strict JSON-RPC Content-Length validation), issue #697.
+//! References: PR #708 (Strict JSON-RPC Content-Length validation), issue #697,
+//! ADR-060 (`handle_shutdown` deprecation cleanup).
 
-#![allow(deprecated)] // Calls `protocol::handle_shutdown` which is `#[deprecated]`.
 #![allow(missing_docs)]
 
 use do_memory_mcp::jsonrpc::{JsonRpcRequest, read_next_message, write_response_with_length};
@@ -40,7 +42,7 @@ async fn shutdown_via_content_length_returns_null_result() {
     let mut cursor = Cursor::new(framed);
 
     // Act: parse the framed bytes into a JsonRpcRequest via the real reader,
-    // then dispatch through the real (deprecated) handler.
+    // then dispatch through the real handler.
     let (raw, is_lsp) = read_next_message(&mut cursor)
         .expect("read should not fail for a well-formed frame")
         .expect("a frame was provided");

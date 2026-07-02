@@ -1409,12 +1409,11 @@ fn test_total_reward_formula_verification() {
     let reward = calculator.calculate(&episode);
 
     // Verify formula: total = (base + abstention_score).max(0.0) * efficiency * complexity_bonus * quality_multiplier + learning_bonus
-    let expected_total =
-        ((reward.base + reward.abstention_score).max(0.0)
-            * reward.efficiency
-            * reward.complexity_bonus
-            * reward.quality_multiplier)
-            + reward.learning_bonus;
+    let expected_total = ((reward.base + reward.abstention_score).max(0.0)
+        * reward.efficiency
+        * reward.complexity_bonus
+        * reward.quality_multiplier)
+        + reward.learning_bonus;
 
     assert!(
         (reward.total - expected_total).abs() < 0.01,
@@ -1446,11 +1445,18 @@ fn test_early_abstention_score_is_positive() {
         infeasibility_signals: vec!["tool_not_found".to_string()],
     });
     // Add 1 step to steps vec
-    ep.steps.push(ExecutionStep::new(1, "tool".to_string(), "action".to_string()));
+    ep.steps.push(ExecutionStep::new(
+        1,
+        "tool".to_string(),
+        "action".to_string(),
+    ));
 
     let calc = RewardCalculator::new();
     let reward = calc.calculate(&ep);
-    assert!(reward.abstention_score > 0.0, "Early abstention should yield positive score");
+    assert!(
+        reward.abstention_score > 0.0,
+        "Early abstention should yield positive score"
+    );
     assert_eq!(reward.abstention_score, 0.5);
 }
 
@@ -1463,11 +1469,18 @@ fn test_late_failure_abstention_penalty() {
     });
     // Simulate 15 steps
     for i in 0..15 {
-        ep.steps.push(ExecutionStep::new(i + 1, format!("tool_{i}"), "action".to_string()));
+        ep.steps.push(ExecutionStep::new(
+            i + 1,
+            format!("tool_{i}"),
+            "action".to_string(),
+        ));
     }
 
     let calc = RewardCalculator::new();
     let reward = calc.calculate(&ep);
-    assert!(reward.abstention_score < 0.0, "Late failure should yield negative abstention score");
+    assert!(
+        reward.abstention_score < 0.0,
+        "Late failure should yield negative abstention score"
+    );
     assert_eq!(reward.abstention_score, -0.2);
 }

@@ -60,8 +60,8 @@ mod tests {
     use super::*;
     use crate::episode::structs::ExecutionStep;
     use crate::types::enums::ExecutionResult;
-    use crate::types::structs::TaskContext;
     use crate::types::enums::TaskType;
+    use crate::types::structs::TaskContext;
 
     #[test]
     fn test_extract_abstention_pattern() {
@@ -72,7 +72,9 @@ mod tests {
         );
 
         let mut step = ExecutionStep::new(1, "search".to_string(), "find results".to_string());
-        step.result = Some(ExecutionResult::Success { output: "empty".to_string() });
+        step.result = Some(ExecutionResult::Success {
+            output: "empty".to_string(),
+        });
         ep.add_step(step);
 
         ep.complete(TaskOutcome::Abstained {
@@ -83,8 +85,14 @@ mod tests {
 
         let pattern = extract_abstention_pattern(&ep).unwrap();
         assert_eq!(pattern.stopped_at_step, 1);
-        assert_eq!(pattern.infeasibility_signals, vec!["empty_result".to_string()]);
-        assert_eq!(pattern.trajectory_prefix, vec!["search: find results".to_string()]);
+        assert_eq!(
+            pattern.infeasibility_signals,
+            vec!["empty_result".to_string()]
+        );
+        assert_eq!(
+            pattern.trajectory_prefix,
+            vec!["search: find results".to_string()]
+        );
     }
 
     #[test]

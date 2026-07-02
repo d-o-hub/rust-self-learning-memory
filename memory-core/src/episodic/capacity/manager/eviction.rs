@@ -174,7 +174,7 @@ mod tests {
             complexity_bonus: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
-                abstention_score: 0.0,
+            abstention_score: 0.0,
         });
 
         let mut medium_quality = create_test_episode("Medium quality");
@@ -185,7 +185,7 @@ mod tests {
             complexity_bonus: 1.0,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
-                abstention_score: 0.0,
+            abstention_score: 0.0,
         });
 
         let mut high_quality = create_test_episode("High quality");
@@ -196,7 +196,7 @@ mod tests {
             complexity_bonus: 1.2,
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
-                abstention_score: 0.0,
+            abstention_score: 0.0,
         });
 
         let episodes = vec![

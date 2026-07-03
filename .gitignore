@@ -119,3 +119,6 @@ debug_config
 
 # Generated full LLM context (artifact only; compact llms.txt is tracked)
 /llms-full.txt
+
+# Prevent re-introduction of CI trigger file anti-pattern
+.trigger-ci.txt

@@ -40,13 +40,24 @@
 
    **Note**: The pre-commit hook automatically runs these checks, but you can run them manually too.
 
-6. **Commit & Push**
+6. **Manual CI Triggers**
+   If you need to manually re-run CI without pushing a new commit (e.g., to retry a flaky test or after a dependency update), use the GitHub CLI:
+   ```bash
+   # Trigger the main CI workflow
+   gh workflow run ci.yml --ref your-branch-name -f reason="Retrying after flaky failure"
+
+   # Trigger quick checks
+   gh workflow run quick-check.yml --ref your-branch-name
+   ```
+   You can also trigger workflows from the "Actions" tab in the GitHub UI.
+
+7. **Commit & Push**
    ```bash
    git commit -m "feat: add episode pattern recognition"
    git push origin feat/your-feature-name
    ```
 
-7. **Create Pull Request**
+8. **Create Pull Request**
    - Target `main` branch
    - Fill out PR template
    - Link related issues

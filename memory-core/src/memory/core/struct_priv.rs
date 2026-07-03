@@ -4,7 +4,7 @@
 
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship};
-use crate::pattern::PatternId;
+use crate::patterns::PatternId;
 use crate::storage::StorageBackend;
 use crate::types::emitter::EventEmitter;
 use crate::types::{MemoryConfig, MemoryEvent, TaskContext, DEFAULT_EVENT_CHANNEL_CAPACITY};
@@ -15,7 +15,7 @@ use tokio::sync::{broadcast, RwLock, Semaphore};
 use super::super::step_buffer::StepBuffer;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::monitoring::{AgentMetrics, AgentMonitor};
-use crate::pattern::{Heuristic, Pattern};
+use crate::patterns::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
@@ -62,7 +62,7 @@ pub struct SelfLearningMemory {
     /// Semaphore to limit concurrent cache operations
     pub(super) cache_semaphore: Arc<Semaphore>,
     /// Capacity manager for episodic storage (GENESIS)
-    pub(super) capacity_manager: Option<crate::episodic::CapacityManager>,
+    pub(super) capacity_manager: Option<crate::episode::CapacityManager>,
     /// Semantic summarizer for episode compression (GENESIS)
     pub(super) semantic_summarizer: Option<crate::semantic::SemanticSummarizer>,
     /// Spatiotemporal index for hierarchical retrieval (Spatiotemporal)

@@ -288,7 +288,6 @@ CREATE INDEX IF NOT EXISTS idx_heuristics_confidence
 ON heuristics(confidence DESC)
 "#;
 
-#[path = "schema_monitoring.rs"]
 mod schema_monitoring;
 pub use schema_monitoring::{
     CREATE_AGENT_METRICS_TABLE, CREATE_AGENT_METRICS_TYPE_INDEX,

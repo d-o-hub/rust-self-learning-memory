@@ -11,7 +11,7 @@
 
 use chrono::{Duration, Utc};
 use do_memory_core::episode::{Episode, ExecutionStep};
-use do_memory_core::pattern::PatternEffectiveness;
+use do_memory_core::patterns::PatternEffectiveness;
 use do_memory_core::reward::RewardCalculator;
 use do_memory_core::types::{
     ComplexityLevel, ExecutionResult, OutcomeStats, TaskContext, TaskOutcome, TaskType,

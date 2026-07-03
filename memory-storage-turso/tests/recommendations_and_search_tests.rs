@@ -16,7 +16,7 @@ use do_memory_core::{
     Episode, Pattern,
     embeddings::EmbeddingStorageBackend,
     memory::attribution::{RecommendationFeedback, RecommendationSession},
-    pattern::PatternEffectiveness,
+    patterns::PatternEffectiveness,
     types::{TaskContext, TaskOutcome, TaskType},
 };
 use do_memory_storage_turso::TursoStorage;

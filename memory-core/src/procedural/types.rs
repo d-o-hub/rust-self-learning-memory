@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::episode::PatternId;
 use crate::memory::playbook::PlaybookStep;
-use crate::pattern::PatternEffectiveness;
+use crate::patterns::PatternEffectiveness;
 use crate::types::TaskContext;
 
 /// Procedural memory represents learned heuristics-as-skills.

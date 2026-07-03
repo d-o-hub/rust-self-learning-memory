@@ -39,7 +39,7 @@ pub(crate) fn row_to_pattern(row: &libsql::Row) -> Result<CorePattern> {
         action: format!("Heuristic: {}", pattern_data.heuristic.condition),
         outcome_stats,
         context: pattern_data.context,
-        effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+        effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
     };
 
     Ok(pattern)

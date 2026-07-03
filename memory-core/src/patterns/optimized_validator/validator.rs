@@ -1,6 +1,6 @@
 //! Enhanced pattern validator with optimized thresholds
 
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 
 /// Enhanced pattern validator with optimized thresholds

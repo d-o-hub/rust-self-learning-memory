@@ -5,7 +5,7 @@
 
 use crate::Result;
 use crate::embeddings::SemanticService;
-use crate::pattern::{Pattern, PatternEffectiveness};
+use crate::patterns::{Pattern, PatternEffectiveness};
 use crate::types::TaskContext;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};

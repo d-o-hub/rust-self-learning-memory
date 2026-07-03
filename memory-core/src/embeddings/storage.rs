@@ -4,7 +4,7 @@ use super::similarity::SimilaritySearchResult;
 use crate::Result;
 use crate::episode::Episode;
 use crate::episode::PatternId;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use async_trait::async_trait;
 use uuid::Uuid;
 

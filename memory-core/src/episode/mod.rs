@@ -32,6 +32,7 @@
 //! assert!(episode.is_complete());
 //! ```
 
+pub mod capacity;
 pub mod graph_algorithms;
 pub mod relationship_errors;
 pub mod relationship_manager;
@@ -42,6 +43,7 @@ pub mod retention;
 pub mod structs;
 pub mod validation;
 
+pub use capacity::{CapacityManager, EvictionPolicy};
 pub use graph_algorithms::{
     find_all_cycles_from_node, find_path_dfs, get_ancestors, get_transitive_closure, has_cycle,
     has_path_dfs, topological_sort,

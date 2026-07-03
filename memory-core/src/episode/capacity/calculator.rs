@@ -30,7 +30,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     ///
     /// let manager = CapacityManager::new(1000, EvictionPolicy::RelevanceWeighted);
     /// assert!(manager.can_store(0));
@@ -56,7 +56,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     ///
     /// let manager = CapacityManager::new(100, EvictionPolicy::LRU);
     /// assert!(manager.can_store(50));
@@ -86,7 +86,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```no_run
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     /// use do_memory_core::{Episode, TaskContext, TaskType};
     ///
     /// let manager = CapacityManager::new(2, EvictionPolicy::LRU);
@@ -139,7 +139,7 @@ impl CapacityManager {
     /// # Examples
     ///
     /// ```no_run
-    /// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// use do_memory_core::episode::{CapacityManager, EvictionPolicy};
     /// use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
     ///
     /// let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
@@ -170,7 +170,7 @@ impl CapacityManager {
     ///
     /// Uses `PREMem` salient features quality score if available,
     /// otherwise falls back to reward score total.
-    fn extract_quality_score(&self, episode: &Episode) -> f32 {
+    pub fn extract_quality_score(&self, episode: &Episode) -> f32 {
         // Try to get quality score from PREMem salient features
         if let Some(ref salient) = episode.salient_features {
             // Use the overall quality from salient features
@@ -198,7 +198,7 @@ impl CapacityManager {
     ///
     /// Newer episodes get higher scores using exponential decay.
     /// Episodes created in the last hour get scores near 1.0.
-    fn calculate_recency_score(&self, episode: &Episode) -> f32 {
+    pub fn calculate_recency_score(&self, episode: &Episode) -> f32 {
         let now = Utc::now();
         let episode_time = episode.end_time.unwrap_or(episode.start_time);
 
@@ -235,6 +235,7 @@ impl Default for CapacityManager {
 
 #[cfg(test)]
 mod tests {
+    use super::super::EvictionPolicy;
     use super::*;
     use crate::types::{ComplexityLevel, RewardScore, TaskContext, TaskOutcome, TaskType};
 
@@ -252,24 +253,21 @@ mod tests {
 
     #[test]
     fn test_capacity_manager_creation() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(100, EvictionPolicy::LRU);
         assert_eq!(manager.max_episodes(), 100);
-        assert_eq!(manager.eviction_policy(), super::EvictionPolicy::LRU);
+        assert_eq!(manager.eviction_policy(), EvictionPolicy::LRU);
     }
 
     #[test]
     fn test_default_capacity_manager() {
         let manager = CapacityManager::default();
         assert_eq!(manager.max_episodes(), 1000);
-        assert_eq!(
-            manager.eviction_policy(),
-            super::EvictionPolicy::RelevanceWeighted
-        );
+        assert_eq!(manager.eviction_policy(), EvictionPolicy::RelevanceWeighted);
     }
 
     #[test]
     fn test_can_store_under_capacity() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(100, EvictionPolicy::LRU);
         assert!(manager.can_store(0));
         assert!(manager.can_store(50));
         assert!(manager.can_store(99));
@@ -277,20 +275,20 @@ mod tests {
 
     #[test]
     fn test_can_store_at_capacity() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(100, EvictionPolicy::LRU);
         assert!(!manager.can_store(100));
     }
 
     #[test]
     fn test_can_store_over_capacity() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(100, EvictionPolicy::LRU);
         assert!(!manager.can_store(101));
         assert!(!manager.can_store(200));
     }
 
     #[test]
     fn test_evict_if_needed_under_capacity() {
-        let manager = CapacityManager::new(10, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(10, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
             .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
@@ -301,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_evict_if_needed_at_capacity() {
-        let manager = CapacityManager::new(3, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(3, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..3)
             .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
@@ -313,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_evict_if_needed_over_capacity() {
-        let manager = CapacityManager::new(3, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(3, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
             .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
@@ -325,7 +323,7 @@ mod tests {
 
     #[test]
     fn test_relevance_score_calculation() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::RelevanceWeighted);
+        let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 
         let mut episode = create_test_episode("Test task");
         episode.reward = Some(RewardScore {
@@ -347,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_recency_score_new_episode() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::RelevanceWeighted);
+        let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 
         let mut episode = create_test_episode("New task");
         episode.complete(TaskOutcome::Success {
@@ -362,7 +360,7 @@ mod tests {
 
     #[test]
     fn test_recency_score_old_episode() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::RelevanceWeighted);
+        let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 
         let mut episode = create_test_episode("Old task");
         // Simulate old episode (30 days ago)
@@ -382,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_quality_score_from_reward() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::RelevanceWeighted);
+        let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 
         let mut episode = create_test_episode("Test task");
         episode.reward = Some(RewardScore {
@@ -402,7 +400,7 @@ mod tests {
 
     #[test]
     fn test_quality_score_default() {
-        let manager = CapacityManager::new(100, super::EvictionPolicy::RelevanceWeighted);
+        let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 
         let episode = create_test_episode("Test task");
         // No reward or salient features
@@ -413,19 +411,13 @@ mod tests {
 
     #[test]
     fn test_eviction_policy_enum() {
-        assert_eq!(
-            super::EvictionPolicy::default(),
-            super::EvictionPolicy::RelevanceWeighted
-        );
-        assert_ne!(
-            super::EvictionPolicy::LRU,
-            super::EvictionPolicy::RelevanceWeighted
-        );
+        assert_eq!(EvictionPolicy::default(), EvictionPolicy::RelevanceWeighted);
+        assert_ne!(EvictionPolicy::LRU, EvictionPolicy::RelevanceWeighted);
     }
 
     #[test]
     fn test_zero_capacity() {
-        let manager = CapacityManager::new(0, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(0, EvictionPolicy::LRU);
         assert!(!manager.can_store(0));
 
         let episodes = vec![create_test_episode("Task 1")];
@@ -437,7 +429,7 @@ mod tests {
 
     #[test]
     fn test_single_episode_capacity() {
-        let manager = CapacityManager::new(1, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(1, EvictionPolicy::LRU);
         assert!(manager.can_store(0));
         assert!(!manager.can_store(1));
 
@@ -448,7 +440,7 @@ mod tests {
 
     #[test]
     fn test_exactly_at_capacity_needs_eviction() {
-        let manager = CapacityManager::new(5, super::EvictionPolicy::LRU);
+        let manager = CapacityManager::new(5, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
             .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();

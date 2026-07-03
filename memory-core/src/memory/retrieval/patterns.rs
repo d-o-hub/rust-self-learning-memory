@@ -1,7 +1,7 @@
 //! Pattern retrieval implementation
 
 use crate::extraction::{deduplicate_patterns, rank_patterns};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use tracing::{debug, info, instrument};
 use uuid::Uuid;

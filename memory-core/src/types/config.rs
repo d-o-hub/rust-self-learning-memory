@@ -146,7 +146,7 @@ pub struct MemoryConfig {
     /// Maximum number of episodes to store (None = unlimited)
     pub max_episodes: Option<usize>,
     /// Eviction policy when capacity is reached (None = no eviction)
-    pub eviction_policy: Option<crate::episodic::EvictionPolicy>,
+    pub eviction_policy: Option<crate::episode::EvictionPolicy>,
 
     // Phase 2 (GENESIS) - Semantic summarization
     /// Whether to generate semantic summaries for episodes
@@ -204,7 +204,7 @@ impl Default for MemoryConfig {
 
             // Phase 2 (GENESIS) - Capacity management defaults
             max_episodes: None, // Unlimited by default
-            eviction_policy: Some(crate::episodic::EvictionPolicy::RelevanceWeighted),
+            eviction_policy: Some(crate::episode::EvictionPolicy::RelevanceWeighted),
 
             // Phase 2 (GENESIS) - Semantic summarization defaults
             enable_summarization: true,
@@ -283,16 +283,16 @@ impl MemoryConfig {
 
         if let Ok(policy) = std::env::var("MEMORY_EVICTION_POLICY") {
             config.eviction_policy = match policy.to_lowercase().as_str() {
-                "lru" => Some(crate::episodic::EvictionPolicy::LRU),
+                "lru" => Some(crate::episode::EvictionPolicy::LRU),
                 "relevanceweighted" | "relevance_weighted" | "relevance-weighted" => {
-                    Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+                    Some(crate::episode::EvictionPolicy::RelevanceWeighted)
                 }
                 _ => {
                     tracing::warn!(
                         "Invalid MEMORY_EVICTION_POLICY '{}', using default RelevanceWeighted",
                         policy
                     );
-                    Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+                    Some(crate::episode::EvictionPolicy::RelevanceWeighted)
                 }
             };
         }

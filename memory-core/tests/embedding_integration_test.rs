@@ -22,7 +22,7 @@ use do_memory_core::embeddings::{
 };
 use do_memory_core::episode::{ExecutionStep, PatternId};
 use do_memory_core::memory::SelfLearningMemory;
-use do_memory_core::pattern::Pattern;
+use do_memory_core::patterns::Pattern;
 use do_memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
 use do_memory_storage_redb::RedbStorage;
 use std::sync::Arc;

@@ -1,6 +1,6 @@
 //! Utility functions for pattern processing
 
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use chrono::{DateTime, Utc};
 use std::collections::HashSet;

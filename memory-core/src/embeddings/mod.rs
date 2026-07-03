@@ -50,6 +50,7 @@ mod provider;
 mod real_model;
 mod semantic_service;
 mod similarity;
+pub mod simple;
 mod storage;
 mod utils;
 

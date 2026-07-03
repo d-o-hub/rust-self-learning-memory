@@ -5,7 +5,7 @@
 
 use crate::Result;
 use crate::embeddings::SemanticService;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -230,7 +230,7 @@ mod tests {
             success_rate,
             avg_latency: chrono::Duration::milliseconds(100),
             occurrence_count: 5,
-            effectiveness: crate::pattern::PatternEffectiveness::new(),
+            effectiveness: crate::patterns::PatternEffectiveness::new(),
         }
     }
 

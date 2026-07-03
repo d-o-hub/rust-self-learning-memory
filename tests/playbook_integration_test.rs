@@ -4,7 +4,7 @@
 
 use do_memory_core::ExecutionStep;
 use do_memory_core::memory::SelfLearningMemory;
-use do_memory_core::pattern::{Pattern, PatternEffectiveness};
+use do_memory_core::patterns::{Pattern, PatternEffectiveness};
 use do_memory_core::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 

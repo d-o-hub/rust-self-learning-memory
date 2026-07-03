@@ -195,7 +195,7 @@ mod tests {
                 domain: "test-domain".to_string(),
                 ..Default::default()
             },
-            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
         };
         storage.store_pattern(&pattern).await.unwrap();
 

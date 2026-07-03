@@ -5,7 +5,7 @@ use super::builder::ReflectionData;
 use super::templates;
 use super::types::{PlaybookRequest, PlaybookSynthesisSource, RecommendedPlaybook};
 use crate::error::Result;
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::semantic::EpisodeSummary;
 use tracing::{info, instrument};
 use uuid::Uuid;
@@ -150,7 +150,7 @@ impl PlaybookGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::pattern::PatternEffectiveness;
+    use crate::patterns::PatternEffectiveness;
     use crate::types::{ComplexityLevel, TaskContext};
 
     fn create_test_pattern() -> Pattern {

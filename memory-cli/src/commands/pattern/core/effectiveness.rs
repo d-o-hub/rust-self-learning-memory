@@ -32,18 +32,18 @@ pub async fn pattern_effectiveness(
         let effectiveness = effectiveness_data.effectiveness_score();
 
         let description = match &pattern {
-            do_memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
+            do_memory_core::patterns::Pattern::ToolSequence { tools, .. } => {
                 format!("Tool sequence: {}", tools.join(" → "))
             }
-            do_memory_core::pattern::Pattern::DecisionPoint {
+            do_memory_core::patterns::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 format!("Decision: {} → {}", condition, action)
             }
-            do_memory_core::pattern::Pattern::ErrorRecovery { error_type, .. } => {
+            do_memory_core::patterns::Pattern::ErrorRecovery { error_type, .. } => {
                 format!("Error recovery: {}", error_type)
             }
-            do_memory_core::pattern::Pattern::ContextPattern {
+            do_memory_core::patterns::Pattern::ContextPattern {
                 recommended_approach,
                 ..
             } => {

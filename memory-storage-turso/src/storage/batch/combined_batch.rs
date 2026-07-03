@@ -434,7 +434,7 @@ mod tests {
                 avg_duration_secs: 0.0,
             },
             context: TaskContext::default(),
-            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
         }];
 
         let result = storage
@@ -459,7 +459,7 @@ mod tests {
             recommended_approach: "Break down into smaller parts".to_string(),
             evidence: vec![],
             success_rate: 0.85,
-            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::patterns::PatternEffectiveness::default(),
         }];
 
         let result = storage

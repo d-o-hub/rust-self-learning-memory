@@ -4,7 +4,7 @@
 
 use super::builder::{ReflectionData, StepsBuilder};
 use super::types::{PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource};
-use crate::pattern::Pattern;
+use crate::patterns::Pattern;
 use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
 

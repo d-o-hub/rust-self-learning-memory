@@ -17,6 +17,9 @@
 mod compressor;
 mod types;
 
+#[cfg(test)]
+mod types_tests;
+
 use crate::compression::CompressedPayload;
 pub use compressor::AsyncCompressor;
 pub use types::{

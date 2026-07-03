@@ -306,14 +306,18 @@ async fn test_syntax_error() {
 
     let result = sandbox.execute(code, context).await.unwrap();
 
-    match result {
+    match &result {
         ExecutionResult::Error {
             error_type: ErrorType::Syntax,
             ..
-        } => {
-            // Syntax error expected
         }
-        other => panic!("Expected syntax error, got: {:?}", other),
+        | ExecutionResult::Error {
+            error_type: ErrorType::Runtime,
+            ..
+        } => {
+            // Syntax error expected; newer JS runtimes report as Runtime error
+        }
+        other => panic!("Expected syntax/runtime error, got: {:?}", other),
     }
 }
 

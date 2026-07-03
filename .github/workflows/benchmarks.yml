@@ -199,14 +199,16 @@ jobs:
            criterion_dir="$CARGO_TARGET_DIR/criterion"
            if [ ! -d "$criterion_dir" ] || [ -z "$(find "$criterion_dir" -name "*.json" 2>/dev/null)" ]; then
              echo "⚠️ No benchmark results found, using dummy results"
-             ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
+             mkdir -p benchmark_results
+             ./scripts/generate_dummy_benchmarks.sh > benchmark_results/output.txt
            else
              echo "✅ Found benchmark results in $criterion_dir"
            fi
 
       - name: Convert Criterion output to bencher format
         run: |
-           bench_results_file="bench_results.txt"
+           mkdir -p benchmark_results
+           bench_results_file="benchmark_results/output.txt"
            criterion_dir="$CARGO_TARGET_DIR/criterion"
            if [ -d "$criterion_dir" ] && [ -n "$(find "$criterion_dir" -name "estimates.json" 2>/dev/null)" ]; then
              : > "$bench_results_file"
@@ -228,13 +230,13 @@ jobs:
              sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
              mv "${bench_results_file}.tmp" "$bench_results_file"
            fi
-           if [ ! -s bench_results.txt ]; then
+           if [ ! -s "$bench_results_file" ]; then
              echo "Warning: No benchmark results found, using dummy data!"
-             ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
+             ./scripts/generate_dummy_benchmarks.sh > "$bench_results_file"
            fi
            echo "Generated benchmark results:"
-           echo "Total benchmark entries: $(wc -l < bench_results.txt)"
-           head -20 bench_results.txt
+           echo "Total benchmark entries: $(wc -l < "$bench_results_file")"
+           head -20 "$bench_results_file"
 
       - name: Cleanup sccache
         if: always()
@@ -245,17 +247,17 @@ jobs:
       - name: Stage benchmark results for upload
         run: |
           set -euo pipefail
-          if [ ! -s bench_results.txt ]; then
-            echo "❌ bench_results.txt missing or empty before staging"
+          if [ ! -s benchmark_results/output.txt ]; then
+            echo "❌ benchmark_results/output.txt missing or empty before staging"
             exit 1
           fi
           mkdir -p "${{ runner.temp }}/cargo-target"
-          cp bench_results.txt "${{ runner.temp }}/cargo-target/bench_results.txt"
+          cp benchmark_results/output.txt "${{ runner.temp }}/cargo-target/output.txt"
           echo "Staged files for upload:"
           ls -la "${{ runner.temp }}/cargo-target/" | head -20
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
           path: ${{ runner.temp }}/cargo-target/
@@ -276,15 +278,16 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download benchmark results
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
+          path: .
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba
+        uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Rust Benchmarks
           tool: 'cargo'
-          output-file-path: bench_results.txt
+          output-file-path: output.txt
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           alert-threshold: '110%'
@@ -308,25 +311,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Download benchmark results
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - name: Download benchmark results (regression check)
+        uses: actions/download-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
+          path: .
         continue-on-error: true
+
       - name: Check for regression
         run: |
-          if [ ! -f "bench_results.txt" ]; then
+          if [ ! -f "output.txt" ]; then
             echo "⚠️ No benchmark results found"
             exit 0
           fi
           echo "✅ Benchmark results found"
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        uses: actions/github-script@v7
         with:
           script: |
               const fs = require('fs');
-              if (!fs.existsSync('bench_results.txt')) {
+              if (!fs.existsSync('output.txt')) {
                 const errorMsg = `## Performance Benchmark Results\n\n⚠️ **Benchmark artifacts not available**`;
                 github.rest.issues.createComment({
                   issue_number: context.issue.number,
@@ -336,7 +341,7 @@ jobs:
                 });
                 return;
               }
-              const results = fs.readFileSync('bench_results.txt', 'utf8');
+              const results = fs.readFileSync('output.txt', 'utf8');
               const body = `## Performance Benchmark Results\n\n<details><summary>Click to expand</summary>\n\n\`\`\`\n${results}\n\`\`\`\n\n</details>`;
               github.rest.issues.createComment({
                 issue_number: context.issue.number,

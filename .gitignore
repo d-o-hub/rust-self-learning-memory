@@ -109,6 +109,9 @@ mcp-config-*.json
 .memory-traces/
 audit-report.json
 insights-report/
+benchmark_results/
+metrics/
+bench_results.txt
 
 # Split file artifacts (from split command)
 /x??

@@ -97,6 +97,7 @@ impl Default for TaskContext {
 ///     complexity_bonus: 1.2,  // Handled complex task well
 ///     quality_multiplier: 1.1, // High quality output
 ///     learning_bonus: 0.3,    // Discovered new pattern
+///     abstention_score: 0.0,  // No abstention
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

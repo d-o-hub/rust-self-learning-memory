@@ -10,6 +10,12 @@ permissions:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual CI run'
 
 env:
   RUST_BACKTRACE: 1

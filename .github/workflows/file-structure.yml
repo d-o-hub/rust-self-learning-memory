@@ -12,6 +12,7 @@ concurrency:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   # Wait for quick-check to pass before running file structure validation

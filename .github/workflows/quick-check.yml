@@ -6,6 +6,12 @@ name: Quick Check
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual Quick Check run'
 
 # Cancel outdated runs when new commits are pushed
 concurrency:

@@ -40,6 +40,7 @@ pub fn should_cache_episodes(episodes: &[Arc<Episode>]) -> bool {
                         size += failed.iter().map(|a| a.len()).sum::<usize>();
                     }
                     crate::types::TaskOutcome::Failure { .. } => {}
+                    crate::types::TaskOutcome::Abstained { .. } => {}
                 }
             }
 
@@ -127,6 +128,7 @@ pub fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
         Some(crate::types::TaskOutcome::Success { .. }) => 1.0,
         Some(crate::types::TaskOutcome::PartialSuccess { .. }) => 0.5,
         Some(crate::types::TaskOutcome::Failure { .. }) => 0.0,
+        Some(crate::types::TaskOutcome::Abstained { .. }) => 0.3,
         None => 0.5,
     });
 

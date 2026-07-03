@@ -24,6 +24,9 @@ pub fn calculate_base_reward(episode: &Episode) -> f32 {
             }
         }
         Some(TaskOutcome::Failure { .. }) => 0.0,
+        // Abstention is not failure: base is 0.3 (above failure, below partial)
+        // The abstention_score component in RewardScore handles timeliness.
+        Some(TaskOutcome::Abstained { .. }) => 0.3,
         None => 0.0, // Not completed
     }
 }

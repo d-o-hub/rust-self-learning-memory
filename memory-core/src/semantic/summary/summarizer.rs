@@ -352,6 +352,13 @@ impl SemanticSummarizer {
                         format!("Outcome: Failure - {reason}")
                     }
                 }
+                TaskOutcome::Abstained {
+                    reason,
+                    stopped_at_step,
+                    ..
+                } => {
+                    format!("Outcome: Abstained - {reason} at step {stopped_at_step}")
+                }
             };
             parts.push(format!("{outcome_text}."));
         }

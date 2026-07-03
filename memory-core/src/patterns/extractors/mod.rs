@@ -8,6 +8,7 @@ use crate::patterns::Pattern;
 use anyhow::Result;
 use async_trait::async_trait;
 
+pub mod abstention_pattern;
 mod clustering;
 mod context_pattern;
 mod decision_point;
@@ -16,6 +17,7 @@ pub mod heuristic;
 mod hybrid;
 mod tool_sequence;
 
+pub use abstention_pattern::{AbstentionPattern, extract_abstention_pattern};
 pub use clustering::{cluster_similar_patterns, deduplicate_patterns};
 pub use context_pattern::ContextPatternExtractor;
 pub use decision_point::DecisionPointExtractor;

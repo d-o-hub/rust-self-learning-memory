@@ -1,3 +1,5 @@
+// Deny unsafe code in this crate — no unsafe blocks required.
+#![deny(unsafe_code)]
 // Justified clippy suppressions for this crate (WG-113 audit)
 //
 // CAST-RELATED (necessary for embedding/similarity calculations):

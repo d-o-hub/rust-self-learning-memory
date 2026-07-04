@@ -428,7 +428,7 @@ mod tests {
 mod abstention_tests {
     use super::*;
     use crate::episode::Episode;
-    use crate::types::{TaskContext, TaskType, TaskOutcome};
+    use crate::types::{TaskContext, TaskOutcome, TaskType};
 
     fn create_test_episode_with_steps(step_count: usize) -> Episode {
         let mut episode = Episode::new(

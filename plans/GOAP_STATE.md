@@ -1,11 +1,35 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-06-30 (v0.1.33 release still pending; dependency updates + CI quality merged; issue #674 active)
+- **Last Updated**: 2026-07-02 (PR remediation campaign complete; all 7 PRs merged; 0 open PRs; v0.1.33 release still pending)
 - **Version**: `0.1.33` (workspace — **no git tag exists**; ~100 unreleased commits per #674)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+
+---
+
+## PR Remediation Campaign (2026-07-02) ✅ COMPLETE
+
+**Task**: Resolve all open PRs from `plans/OPEN_PR_REMEDIATION_2026-07-02.md`.
+
+**PRs Merged** (in recommended order):
+1. **PR #719** — `fix(deps): unify sysinfo to 0.39` → Merged (sysinfo workspace dedup)
+2. **PR #711** — `docs: align documentation with architecture` → Merged (rebase only)
+3. **PR #715** — `refactor(mcp): remove deprecated handle_shutdown (ADR-060)` → Merged (add/add conflict resolved)
+4. **PR #718** — `feat(patterns): AbstentionPattern extractor + abstention_score` → Merged (9 missing fields fixed)
+5. **PR #709** — `Resolve flat file conflicts / consolidate modules` → Merged (3 rebase conflicts, dangling mods, 6 import renames)
+6. **PR #727** — `docs: fix RewardScore doctest` → Merged (follow-up fix)
+7. **PR #729** — `fix: sandbox test + wire up dead types_tests` → Merged (JS runtime error type + dead code)
+
+**Key outcomes**:
+- 0 open PRs, 3,453 tests pass (0 failures), clippy + fmt clean
+- 0 dependency duplicates (down from 127)
+- 23 stale local branches cleaned, 8 worktrees pruned
+- `target/` reduced from 43G to 13G (30G freed)
+- All quality gates pass
+
+**Plan document**: `plans/OPEN_PR_REMEDIATION_2026-07-02.md`
 
 ---
 
@@ -512,8 +536,8 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.31 | — |
-| Latest GitHub release | v0.1.31 | verified 2026-04-30 |
+| Workspace version | 0.1.33 | — |
+| Latest GitHub release | v0.1.32 | verified 2026-07-02 |
 | Publishable workspace crates | 6 | all at 0.1.31 |
 | Total tests | 3,282 | — |
 | Ignored tests | 164 skipped | ceiling ≤165 |

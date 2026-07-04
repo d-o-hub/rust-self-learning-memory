@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-06-30 (WG-176..182 complete; dependency maintenance done; release v0.1.33 pending)
+**Last Updated**: 2026-07-02 (PR remediation complete; 7 PRs merged; 0 open PRs; release v0.1.33 pending)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
 **Workspace Version**: 0.1.33 (no tag — release drift)
 **Active Sprint**: v0.1.33 — Release + CI Health + Quality
@@ -51,7 +51,7 @@
 | Fuzzing | Green | Green | ✅ |
 | Security audit (`cargo deny`) | Clean | Clean | ✅ Fixed in PR #682 |
 | Open issues | 3 | 0 | 🟡 (#674, #652, #653) |
-| Open PRs | 0-1 | 0 | 🟡 (#678 auto-merging) |
+| Open PRs | 0 | 0 | ✅ All merged (PR remediation 2026-07-02) |
 | Fuzz harness | Present | Present | ✅ |
 | Property test files | 17 | ≥13 | ✅ |
 | MSRV | Rust 2024 / stable 1.95.0 | — | ✅ |
@@ -195,6 +195,20 @@ All research/implementation phases are complete:
 | 3 | ConceptGraph expansion | `chaotic_semantic_memory` crate | 0 | ✅ WG-130 Complete |
 | 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
 | Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | ✅ WG-131 Complete (732 LOC, 20+ tests) |
+
+---
+
+## CI Health (Post-Remediation 2026-07-02)
+
+| Workflow | Status | Notes |
+|----------|--------|-------|
+| Push CI (main) | ✅ Green | — |
+| Security (scheduled) | ✅ Fixed | WG-176 done (PR #675) |
+| Nightly Full Tests | ✅ Fixed | WG-177 done (PR #675 disk cleanup) |
+| Mutation Testing | ✅ Fixed | WG-178 done (scoped to memory-core) |
+| Fuzzing | ✅ Green | — |
+
+---
 
 ## Critical Issues for v0.1.22 Tag — ALL RESOLVED
 

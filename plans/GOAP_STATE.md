@@ -536,8 +536,8 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.31 | — |
-| Latest GitHub release | v0.1.31 | verified 2026-04-30 |
+| Workspace version | 0.1.33 | — |
+| Latest GitHub release | v0.1.32 | verified 2026-07-02 |
 | Publishable workspace crates | 6 | all at 0.1.31 |
 | Total tests | 3,282 | — |
 | Ignored tests | 164 skipped | ceiling ≤165 |

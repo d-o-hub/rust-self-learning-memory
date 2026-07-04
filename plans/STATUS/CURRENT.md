@@ -196,6 +196,20 @@ All research/implementation phases are complete:
 | 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
 | Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | ✅ WG-131 Complete (732 LOC, 20+ tests) |
 
+---
+
+## CI Health (Post-Remediation 2026-07-02)
+
+| Workflow | Status | Notes |
+|----------|--------|-------|
+| Push CI (main) | ✅ Green | — |
+| Security (scheduled) | ✅ Fixed | WG-176 done (PR #675) |
+| Nightly Full Tests | ✅ Fixed | WG-177 done (PR #675 disk cleanup) |
+| Mutation Testing | ✅ Fixed | WG-178 done (scoped to memory-core) |
+| Fuzzing | ✅ Green | — |
+
+---
+
 ## Critical Issues for v0.1.22 Tag — ALL RESOLVED
 
 | Issue | Priority | Status |

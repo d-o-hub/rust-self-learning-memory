@@ -1,4 +1,4 @@
-## [0.1.33] - 2026-06-15
+## [0.1.33] - 2026-07-04
 
 ### Added
 
@@ -20,6 +20,8 @@
   - Extraction test assertion replaced tautology with real check (WG-164)
 - **Local/offline mode for Turso** (PR #611, issue #610) — First-class config path for local/offline operation
 - **Cosine similarity optimization** (PR #616) — SIMD autovectorization-friendly accumulators and reduced sqrt calls
+- **CI and dependency maintenance** — Unified sysinfo to 0.39 across workspace (#719), 13 GitHub Actions bumps, Rust patch/minor deps, Node.js sandbox hardening (#706)
+- **PR remediation campaign** (2026-07-02) — Resolved all 4 open PRs (#709, #711, #715, #718) plus 3 follow-up fixes (#727, #729). See `plans/OPEN_PR_REMEDIATION_2026-07-02.md`
 
 ### Changed
 
@@ -30,6 +32,9 @@
 ### Fixed
 
 - **Doctest compilation** — Marked flaky Turso test as ignored, fixed doctest compilation errors
+- **Sandbox test compatibility** — Updated `test_syntax_error` to accept Runtime error type from newer JS runtimes (#729)
+- **Dead code wired up** — `types_tests.rs` in transport/compression now properly declared as a test module (#729)
+- **RewardScore doctest** — Added missing `abstention_score` field to doc example (#727)
 - **Slowing benchmark tests** — Marked all performance benchmarks as `#[ignore]` to prevent CI flakiness from timing-dependent assertions
 - **Nightly slow-test bounding** (ADR-057 A3) — Stopped worker pools between iterations in `should_scale_processing_with_different_worker_counts`
 - **Pre-existing clippy warnings** — Resolved all warnings in monitoring types.rs

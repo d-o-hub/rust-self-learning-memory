@@ -106,6 +106,9 @@ impl SelfLearningMemory {
         // Mark episode as complete
         episode.complete(outcome.clone());
 
+        // ADR-071: Auto-create checkpoint on abstention before storage
+        crate::memory::checkpoint::maybe_create_abstention_checkpoint(&mut episode);
+
         // Validate total episode size before processing
         super::validation::validate_episode_size(&episode)?;
 

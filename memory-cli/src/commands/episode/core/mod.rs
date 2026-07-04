@@ -18,7 +18,9 @@ pub mod update;
 pub mod view;
 
 pub use bulk::bulk_get_episodes;
-pub use checkpoint::{CheckpointResult, HandoffResult, ResumeResult, checkpoint, handoff, resume};
+pub use checkpoint::{
+    CheckpointResult, HandoffResult, ResumeResult, checkpoint, handoff, list_checkpoints, resume,
+};
 pub use complete::complete_episode;
 pub use create::create_episode;
 pub use delete::DeletionResult;

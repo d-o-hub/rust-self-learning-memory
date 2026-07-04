@@ -35,12 +35,74 @@ pub async fn checkpoint(
     let result = CheckpointResult {
         checkpoint_id: checkpoint.checkpoint_id.to_string(),
         episode_id: episode_id.clone(),
-        reason,
+        label: checkpoint.label,
         step_number: checkpoint.step_number,
-        created_at: checkpoint.created_at.to_rfc3339(),
+        timestamp: checkpoint.timestamp.to_rfc3339(),
+        is_abstention: checkpoint.is_abstention_checkpoint,
     };
 
     result.write(format)?;
+    Ok(())
+}
+
+/// List checkpoints for an episode
+pub async fn list_checkpoints(
+    episode_id: String,
+    memory: &SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
+) -> Result<()> {
+    // Parse episode ID
+    let episode_uuid =
+        Uuid::parse_str(&episode_id).map_err(|e| anyhow!("Invalid episode ID: {}", e))?;
+
+    // Get episode
+    let episode = memory
+        .get_episode(episode_uuid)
+        .await
+        .map_err(|e| anyhow!("Failed to get episode: {}", e))?;
+
+    let mut results = Vec::new();
+    for checkpoint in &episode.checkpoints {
+        results.push(CheckpointResult {
+            checkpoint_id: checkpoint.checkpoint_id.to_string(),
+            episode_id: episode_id.clone(),
+            label: checkpoint.label.clone(),
+            step_number: checkpoint.step_number,
+            timestamp: checkpoint.timestamp.to_rfc3339(),
+            is_abstention: checkpoint.is_abstention_checkpoint,
+        });
+    }
+
+    match format {
+        OutputFormat::Json => {
+            println!("{}", serde_json::to_string_pretty(&results)?);
+        }
+        OutputFormat::Yaml => {
+            println!("{}", serde_yaml::to_string(&results)?);
+        }
+        OutputFormat::Human => {
+            println!("Checkpoints for Episode: {}", episode_id);
+            if results.is_empty() {
+                println!("  No checkpoints found.");
+            } else {
+                for checkpoint in results {
+                    if checkpoint.is_abstention {
+                        println!(
+                            "  [ABSTAIN] step={} label={}",
+                            checkpoint.step_number, checkpoint.label
+                        );
+                    } else {
+                        println!(
+                            "  [CHECKPOINT] step={} label={}",
+                            checkpoint.step_number, checkpoint.label
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -118,11 +180,13 @@ pub struct CheckpointResult {
     /// Episode ID
     pub episode_id: String,
     /// Reason for checkpoint
-    pub reason: String,
+    pub label: String,
     /// Step number at checkpoint
     pub step_number: usize,
     /// When checkpoint was created
-    pub created_at: String,
+    pub timestamp: String,
+    /// Whether it's an abstention checkpoint
+    pub is_abstention: bool,
 }
 
 /// Result of handoff pack retrieval
@@ -172,12 +236,16 @@ impl Output for CheckpointResult {
                 println!("{}", serde_json::to_string_pretty(self)?);
             }
             OutputFormat::Human => {
-                println!("Checkpoint created successfully!");
+                if self.is_abstention {
+                    println!("[ABSTAIN] Checkpoint created automatically");
+                } else {
+                    println!("Checkpoint created successfully!");
+                }
                 println!("  Checkpoint ID: {}", self.checkpoint_id);
                 println!("  Episode ID:    {}", self.episode_id);
-                println!("  Reason:        {}", self.reason);
+                println!("  Label:         {}", self.label);
                 println!("  Step Number:   {}", self.step_number);
-                println!("  Created At:    {}", self.created_at);
+                println!("  Timestamp:     {}", self.timestamp);
             }
             OutputFormat::Yaml => {
                 println!("{}", serde_yaml::to_string(self)?);

@@ -260,6 +260,13 @@ pub enum EpisodeCommands {
         checkpoint_id: String,
     },
 
+    /// List checkpoints for an episode (ADR-044 Feature 3)
+    Checkpoints {
+        /// Episode ID to list checkpoints for
+        #[arg(value_name = "EPISODE_ID")]
+        episode_id: String,
+    },
+
     /// Manage episode relationships
     #[command(subcommand)]
     Relationships(RelationshipCommands),

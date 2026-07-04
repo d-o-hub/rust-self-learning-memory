@@ -39,7 +39,6 @@ async fn main() {
         SelfLearningMemory::new().enable_async_extraction(QueueConfig {
             worker_count: 2,
             max_queue_size: 100,
-            poll_interval_ms: 50,
         }),
     );
 

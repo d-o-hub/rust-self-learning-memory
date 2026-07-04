@@ -8,9 +8,6 @@ pub(crate) const DEFAULT_WORKER_COUNT: usize = 4;
 /// Default maximum queue size (for backpressure)
 pub(crate) const DEFAULT_MAX_QUEUE_SIZE: usize = 1000;
 
-/// Default worker poll interval when queue is empty
-pub(crate) const DEFAULT_POLL_INTERVAL_MS: u64 = 100;
-
 /// Configuration for pattern extraction queue
 #[derive(Debug, Clone)]
 pub struct QueueConfig {
@@ -18,8 +15,6 @@ pub struct QueueConfig {
     pub worker_count: usize,
     /// Maximum queue size (0 = unlimited)
     pub max_queue_size: usize,
-    /// Polling interval when queue is empty (milliseconds)
-    pub poll_interval_ms: u64,
 }
 
 impl Default for QueueConfig {
@@ -27,7 +22,6 @@ impl Default for QueueConfig {
         Self {
             worker_count: DEFAULT_WORKER_COUNT,
             max_queue_size: DEFAULT_MAX_QUEUE_SIZE,
-            poll_interval_ms: DEFAULT_POLL_INTERVAL_MS,
         }
     }
 }

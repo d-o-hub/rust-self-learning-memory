@@ -1,9 +1,10 @@
 # Open PR Remediation Plan — 2026-07-02
 
+> **STATUS: ✅ COMPLETE** — All 7 PRs merged to `main` by 2026-07-02.
+> See [Completion Summary](#completion-summary) below.
+
 Analysis of all open GitHub PRs, their review comments, merge conflicts, and CI
-failures, with a concrete resolution for each. Scope of this document is
-**analysis + solution design only** (per request, only `plans/` was modified;
-no source code was changed).
+failures, with a concrete resolution for each.
 
 Base of analysis: `origin/main` @ `91839c2f` ("Strict JSON-RPC Content-Length
 validation (#708)").
@@ -234,6 +235,38 @@ Rationale:
 - **#718** only needs the `sysinfo` fix + rebase.
 - **#709** is a sweeping rename; landing it last means it rebases once over the
   final tree instead of forcing every other PR to re-resolve rename conflicts.
+
+---
+
+## Completion Summary
+
+**All 7 PRs merged to `main` by 2026-07-02.**
+
+| PR | Title | Result |
+|----|-------|--------|
+| **#719** | fix(deps): unify sysinfo to 0.39 | ✅ Merged — resolved `sysinfo` duplication on `main` |
+| **#711** | docs: align documentation with architecture | ✅ Merged — rebase only, no conflicts |
+| **#715** | refactor(mcp): remove deprecated `handle_shutdown` (ADR-060) | ✅ Merged — resolved add/add conflict on `jsonrpc_shutdown_integration_test.rs` |
+| **#718** | feat(patterns): AbstentionPattern extractor + `abstention_score` | ✅ Merged — fixed 9 `abstention_score` fields + fmt + `Cargo.lock` dedup |
+| **#709** | Resolve flat file conflicts / consolidate modules | ✅ Merged — 3 rebase conflicts, dangling `mod` declarations, `pattern`→`patterns`/`episodic`→`episode` imports |
+| **#727** | docs: fix RewardScore doctest (found during QA) | ✅ Merged — follow-up fix for missed `abstention_score` in doc example |
+| **#729** | fix: sandbox syntax test + wire up dead types_tests | ✅ Merged — JS runtime error type change + dead code module wiring |
+
+**Post-merge QA:**
+- `cargo test --doc`: 37/37 passed
+- `cargo nextest run --all`: 3,453 passed, 0 failed, 181 skipped
+- `cargo clippy --workspace --all-targets`: clean
+- `cargo fmt --check`: clean
+- Quality gates: all 11 passed
+- `cargo doc --no-deps --document-private-items`: clean
+- 0 dependency duplicates (down from 127)
+- 23 stale local branches cleaned, 8 worktrees pruned
+- `target/` reduced from 43G → 13G (30G freed)
+- `main` branch: only branch remaining locally
+
+**Merge order followed:** #719 (sysinfo fix on main) → #711 + #715 (small docs/mcp) → #718 (feature) → #709 (refactor, last) → #727 (doctest fixup) → #729 (test fix + dead code)
+
+---
 
 ## Verification checklist (apply to each PR before merge)
 

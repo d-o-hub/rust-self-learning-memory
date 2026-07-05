@@ -87,7 +87,7 @@ pub fn maybe_create_abstention_checkpoint(episode: &mut Episode) {
                 episode_id: episode.episode_id,
                 step_number: stopped_at_step,
                 timestamp: Utc::now(),
-                label: format!("[ABSTAIN] {}", reason),
+                label: format!("[ABSTAIN] {reason}"),
                 salient_features_snapshot: episode.salient_features.clone(),
                 is_abstention_checkpoint: true,
                 note: None,

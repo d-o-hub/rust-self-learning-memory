@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-
 // Clippy suppressions for memory-mcp
 #![allow(clippy::useless_attribute)]
 #![allow(clippy::excessive_nesting)]

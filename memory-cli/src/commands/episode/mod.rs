@@ -31,6 +31,7 @@ pub use core::delete_episode;
 pub use core::filter;
 pub use core::handle_filter_command;
 pub use core::handoff;
+pub use core::list_checkpoints;
 pub use core::list_episodes;
 pub use core::log_step;
 pub use core::resume;

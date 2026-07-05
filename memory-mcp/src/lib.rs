@@ -1,4 +1,3 @@
-// Deny unsafe code in this crate — targeted exceptions via #[allow(unsafe_code)].
 #![deny(unsafe_code)]
 // Clippy suppressions for memory-mcp
 #![allow(clippy::useless_attribute)]

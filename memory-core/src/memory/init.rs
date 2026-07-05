@@ -327,7 +327,7 @@ pub async fn stop_workers(memory: &super::SelfLearningMemory, timeout: Duration)
         // Drain first: workers check the shutdown flag between items,
         // so we must let the queue empty before signaling shutdown.
         let drained = queue.wait_until_empty(timeout).await;
-        queue.shutdown();
+        queue.shutdown().await;
         drained
     } else {
         true

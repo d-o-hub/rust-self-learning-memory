@@ -1,4 +1,3 @@
-// Deny unsafe code in this crate — targeted exceptions via #[allow(unsafe_code)].
 #![deny(unsafe_code)]
 #![allow(clippy::empty_line_after_doc_comments)]
 #![allow(dead_code)]

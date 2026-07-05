@@ -205,6 +205,7 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
     let config = QueueConfig {
         worker_count: 1,
         max_queue_size: 5,
+        poll_interval_ms: 50,
     };
 
     let memory = Arc::new(
@@ -298,6 +299,7 @@ async fn should_scale_processing_with_different_worker_counts() {
         // Given: Memory system configured with specific worker count
         let config = QueueConfig {
             worker_count,
+            poll_interval_ms: 10,
             ..Default::default()
         };
 

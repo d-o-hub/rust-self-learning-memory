@@ -6,16 +6,13 @@ use crate::error::{Error, Result};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::types::{QueueConfig, QueueStats};
 use crate::memory::SelfLearningMemory;
+use std::collections::VecDeque;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use tokio::sync::{Mutex, RwLock, mpsc};
+use tokio::sync::{Mutex, RwLock};
 use tokio::time::sleep;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, info, instrument, warn};
 use uuid::Uuid;
-
-/// Channel capacity for the mpsc queue
-const CHANNEL_CAPACITY: usize = 1024;
 
 /// Async pattern extraction queue
 ///
@@ -24,10 +21,8 @@ const CHANNEL_CAPACITY: usize = 1024;
 pub struct PatternExtractionQueue {
     /// Configuration
     config: QueueConfig,
-    /// Sender for enqueuing episode IDs
-    tx: mpsc::Sender<Uuid>,
-    /// Shared receiver for worker consumption
-    rx: Arc<Mutex<mpsc::Receiver<Uuid>>>,
+    /// Episode ID queue
+    queue: Arc<Mutex<VecDeque<Uuid>>>,
     /// Reference to memory system for pattern extraction
     memory: Arc<SelfLearningMemory>,
     /// Pattern extractor
@@ -35,7 +30,7 @@ pub struct PatternExtractionQueue {
     /// Statistics
     stats: Arc<RwLock<QueueStats>>,
     /// Shutdown signal
-    shutdown: Arc<AtomicBool>,
+    shutdown: Arc<RwLock<bool>>,
 }
 
 impl PatternExtractionQueue {
@@ -48,24 +43,17 @@ impl PatternExtractionQueue {
     #[must_use]
     pub fn new(config: QueueConfig, memory: Arc<SelfLearningMemory>) -> Self {
         let extractor = PatternExtractor::new();
-        let capacity = if config.max_queue_size > 0 {
-            config.max_queue_size
-        } else {
-            CHANNEL_CAPACITY
-        };
-        let (tx, rx) = mpsc::channel(capacity);
 
         Self {
             config,
-            tx,
-            rx: Arc::new(Mutex::new(rx)),
+            queue: Arc::new(Mutex::new(VecDeque::new())),
             memory,
             extractor,
             stats: Arc::new(RwLock::new(QueueStats {
                 active_workers: 0,
                 ..Default::default()
             })),
-            shutdown: Arc::new(AtomicBool::new(false)),
+            shutdown: Arc::new(RwLock::new(false)),
         }
     }
 
@@ -83,21 +71,30 @@ impl PatternExtractionQueue {
     /// Returns error if queue is at maximum capacity (when enforced)
     #[instrument(skip(self), fields(episode_id = %episode_id))]
     pub async fn enqueue_episode(&self, episode_id: Uuid) -> Result<()> {
-        // Send with natural backpressure via bounded channel.
-        // Blocks until space available; returns error only if channel closed.
-        self.tx
-            .send(episode_id)
-            .await
-            .map_err(|_| Error::Learning("Queue has been shut down".to_string()))?;
+        let mut queue = self.queue.lock().await;
+
+        // Check backpressure
+        if self.config.max_queue_size > 0 && queue.len() >= self.config.max_queue_size {
+            warn!(
+                queue_size = queue.len(),
+                max_size = self.config.max_queue_size,
+                "Pattern extraction queue at capacity"
+            );
+
+            // Optional: return error to enforce backpressure
+            // For now, we just warn and continue
+        }
+
+        queue.push_back(episode_id);
 
         // Update stats
         let mut stats = self.stats.write().await;
         stats.total_enqueued += 1;
-        stats.current_queue_size = self.tx.max_capacity() - self.tx.capacity();
+        stats.current_queue_size = queue.len();
 
         debug!(
             episode_id = %episode_id,
-            queue_size = stats.current_queue_size,
+            queue_size = queue.len(),
             "Enqueued episode for pattern extraction"
         );
 
@@ -122,14 +119,24 @@ impl PatternExtractionQueue {
 
         // Spawn worker tasks
         for worker_id in 0..self.config.worker_count {
-            let rx = Arc::clone(&self.rx);
+            let queue = Arc::clone(&self.queue);
             let memory = Arc::clone(&self.memory);
             let extractor = self.extractor.clone();
             let stats = Arc::clone(&self.stats);
             let shutdown = Arc::clone(&self.shutdown);
+            let poll_interval = Duration::from_millis(self.config.poll_interval_ms);
 
             tokio::spawn(async move {
-                Self::worker_loop(worker_id, rx, memory, extractor, stats, shutdown).await;
+                Self::worker_loop(
+                    worker_id,
+                    queue,
+                    memory,
+                    extractor,
+                    stats,
+                    shutdown,
+                    poll_interval,
+                )
+                .await;
             });
         }
 
@@ -138,69 +145,76 @@ impl PatternExtractionQueue {
 
     /// Worker loop that processes episodes from the queue
     ///
-    /// Each worker blocks on the mpsc receiver, extracts patterns from episodes,
+    /// Each worker continuously polls the queue, extracts patterns from episodes,
     /// and updates statistics. Handles errors gracefully without crashing.
-    #[instrument(skip(rx, memory, extractor, stats, shutdown))]
+    #[instrument(skip(queue, memory, extractor, stats, shutdown))]
     async fn worker_loop(
         worker_id: usize,
-        rx: Arc<Mutex<mpsc::Receiver<Uuid>>>,
+        queue: Arc<Mutex<VecDeque<Uuid>>>,
         memory: Arc<SelfLearningMemory>,
         extractor: PatternExtractor,
         stats: Arc<RwLock<QueueStats>>,
-        shutdown: Arc<AtomicBool>,
+        shutdown: Arc<RwLock<bool>>,
+        poll_interval: Duration,
     ) {
         debug!(worker_id, "Worker started");
 
         loop {
             // Check shutdown signal
-            if shutdown.load(Ordering::Relaxed) {
-                info!(worker_id, "Worker shutting down gracefully");
-                break;
+            {
+                let should_shutdown = *shutdown.read().await;
+                if should_shutdown {
+                    info!(worker_id, "Worker shutting down gracefully");
+                    break;
+                }
             }
 
-            // Block on the channel until an episode arrives or channel closes
+            // Try to get an episode from queue
             let episode_id = {
-                let mut receiver = rx.lock().await;
-                receiver.recv().await
+                let mut q = queue.lock().await;
+                q.pop_front()
             };
 
-            if let Some(id) = episode_id {
-                debug!(worker_id, episode_id = %id, "Processing episode");
+            match episode_id {
+                Some(id) => {
+                    debug!(worker_id, episode_id = %id, "Processing episode");
 
-                // Extract patterns for this episode
-                match Self::extract_patterns_for_episode(&memory, &extractor, id).await {
-                    Ok(pattern_count) => {
-                        debug!(
-                            worker_id,
-                            episode_id = %id,
-                            pattern_count,
-                            "Successfully extracted patterns"
-                        );
+                    // Extract patterns for this episode
+                    match Self::extract_patterns_for_episode(&memory, &extractor, id).await {
+                        Ok(pattern_count) => {
+                            debug!(
+                                worker_id,
+                                episode_id = %id,
+                                pattern_count,
+                                "Successfully extracted patterns"
+                            );
 
-                        // Update stats (decrement queue size directly to avoid
-                        // re-locking rx while holding stats write lock)
-                        let mut s = stats.write().await;
-                        s.total_processed += 1;
-                        s.current_queue_size = s.current_queue_size.saturating_sub(1);
-                    }
-                    Err(e) => {
-                        error!(
-                            worker_id,
-                            episode_id = %id,
-                            error = %e,
-                            "Pattern extraction failed"
-                        );
+                            // Update stats
+                            let mut s = stats.write().await;
+                            s.total_processed += 1;
+                            s.current_queue_size = {
+                                let q = queue.lock().await;
+                                q.len()
+                            };
+                        }
+                        Err(e) => {
+                            error!(
+                                worker_id,
+                                episode_id = %id,
+                                error = %e,
+                                "Pattern extraction failed"
+                            );
 
-                        // Update error stats
-                        let mut s = stats.write().await;
-                        s.total_failed += 1;
-                        s.current_queue_size = s.current_queue_size.saturating_sub(1);
+                            // Update error stats
+                            let mut s = stats.write().await;
+                            s.total_failed += 1;
+                        }
                     }
                 }
-            } else {
-                // Channel closed — all senders dropped
-                info!(worker_id, "Channel closed, worker exiting");
-                break;
+                None => {
+                    // Queue is empty, sleep briefly
+                    sleep(poll_interval).await;
+                }
             }
         }
 
@@ -268,19 +282,19 @@ impl PatternExtractionQueue {
     /// Get current queue size
     ///
     /// Returns the number of episodes waiting for pattern extraction.
-    /// Uses stats tracking since mpsc channels don't expose size directly.
     pub async fn queue_size(&self) -> usize {
-        let stats = self.stats.read().await;
-        stats.current_queue_size
+        let queue = self.queue.lock().await;
+        queue.len()
     }
 
     /// Signal workers to shutdown gracefully
     ///
     /// Sets the shutdown flag. Workers will finish their current task
     /// and then exit. Does not wait for workers to complete.
-    pub fn shutdown(&self) {
+    pub async fn shutdown(&self) {
         info!("Initiating pattern extraction queue shutdown");
-        self.shutdown.store(true, Ordering::Relaxed);
+        let mut shutdown = self.shutdown.write().await;
+        *shutdown = true;
     }
 
     /// Wait for queue to be empty

@@ -10,20 +10,32 @@ use crate::episode::ExecutionStep;
 use crate::memory::pattern_search::PatternSearchResult;
 use crate::patterns::Heuristic;
 
+use crate::pre_storage::SalientFeatures;
+
 /// Metadata for an episode checkpoint.
 ///
 /// Represents a saved snapshot of progress within an episode.
-/// Checkpoints are explicitly created (no auto-checkpointing).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CheckpointMeta {
     /// Unique checkpoint identifier
     pub checkpoint_id: Uuid,
-    /// When the checkpoint was created
-    pub created_at: DateTime<Utc>,
-    /// Reason for creating the checkpoint (e.g., "Agent switch", "Long-running task pause")
-    pub reason: String,
+    /// Episode this checkpoint belongs to
+    #[serde(default)]
+    pub episode_id: Uuid,
     /// Step number at which checkpoint was taken
     pub step_number: usize,
+    /// When the checkpoint was created
+    #[serde(alias = "created_at")]
+    pub timestamp: DateTime<Utc>,
+    /// Reason for creating the checkpoint (e.g., "Agent switch", "Long-running task pause")
+    #[serde(alias = "reason")]
+    pub label: String,
+    /// Salient features snapshot at the time of checkpoint
+    pub salient_features_snapshot: Option<SalientFeatures>,
+    /// If true, this checkpoint was created automatically because the
+    /// agent set TaskOutcome::Abstained. The `label` will contain the abstention reason.
+    #[serde(default)]
+    pub is_abstention_checkpoint: bool,
     /// Optional note about the checkpoint
     pub note: Option<String>,
 }
@@ -33,20 +45,31 @@ impl CheckpointMeta {
     ///
     /// # Arguments
     ///
-    /// * `reason` - Why the checkpoint was created
+    /// * `episode_id` - ID of the episode
+    /// * `label` - Why the checkpoint was created
     /// * `step_number` - Current step number in the episode
     /// * `note` - Optional additional context
+    /// * `salient_features_snapshot` - Optional snapshot of salient features
     ///
     /// # Returns
     ///
     /// New checkpoint metadata with a fresh UUID and current timestamp.
     #[must_use]
-    pub fn new(reason: String, step_number: usize, note: Option<String>) -> Self {
+    pub fn new(
+        episode_id: Uuid,
+        label: String,
+        step_number: usize,
+        note: Option<String>,
+        salient_features_snapshot: Option<SalientFeatures>,
+    ) -> Self {
         Self {
             checkpoint_id: Uuid::new_v4(),
-            created_at: Utc::now(),
-            reason,
+            episode_id,
             step_number,
+            timestamp: Utc::now(),
+            label,
+            salient_features_snapshot,
+            is_abstention_checkpoint: false,
             note,
         }
     }
@@ -149,26 +172,30 @@ mod tests {
 
     #[test]
     fn test_checkpoint_meta_creation() {
+        let episode_id = Uuid::new_v4();
         let checkpoint = CheckpointMeta::new(
+            episode_id,
             "Agent switch".to_string(),
             5,
-            Some("Paused for planning agent".to_string()),
+            Some("Note".to_string()),
+            None,
         );
 
         assert!(!checkpoint.checkpoint_id.is_nil());
-        assert_eq!(checkpoint.reason, "Agent switch");
+        assert_eq!(checkpoint.episode_id, episode_id);
+        assert_eq!(checkpoint.label, "Agent switch");
         assert_eq!(checkpoint.step_number, 5);
-        assert!(checkpoint.note.is_some());
+        assert!(!checkpoint.is_abstention_checkpoint);
     }
 
     #[test]
     fn test_checkpoint_meta_minimal() {
-        let checkpoint = CheckpointMeta::new("Quick pause".to_string(), 0, None);
+        let checkpoint =
+            CheckpointMeta::new(Uuid::new_v4(), "Quick pause".to_string(), 0, None, None);
 
         assert!(!checkpoint.checkpoint_id.is_nil());
-        assert_eq!(checkpoint.reason, "Quick pause");
+        assert_eq!(checkpoint.label, "Quick pause");
         assert_eq!(checkpoint.step_number, 0);
-        assert!(checkpoint.note.is_none());
     }
 
     #[test]

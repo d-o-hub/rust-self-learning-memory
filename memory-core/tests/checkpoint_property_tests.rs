@@ -21,16 +21,21 @@ proptest! {
     #[test]
     fn checkpoint_meta_serialization_roundtrip(
         checkpoint_id in uuid_strategy(),
+        episode_id in uuid_strategy(),
         timestamp_ms in 0i64..2_000_000_000_000i64,
-        reason in ".*",
+        label in ".*",
         step_number in 0usize..1000usize,
+        is_abstention in any::<bool>(),
         note in prop::option::of(".*")
     ) {
         let meta = CheckpointMeta {
             checkpoint_id,
-            created_at: Utc.timestamp_millis_opt(timestamp_ms).unwrap(),
-            reason,
+            episode_id,
+            timestamp: Utc.timestamp_millis_opt(timestamp_ms).unwrap(),
+            label,
             step_number,
+            salient_features_snapshot: None,
+            is_abstention_checkpoint: is_abstention,
             note,
         };
         let encoded = serde_json::to_string(&meta).expect("serialize");

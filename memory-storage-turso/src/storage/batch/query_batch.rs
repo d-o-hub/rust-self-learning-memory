@@ -391,9 +391,13 @@ mod tests {
             TaskContext::default(),
             TaskType::Analysis,
         );
-        episode
-            .checkpoints
-            .push(CheckpointMeta::new("batch checkpoint".to_string(), 1, None));
+        episode.checkpoints.push(CheckpointMeta::new(
+            episode.episode_id,
+            "batch checkpoint".to_string(),
+            1,
+            None,
+            None,
+        ));
         let episode_id = episode.episode_id;
 
         storage.store_episodes_batch(vec![episode]).await.unwrap();
@@ -402,7 +406,7 @@ mod tests {
         assert_eq!(retrieved.len(), 1);
         let stored = retrieved[0].as_ref().unwrap();
         assert_eq!(stored.checkpoints.len(), 1);
-        assert_eq!(stored.checkpoints[0].reason, "batch checkpoint");
+        assert_eq!(stored.checkpoints[0].label, "batch checkpoint");
     }
 
     #[tokio::test]

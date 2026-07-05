@@ -60,26 +60,7 @@ fi
 echo "📦 Workspace version: $WORKSPACE_VERSION"
 echo ""
 
-# ─── 2. Check VERSION file matches workspace version (ADR-061) ───
-echo "── Checking root VERSION file ──"
-VERSION_FILE="$PROJECT_ROOT/VERSION"
-if [[ -f "$VERSION_FILE" ]]; then
-  FILE_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
-  if [[ "$FILE_VERSION" != "$WORKSPACE_VERSION" ]]; then
-    echo "  ❌ VERSION file says $FILE_VERSION (expected $WORKSPACE_VERSION)"
-    echo "     Update VERSION to match Cargo.toml or run: echo '$WORKSPACE_VERSION' > VERSION"
-    failures=$((failures + 1))
-  else
-    echo "  ✅ VERSION = $FILE_VERSION"
-  fi
-else
-  echo "  ❌ VERSION file not found (required by ADR-061)"
-  echo "     Create it with: echo '$WORKSPACE_VERSION' > VERSION"
-  failures=$((failures + 1))
-fi
-echo ""
-
-# ─── 3. Check all workspace member versions match ───
+# ─── 2. Check all workspace member versions match ───
 echo "── Checking workspace member versions ──"
 MEMBERS=$(cargo metadata --format-version=1 --no-deps 2>/dev/null \
   | jq -r '.packages[] | "\(.name)=\(.version)"' 2>/dev/null || true)
@@ -98,7 +79,7 @@ else
   warnings=$((warnings + 1))
 fi
 
-# ─── 4. Check ROADMAP_ACTIVE.md ───
+# ─── 3. Check ROADMAP_ACTIVE.md ───
 echo ""
 echo "── Checking ROADMAP_ACTIVE.md ──"
 ROADMAP="plans/ROADMAPS/ROADMAP_ACTIVE.md"
@@ -125,7 +106,7 @@ else
   warnings=$((warnings + 1))
 fi
 
-# ─── 5. Check STATUS/CURRENT.md ───
+# ─── 4. Check STATUS/CURRENT.md ───
 echo ""
 echo "── Checking STATUS/CURRENT.md ──"
 STATUS="plans/STATUS/CURRENT.md"
@@ -149,7 +130,7 @@ else
   warnings=$((warnings + 1))
 fi
 
-# ─── 6. Check git tag (optional) ───
+# ─── 5. Check git tag (optional) ───
 if [[ "$CHECK_TAG" == "true" ]]; then
   echo ""
   echo "── Checking git tag ──"
@@ -169,7 +150,7 @@ if [[ "$CHECK_TAG" == "true" ]]; then
   fi
 fi
 
-# ─── 7. Check for unreleased changes (optional) ───
+# ─── 6. Check for unreleased changes (optional) ───
 if [[ "$CHECK_UNRELEASED" == "true" ]]; then
   echo ""
   echo "── Checking for unreleased changes ──"
@@ -191,7 +172,7 @@ if [[ "$CHECK_UNRELEASED" == "true" ]]; then
   fi
 fi
 
-# ─── 8. Check CHANGELOG.md has entry for current version ───
+# ─── 7. Check CHANGELOG.md has entry for current version ───
 echo ""
 echo "── Checking CHANGELOG.md ──"
 if [[ -f "CHANGELOG.md" ]]; then
@@ -214,11 +195,10 @@ if [[ $failures -gt 0 ]]; then
   echo ""
   echo "Before releasing, fix all mismatches:"
   echo "  1. Bump Cargo.toml: cargo release patch|minor|major"
-  echo "  2. Update VERSION file to match: echo \"\$NEW_VERSION\" > VERSION"
-  echo "  3. Update ROADMAP_ACTIVE.md 'Released Version' line"
-  echo "  4. Update STATUS/CURRENT.md version references"
-  echo "  5. Update CHANGELOG.md with release entry"
-  echo "  6. Commit all changes, then tag"
+  echo "  2. Update ROADMAP_ACTIVE.md 'Released Version' line"
+  echo "  3. Update STATUS/CURRENT.md version references"
+  echo "  4. Update CHANGELOG.md with release entry"
+  echo "  5. Commit all changes, then tag"
   exit 1
 elif [[ $warnings -gt 0 ]]; then
   echo "⚠️  PASSED with $warnings warnings"

@@ -73,20 +73,23 @@ mod tests {
         };
         let queue = PatternExtractionQueue::new(config, memory);
 
-        // Start a worker to drain the queue (needed for mpsc backpressure)
-        queue.start_workers().await;
-
-        // Enqueue beyond capacity: items 1-5 should go in immediately,
-        // items 6-10 should block until workers drain (backpressure).
-        for _ in 0..10 {
+        // Enqueue up to capacity
+        for i in 0..5 {
             let episode_id = Uuid::new_v4();
             let result = queue.enqueue_episode(episode_id).await;
+            if let Err(e) = &result {
+                panic!("Failed at iteration {} with error: {:?}", i, e);
+            }
             assert!(result.is_ok());
         }
 
-        // All episodes should have been enqueued (mpsc send().await succeeds
-        // once workers drain items, even if they fail to extract patterns).
-        queue.shutdown();
+        // Next enqueue should fail due to backpressure
+        let episode_id = Uuid::new_v4();
+        let result = queue.enqueue_episode(episode_id).await;
+        assert!(result.is_err());
+
+        let size = queue.queue_size().await;
+        assert_eq!(size, 5);
     }
 
     #[tokio::test]
@@ -151,6 +154,7 @@ mod tests {
         // Create queue and start workers
         let config = QueueConfig {
             worker_count: 1,
+            poll_interval_ms: 50,
             ..Default::default()
         };
         let queue = PatternExtractionQueue::new(config, memory.clone());
@@ -214,10 +218,11 @@ mod tests {
             episode_ids.push(episode_id);
         }
 
-        // Create queue with multiple workers and larger capacity for concurrency
+        // Create queue with multiple workers
         let config = QueueConfig {
             worker_count: 3,
-            max_queue_size: 20,
+            poll_interval_ms: 50,
+            ..Default::default()
         };
         let queue = PatternExtractionQueue::new(config, memory);
 
@@ -248,7 +253,7 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(50)).await;
 
         // Signal shutdown
-        queue.shutdown();
+        queue.shutdown().await;
 
         // Workers should eventually stop (we can't easily verify but we initiated it)
         // Just verify shutdown() was called without error

@@ -146,3 +146,47 @@ jobs:
 
           echo "✅ File structure validation PASSED"
           echo "All markdown files are in correct locations"
+
+  version-sync:
+    name: VERSION file sync check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Verify VERSION matches Cargo.toml (ADR-061)
+        run: |
+          #!/bin/bash
+          set -euo pipefail
+
+          # Ensure VERSION file exists
+          if [[ ! -f VERSION ]]; then
+            echo "❌ VERSION file not found."
+            echo "   Create it with: echo '0.x.y' > VERSION"
+            echo "   See ADR-061 for the VERSION file adoption decision."
+            exit 1
+          fi
+
+          FILE_VERSION=$(tr -d '[:space:]' < VERSION)
+
+          # Extract workspace version from Cargo.toml
+          CARGO_VERSION=$(grep -E '^\s*version\s*=\s*"[0-9]' Cargo.toml | head -1 \
+            | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+
+          if [[ -z "$CARGO_VERSION" ]]; then
+            echo "❌ Could not parse workspace version from Cargo.toml"
+            exit 1
+          fi
+
+          echo "VERSION file  : $FILE_VERSION"
+          echo "Cargo.toml    : $CARGO_VERSION"
+
+          if [[ "$FILE_VERSION" != "$CARGO_VERSION" ]]; then
+            echo ""
+            echo "❌ VERSION file ($FILE_VERSION) does not match Cargo.toml workspace version ($CARGO_VERSION)."
+            echo "   Update VERSION: echo '$CARGO_VERSION' > VERSION"
+            echo "   See ADR-061 for the dual-source version policy."
+            exit 1
+          fi
+
+          echo "✅ VERSION matches Cargo.toml workspace version ($FILE_VERSION)"

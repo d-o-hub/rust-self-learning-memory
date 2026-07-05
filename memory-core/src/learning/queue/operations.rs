@@ -81,8 +81,10 @@ impl PatternExtractionQueue {
                 "Pattern extraction queue at capacity"
             );
 
-            // Optional: return error to enforce backpressure
-            // For now, we just warn and continue
+            return Err(Error::QuotaExceeded(format!(
+                "Pattern extraction queue at capacity ({})",
+                self.config.max_queue_size
+            )));
         }
 
         queue.push_back(episode_id);
@@ -189,13 +191,16 @@ impl PatternExtractionQueue {
                                 "Successfully extracted patterns"
                             );
 
-                            // Update stats
-                            let mut s = stats.write().await;
-                            s.total_processed += 1;
-                            s.current_queue_size = {
+                            // Get current queue size before taking stats lock to avoid nested lock contention
+                            let q_size = {
                                 let q = queue.lock().await;
                                 q.len()
                             };
+
+                            // Update stats
+                            let mut s = stats.write().await;
+                            s.total_processed += 1;
+                            s.current_queue_size = q_size;
                         }
                         Err(e) => {
                             error!(

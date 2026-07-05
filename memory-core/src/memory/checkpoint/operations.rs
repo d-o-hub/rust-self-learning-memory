@@ -87,7 +87,7 @@ pub fn maybe_create_abstention_checkpoint(episode: &mut Episode) {
                 episode_id: episode.episode_id,
                 step_number: stopped_at_step,
                 timestamp: Utc::now(),
-                label: format!("[ABSTAINED] {}", reason),
+                label: format!("[ABSTAIN] {}", reason),
                 salient_features_snapshot: episode.salient_features.clone(),
                 is_abstention_checkpoint: true,
                 note: None,
@@ -458,7 +458,7 @@ mod abstention_tests {
         assert_eq!(episode.checkpoints.len(), 1);
         assert!(episode.checkpoints[0].is_abstention_checkpoint);
         assert_eq!(episode.checkpoints[0].step_number, 3);
-        assert!(episode.checkpoints[0].label.starts_with("[ABSTAINED]"));
+        assert!(episode.checkpoints[0].label.starts_with("[ABSTAIN]"));
     }
 
     #[test]

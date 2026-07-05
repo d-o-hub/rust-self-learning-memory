@@ -57,6 +57,7 @@ pub async fn list_checkpoints(
         Uuid::parse_str(&episode_id).map_err(|e| anyhow!("Invalid episode ID: {}", e))?;
 
     // Get episode
+    // TODO: Consider a dedicated storage query for checkpoints to avoid loading the full episode
     let episode = memory
         .get_episode(episode_uuid)
         .await

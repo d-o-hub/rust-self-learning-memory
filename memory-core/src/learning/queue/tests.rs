@@ -73,15 +73,20 @@ mod tests {
         };
         let queue = PatternExtractionQueue::new(config, memory);
 
-        // Enqueue beyond capacity (should warn but not fail)
+        // Start a worker to drain the queue (needed for mpsc backpressure)
+        queue.start_workers().await;
+
+        // Enqueue beyond capacity: items 1-5 should go in immediately,
+        // items 6-10 should block until workers drain (backpressure).
         for _ in 0..10 {
             let episode_id = Uuid::new_v4();
             let result = queue.enqueue_episode(episode_id).await;
             assert!(result.is_ok());
         }
 
-        let size = queue.queue_size().await;
-        assert_eq!(size, 10);
+        // All episodes should have been enqueued (mpsc send().await succeeds
+        // once workers drain items, even if they fail to extract patterns).
+        queue.shutdown();
     }
 
     #[tokio::test]
@@ -146,7 +151,6 @@ mod tests {
         // Create queue and start workers
         let config = QueueConfig {
             worker_count: 1,
-            poll_interval_ms: 50,
             ..Default::default()
         };
         let queue = PatternExtractionQueue::new(config, memory.clone());
@@ -210,11 +214,10 @@ mod tests {
             episode_ids.push(episode_id);
         }
 
-        // Create queue with multiple workers
+        // Create queue with multiple workers and larger capacity for concurrency
         let config = QueueConfig {
             worker_count: 3,
-            poll_interval_ms: 50,
-            ..Default::default()
+            max_queue_size: 20,
         };
         let queue = PatternExtractionQueue::new(config, memory);
 
@@ -245,7 +248,7 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(50)).await;
 
         // Signal shutdown
-        queue.shutdown().await;
+        queue.shutdown();
 
         // Workers should eventually stop (we can't easily verify but we initiated it)
         // Just verify shutdown() was called without error

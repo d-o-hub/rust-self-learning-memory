@@ -1,3 +1,5 @@
+// Deny unsafe code in this crate — no unsafe blocks required.
+#![deny(unsafe_code)]
 // Clippy suppressions for memory-storage-redb
 // Cast-related: necessary for persistence statistics and metrics
 #![allow(clippy::cast_precision_loss)]

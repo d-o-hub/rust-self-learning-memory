@@ -213,8 +213,8 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
     );
     memory.start_workers().await;
 
-    // When: Enqueuing more episodes than max_queue_size
-    for i in 0..10 {
+    // When: Enqueuing episodes up to capacity
+    for i in 0..5 {
         let episode_id = create_test_episode(&memory, &format!("Task {i}"), 2).await;
 
         let result = memory
@@ -227,13 +227,27 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
             )
             .await;
 
-        // Then: Should still succeed (warn but don't reject)
         assert!(result.is_ok());
     }
 
-    // Then: All episodes should be enqueued
+    // When: Enqueuing one more episode (should fail due to backpressure)
+    let episode_id = create_test_episode(&memory, "Over capacity task", 2).await;
+    let result = memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "Done".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await;
+
+    // Then: Should fail with Error::QuotaExceeded
+    assert!(result.is_err());
+
+    // Then: Exactly 5 episodes should be enqueued
     let stats = memory.get_queue_stats().await.unwrap();
-    assert_eq!(stats.total_enqueued, 10);
+    assert_eq!(stats.total_enqueued, 5);
 
     // When: Waiting for queue to drain
     sleep(Duration::from_secs(3)).await;

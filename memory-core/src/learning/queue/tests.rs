@@ -73,15 +73,23 @@ mod tests {
         };
         let queue = PatternExtractionQueue::new(config, memory);
 
-        // Enqueue beyond capacity (should warn but not fail)
-        for _ in 0..10 {
+        // Enqueue up to capacity
+        for i in 0..5 {
             let episode_id = Uuid::new_v4();
             let result = queue.enqueue_episode(episode_id).await;
+            if let Err(e) = &result {
+                panic!("Failed at iteration {} with error: {:?}", i, e);
+            }
             assert!(result.is_ok());
         }
 
+        // Next enqueue should fail due to backpressure
+        let episode_id = Uuid::new_v4();
+        let result = queue.enqueue_episode(episode_id).await;
+        assert!(result.is_err());
+
         let size = queue.queue_size().await;
-        assert_eq!(size, 10);
+        assert_eq!(size, 5);
     }
 
     #[tokio::test]

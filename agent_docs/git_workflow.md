@@ -25,6 +25,31 @@ Direct pushes to `main` are BLOCKED. Always work on a branch.
 ## Release Workflow
 
 **CRITICAL**: Version in `Cargo.toml` MUST match the tag before pushing. cargo-dist requires this.
+Also, the root `VERSION` file must always equal `[workspace.package] version` (ADR-061).
+
+### Version Source of Truth (ADR-061)
+
+This repository uses a **dual co-canonical** version approach:
+
+| Source | Role |
+|--------|------|
+| `Cargo.toml` `[workspace.package] version` | Primary — used by `cargo`, `cargo-dist`, `cargo release`, CI publish |
+| `VERSION` (root plain-text) | Companion — used by shell scripts, CI steps that `cat VERSION` |
+
+Both must always be identical. CI enforces this via the `version-sync` job in
+`.github/workflows/file-structure.yml` and section 2 of `scripts/verify-release-state.sh`.
+
+**When bumping the version**, update both:
+```bash
+# 1. Bump Cargo.toml (e.g. via cargo release or manually):
+#    [workspace.package] version = "0.1.34"
+
+# 2. Immediately update VERSION to match:
+echo "0.1.34" > VERSION
+
+# 3. Verify sync:
+./scripts/verify-release-state.sh
+```
 
 ### Recommended: Use `cargo release` (ADR-034)
 ```bash
@@ -38,8 +63,9 @@ cargo release patch  # or minor/major
 git checkout main
 git checkout -b release/v0.1.X
 
-# 2. BUMP VERSION FIRST in Cargo.toml
+# 2. BUMP VERSION FIRST in both Cargo.toml and VERSION file
 #    workspace.package.version = "0.1.X"
+echo "0.1.X" > VERSION
 
 # 3. Update snapshot tests if needed
 cargo insta test --accept
@@ -47,6 +73,7 @@ git add memory-cli/tests/snapshots/
 
 # 4. Verify version matches intended tag
 grep '^version =' Cargo.toml  # Must show 0.1.X for tag v0.1.X
+cat VERSION                   # Must also show 0.1.X
 
 # 5. Commit changes
 git add . && git commit -m "chore: release v0.1.X"
@@ -88,6 +115,7 @@ git diff --stat # Review what changed
 | Local main ahead of origin | Commits made on main locally | create a branch from current state, then reconcile with the user before any destructive cleanup |
 | Uncommitted changes | Forgot to check status | Always run `git status` before/after changes |
 | cargo-dist: "nothing to Release" | Tag version != Cargo.toml version | Bump version BEFORE pushing tag |
+| CI version-sync check fails | VERSION file out of sync with Cargo.toml | `echo "$(grep -E 'version = "[0-9]' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')" > VERSION` |
 
 ## Snapshot Tests
 

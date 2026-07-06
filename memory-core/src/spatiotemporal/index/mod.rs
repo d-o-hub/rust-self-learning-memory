@@ -282,8 +282,10 @@ mod tests {
         let episode = create_test_episode("test-domain", TaskType::Debugging);
         let episode_id = episode.episode_id;
 
+        assert!(index.is_empty());
         index.insert(&episode);
-        assert_eq!(index.total_episodes, 1);
+        assert_eq!(index.len(), 1);
+        assert!(!index.is_empty());
 
         let removed = index.remove(episode_id);
         assert!(removed);

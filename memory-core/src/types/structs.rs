@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 /// Metadata context for a task, used for similarity matching and retrieval.
 ///
 /// Provides rich contextual information about a task to enable accurate
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// matching of relevant past episodes. The more fields populated, the
 /// better the retrieval quality.
 ///
@@ -71,7 +70,6 @@ impl Default for TaskContext {
 /// Calculated reward score for a completed episode.
 ///
 /// Quantifies the quality and efficiency of task execution using multiple
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// scoring dimensions. Higher scores indicate better performance and are
 /// used to rank episodes during retrieval.
 ///
@@ -120,12 +118,23 @@ pub struct RewardScore {
     /// positive = early correct stop, negative = should have abstained but didn't).
     /// Range: -0.5 to +0.5
     pub abstention_score: f32,
+    /// Raw calculated reward before normalization or decay
+    #[serde(default)]
+    pub raw_reward: f32,
+    /// Reward normalized relative to domain/task distribution
+    #[serde(default)]
+    pub normalized_reward: f32,
+    /// Reward after applying temporal decay
+    #[serde(default)]
+    pub decayed_reward: f32,
+    /// Final effective reward used for ranking
+    #[serde(default)]
+    pub effective_reward: f32,
 }
 
 /// Generated reflection analyzing episode execution.
 ///
 /// Provides structured analysis of what worked, what didn't, and key
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// learnings from the task. Used to improve future task execution.
 ///
 /// # Fields
@@ -170,7 +179,6 @@ pub struct Reflection {
 /// Aggregated statistics about pattern usage and outcomes.
 ///
 /// Tracks success rates and performance metrics for patterns across
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// multiple episodes. Used to evaluate pattern effectiveness.
 ///
 /// # Examples
@@ -233,7 +241,6 @@ impl OutcomeStats {
 /// Supporting evidence for a learned heuristic or pattern.
 ///
 /// Tracks which episodes support a heuristic and the empirical
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// success rate, providing confidence in the learned rule.
 ///
 /// # Examples
@@ -261,7 +268,6 @@ pub struct Evidence {
 /// Dual reward scoring for DyMoE-inspired pattern management.
 ///
 /// Separates reward into two orthogonal signals:
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// - **Stability score**: How well this episode aligns with existing high-success patterns
 /// - **Novelty score**: How novel/distinctive this episode is relative to existing clusters
 ///
@@ -364,3 +370,12 @@ impl DualRewardScore {
 
 // Re-export ComplexityLevel for use in this module
 pub use super::enums::ComplexityLevel;
+
+impl Default for RewardScore {
+    fn default() -> Self {
+        Self {
+            total: 0.0, base: 0.0, efficiency: 1.0, complexity_bonus: 1.0, quality_multiplier: 1.0, learning_bonus: 0.0, abstention_score: 0.0,
+            raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0,
+        }
+    }
+}

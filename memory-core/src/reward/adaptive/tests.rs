@@ -1,5 +1,6 @@
 //! Tests for adaptive reward calculation
 
+use chrono::Utc;
 use crate::episode::{Episode, ExecutionStep};
 use crate::reward::adaptive::AdaptiveRewardCalculator;
 use crate::reward::domain_stats::DomainStatistics;
@@ -58,6 +59,7 @@ fn test_adaptive_with_unreliable_stats_uses_fallback() {
         reward_std_dev: 0.1,
         last_updated: chrono::Utc::now(),
         success_count: 2,
+        decay_half_life_days: 30.0,
     };
 
     // Should use fixed thresholds with unreliable stats
@@ -100,6 +102,7 @@ fn test_adaptive_with_reliable_stats() {
         reward_std_dev: 0.15,
         last_updated: chrono::Utc::now(),
         success_count: 45,
+        decay_half_life_days: 30.0,
     };
 
     // Should use adaptive thresholds with reliable stats
@@ -147,6 +150,7 @@ fn test_adaptive_penalizes_worse_than_median() {
         reward_std_dev: 0.2,
         last_updated: chrono::Utc::now(),
         success_count: 25,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -466,6 +470,7 @@ fn test_adaptive_efficiency_zero_steps() {
         reward_std_dev: 0.1,
         last_updated: chrono::Utc::now(),
         success_count: 8,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -513,6 +518,7 @@ fn test_adaptive_efficiency_instant_completion() {
         reward_std_dev: 0.15,
         last_updated: chrono::Utc::now(),
         success_count: 8,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -559,6 +565,7 @@ fn test_adaptive_efficiency_much_better_than_median() {
         reward_std_dev: 0.15,
         last_updated: chrono::Utc::now(),
         success_count: 8,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -603,6 +610,7 @@ fn test_adaptive_efficiency_clamped_at_maximum() {
         reward_std_dev: 0.15,
         last_updated: chrono::Utc::now(),
         success_count: 8,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -652,6 +660,7 @@ fn test_adaptive_efficiency_clamped_at_minimum() {
         reward_std_dev: 0.15,
         last_updated: chrono::Utc::now(),
         success_count: 8,
+        decay_half_life_days: 30.0,
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -744,6 +753,7 @@ fn test_adaptive_reliability_threshold_exactly_5() {
         reward_std_dev: 0.1,
         last_updated: chrono::Utc::now(),
         success_count: 4,
+        decay_half_life_days: 30.0,
     };
 
     assert!(
@@ -781,6 +791,7 @@ fn test_adaptive_reliability_threshold_4() {
         reward_std_dev: 0.1,
         last_updated: chrono::Utc::now(),
         success_count: 3,
+        decay_half_life_days: 30.0,
     };
 
     assert!(
@@ -922,6 +933,7 @@ fn test_adaptive_stats_with_zero_median() {
         reward_std_dev: 0.0,
         last_updated: chrono::Utc::now(),
         success_count: 0,
+        decay_half_life_days: 30.0,
     };
 
     // Should handle zero median gracefully (use max(1, 0) = 1 for baseline)
@@ -1029,4 +1041,32 @@ fn test_adaptive_timeout_result_in_steps() {
 
     // Timeout is not a success, so error recovery bonus may apply
     assert!(reward.learning_bonus >= 0.0);
+}
+
+#[test]
+fn test_reward_normalization() {
+    let calculator = AdaptiveRewardCalculator::new();
+    let mut episode = create_test_episode("normalized-domain", ComplexityLevel::Moderate);
+    episode.complete(TaskOutcome::Success { verdict: "Success".to_string(), artifacts: vec![] });
+    let stats = DomainStatistics {
+        domain: "normalized-domain".to_string(), episode_count: 10, avg_duration_secs: 60.0, p50_duration_secs: 60.0, p90_duration_secs: 120.0,
+        avg_step_count: 10.0, p50_step_count: 10, p90_step_count: 20, avg_reward: 0.5, p50_reward: 0.5, reward_std_dev: 0.2, last_updated: Utc::now(),
+        success_count: 5, decay_half_life_days: 30.0,
+    };
+    let reward = calculator.calculate(&episode, Some(&stats));
+    assert!(reward.normalized_reward > 2.0);
+    assert!((reward.normalized_reward - 2.15).abs() < 0.1);
+}
+
+#[test]
+fn test_reward_temporal_decay() {
+    let calculator = AdaptiveRewardCalculator::new();
+    let mut episode = create_test_episode("decay-domain", ComplexityLevel::Moderate);
+    episode.start_time = Utc::now() - chrono::Duration::days(30);
+    episode.complete(TaskOutcome::Success { verdict: "Success".to_string(), artifacts: vec![] });
+    let stats = DomainStatistics::new("decay-domain".to_string());
+    let reward = calculator.calculate(&episode, Some(&stats));
+    assert!(reward.decayed_reward < 0.3);
+    assert!(reward.decayed_reward > 0.2);
+    assert_eq!(reward.effective_reward, reward.decayed_reward);
 }

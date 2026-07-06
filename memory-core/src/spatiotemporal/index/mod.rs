@@ -218,18 +218,6 @@ impl SpatiotemporalIndex {
     pub fn num_domains(&self) -> usize {
         self.domain_indices.len()
     }
-
-    /// Get the total number of episodes in the index.
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.total_episodes
-    }
-
-    /// Check if the index is empty.
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.total_episodes == 0
-    }
 }
 
 #[cfg(test)]
@@ -282,10 +270,8 @@ mod tests {
         let episode = create_test_episode("test-domain", TaskType::Debugging);
         let episode_id = episode.episode_id;
 
-        assert!(index.is_empty());
         index.insert(&episode);
-        assert_eq!(index.len(), 1);
-        assert!(!index.is_empty());
+        assert_eq!(index.total_episodes, 1);
 
         let removed = index.remove(episode_id);
         assert!(removed);

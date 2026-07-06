@@ -51,7 +51,6 @@ pub(super) fn merge_context_pattern(ev1: &mut Vec<Uuid>, sr1: &mut f32, ev2: &[U
 
 /// Tracks the real-world effectiveness of a pattern based on actual usage
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct PatternEffectiveness {
     /// Number of times this pattern was retrieved in queries
     pub times_retrieved: usize,
@@ -147,7 +146,6 @@ impl PatternEffectiveness {
 /// Pattern types extracted from episodes
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum Pattern {
     /// Sequence of tools used successfully
     ToolSequence {

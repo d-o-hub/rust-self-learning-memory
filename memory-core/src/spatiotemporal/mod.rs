@@ -1,57 +1,26 @@
-//! Spatiotemporal memory organization for efficient episodic retrieval.
+//! Spatiotemporal memory organization for efficient episodic retrieval
 //!
-//! This module provides a sophisticated hierarchical approach to organizing and retrieving
-//! episodic memories. Unlike pure semantic retrieval which treats all memories as a flat
-//! collection of vectors, spatiotemporal retrieval uses the natural structure of tasks
-//! to progressively narrow the search space.
+//! This module implements Phase 3 (Spatiotemporal Memory Organization) features
+//! from the research integration plan, including:
 //!
-//! # Why Spatiotemporal?
+//! - Context-aware embeddings with task-specific adaptation
+//! - Hierarchical spatiotemporal indexing (future)
+//! - Coarse-to-fine retrieval strategy (future)
+//! - MMR-based diversity maximization (future)
 //!
-//! Pure semantic retrieval often suffers from:
-//! - **Context drift**: Finding semantically similar but contextually irrelevant tasks.
-//! - **Recency neglect**: Older, less relevant tasks may outrank newer, more pertinent ones.
-//! - **Scalability**: Scanning all embeddings becomes slow as memory grows.
+//! # Phase 3 Goals
 //!
-//! Spatiotemporal organization solves these by introducing a 4-level hierarchy:
-//! 1. **Domain**: High-level logical grouping (e.g., "web-api", "frontend", "infrastructure").
-//! 2. **Task Type**: Functional classification (e.g., `CodeGeneration`, `Debugging`, `Analysis`).
-//! 3. **Temporal Clusters**: Time-based buckets (Weekly, Monthly, Quarterly) that favor recent patterns.
-//! 4. **Semantic Similarity**: Fine-grained vector comparison within the filtered subset.
+//! - **Hierarchical Indexing**: Domain → Task Type → Temporal clusters
+//! - **Coarse-to-Fine Retrieval**: Multi-level search for speed and accuracy
+//! - **Diversity Maximization**: MMR algorithm to avoid redundant results
+//! - **Context-Aware Embeddings**: Task-specific embedding adaptation
 //!
-//! # Key Components
+//! # Current Status
 //!
-//! - [`SpatiotemporalIndex`]: A 3-level index structure (Domain -> TaskType -> Temporal).
-//! - [`HierarchicalRetriever`]: Executes the coarse-to-fine retrieval strategy.
-//! - [`DiversityMaximizer`]: Applies MMR (Maximal Marginal Relevance) to ensure result variety.
-//! - [`ContextAwareEmbeddings`]: Task-specific embedding adaptation via contrastive learning.
-//!
-//! # Example: Basic Retrieval
-//!
-//! ```no_run
-//! use do_memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
-//! use do_memory_core::TaskType;
-//!
-//! # async fn example() -> anyhow::Result<()> {
-//! let retriever = HierarchicalRetriever::with_config(0.4, 5);
-//!
-//! let query = RetrievalQuery {
-//!     query_text: "Fix authentication bug".to_string(),
-//!     domain: Some("identity-service".to_string()),
-//!     task_type: Some(TaskType::Debugging),
-//!     limit: 3,
-//!     ..Default::default()
-//! };
-//!
-//! // let results = retriever.retrieve(&query, &all_episodes).await?;
-//! # Ok(())
-//! # }
-//! ```
-//!
-//! # Scoring Composition
-//!
-//! The final relevance score is a weighted combination:
-//! `Score = 0.3*Domain + 0.3*TaskType + W*Recency + (0.4-W)*Similarity`
-//! where `W` is the `temporal_bias_weight` (default 0.3).
+//! - ✅ Context-aware embeddings (Task 4.1, 4.2, 4.3)
+//! - ✅ Diversity maximization (Task 3.1, 3.2) - **COMPLETE**
+//! - ⏳ Hierarchical indexing (Task 1.1, 1.2, 1.3)
+//! - ⏳ Coarse-to-fine retrieval (Task 2.1, 2.2, 2.3)
 
 pub mod diversity;
 pub mod embeddings;

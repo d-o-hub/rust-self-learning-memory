@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 /// Salient features extracted from an episode.
 ///
 /// Contains the most important and reusable information from an episode,
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// enabling more effective retrieval and pattern learning.
 ///
 /// # Fields

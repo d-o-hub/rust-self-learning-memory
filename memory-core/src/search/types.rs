@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// Search mode for text matching
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum SearchMode {
     /// Exact substring match (case-insensitive)
     /// This is the default behavior and maintains backward compatibility
@@ -27,6 +28,7 @@ pub enum SearchMode {
 
 /// Fields to search within episodes
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum SearchField {
     /// Episode task description
     Description,

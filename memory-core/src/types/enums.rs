@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 /// Task complexity level classification.
 ///
 /// Used to categorize tasks by their inherent difficulty and scope.
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// This helps the system match similar tasks during retrieval and
 /// adjust reward calculations appropriately.
 ///
@@ -32,6 +33,7 @@ pub enum ComplexityLevel {
 /// High-level classification of task types for episode categorization.
 ///
 /// Categorizes the primary purpose or nature of a task. This classification
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// helps group similar tasks together for pattern extraction and retrieval.
 ///
 /// # Examples
@@ -95,6 +97,7 @@ impl std::str::FromStr for TaskType {
 /// Final outcome of a completed task.
 ///
 /// Represents the result after task execution, including success status
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// and relevant details. This information is used to calculate rewards
 /// and extract patterns.
 ///
@@ -167,6 +170,7 @@ pub enum TaskOutcome {
 /// Result of executing a single step within an episode.
 ///
 /// Records the outcome of an individual execution step, including
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// success status and relevant output or error information.
 ///
 /// # Examples

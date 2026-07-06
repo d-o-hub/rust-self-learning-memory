@@ -11,6 +11,7 @@ use super::builder::EpisodeFilterBuilder;
 
 /// Outcome type for filtering
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum OutcomeType {
     /// Only successful outcomes
     Success,
@@ -23,6 +24,7 @@ pub enum OutcomeType {
 /// Comprehensive filter for querying episodes
 ///
 /// Provides rich filtering capabilities across multiple dimensions.
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// All filter criteria are combined with AND logic (must match all specified criteria).
 ///
 /// # Examples

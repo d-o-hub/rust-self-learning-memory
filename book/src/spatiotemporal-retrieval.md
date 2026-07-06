@@ -35,6 +35,18 @@ let matches = retriever.retrieve(&query, &history).await?;
 
 If you're working within a specific domain, you can restrict search to that domain to avoid "cross-talk" from unrelated areas that might share similar keywords but different implementations.
 
+```rust
+let query = RetrievalQuery {
+    query_text: "Load configuration".to_string(),
+    domain: Some("api-gateway".to_string()),
+    limit: 5,
+    ..Default::default()
+};
+
+// Only 'api-gateway' episodes will be considered in Level 1
+let matches = retriever.retrieve(&query, &history).await?;
+```
+
 ### 3. Time-Window Constrained Retrieval
 
 You can use the `SpatiotemporalIndex` directly to find all episodes in a specific domain within a time range.

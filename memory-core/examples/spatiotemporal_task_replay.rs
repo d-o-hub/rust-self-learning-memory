@@ -99,6 +99,8 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Helper to create an episode with a specific start time.
+/// NOTE: duplicate of `spatiotemporal_basic` — consider a shared examples/utils
 fn create_episode(
     description: &str,
     domain: &str,

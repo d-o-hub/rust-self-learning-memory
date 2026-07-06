@@ -30,18 +30,16 @@
 //! ```no_run
 //! use do_memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
 //! use do_memory_core::TaskType;
-//! use std::collections::HashMap;
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! let retriever = HierarchicalRetriever::with_config(0.4, 5);
 //!
 //! let query = RetrievalQuery {
 //!     query_text: "Fix authentication bug".to_string(),
-//!     query_embedding: None, // Will fallback to text similarity if None
 //!     domain: Some("identity-service".to_string()),
 //!     task_type: Some(TaskType::Debugging),
 //!     limit: 3,
-//!     episode_embeddings: HashMap::new(),
+//!     ..Default::default()
 //! };
 //!
 //! // let results = retriever.retrieve(&query, &all_episodes).await?;

@@ -218,6 +218,18 @@ impl SpatiotemporalIndex {
     pub fn num_domains(&self) -> usize {
         self.domain_indices.len()
     }
+
+    /// Get the total number of episodes in the index.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.total_episodes
+    }
+
+    /// Check if the index is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.total_episodes == 0
+    }
 }
 
 #[cfg(test)]

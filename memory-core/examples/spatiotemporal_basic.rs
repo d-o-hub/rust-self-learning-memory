@@ -59,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
 
     println!(
         "Indexed {} episodes across {} domains.",
-        index.total_episodes,
+        index.len(),
         index.num_domains()
     );
 
@@ -103,6 +103,8 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Helper to create an episode with a specific start time.
+/// NOTE: duplicate of `spatiotemporal_task_replay` — consider a shared examples/utils
 fn create_episode(
     description: &str,
     domain: &str,

@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 /// Metadata context for a task, used for similarity matching and retrieval.
 ///
 /// Provides rich contextual information about a task to enable accurate
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// matching of relevant past episodes. The more fields populated, the
 /// better the retrieval quality.
 ///
@@ -70,6 +71,7 @@ impl Default for TaskContext {
 /// Calculated reward score for a completed episode.
 ///
 /// Quantifies the quality and efficiency of task execution using multiple
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// scoring dimensions. Higher scores indicate better performance and are
 /// used to rank episodes during retrieval.
 ///
@@ -123,6 +125,7 @@ pub struct RewardScore {
 /// Generated reflection analyzing episode execution.
 ///
 /// Provides structured analysis of what worked, what didn't, and key
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// learnings from the task. Used to improve future task execution.
 ///
 /// # Fields
@@ -167,6 +170,7 @@ pub struct Reflection {
 /// Aggregated statistics about pattern usage and outcomes.
 ///
 /// Tracks success rates and performance metrics for patterns across
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// multiple episodes. Used to evaluate pattern effectiveness.
 ///
 /// # Examples
@@ -229,6 +233,7 @@ impl OutcomeStats {
 /// Supporting evidence for a learned heuristic or pattern.
 ///
 /// Tracks which episodes support a heuristic and the empirical
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// success rate, providing confidence in the learned rule.
 ///
 /// # Examples
@@ -256,6 +261,7 @@ pub struct Evidence {
 /// Dual reward scoring for DyMoE-inspired pattern management.
 ///
 /// Separates reward into two orthogonal signals:
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// - **Stability score**: How well this episode aligns with existing high-success patterns
 /// - **Novelty score**: How novel/distinctive this episode is relative to existing clusters
 ///

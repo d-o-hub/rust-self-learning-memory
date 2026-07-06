@@ -13,6 +13,7 @@ use std::sync::Arc;
 
 /// Detailed breakdown of relevance scoring
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct ScoreBreakdown {
     /// Semantic similarity from embeddings (0.0 to 1.0)
     pub semantic_similarity: f32,

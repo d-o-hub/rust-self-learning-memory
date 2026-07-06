@@ -57,7 +57,7 @@ proptest! {
             quality_multiplier,
             learning_bonus,
             abstention_score: 0.0,
-        };
+         raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, };
 
         let json = serde_json::to_string(&score).expect("serialize to JSON");
         let deserialized: RewardScore = serde_json::from_str(&json).expect("deserialize from JSON");
@@ -645,7 +645,7 @@ mod postcard_tests {
                 quality_multiplier: 1.0,
                 learning_bonus: 0.0,
                 abstention_score: 0.0,
-            };
+             raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, };
 
             let serialized = postcard::to_allocvec(&score).expect("postcard serialize");
             let deserialized: RewardScore = postcard::from_bytes(&serialized).expect("postcard deserialize");

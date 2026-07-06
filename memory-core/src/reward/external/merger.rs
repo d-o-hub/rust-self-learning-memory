@@ -232,6 +232,10 @@ mod tests {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
         }
     }
 

@@ -91,7 +91,7 @@ pub fn create_test_reward_score() -> RewardScore {
             ("completeness".to_string(), 0.9),
         ]),
         metadata: HashMap::new(),
-    }
+    , abstention_score: 0.0, raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, }
 }
 
 /// Create test reflection

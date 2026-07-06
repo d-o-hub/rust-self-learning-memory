@@ -8,6 +8,7 @@ use crate::types::Evidence;
 
 /// Heuristic rule learned from patterns
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct Heuristic {
     /// Unique heuristic ID
     pub heuristic_id: Uuid,

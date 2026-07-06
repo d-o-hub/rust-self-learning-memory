@@ -15,6 +15,7 @@ use super::scoring::{SearchConfig, calculate_pattern_score};
 
 /// Result from semantic pattern search with scoring details
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct PatternSearchResult {
     /// The matched pattern
     pub pattern: Pattern,

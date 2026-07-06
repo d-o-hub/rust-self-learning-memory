@@ -66,10 +66,12 @@ async fn main() -> anyhow::Result<()> {
 
     // 4. Extract guidance from the top match
     if let Some(best_match) = matches.first() {
-        let ep = history
+        let Some(ep) = history
             .iter()
             .find(|e| e.episode_id == best_match.episode_id)
-            .unwrap();
+        else {
+            return Ok(());
+        };
         println!("\nFound relevant past episode: {}", ep.task_description);
         println!("Relevance Score: {:.2}", best_match.relevance_score);
 

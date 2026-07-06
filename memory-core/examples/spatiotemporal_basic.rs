@@ -82,10 +82,9 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Found {} results:", results.len());
     for (i, score) in results.iter().enumerate() {
-        let ep = episodes
-            .iter()
-            .find(|e| e.episode_id == score.episode_id)
-            .unwrap();
+        let Some(ep) = episodes.iter().find(|e| e.episode_id == score.episode_id) else {
+            continue;
+        };
         println!(
             "{}. [{:.2}] {} (Domain: {}, Type: {:?}, Created: {})",
             i + 1,
@@ -97,10 +96,7 @@ async fn main() -> anyhow::Result<()> {
         );
         println!(
             "   Scores: Domain: {:.2}, TaskType: {:.2}, Temporal: {:.2}, Similarity: {:.2}",
-            score.level_1_score,
-            score.level_2_score,
-            score.level_3_score,
-            score.level_4_score
+            score.level_1_score, score.level_2_score, score.level_3_score, score.level_4_score
         );
     }
 

@@ -66,44 +66,23 @@ impl AdaptiveRewardCalculator {
         domain_stats: Option<&DomainStatistics>,
     ) -> RewardScore {
         let base = self.calculate_base_reward(episode);
-
-        // Use adaptive efficiency if we have reliable stats
         let efficiency = if let Some(stats) = domain_stats {
-            if stats.is_reliable() {
-                self.calculate_adaptive_efficiency(episode, stats)
-            } else {
-                self.calculate_fixed_efficiency(episode)
-            }
-        } else {
-            self.calculate_fixed_efficiency(episode)
-        };
-
+            if stats.is_reliable() { self.calculate_adaptive_efficiency(episode, stats) }
+            else { self.calculate_fixed_efficiency(episode) }
+        } else { self.calculate_fixed_efficiency(episode) };
         let complexity_bonus = self.calculate_complexity_bonus(episode);
         let quality_multiplier = self.calculate_quality_multiplier(episode);
         let learning_bonus = self.calculate_learning_bonus(episode);
-
-        // Calculate total: base reward * multipliers + bonuses
-        let total = (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
-
-        debug!(
-            base = base,
-            efficiency = efficiency,
-            complexity_bonus = complexity_bonus,
-            quality_multiplier = quality_multiplier,
-            learning_bonus = learning_bonus,
-            total = total,
-            adaptive = domain_stats.map(|s| s.is_reliable()).unwrap_or(false),
-            "Calculated adaptive reward score"
-        );
-
+        let raw_reward = (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
+        let normalized_reward = if let Some(stats) = domain_stats { self.calculate_normalized_reward(raw_reward, stats) } else { raw_reward };
+        let half_life = domain_stats.map(|s| s.decay_half_life_days).unwrap_or(30.0);
+        let decayed_reward = self.calculate_decayed_reward(normalized_reward, episode.start_time, half_life);
+        let effective_reward = decayed_reward;
+        let total = effective_reward;
+        debug!(base = base, total = total, "Calculated adaptive reward score");
         RewardScore {
-            total,
-            base,
-            efficiency,
-            complexity_bonus,
-            quality_multiplier,
-            learning_bonus,
-            abstention_score: 0.0, // Adaptive calculator doesn't support abstention yet
+            total, base, efficiency, complexity_bonus, quality_multiplier, learning_bonus, abstention_score: 0.0,
+            raw_reward, normalized_reward, decayed_reward, effective_reward,
         }
     }
 
@@ -346,5 +325,18 @@ impl AdaptiveRewardCalculator {
             }
         }
         false
+    }
+
+    fn calculate_normalized_reward(&self, raw_reward: f32, stats: &DomainStatistics) -> f32 {
+        if !stats.is_reliable() || stats.reward_std_dev < 0.01 { return raw_reward; }
+        let z_score = (raw_reward - stats.avg_reward) / stats.reward_std_dev;
+        1.0 + (z_score * 0.2)
+    }
+
+    fn calculate_decayed_reward(&self, reward: f32, start_time: chrono::DateTime<chrono::Utc>, half_life_days: f32) -> f32 {
+        let now = chrono::Utc::now();
+        let age_days = (now - start_time).num_days() as f32;
+        if age_days <= 0.0 { return reward; }
+        reward * 0.5f32.powf(age_days / half_life_days)
     }
 }

@@ -7,11 +7,11 @@ use uuid::Uuid;
 
 use crate::memory::checkpoint::CheckpointMeta;
 use crate::pre_storage::SalientFeatures;
+use crate::reward::{AdaptiveRewardCalculator, DomainStatistics};
 use crate::types::{ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType};
 
 /// Records when a pattern was applied during episode execution
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct PatternApplication {
     /// ID of the pattern that was applied
     pub pattern_id: PatternId,
@@ -25,7 +25,6 @@ pub struct PatternApplication {
 
 /// Outcome of applying a pattern
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum ApplicationOutcome {
     /// Pattern helped achieve the desired outcome
     Helped,
@@ -58,7 +57,6 @@ pub type PatternId = Uuid;
 /// deserialization works correctly. Postcard cannot deserialize `serde_json::Value`
 /// directly. Use `parameters()` and `set_parameters()` for JSON value access.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct ExecutionStep {
     /// Step number in sequence (1-indexed)
     pub step_number: usize,
@@ -129,7 +127,6 @@ impl ExecutionStep {
 
 /// Complete record of a task execution from start to finish.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct Episode {
     /// Unique episode identifier
     pub episode_id: Uuid,
@@ -172,6 +169,10 @@ pub struct Episode {
 }
 
 impl Episode {
+    pub fn recompute_reward(&mut self, calculator: &AdaptiveRewardCalculator, domain_stats: Option<&DomainStatistics>) {
+        self.reward = Some(calculator.calculate(self, domain_stats));
+    }
+
     /// Create a new episode for a task.
     #[must_use]
     pub fn new(task_description: String, context: TaskContext, task_type: TaskType) -> Self {

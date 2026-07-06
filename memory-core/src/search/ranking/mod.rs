@@ -284,6 +284,9 @@ pub fn calculate_recency_score(start_time: DateTime<Utc>, now: DateTime<Utc>) ->
 /// A success score between 0.0 and 1.0
 #[must_use]
 pub fn calculate_success_score(episode: &Episode) -> f64 {
+    if let Some(reward) = &episode.reward {
+        if reward.effective_reward > 0.0 { return reward.effective_reward as f64; }
+    }
     if let Some(ref outcome) = episode.outcome {
         match outcome {
             crate::types::TaskOutcome::Success { .. } => 1.0,

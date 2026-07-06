@@ -4,6 +4,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+fn default_half_life() -> f32 {
+    30.0
+}
+
 /// Statistics for a specific task domain
 ///
 /// Tracks performance baselines across episodes in a domain,
@@ -48,6 +52,9 @@ pub struct DomainStatistics {
 
     /// Number of successful episodes (used for success rate)
     pub success_count: usize,
+    /// Temporal decay half-life in days for this domain
+    #[serde(default = "default_half_life")]
+    pub decay_half_life_days: f32,
 }
 
 impl DomainStatistics {
@@ -68,6 +75,7 @@ impl DomainStatistics {
             reward_std_dev: 0.0,
             last_updated: Utc::now(),
             success_count: 0,
+            decay_half_life_days: 30.0,
         }
     }
 

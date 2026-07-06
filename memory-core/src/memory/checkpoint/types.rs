@@ -16,7 +16,6 @@ use crate::pre_storage::SalientFeatures;
 ///
 /// Represents a saved snapshot of progress within an episode.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct CheckpointMeta {
     /// Unique checkpoint identifier
     pub checkpoint_id: Uuid,

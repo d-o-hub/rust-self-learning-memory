@@ -36,7 +36,7 @@ use uuid::Uuid;
 ///     episode_embeddings: HashMap::new(),
 /// };
 /// ```
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct RetrievalQuery {
     /// Text description of the query task
     pub query_text: String,

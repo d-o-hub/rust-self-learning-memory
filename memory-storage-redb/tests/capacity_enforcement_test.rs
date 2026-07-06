@@ -67,6 +67,10 @@ fn create_episode_with_quality(task_description: &str, quality_score: f32) -> Ep
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
         }),
         applied_patterns: vec![],
         salient_features: Some(SalientFeatures {

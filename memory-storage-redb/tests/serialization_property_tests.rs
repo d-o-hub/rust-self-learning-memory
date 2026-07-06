@@ -219,7 +219,7 @@ proptest! {
             quality_multiplier,
             learning_bonus,
             abstention_score: 0.0,
-        };
+         raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, };
 
         let bytes = postcard::to_allocvec(&score).expect("postcard serialize");
         let deserialized: RewardScore =

@@ -455,7 +455,7 @@ proptest! {
             reward_std_dev: 0.15,
             last_updated: Utc::now(),
             success_count: 8,
-        };
+         decay_half_life_days: 30.0, };
         let reward = calculator.calculate(&episode, Some(&stats));
         prop_assert!(reward.efficiency >= MIN_EFFICIENCY, "Adaptive efficiency below minimum");
         prop_assert!(reward.efficiency <= MAX_EFFICIENCY, "Adaptive efficiency above maximum");
@@ -482,7 +482,7 @@ proptest! {
             reward_std_dev: 0.1,
             last_updated: Utc::now(),
             success_count: 2,
-        };
+         decay_half_life_days: 30.0, };
         let reward = calculator.calculate(&episode, Some(&stats));
         prop_assert!(reward.efficiency >= MIN_EFFICIENCY, "Fallback efficiency below minimum");
         prop_assert!(reward.efficiency <= MAX_EFFICIENCY, "Fallback efficiency above maximum");

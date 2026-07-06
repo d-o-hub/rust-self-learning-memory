@@ -273,7 +273,7 @@ proptest! {
                 quality_multiplier: 1.0,
                 learning_bonus: 0.0,
                 abstention_score: 0.0,
-            });
+             raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, });
         }
 
         episode.complete(TaskOutcome::Success {
@@ -307,7 +307,7 @@ proptest! {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
-        });
+         raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0, });
 
         let score = manager.extract_quality_score(&episode);
         prop_assert!((0.0..=1.0).contains(&score),

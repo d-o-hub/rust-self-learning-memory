@@ -374,8 +374,17 @@ pub use super::enums::ComplexityLevel;
 impl Default for RewardScore {
     fn default() -> Self {
         Self {
-            total: 0.0, base: 0.0, efficiency: 1.0, complexity_bonus: 1.0, quality_multiplier: 1.0, learning_bonus: 0.0, abstention_score: 0.0,
-            raw_reward: 0.0, normalized_reward: 0.0, decayed_reward: 0.0, effective_reward: 0.0,
+            total: 0.0,
+            base: 0.0,
+            efficiency: 1.0,
+            complexity_bonus: 1.0,
+            quality_multiplier: 1.0,
+            learning_bonus: 0.0,
+            abstention_score: 0.0,
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
         }
     }
 }

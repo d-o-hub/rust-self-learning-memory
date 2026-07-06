@@ -1,10 +1,10 @@
 //! Tests for adaptive reward calculation
 
-use chrono::Utc;
 use crate::episode::{Episode, ExecutionStep};
 use crate::reward::adaptive::AdaptiveRewardCalculator;
 use crate::reward::domain_stats::DomainStatistics;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use chrono::Utc;
 
 fn create_test_episode(domain: &str, complexity: ComplexityLevel) -> Episode {
     let context = TaskContext {
@@ -1047,11 +1047,25 @@ fn test_adaptive_timeout_result_in_steps() {
 fn test_reward_normalization() {
     let calculator = AdaptiveRewardCalculator::new();
     let mut episode = create_test_episode("normalized-domain", ComplexityLevel::Moderate);
-    episode.complete(TaskOutcome::Success { verdict: "Success".to_string(), artifacts: vec![] });
+    episode.complete(TaskOutcome::Success {
+        verdict: "Success".to_string(),
+        artifacts: vec![],
+    });
     let stats = DomainStatistics {
-        domain: "normalized-domain".to_string(), episode_count: 10, avg_duration_secs: 60.0, p50_duration_secs: 60.0, p90_duration_secs: 120.0,
-        avg_step_count: 10.0, p50_step_count: 10, p90_step_count: 20, avg_reward: 0.5, p50_reward: 0.5, reward_std_dev: 0.2, last_updated: Utc::now(),
-        success_count: 5, decay_half_life_days: 30.0,
+        domain: "normalized-domain".to_string(),
+        episode_count: 10,
+        avg_duration_secs: 60.0,
+        p50_duration_secs: 60.0,
+        p90_duration_secs: 120.0,
+        avg_step_count: 10.0,
+        p50_step_count: 10,
+        p90_step_count: 20,
+        avg_reward: 0.5,
+        p50_reward: 0.5,
+        reward_std_dev: 0.2,
+        last_updated: Utc::now(),
+        success_count: 5,
+        decay_half_life_days: 30.0,
     };
     let reward = calculator.calculate(&episode, Some(&stats));
     assert!(reward.normalized_reward > 2.0);
@@ -1063,7 +1077,10 @@ fn test_reward_temporal_decay() {
     let calculator = AdaptiveRewardCalculator::new();
     let mut episode = create_test_episode("decay-domain", ComplexityLevel::Moderate);
     episode.start_time = Utc::now() - chrono::Duration::days(30);
-    episode.complete(TaskOutcome::Success { verdict: "Success".to_string(), artifacts: vec![] });
+    episode.complete(TaskOutcome::Success {
+        verdict: "Success".to_string(),
+        artifacts: vec![],
+    });
     let stats = DomainStatistics::new("decay-domain".to_string());
     let reward = calculator.calculate(&episode, Some(&stats));
     assert!(reward.decayed_reward < 0.3);

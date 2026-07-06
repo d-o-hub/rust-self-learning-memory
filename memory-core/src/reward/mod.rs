@@ -90,11 +90,24 @@ impl RewardCalculator {
         let quality_multiplier = self.calculate_quality_multiplier(episode);
         let learning_bonus = self.calculate_learning_bonus(episode);
         let abstention_score = efficiency::calculate_abstention_score(episode);
-        let total = ((base + abstention_score).max(0.0) * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
+        let total = ((base + abstention_score).max(0.0)
+            * efficiency
+            * complexity_bonus
+            * quality_multiplier)
+            + learning_bonus;
         debug!(base = base, total = total, "Calculated reward score");
         RewardScore {
-            total, base, efficiency, complexity_bonus, quality_multiplier, learning_bonus, abstention_score,
-            raw_reward: total, normalized_reward: total, decayed_reward: total, effective_reward: total,
+            total,
+            base,
+            efficiency,
+            complexity_bonus,
+            quality_multiplier,
+            learning_bonus,
+            abstention_score,
+            raw_reward: total,
+            normalized_reward: total,
+            decayed_reward: total,
+            effective_reward: total,
         }
     }
 

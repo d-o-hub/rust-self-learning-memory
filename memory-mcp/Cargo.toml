@@ -40,8 +40,8 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 chrono = { workspace = true }
 rand = { workspace = true }
 agentfs-sdk = "0.6.4"
-sysinfo = "0.38"
-which = "4"
+sysinfo = "0.39"
+which = "8"
 regex = { workspace = true }
 
 base64 = { workspace = true }

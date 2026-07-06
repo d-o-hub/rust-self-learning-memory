@@ -169,7 +169,11 @@ pub struct Episode {
 }
 
 impl Episode {
-    pub fn recompute_reward(&mut self, calculator: &AdaptiveRewardCalculator, domain_stats: Option<&DomainStatistics>) {
+    pub fn recompute_reward(
+        &mut self,
+        calculator: &AdaptiveRewardCalculator,
+        domain_stats: Option<&DomainStatistics>,
+    ) {
         self.reward = Some(calculator.calculate(self, domain_stats));
     }
 

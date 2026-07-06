@@ -285,7 +285,9 @@ pub fn calculate_recency_score(start_time: DateTime<Utc>, now: DateTime<Utc>) ->
 #[must_use]
 pub fn calculate_success_score(episode: &Episode) -> f64 {
     if let Some(reward) = &episode.reward {
-        if reward.effective_reward > 0.0 { return reward.effective_reward as f64; }
+        if reward.effective_reward > 0.0 {
+            return f64::from(reward.effective_reward);
+        }
     }
     if let Some(ref outcome) = episode.outcome {
         match outcome {

@@ -175,11 +175,11 @@ mod tests {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
-                raw_reward: 0.0,
-                normalized_reward: 0.0,
-                decayed_reward: 0.0,
-                effective_reward: 0.0,
-            });
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
+        });
 
         let mut medium_quality = create_test_episode("Medium quality");
         medium_quality.reward = Some(RewardScore {
@@ -190,11 +190,11 @@ mod tests {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
-                raw_reward: 0.0,
-                normalized_reward: 0.0,
-                decayed_reward: 0.0,
-                effective_reward: 0.0,
-            });
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
+        });
 
         let mut high_quality = create_test_episode("High quality");
         high_quality.reward = Some(RewardScore {
@@ -205,11 +205,11 @@ mod tests {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
-                raw_reward: 0.0,
-                normalized_reward: 0.0,
-                decayed_reward: 0.0,
-                effective_reward: 0.0,
-            });
+            raw_reward: 0.0,
+            normalized_reward: 0.0,
+            decayed_reward: 0.0,
+            effective_reward: 0.0,
+        });
 
         let episodes = vec![
             low_quality.clone(),

@@ -468,3 +468,18 @@ fn test_tags_are_case_insensitive() {
     assert!(episode.remove_tag("BuG-FiX"));
     assert!(!episode.has_tag("bug-fix"));
 }
+
+#[test]
+fn test_episode_recompute_reward() {
+    let context = TaskContext::default();
+    let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+    episode.complete(crate::types::TaskOutcome::Success {
+        verdict: "Success".to_string(),
+        artifacts: vec![],
+    });
+
+    let calculator = crate::reward::AdaptiveRewardCalculator::new();
+    episode.recompute_reward(&calculator, None);
+
+    assert!(episode.reward.is_some());
+}

@@ -1,6 +1,7 @@
 //! Tests for search ranking module
 
 use super::*;
+use crate::types::RewardScore;
 use crate::types::{TaskContext, TaskType};
 use chrono::Duration;
 
@@ -175,4 +176,19 @@ fn test_rank_search_results() {
     assert_eq!(ranked[0].score, 0.9);
     assert_eq!(ranked[1].score, 0.7);
     assert_eq!(ranked[2].score, 0.5);
+}
+
+#[test]
+fn test_calculate_success_score_with_effective_reward() {
+    let context = TaskContext::default();
+    let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+    // Set a specific effective reward
+    episode.reward = Some(RewardScore {
+        effective_reward: 0.85,
+        ..Default::default()
+    });
+
+    let score = calculate_success_score(&episode);
+    assert!((score - 0.85).abs() < 0.001);
 }

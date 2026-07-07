@@ -5,15 +5,11 @@
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use do_memory_core::episode::{
-    CleanupResult, Direction, EpisodePatternRelationship, EpisodeRelationship,
-    EpisodeRetentionPolicy, PatternId, RelationshipType,
-};
+use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, PatternId};
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskContext,
     TaskOutcome, TaskType,

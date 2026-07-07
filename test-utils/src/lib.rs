@@ -224,8 +224,13 @@ pub async fn hybrid_memory() -> (do_memory_core::memory::SelfLearningMemory, Tem
     let (turso, turso_dir) = temp_local_storage().await;
     let (redb, redb_dir) = in_memory_redb_storage().await;
 
-    turso.initialize_schema().await.expect("Initialize Turso schema");
-    redb.initialize_schema().await.expect("Initialize redb schema");
+    turso
+        .initialize_schema()
+        .await
+        .expect("Initialize Turso schema");
+    redb.initialize_schema()
+        .await
+        .expect("Initialize redb schema");
 
     let mut config = MemoryConfig::default();
     // Set thresholds to 0.0 to ensure all episodes are accepted regardless of quality

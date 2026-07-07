@@ -39,6 +39,7 @@
 
 mod circuit_breaker;
 pub mod config;
+pub mod index;
 mod local;
 mod metrics;
 #[cfg(feature = "mistral")]
@@ -60,6 +61,7 @@ pub use config::{
     AzureOpenAIConfig, CustomConfig, EmbeddingConfig, LocalConfig, MistralConfig, OpenAIConfig,
     OptimizationConfig, ProviderConfig,
 };
+pub use index::{InMemoryVectorIndex, VectorHit, VectorIndex};
 pub use local::{
     LocalEmbeddingProvider, LocalModelUseCase, get_recommended_model, list_available_models,
 };

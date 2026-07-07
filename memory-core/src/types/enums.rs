@@ -75,6 +75,33 @@ impl std::fmt::Display for TaskType {
     }
 }
 
+/// Mode for episode retrieval
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RetrievalMode {
+    /// Traditional keyword-based search
+    Keyword,
+    /// Semantic embedding-based search
+    Semantic,
+    /// Hybrid search combining keyword, semantic, and other signals
+    Hybrid,
+}
+
+impl Default for RetrievalMode {
+    fn default() -> Self {
+        Self::Hybrid
+    }
+}
+
+impl std::fmt::Display for RetrievalMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RetrievalMode::Keyword => write!(f, "keyword"),
+            RetrievalMode::Semantic => write!(f, "semantic"),
+            RetrievalMode::Hybrid => write!(f, "hybrid"),
+        }
+    }
+}
+
 impl std::str::FromStr for TaskType {
     type Err = String;
 

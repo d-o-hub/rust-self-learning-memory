@@ -74,6 +74,10 @@ pub struct SelfLearningMemory {
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
     /// Context-aware embeddings for task-specific similarity
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
+    /// ANN-backed semantic retriever
+    pub(super) semantic_retriever: Option<crate::retrieval::SemanticRetriever>,
+    /// Hybrid ranker for multi-signal fusion
+    pub(super) hybrid_ranker: crate::search::HybridRanker,
     /// Semantic service for embedding generation and search
     semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search

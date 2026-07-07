@@ -13,6 +13,7 @@
 
 pub mod cache;
 pub mod cascade;
+pub mod semantic_retriever;
 pub mod gist;
 pub mod shard;
 pub mod signature;
@@ -31,6 +32,7 @@ pub use chaotic_semantic_memory::retrieval::{
 };
 
 pub use cache::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache};
+pub use semantic_retriever::SemanticRetriever;
 pub use cascade::{CascadeConfig, CascadeResult, CascadeRetriever};
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
 pub use shard::{EpisodeMetadata, RoutingResult, ScopeFilter, ShardConfig, ShardRouter, TimeRange};

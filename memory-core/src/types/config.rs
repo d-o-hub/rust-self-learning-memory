@@ -176,6 +176,8 @@ pub struct MemoryConfig {
     /// - semantic-only: Use only semantic similarity for ranking
     /// - keyword-only: Use traditional keyword matching only
     pub semantic_search_mode: String,
+    /// Retrieval mode (Keyword, Semantic, Hybrid)
+    pub retrieval_mode: crate::types::enums::RetrievalMode,
     /// Enable query embedding caching (default: true)
     /// Caches query embeddings to avoid regenerating for identical queries
     pub enable_query_embedding_cache: bool,
@@ -220,6 +222,7 @@ impl Default for MemoryConfig {
 
             // Phase 3 (Enhanced) - Semantic search defaults
             semantic_search_mode: "hybrid".to_string(),
+            retrieval_mode: crate::types::enums::RetrievalMode::Hybrid,
             enable_query_embedding_cache: true,
             semantic_similarity_threshold: 0.6,
 
@@ -293,6 +296,21 @@ impl MemoryConfig {
                         policy
                     );
                     Some(crate::episode::EvictionPolicy::RelevanceWeighted)
+                }
+            };
+        }
+
+        if let Ok(mode) = std::env::var("MEMORY_RETRIEVAL_MODE") {
+            config.retrieval_mode = match mode.to_lowercase().as_str() {
+                "keyword" => crate::types::enums::RetrievalMode::Keyword,
+                "semantic" => crate::types::enums::RetrievalMode::Semantic,
+                "hybrid" => crate::types::enums::RetrievalMode::Hybrid,
+                _ => {
+                    tracing::warn!(
+                        "Invalid MEMORY_RETRIEVAL_MODE '{}', using default 'hybrid'",
+                        mode
+                    );
+                    crate::types::enums::RetrievalMode::Hybrid
                 }
             };
         }

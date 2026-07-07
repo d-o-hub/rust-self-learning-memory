@@ -4,6 +4,7 @@
 //! retrieving relevant episodes and patterns from memory.
 
 pub mod fuzzy;
+pub mod hybrid_ranker;
 pub mod metrics;
 pub mod ranking;
 pub mod regex;
@@ -30,3 +31,4 @@ pub use types::{FieldMatch, SearchField, SearchMode, SearchResult};
 
 #[cfg(feature = "hybrid_search")]
 pub use hybrid::{HybridSearch, HybridSearchConfig, HybridSearchResult};
+pub use hybrid_ranker::{HybridRanker, HybridRankingWeights, RankingSignals};

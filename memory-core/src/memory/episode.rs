@@ -400,58 +400,71 @@ impl SelfLearningMemory {
     /// Returns `Error::NotFound` if the episode doesn't exist
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Episode> {
         // 1) Try in-memory cache first
-        if let Some(ep) = {
-            let episodes = self.episodes_fallback.read().await;
-            episodes.get(&episode_id).cloned()
-        } {
-            // ep is Arc<Episode>, dereference to get Episode
-            return Ok((*ep).clone());
+        if let Some(episode) = self.get_from_fallback(episode_id).await {
+            return Ok(episode);
         }
 
         // 2) Try cache storage (redb) next
-        if let Some(cache) = &self.cache_storage {
-            match cache.get_episode(episode_id).await {
-                Ok(Some(episode)) => {
-                    // Store in cache as Arc<Episode> for cheap cloning
-                    let mut episodes = self.episodes_fallback.write().await;
-                    episodes.insert(episode_id, Arc::new(episode.clone()));
-                    return Ok(episode);
-                }
-                Ok(None) => {
-                    // Not found in cache; continue to durable storage
-                }
-                Err(_e) => {
-                    // Cache access failed; continue to durable storage
-                }
-            }
+        if let Some(episode) = self.get_from_cache(episode_id).await {
+            return Ok(episode);
         }
 
         // 3) Try durable storage (Turso)
-        if let Some(turso) = &self.turso_storage {
-            match turso.get_episode(episode_id).await {
-                Ok(Some(episode)) => {
-                    // Populate in-memory cache for subsequent accesses
-                    let mut episodes = self.episodes_fallback.write().await;
-                    episodes.insert(episode_id, Arc::new(episode.clone()));
-
-                    // Backfill redb cache if enabled (WG-204: Write-through reconciliation)
-                    if let Some(cache) = &self.cache_storage {
-                        if let Err(e) = cache.store_episode(&episode).await {
-                            warn!(
-                                episode_id = %episode_id,
-                                error = %e,
-                                "Failed to backfill redb cache during reconciliation"
-                            );
-                        }
-                    }
-
-                    return Ok(episode);
-                }
-                Ok(None) => {}
-                Err(_e) => {}
-            }
+        if let Some(episode) = self.get_from_durable(episode_id).await {
+            // Reconcile/backfill cache on find (WG-204: Write-through reconciliation)
+            self.reconcile_episode(episode_id, &episode);
+            return Ok(episode);
         }
 
         Err(Error::NotFound(episode_id))
+    }
+
+    /// Try to get an episode from the in-memory fallback cache
+    async fn get_from_fallback(&self, episode_id: Uuid) -> Option<Episode> {
+        let episodes = self.episodes_fallback.read().await;
+        episodes.get(&episode_id).map(|ep| (**ep).clone())
+    }
+
+    /// Try to get an episode from the cache storage (redb)
+    async fn get_from_cache(&self, episode_id: Uuid) -> Option<Episode> {
+        let cache = self.cache_storage.as_ref()?;
+        match cache.get_episode(episode_id).await {
+            Ok(Some(episode)) => {
+                let mut fallback = self.episodes_fallback.write().await;
+                fallback.insert(episode_id, Arc::new(episode.clone()));
+                Some(episode)
+            }
+            _ => None,
+        }
+    }
+
+    /// Try to get an episode from the durable storage (Turso)
+    async fn get_from_durable(&self, episode_id: Uuid) -> Option<Episode> {
+        let durable = self.turso_storage.as_ref()?;
+        match durable.get_episode(episode_id).await {
+            Ok(Some(episode)) => {
+                let mut fallback = self.episodes_fallback.write().await;
+                fallback.insert(episode_id, Arc::new(episode.clone()));
+                Some(episode)
+            }
+            _ => None,
+        }
+    }
+
+    /// Reconcile/backfill the redb cache if an episode was found in durable storage
+    /// (Background execution via tokio::spawn)
+    fn reconcile_episode(&self, episode_id: Uuid, episode: &Episode) {
+        if let Some(cache) = self.cache_storage.clone() {
+            let episode = episode.clone();
+            tokio::spawn(async move {
+                if let Err(e) = cache.store_episode(&episode).await {
+                    warn!(
+                        episode_id = %episode_id,
+                        error = %e,
+                        "Failed to backfill redb cache during reconciliation"
+                    );
+                }
+            });
+        }
     }
 }

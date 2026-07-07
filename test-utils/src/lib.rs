@@ -231,17 +231,32 @@ pub async fn hybrid_memory() -> (do_memory_core::memory::SelfLearningMemory, Tem
 /// Assert that two episodes are identical for the purposes of storage parity
 pub fn assert_episode_parity(a: &Episode, b: &Episode) {
     assert_eq!(a.episode_id, b.episode_id, "Episode ID mismatch");
-    assert_eq!(a.task_description, b.task_description, "Task description mismatch");
+    assert_eq!(
+        a.task_description, b.task_description,
+        "Task description mismatch"
+    );
     assert_eq!(a.task_type, b.task_type, "Task type mismatch");
     assert_eq!(a.steps.len(), b.steps.len(), "Steps count mismatch");
 
     for (i, (s_a, s_b)) in a.steps.iter().zip(b.steps.iter()).enumerate() {
-        assert_eq!(s_a.step_number, s_b.step_number, "Step {} number mismatch", i);
+        assert_eq!(
+            s_a.step_number, s_b.step_number,
+            "Step {} number mismatch",
+            i
+        );
         assert_eq!(s_a.tool, s_b.tool, "Step {} tool mismatch", i);
     }
 
-    assert_eq!(a.reward.is_some(), b.reward.is_some(), "Reward presence mismatch");
-    assert_eq!(a.reflection.is_some(), b.reflection.is_some(), "Reflection presence mismatch");
+    assert_eq!(
+        a.reward.is_some(),
+        b.reward.is_some(),
+        "Reward presence mismatch"
+    );
+    assert_eq!(
+        a.reflection.is_some(),
+        b.reflection.is_some(),
+        "Reflection presence mismatch"
+    );
 }
 
 // Re-export multi-dimension test utilities

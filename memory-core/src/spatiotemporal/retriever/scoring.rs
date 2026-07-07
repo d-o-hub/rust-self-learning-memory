@@ -140,7 +140,10 @@ impl super::HierarchicalRetriever {
                 let similarity_weight = 1.0 - temporal_weight - 0.6;
 
                 // Reward score inclusion (normalized to 0-1 range)
-                let reward_score = episode.reward.as_ref().map_or(0.5, |r| (r.total / 2.0).clamp(0.0, 1.0));
+                let reward_score = episode
+                    .reward
+                    .as_ref()
+                    .map_or(0.5, |r| (r.total / 2.0).clamp(0.0, 1.0));
 
                 let relevance_score = 0.25 * level_1_score
                     + 0.25 * level_2_score

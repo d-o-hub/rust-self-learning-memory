@@ -83,13 +83,13 @@ impl AdaptiveRewardCalculator {
         let normalized_reward = if let Some(stats) = domain_stats {
             self.calculate_normalized_reward(raw_reward, stats, episode)
         } else {
-            raw_reward
+            1.0 // Default normalization factor
         };
         let half_life = domain_stats.map(|s| s.decay_half_life_days).unwrap_or(30.0);
         let decayed_reward =
-            self.calculate_decayed_reward(normalized_reward, episode.start_time, half_life);
+            self.calculate_decayed_reward(raw_reward * normalized_reward, episode.start_time, half_life);
         let effective_reward = decayed_reward;
-        let total = raw_reward;
+        let total = effective_reward;
         debug!(
             base = base,
             total = total,
@@ -381,7 +381,8 @@ impl AdaptiveRewardCalculator {
         }
 
         // Task type
-        if let Some((avg, std_dev, count)) = stats.task_type_stats.get(&episode.task_type.to_string())
+        if let Some((avg, std_dev, count)) =
+            stats.task_type_stats.get(&episode.task_type.to_string())
         {
             if *count >= 3 && *std_dev > 0.01 {
                 category_z_scores.push((raw_reward - *avg) / *std_dev);
@@ -408,7 +409,8 @@ impl AdaptiveRewardCalculator {
 
         // Map z-score to normalized reward around 1.0
         // z=0 -> 1.0, z=1 -> 1.2, z=-1 -> 0.8
-        (1.0 + (final_z * 0.2)).clamp(0.1, 2.0)
+        let norm = 1.0 + (final_z * 0.2);
+        norm.clamp(0.1, 5.0)
     }
 
     fn calculate_decayed_reward(

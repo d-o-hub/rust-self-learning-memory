@@ -139,10 +139,14 @@ impl super::HierarchicalRetriever {
                 let temporal_weight = self.temporal_bias_weight;
                 let similarity_weight = 1.0 - temporal_weight - 0.6;
 
-                let relevance_score = 0.3 * level_1_score
-                    + 0.3 * level_2_score
+                // Reward score inclusion (normalized to 0-1 range)
+                let reward_score = episode.reward.as_ref().map_or(0.5, |r| (r.total / 2.0).clamp(0.0, 1.0));
+
+                let relevance_score = 0.25 * level_1_score
+                    + 0.25 * level_2_score
                     + temporal_weight * level_3_score
-                    + similarity_weight.max(0.1) * level_4_score;
+                    + similarity_weight.max(0.1) * level_4_score
+                    + 0.1 * reward_score;
 
                 HierarchicalScore {
                     episode_id: episode.episode_id,

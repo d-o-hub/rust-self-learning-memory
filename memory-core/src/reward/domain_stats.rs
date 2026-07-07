@@ -364,4 +364,9 @@ mod tests {
         stats.episode_count = 5;
         assert!(stats.is_reliable());
     }
+    #[test]
+    fn test_domain_statistics_decay_field() {
+        let stats = DomainStatistics::new("test".to_string());
+        assert_eq!(stats.decay_half_life_days, 30.0);
+    }
 }

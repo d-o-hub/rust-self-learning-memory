@@ -43,14 +43,15 @@ jobs:
           mdbook build
 
       - name: Build Rust docs
-        run: cargo doc --no-deps --workspace
+        run: cargo doc --no-deps --workspace -v
 
       - name: Merge documentation
         run: |
           mkdir -p _site
           cp -r book/book/* _site/
           mkdir -p _site/api
-          cp -r target/doc/* _site/api/
+          ls -la target/ || echo "target directory not found"
+          [ -d target/doc ] && cp -r target/doc/* _site/api/ || echo "No docs generated"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9

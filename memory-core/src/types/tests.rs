@@ -419,3 +419,19 @@ fn test_dual_reward_score_from_similarity() {
     assert_eq!(score.stability_score, 1.0);
     assert_eq!(score.novelty_score, 0.0);
 }
+
+#[test]
+fn test_reward_score_default() {
+    let score = RewardScore::default();
+    assert_eq!(score.total, 0.0);
+    assert_eq!(score.base, 0.0);
+    assert_eq!(score.efficiency, 1.0);
+    assert_eq!(score.complexity_bonus, 1.0);
+    assert_eq!(score.quality_multiplier, 1.0);
+    assert_eq!(score.learning_bonus, 0.0);
+    assert_eq!(score.abstention_score, 0.0);
+    assert_eq!(score.raw_reward, 0.0);
+    assert_eq!(score.normalized_reward, 0.0);
+    assert_eq!(score.decayed_reward, 0.0);
+    assert_eq!(score.effective_reward, 0.0);
+}

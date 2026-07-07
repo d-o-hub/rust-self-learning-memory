@@ -11,6 +11,7 @@ publish = false
 do-memory-core = { path = "../memory-core" }
 do-memory-storage-turso = { path = "../memory-storage-turso" }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-test-utils = { path = "../test-utils", features = ["full"] }
 # memory-mcp: MCP server for tests
 do-memory-mcp = { path = "../memory-mcp" }
 libsql = { workspace = true }
@@ -66,6 +67,16 @@ harness = true
 [[test]]
 name = "playbook_integration"
 path = "playbook_integration_test.rs"
+harness = true
+
+[[test]]
+name = "hybrid_storage_consistency"
+path = "hybrid_storage_consistency.rs"
+harness = true
+
+[[test]]
+name = "hybrid_storage_recovery"
+path = "hybrid_storage_recovery.rs"
 harness = true
 
 # NOTE: These embedding tests use APIs that don't exist or have changed.

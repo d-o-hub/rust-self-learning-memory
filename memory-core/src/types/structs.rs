@@ -98,6 +98,7 @@ impl Default for TaskContext {
 ///     quality_multiplier: 1.1, // High quality output
 ///     learning_bonus: 0.3,    // Discovered new pattern
 ///     abstention_score: 0.0,  // No abstention
+///     ..Default::default()
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

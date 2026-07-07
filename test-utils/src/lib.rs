@@ -213,12 +213,26 @@ pub async fn in_memory_redb_storage() -> (do_memory_storage_redb::RedbStorage, T
 }
 
 /// Create a SelfLearningMemory with hybrid Turso and redb storage backends
+///
+/// # Warning
+///
+/// The returned `TempDir` instances MUST be kept alive for the duration of the test.
+/// Dropping them will delete the underlying storage files, causing subsequent
+/// operations to fail.
 #[cfg(all(feature = "turso", feature = "redb"))]
 pub async fn hybrid_memory() -> (do_memory_core::memory::SelfLearningMemory, TempDir, TempDir) {
     let (turso, turso_dir) = temp_local_storage().await;
     let (redb, redb_dir) = in_memory_redb_storage().await;
 
-    let config = MemoryConfig::default();
+    turso.initialize_schema().await.expect("Initialize Turso schema");
+    redb.initialize_schema().await.expect("Initialize redb schema");
+
+    let mut config = MemoryConfig::default();
+    // Set thresholds to 0.0 to ensure all episodes are accepted regardless of quality
+    // for storage consistency and parity tests.
+    config.quality_threshold = 0.0;
+    config.pattern_extraction_threshold = 0.0;
+
     let memory = do_memory_core::memory::SelfLearningMemory::with_storage(
         config,
         std::sync::Arc::new(turso),
@@ -252,11 +266,18 @@ pub fn assert_episode_parity(a: &Episode, b: &Episode) {
         b.reward.is_some(),
         "Reward presence mismatch"
     );
+    if let (Some(r_a), Some(r_b)) = (&a.reward, &b.reward) {
+        assert_eq!(r_a, r_b, "Reward value mismatch");
+    }
+
     assert_eq!(
         a.reflection.is_some(),
         b.reflection.is_some(),
         "Reflection presence mismatch"
     );
+    if let (Some(r_a), Some(r_b)) = (&a.reflection, &b.reflection) {
+        assert_eq!(r_a, r_b, "Reflection value mismatch");
+    }
 }
 
 // Re-export multi-dimension test utilities

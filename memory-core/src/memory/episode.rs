@@ -433,6 +433,18 @@ impl SelfLearningMemory {
                     // Populate in-memory cache for subsequent accesses
                     let mut episodes = self.episodes_fallback.write().await;
                     episodes.insert(episode_id, Arc::new(episode.clone()));
+
+                    // Backfill redb cache if enabled (WG-204: Write-through reconciliation)
+                    if let Some(cache) = &self.cache_storage {
+                        if let Err(e) = cache.store_episode(&episode).await {
+                            warn!(
+                                episode_id = %episode_id,
+                                error = %e,
+                                "Failed to backfill redb cache during reconciliation"
+                            );
+                        }
+                    }
+
                     return Ok(episode);
                 }
                 Ok(None) => {}

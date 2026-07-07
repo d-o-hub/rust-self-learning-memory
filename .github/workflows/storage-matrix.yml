@@ -34,10 +34,12 @@ jobs:
         run: |
           case "${{ matrix.storage-mode }}" in
             "redb-only")
-              cargo test --workspace --exclude do-memory-storage-turso --all-features
+              # Use explicit features to avoid pulling in Turso dependencies via --all-features
+              cargo test --workspace --exclude do-memory-storage-turso --features redb
               ;;
             "turso-only")
-              cargo test --workspace --exclude do-memory-storage-redb --all-features
+              # Use explicit features to avoid pulling in redb dependencies via --all-features
+              cargo test --workspace --exclude do-memory-storage-redb --features turso
               ;;
             "hybrid")
               cargo test --workspace --all-features

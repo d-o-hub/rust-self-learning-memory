@@ -211,4 +211,5 @@ async fn test_hybrid_storage_query_parity() {
 
     assert_eq!(turso_episodes.len(), 3);
     assert_eq!(redb_episodes.len(), 3);
+    assert_eq!(turso_episodes.len(), redb_episodes.len());
 }

@@ -354,7 +354,7 @@ mod tests {
 
         // 127 is 01111111 in binary (MSB first: 0, then seven 1s)
         let test_data = vec![127.0];
-        let result = provider.dequantize_binary_embeddings(test_data)?;
+        let result = provider.dequantize_binary_embeddings(test_data);
         assert_eq!(result.len(), 8);
         assert_eq!(result, vec![-1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
         Ok(())
@@ -368,7 +368,7 @@ mod tests {
         let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
 
         let test_data = vec![127.0];
-        let result = provider.dequantize_binary_embeddings(test_data)?;
+        let result = provider.dequantize_binary_embeddings(test_data);
         assert_eq!(result.len(), 8);
         assert_eq!(result, vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
         Ok(())

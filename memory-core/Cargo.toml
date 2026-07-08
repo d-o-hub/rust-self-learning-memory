@@ -28,6 +28,8 @@ hybrid_search = []
 proptest-arbitrary = ["proptest"]
 # Enable AgentFS SDK integration for external signals
 agentfs = ["dep:agentfs-sdk"]
+# Enable HNSW-based vector indexing
+hnsw = ["hnsw_rs"]
 # Enable CSM cascading retrieval (BM25 + HDC + ConceptGraph)
 csm = ["chaotic_semantic_memory"]
 # Enable HTTP webhook EventEmitter for CloudEvents delivery
@@ -100,6 +102,9 @@ regex = "1.12"
 
 # Property testing (optional, enabled via feature flag)
 proptest = { version = "1.11", optional = true }
+
+# HNSW-based vector indexing (optional)
+hnsw_rs = { version = "0.3.0", optional = true }
 
 # CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
 chaotic_semantic_memory = { version = "0.3.6", optional = true }

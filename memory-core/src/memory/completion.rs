@@ -329,7 +329,6 @@ impl SelfLearningMemory {
 
         // ============================================================================
         // Semantic Search - Generate and store embedding
-        // ============================================================================
 
         // Generate and store embedding for semantic search
         if let Some(ref semantic) = self.semantic_service {
@@ -345,10 +344,18 @@ impl SelfLearningMemory {
                     episode_id = %episode_id,
                     "Successfully generated embedding for episode"
                 );
+
+                // Update ANN index for hybrid search (v0.1.34)
+                if let Some(ref retriever) = self.semantic_retriever {
+                    if let Ok(embeddings) = semantic.get_embeddings_batch(&[episode_id]).await {
+                        if let Some(Some(embedding)) = embeddings.first() {
+                            let _ = retriever.upsert(&episode_id.to_string(), embedding.clone());
+                        }
+                    }
+                }
             }
         }
 
-        // ============================================================================
         // v0.1.12: Invalidate Query Cache
         // ============================================================================
 

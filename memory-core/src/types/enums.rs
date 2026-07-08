@@ -230,3 +230,37 @@ impl std::fmt::Display for TaskOutcome {
         }
     }
 }
+
+/// Retrieval mode for episodic memory.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum RetrievalMode {
+    /// Traditional keyword-based retrieval
+    #[default]
+    Keyword,
+    /// Semantic similarity-based retrieval using vector embeddings
+    Semantic,
+    /// Hybrid retrieval combining semantic and keyword results
+    Hybrid,
+}
+impl std::fmt::Display for RetrievalMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RetrievalMode::Keyword => write!(f, "keyword"),
+            RetrievalMode::Semantic => write!(f, "semantic"),
+            RetrievalMode::Hybrid => write!(f, "hybrid"),
+        }
+    }
+}
+
+impl std::str::FromStr for RetrievalMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "keyword" => Ok(RetrievalMode::Keyword),
+            "semantic" => Ok(RetrievalMode::Semantic),
+            "hybrid" => Ok(RetrievalMode::Hybrid),
+            _ => Err(format!("Unknown RetrievalMode: {s}")),
+        }
+    }
+}

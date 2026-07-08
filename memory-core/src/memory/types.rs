@@ -114,6 +114,8 @@ pub struct SelfLearningMemory {
     pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
+    /// ANN-backed semantic retriever for hybrid search
+    pub(super) semantic_retriever: Option<Arc<crate::retrieval::SemanticRetriever>>,
     /// Context-aware embeddings for task-specific similarity (future)
     #[allow(dead_code)] // Future feature: context-aware embedding integration (Phase 3)
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,

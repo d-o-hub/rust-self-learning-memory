@@ -91,6 +91,10 @@ impl Default for TaskContext {
 /// use do_memory_core::RewardScore;
 ///
 /// let high_score = RewardScore {
+///     decayed_reward: 1.8,
+///     effective_reward: 1.8,
+///     normalized_reward: 1.8,
+///     raw_reward: 1.8,
 ///     total: 1.8,
 ///     base: 1.0,              // Full success
 ///     efficiency: 1.2,        // 20% faster than average

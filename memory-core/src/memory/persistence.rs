@@ -188,3 +188,16 @@ impl SelfLearningMemory {
         None
     }
 }
+
+impl SelfLearningMemory {
+    /// Save the ANN index snapshot to the configured path.
+    pub fn save_ann_snapshot(&self) -> crate::Result<()> {
+        if let (Some(retriever), Some(path)) =
+            (&self.semantic_retriever, &self.config.ann_index_path)
+        {
+            let index = retriever.vector_index.read();
+            index.save(path)?;
+        }
+        Ok(())
+    }
+}

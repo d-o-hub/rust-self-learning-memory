@@ -40,7 +40,7 @@ impl Default for StorageConfig {
         Self {
             max_episodes_cache: 1000,
             sync_interval_secs: 300, // 5 minutes
-            enable_compression: false,
+            enable_compression: true,
         }
     }
 }
@@ -94,6 +94,7 @@ impl Default for ConcurrencyConfig {
 ///
 /// ```
 /// use do_memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy, EventEmitterMode};
+/// use do_memory_core::types::RetrievalMode;
 /// use do_memory_core::security::audit::AuditConfig;
 ///
 /// // Default configuration
@@ -101,10 +102,10 @@ impl Default for ConcurrencyConfig {
 ///
 /// // Custom configuration with embeddings and capacity management
 /// let custom_config = MemoryConfig {
+///     batch_config: None,
 ///     storage: StorageConfig::default(),
 ///     enable_embeddings: true,
 ///     pattern_extraction_threshold: 0.8,  // More selective pattern extraction
-///     batch_config: Some(BatchConfig::default()),
 ///     concurrency: ConcurrencyConfig {
 ///         max_concurrent_cache_ops: 15,  // Allow more concurrent cache ops
 ///     },
@@ -119,9 +120,15 @@ impl Default for ConcurrencyConfig {
 ///     enable_spatiotemporal_indexing: true,
 ///     temporal_bias_weight: 0.3,
 ///     max_clusters_to_search: 5,
+///     retrieval_mode: RetrievalMode::Keyword,
 ///     semantic_search_mode: "hybrid".to_string(),
 ///     enable_query_embedding_cache: true,
 ///     semantic_similarity_threshold: 0.6,
+///     semantic_weight: 0.5,
+///     recency_weight: 0.25,
+///     reward_weight: 0.15,
+///     context_overlap_weight: 0.10,
+///     ann_index_path: None,
 ///     audit_config: AuditConfig::default(),
 ///     event_emitter_mode: EventEmitterMode::NoOp,
 /// };
@@ -129,15 +136,16 @@ impl Default for ConcurrencyConfig {
 #[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct MemoryConfig {
-    /// Storage configuration
+    // Core behavior
+    /// Storage backend configuration
     pub storage: StorageConfig,
-    /// Whether to compute and use embeddings for semantic search
+    /// Whether to enable semantic embeddings
     pub enable_embeddings: bool,
-    /// Minimum quality threshold for extracting patterns (0.0 to 1.0)
+    /// Minimum similarity score to extract a pattern (0.0-1.0)
     pub pattern_extraction_threshold: f32,
-    /// Minimum quality threshold for storing episodes (0.0 to 1.0) - `PREMem`
+    /// Minimum quality score for an episode to be used for learning (0.0-1.0)
     pub quality_threshold: f32,
-    /// Step batching configuration (None disables batching)
+    /// Batch processing configuration for background tasks
     pub batch_config: Option<BatchConfig>,
     /// Concurrency control configuration
     pub concurrency: ConcurrencyConfig,
@@ -171,6 +179,8 @@ pub struct MemoryConfig {
     pub max_clusters_to_search: usize,
 
     // Phase 3 (Enhanced) - Semantic Search Configuration
+    /// Retrieval mode for episodic memory (keyword, semantic, hybrid)
+    pub retrieval_mode: crate::types::RetrievalMode,
     /// Semantic search mode: "hybrid" (default), "semantic-only", or "keyword-only"
     /// - hybrid: Combine semantic embeddings with temporal/domain filtering
     /// - semantic-only: Use only semantic similarity for ranking
@@ -182,6 +192,18 @@ pub struct MemoryConfig {
     /// Similarity threshold for semantic search (0.0-1.0, default: 0.6)
     /// Episodes with similarity below this threshold are filtered out
     pub semantic_similarity_threshold: f32,
+
+    // Hybrid Ranking Weights
+    /// Weight for semantic similarity (default: 0.5)
+    pub semantic_weight: f32,
+    /// Weight for recency (default: 0.25)
+    pub recency_weight: f32,
+    /// Weight for reward score (default: 0.15)
+    pub reward_weight: f32,
+    /// Weight for context overlap (default: 0.10)
+    pub context_overlap_weight: f32,
+    /// Path to the ANN index snapshot
+    pub ann_index_path: Option<std::path::PathBuf>,
 
     // Security - Audit logging
     /// Audit logging configuration
@@ -219,9 +241,15 @@ impl Default for MemoryConfig {
             max_clusters_to_search: 5,
 
             // Phase 3 (Enhanced) - Semantic search defaults
+            retrieval_mode: crate::types::RetrievalMode::Keyword,
             semantic_search_mode: "hybrid".to_string(),
             enable_query_embedding_cache: true,
             semantic_similarity_threshold: 0.6,
+            semantic_weight: 0.5,
+            recency_weight: 0.25,
+            reward_weight: 0.15,
+            context_overlap_weight: 0.10,
+            ann_index_path: None,
 
             // Security - Audit logging (disabled by default for development)
             audit_config: AuditConfig::default(),
@@ -365,6 +393,38 @@ impl MemoryConfig {
             if let Ok(value) = threshold.parse::<f32>() {
                 config.semantic_similarity_threshold = value.clamp(0.0, 1.0);
             }
+        }
+
+        // Hybrid Retrieval Mode and Weights
+        if let Ok(mode) = std::env::var("MEMORY_RETRIEVAL_MODE") {
+            if let Ok(retrieval_mode) = mode.parse() {
+                config.retrieval_mode = retrieval_mode;
+            }
+        }
+
+        if let Ok(w) = std::env::var("MEMORY_SEMANTIC_WEIGHT") {
+            if let Ok(v) = w.parse() {
+                config.semantic_weight = v;
+            }
+        }
+        if let Ok(w) = std::env::var("MEMORY_RECENCY_WEIGHT") {
+            if let Ok(v) = w.parse() {
+                config.recency_weight = v;
+            }
+        }
+        if let Ok(w) = std::env::var("MEMORY_REWARD_WEIGHT") {
+            if let Ok(v) = w.parse() {
+                config.reward_weight = v;
+            }
+        }
+        if let Ok(w) = std::env::var("MEMORY_CONTEXT_WEIGHT") {
+            if let Ok(v) = w.parse() {
+                config.context_overlap_weight = v;
+            }
+        }
+
+        if let Ok(path) = std::env::var("MEMORY_ANN_INDEX_PATH") {
+            config.ann_index_path = Some(std::path::PathBuf::from(path));
         }
 
         // Security - Audit logging configuration from environment

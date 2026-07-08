@@ -12,9 +12,10 @@ use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use do_memory_core::{
-    Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskContext,
-    TaskOutcome, TaskType,
+    Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskOutcome,
 };
+#[cfg(any(feature = "turso", feature = "redb"))]
+use do_memory_core::{TaskContext, TaskType};
 #[cfg(feature = "redb")]
 use do_memory_test_utils::in_memory_redb_storage;
 #[cfg(feature = "turso")]

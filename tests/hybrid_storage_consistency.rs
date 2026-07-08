@@ -5,6 +5,7 @@
 //!
 //! These tests require both `turso` and `redb` features enabled.
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 use do_memory_core::{ExecutionStep, TaskContext, TaskOutcome, TaskType};
 #[cfg(all(feature = "turso", feature = "redb"))]
 use do_memory_test_utils::{assert_episode_parity, hybrid_memory};

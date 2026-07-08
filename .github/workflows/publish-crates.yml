@@ -40,7 +40,13 @@ jobs:
         run: cargo install --locked cargo-semver-checks
 
       - name: Semver Check
-        run: cargo semver-checks --package do-memory-core
+        id: semver
+        run: |
+          cargo semver-checks --package do-memory-core 2>&1 | tee semver-output.txt || true
+          echo '## Semver Check Results' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat semver-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         continue-on-error: true  # Pre-1.0 may have breaking changes
 
       - name: Verify metadata
@@ -69,15 +75,29 @@ jobs:
         if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-core --dry-run
+          cargo publish --package do-memory-core --locked --dry-run
 
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-core
+          cargo publish --package do-memory-core --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io propagation
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
+        run: |
+          VERSION="${{ steps.check-version.outputs.version }}"
+          CRATE_NAME="do-memory-core"
+          for i in $(seq 1 20); do
+            PUBLISHED=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" \
+              "https://crates.io/api/v1/crates/$CRATE_NAME/versions" | \
+              jq -r '.versions[0].num // empty')
+            [ "$PUBLISHED" = "$VERSION" ] && echo "✓ Propagated!" && break
+            echo "Waiting for propagation... attempt $i/20"
+            sleep 15
+          done
 
   # Publish do-memory-storage-redb after core (no internal dependencies)
   publish-redb:
@@ -99,11 +119,14 @@ jobs:
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
 
-      - name: Wait for crates.io propagation
-        run: sleep 30
-
       - name: Semver Check
-        run: cargo semver-checks --package do-memory-storage-redb
+        id: semver
+        run: |
+          cargo semver-checks --package do-memory-storage-redb 2>&1 | tee semver-output.txt || true
+          echo '## Semver Check Results' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat semver-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         continue-on-error: true  # Pre-1.0 may have breaking changes
 
       - name: Verify metadata
@@ -130,21 +153,35 @@ jobs:
         if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-redb --dry-run
+          cargo publish --package do-memory-storage-redb --locked --dry-run
 
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-redb
+          cargo publish --package do-memory-storage-redb --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  # Publish do-memory-storage-turso after redb (depends on redb)
+      - name: Wait for crates.io propagation
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
+        run: |
+          VERSION="${{ steps.check-version.outputs.version }}"
+          CRATE_NAME="do-memory-storage-redb"
+          for i in $(seq 1 20); do
+            PUBLISHED=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" \
+              "https://crates.io/api/v1/crates/$CRATE_NAME/versions" | \
+              jq -r '.versions[0].num // empty')
+            [ "$PUBLISHED" = "$VERSION" ] && echo "✓ Propagated!" && break
+            echo "Waiting for propagation... attempt $i/20"
+            sleep 15
+          done
+
+  # Publish do-memory-storage-turso after core and redb (depends on both)
   publish-turso:
     name: Publish do-memory-storage-turso
     runs-on: ubuntu-latest
-    needs: [publish-redb]
+    needs: [publish-core, publish-redb]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -160,11 +197,14 @@ jobs:
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
 
-      - name: Wait for crates.io propagation
-        run: sleep 30
-
       - name: Semver Check
-        run: cargo semver-checks --package do-memory-storage-turso
+        id: semver
+        run: |
+          cargo semver-checks --package do-memory-storage-turso 2>&1 | tee semver-output.txt || true
+          echo '## Semver Check Results' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat semver-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         continue-on-error: true  # Pre-1.0 may have breaking changes
 
       - name: Verify metadata
@@ -191,15 +231,29 @@ jobs:
         if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-turso --dry-run
+          cargo publish --package do-memory-storage-turso --locked --dry-run
 
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-turso
+          cargo publish --package do-memory-storage-turso --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io propagation
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
+        run: |
+          VERSION="${{ steps.check-version.outputs.version }}"
+          CRATE_NAME="do-memory-storage-turso"
+          for i in $(seq 1 20); do
+            PUBLISHED=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" \
+              "https://crates.io/api/v1/crates/$CRATE_NAME/versions" | \
+              jq -r '.versions[0].num // empty')
+            [ "$PUBLISHED" = "$VERSION" ] && echo "✓ Propagated!" && break
+            echo "Waiting for propagation... attempt $i/20"
+            sleep 15
+          done
 
   # Publish MCP crate after all storage crates
   publish-mcp:
@@ -221,11 +275,14 @@ jobs:
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
 
-      - name: Wait for crates.io propagation
-        run: sleep 30
-
       - name: Semver Check
-        run: cargo semver-checks --package do-memory-mcp
+        id: semver
+        run: |
+          cargo semver-checks --package do-memory-mcp 2>&1 | tee semver-output.txt || true
+          echo '## Semver Check Results' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat semver-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         continue-on-error: true  # Pre-1.0 may have breaking changes
 
       - name: Verify metadata
@@ -252,12 +309,12 @@ jobs:
         if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-mcp --dry-run
+          cargo publish --package do-memory-mcp --locked --dry-run
 
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-mcp
+          cargo publish --package do-memory-mcp --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

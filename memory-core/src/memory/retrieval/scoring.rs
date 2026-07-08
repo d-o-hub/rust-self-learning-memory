@@ -59,6 +59,9 @@ impl SelfLearningMemory {
 
         // Reward quality (30% weight)
         if let Some(reward) = &episode_ref.reward {
+            // Use effective_reward if available, otherwise fallback to total
+            // Since total is updated to match effective_reward in RewardCalculator,
+            // this remains consistent.
             score += reward.total * 0.3;
         }
 

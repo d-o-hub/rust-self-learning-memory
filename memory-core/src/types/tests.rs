@@ -308,6 +308,10 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: 0.1,
         novelty_score: spawn_threshold,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(!score.should_spawn_new_cluster(overlap_threshold));
 
@@ -316,6 +320,10 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: 0.1,
         novelty_score: spawn_threshold + 0.01,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(score.should_spawn_new_cluster(overlap_threshold));
 
@@ -324,6 +332,10 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: overlap_threshold,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(!score.should_spawn_new_cluster(overlap_threshold));
 
@@ -332,6 +344,10 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: overlap_threshold - 0.01,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(score.should_spawn_new_cluster(overlap_threshold));
 }
@@ -345,6 +361,10 @@ fn test_dual_reward_score_merge() {
         stability_score: merge_threshold,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(!score.should_merge());
 
@@ -353,6 +373,10 @@ fn test_dual_reward_score_merge() {
         stability_score: merge_threshold + 0.01,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(score.should_merge());
 }
@@ -364,6 +388,10 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.5,
         novelty_score: 0.5,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(score.is_uncertain());
 
@@ -372,6 +400,10 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.9,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(!score.is_uncertain());
 
@@ -380,6 +412,10 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.1,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!(!score.is_uncertain());
 }
@@ -390,6 +426,10 @@ fn test_dual_reward_score_balance_ratio() {
         stability_score: 0.7,
         novelty_score: 0.3,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!((score.balance_ratio() - 0.4).abs() < f32::EPSILON);
 
@@ -397,6 +437,10 @@ fn test_dual_reward_score_balance_ratio() {
         stability_score: 0.2,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
+        raw_reward: 1.0,
+        normalized_reward: 1.0,
+        decayed_reward: 1.0,
+        effective_reward: 1.0,
     };
     assert!((score.balance_ratio() - (-0.6)).abs() < f32::EPSILON);
 }

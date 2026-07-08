@@ -55,18 +55,6 @@ pub struct DomainStatistics {
     /// Temporal decay half-life in days for this domain
     #[serde(default = "default_half_life")]
     pub decay_half_life_days: f32,
-
-    /// Reward stats by agent type: agent_type -> (avg, std_dev, count)
-    #[serde(default)]
-    pub agent_type_stats: HashMap<String, (f32, f32, usize)>,
-
-    /// Reward stats by task type: task_type -> (avg, std_dev, count)
-    #[serde(default)]
-    pub task_type_stats: HashMap<String, (f32, f32, usize)>,
-
-    /// Reward stats by complexity: complexity -> (avg, std_dev, count)
-    #[serde(default)]
-    pub complexity_stats: HashMap<String, (f32, f32, usize)>,
 }
 
 impl DomainStatistics {
@@ -88,9 +76,6 @@ impl DomainStatistics {
             last_updated: Utc::now(),
             success_count: 0,
             decay_half_life_days: 30.0,
-            agent_type_stats: HashMap::new(),
-            task_type_stats: HashMap::new(),
-            complexity_stats: HashMap::new(),
         }
     }
 
@@ -190,11 +175,6 @@ impl DomainStatisticsCache {
         let mut rewards: Vec<f32> = Vec::new();
         let mut success_count = 0;
 
-        // Category-specific reward collections
-        let mut agent_rewards: HashMap<String, Vec<f32>> = HashMap::new();
-        let mut task_rewards: HashMap<String, Vec<f32>> = HashMap::new();
-        let mut complexity_rewards: HashMap<String, Vec<f32>> = HashMap::new();
-
         for episode in episodes {
             // Only include completed episodes from this domain
             if !episode.is_complete() || episode.context.domain != domain {
@@ -211,28 +191,7 @@ impl DomainStatisticsCache {
 
             // Reward
             if let Some(reward) = &episode.reward {
-                let reward_val = reward.total;
-                rewards.push(reward_val);
-
-                // Agent type
-                if let Some(agent_type) = episode.metadata.get("agent_type") {
-                    agent_rewards
-                        .entry(agent_type.clone())
-                        .or_default()
-                        .push(reward_val);
-                }
-
-                // Task type
-                task_rewards
-                    .entry(episode.task_type.to_string())
-                    .or_default()
-                    .push(reward_val);
-
-                // Complexity
-                complexity_rewards
-                    .entry(episode.context.complexity.to_string())
-                    .or_default()
-                    .push(reward_val);
+                rewards.push(reward.total);
             }
 
             // Success count
@@ -286,33 +245,11 @@ impl DomainStatisticsCache {
         stats.reward_std_dev = reward_std_dev;
         stats.last_updated = Utc::now();
         stats.success_count = success_count;
-
-        // Calculate category stats
-        stats.agent_type_stats = Self::calculate_category_stats(agent_rewards);
-        stats.task_type_stats = Self::calculate_category_stats(task_rewards);
-        stats.complexity_stats = Self::calculate_category_stats(complexity_rewards);
-    }
-
-    fn calculate_category_stats(
-        collections: HashMap<String, Vec<f32>>,
-    ) -> HashMap<String, (f32, f32, usize)> {
-        let mut stats = HashMap::new();
-        for (category, rewards) in collections {
-            if rewards.is_empty() {
-                continue;
-            }
-            let count = rewards.len();
-            let avg = rewards.iter().sum::<f32>() / count as f32;
-            let variance = rewards.iter().map(|r| (r - avg).powi(2)).sum::<f32>() / count as f32;
-            stats.insert(category, (avg, variance.sqrt(), count));
-        }
-        stats
     }
 
     /// Update statistics incrementally with a new episode
     ///
     /// This is more efficient than full recalculation but less accurate
-    #[allow(clippy::too_many_arguments)]
     pub fn update_incremental(
         &mut self,
         domain: &str,
@@ -320,9 +257,6 @@ impl DomainStatisticsCache {
         step_count: usize,
         reward: f32,
         is_success: bool,
-        agent_type: Option<String>,
-        task_type: String,
-        complexity: String,
     ) {
         let stats = self.get_or_create(domain.to_string());
 
@@ -345,13 +279,6 @@ impl DomainStatisticsCache {
             stats.reward_std_dev = new_variance.sqrt();
         }
 
-        // Update category stats
-        if let Some(agent) = agent_type {
-            Self::update_category_incremental(&mut stats.agent_type_stats, agent, reward);
-        }
-        Self::update_category_incremental(&mut stats.task_type_stats, task_type, reward);
-        Self::update_category_incremental(&mut stats.complexity_stats, complexity, reward);
-
         // Update counts
         stats.episode_count += 1;
         if is_success {
@@ -363,28 +290,6 @@ impl DomainStatisticsCache {
 
         // Note: Percentiles can't be updated incrementally efficiently
         // They should be recalculated periodically
-    }
-
-    fn update_category_incremental(
-        stats_map: &mut HashMap<String, (f32, f32, usize)>,
-        category: String,
-        reward: f32,
-    ) {
-        let entry = stats_map.entry(category).or_insert((0.0, 0.0, 0));
-        let (avg, std_dev, count) = *entry;
-        let n = count as f32;
-        let new_n = n + 1.0;
-
-        let new_avg = (avg * n + reward) / new_n;
-        let mut new_std_dev = std_dev;
-
-        if n > 0.0 {
-            let old_variance = std_dev.powi(2);
-            let new_variance = ((n - 1.0) * old_variance + (reward - avg) * (reward - new_avg)) / n;
-            new_std_dev = new_variance.sqrt();
-        }
-
-        *entry = (new_avg, new_std_dev, count + 1);
     }
 
     /// Remove stale statistics (older than 30 days with no updates)
@@ -420,16 +325,7 @@ mod tests {
         let mut cache = DomainStatisticsCache::new();
 
         // Add first episode
-        cache.update_incremental(
-            "web-api",
-            60.0,
-            10,
-            0.8,
-            true,
-            Some("feature-implementer".to_string()),
-            "CodeGeneration".to_string(),
-            "Moderate".to_string(),
-        );
+        cache.update_incremental("web-api", 60.0, 10, 0.8, true);
 
         let stats = cache.get("web-api").unwrap();
         assert_eq!(stats.episode_count, 1);
@@ -439,16 +335,7 @@ mod tests {
         assert_eq!(stats.success_count, 1);
 
         // Add second episode
-        cache.update_incremental(
-            "web-api",
-            120.0,
-            15,
-            0.9,
-            true,
-            Some("feature-implementer".to_string()),
-            "CodeGeneration".to_string(),
-            "Moderate".to_string(),
-        );
+        cache.update_incremental("web-api", 120.0, 15, 0.9, true);
 
         let stats = cache.get("web-api").unwrap();
         assert_eq!(stats.episode_count, 2);
@@ -461,36 +348,9 @@ mod tests {
     fn test_success_rate() {
         let mut cache = DomainStatisticsCache::new();
 
-        cache.update_incremental(
-            "test",
-            60.0,
-            10,
-            0.8,
-            true,
-            None,
-            "Task".to_string(),
-            "Simple".to_string(),
-        );
-        cache.update_incremental(
-            "test",
-            60.0,
-            10,
-            0.8,
-            true,
-            None,
-            "Task".to_string(),
-            "Simple".to_string(),
-        );
-        cache.update_incremental(
-            "test",
-            60.0,
-            10,
-            0.3,
-            false,
-            None,
-            "Task".to_string(),
-            "Simple".to_string(),
-        );
+        cache.update_incremental("test", 60.0, 10, 0.8, true);
+        cache.update_incremental("test", 60.0, 10, 0.8, true);
+        cache.update_incremental("test", 60.0, 10, 0.3, false);
 
         let stats = cache.get("test").unwrap();
         assert_eq!(stats.success_rate(), 2.0 / 3.0);

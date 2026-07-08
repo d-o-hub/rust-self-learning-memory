@@ -308,10 +308,6 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: 0.1,
         novelty_score: spawn_threshold,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(!score.should_spawn_new_cluster(overlap_threshold));
 
@@ -320,10 +316,6 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: 0.1,
         novelty_score: spawn_threshold + 0.01,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(score.should_spawn_new_cluster(overlap_threshold));
 
@@ -332,10 +324,6 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: overlap_threshold,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(!score.should_spawn_new_cluster(overlap_threshold));
 
@@ -344,10 +332,6 @@ fn test_dual_reward_score_spawn_new_cluster() {
         stability_score: overlap_threshold - 0.01,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(score.should_spawn_new_cluster(overlap_threshold));
 }
@@ -361,10 +345,6 @@ fn test_dual_reward_score_merge() {
         stability_score: merge_threshold,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(!score.should_merge());
 
@@ -373,10 +353,6 @@ fn test_dual_reward_score_merge() {
         stability_score: merge_threshold + 0.01,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(score.should_merge());
 }
@@ -388,10 +364,6 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.5,
         novelty_score: 0.5,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(score.is_uncertain());
 
@@ -400,10 +372,6 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.9,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(!score.is_uncertain());
 
@@ -412,10 +380,6 @@ fn test_dual_reward_score_uncertain() {
         stability_score: 0.1,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!(!score.is_uncertain());
 }
@@ -426,10 +390,6 @@ fn test_dual_reward_score_balance_ratio() {
         stability_score: 0.7,
         novelty_score: 0.3,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!((score.balance_ratio() - 0.4).abs() < f32::EPSILON);
 
@@ -437,10 +397,6 @@ fn test_dual_reward_score_balance_ratio() {
         stability_score: 0.2,
         novelty_score: 0.8,
         effectiveness_score: 1.0,
-        raw_reward: 1.0,
-        normalized_reward: 1.0,
-        decayed_reward: 1.0,
-        effective_reward: 1.0,
     };
     assert!((score.balance_ratio() - (-0.6)).abs() < f32::EPSILON);
 }
@@ -478,4 +434,44 @@ fn test_reward_score_default() {
     assert_eq!(score.normalized_reward, 0.0);
     assert_eq!(score.decayed_reward, 0.0);
     assert_eq!(score.effective_reward, 0.0);
+}
+
+#[test]
+fn test_memory_config_retrieval_env_vars() {
+    // Retrieval Mode
+    unsafe {
+        std::env::set_var("MEMORY_RETRIEVAL_MODE", "hybrid");
+    }
+    let config = MemoryConfig::from_env();
+    assert!(matches!(config.retrieval_mode, crate::types::RetrievalMode::Hybrid));
+
+    // Weights
+    unsafe {
+        std::env::set_var("MEMORY_SEMANTIC_WEIGHT", "0.8");
+        std::env::set_var("MEMORY_RECENCY_WEIGHT", "0.1");
+        std::env::set_var("MEMORY_REWARD_WEIGHT", "0.05");
+        std::env::set_var("MEMORY_CONTEXT_WEIGHT", "0.05");
+    }
+    let config = MemoryConfig::from_env();
+    assert_eq!(config.semantic_weight, 0.8);
+    assert_eq!(config.recency_weight, 0.1);
+    assert_eq!(config.reward_weight, 0.05);
+    assert_eq!(config.context_overlap_weight, 0.05);
+
+    // ANN Path
+    unsafe {
+        std::env::set_var("MEMORY_ANN_INDEX_PATH", "/tmp/ann.bin");
+    }
+    let config = MemoryConfig::from_env();
+    assert_eq!(config.ann_index_path, Some(std::path::PathBuf::from("/tmp/ann.bin")));
+
+    // Cleanup
+    unsafe {
+        std::env::remove_var("MEMORY_RETRIEVAL_MODE");
+        std::env::remove_var("MEMORY_SEMANTIC_WEIGHT");
+        std::env::remove_var("MEMORY_RECENCY_WEIGHT");
+        std::env::remove_var("MEMORY_REWARD_WEIGHT");
+        std::env::remove_var("MEMORY_CONTEXT_WEIGHT");
+        std::env::remove_var("MEMORY_ANN_INDEX_PATH");
+    }
 }

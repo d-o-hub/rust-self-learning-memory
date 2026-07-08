@@ -75,16 +75,6 @@ impl std::fmt::Display for TaskType {
     }
 }
 
-impl std::fmt::Display for ComplexityLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ComplexityLevel::Simple => write!(f, "simple"),
-            ComplexityLevel::Moderate => write!(f, "moderate"),
-            ComplexityLevel::Complex => write!(f, "complex"),
-        }
-    }
-}
-
 impl std::str::FromStr for TaskType {
     type Err = String;
 

@@ -36,9 +36,8 @@ async fn test_adaptive_reward_with_domain_statistics() {
             episode.add_step(step);
         }
 
-        // Simulate 15 second duration with some variance
-        let duration = if i % 2 == 0 { 10 } else { 20 };
-        episode.start_time = chrono::Utc::now() - chrono::Duration::seconds(duration);
+        // Simulate 15 second duration
+        episode.start_time = chrono::Utc::now() - chrono::Duration::seconds(15);
         episode.complete(TaskOutcome::Success {
             verdict: "Success".to_string(),
             artifacts: vec![],
@@ -68,9 +67,8 @@ async fn test_adaptive_reward_with_domain_statistics() {
             episode.add_step(step);
         }
 
-        // Simulate 180 second duration with some variance
-        let duration = if i % 2 == 0 { 160 } else { 200 };
-        episode.start_time = chrono::Utc::now() - chrono::Duration::seconds(duration);
+        // Simulate 180 second duration
+        episode.start_time = chrono::Utc::now() - chrono::Duration::seconds(180);
         episode.complete(TaskOutcome::Success {
             verdict: "Success".to_string(),
             artifacts: vec![],
@@ -161,19 +159,16 @@ async fn test_adaptive_reward_with_domain_statistics() {
     // KEY TEST: Same 30-second duration, but different rewards!
     // Data processing episode should have MUCH higher efficiency
     // because 30s << 180s median, while 30s > 15s median for web-api
+    println!("Web API reward (30s, median 15s): {:.2}", web_reward.total);
     println!(
-        "Web API raw reward (30s, median 15s): {:.2}",
-        web_reward.raw_reward
-    );
-    println!(
-        "Data processing raw reward (30s, median 180s): {:.2}",
-        data_reward.raw_reward
+        "Data processing reward (30s, median 180s): {:.2}",
+        data_reward.total
     );
 
     // Data processing should have significantly better reward
     assert!(
-        data_reward.total > web_reward.total,
-        "Expected data processing effective reward ({:.2}) to be higher than web API effective reward ({:.2})",
+        data_reward.total > web_reward.total * 1.2,
+        "Expected data processing reward ({:.2}) to be >20% higher than web API reward ({:.2})",
         data_reward.total,
         web_reward.total
     );

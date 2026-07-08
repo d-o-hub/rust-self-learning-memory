@@ -223,3 +223,205 @@ impl SemanticRetriever {
         fused
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::embeddings::SimpleVectorIndex;
+    use crate::types::{MemoryConfig, TaskType};
+    use uuid::Uuid;
+
+    #[test]
+    fn test_calculate_recency() {
+        let config = MemoryConfig::default();
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+
+        let mut episode = Episode::new(
+            "test".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+
+        // Today
+        let score_today = retriever.calculate_recency(&episode);
+        assert!(score_today > 0.99);
+
+        // 7 days ago
+        episode.start_time = Utc::now() - chrono::Duration::days(7);
+        let score_week = retriever.calculate_recency(&episode);
+        assert!((score_week - 0.5).abs() < 0.01);
+
+        // 14 days ago
+        episode.start_time = Utc::now() - chrono::Duration::days(14);
+        let score_two_weeks = retriever.calculate_recency(&episode);
+        assert!((score_two_weeks - 0.25).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_calculate_context_overlap() {
+        let config = MemoryConfig::default();
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+
+        let ep_ctx = TaskContext { domain: "rust".to_string(), language: Some("rust".to_string()), tags: vec!["api".to_string(), "web".to_string()], ..Default::default() };
+
+        let episode = Episode::new(
+            "test".to_string(),
+            ep_ctx,
+            TaskType::CodeGeneration,
+        );
+
+        // Exact match
+        let mut query_ctx = TaskContext { domain: "rust".to_string(), language: Some("rust".to_string()), tags: vec!["api".to_string(), "web".to_string()], ..Default::default() };
+
+        let score_exact = retriever.calculate_context_overlap(&episode, &query_ctx);
+        assert_eq!(score_exact, 1.0);
+
+        // Partial match
+        query_ctx.tags = vec!["api".to_string(), "cli".to_string()];
+        let score_partial = retriever.calculate_context_overlap(&episode, &query_ctx);
+        assert!(score_partial < 1.0 && score_partial > 0.0);
+
+        // No match
+        query_ctx.domain = "python".to_string();
+        query_ctx.language = Some("python".to_string());
+        query_ctx.tags = vec!["ml".to_string()];
+        let score_none = retriever.calculate_context_overlap(&episode, &query_ctx);
+        assert_eq!(score_none, 0.0);
+    }
+
+    #[test]
+    fn test_reciprocal_rank_fusion() {
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let id3 = Uuid::new_v4();
+
+        let keyword = vec![id1, id2];
+        let semantic = vec![id2, id3];
+
+        let fused = SemanticRetriever::reciprocal_rank_fusion(&keyword, &semantic, 60.0);
+
+        assert_eq!(fused.len(), 3);
+        // id2 is in both, so it should be first
+        assert_eq!(fused[0].0, id2);
+    }
+
+    #[test]
+    fn test_calculate_reward() {
+        let config = MemoryConfig::default();
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+
+        let mut episode = Episode::new(
+            "test".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+
+        // No reward
+        assert_eq!(retriever.calculate_reward(&episode), 0.0);
+
+        // Perfect reward
+        episode.reward = Some(crate::types::RewardScore {
+            total: 100.0,
+            ..Default::default()
+        });
+        assert_eq!(retriever.calculate_reward(&episode), 1.0);
+
+        // Overflow reward
+        episode.reward = Some(crate::types::RewardScore {
+            total: 150.0,
+            ..Default::default()
+        });
+        assert_eq!(retriever.calculate_reward(&episode), 1.0);
+
+        // Negative reward
+        episode.reward = Some(crate::types::RewardScore {
+            total: -10.0,
+            ..Default::default()
+        });
+        assert_eq!(retriever.calculate_reward(&episode), 0.0);
+    }
+
+    #[test]
+    fn test_combine_scores() {
+        let mut config = MemoryConfig::default();
+        config.semantic_weight = 0.5;
+        config.recency_weight = 0.2;
+        config.reward_weight = 0.2;
+        config.context_overlap_weight = 0.1;
+
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+
+        let components = ScoreComponents {
+            semantic: 1.0,
+            recency: 0.5,
+            reward: 0.5,
+            context_overlap: 0.0,
+        };
+
+        // 1.0 * 0.5 + 0.5 * 0.2 + 0.5 * 0.2 + 0.0 * 0.1 = 0.5 + 0.1 + 0.1 + 0.0 = 0.7
+        let score = retriever.combine_scores(&components);
+        assert!((score - 0.7).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_semantic_retriever_retrieve() {
+        let config = MemoryConfig::default();
+        let mut index = SimpleVectorIndex::new();
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+
+        index.upsert(&id1.to_string(), &[1.0, 0.0]).unwrap();
+        index.upsert(&id2.to_string(), &[0.0, 1.0]).unwrap();
+
+        let retriever = SemanticRetriever::new(config, Box::new(index));
+
+        let mut episodes = HashMap::new();
+        let ep1 = Arc::new(Episode::new("rust api".to_string(), TaskContext::default(), TaskType::CodeGeneration));
+        let ep2 = Arc::new(Episode::new("python ml".to_string(), TaskContext::default(), TaskType::CodeGeneration));
+
+        episodes.insert(id1, ep1);
+        episodes.insert(id2, ep2);
+
+        let context = TaskContext::default();
+        let query_embedding = vec![1.0, 0.0];
+
+        let hits = retriever.retrieve("rust", &query_embedding, &context, episodes, 10).unwrap();
+
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].episode.task_description, "rust api");
+        assert!(hits[0].score > hits[1].score);
+    }
+
+    #[test]
+    fn test_semantic_retriever_upsert_remove() {
+        let config = MemoryConfig::default();
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+        let id = Uuid::new_v4().to_string();
+        let embedding = vec![1.0, 0.0, 0.0];
+
+        retriever.upsert(&id, embedding).unwrap();
+        {
+            let index = retriever.vector_index.read();
+            assert_eq!(index.len(), 1);
+        }
+
+        retriever.remove(&id).unwrap();
+        {
+            let index = retriever.vector_index.read();
+            assert_eq!(index.len(), 0);
+        }
+    }
+
+    #[test]
+    fn test_semantic_retriever_save() {
+        let config = MemoryConfig::default();
+        let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("ann.json");
+
+        retriever.upsert("1", vec![1.0, 0.0]).unwrap();
+        retriever.save(&path).unwrap();
+
+        assert!(path.exists());
+    }
+}

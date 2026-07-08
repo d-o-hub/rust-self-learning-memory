@@ -144,4 +144,13 @@ mod tests {
         let hits = loaded.search(&[1.0, 0.0], 1).unwrap();
         assert_eq!(hits[0].id, "1");
     }
+
+    #[test]
+    fn test_simple_vector_index_remove() {
+        let mut index = SimpleVectorIndex::new();
+        index.upsert("1", &[1.0, 0.0]).unwrap();
+        assert_eq!(index.len(), 1);
+        index.remove("1").unwrap();
+        assert_eq!(index.len(), 0);
+    }
 }

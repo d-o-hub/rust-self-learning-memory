@@ -134,3 +134,35 @@ impl HnswVectorIndex {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::embeddings::index::VectorIndex;
+
+    #[cfg(feature = "hnsw")]
+    #[test]
+    fn test_hnsw_vector_index_search() {
+        let mut index = HnswVectorIndex::new(16, 16, 200, 3);
+        index.upsert("1", &[1.0, 0.0, 0.0]).unwrap();
+        index.upsert("2", &[0.0, 1.0, 0.0]).unwrap();
+        index.upsert("3", &[0.5, 0.5, 0.0]).unwrap();
+
+        let query = [1.0, 0.1, 0.0];
+        let hits = index.search(&query, 2).unwrap();
+
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].id, "1");
+        assert_eq!(hits[1].id, "3");
+    }
+
+    #[cfg(not(feature = "hnsw"))]
+    #[test]
+    fn test_hnsw_disabled_errors() {
+        let mut index = HnswVectorIndex::default();
+        assert!(index.upsert("1", &[1.0]).is_err());
+        assert!(index.search(&[1.0], 1).is_err());
+        assert!(index.remove("1").is_err());
+        assert_eq!(index.len(), 0);
+    }
+}

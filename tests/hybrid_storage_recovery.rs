@@ -3,14 +3,19 @@
 //! Verifies that the hybrid storage system handles partial backend failures
 //! and correctly reconciles data when one backend is ahead of another.
 
+#[cfg(feature = "redb")]
 use async_trait::async_trait;
+#[cfg(feature = "redb")]
 use chrono::{DateTime, Utc};
+#[cfg(feature = "redb")]
 use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, PatternId};
 #[cfg(any(feature = "turso", feature = "redb"))]
 use do_memory_core::memory::SelfLearningMemory;
+#[cfg(feature = "redb")]
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
+#[cfg(feature = "redb")]
 use do_memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend};
 #[cfg(any(feature = "turso", feature = "redb"))]
 use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
@@ -18,12 +23,16 @@ use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use do_memory_test_utils::in_memory_redb_storage;
 #[cfg(feature = "turso")]
 use do_memory_test_utils::temp_local_storage;
+#[cfg(feature = "redb")]
 use std::sync::Arc;
+#[cfg(feature = "redb")]
 use uuid::Uuid;
 
 /// A storage backend that fails on every operation
+#[cfg(feature = "redb")]
 struct FailingStorage;
 
+#[cfg(feature = "redb")]
 #[async_trait]
 impl StorageBackend for FailingStorage {
     async fn store_episode(&self, _episode: &Episode) -> Result<()> {

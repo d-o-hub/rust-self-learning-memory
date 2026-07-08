@@ -11,11 +11,9 @@ use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use do_memory_core::{
-    Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskOutcome,
-};
+use do_memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend};
 #[cfg(any(feature = "turso", feature = "redb"))]
-use do_memory_core::{TaskContext, TaskType};
+use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 #[cfg(feature = "redb")]
 use do_memory_test_utils::in_memory_redb_storage;
 #[cfg(feature = "turso")]

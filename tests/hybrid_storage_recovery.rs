@@ -6,6 +6,7 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, PatternId};
+#[cfg(any(feature = "turso", feature = "redb"))]
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,

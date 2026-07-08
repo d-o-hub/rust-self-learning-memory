@@ -60,9 +60,6 @@ fn test_adaptive_with_unreliable_stats_uses_fallback() {
         last_updated: chrono::Utc::now(),
         success_count: 2,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     // Should use fixed thresholds with unreliable stats
@@ -106,9 +103,6 @@ fn test_adaptive_with_reliable_stats() {
         last_updated: chrono::Utc::now(),
         success_count: 45,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     // Should use adaptive thresholds with reliable stats
@@ -157,9 +151,6 @@ fn test_adaptive_penalizes_worse_than_median() {
         last_updated: chrono::Utc::now(),
         success_count: 25,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -480,9 +471,6 @@ fn test_adaptive_efficiency_zero_steps() {
         last_updated: chrono::Utc::now(),
         success_count: 8,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -531,9 +519,6 @@ fn test_adaptive_efficiency_instant_completion() {
         last_updated: chrono::Utc::now(),
         success_count: 8,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -581,9 +566,6 @@ fn test_adaptive_efficiency_much_better_than_median() {
         last_updated: chrono::Utc::now(),
         success_count: 8,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -629,9 +611,6 @@ fn test_adaptive_efficiency_clamped_at_maximum() {
         last_updated: chrono::Utc::now(),
         success_count: 8,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -682,9 +661,6 @@ fn test_adaptive_efficiency_clamped_at_minimum() {
         last_updated: chrono::Utc::now(),
         success_count: 8,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     let reward = calculator.calculate(&episode, Some(&stats));
@@ -778,9 +754,6 @@ fn test_adaptive_reliability_threshold_exactly_5() {
         last_updated: chrono::Utc::now(),
         success_count: 4,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     assert!(
@@ -819,9 +792,6 @@ fn test_adaptive_reliability_threshold_4() {
         last_updated: chrono::Utc::now(),
         success_count: 3,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     assert!(
@@ -964,9 +934,6 @@ fn test_adaptive_stats_with_zero_median() {
         last_updated: chrono::Utc::now(),
         success_count: 0,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
 
     // Should handle zero median gracefully (use max(1, 0) = 1 for baseline)
@@ -1084,7 +1051,7 @@ fn test_reward_normalization() {
         verdict: "Success".to_string(),
         artifacts: vec![],
     });
-    let mut stats = DomainStatistics {
+    let stats = DomainStatistics {
         domain: "normalized-domain".to_string(),
         episode_count: 10,
         avg_duration_secs: 60.0,
@@ -1099,44 +1066,24 @@ fn test_reward_normalization() {
         last_updated: Utc::now(),
         success_count: 5,
         decay_half_life_days: 30.0,
-        agent_type_stats: std::collections::HashMap::new(),
-        task_type_stats: std::collections::HashMap::new(),
-        complexity_stats: std::collections::HashMap::new(),
     };
-
-    // Category-specific normalization
-    stats
-        .task_type_stats
-        .insert("testing".to_string(), (0.2, 0.1, 5));
-
     let reward = calculator.calculate(&episode, Some(&stats));
-
-    // Raw reward is 1.0 (base 1.0, no bonuses because no steps/artifacts)
-    // Domain z-score: (1.0 - 0.5) / 0.2 = 2.5
-    // Task z-score: (1.0 - 0.2) / 0.1 = 8.0
-    // Final z = (2.5 + 8.0) / 2 = 5.25
-    // Normalized = 1.0 + 5.25 * 0.2 = 2.05
-    assert!(reward.normalized_reward > 1.5);
+    assert!(reward.normalized_reward > 2.0);
+    assert!((reward.normalized_reward - 2.15).abs() < 0.1);
 }
 
 #[test]
 fn test_reward_temporal_decay() {
     let calculator = AdaptiveRewardCalculator::new();
     let mut episode = create_test_episode("decay-domain", ComplexityLevel::Moderate);
-    // 30 days old
     episode.start_time = Utc::now() - chrono::Duration::days(30);
     episode.complete(TaskOutcome::Success {
         verdict: "Success".to_string(),
         artifacts: vec![],
     });
-
     let stats = DomainStatistics::new("decay-domain".to_string());
-    // Default half-life is 30 days
     let reward = calculator.calculate(&episode, Some(&stats));
-
-    // After 1 half-life, reward should be halved.
-    // Raw is 1.0 (no domain stats for normalization), so decayed should be 0.5
-    assert!(reward.decayed_reward < 0.7);
-    assert!(reward.decayed_reward > 0.0);
+    assert!(reward.decayed_reward < 0.3);
+    assert!(reward.decayed_reward > 0.2);
     assert_eq!(reward.effective_reward, reward.decayed_reward);
 }

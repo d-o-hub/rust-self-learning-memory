@@ -180,3 +180,11 @@ impl SelfLearningMemory {
         (self.turso_storage.clone(), self.cache_storage.clone())
     }
 }
+
+impl SelfLearningMemory {
+    /// Get a reference to the semantic retriever
+    #[must_use]
+    pub fn semantic_retriever(&self) -> Option<&Arc<crate::retrieval::SemanticRetriever>> {
+        self.semantic_retriever.as_ref()
+    }
+}

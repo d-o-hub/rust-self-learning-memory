@@ -39,6 +39,8 @@
 
 mod circuit_breaker;
 pub mod config;
+mod hnsw;
+mod index;
 mod local;
 mod metrics;
 #[cfg(feature = "mistral")]
@@ -55,6 +57,9 @@ mod storage;
 mod utils;
 
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState};
+#[cfg(feature = "hnsw")]
+pub use hnsw::HnswVectorIndex;
+pub use index::{SimpleVectorIndex, VectorHit, VectorIndex};
 // New configuration types
 pub use config::{
     AzureOpenAIConfig, CustomConfig, EmbeddingConfig, LocalConfig, MistralConfig, OpenAIConfig,

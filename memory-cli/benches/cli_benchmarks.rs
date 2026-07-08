@@ -25,7 +25,10 @@ fn cli_config_benchmark(c: &mut Criterion) {
 
     c.bench_function("cli_config_validation", |b| {
         b.iter(|| {
-            harness.execute(black_box(["config"])).assert().success();
+            harness
+                .execute(black_box(["config", "validate"]))
+                .assert()
+                .success();
         });
     });
 }
@@ -39,7 +42,7 @@ fn cli_output_format_benchmark(c: &mut Criterion) {
         c.bench_function(&format!("cli_config_{}_output", format), |b| {
             b.iter(|| {
                 harness
-                    .execute(black_box(["--format", format, "config"]))
+                    .execute(black_box(["--format", format, "config", "validate"]))
                     .assert()
                     .success();
             });
@@ -87,6 +90,7 @@ fn cli_dry_run_benchmark(c: &mut Criterion) {
                     "--dry-run",
                     "episode",
                     "create",
+                    "--task",
                     "benchmark task",
                 ]))
                 .assert()

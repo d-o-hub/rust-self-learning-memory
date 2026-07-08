@@ -5,7 +5,7 @@ use super::{EmbeddingCommands, TagCommands, embedding, tag};
 
 pub async fn handle_embedding_command(
     command: EmbeddingCommands,
-    _memory: &do_memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     _format: OutputFormat,
     _dry_run: bool,
@@ -17,6 +17,7 @@ pub async fn handle_embedding_command(
         EmbeddingCommands::Benchmark => embedding::benchmark_embeddings(config).await,
         EmbeddingCommands::Enable => embedding::enable_embeddings(),
         EmbeddingCommands::Disable => embedding::disable_embeddings(),
+        EmbeddingCommands::Rebuild => embedding::rebuild_index(memory, config).await,
     }
 }
 

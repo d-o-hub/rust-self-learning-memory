@@ -91,6 +91,10 @@ impl Default for TaskContext {
 /// use do_memory_core::RewardScore;
 ///
 /// let high_score = RewardScore {
+///     decayed_reward: 1.8,
+///     effective_reward: 1.8,
+///     normalized_reward: 1.8,
+///     raw_reward: 1.8,
 ///     total: 1.8,
 ///     base: 1.0,              // Full success
 ///     efficiency: 1.2,        // 20% faster than average
@@ -98,10 +102,6 @@ impl Default for TaskContext {
 ///     quality_multiplier: 1.1, // High quality output
 ///     learning_bonus: 0.3,    // Discovered new pattern
 ///     abstention_score: 0.0,  // No abstention
-///     raw_reward: 1.8,
-///     normalized_reward: 1.8,
-///     decayed_reward: 1.8,
-///     effective_reward: 1.8,
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -288,10 +288,6 @@ pub struct Evidence {
 ///     stability_score: 0.9,
 ///     novelty_score: 0.1,
 ///     effectiveness_score: 0.85,
-///     raw_reward: 0.85,
-///     normalized_reward: 0.85,
-///     decayed_reward: 0.85,
-///     effective_reward: 0.85,
 /// };
 /// assert!(stable.should_merge());
 ///
@@ -300,10 +296,6 @@ pub struct Evidence {
 ///     stability_score: 0.2,
 ///     novelty_score: 0.8,
 ///     effectiveness_score: 0.75,
-///     raw_reward: 0.75,
-///     normalized_reward: 0.75,
-///     decayed_reward: 0.75,
-///     effective_reward: 0.75,
 /// };
 /// assert!(novel.should_spawn_new_cluster(0.3));
 /// ```
@@ -320,18 +312,6 @@ pub struct DualRewardScore {
     /// Legacy composite effectiveness score for backward compatibility.
     /// Range: 0.0 to 2.0 typically
     pub effectiveness_score: f32,
-    /// Raw calculated reward before normalization or decay
-    #[serde(default)]
-    pub raw_reward: f32,
-    /// Reward normalized relative to domain/task distribution
-    #[serde(default)]
-    pub normalized_reward: f32,
-    /// Reward after applying temporal decay
-    #[serde(default)]
-    pub decayed_reward: f32,
-    /// Final effective reward used for ranking
-    #[serde(default)]
-    pub effective_reward: f32,
 }
 
 impl DualRewardScore {
@@ -353,10 +333,6 @@ impl DualRewardScore {
             stability_score: max_cluster_similarity.clamp(0.0, 1.0),
             novelty_score: (1.0 - max_cluster_similarity).clamp(0.0, 1.0),
             effectiveness_score,
-            raw_reward: effectiveness_score,
-            normalized_reward: effectiveness_score,
-            decayed_reward: effectiveness_score,
-            effective_reward: effectiveness_score,
         }
     }
 
@@ -409,20 +385,6 @@ impl Default for RewardScore {
             quality_multiplier: 1.0,
             learning_bonus: 0.0,
             abstention_score: 0.0,
-            raw_reward: 0.0,
-            normalized_reward: 0.0,
-            decayed_reward: 0.0,
-            effective_reward: 0.0,
-        }
-    }
-}
-
-impl Default for DualRewardScore {
-    fn default() -> Self {
-        Self {
-            stability_score: 0.0,
-            novelty_score: 0.0,
-            effectiveness_score: 0.0,
             raw_reward: 0.0,
             normalized_reward: 0.0,
             decayed_reward: 0.0,

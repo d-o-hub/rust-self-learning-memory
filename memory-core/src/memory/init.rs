@@ -58,7 +58,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         Some(crate::semantic::SemanticSummarizer::with_config(
             config.summary_min_length,
             config.summary_max_length,
-            5, // max_key_steps
+            5,
         ))
     } else {
         None
@@ -88,6 +88,26 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         ))
     } else {
         None
+    };
+
+    // Initialize ANN-backed semantic retriever
+    let semantic_retriever = if let Some(path) = &config.ann_index_path {
+        if let Ok(index) = crate::embeddings::SimpleVectorIndex::load(path) {
+            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+                config.clone(),
+                Box::new(index),
+            )))
+        } else {
+            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+                config.clone(),
+                Box::new(crate::embeddings::SimpleVectorIndex::new()),
+            )))
+        }
+    } else {
+        Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+            config.clone(),
+            Box::new(crate::embeddings::SimpleVectorIndex::new()),
+        )))
     };
 
     // Initialize semantic config (service will be initialized on first use if needed)
@@ -134,6 +154,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         spatiotemporal_index,
         hierarchical_retriever,
         diversity_maximizer,
+        semantic_retriever,
         context_aware_embeddings: None,
         semantic_service,
         semantic_config,
@@ -151,8 +172,8 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
 /// Create a memory system with storage backends
 pub fn with_storage(
     config: MemoryConfig,
-    turso: Arc<dyn crate::StorageBackend>,
-    cache: Arc<dyn crate::StorageBackend>,
+    turso: Arc<dyn crate::storage::StorageBackend>,
+    cache: Arc<dyn crate::storage::StorageBackend>,
 ) -> super::SelfLearningMemory {
     let pattern_extractor =
         PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 5);
@@ -225,6 +246,26 @@ pub fn with_storage(
         None
     };
 
+    // Initialize ANN-backed semantic retriever
+    let semantic_retriever = if let Some(path) = &config.ann_index_path {
+        if let Ok(index) = crate::embeddings::SimpleVectorIndex::load(path) {
+            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+                config.clone(),
+                Box::new(index),
+            )))
+        } else {
+            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+                config.clone(),
+                Box::new(crate::embeddings::SimpleVectorIndex::new()),
+            )))
+        }
+    } else {
+        Some(Arc::new(crate::retrieval::SemanticRetriever::new(
+            config.clone(),
+            Box::new(crate::embeddings::SimpleVectorIndex::new()),
+        )))
+    };
+
     // Initialize semantic config (service will be initialized lazily if needed)
     let semantic_config = EmbeddingConfig::default();
 
@@ -272,6 +313,7 @@ pub fn with_storage(
         spatiotemporal_index,
         hierarchical_retriever,
         diversity_maximizer,
+        semantic_retriever,
         context_aware_embeddings: None,
         semantic_service,
         semantic_config,
@@ -285,9 +327,6 @@ pub fn with_storage(
         event_emitter,
     }
 }
-
-/// Create memory with custom semantic config
-#[must_use]
 pub fn with_semantic_config(
     config: MemoryConfig,
     semantic_config: EmbeddingConfig,
@@ -296,7 +335,6 @@ pub fn with_semantic_config(
     memory.semantic_config = semantic_config;
     memory
 }
-
 /// Enable async pattern extraction with a worker pool
 #[must_use]
 pub fn enable_async_extraction(
@@ -309,7 +347,6 @@ pub fn enable_async_extraction(
     memory.pattern_queue = Some(queue);
     memory
 }
-
 /// Start async pattern extraction workers
 pub async fn start_workers(memory: &super::SelfLearningMemory) {
     if let Some(queue) = &memory.pattern_queue {

@@ -181,9 +181,20 @@ async fn main() -> anyhow::Result<()> {
 **Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
-- Rust stable (2024 edition)
+- Rust toolchain via [rustup](https://rustup.rs/) (stable, 2024 edition)
 - SQLite (for local development)
 - Optional: Turso CLI (for cloud database)
+
+### Build Dependencies
+
+The following system packages are required to compile from source:
+
+| Platform | Command |
+|----------|---------|
+| Ubuntu/Debian | `sudo apt-get install libssl-dev pkg-config` |
+| Fedora/RHEL | `sudo dnf install openssl-devel pkg-config` |
+| Arch Linux | `sudo pacman -S openssl pkg-config` |
+| macOS | `brew install openssl pkg-config` (usually pre-installed with Xcode Command Line Tools) |
 
 ### Installation
 

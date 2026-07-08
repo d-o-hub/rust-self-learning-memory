@@ -80,12 +80,13 @@ impl AdaptiveRewardCalculator {
         let learning_bonus = self.calculate_learning_bonus(episode);
         let raw_reward =
             (base * efficiency * complexity_bonus * quality_multiplier) + learning_bonus;
-        let normalized_reward = if let Some(stats) = domain_stats {
-            self.calculate_normalized_reward(raw_reward, stats)
+        let normalization_multiplier = if let Some(stats) = domain_stats {
+            self.calculate_normalization_multiplier(raw_reward, stats, episode)
         } else {
-            raw_reward
+            1.0 // Default normalization factor
         };
         let half_life = domain_stats.map(|s| s.decay_half_life_days).unwrap_or(30.0);
+        let normalized_reward = raw_reward * normalization_multiplier;
         let decayed_reward =
             self.calculate_decayed_reward(normalized_reward, episode.start_time, half_life);
         let effective_reward = decayed_reward;
@@ -351,12 +352,72 @@ impl AdaptiveRewardCalculator {
         false
     }
 
-    fn calculate_normalized_reward(&self, raw_reward: f32, stats: &DomainStatistics) -> f32 {
-        if !stats.is_reliable() || stats.reward_std_dev < 0.01 {
-            return raw_reward;
+    /// Calculate normalization multiplier based on domain and category statistics.
+    ///
+    /// Returns a multiplier centered around 1.0.
+    /// - 1.0 means the reward is average for this domain/category.
+    /// - > 1.0 means the reward is above average.
+    /// - < 1.0 means the reward is below average.
+    fn calculate_normalization_multiplier(
+        &self,
+        raw_reward: f32,
+        stats: &DomainStatistics,
+        episode: &Episode,
+    ) -> f32 {
+        if !stats.is_reliable() {
+            return 1.0;
         }
-        let z_score = (raw_reward - stats.avg_reward) / stats.reward_std_dev;
-        1.0 + (z_score * 0.2)
+
+        // 1. Domain-level normalization (z-score)
+        let domain_z = if stats.reward_std_dev > 0.01 {
+            (raw_reward - stats.avg_reward) / stats.reward_std_dev
+        } else {
+            0.0
+        };
+
+        // 2. Category-specific normalization
+        let mut category_z_scores = Vec::new();
+
+        // Agent type
+        if let Some(agent_type) = episode.metadata.get("agent_type") {
+            if let Some((avg, std_dev, count)) = stats.agent_type_stats.get(agent_type) {
+                if *count >= 3 && *std_dev > 0.01 {
+                    category_z_scores.push((raw_reward - *avg) / *std_dev);
+                }
+            }
+        }
+
+        // Task type
+        if let Some((avg, std_dev, count)) =
+            stats.task_type_stats.get(&episode.task_type.to_string())
+        {
+            if *count >= 3 && *std_dev > 0.01 {
+                category_z_scores.push((raw_reward - *avg) / *std_dev);
+            }
+        }
+
+        // Complexity
+        if let Some((avg, std_dev, count)) = stats
+            .complexity_stats
+            .get(&episode.context.complexity.to_string())
+        {
+            if *count >= 3 && *std_dev > 0.01 {
+                category_z_scores.push((raw_reward - *avg) / *std_dev);
+            }
+        }
+
+        // Average the z-scores
+        let final_z = if category_z_scores.is_empty() {
+            domain_z
+        } else {
+            let sum: f32 = category_z_scores.iter().sum();
+            (domain_z + (sum / category_z_scores.len() as f32)) / 2.0
+        };
+
+        // Map z-score to multiplier around 1.0
+        // z=0 -> 1.0, z=1 -> 1.2, z=-1 -> 0.8
+        let multiplier = 1.0 + (final_z * 0.2);
+        multiplier.clamp(0.1, 5.0)
     }
 
     fn calculate_decayed_reward(

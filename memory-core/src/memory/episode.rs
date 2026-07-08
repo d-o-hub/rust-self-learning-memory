@@ -412,7 +412,7 @@ impl SelfLearningMemory {
         // 3) Try durable storage (Turso)
         if let Some(episode) = self.get_from_durable(episode_id).await {
             // Reconcile/backfill cache on find (WG-204: Write-through reconciliation)
-            self.reconcile_episode(episode_id, &episode);
+            self.reconcile_episode(episode_id, &episode).await;
             return Ok(episode);
         }
 
@@ -451,20 +451,17 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Reconcile/backfill the redb cache if an episode was found in durable storage
-    /// (Background execution via tokio::spawn)
-    fn reconcile_episode(&self, episode_id: Uuid, episode: &Episode) {
-        if let Some(cache) = self.cache_storage.clone() {
-            let episode = episode.clone();
-            tokio::spawn(async move {
-                if let Err(e) = cache.store_episode(&episode).await {
-                    warn!(
-                        episode_id = %episode_id,
-                        error = %e,
-                        "Failed to backfill redb cache during reconciliation"
-                    );
-                }
-            });
+    /// Reconcile/backfill the redb cache if an episode was found in durable storage.
+    /// Write-through semantics ensure the cache is populated before returning.
+    async fn reconcile_episode(&self, episode_id: Uuid, episode: &Episode) {
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!(
+                    episode_id = %episode_id,
+                    error = %e,
+                    "Failed to backfill redb cache during reconciliation"
+                );
+            }
         }
     }
 }

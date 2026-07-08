@@ -157,7 +157,7 @@ fn test_storage_config_validation() {
     // Verify default values
     assert_eq!(storage.max_episodes_cache, 1000);
     assert_eq!(storage.sync_interval_secs, 300);
-    assert!(!storage.enable_compression);
+    assert!(storage.enable_compression);
 }
 
 #[test]

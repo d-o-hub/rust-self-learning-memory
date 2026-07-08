@@ -312,6 +312,7 @@ impl DomainStatisticsCache {
     /// Update statistics incrementally with a new episode
     ///
     /// This is more efficient than full recalculation but less accurate
+    #[allow(clippy::too_many_arguments)]
     pub fn update_incremental(
         &mut self,
         domain: &str,

@@ -163,7 +163,7 @@ mod cli_coverage_tests {
                 || stderr.contains("Turso")
                 || stderr.contains("not enabled")
                 || stderr.contains("No episodes")
-                || stderr.contains("SQLite"),
+                || stdout.contains("SQLite"),
             "Unexpected output - stdout: {stdout}, stderr: {stderr}"
         );
     }
@@ -184,7 +184,7 @@ mod cli_coverage_tests {
                 || stderr.contains("Turso")
                 || stderr.contains("not enabled")
                 || stderr.contains("No patterns")
-                || stderr.contains("SQLite"),
+                || stdout.contains("SQLite"),
             "Unexpected output - stdout: {stdout}, stderr: {stderr}"
         );
     }

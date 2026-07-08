@@ -1,8 +1,8 @@
+use crate::types::RetrievalMode;
 use crate::{
     ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };
-use crate::types::RetrievalMode;
 
 #[tokio::test]
 async fn test_hybrid_retrieval_flow() {

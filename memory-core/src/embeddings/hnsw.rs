@@ -1,9 +1,9 @@
 //! HNSW-based vector indexing implementation.
 
+use crate::embeddings::index::{VectorHit, VectorIndex};
+use crate::error::Result;
 #[cfg(feature = "hnsw")]
 use hnsw_rs::prelude::*;
-use crate::error::Result;
-use crate::embeddings::index::{VectorIndex, VectorHit};
 use std::path::Path;
 
 #[cfg(feature = "hnsw")]
@@ -57,7 +57,8 @@ impl VectorIndex for HnswVectorIndex {
         let ef_search = top_k * 2;
         let neighbors = self.hnsw.search(query, top_k, ef_search);
 
-        let hits = neighbors.into_iter()
+        let hits = neighbors
+            .into_iter()
             .filter_map(|neighbor| {
                 let internal_id = neighbor.p_id;
 
@@ -87,18 +88,28 @@ pub struct HnswVectorIndex {}
 #[cfg(not(feature = "hnsw"))]
 impl VectorIndex for HnswVectorIndex {
     fn upsert(&mut self, _id: &str, _embedding: &[f32]) -> Result<()> {
-        Err(crate::error::Error::Configuration("HNSW feature not enabled".to_string()))
+        Err(crate::error::Error::Configuration(
+            "HNSW feature not enabled".to_string(),
+        ))
     }
     fn remove(&mut self, _id: &str) -> Result<()> {
-        Err(crate::error::Error::Configuration("HNSW feature not enabled".to_string()))
+        Err(crate::error::Error::Configuration(
+            "HNSW feature not enabled".to_string(),
+        ))
     }
     fn search(&self, _query: &[f32], _top_k: usize) -> Result<Vec<VectorHit>> {
-        Err(crate::error::Error::Configuration("HNSW feature not enabled".to_string()))
+        Err(crate::error::Error::Configuration(
+            "HNSW feature not enabled".to_string(),
+        ))
     }
     fn save(&self, _path: &Path) -> Result<()> {
-        Err(crate::error::Error::Configuration("HNSW feature not enabled".to_string()))
+        Err(crate::error::Error::Configuration(
+            "HNSW feature not enabled".to_string(),
+        ))
     }
-    fn len(&self) -> usize { 0 }
+    fn len(&self) -> usize {
+        0
+    }
 }
 
 #[cfg(feature = "hnsw")]

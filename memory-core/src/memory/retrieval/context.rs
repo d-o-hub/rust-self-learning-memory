@@ -219,15 +219,13 @@ impl SelfLearningMemory {
                                 .iter()
                                 .map(|e| (e.episode_id, e.clone()))
                                 .collect();
-                        match retriever
-                            .retrieve(
-                                &task_description,
-                                &query_embedding,
-                                &context,
-                                episodes_map,
-                                limit,
-                            )
-                        {
+                        match retriever.retrieve(
+                            &task_description,
+                            &query_embedding,
+                            &context,
+                            episodes_map,
+                            limit,
+                        ) {
                             Ok(hits) => {
                                 if !hits.is_empty() {
                                     let hybrid_episodes: Vec<Arc<Episode>> =

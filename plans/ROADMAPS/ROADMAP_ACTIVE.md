@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-06-30 (WG-176..182 complete; dependency maintenance done; v0.1.33 release pending)
+**Last Updated**: 2026-07-08 (PR batch merge #787-#791; mutation testing #747 in-progress; skills path canonical)
 **Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
 **Active Sprint**: v0.1.33 — Release + CI Health + Quality (WG-175..184)
 **Branch**: `main`
@@ -54,6 +54,15 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 - PR #678: sysinfo major bump (auto-merge pending)
 
 **Remaining**: WG-175 (cut v0.1.33 release), WG-183 (llms.txt), WG-184 (VERSION ADR)
+
+**2026-07-08 Progress**:
+- PR #787 merged: fix(cli) persist episodes in local storage mode (fixes #773) ✅
+- PR #788 merged: docs(readme) add build dependencies section (fixes #771) ✅
+- PR #789 merged: ci(publish) improve crates.io publish pipeline (fixes #772) ✅
+- PR #790 merged: docs(plans) update status for v0.1.34 sprint
+- PR #791 merged: docs(agents) add lessons #013-#014
+- Issue #747: Mutation testing workflow — 🔧 In progress (non-blocking, weekly schedule)
+- Skills canonical path moved from `.claude/skills/` to `.agents/skills/`
 
 **Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 

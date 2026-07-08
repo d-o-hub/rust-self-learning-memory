@@ -9,6 +9,34 @@
 
 ---
 
+## Sprint 2026-07-08: PR Batch Merge & Mutation Testing
+
+**Task**: Merge 5 open PRs, implement mutation testing (#747), update skills canonical path
+
+**PRs Merged** (auto-merge enabled):
+| PR | Title | Fixes |
+|----|-------|-------|
+| #787 | fix(cli): persist episodes in local storage mode | #773 |
+| #788 | docs(readme): add build dependencies section | #771 |
+| #789 | ci(publish): improve crates.io publish pipeline | #772 |
+| #790 | docs(plans): update status for v0.1.34 sprint | - |
+| #791 | docs(agents): add lessons #013-#014 | - |
+
+**Issues Implemented**:
+- #747: Mutation testing workflow added (non-blocking, weekly schedule)
+
+**Remaining Open Issues**:
+| # | Title | Priority | Notes |
+|---|-------|----------|-------|
+| #786 | Release drift | High | Cut release after merges |
+| #770 | crates.io availability | Medium | Partially by #789 |
+| #753 | Retry budgets | Backlog | Large feature |
+| #749 | Turso connection pooling | Backlog | Large feature |
+| #746 | WASM build path | Backlog | Large feature |
+| #743 | Storage refactor | Backlog | Large refactor |
+
+---
+
 ## PR Remediation — 2026-07-08
 
 **Task**: Resolve open PRs #769, #774, #775.

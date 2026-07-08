@@ -83,3 +83,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Root Cause: Ad-hoc scripts created during CI fixes were committed directly to root without considering long-term maintenance or placement conventions.
 - Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
 - Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.
+
+## LESSON-015: GOAP swarm for PR batch merges with auto-merge
+
+- Issue: 5 PRs with CI still running needed coordinated merge in dependency order
+- Root Cause: Manual sequential merge waiting is wasteful when PRs are independent
+- Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
+- Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.

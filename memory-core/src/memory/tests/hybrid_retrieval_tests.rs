@@ -6,10 +6,12 @@ use crate::{
 
 #[tokio::test]
 async fn test_hybrid_retrieval_flow() {
-    let mut config = MemoryConfig::default();
-    config.retrieval_mode = RetrievalMode::Hybrid;
-    config.enable_embeddings = true;
-    config.quality_threshold = 0.0; // Disable quality check for test
+    let config = MemoryConfig {
+        retrieval_mode: RetrievalMode::Hybrid,
+        enable_embeddings: true,
+        quality_threshold: 0.0, // Disable quality check for test
+        ..Default::default()
+    };
 
     let memory = SelfLearningMemory::with_config(config);
 

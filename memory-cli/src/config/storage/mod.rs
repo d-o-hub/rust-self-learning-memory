@@ -311,10 +311,15 @@ pub(super) fn create_memory_config(config: &Config) -> MemoryConfig {
         diversity_lambda: 0.7,
         temporal_bias_weight: 0.3,
         max_clusters_to_search: 5,
-        // Semantic search configuration
+        retrieval_mode: do_memory_core::types::RetrievalMode::Keyword,
         semantic_search_mode: "hybrid".to_string(),
         enable_query_embedding_cache: true,
-        semantic_similarity_threshold: 0.7,
+        semantic_similarity_threshold: 0.6,
+        semantic_weight: 0.5,
+        recency_weight: 0.25,
+        reward_weight: 0.15,
+        context_overlap_weight: 0.10,
+        ann_index_path: None,
         // Audit configuration
         audit_config: do_memory_core::AuditConfig::default(),
         // CloudEvents EventEmitter (WG-149)

@@ -204,6 +204,53 @@ impl SelfLearningMemory {
         }
 
         // ============================================================================
+        // ============================================================================
+        // Hybrid Search (v0.1.34) - Improved ANN-backed retrieval
+        // ============================================================================
+        if self.config.retrieval_mode == crate::types::RetrievalMode::Hybrid {
+            if let (Some(retriever), Some(semantic)) =
+                (&self.semantic_retriever, &self.semantic_service)
+            {
+                // Generate query embedding
+                match semantic.provider.embed_text(&task_description).await {
+                    Ok(query_embedding) => {
+                        let episodes_map: std::collections::HashMap<uuid::Uuid, Arc<Episode>> =
+                            completed_episodes
+                                .iter()
+                                .map(|e| (e.episode_id, e.clone()))
+                                .collect();
+                        match retriever.retrieve(
+                            &task_description,
+                            &query_embedding,
+                            &context,
+                            episodes_map,
+                            limit,
+                        ) {
+                            Ok(hits) => {
+                                if !hits.is_empty() {
+                                    let hybrid_episodes: Vec<Arc<Episode>> =
+                                        hits.into_iter().map(|h| h.episode).collect();
+                                    if should_cache_episodes(&hybrid_episodes) {
+                                        self.query_cache
+                                            .put(cache_key.clone(), hybrid_episodes.clone());
+                                    }
+                                    info!(
+                                        retrieved_count = hybrid_episodes.len(),
+                                        "Retrieved episodes using hybrid search"
+                                    );
+                                    return hybrid_episodes;
+                                }
+                            }
+                            Err(e) => warn!(error = %e, "Hybrid retrieval failed, falling back"),
+                        }
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "Query embedding failed for hybrid search, falling back");
+                    }
+                }
+            }
+        }
+
         // Semantic Search - Try semantic similarity first
         // ============================================================================
 

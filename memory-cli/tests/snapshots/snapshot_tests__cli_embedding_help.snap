@@ -13,6 +13,7 @@ Commands:
   benchmark       Benchmark embedding provider performance
   enable          Enable embeddings in the current session
   disable         Disable embeddings in the current session
+  rebuild         Rebuild the ANN index from all episodes
   help            Print this message or the help of the given subcommand(s)
 
 Options:

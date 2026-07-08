@@ -19,7 +19,7 @@ pub use constants::{
     MAX_ARTIFACT_SIZE, MAX_DESCRIPTION_LEN, MAX_EPISODE_SIZE, MAX_OBSERVATION_LEN, MAX_STEP_COUNT,
 };
 pub use emitter::{CloudEvent, EventEmitter, EventEmitterMode, MemoryEventMapping};
-pub use enums::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
+pub use enums::{ComplexityLevel, ExecutionResult, RetrievalMode, TaskOutcome, TaskType};
 pub use event::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryEvent, unix_now_secs};
 pub use sinks::{LogEmitter, NoOpEmitter};
 

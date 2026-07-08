@@ -151,3 +151,18 @@ async fn test_benchmark_embeddings_disabled() {
     let error = result.unwrap_err().to_string();
     assert!(error.contains("Embeddings are disabled"));
 }
+
+#[tokio::test]
+async fn test_rebuild_index_disabled() {
+    let config = create_test_config_with_embeddings(false, None);
+    let memory = do_memory_core::SelfLearningMemory::new();
+
+    let result = do_memory_cli::commands::embedding::rebuild_index(&memory, &config).await;
+    assert!(result.is_err());
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Embeddings are disabled")
+    );
+}

@@ -271,6 +271,22 @@ async fn initialize_redb_storage(
     if let Some(redb_path) = &db_config.redb_path {
         let path = std::path::Path::new(redb_path);
 
+        // Ensure parent directory exists before opening redb file.
+        // On fresh systems the default cache directory may not exist yet,
+        // causing redb initialization to silently fail and episodes to be
+        // stored only in a volatile in-memory fallback.
+        if let Some(parent) = path.parent() {
+            if !parent.as_os_str().is_empty() {
+                if let Err(e) = tokio::fs::create_dir_all(parent).await {
+                    status_messages.push(format!(
+                        "Warning: Failed to create redb directory {}: {}",
+                        parent.display(),
+                        e
+                    ));
+                }
+            }
+        }
+
         match do_memory_storage_redb::RedbStorage::new(path).await {
             Ok(redb) => {
                 storage = Some(Arc::new(redb) as Arc<dyn StorageBackend>);

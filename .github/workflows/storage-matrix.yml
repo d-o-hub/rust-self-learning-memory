@@ -42,7 +42,8 @@ jobs:
               cargo test --workspace --exclude do-memory-storage-redb --features turso
               ;;
             "hybrid")
-              cargo test --workspace --all-features
+              # Use explicit features to avoid pulling in optional features like csm, openai, etc.
+              cargo test --workspace --features turso,redb
               ;;
           esac
         shell: bash

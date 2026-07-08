@@ -177,7 +177,7 @@ async fn test_hybrid_storage_query_parity() {
     for i in 0..3 {
         let episode_id = memory
             .start_episode(
-                format!("Query parity test {}", i),
+                format!("Query parity test {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )

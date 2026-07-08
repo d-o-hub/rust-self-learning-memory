@@ -78,7 +78,7 @@ mod tests {
             let episode_id = Uuid::new_v4();
             let result = queue.enqueue_episode(episode_id).await;
             if let Err(e) = &result {
-                panic!("Failed at iteration {} with error: {:?}", i, e);
+                panic!("Failed at iteration {i} with error: {e:?}");
             }
             assert!(result.is_ok());
         }

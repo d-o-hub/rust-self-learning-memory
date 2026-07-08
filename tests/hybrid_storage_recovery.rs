@@ -118,9 +118,11 @@ async fn test_recovery_turso_unavailable_on_read() {
     redb.initialize_schema().await.unwrap();
     let failing_turso = Arc::new(FailingStorage);
 
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.0;
-    config.pattern_extraction_threshold = 0.0;
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
 
     let memory = SelfLearningMemory::with_storage(config, failing_turso, Arc::new(redb));
 
@@ -151,9 +153,11 @@ async fn test_reconciliation_stale_cache() {
     let (redb, _redb_dir) = in_memory_redb_storage().await;
     redb.initialize_schema().await.unwrap();
 
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.0;
-    config.pattern_extraction_threshold = 0.0;
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
 
     let memory = SelfLearningMemory::with_storage(config, Arc::new(turso), Arc::new(redb));
 
@@ -203,9 +207,11 @@ async fn test_recovery_turso_failure_on_write_does_not_block() {
     redb.initialize_schema().await.unwrap();
     let failing_turso = Arc::new(FailingStorage);
 
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.0;
-    config.pattern_extraction_threshold = 0.0;
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
 
     let memory = SelfLearningMemory::with_storage(config, failing_turso, Arc::new(redb));
 

@@ -232,11 +232,13 @@ pub async fn hybrid_memory() -> (do_memory_core::memory::SelfLearningMemory, Tem
         .await
         .expect("Initialize redb schema");
 
-    let mut config = MemoryConfig::default();
     // Set thresholds to 0.0 to ensure all episodes are accepted regardless of quality
     // for storage consistency and parity tests.
-    config.quality_threshold = 0.0;
-    config.pattern_extraction_threshold = 0.0;
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
 
     let memory = do_memory_core::memory::SelfLearningMemory::with_storage(
         config,

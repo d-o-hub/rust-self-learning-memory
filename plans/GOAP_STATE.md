@@ -1,11 +1,37 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-08 (PR #769 remediation; merge conflict resolved, CI fixes applied; PR #774 closed as superseded)
-- **Version**: `0.1.33` (workspace — **no git tag exists**; ~100 unreleased commits per #674)
+- **Last Updated**: 2026-07-08 (3 PRs created for issues #773, #771, #772; release drift at 30+ commits)
+- **Version**: `0.1.33` (workspace — tag v0.1.33 exists; ~30 commits since release)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+
+---
+
+## Issue Implementation Sprint — 2026-07-08
+
+**Task**: Address critical open issues with dependency-ordered PRs.
+
+**Dependency Graph**:
+```
+#773 (bug: local storage) ──→ #770 (crates.io publish)
+#771 (docs: build deps)   ──→ (standalone)
+#772 (CI improvements)    ──→ #770 (crates.io publish)
+#784 (release)            ──→ #770 (crates.io publish)
+```
+
+**PRs Created**:
+| PR | Issue | Branch | Status |
+|----|-------|--------|--------|
+| #787 | #773 | fix/local-storage-persistence-773 | 🟡 Open |
+| #788 | #771 | docs/build-deps-771 | 🟡 Open |
+| #789 | #772 | fix/ci-publish-pipeline-772 | 🟡 Open |
+
+**Implementation Details**:
+- #787: Fixed redb tempdir usage + parent directory creation for redb cache
+- #788: Added build deps table (Ubuntu, Fedora, Arch, macOS)
+- #789: Polling propagation, --locked, explicit needs chain, step summaries
 
 ---
 

@@ -1,32 +1,35 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-02 (PR remediation complete; 7 PRs merged; 0 open PRs; release v0.1.33 pending)
-**Released Version**: v0.1.32 (crates.io + GitHub Release, 2026-05-24)
-**Workspace Version**: 0.1.33 (no tag — release drift)
-**Active Sprint**: v0.1.33 — Release + CI Health + Quality
+**Last Updated**: 2026-07-08 (v0.1.34 sprint: 3 PRs open for issues #773, #771, #772)
+**Released Version**: v0.1.33 (GitHub Release tag exists, 2026-07-xx)
+**Workspace Version**: 0.1.33
+**Active Sprint**: v0.1.34 — Bug Fix + CI Modernization + Release
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
-## v0.1.33 Sprint — IN PROGRESS
+## v0.1.34 Sprint — IN PROGRESS
+
+| Phase | Issue | Description | Status |
+|-------|-------|-------------|--------|
+| P1 — Bug Fix | #773 | Local storage episodes not persisting | 🟡 PR #787 open |
+| P2 — Docs | #771 | Add build dependencies to README | 🟡 PR #788 open |
+| P3 — CI | #772 | Publish pipeline improvements | 🟡 PR #789 open |
+| P4 — Release | #784 | Release drift (30+ unreleased commits) | ⏳ Blocked on P1-P3 |
+| P5 — Publish | #770 | crates.io availability | ⏳ Blocked on P3+P4 |
+
+**Blocking**: P4 and P5 depend on P1-P3 merging first.
+
+## v0.1.33 Sprint — COMPLETE ✅ (Released)
 
 | Phase | WGs | Strategy | Status |
 |-------|-----|----------|--------|
-| P1 — Release | WG-175 | Sequential | 🟡 Queued |
+| P1 — Release | WG-175 | Sequential | ✅ Complete (v0.1.33 tag exists) |
 | P2 — CI Health | WG-176..WG-179 | Parallel | ✅ Complete (PR #675, #681) |
 | P3 — Code Quality | WG-180..WG-181 | Parallel | ✅ Complete (PR #675) |
 | P4 — Architecture | WG-182 | Sequential | ✅ Complete (PR #675) |
-| P5 — DevX Backlog | WG-183..WG-184 | Parallel | 🟢 WG-183 done; WG-184 queued |
+| P5 — DevX Backlog | WG-183..WG-184 | Parallel | ✅ WG-183 done; WG-184 queued |
 | P6 — Code Health | WG-185 | Parallel | ✅ WG-185 done (LOC boundary splits) |
-
-**Blocking**: None (all CI checks green; WG-175 release is next priority)
-
-**Completed 2026-06-30**:
-- PR #675: CI health + code quality fixes (WG-176..182)
-- PR #682: Stale advisory cleanup + anyhow update
-- PR #681: GitHub Actions bumps (13 actions to latest)
-- PR #684: Rust patch/minor deps
-- PR #678: sysinfo major bump (auto-merge enabled)
 
 **Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
 
@@ -37,10 +40,10 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | 🔴 No tag/release (~100 commits since v0.1.32) |
-| Latest GitHub release | v0.1.32 | — | ✅ Published 2026-05-24 |
+| Workspace version | 0.1.33 | — | ✅ Released (tag v0.1.33 exists) |
+| Latest GitHub release | v0.1.33 | — | ✅ Published |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.33` in workspace  |
-| Commits since v0.1.32 | ~100 | 0 | 🔴 Release drift (#674) |
+| Commits since v0.1.33 | ~30 | 0 | 🟡 Release drift (#784) |
 | Clippy (default features) | Clean | Clean | ✅ |
 | Clippy (--all-features) | Clean | 0 | ✅ Fixed in PR #675 |
 | Production src files >500 LOC | 0 | 0 | ✅ Fixed in PR #675 (wrapper_backend.rs split) |
@@ -50,8 +53,8 @@
 | Mutation Testing | Fixed | Completes | ✅ WG-178 done (scoped to memory-core) |
 | Fuzzing | Green | Green | ✅ |
 | Security audit (`cargo deny`) | Clean | Clean | ✅ Fixed in PR #682 |
-| Open issues | 3 | 0 | 🟡 (#674, #652, #653) |
-| Open PRs | 0 | 0 | ✅ All merged (PR remediation 2026-07-02) |
+| Open issues | 10 | 0 | 🟡 (#773, #772, #771, #784, #770, +5 others) |
+| Open PRs | 3 | 0 | 🟡 PRs #787, #788, #789 |
 | Fuzz harness | Present | Present | ✅ |
 | Property test files | 17 | ≥13 | ✅ |
 | MSRV | Rust 2024 / stable 1.95.0 | — | ✅ |

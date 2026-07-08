@@ -159,5 +159,10 @@ async fn test_rebuild_index_disabled() {
 
     let result = do_memory_cli::commands::embedding::rebuild_index(&memory, &config).await;
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("Embeddings are disabled"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Embeddings are disabled")
+    );
 }

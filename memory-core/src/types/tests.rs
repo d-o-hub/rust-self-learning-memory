@@ -443,7 +443,10 @@ fn test_memory_config_retrieval_env_vars() {
         std::env::set_var("MEMORY_RETRIEVAL_MODE", "hybrid");
     }
     let config = MemoryConfig::from_env();
-    assert!(matches!(config.retrieval_mode, crate::types::RetrievalMode::Hybrid));
+    assert!(matches!(
+        config.retrieval_mode,
+        crate::types::RetrievalMode::Hybrid
+    ));
 
     // Weights
     unsafe {
@@ -463,7 +466,10 @@ fn test_memory_config_retrieval_env_vars() {
         std::env::set_var("MEMORY_ANN_INDEX_PATH", "/tmp/ann.bin");
     }
     let config = MemoryConfig::from_env();
-    assert_eq!(config.ann_index_path, Some(std::path::PathBuf::from("/tmp/ann.bin")));
+    assert_eq!(
+        config.ann_index_path,
+        Some(std::path::PathBuf::from("/tmp/ann.bin"))
+    );
 
     // Cleanup
     unsafe {

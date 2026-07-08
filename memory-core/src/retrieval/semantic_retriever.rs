@@ -262,16 +262,22 @@ mod tests {
         let config = MemoryConfig::default();
         let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
 
-        let ep_ctx = TaskContext { domain: "rust".to_string(), language: Some("rust".to_string()), tags: vec!["api".to_string(), "web".to_string()], ..Default::default() };
+        let ep_ctx = TaskContext {
+            domain: "rust".to_string(),
+            language: Some("rust".to_string()),
+            tags: vec!["api".to_string(), "web".to_string()],
+            ..Default::default()
+        };
 
-        let episode = Episode::new(
-            "test".to_string(),
-            ep_ctx,
-            TaskType::CodeGeneration,
-        );
+        let episode = Episode::new("test".to_string(), ep_ctx, TaskType::CodeGeneration);
 
         // Exact match
-        let mut query_ctx = TaskContext { domain: "rust".to_string(), language: Some("rust".to_string()), tags: vec!["api".to_string(), "web".to_string()], ..Default::default() };
+        let mut query_ctx = TaskContext {
+            domain: "rust".to_string(),
+            language: Some("rust".to_string()),
+            tags: vec!["api".to_string(), "web".to_string()],
+            ..Default::default()
+        };
 
         let score_exact = retriever.calculate_context_overlap(&episode, &query_ctx);
         assert_eq!(score_exact, 1.0);
@@ -343,11 +349,13 @@ mod tests {
 
     #[test]
     fn test_combine_scores() {
-        let mut config = MemoryConfig::default();
-        config.semantic_weight = 0.5;
-        config.recency_weight = 0.2;
-        config.reward_weight = 0.2;
-        config.context_overlap_weight = 0.1;
+        let config = MemoryConfig {
+            semantic_weight: 0.5,
+            recency_weight: 0.2,
+            reward_weight: 0.2,
+            context_overlap_weight: 0.1,
+            ..Default::default()
+        };
 
         let retriever = SemanticRetriever::new(config, Box::new(SimpleVectorIndex::new()));
 
@@ -376,8 +384,16 @@ mod tests {
         let retriever = SemanticRetriever::new(config, Box::new(index));
 
         let mut episodes = HashMap::new();
-        let ep1 = Arc::new(Episode::new("rust api".to_string(), TaskContext::default(), TaskType::CodeGeneration));
-        let ep2 = Arc::new(Episode::new("python ml".to_string(), TaskContext::default(), TaskType::CodeGeneration));
+        let ep1 = Arc::new(Episode::new(
+            "rust api".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        ));
+        let ep2 = Arc::new(Episode::new(
+            "python ml".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        ));
 
         episodes.insert(id1, ep1);
         episodes.insert(id2, ep2);
@@ -385,7 +401,9 @@ mod tests {
         let context = TaskContext::default();
         let query_embedding = vec![1.0, 0.0];
 
-        let hits = retriever.retrieve("rust", &query_embedding, &context, episodes, 10).unwrap();
+        let hits = retriever
+            .retrieve("rust", &query_embedding, &context, episodes, 10)
+            .unwrap();
 
         assert_eq!(hits.len(), 2);
         assert_eq!(hits[0].episode.task_description, "rust api");

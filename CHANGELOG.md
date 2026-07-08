@@ -2,7 +2,19 @@
 
 ### Added
 
-- **Missing-implementation remediation sprint** (ADR-055, WG-150–164)
+- **ANN-backed semantic episode retrieval** (PR #775) — Vector index abstraction with `SimpleVectorIndex` and `HnswVectorIndex`, semantic retriever for hybrid search, CLI `rebuild` subcommand
+- **Statistical reward normalization and temporal decay** (PR #769) — Normalized reward scores with temporal decay for improved episode ranking
+- **OpenTelemetry / OTLP export** (PR #755) — Tracing and monitoring export for observability
+- **Auto-checkpointing on `TaskOutcome::Abstained`** (PR #738) — Automatic checkpoint creation for abstained tasks
+- **`VERSION` file as co-canonical version source** — Adopted VERSION file for release tooling
+- **Hybrid storage (Turso + redb) integration tests** — End-to-end consistency and recovery test suite
+
+### Changed
+
+- **Security**: Added `#![deny(unsafe_code)]` to 4 crates (PR #701, #740)
+- **Queue improvements**: Replaced sleep-poll with bounded mpsc channel (PR #698, #739)
+- **Dependencies**: Bumped actions-all, rust-major, rust-patch-minor groups
+- **Documentation**: Added spatiotemporal usage guides and executable examples, clarified module scope for learning modules
   - `relationship show <id>` resolves relationships via storage layer (WG-150)
   - `relationship validate` supports global cycle detection without `--episode` (WG-151)
   - `eval --set-threshold` returns explicit error instead of silent no-op (WG-152)

@@ -48,6 +48,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 ## Common Pitfalls
 
 - **Coderabbitai review loops**: Always `read_files` on the target file before acting on a finding. Trust current code, not conversation summaries or cached search results. Fix history may not match current tree.
+- **Feature-gated imports in tests**: When adding `#[cfg(feature = "X")]` tests, also gate ALL imports, structs, and impls used exclusively by those tests. CI runs clippy without features and will reject ungated dead code. One ungated import in `tests/` blocks all PRs.
 - Read patterns first; roadmap and status docs can lag real repo state.
 - Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
 - Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.

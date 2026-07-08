@@ -2,10 +2,14 @@
 //!
 //! Verifies that data is consistently mirrored across Turso and redb backends
 //! in a hybrid storage configuration.
+//!
+//! These tests require both `turso` and `redb` features enabled.
 
 use do_memory_core::{ExecutionStep, TaskContext, TaskOutcome, TaskType};
+#[cfg(all(feature = "turso", feature = "redb"))]
 use do_memory_test_utils::{assert_episode_parity, hybrid_memory};
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 #[tokio::test]
 async fn test_hybrid_storage_write_parity() {
     let (memory, _turso_dir, _redb_dir) = hybrid_memory().await;
@@ -64,6 +68,7 @@ async fn test_hybrid_storage_write_parity() {
     assert_episode_parity(&turso_episode, &redb_episode);
 }
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 #[tokio::test]
 async fn test_hybrid_storage_update_parity() {
     let (memory, _turso_dir, _redb_dir) = hybrid_memory().await;
@@ -122,6 +127,7 @@ async fn test_hybrid_storage_update_parity() {
     assert_eq!(redb_ep.metadata.get("test_key").unwrap(), "test_value");
 }
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 #[tokio::test]
 async fn test_hybrid_storage_delete_parity() {
     let (memory, _turso_dir, _redb_dir) = hybrid_memory().await;
@@ -170,6 +176,7 @@ async fn test_hybrid_storage_delete_parity() {
     );
 }
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 #[tokio::test]
 async fn test_hybrid_storage_query_parity() {
     let (memory, _turso_dir, _redb_dir) = hybrid_memory().await;

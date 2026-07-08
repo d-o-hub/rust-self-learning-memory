@@ -157,5 +157,10 @@ harness = true
 
 # Inherit workspace lints
 
+[features]
+default = []
+turso = []
+redb = []
+
 [lints]
 workspace = true

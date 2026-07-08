@@ -14,7 +14,10 @@ use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskContext,
     TaskOutcome, TaskType,
 };
-use do_memory_test_utils::{in_memory_redb_storage, temp_local_storage};
+#[cfg(feature = "turso")]
+use do_memory_test_utils::temp_local_storage;
+#[cfg(feature = "redb")]
+use do_memory_test_utils::in_memory_redb_storage;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -112,6 +115,7 @@ impl StorageBackend for FailingStorage {
     }
 }
 
+#[cfg(feature = "redb")]
 #[tokio::test]
 async fn test_recovery_turso_unavailable_on_read() {
     let (redb, _redb_dir) = in_memory_redb_storage().await;
@@ -146,6 +150,7 @@ async fn test_recovery_turso_unavailable_on_read() {
     assert_eq!(retrieved.task_description, "Cached episode");
 }
 
+#[cfg(all(feature = "turso", feature = "redb"))]
 #[tokio::test]
 async fn test_reconciliation_stale_cache() {
     let (turso, _turso_dir) = temp_local_storage().await;
@@ -201,6 +206,7 @@ async fn test_reconciliation_stale_cache() {
     assert_eq!(cached.unwrap().episode_id, episode_id);
 }
 
+#[cfg(feature = "redb")]
 #[tokio::test]
 async fn test_recovery_turso_failure_on_write_does_not_block() {
     let (redb, _redb_dir) = in_memory_redb_storage().await;

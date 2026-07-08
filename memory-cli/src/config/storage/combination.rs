@@ -26,9 +26,18 @@ pub(super) async fn determine_storage_combination(
         (Some(turso), None) => {
             #[cfg(feature = "redb")]
             {
-                let temp_redb =
-                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
-                        .await?;
+                // Use a proper temporary file for the ephemeral redb cache.
+                // Note: `:memory:` is NOT a special path for redb (unlike SQLite);
+                // it would create a literal file named `:memory:` in the current
+                // working directory. Using tempfile ensures proper cleanup.
+                let temp_dir = tempfile::tempdir().map_err(|e| {
+                    anyhow::anyhow!("Failed to create temp dir for redb cache: {}", e)
+                })?;
+                let temp_path = temp_dir.path().join("cache.redb");
+                let temp_redb = do_memory_storage_redb::RedbStorage::new(&temp_path).await?;
+                // Leak the temp dir so the file isn't deleted while in use.
+                // The process will clean up on exit.
+                std::mem::forget(temp_dir);
                 let memory =
                     SelfLearningMemory::with_storage(memory_config, turso, Arc::new(temp_redb));
                 (StorageType::Turso, StorageType::Memory, memory)
@@ -142,8 +151,11 @@ async fn create_fallback_with_redb(
     turso_storage: do_memory_storage_turso::TursoStorage,
     memory_config: MemoryConfig,
 ) -> Result<(StorageType, StorageType, SelfLearningMemory)> {
-    let temp_redb =
-        do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?;
+    let temp_dir = tempfile::tempdir()
+        .map_err(|e| anyhow::anyhow!("Failed to create temp dir for redb cache: {}", e))?;
+    let temp_path = temp_dir.path().join("cache.redb");
+    let temp_redb = do_memory_storage_redb::RedbStorage::new(&temp_path).await?;
+    std::mem::forget(temp_dir);
     let memory = SelfLearningMemory::with_storage(
         memory_config,
         Arc::new(turso_storage),
@@ -179,16 +191,18 @@ async fn try_setup_fallback_storage(
                         #[cfg(not(feature = "redb"))]
                         {
                             let turso_arc = Arc::new(turso_storage);
+                            let temp_dir = tempfile::tempdir().map_err(|e| {
+                                anyhow::anyhow!("Failed to create temp dir for redb cache: {}", e)
+                            })?;
+                            let temp_path = temp_dir.path().join("cache.redb");
                             let memory = SelfLearningMemory::with_storage(
                                 memory_config,
                                 turso_arc,
                                 Arc::new(
-                                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(
-                                        ":memory:",
-                                    ))
-                                    .await?,
+                                    do_memory_storage_redb::RedbStorage::new(&temp_path).await?,
                                 ),
                             );
+                            std::mem::forget(temp_dir);
                             Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
                         }
                     }

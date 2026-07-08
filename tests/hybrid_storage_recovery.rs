@@ -15,10 +15,10 @@ use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, TaskContext,
     TaskOutcome, TaskType,
 };
-#[cfg(feature = "turso")]
-use do_memory_test_utils::temp_local_storage;
 #[cfg(feature = "redb")]
 use do_memory_test_utils::in_memory_redb_storage;
+#[cfg(feature = "turso")]
+use do_memory_test_utils::temp_local_storage;
 use std::sync::Arc;
 use uuid::Uuid;
 

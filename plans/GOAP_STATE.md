@@ -1,11 +1,40 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-02 (PR remediation campaign complete; all 7 PRs merged; 0 open PRs; v0.1.33 release still pending)
+- **Last Updated**: 2026-07-08 (PR #769 remediation; merge conflict resolved, CI fixes applied; PR #774 closed as superseded)
 - **Version**: `0.1.33` (workspace — **no git tag exists**; ~100 unreleased commits per #674)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+
+---
+
+## PR Remediation — 2026-07-08
+
+**Task**: Resolve open PRs #769, #774, #775.
+
+**Current Status**:
+| PR | Title | Status | Action |
+|----|-------|--------|--------|
+| **#775** | feat(retrieval): add ANN-backed semantic episode retrieval | ✅ MERGEABLE, CI green | Ready to merge (macOS pending) |
+| **#774** | Add ANN-backed semantic episode retrieval components | ❌ CLOSED | Superseded by #775 |
+| **#769** | Add Turso + redb hybrid storage integration tests | 🔧 FIXED | Merge conflict resolved, CI workflow fixed, review comments addressed |
+
+### PR #769 Changes
+- Resolved merge conflict in `memory-core/src/types/structs.rs` (RewardScore doc comment conflict from `feat(reward): implement statistical normalization and temporal decay`)
+- Fixed CI workflow: replaced `--all-features` with explicit `--features turso,redb` in hybrid storage-matrix mode
+- Review feedback: typo already fixed, `assert_episode_parity` already compares values, TempDir warning documented, reconciliation confirmed
+- Local verification: `cargo check` ✅, `cargo fmt` ✅, `cargo clippy` ✅, 22 hybrid tests pass
+
+### PR #774
+- Closed as superseded by #775 (same feature: ANN-backed semantic retrieval)
+- #774 had 305 additions, CI failing (Quick PR Check, Semver Check)
+- #775 has 1503 additions, CI green (all checks passing)
+
+### Next Actions
+- Merge #775 once macOS + benchmarks complete
+- Merge #769 once CI re-runs green
+- WG-175: Cut v0.1.33 release (urgent — additional commits accumulated)
 
 ---
 

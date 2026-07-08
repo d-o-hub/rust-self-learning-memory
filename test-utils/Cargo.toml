@@ -12,7 +12,7 @@ documentation = "https://docs.rs/do-memory-test-utils"
 [dependencies]
 do-memory-core = { path = "../memory-core" }
 do-memory-storage-turso = { path = "../memory-storage-turso", optional = true }
-# do-memory-storage-redb = { path = "../memory-storage-redb" }  # Temporarily disabled
+do-memory-storage-redb = { path = "../memory-storage-redb", optional = true }
 
 serde_json = { workspace = true }
 uuid = { workspace = true }
@@ -26,7 +26,8 @@ tracing = { workspace = true }
 [features]
 default = []
 turso = ["dep:do-memory-storage-turso", "dep:rand", "dep:rand_chacha"]
-full = ["turso"]
+redb = ["dep:do-memory-storage-redb"]
+full = ["turso", "redb"]
 
 # Inherit workspace lints
 

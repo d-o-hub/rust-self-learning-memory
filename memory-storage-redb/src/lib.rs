@@ -328,3 +328,10 @@ impl RedbStorage {
 
 #[cfg(test)]
 mod tests;
+
+impl RedbStorage {
+    /// Initialize the database schema and tables.
+    pub async fn initialize_schema(&self) -> Result<()> {
+        self.initialize_tables().await
+    }
+}

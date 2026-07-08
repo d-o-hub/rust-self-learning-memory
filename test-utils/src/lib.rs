@@ -23,7 +23,7 @@
 //! - Helper functions
 
 use do_memory_core::*;
-#[cfg(feature = "turso")]
+#[cfg(any(feature = "turso", feature = "redb"))]
 use tempfile::{TempDir, tempdir};
 use uuid::Uuid;
 
@@ -199,6 +199,92 @@ pub async fn temp_local_storage() -> (do_memory_storage_turso::TursoStorage, Tem
         .await
         .expect("Failed to create local storage");
     (storage, dir)
+}
+
+/// Create a temporary local redb storage instance for testing
+#[cfg(feature = "redb")]
+pub async fn in_memory_redb_storage() -> (do_memory_storage_redb::RedbStorage, TempDir) {
+    let dir = tempdir().expect("Failed to create temp dir");
+    let path = dir.path().join("test_memory.redb");
+    let storage = do_memory_storage_redb::RedbStorage::new(&path)
+        .await
+        .expect("Failed to create redb storage");
+    (storage, dir)
+}
+
+/// Create a SelfLearningMemory with hybrid Turso and redb storage backends
+///
+/// # Warning
+///
+/// The returned `TempDir` instances MUST be kept alive for the duration of the test.
+/// Dropping them will delete the underlying storage files, causing subsequent
+/// operations to fail.
+#[cfg(all(feature = "turso", feature = "redb"))]
+pub async fn hybrid_memory() -> (do_memory_core::memory::SelfLearningMemory, TempDir, TempDir) {
+    let (turso, turso_dir) = temp_local_storage().await;
+    let (redb, redb_dir) = in_memory_redb_storage().await;
+
+    turso
+        .initialize_schema()
+        .await
+        .expect("Initialize Turso schema");
+    redb.initialize_schema()
+        .await
+        .expect("Initialize redb schema");
+
+    // Set thresholds to 0.0 to ensure all episodes are accepted regardless of quality
+    // for storage consistency and parity tests.
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
+
+    let memory = do_memory_core::memory::SelfLearningMemory::with_storage(
+        config,
+        std::sync::Arc::new(turso),
+        std::sync::Arc::new(redb),
+    );
+
+    (memory, turso_dir, redb_dir)
+}
+
+/// Assert that two episodes are identical for the purposes of storage parity
+pub fn assert_episode_parity(a: &Episode, b: &Episode) {
+    assert_eq!(a.episode_id, b.episode_id, "Episode ID mismatch");
+    assert_eq!(
+        a.task_description, b.task_description,
+        "Task description mismatch"
+    );
+    assert_eq!(a.task_type, b.task_type, "Task type mismatch");
+    assert_eq!(a.steps.len(), b.steps.len(), "Steps count mismatch");
+
+    for (i, (s_a, s_b)) in a.steps.iter().zip(b.steps.iter()).enumerate() {
+        assert_eq!(
+            s_a.step_number, s_b.step_number,
+            "Step {} number mismatch",
+            i
+        );
+        assert_eq!(s_a.tool, s_b.tool, "Step {} tool mismatch", i);
+    }
+
+    assert_eq!(
+        a.reward.is_some(),
+        b.reward.is_some(),
+        "Reward presence mismatch"
+    );
+    if let (Some(r_a), Some(r_b)) = (&a.reward, &b.reward) {
+        assert_eq!(r_a, r_b, "Reward value mismatch");
+    }
+
+    assert_eq!(
+        a.reflection.is_some(),
+        b.reflection.is_some(),
+        "Reflection presence mismatch"
+    );
+    if let (Some(r_a), Some(r_b)) = (&a.reflection, &b.reflection) {
+        assert_eq!(r_a, r_b, "Reflection value mismatch");
+    }
 }
 
 // Re-export multi-dimension test utilities

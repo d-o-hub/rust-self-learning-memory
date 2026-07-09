@@ -1,22 +1,51 @@
-name: Mutation Testing
+name: "Mutation Testing"
 
-# Mutation testing validates test suite effectiveness by injecting faults
-# and checking if tests fail. This is a targeted workspace signal.
+# Mutation testing for core learning and retrieval logic.
+# Validates that tests catch injected faults in the most critical modules:
+#   - reward scoring (learning signal quality)
+#   - retrieval (memory recall correctness)
+#   - retry (resilience logic)
+#   - patterns (pattern extraction accuracy)
+#
+# Threshold Strategy (Issue #747):
+#   Phase 1 (current): Informational only (continue-on-error: true)
+#     - Establish baseline mutation scores per module
+#     - Track trends via artifact history
+#   Phase 2 (future): Enforce minimum mutation score (60%)
+#     - Fail CI if mutation score drops below threshold
+#     - Ratchet up threshold as test quality improves
+#   Phase 3 (target): 80%+ mutation kill rate for critical modules
+#
+# See: https://github.com/d-o-hub/rust-self-learning-memory/issues/747
 
 on:
   schedule:
-    # Run at 3 AM UTC every day (staggered after nightly tests)
-    - cron: '0 3 * * *'
+    # Weekly: Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
   workflow_dispatch:
     inputs:
+      timeout:
+        description: 'Per-mutant timeout in seconds'
+        required: false
+        default: '300'
       packages:
         description: 'Packages to test (comma separated, e.g. "do-memory-core,do-memory-mcp")'
         required: false
         default: ''
+  push:
+    branches: [main]
+    paths:
+      - 'memory-core/src/reward/**'
+      - 'memory-core/src/retrieval/**'
+      - 'memory-core/src/retry/**'
+      - 'memory-core/src/patterns/**'
 
 permissions:
   contents: read
-  checks: write
+
+concurrency:
+  group: mutation-tests-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   RUST_BACKTRACE: 1
@@ -24,12 +53,12 @@ env:
 
 jobs:
   mutation-testing:
-    name: Mutation Testing
+    name: "Mutation Tests: Core Learning & Retrieval"
     runs-on: ubuntu-latest
-    timeout-minutes: 120 # Scoped to memory-core only; should complete within 2h
+    timeout-minutes: 180
+    continue-on-error: true
     steps:
       - name: Maximize build space
-        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
@@ -46,65 +75,100 @@ jobs:
         uses: ./.github/actions/setup-rust
         with:
           job-name: mutation-testing
-          # Always save cache for mutation testing as it relies heavily on incremental compilation
           save-cache: "true"
 
       - name: Install cargo-mutants
         run: cargo install --locked cargo-mutants
 
       - name: Run mutation testing
-        env:
-          PACKAGES: ${{ github.event.inputs.packages }}
         run: |
+          TIMEOUT="${{ github.event.inputs.timeout || '300' }}"
+          PACKAGES="${{ github.event.inputs.packages }}"
+
+          echo "=== Mutation Testing: Core Learning & Retrieval ==="
+          echo "Timeout per mutant: ${TIMEOUT}s"
+          echo ""
+
           if [ -n "$PACKAGES" ]; then
+            # Custom package list from workflow_dispatch
             IFS=',' read -ra PKGS <<< "$PACKAGES"
             ARGS=""
             for pkg in "${PKGS[@]}"; do
-              ARGS="$ARGS --package $pkg"
+              ARGS="$ARGS --package $(echo "$pkg" | xargs)"
             done
-            echo "Running mutation testing for packages: $PACKAGES"
-            cargo mutants $ARGS
+            echo "Custom targets: $PACKAGES"
+            cargo mutants $ARGS --timeout "$TIMEOUT" --output mutants.out -- --lib
           else
-            # Default to targeted workspace coverage as defined in Cargo.toml metadata
-            # or explicitly list the primary packages if metadata is not yet fully parsed by the tool
-            echo "Running mutation testing for workspace (targeted packages)"
-            cargo mutants --package do-memory-core
+            # Default: focused on high-value modules per issue #747
+            echo "Target modules: reward, retrieval, retry, patterns"
+            cargo mutants \
+              --package do-memory-core \
+              --timeout "$TIMEOUT" \
+              --file 'src/reward/**/*.rs' \
+              --file 'src/retrieval/**/*.rs' \
+              --file 'src/retry/**/*.rs' \
+              --file 'src/patterns/**/*.rs' \
+              --output mutants.out \
+              -- --lib
           fi
-        continue-on-error: true # Informational - do not block CI
+        continue-on-error: true
 
-      - name: Generate Summary
+      - name: Generate mutation summary
         if: always()
         run: |
-          if [ -d "mutants.out" ]; then
-            echo "### Mutation Testing Summary" > mutants.out/summary.md
-            if [ -f "mutants.out/mutants.json" ]; then
-              # Basic extraction of stats if jq is available
-              if command -v jq > /dev/null; then
-                KILLED=$(jq '[.mutants[] | select(.outcome == "Killed")] | length' mutants.out/mutants.json)
-                SURVIVED=$(jq '[.mutants[] | select(.outcome == "Survived")] | length' mutants.out/mutants.json)
-                TIMEOUTS=$(jq '[.mutants[] | select(.outcome == "Timeout")] | length' mutants.out/mutants.json)
-                TOTAL=$(jq '.mutants | length' mutants.out/mutants.json)
-                echo "- **Total Mutants**: $TOTAL" >> mutants.out/summary.md
-                echo "- **Killed**: $KILLED" >> mutants.out/summary.md
-                echo "- **Survived**: $SURVIVED" >> mutants.out/summary.md
-                echo "- **Timeouts**: $TIMEOUTS" >> mutants.out/summary.md
-                if [ "$TOTAL" -gt 0 ]; then
-                  SCORE=$(echo "scale=2; $KILLED * 100 / $TOTAL" | bc)
-                  echo "- **Mutation Score**: $SCORE%" >> mutants.out/summary.md
-                fi
-              else
-                echo "Stats extraction requires jq" >> mutants.out/summary.md
-              fi
-            else
-              echo "mutants.json not found" >> mutants.out/summary.md
-            fi
-            cat mutants.out/summary.md >> $GITHUB_STEP_SUMMARY
+          if [ ! -d "mutants.out" ]; then
+            echo "No mutants.out directory found — mutation testing may have failed to start."
+            echo "### ⚠️ Mutation Testing: No Results" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
 
+          SUMMARY="mutants.out/summary.md"
+          echo "### 🧬 Mutation Testing Summary" > "$SUMMARY"
+          echo "" >> "$SUMMARY"
+          echo "**Modules tested:** reward, retrieval, retry, patterns" >> "$SUMMARY"
+          echo "**Package:** do-memory-core" >> "$SUMMARY"
+          echo "" >> "$SUMMARY"
+
+          if [ -f "mutants.out/mutants.json" ]; then
+            KILLED=$(jq '[.outcomes[] | select(.scenario != "Baseline") | select(.summary == "CaughtMutant")] | length' mutants.out/mutants.json 2>/dev/null || echo "0")
+            SURVIVED=$(jq '[.outcomes[] | select(.scenario != "Baseline") | select(.summary == "MissedMutant")] | length' mutants.out/mutants.json 2>/dev/null || echo "0")
+            TIMEOUTS=$(jq '[.outcomes[] | select(.scenario != "Baseline") | select(.summary == "Timeout")] | length' mutants.out/mutants.json 2>/dev/null || echo "0")
+            UNVIABLE=$(jq '[.outcomes[] | select(.scenario != "Baseline") | select(.summary == "Unviable")] | length' mutants.out/mutants.json 2>/dev/null || echo "0")
+            TOTAL=$((KILLED + SURVIVED + TIMEOUTS + UNVIABLE))
+
+            echo "| Metric | Count |" >> "$SUMMARY"
+            echo "|--------|-------|" >> "$SUMMARY"
+            echo "| Total Mutants | $TOTAL |" >> "$SUMMARY"
+            echo "| ✅ Killed (caught by tests) | $KILLED |" >> "$SUMMARY"
+            echo "| ❌ Survived (missed by tests) | $SURVIVED |" >> "$SUMMARY"
+            echo "| ⏱️ Timeouts | $TIMEOUTS |" >> "$SUMMARY"
+            echo "| 🚫 Unviable | $UNVIABLE |" >> "$SUMMARY"
+            echo "" >> "$SUMMARY"
+
+            if [ "$TOTAL" -gt 0 ]; then
+              TESTABLE=$((KILLED + SURVIVED))
+              if [ "$TESTABLE" -gt 0 ]; then
+                SCORE=$(echo "scale=1; $KILLED * 100 / $TESTABLE" | bc)
+                echo "**Mutation Score: ${SCORE}%** (killed / testable)" >> "$SUMMARY"
+              else
+                echo "**Mutation Score: N/A** (no testable mutants)" >> "$SUMMARY"
+              fi
+            fi
+
+            echo "" >> "$SUMMARY"
+            echo "---" >> "$SUMMARY"
+            echo "*Phase 1 (informational). Future: enforce 60% min → 80% target.*" >> "$SUMMARY"
+          else
+            echo "⚠️ mutants.json not found — results may be incomplete." >> "$SUMMARY"
+          fi
+
+          cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload mutation report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
-          name: mutation-report
+          name: mutation-tests-core-learning
           path: mutants.out/
-          retention-days: 14
+          retention-days: 30
+          if-no-files-found: warn

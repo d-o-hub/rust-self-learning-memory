@@ -29,24 +29,27 @@ impl TursoStorage {
         let metadata_json = serde_json::to_string(&metadata.custom_fields)
             .map_err(|e| do_memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
 
-        self.execute_with_retry(
-            &conn,
-            &format!(
-                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {})",
-                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at)",
-                relationship_id,
-                from_episode_id,
-                to_episode_id,
+        const SQL: &str = "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        conn.execute(
+            SQL,
+            libsql::params![
+                relationship_id.to_string(),
+                from_episode_id.to_string(),
+                to_episode_id.to_string(),
                 relationship_type.as_str(),
-                metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
-                metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
-                metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
-                metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
-                metadata_json.replace('\'', "''"),
+                metadata.reason,
+                metadata.created_by,
+                metadata.priority,
+                metadata.weight,
+                metadata_json,
                 created_at
-            ),
+            ],
         )
-        .await?;
+        .await
+        .map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to add relationship: {}", e))
+        })?;
 
         debug!(
             "Added relationship {} from {} to {} (type: {:?})",
@@ -66,24 +69,27 @@ impl TursoStorage {
         let metadata_json = serde_json::to_string(&relationship.metadata.custom_fields)
             .map_err(|e| do_memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
 
-        self.execute_with_retry(
-            &conn,
-            &format!(
-                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {})",
-                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at)",
-                relationship.id,
-                relationship.from_episode_id,
-                relationship.to_episode_id,
+        const SQL: &str = "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, weight, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        conn.execute(
+            SQL,
+            libsql::params![
+                relationship.id.to_string(),
+                relationship.from_episode_id.to_string(),
+                relationship.to_episode_id.to_string(),
                 relationship.relationship_type.as_str(),
-                relationship.metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
-                relationship.metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
-                relationship.metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
-                relationship.metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
-                metadata_json.replace('\'', "''"),
+                relationship.metadata.reason.clone(),
+                relationship.metadata.created_by.clone(),
+                relationship.metadata.priority,
+                relationship.metadata.weight,
+                metadata_json,
                 created_at
-            ),
+            ],
         )
-        .await?;
+        .await
+        .map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to store relationship: {}", e))
+        })?;
 
         debug!(
             "Stored relationship {} from {} to {} (type: {:?})",
@@ -100,12 +106,13 @@ impl TursoStorage {
     pub async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
         let conn = self.get_connection().await?;
 
-        let sql = format!(
-            "DELETE FROM episode_relationships WHERE relationship_id = '{}'",
-            relationship_id
-        );
+        const SQL: &str = "DELETE FROM episode_relationships WHERE relationship_id = ?";
 
-        self.execute_with_retry(&conn, &sql).await?;
+        conn.execute(SQL, libsql::params![relationship_id.to_string()])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to remove relationship: {}", e))
+            })?;
 
         debug!("Removed relationship {}", relationship_id);
         Ok(())
@@ -119,28 +126,33 @@ impl TursoStorage {
     ) -> Result<Vec<EpisodeRelationship>> {
         let conn = self.get_connection().await?;
 
+        let mut params: Vec<libsql::Value> = Vec::new();
         let sql = match direction {
-            Direction::Outgoing => format!(
-                "SELECT * FROM episode_relationships WHERE from_episode_id = '{}'",
-                episode_id
-            ),
-            Direction::Incoming => format!(
-                "SELECT * FROM episode_relationships WHERE to_episode_id = '{}'",
-                episode_id
-            ),
-            Direction::Both => format!(
-                "SELECT * FROM episode_relationships WHERE from_episode_id = '{}' OR to_episode_id = '{}'",
-                episode_id, episode_id
-            ),
+            Direction::Outgoing => {
+                params.push(episode_id.to_string().into());
+                "SELECT * FROM episode_relationships WHERE from_episode_id = ?"
+            }
+            Direction::Incoming => {
+                params.push(episode_id.to_string().into());
+                "SELECT * FROM episode_relationships WHERE to_episode_id = ?"
+            }
+            Direction::Both => {
+                params.push(episode_id.to_string().into());
+                params.push(episode_id.to_string().into());
+                "SELECT * FROM episode_relationships WHERE from_episode_id = ? OR to_episode_id = ?"
+            }
         };
 
-        let stmt = conn.prepare(&sql).await.map_err(|e| {
+        let stmt = conn.prepare(sql).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
 
-        let mut rows = stmt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows = stmt
+            .query(libsql::params_from_iter(params))
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
 
         let mut relationships = Vec::new();
 
@@ -172,32 +184,36 @@ impl TursoStorage {
     ) -> Result<Vec<EpisodeRelationship>> {
         let conn = self.get_connection().await?;
 
+        let mut params: Vec<libsql::Value> = Vec::new();
         let sql = match direction {
-            Direction::Outgoing => format!(
-                "SELECT * FROM episode_relationships WHERE from_episode_id = '{}' AND relationship_type = '{}'",
-                episode_id,
-                relationship_type.as_str()
-            ),
-            Direction::Incoming => format!(
-                "SELECT * FROM episode_relationships WHERE to_episode_id = '{}' AND relationship_type = '{}'",
-                episode_id,
-                relationship_type.as_str()
-            ),
-            Direction::Both => format!(
-                "SELECT * FROM episode_relationships WHERE (from_episode_id = '{}' OR to_episode_id = '{}') AND relationship_type = '{}'",
-                episode_id,
-                episode_id,
-                relationship_type.as_str()
-            ),
+            Direction::Outgoing => {
+                params.push(episode_id.to_string().into());
+                params.push(relationship_type.as_str().into());
+                "SELECT * FROM episode_relationships WHERE from_episode_id = ? AND relationship_type = ?"
+            }
+            Direction::Incoming => {
+                params.push(episode_id.to_string().into());
+                params.push(relationship_type.as_str().into());
+                "SELECT * FROM episode_relationships WHERE to_episode_id = ? AND relationship_type = ?"
+            }
+            Direction::Both => {
+                params.push(episode_id.to_string().into());
+                params.push(episode_id.to_string().into());
+                params.push(relationship_type.as_str().into());
+                "SELECT * FROM episode_relationships WHERE (from_episode_id = ? OR to_episode_id = ?) AND relationship_type = ?"
+            }
         };
 
-        let stmt = conn.prepare(&sql).await.map_err(|e| {
+        let stmt = conn.prepare(sql).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
 
-        let mut rows = stmt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows = stmt
+            .query(libsql::params_from_iter(params))
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
 
         let mut relationships = Vec::new();
 
@@ -222,20 +238,22 @@ impl TursoStorage {
     ) -> Result<bool> {
         let conn = self.get_connection().await?;
 
-        let sql = format!(
-            "SELECT COUNT(*) as count FROM episode_relationships WHERE from_episode_id = '{}' AND to_episode_id = '{}' AND relationship_type = '{}'",
-            from_episode_id,
-            to_episode_id,
-            relationship_type.as_str()
-        );
+        const SQL: &str = "SELECT COUNT(*) as count FROM episode_relationships WHERE from_episode_id = ? AND to_episode_id = ? AND relationship_type = ?";
 
-        let stmt = conn.prepare(&sql).await.map_err(|e| {
+        let stmt = conn.prepare(SQL).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
 
-        let mut rows = stmt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows = stmt
+            .query(libsql::params![
+                from_episode_id.to_string(),
+                to_episode_id.to_string(),
+                relationship_type.as_str()
+            ])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
 
         if let Some(row) = rows
             .next()
@@ -312,16 +330,17 @@ impl TursoStorage {
         relationship_id: Uuid,
     ) -> Result<Option<EpisodeRelationship>> {
         let conn = self.get_connection().await?;
-        let sql = format!(
-            "SELECT * FROM episode_relationships WHERE relationship_id = '{}'",
-            relationship_id
-        );
-        let stmt = conn.prepare(&sql).await.map_err(|e| {
+        const SQL: &str = "SELECT * FROM episode_relationships WHERE relationship_id = ?";
+
+        let stmt = conn.prepare(SQL).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
-        let mut rows = stmt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows = stmt
+            .query(libsql::params![relationship_id.to_string()])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
         if let Some(row) = rows
             .next()
             .await
@@ -344,20 +363,27 @@ impl TursoStorage {
         let metadata_json = serde_json::to_string(&relationship.metadata.custom_fields)
             .map_err(|e| do_memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
 
-        self.execute_with_retry(
-            &conn,
-            &format!(
-                "INSERT INTO episode_pattern_relationships (relationship_id, episode_id, pattern_id, relationship_type, weight, metadata, created_at) VALUES ('{}', '{}', '{}', '{}', {}, '{}', {})",
-                relationship.id,
-                relationship.episode_id,
-                relationship.pattern_id,
+        const SQL: &str = "INSERT INTO episode_pattern_relationships (relationship_id, episode_id, pattern_id, relationship_type, weight, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        conn.execute(
+            SQL,
+            libsql::params![
+                relationship.id.to_string(),
+                relationship.episode_id.to_string(),
+                relationship.pattern_id.to_string(),
                 relationship.relationship_type.as_str(),
-                relationship.metadata.weight.map(|w| w.to_string()).unwrap_or_else(|| "NULL".to_string()),
-                metadata_json.replace('\'', "''"),
+                relationship.metadata.weight,
+                metadata_json,
                 created_at
-            ),
+            ],
         )
-        .await?;
+        .await
+        .map_err(|e| {
+            do_memory_core::Error::Storage(format!(
+                "Failed to store episode-pattern relationship: {}",
+                e
+            ))
+        })?;
 
         debug!(
             "Stored episode-pattern relationship {} from episode {} to pattern {} (type: {:?})",
@@ -377,18 +403,18 @@ impl TursoStorage {
     ) -> Result<Vec<EpisodePatternRelationship>> {
         let conn = self.get_connection().await?;
 
-        let sql = format!(
-            "SELECT * FROM episode_pattern_relationships WHERE episode_id = '{}'",
-            episode_id
-        );
+        const SQL: &str = "SELECT * FROM episode_pattern_relationships WHERE episode_id = ?";
 
-        let stmt = conn.prepare(&sql).await.map_err(|e| {
+        let stmt = conn.prepare(SQL).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
 
-        let mut rows = stmt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows = stmt
+            .query(libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
 
         let mut relationships = Vec::new();
 
@@ -410,16 +436,17 @@ impl TursoStorage {
         let mut neighbors = Vec::new();
 
         // 1. Get episode neighbors
-        let sql_ep = format!(
-            "SELECT to_episode_id, weight FROM episode_relationships WHERE from_episode_id = '{}'",
-            episode_id
-        );
-        let stmt_ep = conn.prepare(&sql_ep).await.map_err(|e| {
+        const SQL_EP: &str =
+            "SELECT to_episode_id, weight FROM episode_relationships WHERE from_episode_id = ?";
+        let stmt_ep = conn.prepare(SQL_EP).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
-        let mut rows_ep = stmt_ep.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows_ep = stmt_ep
+            .query(libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
         while let Some(row) = rows_ep
             .next()
             .await
@@ -432,16 +459,17 @@ impl TursoStorage {
         }
 
         // 2. Get pattern neighbors
-        let sql_pt = format!(
-            "SELECT pattern_id, weight FROM episode_pattern_relationships WHERE episode_id = '{}'",
-            episode_id
-        );
-        let stmt_pt = conn.prepare(&sql_pt).await.map_err(|e| {
+        const SQL_PT: &str =
+            "SELECT pattern_id, weight FROM episode_pattern_relationships WHERE episode_id = ?";
+        let stmt_pt = conn.prepare(SQL_PT).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to prepare query: {}", e))
         })?;
-        let mut rows_pt = stmt_pt.query(()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
-        })?;
+        let mut rows_pt = stmt_pt
+            .query(libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to execute query: {}", e))
+            })?;
         while let Some(row) = rows_pt
             .next()
             .await

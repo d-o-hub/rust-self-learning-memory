@@ -19,8 +19,12 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 
 /// Calculate edit distance (Levenshtein) between two sequences
 ///
-/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// Optimization:
+/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
+/// 3. Ensures the shorter sequence is used for buffer sizing.
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
+    // Ensure s1 is the shorter sequence for O(min(N, M)) space
     let (s1, s2) = if seq1.len() < seq2.len() {
         (seq1, seq2)
     } else {
@@ -30,6 +34,7 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     let len1 = s1.len();
     let len2 = s2.len();
 
+    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
     if len1 == 0 {
         return len2;
     }
@@ -45,7 +50,7 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
                 .min(curr_row[i - 1] + 1)
                 .min(prev_row[i - 1] + cost);
         }
-        prev_row.copy_from_slice(&curr_row);
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
     prev_row[len1]
@@ -71,8 +76,12 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
 
 /// Calculate edit distance for character sequences
 ///
-/// Optimization: Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// Optimization:
+/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
+/// 3. Ensures the shorter sequence is used for buffer sizing.
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
+    // Ensure s1 is the shorter sequence for O(min(N, M)) space
     let (s1, s2) = if chars1.len() < chars2.len() {
         (chars1, chars2)
     } else {
@@ -82,6 +91,7 @@ fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
     let len1 = s1.len();
     let len2 = s2.len();
 
+    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
     if len1 == 0 {
         return len2;
     }
@@ -97,7 +107,7 @@ fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
                 .min(curr_row[i - 1] + 1)
                 .min(prev_row[i - 1] + cost);
         }
-        prev_row.copy_from_slice(&curr_row);
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
     prev_row[len1]

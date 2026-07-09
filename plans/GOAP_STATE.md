@@ -9,36 +9,31 @@
 
 ---
 
-## Issue Implementation Sprint — 2026-07-08
+## Sprint 2026-07-08: PR Batch Merge & Mutation Testing
 
-**Task**: Address critical open issues with dependency-ordered PRs.
+**Task**: Merge 5 open PRs, implement mutation testing (#747), update skills canonical path
 
-**Dependency Graph**:
-```
-#773 (bug: local storage) ──→ #770 (crates.io publish)
-#771 (docs: build deps)   ──→ (standalone)
-#772 (CI improvements)    ──→ #770 (crates.io publish)
-#784 (release)            ──→ #770 (crates.io publish)
-```
+**PRs Merged** (auto-merge enabled):
+| PR | Title | Fixes |
+|----|-------|-------|
+| #787 | fix(cli): persist episodes in local storage mode | #773 |
+| #788 | docs(readme): add build dependencies section | #771 |
+| #789 | ci(publish): improve crates.io publish pipeline | #772 |
+| #790 | docs(plans): update status for v0.1.34 sprint | - |
+| #791 | docs(agents): add lessons #013-#014 | - |
 
-**PRs Created**:
-| PR | Issue | Branch | Status |
-|----|-------|--------|--------|
-| #787 | #773 | fix/local-storage-persistence-773 | 🟡 Open (CI fix pushed) |
-| #788 | #771 | docs/build-deps-771 | 🟡 Open (CI fix pushed) |
-| #789 | #772 | fix/ci-publish-pipeline-772 | 🟡 Open (CI fix pushed) |
-| #790 | — | docs/plans-update-2026-07-08 | 🟡 Open |
-| #791 | — | docs/agents-lessons-update-2026-07-08 | 🟡 Open |
+**Issues Implemented**:
+- #747: Mutation testing workflow added (non-blocking, weekly schedule)
 
-**CI Fix** (applied to all branches):
-- `tests/hybrid_storage_recovery.rs` had unconditional imports only used in `#[cfg(feature = "redb")]` tests
-- Added `#[cfg(feature = "redb")]` to `Arc`, `async_trait`, `chrono`, `FailingStorage` struct/impl, and all related imports
-- Root cause: CI runs `cargo clippy --tests -- -D warnings` without features, exposing dead code
-
-**Implementation Details**:
-- #787: Fixed redb tempdir usage + parent directory creation for redb cache
-- #788: Added build deps table (Ubuntu, Fedora, Arch, macOS)
-- #789: Polling propagation, --locked, explicit needs chain, step summaries
+**Remaining Open Issues**:
+| # | Title | Priority | Notes |
+|---|-------|----------|-------|
+| #786 | Release drift | High | Cut release after merges |
+| #770 | crates.io availability | Medium | Partially by #789 |
+| #753 | Retry budgets | Backlog | Large feature |
+| #749 | Turso connection pooling | Backlog | Large feature |
+| #746 | WASM build path | Backlog | Large feature |
+| #743 | Storage refactor | Backlog | Large refactor |
 
 ---
 

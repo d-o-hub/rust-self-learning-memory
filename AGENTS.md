@@ -1,5 +1,7 @@
 # Agent Coding Guidelines
 
+**Skills Location**: Skills are at `.agents/skills/` (canonical path).
+
 ## Quick Reference
 - **Build**: `./scripts/build-rust.sh dev|release|check|clean`
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
@@ -169,8 +171,8 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 **Key insight**: GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` only.
 
 **Related skills**:
-- `.claude/skills/github-workflows/SKILL.md` - Workflow patterns and troubleshooting
-- `.claude/skills/ci-fix/SKILL.md` - CI failure diagnosis
+- `.agents/skills/github-workflows/SKILL.md` - Workflow patterns and troubleshooting
+- `.agents/skills/ci-fix/SKILL.md` - CI failure diagnosis
 
 See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 

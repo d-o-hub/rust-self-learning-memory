@@ -8,6 +8,52 @@
 
 ---
 
+## Sprint v0.1.34 — IN PROGRESS (2026-07-08)
+
+**Focus**: Bug fix + CI modernization + release
+**PRs**: #787, #788, #789
+**Issues**: #773, #772, #771, #784, #770
+
+| Priority | Issue | PR | Description | Status |
+|----------|-------|----|-------------|--------|
+| 1 (critical) | #773 | #787 | Fix local storage persistence bug | 🟡 In Review |
+| 2 (easy) | #771 | #788 | Document build dependencies | 🟡 In Review |
+| 3 (enabling) | #772 | #789 | CI publish pipeline: --locked, polling, deps | 🟡 In Review |
+| 4 (release) | #784 | — | Cut v0.1.34 release | ⏳ Blocked on #787 |
+| 5 (publish) | #770 | — | Publish to crates.io | ⏳ Blocked on #789 + release |
+
+**2026 Best Practices Applied**:
+- `cargo publish --locked` for reproducible builds
+- Sparse-index polling (vs sleep) for dependency propagation
+- Trusted Publishing (OIDC) identified for future migration
+- Microsoft CI pattern: check → test → coverage → security → cross → release
+
+---
+
+## Sprint v0.1.33 — COMPLETE ✅ (Released)
+
+**Focus**: Release + CI Health + Quality (WG-175..185)
+**Released**: v0.1.33 tag created
+
+| Phase | WGs | Strategy | Status |
+|-------|-----|----------|--------|
+| P1 — Release | WG-175 | Sequential | ✅ Complete |
+| P2 — CI Health | WG-176..WG-179 | Parallel | ✅ Complete (PR #675, #681) |
+| P3 — Code Quality | WG-180..WG-181 | Parallel | ✅ Complete (PR #675) |
+| P4 — Architecture | WG-182 | Sequential | ✅ Complete (PR #675) |
+| P5 — DevX Backlog | WG-183..WG-184 | Parallel | ✅ WG-183 done |
+| P6 — Code Health | WG-185 | Parallel | ✅ WG-185 done (LOC boundary splits) |
+
+**Completed 2026-06-30 → 2026-07-02**:
+- PR #675: CI health + code quality fixes (WG-176..182)
+- PR #682: Stale advisory cleanup + anyhow update
+- PR #681: GitHub Actions bumps (13 actions to latest)
+- PR #684: Rust patch/minor deps
+- PR #678: sysinfo major bump
+- PR remediation campaign: 7 PRs merged, 0 open
+
+---
+
 ## Sprint v0.1.32 — COMPLETE ✅ (Released 2026-05-24)
 
 All 15 functional work groups (WG-150 through WG-164) are complete.
@@ -44,16 +90,12 @@ v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
 
 ## Current State
 
-`v0.1.32` was released on 2026-05-24. Workspace version is `0.1.33` but **no git tag or GitHub release exists** — ~100 commits unreleased (issue #674).
+`v0.1.33` was released (git tag exists). Workspace version is `0.1.33`. Current sprint is v0.1.34, focused on bug fix (#773), docs (#771), and CI improvements (#772).
 
-**2026-06-30 Progress**:
-- PR #675 merged: WG-176..182 complete (gitleaks, disk cleanup, mutation scoping, upload-artifact, clippy lints, wrapper split, cascade tracing)
-- PR #682 merged: deny.toml stale advisories removed, anyhow updated
-- PR #681 merged: 13 GitHub Actions bumped to latest (Node 24 compatible)
-- PR #684 merged: Rust patch/minor deps updated
-- PR #678: sysinfo major bump (auto-merge pending)
-
-**Remaining**: WG-175 (cut v0.1.33 release), WG-183 (llms.txt), WG-184 (VERSION ADR)
+**2026-07-08 Progress**:
+- PR #787 open: Fix local storage persistence bug (#773)
+- PR #788 open: Document build dependencies (#771)
+- PR #789 open: CI publish pipeline improvements (#772)
 
 **2026-07-08 Progress**:
 - PR #787 merged: fix(cli) persist episodes in local storage mode (fixes #773) ✅

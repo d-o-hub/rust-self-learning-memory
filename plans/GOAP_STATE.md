@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-08 (PR #769 remediation; merge conflict resolved, CI fixes applied; PR #774 closed as superseded)
-- **Version**: `0.1.33` (workspace — **no git tag exists**; ~100 unreleased commits per #674)
+- **Last Updated**: 2026-07-08 (3 PRs created for issues #773, #771, #772; release drift at 30+ commits)
+- **Version**: `0.1.33` (workspace — tag v0.1.33 exists; ~30 commits since release)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`

@@ -84,6 +84,12 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
 - Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.
 
+## LESSON-015: GOAP swarm for PR batch merges with auto-merge
+
+- Issue: 5 PRs with CI still running needed coordinated merge in dependency order
+- Root Cause: Manual sequential merge waiting is wasteful when PRs are independent
+- Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
+- Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
 ## LESSON-013: Local storage mode requires explicit temp directory for redb fallback
 
 - Issue: When `--storage-mode local` was used without configuring `redb_path`, the combination logic created redb with literal `:memory:` path, creating a file named `:memory:` in CWD or failing silently. Episodes appeared to save but weren't persisted across CLI invocations.

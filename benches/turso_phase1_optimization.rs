@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Benchmark for Phase 1 Turso Optimizations
 //!
 //! This benchmark validates the performance improvements from:

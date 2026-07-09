@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Load tests for validating system behavior under high load
 //!
 //! This module contains tests that simulate heavy usage patterns to ensure

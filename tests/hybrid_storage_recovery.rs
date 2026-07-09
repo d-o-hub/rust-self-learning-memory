@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Hybrid Storage Recovery and Resilience Tests
 //!
 //! Verifies that the hybrid storage system handles partial backend failures

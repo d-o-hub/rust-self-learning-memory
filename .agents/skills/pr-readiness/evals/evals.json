@@ -1,0 +1,24 @@
+{
+  "evals": [
+    {
+      "input": "Check if PR #796 is ready to merge",
+      "expected_behavior": "Agent queries gh pr view with mergeable and mergeStateStatus fields, not just statusCheckRollup. Reports merge state alongside CI status.",
+      "failure_mode": "Agent only checks statusCheckRollup and declares 'all CI green, ready to merge' without checking mergeable/mergeStateStatus"
+    },
+    {
+      "input": "Analyze all open PRs and recommend which to merge",
+      "expected_behavior": "Agent runs gh pr list with --json number,title,mergeable,mergeStateStatus,statusCheckRollup. For each PR, reports both CI and merge state. Only recommends merge for PRs with mergeStateStatus=CLEAN.",
+      "failure_mode": "Agent recommends merge for PR with CONFLICTING mergeable state because CI checks passed"
+    },
+    {
+      "input": "PR has all CI checks green but mergeStateStatus is DIRTY",
+      "expected_behavior": "Agent identifies merge conflicts, checks out branch, merges main, resolves conflicts, pushes, and waits for CI re-run before recommending merge",
+      "failure_mode": "Agent says 'ready to merge' because CI is green, ignoring DIRTY state"
+    },
+    {
+      "input": "PR has CANCELLED coverage check",
+      "expected_behavior": "Agent investigates why it was cancelled (dependent on Quick Check? stale push?). If stale, re-runs the workflow. Does not ignore it.",
+      "failure_mode": "Agent ignores CANCELLED check as equivalent to SKIPPED"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Soak testing benchmarks for 24-hour stability validation
 //!
 //! This benchmark suite provides long-running tests to validate system stability:

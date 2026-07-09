@@ -7,6 +7,7 @@
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
 - **Quality Gates**: `./scripts/quality-gates.sh`
+- **PR Readiness**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 
 Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
@@ -102,6 +103,57 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 ## Git Workflow
 - **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
 - See `agent_docs/git_workflow.md` for details.
+
+## PR Health Check (MANDATORY before recommending merge)
+
+**Skill**: `.agents/skills/pr-readiness/SKILL.md`
+
+When analyzing open PRs or recommending merge, you MUST check ALL of the following — not just CI status:
+
+### Step 1: Full PR State Query
+```bash
+gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup
+```
+
+### Step 2: Interpret Merge State (CRITICAL)
+| `mergeStateStatus` | `mergeable` | Meaning | Action Required |
+|--------------------|-------------|---------|-----------------|
+| `CLEAN` | `MERGEABLE` | Ready to merge | ✅ None |
+| `BEHIND` | `MERGEABLE` | Branch behind main, no conflicts | Update branch: `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT` |
+| `BLOCKED` | `MERGEABLE` | Required checks still pending | Wait for CI to complete |
+| `UNSTABLE` | `MERGEABLE` | Non-required checks failing | Check if failures are pre-existing/non-blocking |
+| `DIRTY` | `CONFLICTING` | **Merge conflicts** | Checkout branch, merge main, resolve conflicts, push |
+| `HAS_HOOKS` | varies | Pre-receive hooks blocking | Investigate hook failures |
+
+### Step 3: CI Check Interpretation
+- **`SUCCESS`** → ✅ Pass
+- **`SKIPPED`** → ✅ Expected (e.g., Release workflow on PRs)
+- **`CANCELLED`** → ⚠️ Investigate: may be dependent on a failed/cancelled prerequisite. Re-run if stale.
+- **`FAILURE`** → ❌ Must fix before merge
+- **`pending`** → ⏳ Wait for completion (do NOT recommend merge while pending)
+
+### Step 4: Fix Everything
+A PR is NOT ready to merge unless ALL of:
+1. `mergeable` = `MERGEABLE` (no conflicts)
+2. `mergeStateStatus` = `CLEAN` (not BEHIND, DIRTY, BLOCKED, or UNSTABLE)
+3. All **required** checks = `SUCCESS`
+4. No `CANCELLED` checks that should have run (re-trigger if needed)
+5. No pre-existing failures inherited from base branch
+
+### Step 5: Fix Procedures
+| Problem | Fix |
+|---------|-----|
+| Branch behind (`BEHIND`) | `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge` |
+| Merge conflicts (`DIRTY`/`CONFLICTING`) | `gh pr checkout {n}` → `git merge origin/main` → resolve → `git push` |
+| Cancelled CI | Re-run: `gh run rerun {run_id}` or push empty commit to re-trigger |
+| Failed check | Diagnose with `gh run view {run_id} --log-failed`, fix code, push |
+
+### Common Mistake (NEVER DO THIS)
+❌ "CI is green, ready to merge" — **WRONG** if `mergeStateStatus` ≠ `CLEAN`
+✅ "CI is green, merge state is CLEAN, ready to merge" — **CORRECT**
+
+CI checks run against the branch HEAD, not against the merge result. A PR can have green CI but be unmergeable due to conflicts with main.
+
 Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
 
 ## CSM Integration

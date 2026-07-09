@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Rate limiter soak test
 //!
 //! Tests for validating rate limiter functionality under sustained and burst load.

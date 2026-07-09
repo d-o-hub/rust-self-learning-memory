@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Hybrid Storage Consistency Tests
 //!
 //! Verifies that data is consistently mirrored across Turso and redb backends

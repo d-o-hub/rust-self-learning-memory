@@ -211,7 +211,7 @@ async fn main() -> anyhow::Result<()> {
         "Implement user authentication API"
     );
     assert!(episode.outcome.is_some());
-    assert!(episode.steps.len() == 3);
+    assert_eq!(episode.steps.len(), 3);
     println!("       ✅ Episode content verified (description, outcome, steps)");
 
     // Test pattern extraction

@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Memory System Storage Verification
 //!
 //! This program verifies that the memory-core system correctly stores and retrieves

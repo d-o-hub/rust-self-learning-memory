@@ -63,7 +63,7 @@ impl KeepAlivePool {
         let mut pinged = 0;
 
         let last_used_map = self.last_used.read();
-        for (_conn_id, last_used) in last_used_map.iter() {
+        for last_used in last_used_map.values() {
             let elapsed = now.duration_since(*last_used);
 
             if elapsed > self.config().keep_alive_interval {

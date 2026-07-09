@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Load testing benchmarks for the self-learning memory system
 //!
 //! This benchmark suite measures system performance under various load conditions:

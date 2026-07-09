@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep, ExecutionResult};
 use std::collections::HashMap;
 

@@ -211,7 +211,7 @@ mod turso_utils {
             similarity: f32,
             count: usize,
         ) -> Vec<Vec<f32>> {
-            assert!(base_embedding.len() == self.dimension);
+            assert_eq!(base_embedding.len(), self.dimension);
             assert!((0.0..=1.0).contains(&similarity));
 
             (0..count)

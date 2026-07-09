@@ -18,8 +18,27 @@ use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_m
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::hint::black_box;
+use std::time::Duration;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
+
+/// Returns reduced sample size for CI environments (600s wall-clock limit).
+fn ci_sample_size(default: usize) -> usize {
+    if std::env::var("CI").is_ok() {
+        (default / 5).max(3)
+    } else {
+        default
+    }
+}
+
+/// Returns CI-appropriate measurement time.
+fn ci_measurement_time(secs: u64) -> Duration {
+    if std::env::var("CI").is_ok() {
+        Duration::from_secs(5)
+    } else {
+        Duration::from_secs(secs)
+    }
+}
 
 /// Helper to create episode of specific size
 fn create_episode_with_size(size_kb: usize) -> Episode {
@@ -94,6 +113,8 @@ fn setup_storage_without_compression() -> (TursoStorage, tempfile::TempDir) {
 /// Benchmark compression overhead
 fn bench_compression_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("compression_overhead");
+    group.sample_size(ci_sample_size(100));
+    group.measurement_time(ci_measurement_time(30));
 
     for size_kb in [1, 5, 10, 50, 100].iter() {
         let episode = create_episode_with_size(*size_kb);
@@ -141,7 +162,9 @@ fn bench_compression_overhead(c: &mut Criterion) {
 
 /// Benchmark compression ratio for different payload sizes
 fn bench_compression_ratio(c: &mut Criterion) {
-    let group = c.benchmark_group("compression_ratio");
+    let mut group = c.benchmark_group("compression_ratio");
+    group.sample_size(ci_sample_size(100));
+    group.measurement_time(ci_measurement_time(20));
 
     #[cfg(feature = "compression")]
     {
@@ -181,6 +204,8 @@ fn bench_compression_ratio(c: &mut Criterion) {
 /// Benchmark storage operations with/without compression
 fn bench_storage_with_compression(c: &mut Criterion) {
     let mut group = c.benchmark_group("storage_operations");
+    group.sample_size(ci_sample_size(100));
+    group.measurement_time(ci_measurement_time(30));
 
     let rt = Runtime::new().unwrap();
 
@@ -229,7 +254,9 @@ fn bench_storage_with_compression(c: &mut Criterion) {
 
 /// Benchmark decompression performance
 fn bench_decompression(c: &mut Criterion) {
-    let group = c.benchmark_group("decompression");
+    let mut group = c.benchmark_group("decompression");
+    group.sample_size(ci_sample_size(100));
+    group.measurement_time(ci_measurement_time(10));
 
     #[cfg(feature = "compression")]
     {
@@ -257,7 +284,9 @@ fn bench_decompression(c: &mut Criterion) {
 
 /// Benchmark different compression algorithms
 fn bench_compression_algorithms(c: &mut Criterion) {
-    let group = c.benchmark_group("compression_algorithms");
+    let mut group = c.benchmark_group("compression_algorithms");
+    group.sample_size(ci_sample_size(100));
+    group.measurement_time(ci_measurement_time(10));
 
     #[cfg(feature = "compression")]
     {

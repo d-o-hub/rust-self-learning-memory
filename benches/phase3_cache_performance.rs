@@ -23,6 +23,24 @@ use std::time::Duration;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;
 
+/// Returns reduced sample size for CI environments (600s wall-clock limit).
+fn ci_sample_size(default: usize) -> usize {
+    if std::env::var("CI").is_ok() {
+        (default / 5).max(3)
+    } else {
+        default
+    }
+}
+
+/// Returns CI-appropriate measurement time.
+fn ci_measurement_time(secs: u64) -> Duration {
+    if std::env::var("CI").is_ok() {
+        Duration::from_secs(5)
+    } else {
+        Duration::from_secs(secs)
+    }
+}
+
 /// Helper to create test storage
 async fn create_test_storage() -> (TursoStorage, TempDir) {
     let dir = TempDir::new().unwrap();
@@ -135,7 +153,7 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
     });
 
     let mut group = c.benchmark_group("cache_hit_rate");
-    group.sample_size(50);
+    group.sample_size(ci_sample_size(50));
 
     // Benchmark with varying working set sizes
     for working_set_size in [10, 50, 100, 200].iter() {
@@ -173,7 +191,7 @@ fn bench_batch_operations(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
     let mut group = c.benchmark_group("batch_operations");
-    group.sample_size(20);
+    group.sample_size(ci_sample_size(20));
 
     for size in [10, 50, 100].iter() {
         let (storage, _dir) = rt.block_on(create_test_storage());
@@ -318,8 +336,9 @@ fn bench_batch_queries(c: &mut Criterion) {
 criterion_group! {
     name = phase3_benches;
     config = Criterion::default()
-        .measurement_time(Duration::from_secs(10))
-        .warm_up_time(Duration::from_secs(3));
+        .sample_size(ci_sample_size(50))
+        .measurement_time(ci_measurement_time(10))
+        .warm_up_time(Duration::from_secs(if std::env::var("CI").is_ok() { 1 } else { 3 }));
     targets =
         bench_cache_episode_retrieval,
         bench_cache_hit_rate,

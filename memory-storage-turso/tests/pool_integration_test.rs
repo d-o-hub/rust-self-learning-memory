@@ -78,7 +78,7 @@ async fn test_pool_performance_concurrent_operations() -> Result<(), Box<dyn std
 
     // Verify concurrency was limited (no more than pool size active at once)
     // The semaphore ensures max 10 concurrent connections
-    assert!(stats.active_connections == 0); // All should be returned after test completes
+    assert_eq!(stats.active_connections, 0); // All should be returned after test completes
 
     // Ensure pool is cleanly shutdown before TempDir drops to avoid Windows file handle races
     let _ = pool.shutdown().await;

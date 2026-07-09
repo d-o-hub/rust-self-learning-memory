@@ -18,7 +18,7 @@ fn test_pattern_extraction_from_clusters() {
     };
 
     let characteristics = extractor.compute_cluster_characteristics(&cluster).unwrap();
-    assert!(characteristics.size == 10);
+    assert_eq!(characteristics.size, 10);
     assert!(characteristics.density > 0.0);
 }
 

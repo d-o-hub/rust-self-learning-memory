@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 #!/usr/bin/env cargo run --bin ets_performance_test
 
 use do_memory_mcp::patterns::predictive::*;

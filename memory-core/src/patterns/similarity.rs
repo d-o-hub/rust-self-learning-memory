@@ -18,39 +18,42 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 }
 
 /// Calculate edit distance (Levenshtein) between two sequences
-#[allow(clippy::needless_range_loop)]
+///
+/// Optimization:
+/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
+/// 3. Ensures the shorter sequence is used for buffer sizing.
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
-    let len1 = seq1.len();
-    let len2 = seq2.len();
+    // Ensure s1 is the shorter sequence for O(min(N, M)) space
+    let (s1, s2) = if seq1.len() < seq2.len() {
+        (seq1, seq2)
+    } else {
+        (seq2, seq1)
+    };
 
+    let len1 = s1.len();
+    let len2 = s2.len();
+
+    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
     if len1 == 0 {
         return len2;
     }
-    if len2 == 0 {
-        return len1;
-    }
 
-    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
+    let mut prev_row: Vec<usize> = (0..=len1).collect();
+    let mut curr_row = vec![0; len1 + 1];
 
-    // Initialize first row and column
-    for i in 0..=len1 {
-        matrix[i][0] = i;
-    }
-    for j in 0..=len2 {
-        matrix[0][j] = j;
-    }
-
-    // Fill matrix
-    for i in 1..=len1 {
-        for j in 1..=len2 {
-            let cost = usize::from(seq1[i - 1] != seq2[j - 1]);
-            matrix[i][j] = (matrix[i - 1][j] + 1) // deletion
-                .min(matrix[i][j - 1] + 1) // insertion
-                .min(matrix[i - 1][j - 1] + cost); // substitution
+    for j in 1..=len2 {
+        curr_row[0] = j;
+        for i in 1..=len1 {
+            let cost = usize::from(s1[i - 1] != s2[j - 1]);
+            curr_row[i] = (prev_row[i] + 1)
+                .min(curr_row[i - 1] + 1)
+                .min(prev_row[i - 1] + cost);
         }
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    matrix[len1][len2]
+    prev_row[len1]
 }
 
 /// Calculate similarity between two strings using normalized edit distance
@@ -72,37 +75,42 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
 }
 
 /// Calculate edit distance for character sequences
-#[allow(clippy::needless_range_loop)]
+///
+/// Optimization:
+/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
+/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
+/// 3. Ensures the shorter sequence is used for buffer sizing.
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
-    let len1 = chars1.len();
-    let len2 = chars2.len();
+    // Ensure s1 is the shorter sequence for O(min(N, M)) space
+    let (s1, s2) = if chars1.len() < chars2.len() {
+        (chars1, chars2)
+    } else {
+        (chars2, chars1)
+    };
 
+    let len1 = s1.len();
+    let len2 = s2.len();
+
+    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
     if len1 == 0 {
         return len2;
     }
-    if len2 == 0 {
-        return len1;
-    }
 
-    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
+    let mut prev_row: Vec<usize> = (0..=len1).collect();
+    let mut curr_row = vec![0; len1 + 1];
 
-    for i in 0..=len1 {
-        matrix[i][0] = i;
-    }
-    for j in 0..=len2 {
-        matrix[0][j] = j;
-    }
-
-    for i in 1..=len1 {
-        for j in 1..=len2 {
-            let cost = usize::from(chars1[i - 1] != chars2[j - 1]);
-            matrix[i][j] = (matrix[i - 1][j] + 1)
-                .min(matrix[i][j - 1] + 1)
-                .min(matrix[i - 1][j - 1] + cost);
+    for j in 1..=len2 {
+        curr_row[0] = j;
+        for i in 1..=len1 {
+            let cost = usize::from(s1[i - 1] != s2[j - 1]);
+            curr_row[i] = (prev_row[i] + 1)
+                .min(curr_row[i - 1] + 1)
+                .min(prev_row[i - 1] + cost);
         }
+        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    matrix[len1][len2]
+    prev_row[len1]
 }
 
 /// Calculate similarity between two ToolSequence patterns

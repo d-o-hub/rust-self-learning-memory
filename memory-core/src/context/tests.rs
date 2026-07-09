@@ -271,7 +271,7 @@ fn test_accumulator_to_bundle_sorted() {
     let bundle = acc.to_bundle();
 
     // Should be sorted by priority (descending)
-    assert!(bundle.len() == 3);
+    assert_eq!(bundle.len(), 3);
     assert!(bundle[0].priority() >= bundle[1].priority());
     assert!(bundle[1].priority() >= bundle[2].priority());
 }

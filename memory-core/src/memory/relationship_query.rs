@@ -361,8 +361,8 @@ mod tests {
 
         assert_eq!(json["node_count"], 2);
         assert_eq!(json["edge_count"], 1);
-        assert!(json["nodes"].as_array().unwrap().len() == 2);
-        assert!(json["edges"].as_array().unwrap().len() == 1);
+        assert_eq!(json["nodes"].as_array().unwrap().len(), 2);
+        assert_eq!(json["edges"].as_array().unwrap().len(), 1);
     }
 
     #[test]

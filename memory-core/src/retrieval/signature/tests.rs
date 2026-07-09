@@ -322,7 +322,7 @@ fn test_structure_similarity_without_expected_pattern() {
     // High success rate should score higher
     assert!(!matches.is_empty());
     if matches.len() >= 2 {
-        assert!(matches[0].episode_id == ep1);
+        assert_eq!(matches[0].episode_id, ep1);
     }
 }
 

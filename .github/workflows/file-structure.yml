@@ -34,6 +34,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
+          allowed-conclusions: success,skipped,cancelled
 
   file-structure-check:
     name: File Structure Validation

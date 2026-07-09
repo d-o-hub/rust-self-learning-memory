@@ -46,6 +46,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
+          allowed-conclusions: success,skipped,cancelled
 
   # Core testing - optimized for speed with proper timeouts
   test:

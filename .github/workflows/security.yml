@@ -36,6 +36,7 @@ jobs:
           wait-interval: 10
           running-workflow-name: Quick Check
           fail-on-no-checks: false
+          allowed-conclusions: success,skipped,cancelled
 
   secret-scan:
     name: Secret Scanning

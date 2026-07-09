@@ -41,6 +41,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           running-workflow-name: Quick Check
+          allowed-conclusions: success,skipped,cancelled
 
   # Comprehensive coverage analysis - runs independently
   # This job does NOT block the main CI workflow

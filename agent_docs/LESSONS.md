@@ -93,3 +93,18 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Key insight: A single ungated import in a test file can block the entire CI pipeline for all PRs, since the `e2e-tests` crate is checked as part of workspace clippy.
 - Location: `tests/hybrid_storage_recovery.rs`
 - Reference: Rust Reference §Conditional Compilation; <https://effective-rust.com/features.html>
+## LESSON-013: Local storage mode requires explicit temp directory for redb fallback
+
+- Issue: When `--storage-mode local` was used without configuring `redb_path`, the combination logic created redb with literal `:memory:` path, creating a file named `:memory:` in CWD or failing silently. Episodes appeared to save but weren't persisted across CLI invocations.
+- Root Cause: `RedbStorage::new(Path::new(":memory:"))` doesn't create an in-memory database — it creates a file literally named `:memory:`. The redb crate doesn't support SQLite-style `:memory:` URLs.
+- Solution: Use `tempfile::tempdir()` for ephemeral redb cache when no explicit path is configured. Leak the TempDir handle (`std::mem::forget`) so the file persists for the process lifetime but cleans up on exit. Also ensure parent directories exist before opening redb files.
+- Key insight: Test storage paths end-to-end across process boundaries. A single-process test may pass because in-memory state masks the persistence failure.
+- Location: `memory-cli/src/config/storage/combination.rs`, `memory-cli/src/config/storage/mod.rs`
+
+## LESSON-014: CI publish pipeline — polling beats sleeping
+
+- Issue: `sleep 30` between crate publishes in `publish-crates.yml` is fragile. Under crates.io load, 30s isn't enough for index propagation, causing downstream publishes to fail with dependency resolution errors.
+- Root Cause: Crates.io sparse index propagation time varies (10s to 120s+) depending on server load and registry cache state.
+- Solution: Poll `https://crates.io/api/v1/crates/<name>/versions` until the expected version appears (max 20 attempts × 15s = 5min ceiling). Also use `--locked` on all publish commands and declare explicit `needs` for all transitive workspace dependencies.
+- 2026 best practice: Trusted Publishing (OIDC) eliminates API token management entirely. Consider migration for crates.io publishing.
+- Reference: <https://forge.rust-lang.org/infra/docs/trusted-publishing.html>, <https://crates.io/docs/trusted-publishing>

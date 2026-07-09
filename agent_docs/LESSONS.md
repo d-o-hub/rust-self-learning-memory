@@ -84,7 +84,17 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
 - Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.
 
-## LESSON-015: GOAP swarm for PR batch merges with auto-merge
+## LESSON-015: Feature-gated test code requires matching cfg on ALL imports
+
+- Issue: `tests/hybrid_storage_recovery.rs` had `use std::sync::Arc`, `use async_trait::async_trait`, `struct FailingStorage` etc. defined unconditionally, but they were only used inside `#[cfg(feature = "redb")]` test functions. CI runs `cargo clippy --tests -- -D warnings` without features, causing unused-import and dead-code errors that block ALL open PRs.
+- Root Cause: When adding feature-gated tests, developers often gate only the `#[test]` function with `#[cfg(feature = "X")]` but forget to gate the imports, helper structs, and impl blocks that the test uses. Without the feature enabled, those become dead code.
+- Solution: Every import, struct, and impl block that is ONLY used inside feature-gated code must also carry matching `#[cfg(...)]` attributes. Use the same or broader cfg predicate as the most restrictive consumer.
+- 2026 best practice: Run clippy in CI both with `--tests` (no features) AND with `--all-features --tests` to catch both dead-code (no features) and missing-import (all features) errors. Consider `cargo-matrix` for comprehensive feature combination testing.
+- Key insight: A single ungated import in a test file can block the entire CI pipeline for all PRs, since the `e2e-tests` crate is checked as part of workspace clippy.
+- Location: `tests/hybrid_storage_recovery.rs`
+- Reference: Rust Reference §Conditional Compilation; <https://effective-rust.com/features.html>
+
+## LESSON-016: GOAP swarm for PR batch merges with auto-merge
 
 - Issue: 5 PRs with CI still running needed coordinated merge in dependency order
 - Root Cause: Manual sequential merge waiting is wasteful when PRs are independent

@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Integration tests for agent monitoring functionality
 
 use do_memory_core::{SelfLearningMemory, AgentMetrics, TaskContext, TaskOutcome, TaskType, ExecutionStep, ExecutionResult};

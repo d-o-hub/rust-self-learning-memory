@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Soak tests for validating long-term system stability
 //!
 //! This module contains long-running tests to validate system reliability

@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! 24-hour stability soak test
 //!
 //! Long-running stability test to validate system reliability over extended periods.

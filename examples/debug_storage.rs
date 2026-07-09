@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Debug storage example - analyzes storage state and prints diagnostics.
 
 #![allow(unused_imports, dead_code)]

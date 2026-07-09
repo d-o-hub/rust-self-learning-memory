@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Connection pool load tests
 //!
 //! Tests for validating connection pool behavior under heavy load.

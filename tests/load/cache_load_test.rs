@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Cache load tests
 //!
 //! Tests for validating cache behavior under heavy load and memory pressure.

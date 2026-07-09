@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Attribution Integration Tests
 //!
 //! Tests for recommendation attribution flow and persistence.

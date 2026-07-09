@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Local memory example demonstrating zero-credential SQLite storage.
 #![allow(clippy::doc_markdown)]
 

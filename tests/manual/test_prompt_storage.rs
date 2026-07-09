@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 #!/usr/bin/env cargo script
 
 //! This script tests memory-mcp prompt storage and retrieval from both Turso and redb backends

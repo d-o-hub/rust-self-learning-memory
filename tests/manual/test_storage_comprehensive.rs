@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 // Comprehensive test of memory-mcp with Turso and redb
 // This demonstrates actual usage of both storage backends
 

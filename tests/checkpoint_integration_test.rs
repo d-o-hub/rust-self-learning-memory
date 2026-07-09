@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Checkpoint Integration Tests
 //!
 //! Tests for checkpoint/handoff flow and persistence.

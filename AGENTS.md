@@ -124,6 +124,9 @@ cargo build --features csm
 4. `release.yml` workflow triggers automatically (preflight → build → create release)
 5. Do NOT use `gh release create` manually — the workflow handles everything
 
+**Future (2026)**: Migrate to Trusted Publishing (OIDC) to eliminate `CARGO_REGISTRY_TOKEN` secret.
+See <https://crates.io/docs/trusted-publishing> for setup.
+
 ## Security
 - Use env vars (never hardcode)
 - Parameterized SQL
@@ -171,6 +174,14 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 
 See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 
+### Publish Pipeline (2026-07-08)
+
+Publish improvements (PR #789):
+- `cargo publish --locked` for reproducibility
+- Sparse-index polling (max 5 min) replaces `sleep 30`
+- Explicit `needs` chain: core → redb → turso → cli
+- Semver check output surfaced in `$GITHUB_STEP_SUMMARY`
+
 ## Cross-References
 | Topic | Document |
 |-------|----------|
@@ -191,6 +202,7 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 | Planning | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
 | GOAP state | `plans/GOAP_STATE.md` |
 | ADRs | `plans/adr/` |
+| Trusted Publishing | `plans/adr/` (future ADR) |
 
 ## Disk Space
 - **No Temporary Files in Root**: Never create temporary files, logs, trial outputs, or one-off scripts (`.py`, `.sh`, etc.) in the repository root. Use `plans/` for design-related notes, `target/` for build/test artifacts, or `scripts/` for reusable tooling.

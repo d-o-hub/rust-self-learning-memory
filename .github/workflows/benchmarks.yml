@@ -129,12 +129,12 @@ jobs:
             ${{ runner.os }}-bench-sccache-
 
       - name: Run benchmarks with comprehensive timeout protection
-        timeout-minutes: 55
+        timeout-minutes: 40
         run: |
            echo "=== Starting Benchmark Suite ==="
            echo "Start time: $(date)"
            START_TIME=$(date +%s)
-           MAX_TOTAL_TIME=3300
+           MAX_TOTAL_TIME=2400
 
            mapfile -t bench_names < <(awk '
              /^\[\[bench\]\]$/ { in_bench = 1; next }
@@ -167,8 +167,11 @@ jobs:
 
              timeout="300"
              case "$bench_name" in
-               storage_operations|concurrent_operations|phase3_retrieval_accuracy|phase3_cache_performance)
+               storage_operations|concurrent_operations|phase3_retrieval_accuracy)
                  timeout="600"
+                 ;;
+               phase3_cache_performance|compression_benchmark)
+                 timeout="300"
                  ;;
              esac
 

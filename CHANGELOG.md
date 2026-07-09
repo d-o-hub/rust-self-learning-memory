@@ -1,3 +1,27 @@
+## [0.1.34] - 2026-07-09
+
+### Added
+
+- **CI-aware benchmark sample sizing** — `compression_benchmark` and `phase3_cache_performance` now detect CI environments and reduce sample sizes/measurement times to stay within 600s wall-clock limits
+- **PR readiness tooling** — `.agents/skills/pr-readiness/SKILL.md` and `scripts/check-pr-readiness.sh` for automated merge state + CI verification
+- **Build maintenance script** — `scripts/build-maintenance.sh` verifies `.cargo/config.toml` optimizations and target/ size
+- **Mutation testing workflow** — Focused mutation testing for core modules (PR #793)
+- **File-level lint allows** — `#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]` added to 25 test/bench/example files
+
+### Fixed
+
+- **Clippy lint errors** — Fixed `for_kv_map`, `manual_assert_eq` across codebase for Rust 1.97 compatibility
+- **Edit distance performance** — Optimized space complexity and row transitions with swap (PR #796)
+- **CLI local storage** — Persist episodes in local storage mode (PR #787)
+- **Reconciliation cache** — Made backfill synchronous instead of fire-and-forget (PR #781)
+- **Benchmark timeouts** — Reduced `phase3_cache_performance` and `compression_benchmark` timeouts from 600s to 300s
+
+### Changed
+
+- **Publish pipeline** — Improved crates.io publish pipeline with sparse-index polling (PR #789)
+- **CI workflows** — Added required check anchors to Coverage, File Structure, Security, YAML Lint workflows
+- **Documentation** — Added build dependencies section to README (PR #788), agent lessons #013-#014 (PR #791)
+
 ## [0.1.33] - 2026-06-15
 
 ### Added

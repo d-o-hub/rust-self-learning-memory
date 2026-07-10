@@ -5,7 +5,7 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 /// Concurrency limiter for retries using tokio semaphore permits.
 ///
 /// Wraps a [`Semaphore`] so that at most `max_concurrent` retry
-/// operations run simultaneously. Callers [`acquire`] a permit before
+/// operations run simultaneously. Callers acquire a permit before
 /// starting the retryable work and the permit is automatically released
 /// when the returned guard is dropped.
 pub struct ConcurrencyLimiter {

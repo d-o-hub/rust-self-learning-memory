@@ -103,7 +103,7 @@ async fn test_get_all_relationships() {
         .unwrap();
 
     let all = storage.get_all_relationships().await.unwrap();
-    assert!(all.len() >= 1);
+    assert!(!all.is_empty());
 }
 
 #[tokio::test]

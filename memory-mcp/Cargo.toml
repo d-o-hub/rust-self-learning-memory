@@ -18,7 +18,7 @@ path = "src/bin/memory-mcp-server.rs"
 
 [dependencies]
 # Workspace dependencies
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
@@ -27,9 +27,9 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 # Local dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.33", features = ["agentfs"] }
-do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.33" }
-do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.33" }
+do-memory-core = { path = "../memory-core", version = "0.1.34", features = ["agentfs"] }
+do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.34" }
+do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.34" }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"

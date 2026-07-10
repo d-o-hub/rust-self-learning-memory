@@ -1,9 +1,9 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-08 (v0.1.34 sprint: 3 PRs open for issues #773, #771, #772)
-**Released Version**: v0.1.33 (GitHub Release tag exists, 2026-07-xx)
-**Workspace Version**: 0.1.33
-**Active Sprint**: v0.1.34 — Bug Fix + CI Modernization + Release
+**Last Updated**: 2026-07-09 (v0.1.34 released)
+**Released Version**: v0.1.34 (GitHub Release tag exists, 2026-07-09)
+**Workspace Version**: 0.1.34
+**Active Sprint**: v0.1.34 — CI Health + Benchmark Fixes + Lint Hygiene
 **Branch**: `main`
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -43,7 +43,7 @@
 | Workspace version | 0.1.33 | — | ✅ Released (tag v0.1.33 exists) |
 | Latest GitHub release | v0.1.33 | — | ✅ Published |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.33` in workspace  |
-| Commits since v0.1.33 | ~30 | 0 | 🟡 Release drift (#784) |
+| Commits since v0.1.34 | 0 | 0 | ✅ Released |
 | Clippy (default features) | Clean | Clean | ✅ |
 | Clippy (--all-features) | Clean | 0 | ✅ Fixed in PR #675 |
 | Production src files >500 LOC | 0 | 0 | ✅ Fixed in PR #675 (wrapper_backend.rs split) |

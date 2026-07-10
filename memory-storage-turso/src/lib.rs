@@ -188,7 +188,9 @@ pub use cache::{
 pub use pool::{
     AdaptiveConnectionPool, AdaptivePoolConfig, AdaptivePoolMetrics, AdaptivePooledConnection,
 };
-pub use pool::{ConnectionPool, PoolConfig, PoolStatistics, PooledConnection};
+pub use pool::{
+    ConnectionPool, PoolConfig, PoolMetrics, PoolMetricsSnapshot, PoolStatistics, PooledConnection,
+};
 #[cfg(feature = "keepalive-pool")]
 pub use pool::{KeepAliveConfig, KeepAlivePool, KeepAliveStatistics};
 pub use prepared::{PreparedCacheConfig, PreparedCacheStats, PreparedStatementCache};

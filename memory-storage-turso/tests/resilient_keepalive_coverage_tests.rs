@@ -485,10 +485,13 @@ mod keepalive_connection_tests {
 
         let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
         let config = PoolConfig {
+            min_connections: 1,
             max_connections: 5,
             connection_timeout: Duration::from_secs(5),
             enable_health_check: true,
             health_check_timeout: Duration::from_secs(2),
+            acquire_timeout_ms: 5000,
+            idle_timeout_ms: 0,
         };
 
         let pool = ConnectionPool::new(Arc::new(db), config).await.unwrap();
@@ -642,10 +645,13 @@ mod keepalive_monitoring_tests {
 
         let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
         let pool_config = PoolConfig {
+            min_connections: 1,
             max_connections: 5,
             connection_timeout: Duration::from_secs(5),
             enable_health_check: true,
             health_check_timeout: Duration::from_secs(2),
+            acquire_timeout_ms: 5000,
+            idle_timeout_ms: 0,
         };
 
         let pool = ConnectionPool::new(Arc::new(db), pool_config)
@@ -792,10 +798,13 @@ mod keepalive_monitoring_tests {
 
         let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
         let pool_config = PoolConfig {
+            min_connections: 1,
             max_connections: 5,
             connection_timeout: Duration::from_secs(5),
             enable_health_check: true,
             health_check_timeout: Duration::from_secs(2),
+            acquire_timeout_ms: 5000,
+            idle_timeout_ms: 0,
         };
 
         let pool = ConnectionPool::new(Arc::new(db), pool_config)

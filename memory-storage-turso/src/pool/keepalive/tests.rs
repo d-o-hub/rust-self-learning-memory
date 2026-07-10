@@ -10,10 +10,13 @@ async fn create_test_keepalive_pool() -> (KeepAlivePool, TempDir) {
 
     let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
     let pool_config = crate::pool::PoolConfig {
+        min_connections: 1,
         max_connections: 5,
         connection_timeout: Duration::from_secs(5),
         enable_health_check: true,
         health_check_timeout: Duration::from_secs(2),
+        acquire_timeout_ms: 5000,
+        idle_timeout_ms: 0,
     };
 
     let pool = crate::pool::ConnectionPool::new(std::sync::Arc::new(db), pool_config)

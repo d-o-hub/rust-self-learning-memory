@@ -805,10 +805,13 @@ mod pool_config_tests {
     #[test]
     fn test_pool_config_custom() {
         let config = PoolConfig {
+            min_connections: 3,
             max_connections: 25,
             connection_timeout: Duration::from_secs(10),
             enable_health_check: false,
             health_check_timeout: Duration::from_secs(5),
+            acquire_timeout_ms: 10000,
+            idle_timeout_ms: 60000,
         };
 
         assert_eq!(config.max_connections, 25);

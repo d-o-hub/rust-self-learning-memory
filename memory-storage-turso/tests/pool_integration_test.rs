@@ -18,10 +18,13 @@ async fn create_test_pool() -> anyhow::Result<(Arc<ConnectionPool>, TempDir)> {
     let db = libsql::Builder::new_local(&db_path).build().await?;
 
     let config = PoolConfig {
+        min_connections: 1,
         max_connections: 10,
         connection_timeout: Duration::from_secs(5),
         enable_health_check: true,
         health_check_timeout: Duration::from_secs(2),
+        acquire_timeout_ms: 5000,
+        idle_timeout_ms: 0,
     };
 
     let pool = ConnectionPool::new(Arc::new(db), config).await?;
@@ -95,10 +98,13 @@ async fn test_pool_with_turso_storage() -> Result<(), Box<dyn std::error::Error>
     let db = libsql::Builder::new_local(&db_path).build().await?;
 
     let config = PoolConfig {
+        min_connections: 1,
         max_connections: 5,
         connection_timeout: Duration::from_secs(5),
         enable_health_check: true,
         health_check_timeout: Duration::from_secs(2),
+        acquire_timeout_ms: 5000,
+        idle_timeout_ms: 0,
     };
 
     let pool = ConnectionPool::new(Arc::new(db), config).await?;

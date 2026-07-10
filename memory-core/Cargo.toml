@@ -34,10 +34,13 @@ hnsw = ["hnsw_rs"]
 csm = ["chaotic_semantic_memory"]
 # Enable HTTP webhook EventEmitter for CloudEvents delivery
 http-emitter = ["reqwest"]
+# Enable WASM compilation (compile-check only, no runtime support)
+wasm32 = []
 
 [dependencies]
-# Async runtime
-tokio = { workspace = true }
+# Async runtime - use specific features (no networking needed)
+# Note: "fs" is excluded - tokio::fs usage is gated behind #[cfg(not(target_arch = "wasm32"))]
+tokio = { workspace = true, features = ["sync", "macros", "rt", "time", "io-util"] }
 async-trait = { workspace = true }
 
 # Error handling
@@ -109,8 +112,12 @@ hnsw_rs = { version = "0.3.0", optional = true }
 # CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
 chaotic_semantic_memory = { version = "0.3.6", optional = true }
 
+# Native-only: tokio::fs feature (not available on wasm32)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["fs"] }
+
 [dev-dependencies]
-tokio = { workspace = true, features = ["test-util"] }
+tokio = { workspace = true, features = ["sync", "macros", "rt", "time", "io-util", "rt-multi-thread", "test-util"] }
 tempfile = { workspace = true }
 do-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
@@ -127,3 +134,11 @@ do-memory-core = { path = ".", features = ["proptest-arbitrary"] }
 
 [lints]
 workspace = true
+
+# WASM support for getrandom (required by rand/uuid transitive deps)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { workspace = true, features = ["sync", "macros", "rt", "time", "io-util"] }
+getrandom = { version = "0.2", features = ["js"] }
+getrandom03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+uuid = { version = "1", features = ["js"] }

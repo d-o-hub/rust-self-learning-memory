@@ -30,13 +30,15 @@ pub mod caching_pool;
 mod config;
 pub mod connection_wrapper;
 pub mod keepalive;
+#[cfg(test)]
+mod tests;
 
 pub use adaptive::{
     AdaptiveConnectionPool, AdaptivePoolConfig, AdaptivePoolMetrics, AdaptivePooledConnection,
     ConnectionCleanupCallback, ConnectionId,
 };
 pub use caching_pool::{CachingPool, CachingPoolConfig, CachingPoolStats, ConnectionGuard};
-pub use config::{PoolConfig, PoolStatistics, PooledConnection};
+pub use config::{PoolConfig, PoolMetrics, PoolMetricsSnapshot, PoolStatistics, PooledConnection};
 pub use connection_wrapper::PooledConnection as WrappedPooledConnection;
 pub use keepalive::{KeepAliveConfig, KeepAliveConnection, KeepAlivePool, KeepAliveStatistics};
 
@@ -60,6 +62,8 @@ pub struct ConnectionPool {
     config: PoolConfig,
     semaphore: Arc<Semaphore>,
     stats: Arc<RwLock<PoolStatistics>>,
+    /// Atomic metrics for lock-free concurrent monitoring
+    pub(crate) metrics: Arc<PoolMetrics>,
 }
 
 impl ConnectionPool {
@@ -86,19 +90,21 @@ impl ConnectionPool {
     /// ```
     pub async fn new(db: Arc<Database>, config: PoolConfig) -> Result<Self> {
         info!(
-            "Creating connection pool with max_connections={}",
-            config.max_connections
+            "Creating connection pool with min={}, max={}",
+            config.min_connections, config.max_connections
         );
 
         // Create a semaphore wrapped in Arc for shared ownership
         let semaphore = Arc::new(Semaphore::new(config.max_connections));
         let stats = Arc::new(RwLock::new(PoolStatistics::default()));
+        let metrics = Arc::new(PoolMetrics::default());
 
         let pool = Self {
             db,
             config,
             semaphore,
             stats,
+            metrics,
         };
 
         // Validate database connectivity
@@ -199,10 +205,14 @@ impl ConnectionPool {
             self.stats.read().active_connections
         );
 
+        // Record atomic metrics
+        self.metrics.record_acquire(wait_time.as_millis() as u64);
+
         Ok(PooledConnection {
             connection: Some(conn),
             _permit: permit,
             stats: Arc::clone(&self.stats),
+            metrics: Some(Arc::clone(&self.metrics)),
         })
     }
 

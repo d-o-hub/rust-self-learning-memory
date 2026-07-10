@@ -43,10 +43,13 @@ impl TursoStorage {
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = TursoConfig::default();
     /// let pool_config = PoolConfig {
+    ///     min_connections: 2,
     ///     max_connections: 20,
     ///     connection_timeout: Duration::from_secs(10),
     ///     enable_health_check: true,
     ///     health_check_timeout: Duration::from_secs(2),
+    ///     acquire_timeout_ms: 10000,
+    ///     idle_timeout_ms: 60000,
     /// };
     ///
     /// let storage = TursoStorage::new_with_pool_config(

@@ -1,8 +1,13 @@
-//! Pre-storage reasoning for episodic memory quality enhancement.
+//! Pre-storage ingest layer for episodic memory quality enhancement.
 //!
-//! This module implements the `PREMem` (Pre-Storage Reasoning for Episodic Memory)
-//! approach from EMNLP 2025. It provides quality assessment and filtering before
-//! storing episodes to improve memory quality and reduce noise.
+//! This module handles the **ingest** stage of the memory pipeline:
+//! `Episode → [pre_storage: ingest] → [storage: persistence] → Backend`
+//!
+//! Responsibilities: sanitize, enrich, normalize, and validate episodes
+//! before they reach the persistence layer.
+//!
+//! Implements the `PREMem` (Pre-Storage Reasoning for Episodic Memory)
+//! approach from EMNLP 2025.
 //!
 //! # Components
 //!

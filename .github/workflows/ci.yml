@@ -343,3 +343,40 @@ jobs:
             cargo semver-checks check-release --workspace
           fi
         continue-on-error: true  # Informational only, not blocking
+
+  # WASM compile check - ensures memory-core compiles for wasm32 targets
+  wasm-check:
+    name: WASM Compile Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - name: Maximize build space
+        if: runner.os == 'Linux'
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: ci-wasm-check
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Check WASM compilation
+        run: cargo check -p do-memory-core --target wasm32-unknown-unknown --no-default-features --features wasm32
+        env:
+          # getrandom 0.3.x requires this cfg flag for wasm32-unknown-unknown support
+          # getrandom 0.2.x uses the "js" feature (enabled via target dep in Cargo.toml)
+          RUSTFLAGS: "-D warnings --cfg getrandom_backend=\"wasm_js\""

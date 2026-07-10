@@ -77,11 +77,21 @@
 //!
 //! ### Support Modules
 //! - [`types`]: Common types used across the system
-//! - [`storage`]: Storage backend abstractions
+//! - [`storage`]: Storage backend abstractions (persistence layer)
+//! - [`pre_storage`]: Pre-storage ingest layer (quality, normalization, validation)
 //! - [`retrieval`]: Memory retrieval and caching
 //! - [`search`]: Search and ranking functionality
 //! - [`security`]: Audit logging and security
 //! - [`monitoring`]: Agent performance monitoring
+//!
+//! ### Data Pipeline
+//!
+//! ```text
+//! Episode → [pre_storage: ingest] → [storage: persistence] → Backend (Turso/redb)
+//! ```
+//!
+//! - **pre_storage**: Sanitize, enrich, normalize, validate episodes
+//! - **storage**: Backend traits, repository interfaces, query construction
 //!
 //! ## Quick Start
 //!
@@ -237,6 +247,7 @@ pub mod pre_storage;
 pub mod procedural;
 pub mod reflection;
 pub mod retrieval;
+pub mod retry;
 pub mod reward;
 pub mod search;
 pub mod security;
@@ -297,3 +308,6 @@ pub use memory::attribution::{
 pub use context::{
     AddResult, BundleAccumulator, BundleConfig, BundleStats, ContextItem, ContextItemType,
 };
+
+// Re-export retry types (issue #753)
+pub use retry::{ConcurrencyLimiter, RetryBudget, RetryConfig, RetryMetrics, RetryPolicy};

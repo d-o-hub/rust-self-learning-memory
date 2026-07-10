@@ -139,6 +139,16 @@ impl LocalEmbeddingProvider {
     }
 
     /// Get the cache directory for models
+    ///
+    /// On WASM targets, returns a temporary in-memory path.
+    #[cfg(target_arch = "wasm32")]
+    async fn get_cache_dir() -> Result<std::path::PathBuf> {
+        // WASM has no filesystem - return a placeholder path
+        Ok(std::path::PathBuf::from("/tmp/memory-core-embeddings"))
+    }
+
+    /// Get the cache directory for models
+    #[cfg(not(target_arch = "wasm32"))]
     async fn get_cache_dir() -> Result<std::path::PathBuf> {
         let home = std::env::var("HOME")
             .or_else(|_| std::env::var("USERPROFILE"))

@@ -38,7 +38,7 @@ do-memory-core = { path = "../memory-core", version = "0.1.34", features = ["hyb
 do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.34" }
 
 # Async runtime
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 async-trait = { workspace = true }
 
 # Error handling

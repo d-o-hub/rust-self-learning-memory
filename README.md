@@ -181,11 +181,30 @@ async fn main() -> anyhow::Result<()> {
 **Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
-- Rust toolchain via [rustup](https://rustup.rs/) (stable, 2024 edition)
+- Rust toolchain via [rustup](https://rustup.rs/) (stable, 2024 edition) — only needed if building from source
 - SQLite (for local development)
 - Optional: Turso CLI (for cloud database)
 
-### Build Dependencies
+### Install Pre-Built Binary
+
+Pre-built binaries are available for all major platforms from [GitHub Releases](https://github.com/d-o-hub/rust-self-learning-memory/releases). No Rust toolchain required.
+
+| Platform | Download |
+|----------|----------|
+| Linux x64 | [do-memory-cli-x86_64-unknown-linux-gnu.tar.xz](https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-x86_64-unknown-linux-gnu.tar.xz) |
+| Linux ARM64 | [do-memory-cli-aarch64-unknown-linux-gnu.tar.xz](https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-aarch64-unknown-linux-gnu.tar.xz) |
+| macOS Intel | [do-memory-cli-x86_64-apple-darwin.tar.xz](https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-x86_64-apple-darwin.tar.xz) |
+| macOS Apple Silicon | [do-memory-cli-aarch64-apple-darwin.tar.xz](https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-aarch64-apple-darwin.tar.xz) |
+| Windows x64 | [do-memory-cli-x86_64-pc-windows-msvc.zip](https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-x86_64-pc-windows-msvc.zip) |
+
+```bash
+# Example: Linux x64
+curl -sSL https://github.com/d-o-hub/rust-self-learning-memory/releases/latest/download/do-memory-cli-x86_64-unknown-linux-gnu.tar.xz | tar -xJ
+# Add to PATH
+export PATH="$PWD:$PATH"
+```
+
+### Build from Source
 
 The following system packages are required to compile from source:
 

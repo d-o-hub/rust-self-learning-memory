@@ -1,9 +1,11 @@
-//! # Storage Abstraction
+//! # Persistence Layer
 //!
-//! Unified trait for storage backends (Turso, redb, etc.)
+//! Handles backend traits, repository interfaces, query limits, and storage errors.
+//! This is the **persistence** stage of the memory pipeline:
+//! `Episode → [pre_storage: ingest] → [storage: persistence] → Backend`
 //!
-//! This allows the memory system to work with different storage implementations
-//! transparently, supporting both durable (Turso) and cache (redb) layers.
+//! Responsibilities: backend trait definitions, repository interfaces,
+//! query construction, error types, and circuit breaker patterns.
 
 pub mod circuit_breaker;
 

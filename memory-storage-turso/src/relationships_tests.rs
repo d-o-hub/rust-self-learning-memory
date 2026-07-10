@@ -43,6 +43,70 @@ async fn test_add_relationship() {
 }
 
 #[tokio::test]
+async fn test_store_relationship() {
+    let (storage, _dir) = create_test_storage().await;
+    let from_id = create_test_episode(&storage).await;
+    let to_id = create_test_episode(&storage).await;
+
+    let metadata = RelationshipMetadata::with_reason("Test store_relationship".to_string());
+    let relationship =
+        EpisodeRelationship::new(from_id, to_id, RelationshipType::RelatedTo, metadata);
+
+    storage
+        .store_relationship(&relationship)
+        .await
+        .expect("Failed to store relationship");
+
+    let rels = storage
+        .get_relationships(from_id, Direction::Outgoing)
+        .await
+        .expect("Failed to get relationships");
+    assert_eq!(rels.len(), 1);
+    assert_eq!(rels[0].id, relationship.id);
+}
+
+#[tokio::test]
+async fn test_get_relationship_by_id() {
+    let (storage, _dir) = create_test_storage().await;
+    let from_id = create_test_episode(&storage).await;
+    let to_id = create_test_episode(&storage).await;
+
+    let metadata = RelationshipMetadata::with_reason("ID lookup test".to_string());
+    let rel_id = storage
+        .add_relationship(from_id, to_id, RelationshipType::DependsOn, metadata)
+        .await
+        .expect("Failed to add relationship");
+
+    let retrieved = storage
+        .get_relationship_by_id(rel_id)
+        .await
+        .expect("Failed to get relationship by ID");
+
+    assert!(retrieved.is_some());
+    assert_eq!(retrieved.unwrap().id, rel_id);
+}
+
+#[tokio::test]
+async fn test_get_all_relationships() {
+    let (storage, _dir) = create_test_storage().await;
+    let ep1 = create_test_episode(&storage).await;
+    let ep2 = create_test_episode(&storage).await;
+
+    storage
+        .add_relationship(
+            ep1,
+            ep2,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let all = storage.get_all_relationships().await.unwrap();
+    assert!(!all.is_empty());
+}
+
+#[tokio::test]
 async fn test_get_relationships() {
     let (storage, _dir) = create_test_storage().await;
     let from_id = create_test_episode(&storage).await;
@@ -67,6 +131,13 @@ async fn test_get_relationships() {
         .await
         .expect("Failed to get incoming relationships");
     assert_eq!(incoming.len(), 1);
+
+    // Test Direction::Both
+    let both = storage
+        .get_relationships(from_id, Direction::Both)
+        .await
+        .unwrap();
+    assert_eq!(both.len(), 1);
 }
 
 #[tokio::test]
@@ -94,6 +165,47 @@ async fn test_remove_relationship() {
 }
 
 #[tokio::test]
+async fn test_get_relationships_by_type() {
+    let (storage, _dir) = create_test_storage().await;
+    let from_id = create_test_episode(&storage).await;
+    let to_id = create_test_episode(&storage).await;
+
+    storage
+        .add_relationship(
+            from_id,
+            to_id,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let rels = storage
+        .get_relationships_by_type(from_id, RelationshipType::DependsOn, Direction::Outgoing)
+        .await
+        .unwrap();
+    assert_eq!(rels.len(), 1);
+
+    let incoming = storage
+        .get_relationships_by_type(to_id, RelationshipType::DependsOn, Direction::Incoming)
+        .await
+        .unwrap();
+    assert_eq!(incoming.len(), 1);
+
+    let both = storage
+        .get_relationships_by_type(from_id, RelationshipType::DependsOn, Direction::Both)
+        .await
+        .unwrap();
+    assert_eq!(both.len(), 1);
+
+    let other = storage
+        .get_relationships_by_type(from_id, RelationshipType::ParentChild, Direction::Outgoing)
+        .await
+        .unwrap();
+    assert_eq!(other.len(), 0);
+}
+
+#[tokio::test]
 async fn test_relationship_exists() {
     let (storage, _dir) = create_test_storage().await;
     let from_id = create_test_episode(&storage).await;
@@ -116,6 +228,28 @@ async fn test_relationship_exists() {
         .await
         .expect("Failed to check relationship existence");
     assert!(exists_after);
+}
+
+#[tokio::test]
+async fn test_get_dependent_episodes() {
+    let (storage, _dir) = create_test_storage().await;
+    let ep1 = create_test_episode(&storage).await;
+    let ep2 = create_test_episode(&storage).await;
+
+    // ep1 depends on ep2 -> ep2 is depended on by ep1
+    storage
+        .add_relationship(
+            ep1,
+            ep2,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .unwrap();
+
+    let dependents = storage.get_dependent_episodes(ep2).await.unwrap();
+    assert_eq!(dependents.len(), 1);
+    assert_eq!(dependents[0], ep1);
 }
 
 #[tokio::test]
@@ -168,15 +302,35 @@ async fn test_weighted_relationships() {
 }
 
 #[tokio::test]
+async fn test_relationship_minimal_metadata() {
+    let (storage, _dir) = create_test_storage().await;
+    let ep1 = create_test_episode(&storage).await;
+    let ep2 = create_test_episode(&storage).await;
+
+    // Test with minimal metadata (exercising NULL paths in parameterized queries)
+    let metadata = RelationshipMetadata::default();
+    let rel_id = storage
+        .add_relationship(ep1, ep2, RelationshipType::RelatedTo, metadata)
+        .await
+        .unwrap();
+
+    let retrieved = storage
+        .get_relationship_by_id(rel_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(retrieved.metadata.reason.is_none());
+    assert!(retrieved.metadata.created_by.is_none());
+    assert!(retrieved.metadata.priority.is_none());
+    assert!(retrieved.metadata.weight.is_none());
+}
+
+#[tokio::test]
 async fn test_episode_pattern_relationships() {
     let (storage, _dir) = create_test_storage().await;
     let ep_id = create_test_episode(&storage).await;
     let pt_id = Uuid::new_v4();
 
-    // Note: In a real scenario, we'd store the pattern first, but for this test
-    // we just need the ID to satisfy the foreign key if enforce_foreign_keys is on.
-    // Actually, Turso by default might not enforce them unless configured.
-    // Let's create a pattern to be safe.
     let pattern = do_memory_core::Pattern::ToolSequence {
         id: pt_id,
         tools: vec!["test_tool".to_string()],

@@ -22,6 +22,16 @@ Verify that a Pull Request is truly ready to merge — not just that CI is green
 3. All required checks passed (not just non-required ones)
 4. No stale CANCELLED checks that should have run
 
+## Hard Blockers (NEVER BYPASS)
+
+These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass mechanism:
+
+1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete.
+2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state.
+3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Fix the code, don't bypass the gate.
+4. **NEVER merge a PR you haven't personally verified** — Run the full check and confirm ALL conditions.
+5. **NEVER skip loading this skill** — Load this skill before any merge recommendation.
+
 ## Full Procedure
 
 ### 1. Query All PR State
@@ -147,6 +157,17 @@ This ignores merge conflicts and behind-main state.
 ### ✅ Correct: Investigate CANCELLED
 ```
 "Coverage check CANCELLED — was it because Quick Check failed? Or stale from old push?"
+```
+
+### ❌ Wrong: Use --admin to bypass protection
+```
+"gh pr merge --admin" when checks are failing/pending
+```
+This is NEVER acceptable. Fix the code, don't bypass the gate.
+
+### ✅ Correct: Fix the underlying issue
+```
+"Checks failing → diagnose → fix code → push → wait for green → merge normally"
 ```
 
 ## Output Format

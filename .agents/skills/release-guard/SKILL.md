@@ -8,9 +8,12 @@ allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
 
 ## Core Rules (NEVER VIOLATE)
 - Releases **ONLY** from **main** after PR merge.
-- **ALL** CI jobs must COMPLETE + SUCCESS. NO queued jobs.
+- **ALL** CI jobs must COMPLETE + SUCCESS. NO queued jobs. NO partial passes.
 - Verify branch protection requires status checks.
 - **Version MUST match tag** before creating release (cargo-dist requirement).
+- **NEVER use `--admin` or `--force`** to bypass branch protection or merge checks.
+- **NEVER merge when `mergeStateStatus` is `UNSTABLE` or `BLOCKED`** — wait for `CLEAN`.
+- **NEVER skip the pr-readiness skill** — load it before any merge action.
 
 ## Activation Steps
 1. **PR Check**: Ask for PR# if needed. Run `gh pr view $PR_NUM --json state,baseRefName`. Must: state=CLOSED, baseRefName=main.

@@ -154,6 +154,52 @@ A PR is NOT ready to merge unless ALL of:
 
 CI checks run against the branch HEAD, not against the merge result. A PR can have green CI but be unmergeable due to conflicts with main.
 
+### Hard Blockers (NEVER BYPASS)
+
+These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass mechanism:
+
+1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete. `UNSTABLE` means non-required checks are failing/pending. Investigate before merging.
+2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state (`SUCCESS`, `FAILURE`, `SKIPPED`).
+3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Branch protection exists for a reason. If checks fail, fix the code, don't bypass the gate.
+4. **NEVER merge a PR you haven't personally verified** — Run the full PR readiness check (`gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup`) and confirm ALL conditions before merging.
+5. **NEVER skip the `pr-readiness` skill** — Load `.agents/skills/pr-readiness/SKILL.md` before any merge recommendation. The skill defines the exact verification procedure.
+
+### Mandatory Pre-Merge Checklist
+
+Before ANY merge action, ALL of these must be true:
+
+```
+□ Loaded pr-readiness skill
+□ Ran: gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup
+□ mergeable = MERGEABLE
+□ mergeStateStatus = CLEAN
+□ All required checks = SUCCESS (not pending, not FAILURE)
+□ No CANCELLED checks that should have run
+□ No pre-existing failures from base branch
+□ Verified locally: cargo nextest run --all passes
+□ Verified locally: cargo clippy --workspace -- -D warnings passes
+```
+
+## Release Process (MANDATORY)
+**NEVER manually create GitHub releases.** Always use the automated workflow:
+1. Bump version in `Cargo.toml`
+2. Commit + push to `main`
+3. Push git tag: `git tag v<VERSION> && git push origin v<VERSION>`
+4. `release.yml` workflow triggers automatically (preflight → build → create release)
+5. Do NOT use `gh release create` manually — the workflow handles everything
+
+**Before tagging a release**, ALL of these must be true:
+```
+□ All PRs merged to main with CLEAN merge state
+□ All CI workflows on main pass (no failures, no pending)
+□ Pre-existing failures investigated and fixed (not ignored)
+□ CHANGELOG.md updated with all changes
+□ STATUS/CURRENT.md updated
+□ GOAP_STATE.md updated
+□ Local verification: cargo nextest run --all passes
+□ Local verification: cargo clippy --workspace -- -D warnings passes
+```
+
 Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
 
 ## CSM Integration

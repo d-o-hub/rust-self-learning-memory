@@ -2,6 +2,17 @@
 
 Compact log for non-obvious workflow learnings. Pair each entry here with a short distilled note in the nearest `AGENTS.md`.
 
+## LESSON-011: NEVER rush merges — wait for ALL CI, never use --admin
+
+- Issue: PR #806 merged when `mergeStateStatus` was `UNSTABLE` (not `CLEAN`) using `gh pr merge --admin`. This bypassed branch protection and caused pre-existing CI failures to ship to main. Required follow-up PRs (#810, #811) to fix the failures.
+- Root Cause: Agent rushed to "complete the task" instead of following the mandatory PR health check procedure. The pr-readiness skill was never loaded. The `--admin` flag was used as a shortcut instead of fixing the underlying issues.
+- Solution: 
+  1. ALWAYS load `.agents/skills/pr-readiness/SKILL.md` before any merge action
+  2. NEVER use `--admin` or `--force` — fix the code, don't bypass the gate
+  3. NEVER merge when `mergeStateStatus` is anything other than `CLEAN`
+  4. Wait for ALL checks to reach terminal state before merging
+  5. Follow the Mandatory Pre-Merge Checklist in AGENTS.md
+
 ## LESSON-010: Coderabbitai review loop — verify each finding against current code
 
 - Issue: Conversation summaries implied fixes were already applied, but code still had the original unfixed patterns (e.g., `_min_sequence_len` in `with_thresholds`, `contributing_tiers` hardcoding `api_fallback_needed`).

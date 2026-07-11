@@ -96,6 +96,8 @@ jobs:
           echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run regular tests
+        env:
+          NEXTEST_EXPERIMENTAL_LIBTEST_JSON: 1
         run: |
           mkdir -p "$CARGO_TARGET_DIR/nextest/nightly"
           cargo nextest run --profile ci --lib --all --test-threads=4 \

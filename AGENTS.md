@@ -188,6 +188,8 @@ Before ANY merge action, ALL of these must be true:
 4. `release.yml` workflow triggers automatically (preflight → build → create release)
 5. Do NOT use `gh release create` manually — the workflow handles everything
 
+**NEVER bypass the release pipeline.** The `release.yml` workflow runs preflight checks, builds artifacts, and creates the GitHub release. Skipping steps, creating releases manually, or using `--admin` to force a release bypasses critical safety checks (version validation, build verification, artifact signing).
+
 **Before tagging a release**, ALL of these must be true:
 ```
 □ All PRs merged to main with CLEAN merge state

@@ -14,6 +14,7 @@ allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
 - **NEVER use `--admin` or `--force`** to bypass branch protection or merge checks.
 - **NEVER merge when `mergeStateStatus` is `UNSTABLE` or `BLOCKED`** — wait for `CLEAN`.
 - **NEVER skip the pr-readiness skill** — load it before any merge action.
+- **ALWAYS use the `release.yml` workflow** — push a git tag, let the workflow handle everything. NEVER use `gh release create` manually. NEVER bypass the release pipeline.
 
 ## Activation Steps
 1. **PR Check**: Ask for PR# if needed. Run `gh pr view $PR_NUM --json state,baseRefName`. Must: state=CLOSED, baseRefName=main.

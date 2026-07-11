@@ -1,24 +1,27 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-09 (v0.1.34 released)
-**Released Version**: v0.1.34 (GitHub Release tag exists, 2026-07-09)
+**Last Updated**: 2026-07-11 (v0.1.34 PR merged, pending release)
+**Released Version**: v0.1.33 (GitHub Release tag exists, 2026-07-04)
 **Workspace Version**: 0.1.34
-**Active Sprint**: v0.1.34 — CI Health + Benchmark Fixes + Lint Hygiene
+**Active Sprint**: v0.1.34 — CI Fixes + All Open Issues Resolved
 **Branch**: `main`
-**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
+**PR**: [#806](https://github.com/d-o-hub/rust-self-learning-memory/pull/806) — MERGED
 **Edition**: Rust 2024
 
-## v0.1.34 Sprint — IN PROGRESS
+## v0.1.34 Sprint — PR MERGED, PENDING RELEASE
 
 | Phase | Issue | Description | Status |
 |-------|-------|-------------|--------|
-| P1 — Bug Fix | #773 | Local storage episodes not persisting | 🟡 PR #787 open |
-| P2 — Docs | #771 | Add build dependencies to README | 🟡 PR #788 open |
-| P3 — CI | #772 | Publish pipeline improvements | 🟡 PR #789 open |
-| P4 — Release | #784 | Release drift (30+ unreleased commits) | ⏳ Blocked on P1-P3 |
-| P5 — Publish | #770 | crates.io availability | ⏳ Blocked on P3+P4 |
+| CI Fix | — | `test_security_bypass_attempts` assertion relaxed | ✅ Merged (PR #806) |
+| CI Fix | — | Benchmark timeout increased to 55min | ✅ Merged (PR #806) |
+| Docs | #770 | Pre-built binary installation section in README | ✅ Merged (PR #806) |
+| Docs | #743 | Storage module pipeline documentation | ✅ Merged (PR #806) |
+| Feature | #753 | Retry budgets and backpressure controls | ✅ Merged (PR #806) |
+| Feature | #749 | Turso connection pool enhancements + ADR-056 | ✅ Merged (PR #806) |
+| Feature | #746 | WASM compile-check CI job | ✅ Merged (PR #806) |
+| Publish | #770 | CLI crates.io publish prep | ✅ Merged (PR #806) |
 
-**Blocking**: P4 and P5 depend on P1-P3 merging first.
+**All 6 open issues resolved.** Release tag v0.1.34 pending.
 
 ## v0.1.33 Sprint — COMPLETE ✅ (Released)
 

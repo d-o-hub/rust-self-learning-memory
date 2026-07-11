@@ -7,6 +7,9 @@
 - **Build maintenance script** — `scripts/build-maintenance.sh` verifies `.cargo/config.toml` optimizations and target/ size
 - **Mutation testing workflow** — Focused mutation testing for core modules (PR #793)
 - **File-level lint allows** — `#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]` added to 25 test/bench/example files
+- **Retry budgets and backpressure** (PR #806) — `RetryBudget` (sliding window token bucket) and `ConcurrencyLimiter` (tokio semaphore) for retry backpressure (#753)
+- **WASM compile-check** (PR #806) — `wasm32` feature flag and CI compile-check job for `memory-core` WASM builds (#746)
+- **Pre-built binary installation** (PR #806) — Added platform matrix and download links to README (#770)
 
 ### Fixed
 
@@ -14,13 +17,16 @@
 - **Edit distance performance** — Optimized space complexity and row transitions with swap (PR #796)
 - **CLI local storage** — Persist episodes in local storage mode (PR #787)
 - **Reconciliation cache** — Made backfill synchronous instead of fire-and-forget (PR #781)
-- **Benchmark timeouts** — Reduced `phase3_cache_performance` and `compression_benchmark` timeouts from 600s to 300s
+- **Benchmark timeouts** — Increased step timeout to 55min, MAX_TOTAL_TIME to 50min for grown benchmark suite (PR #806)
+- **Sandbox test assertion** — Relaxed `test_security_bypass_attempts` to accept any `Error` variant for Node.js version compatibility (PR #806)
+- **Broken doc link** — Fixed unresolved `[acquire]` link in `retry/limiter.rs` (PR #806)
 
 ### Changed
 
-- **Publish pipeline** — Improved crates.io publish pipeline with sparse-index polling (PR #789)
+- **Publish pipeline** — Improved crates.io publish pipeline with sparse-index polling, added CLI publish job (PR #789, #806)
 - **CI workflows** — Added required check anchors to Coverage, File Structure, Security, YAML Lint workflows
-- **Documentation** — Added build dependencies section to README (PR #788), agent lessons #013-#014 (PR #791)
+- **Documentation** — Added build dependencies section to README (PR #788), agent lessons #013-#014 (PR #791), storage module pipeline docs (#743)
+- **Turso connection pool** — Enhanced with atomic `PoolMetrics`, `min_connections`, `acquire_timeout_ms`, `idle_timeout_ms`, ADR-056 compliance verified (PR #806, #749)
 
 ## [0.1.33] - 2026-06-15
 

@@ -173,6 +173,7 @@ fn test_storage_config_custom_values() {
     assert!(storage.enable_compression);
 }
 
+#[serial]
 #[test]
 fn test_memory_config_eviction_policy_variants() {
     let test_cases = vec![
@@ -213,6 +214,7 @@ fn test_memory_config_eviction_policy_variants() {
     }
 }
 
+#[serial]
 #[test]
 fn test_memory_config_invalid_eviction_policy() {
     // Clear any existing value first to avoid pollution from other tests
@@ -239,6 +241,7 @@ fn test_memory_config_invalid_eviction_policy() {
     }
 }
 
+#[serial]
 #[test]
 fn test_memory_config_summarization_boolean_variants() {
     let true_cases = vec!["true", "TRUE", "1", "yes", "YES", "on", "ON"];
@@ -271,6 +274,7 @@ fn test_memory_config_summarization_boolean_variants() {
     }
 }
 
+#[serial]
 #[test]
 fn test_memory_config_max_episodes_parsing() {
     // Valid number
@@ -436,6 +440,7 @@ fn test_reward_score_default() {
     assert_eq!(score.effective_reward, 0.0);
 }
 
+#[serial]
 #[test]
 fn test_memory_config_retrieval_env_vars() {
     // Retrieval Mode

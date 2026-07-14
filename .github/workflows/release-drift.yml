@@ -60,9 +60,14 @@ jobs:
             echo "tag_drift=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Alert threshold: >5 feat/fix commits unreleased
-          if [[ $((FEATS + FIXES)) -gt 5 ]]; then
+          # Alert threshold: >5 feat/fix commits unreleased AND version matches tag
+          # (if version already bumped ahead of tag, a release is being prepared — don't alert)
+          if [[ $((FEATS + FIXES)) -gt 5 && "$LATEST_TAG" == "v${VERSION}" ]]; then
             echo "needs_release=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$LATEST_TAG" != "v${VERSION}" && "$LATEST_TAG" != "none" ]]; then
+            # Tag drift exists but version is already bumped — release in progress
+            echo "needs_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version ($VERSION) differs from tag ($LATEST_TAG) — release likely in progress"
           else
             echo "needs_release=false" >> "$GITHUB_OUTPUT"
           fi

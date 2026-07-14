@@ -54,6 +54,72 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
+      - name: Validate version line (0.1.x only)
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "Validating workspace version stays on 0.1.x patch line..."
+          echo ""
+
+          VERSION=$(grep -E '^version\s*=' Cargo.toml | head -1 | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+[^"]*)".*/\1/')
+
+          if [[ -z "$VERSION" ]]; then
+            echo "❌ Could not extract version from Cargo.toml"
+            exit 1
+          fi
+
+          echo "  Workspace version: $VERSION"
+
+          MAJOR_MINOR=$(echo "$VERSION" | grep -oP '^\d+\.\d+')
+
+          if [[ "$MAJOR_MINOR" != "0.1" ]]; then
+            echo ""
+            echo "❌ VERSION POLICY VIOLATION"
+            echo ""
+            echo "   Found version: $VERSION"
+            echo "   Expected: 0.1.x (patch releases only)"
+            echo ""
+            echo "   The project stays on the 0.1.x release line."
+            echo "   Minor/major bumps (0.2.0, 1.0.0) require explicit human approval."
+            echo "   Pre-1.0 semver allows breaking changes in patch releases (§4)."
+            echo ""
+            echo "   Fix: Change version in Cargo.toml back to 0.1.x"
+            echo "   If you have human approval for a non-patch bump, add 'version-override' label to the PR."
+            exit 1
+          fi
+
+          # Also check all workspace members match
+          MEMBERS=$(find . -name "Cargo.toml" -not -path "./target/*" -not -path "./fuzz/*" | sort)
+          MISMATCH=0
+          for toml in $MEMBERS; do
+            # Check for hardcoded version (not workspace inheritance)
+            HARD_VERSION=$(grep -E '^version\s*=\s*"[0-9]' "$toml" 2>/dev/null | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/' || true)
+            if [[ -n "$HARD_VERSION" && "$HARD_VERSION" != "$VERSION" ]]; then
+              echo "  ❌ $toml has version $HARD_VERSION (expected $VERSION)"
+              MISMATCH=1
+            fi
+            # Check for inter-crate version references that don't match
+            INTER_CRATE=$(grep -oP 'do-memory-\S+.*?version\s*=\s*"\K[0-9]+\.[0-9]+\.[0-9]+' "$toml" 2>/dev/null || true)
+            for v in $INTER_CRATE; do
+              if [[ "$v" != "$VERSION" ]]; then
+                echo "  ❌ $toml has inter-crate dep version $v (expected $VERSION)"
+                MISMATCH=1
+              fi
+            done
+          done
+
+          if [[ $MISMATCH -ne 0 ]]; then
+            echo ""
+            echo "❌ Version consistency check FAILED"
+            echo "   All crate versions and inter-crate dependencies must match the workspace version."
+            exit 1
+          fi
+
+          echo "  ✅ Version line: 0.1.x (correct)"
+          echo "  ✅ All crate versions consistent"
+          echo ""
+
       - name: Validate file locations
         run: |
           #!/bin/bash

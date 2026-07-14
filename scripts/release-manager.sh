@@ -71,6 +71,23 @@ if [[ "$RELEASE_LEVEL" != "patch" && "$RELEASE_LEVEL" != "minor" && "$RELEASE_LE
   exit 1
 fi
 
+# Version policy: ONLY patch releases allowed without explicit override
+if [[ "$RELEASE_LEVEL" != "patch" ]]; then
+  echo ""
+  echo "🚫 VERSION POLICY VIOLATION"
+  echo "   The project stays on the 0.1.x patch release line."
+  echo "   Minor/major bumps require explicit human approval."
+  echo ""
+  echo "   If you have human approval, set: ALLOW_NON_PATCH=1"
+  echo "   Example: ALLOW_NON_PATCH=1 $0 prepare --level $RELEASE_LEVEL --execute"
+  echo ""
+  if [[ "${ALLOW_NON_PATCH:-}" != "1" ]]; then
+    exit 1
+  fi
+  echo "⚠️  ALLOW_NON_PATCH=1 set — proceeding with $RELEASE_LEVEL bump."
+  echo ""
+fi
+
 run_cmd() {
   local cmd="$1"
   if [[ "$DRY_RUN" == "true" ]]; then

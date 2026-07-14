@@ -11,10 +11,12 @@ allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
 - **ALL** CI jobs must COMPLETE + SUCCESS. NO queued jobs. NO partial passes.
 - Verify branch protection requires status checks.
 - **Version MUST match tag** before creating release (cargo-dist requirement).
+- **ONLY PATCH RELEASES (0.1.x)**. NEVER bump to 0.2.0 or higher without explicit human approval.
 - **NEVER use `--admin` or `--force`** to bypass branch protection or merge checks.
 - **NEVER merge when `mergeStateStatus` is `UNSTABLE` or `BLOCKED`** — wait for `CLEAN`.
 - **NEVER skip the pr-readiness skill** — load it before any merge action.
 - **ALWAYS use the `release.yml` workflow** — push a git tag, let the workflow handle everything. NEVER use `gh release create` manually. NEVER bypass the release pipeline.
+- **If cargo-semver-checks reports breaking changes**: Keep version on 0.1.x, document in CHANGELOG. ASK human before ANY non-patch bump.
 
 ## Activation Steps
 1. **PR Check**: Ask for PR# if needed. Run `gh pr view $PR_NUM --json state,baseRefName`. Must: state=CLOSED, baseRefName=main.

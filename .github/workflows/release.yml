@@ -70,7 +70,13 @@ jobs:
             echo "Fix: bump Cargo.toml version to match tag, or use 'cargo release' to bump+tag atomically."
             exit 1
           fi
-          echo "✅ Tag matches Cargo.toml version"
+          # Enforce 0.1.x patch release line
+          MAJOR_MINOR=$(echo "$CARGO_VERSION" | grep -oP '^\d+\.\d+')
+          if [[ "$MAJOR_MINOR" != "0.1" ]]; then
+            echo "::error::Version $CARGO_VERSION violates the 0.1.x patch release policy. Only patch releases (0.1.x) are allowed without explicit human approval."
+            exit 1
+          fi
+          echo "✅ Tag matches Cargo.toml version (0.1.x patch line)"
 
   plan:
     needs:

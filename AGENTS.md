@@ -44,6 +44,31 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 - **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
+- **Version**: ONLY patch releases (0.1.x). NEVER bump minor/major without explicit human approval. See Version Policy below.
+
+## Version Policy (MANDATORY — Human Approval Required)
+
+**The project stays on the `0.1.x` patch release line.** This is non-negotiable.
+
+| Action | Allowed? | Requirement |
+|--------|----------|-------------|
+| Patch bump (0.1.34 → 0.1.35) | ✅ Yes | Standard release process |
+| Minor bump (0.1.x → 0.2.0) | ❌ NO | Requires explicit human approval in writing |
+| Major bump (0.x → 1.0) | ❌ NO | Requires explicit human approval in writing |
+
+**Rules**:
+1. **NEVER bump to 0.2.0 or higher** without the human explicitly approving the version number
+2. **Pre-1.0 semver**: Breaking changes are allowed in patch releases (per semver spec §4)
+3. **If a change is breaking**: Document it in CHANGELOG under "Breaking Changes" but keep version on 0.1.x
+4. **Version source of truth**: Workspace `Cargo.toml` `[workspace.package] version` field
+5. **All crate versions must match** the workspace version exactly
+6. **Agents must ASK before any non-patch version change** — even if tooling (cargo-semver-checks) suggests a major/minor bump is needed
+
+**What to do if cargo-semver-checks reports a breaking change**:
+- Document the breaking change in CHANGELOG.md
+- Keep the version as the next patch (e.g., 0.1.35)
+- Add a note in the release: "Contains breaking API changes in <crate>"
+- Do NOT bump to 0.2.0
 
 ## Documentation Rules
 - Wrap URLs in angle brackets, re-export new public types from `lib.rs`, and run `cargo doc --no-deps --document-private-items` before commit

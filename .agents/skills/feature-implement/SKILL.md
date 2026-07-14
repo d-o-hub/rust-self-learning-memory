@@ -37,3 +37,4 @@ See **[process.md](process.md)** for detailed phases and **[patterns.md](pattern
 - Error handling: `anyhow::Result`
 - Storage: Turso (durable) + redb (cache)
 - Serialization: postcard
+- Version: ONLY 0.1.x patch releases. NEVER bump minor/major without explicit human approval.

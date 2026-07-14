@@ -54,6 +54,14 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 - Treat an empty required-check rollup as a blocker and document it in `plans/STATUS/VALIDATION_LATEST.md`.
 - Avoid adding plans-only follow-up commits until remediation checks are attached.
 
+## Version Policy (HARD CONSTRAINT)
+
+- **ONLY patch releases (0.1.x)**. The project stays on the `0.1.x` line.
+- **NEVER plan or execute a minor/major version bump** (0.2.0, 1.0.0) without explicit human approval.
+- If cargo-semver-checks reports breaking changes: document in CHANGELOG, keep version on 0.1.x.
+- This applies to ALL version-related work groups (WGs) in sprint plans.
+- Verify version with: `grep '^version' Cargo.toml` — must show `0.1.*`.
+
 See **[methodology.md](methodology.md)** for detailed phase-by-phase guidance and **[patterns.md](patterns.md)** for common execution patterns.
 
 ## ADR Integration Workflow

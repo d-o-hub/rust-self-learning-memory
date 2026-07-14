@@ -58,6 +58,18 @@ if [[ -z "$WORKSPACE_VERSION" ]]; then
 fi
 
 echo "📦 Workspace version: $WORKSPACE_VERSION"
+
+# ─── 1.5. Enforce 0.1.x patch release line ───
+MAJOR_MINOR=$(echo "$WORKSPACE_VERSION" | grep -oP '^\d+\.\d+')
+if [[ "$MAJOR_MINOR" != "0.1" ]]; then
+  echo ""
+  echo "🚫 VERSION POLICY VIOLATION: Workspace version is $WORKSPACE_VERSION"
+  echo "   The project MUST stay on the 0.1.x patch release line."
+  echo "   Minor/major bumps require EXPLICIT human approval."
+  echo "   Fix: Change version in Cargo.toml to 0.1.x (next patch after latest release)"
+  echo ""
+  failures=$((failures + 1))
+fi
 echo ""
 
 # ─── 2. Check all workspace member versions match ───

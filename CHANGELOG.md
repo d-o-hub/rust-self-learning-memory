@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.35] - 2026-07-14
+
+### Breaking Changes
+
+- **MCP crate**: Semver-incompatible API changes in `do-memory-mcp` (lazy tool registration signature changed). Breaking changes are permitted under pre-1.0 semver (§4). PR #822.
+
+### Fixed
+
+- fix(deps): update yanked `spin` crate 0.9.8 → 0.9.9 ([7d9eeec](https://github.com/d-o-hub/rust-self-learning-memory/commit/7d9eeec3)) — PR #824
+- fix(mcp): resolve semver breaking change in MCP tool registration ([9955850](https://github.com/d-o-hub/rust-self-learning-memory/commit/99558504)) — PR #822
+- fix(version): revert workspace version from 0.2.0 back to 0.1.35 (project stays on 0.1.x patch line)
+
+### CI/CD
+
+- ci(deps): bump the actions-all group with 2 updates ([232033c](https://github.com/d-o-hub/rust-self-learning-memory/commit/232033c0)) — PR #819
+- ci(release): add 0.1.x version-line enforcement to release.yml preflight
+
+### Added
+
+- docs(agents): add Version Policy (MANDATORY) section to AGENTS.md
+- docs(adr): ADR-072 — Comprehensive Analysis v0.1.35
+- scripts: add 0.1.x version-line guard to `verify-release-state.sh` and `release-manager.sh`
+- skills: add version policy enforcement to `release-guard`, `goap-agent`, `feature-implement`
+
 ## [0.1.34] - 2026-07-11
 
 

@@ -73,7 +73,7 @@ mod output;
 mod test_utils;
 
 use commands::*;
-use config::{initialize_storage, load_config_with_validation};
+use config::{apply_db_path_override, initialize_storage, load_config_with_validation};
 use output::OutputFormat;
 
 #[derive(Parser)]
@@ -239,35 +239,9 @@ async fn main() -> anyhow::Result<()> {
         config.database.storage_mode = Some(mode);
     }
     if let Some(path) = cli.db_path {
-        // Honor `--db-path`/`MEMORY_DB_PATH` for both backends without pointing
-        // Turso SQLite and redb at the same file (issue #830).
-        // - `*.redb` → redb_path; Turso local SQLite uses a sibling `*.db`
-        // - anything else → db_path (Turso); redb uses sibling `*.redb`
-        let path_str = path.to_string_lossy().to_string();
-        let is_redb_file = path
-            .extension()
-            .and_then(|e| e.to_str())
-            .is_some_and(|e| e.eq_ignore_ascii_case("redb"));
-        if is_redb_file {
-            config.database.redb_path = Some(path_str);
-            if config.database.db_path.is_none() {
-                let mut sqlite = path.clone();
-                sqlite.set_extension("db");
-                config.database.db_path = Some(sqlite.to_string_lossy().to_string());
-            }
-        } else {
-            config.database.db_path = Some(path_str);
-            if config.database.redb_path.is_none() {
-                let mut redb = path.clone();
-                redb.set_extension("redb");
-                config.database.redb_path = Some(redb.to_string_lossy().to_string());
-            }
-        }
-        // If the user only set a path and has no remote Turso URL, default to
-        // local mode so the path is actually used as primary storage.
-        if config.database.storage_mode.is_none() && config.database.turso_url.is_none() {
-            config.database.storage_mode = Some("local".to_string());
-        }
+        // Issue #830: always override redb_path (Config::default() pre-fills
+        // XDG). Sibling paths keep Turso SQLite and redb from sharing a file.
+        apply_db_path_override(&mut config, &path);
     }
 
     // Accept `[storage].storage_mode` as a UX alias for `[database].storage_mode`

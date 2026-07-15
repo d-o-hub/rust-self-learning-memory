@@ -110,6 +110,19 @@ do-memory-cli st repair
 
 ## Config Commands
 
+### Show Template / Init (issue #829)
+
+```bash
+# Print full TOML template to stdout
+do-memory-cli config show-template
+
+# Write starter config (default path: do-memory-cli.toml)
+do-memory-cli config init
+do-memory-cli config init --path ./my-project.toml
+```
+
+`storage_mode` belongs under `[database]` (canonical). `[storage].storage_mode` is an accepted alias.
+
 ### Show Config
 
 ```bash

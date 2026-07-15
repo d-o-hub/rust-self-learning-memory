@@ -6,8 +6,7 @@
 
 **Common mistakes**:
 - `--type` for episode create → NO `--type` argument exists. Task type is inferred.
-- `--format json` for episode list → No format option for list/view commands
-- `-v` for verbose → No global verbose flag exists
+- Unknown flags on subcommands → use `do-memory-cli <cmd> --help` (global: `-v`/`--verbose`, `-f`/`--format`, `--db-path`, `--storage-mode`)
 
 **Solution**: Use `--help` to verify correct arguments:
 ```bash
@@ -91,17 +90,56 @@ do-memory-cli storage sync
 
 ### Patterns Not Found (Pattern list shows 0)
 
-**Root Cause**: Pattern extraction requires execution steps. If episode has 0 steps, no patterns are extracted.
+**Root causes** (issues #830 / #831):
+
+1. **Different DB path across processes** — `--db-path` / `MEMORY_DB_PATH` must be the same for create, complete, and list. The flag always sets `redb_path` (local default backend). Without it, each process may open a different XDG cache path.
+2. **In-memory-only pattern map** — a fresh CLI process must load patterns from redb/Turso (`get_all_patterns`). If list is empty after complete logged "Successfully cached pattern", verify durable store + same `--db-path`.
+3. **No steps logged** — create+complete alone still yields **ContextPattern**; tool-sequence patterns need `log-step --success`.
+4. **Missing `--success` on log-step** — without the flag, steps are recorded as failures; tool-sequence extractors may skip them.
 
 **Verification**:
 ```bash
-# Check episode steps
-do-memory-cli episode view <EPISODE_ID>
-# Should show Steps: N (not 0)
+DB=./data/memory.redb
+CLI="do-memory-cli --storage-mode local --db-path $DB"
 
-# Check storage stats
-do-memory-cli storage stats
-# Patterns: Total should be > 0
+$CLI episode view <EPISODE_ID>   # Steps: N (not 0)
+$CLI storage stats               # Patterns: Total > 0
+$CLI pattern list                # Fresh process must see patterns
+```
+
+### Config format hard to discover (issue #829)
+
+```bash
+do-memory-cli config show-template   # full TOML template
+do-memory-cli config init            # write do-memory-cli.toml
+do-memory-cli config show            # resolved values
+```
+
+Partial TOML is OK; missing sections use defaults. Put `storage_mode` under `[database]` (canonical). `[storage].storage_mode` is an accepted alias only.
+
+### Wrong `storage_mode` section (issue #832)
+
+| Location | Supported? | Notes |
+|----------|------------|-------|
+| `[database].storage_mode` | ✅ Canonical | Preferred; emitted by `config init` |
+| `--storage-mode` / `MEMORY_STORAGE_MODE` | ✅ CLI/env | Wins over config file |
+| `[storage].storage_mode` | ✅ Alias | Copied into `[database]` if unset |
+
+`[storage]` is for cache size / TTL / pool size — not backend selection.
+
+### `--db-path` appears ignored (issue #830)
+
+**Symptom**: Episodes/patterns written but not visible in the next CLI process.
+
+**Cause**: Older builds only set Turso `db_path` and left `redb_path` at the default XDG path. Current CLI **always** sets `redb_path` from `--db-path` / `MEMORY_DB_PATH`.
+
+**Fix**:
+```bash
+# Same path for every command in the workflow
+export MEMORY_DB_PATH=./data/memory.redb
+export MEMORY_STORAGE_MODE=local
+do-memory-cli episode create -t "task"
+# ... log-step / complete / pattern list with same env
 ```
 
 ## Debug Mode

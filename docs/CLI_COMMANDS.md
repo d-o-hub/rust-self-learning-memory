@@ -96,7 +96,7 @@ do-memory-cli config check
 do-memory-cli config show
 
 # Show configuration template
-do-memory-cli config show-template  # (if implemented)
+do-memory-cli config show-template  # prints a starter TOML config
 ```
 
 ## Configuration File Format
@@ -465,7 +465,7 @@ Issues found: (none)
 ls -la do-memory-cli.toml .do-memory-cli.toml
 
 # Run wizard with verbose output
-memory --verbose config wizard
+do-memory-cli --verbose config wizard
 ```
 
 ### Validation Errors

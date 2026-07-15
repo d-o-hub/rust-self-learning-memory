@@ -144,8 +144,14 @@ impl PatternEffectiveness {
 }
 
 /// Pattern types extracted from episodes
+///
+/// NOTE: This enum is intentionally NOT `#[serde(tag = "type")]` (internally
+/// tagged). Postcard cannot deserialize internally-tagged enums, which made
+/// patterns unreadable from storage (issue #831). It uses the default
+/// externally-tagged representation (postcard-compatible). Variant names are
+/// `rename_all = "snake_case"` for stable JSON keys.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Pattern {
     /// Sequence of tools used successfully
     ToolSequence {
@@ -272,5 +278,38 @@ impl Pattern {
     pub fn record_application(&mut self, success: bool, reward_delta: f32) {
         self.effectiveness_mut()
             .record_application(success, reward_delta);
+    }
+}
+
+#[cfg(test)]
+mod postcard_regression_tests {
+    use super::*;
+    use crate::types::{ComplexityLevel, TaskContext};
+
+    fn sample_pattern() -> Pattern {
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("tokio".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "web-api".to_string(),
+            tags: vec!["async".to_string()],
+        };
+        Pattern::ToolSequence {
+            id: Uuid::new_v4(),
+            tools: vec!["cargo".to_string(), "rustc".to_string()],
+            context,
+            success_rate: 1.0,
+            avg_latency: chrono::Duration::milliseconds(42),
+            occurrence_count: 1,
+            effectiveness: PatternEffectiveness::new(),
+        }
+    }
+
+    #[test]
+    fn pattern_postcard_roundtrip() {
+        let p = sample_pattern();
+        let bytes = postcard::to_allocvec(&p).expect("serialize");
+        let back: Pattern = postcard::from_bytes(&bytes).expect("deserialize (issue #831)");
+        assert_eq!(back, p);
     }
 }

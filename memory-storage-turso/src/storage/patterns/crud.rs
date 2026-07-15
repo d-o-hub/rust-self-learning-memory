@@ -201,6 +201,41 @@ impl TursoStorage {
         }
     }
 
+    /// Retrieve all patterns from Turso storage.
+    pub async fn get_all_patterns(&self) -> Result<Vec<CorePattern>> {
+        debug!("Retrieving all patterns from Turso storage");
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = r#"
+            SELECT pattern_id, pattern_type, pattern_data, success_rate,
+                   context_domain, context_language, context_tags, occurrence_count,
+                   created_at, updated_at
+            FROM patterns
+        "#;
+
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
+
+        let mut patterns = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+        {
+            patterns.push(super::row::row_to_pattern(&row)?);
+        }
+
+        Ok(patterns)
+    }
+
     /// Query patterns with filters
     pub async fn query_patterns(&self, query: &super::PatternQuery) -> Result<Vec<CorePattern>> {
         debug!("Querying patterns with filters: {:?}", query);

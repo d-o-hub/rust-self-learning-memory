@@ -23,6 +23,7 @@ fn create_test_config_with_embeddings(enabled: bool, api_key_env: Option<String>
             max_episodes_cache: 100,
             cache_ttl_seconds: 3600,
             pool_size: 5,
+            storage_mode: None,
         },
         cli: CliConfig {
             default_format: "human".to_string(),

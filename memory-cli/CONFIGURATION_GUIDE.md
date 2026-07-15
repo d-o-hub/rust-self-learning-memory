@@ -353,9 +353,49 @@ do-memory-cli storage health
 
 | Environment Variable | Configuration Path | Description |
 |---------------------|-------------------|-------------|
-| `MEMORY_TURSO_URL` | `database.turso_url` | Turso database URL |
-| `MEMORY_TURSO_TOKEN` | `database.turso_token` | Turso authentication token |
-| `MEMORY_REDB_PATH` | `database.redb_path` | redb database file path |
+| `TURSO_URL` | `database.turso_url` | Turso database URL |
+| `TURSO_TOKEN` | `database.turso_token` | Turso authentication token |
+| `REDB_PATH` | `database.redb_path` | redb database file path |
+
+## Quick Start: Generate a Config
+
+```bash
+# Write a starter local config (refuses to overwrite)
+do-memory-cli config init
+# → creates do-memory-cli.toml with storage_mode = "local"
+
+# Or print a template to stdout
+do-memory-cli config show-template
+
+# Use a project-local path
+do-memory-cli -c do-memory-cli.toml episode list
+
+# Or override path without a config file (also sets redb_path):
+do-memory-cli --storage-mode local --db-path ./data/memory.redb episode list
+# MEMORY_DB_PATH=./data/memory.redb MEMORY_STORAGE_MODE=local do-memory-cli episode list
+```
+
+### Where does `storage_mode` go?
+
+| Location | Supported? | Notes |
+|----------|------------|-------|
+| `[database].storage_mode` | ✅ Canonical | Preferred; emitted by `config init` |
+| `--storage-mode` / `MEMORY_STORAGE_MODE` | ✅ CLI/env override | Wins over config file |
+| `[storage].storage_mode` | ✅ Accepted alias | Copied into `[database]` if unset |
+
+`[storage]` is for cache size / TTL / pool size — not backend selection.
+
+### Minimal valid config (issue #829)
+
+Partial files work; missing sections use defaults:
+
+```toml
+[database]
+redb_path = "./.do-memory-cli/cache/memory.redb"
+storage_mode = "local"
+```
+
+See also `memory-cli/config/do-memory-cli.example.toml`.
 
 ## Configuration Validation
 
@@ -363,10 +403,10 @@ The CLI validates configuration on startup. Use the `config` command to check yo
 
 ```bash
 # Validate configuration
-do-memory-cli config
+do-memory-cli config validate
 
 # Validate specific config file
-do-memory-cli --config custom.toml config
+do-memory-cli --config custom.toml config validate
 ```
 
 ### Validation Rules
@@ -426,7 +466,7 @@ chmod 600 do-memory-cli.toml
 export MEMORY_TURSO_TOKEN="your-secure-token"
 
 # Test configuration
-do-memory-cli config
+do-memory-cli config validate
 ```
 
 ## Troubleshooting Configuration
@@ -524,10 +564,8 @@ progress_bars = true
 batch_size = 100
 EOF
 
-# Environment-specific overrides
+# Environment-specific overrides (pass a different file with --config)
 cat > do-memory-cli.dev.toml << EOF
-import = "do-memory-cli.base.toml"
-
 [database]
 turso_url = "libsql://dev-db.turso.io"
 turso_token = "dev-token"
@@ -579,11 +617,11 @@ fi
 # Validate with CLI
 echo
 echo "Validating configuration..."
-if do-memory-cli config > /dev/null 2>&1; then
+if do-memory-cli config validate > /dev/null 2>&1; then
     echo "✓ Configuration is valid"
 else
     echo "✗ Configuration validation failed"
-    do-memory-cli config
+    do-memory-cli config validate
     exit 1
 fi
 

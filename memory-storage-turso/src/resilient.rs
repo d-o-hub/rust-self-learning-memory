@@ -198,6 +198,11 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
+    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        self.circuit_call(move |s| async move { s.get_all_patterns().await })
+            .await
+    }
+
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         let heuristic = heuristic.clone();
         self.circuit_call(move |s| async move { s.store_heuristic(&heuristic).await })

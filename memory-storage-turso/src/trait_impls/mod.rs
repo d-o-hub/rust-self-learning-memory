@@ -43,6 +43,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_pattern(self, id).await
     }
 
+    async fn get_all_patterns(&self) -> Result<Vec<do_memory_core::Pattern>> {
+        super::TursoStorage::get_all_patterns(self).await
+    }
+
     async fn store_heuristic(&self, heuristic: &do_memory_core::Heuristic) -> Result<()> {
         super::TursoStorage::store_heuristic(self, heuristic).await
     }

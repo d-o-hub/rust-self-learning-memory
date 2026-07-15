@@ -2,6 +2,8 @@
 
 pub mod backup;
 pub mod config;
+pub mod config_display;
+pub mod config_template;
 pub mod embedding;
 pub mod episode;
 pub mod eval;
@@ -76,6 +78,8 @@ pub async fn handle_config_command(
         ConfigCommands::Check => config::check_config(memory, config, format).await,
         ConfigCommands::Show => config::show_config(memory, config, format).await,
         ConfigCommands::Wizard => config::run_wizard().await,
+        ConfigCommands::ShowTemplate => config::show_config_template().await,
+        ConfigCommands::Init { path } => config::init_config(&path).await,
     }
 }
 

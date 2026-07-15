@@ -1,13 +1,25 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-11 (v0.1.34 released)
-**Released Version**: v0.1.34 (GitHub Release tag exists, 2026-07-11)
-**Workspace Version**: 0.1.34
-**Active Sprint**: v0.1.34 — COMPLETE
-**Branch**: `main`
-**PR**: [#806](https://github.com/d-o-hub/rust-self-learning-memory/pull/806) — MERGED
-**Release**: [v0.1.34](https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.34)
+**Last Updated**: 2026-07-15 (CLI UX patch v0.1.35)
+**Released Version**: v0.1.34 (GitHub Release tag exists)
+**Workspace Version**: 0.1.35 (unreleased)
+**Active Sprint**: v0.1.35 — CLI UX Patch ✅ code complete
+**Branch**: `fix/0.1.35-patch-issues`
 **Edition**: Rust 2024
+
+## v0.1.35 Sprint — CLI UX Patch ✅ CODE COMPLETE
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| #831 | Pattern extraction not listable across processes | ✅ Fixed |
+| #830 | `--db-path` / `MEMORY_DB_PATH` ignored for redb | ✅ Fixed |
+| #829 | Config file format hard to discover | ✅ Fixed |
+| #832 | `storage_mode` config placement unclear | ✅ Fixed |
+| #828 | Release drift | 🟡 Ready to tag after merge |
+
+**Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
+
+---
 
 ## v0.1.34 Sprint — COMPLETE ✅ (Released)
 

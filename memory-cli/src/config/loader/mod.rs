@@ -99,6 +99,7 @@ pub fn load_config_with_format(path: &Path) -> Result<super::Config, anyhow::Err
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
 
     #[test]
     fn test_load_config_from_nonexistent() {
@@ -112,5 +113,70 @@ mod tests {
         let path = Path::new("/nonexistent/config.toml");
         let result = load_config_with_format(path);
         assert!(result.is_err());
+    }
+
+    /// Issue #829: partial configs must load via #[serde(default)] on Config sections.
+    #[test]
+    fn test_partial_config_loads_with_defaults() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("partial.toml");
+        let mut f = std::fs::File::create(&path).unwrap();
+        write!(
+            f,
+            r#"
+[database]
+redb_path = "./data/memory.redb"
+storage_mode = "local"
+"#
+        )
+        .unwrap();
+
+        let config = load_config(Some(&path)).expect("partial config should parse");
+        assert_eq!(
+            config.database.redb_path.as_deref(),
+            Some("./data/memory.redb")
+        );
+        assert_eq!(config.database.storage_mode.as_deref(), Some("local"));
+        // Storage/cli sections filled from Default
+        assert!(config.storage.max_episodes_cache > 0);
+        assert!(config.storage.pool_size > 0);
+        assert!(!config.cli.default_format.is_empty());
+    }
+
+    /// Issue #832: storage_mode under [storage] is accepted as an alias.
+    #[test]
+    fn test_storage_mode_alias_under_storage_section() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("alias.toml");
+        let mut f = std::fs::File::create(&path).unwrap();
+        write!(
+            f,
+            r#"
+[database]
+redb_path = "./data/memory.redb"
+
+[storage]
+storage_mode = "local"
+max_episodes_cache = 500
+"#
+        )
+        .unwrap();
+
+        let mut config = load_config(Some(&path)).expect("config with alias should parse");
+        assert_eq!(config.storage.storage_mode.as_deref(), Some("local"));
+        config.normalize_storage_mode();
+        assert_eq!(config.database.storage_mode.as_deref(), Some("local"));
+        assert!(config.storage.storage_mode.is_none());
+    }
+
+    /// Database.storage_mode wins when both locations are set.
+    #[test]
+    fn test_database_storage_mode_takes_precedence() {
+        let mut config = crate::config::Config::default();
+        config.database.storage_mode = Some("remote".to_string());
+        config.storage.storage_mode = Some("local".to_string());
+        config.normalize_storage_mode();
+        assert_eq!(config.database.storage_mode.as_deref(), Some("remote"));
+        assert!(config.storage.storage_mode.is_none());
     }
 }

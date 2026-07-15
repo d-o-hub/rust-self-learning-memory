@@ -108,6 +108,7 @@ impl ConfigWizard {
             max_episodes_cache: max_episodes,
             cache_ttl_seconds: cache_ttl,
             pool_size,
+            storage_mode: None,
         })
     }
 

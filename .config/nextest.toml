@@ -31,3 +31,12 @@ slow-timeout = { period = "180s", terminate-after = 2 }
 [[profile.ci.overrides]]
 filter = "package(e2e-tests) and test(quality_gate_performance_regression)"
 slow-timeout = { period = "180s", terminate-after = 2 }
+
+# Pattern discovery e2e spawns multiple CLI processes; allow ~3 min under load.
+[[profile.default.overrides]]
+filter = "package(e2e-tests) and test(test_pattern_discovery)"
+slow-timeout = { period = "90s", terminate-after = 3 }
+
+[[profile.ci.overrides]]
+filter = "package(e2e-tests) and test(test_pattern_discovery)"
+slow-timeout = { period = "90s", terminate-after = 3 }

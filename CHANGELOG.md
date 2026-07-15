@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.35] - 2026-07-15
+
+### Fixed
+
+- **#831 Pattern retrieval across processes**: `Pattern` enum was internally
+  tagged (`#[serde(tag = "type")]`), which Postcard cannot deserialize. Patterns
+  were written to storage but never read back, so `pattern list` / `pattern search`
+  returned 0 after completing episodes in a fresh CLI process. Changed `Pattern`
+  to an externally-tagged (Postcard-compatible) representation and added a
+  `postcard` round-trip regression test. Also added `StorageBackend::get_all_patterns`
+  (redb + Turso) and lazy-loaded `queries::get_all_patterns` so list/search hydrate
+  from durable storage. Bumped redb `SCHEMA_VERSION` to 4 so stale caches are
+  cleared on upgrade; undecodable pattern rows are skipped rather than failing
+  the whole list. **Note:** JSON shape of `Pattern` also changes (externally
+  tagged); Turso stores a separate JSON DTO and is unaffected.
+
+- **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: these now also drive
+  the redb path via a sibling file (e.g. `memory.db` → `memory.redb`, or a
+  `*.redb` path maps redb directly and Turso SQLite uses `*.db`) so the two
+  engines never share a file. When no Turso URL is configured and
+  `storage_mode` is unset, they also default `storage_mode` to `local` so the
+  path is not a silent no-op. Corrected README docs that misattributed
+  `db_path` to the redb backend.
+
+- **#829 Undocumented config file format**: added `config init [--path]` and
+  `config show-template` commands that emit a valid, populated `Config` TOML, and
+  fixed documentation of real env vars (`TURSO_URL`/`TURSO_TOKEN`/`REDB_PATH`),
+  the `[database].storage_mode` location, and removed non-existent sections
+  (`[sandbox]`, `[backup]`, `[logging]`) and the unimplemented `import =` syntax.
+
+- **#828 Release drift**: relabeled the `0.2.0` bump back to `0.1.35` (patch on the
+  `0.1.x` line) across all workspace manifests and `Cargo.lock`.
+
+- **#832 Config discoverability**: `config init` / `show-template` surface the
+  canonical config shape. `storage_mode` belongs under `[database]`; an alias
+  under `[storage]` is accepted and normalized. Partial TOML files work via
+  `#[serde(default)]` on all config sections. Added
+  `memory-cli/config/do-memory-cli.example.toml`.
+
 ## [0.1.34] - 2026-07-11
 
 

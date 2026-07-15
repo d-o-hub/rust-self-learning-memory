@@ -173,6 +173,7 @@ mod tests {
                 max_episodes_cache: 1000,
                 cache_ttl_seconds: 3600,
                 pool_size: 5,
+                storage_mode: None,
             },
             cli: CliConfig {
                 default_format: "json".to_string(),

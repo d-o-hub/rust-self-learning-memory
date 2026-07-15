@@ -1,10 +1,27 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-09 (v0.1.34 release)
-**Released Version**: v0.1.34 (crates.io + GitHub Release, 2026-07-09)
-**Active Sprint**: v0.1.34 — CI Health + Benchmark Fixes + Lint Hygiene (WG-175..184)
-**Branch**: `main`
-**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
+**Last Updated**: 2026-07-15 (CLI UX patch sprint)
+**Released Version**: v0.1.34 (crates.io + GitHub Release)
+**Workspace Version**: 0.1.35 (unreleased — branch `fix/0.1.35-patch-issues`)
+**Active Sprint**: v0.1.35 — CLI UX Patch (#829–#832, #828)
+**Branch**: `fix/0.1.35-patch-issues`
+**Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
+
+---
+
+## Sprint v0.1.35 — CLI UX Patch ✅ CODE COMPLETE (2026-07-15)
+
+**Focus**: Fix user-reported v0.1.34 CLI/config bugs; prevent recurrence with postcard/list/config tests.
+
+| Priority | Issue | Description | Status |
+|----------|-------|-------------|--------|
+| 1 (critical) | #831 | Pattern list/search empty after complete | ✅ Fixed + CLI verified |
+| 2 (critical) | #830 | `--db-path` / `MEMORY_DB_PATH` ignored | ✅ Fixed + CLI verified |
+| 3 (UX) | #829 | Config format undocumented / hard to discover | ✅ Fixed + CLI verified |
+| 4 (UX) | #832 | `storage_mode` vs config file unclear | ✅ Fixed + CLI verified |
+| 5 (release) | #828 | Release drift after v0.1.34 | 🟡 Version 0.1.35 ready; tag after merge |
+
+**Prevention**: postcard Pattern roundtrip, redb get_all_patterns trait test, e2e cross-process pattern list, config partial/alias unit tests, example.toml.
 
 ---
 

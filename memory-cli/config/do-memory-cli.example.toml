@@ -1,0 +1,61 @@
+# do-memory-cli example configuration
+# =====================================
+# Generate a ready-to-edit starter with:
+#   do-memory-cli config init
+#   do-memory-cli config show-template
+#
+# Field reference: memory-cli/CONFIGURATION_GUIDE.md
+# Local-only setup: docs/LOCAL_DATABASE_SETUP.md
+#
+# All sections are optional thanks to defaults (issue #829). A minimal
+# local config only needs [database] with redb_path + storage_mode.
+
+# ---------------------------------------------------------------------------
+# [database] — storage backend selection (canonical home for storage_mode)
+# ---------------------------------------------------------------------------
+[database]
+# Local redb cache / primary local backend path.
+# Overridden by --db-path / MEMORY_DB_PATH (issue #830).
+redb_path = "./.do-memory-cli/cache/memory.redb"
+
+# "remote" (Turso), "local" (redb/local SQLite), or "memory".
+# Prefer this location over [storage].storage_mode (issue #832).
+storage_mode = "local"
+
+# Turso remote (only needed for storage_mode = "remote")
+# turso_url = "libsql://your-db.turso.io"
+# turso_token = "your-token"
+
+# Local Turso SQLite path when storage_mode = "local" and using Turso file backend.
+# db_path = "./data/memory.db"
+
+# ---------------------------------------------------------------------------
+# [storage] — cache behaviour (NOT where storage_mode belongs)
+# ---------------------------------------------------------------------------
+[storage]
+max_episodes_cache = 1200
+cache_ttl_seconds = 7200
+pool_size = 14
+# Optional UX alias (copied into [database].storage_mode if that is unset):
+# storage_mode = "local"
+
+# ---------------------------------------------------------------------------
+# [cli] — output preferences
+# ---------------------------------------------------------------------------
+[cli]
+default_format = "human"   # human | json | yaml
+progress_bars = true
+batch_size = 200
+
+# ---------------------------------------------------------------------------
+# [embeddings] — optional semantic search
+# ---------------------------------------------------------------------------
+[embeddings]
+enabled = false
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+similarity_threshold = 0.7
+batch_size = 32
+cache_embeddings = true
+timeout_seconds = 30

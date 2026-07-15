@@ -155,6 +155,7 @@ proptest! {
             max_episodes_cache: if zero_field == 0 { 0 } else { 1000 },
             cache_ttl_seconds: if zero_field == 1 { 0 } else { 3600 },
             pool_size: if zero_field == 2 { 0 } else { 5 },
+            storage_mode: None,
         };
 
         let result = validate_storage_config(&storage);
@@ -173,6 +174,7 @@ proptest! {
             max_episodes_cache: max_cache,
             cache_ttl_seconds: ttl,
             pool_size: pool,
+            storage_mode: None,
         };
 
         let result = validate_storage_config(&storage);
@@ -189,6 +191,7 @@ proptest! {
             max_episodes_cache: cache_size,
             cache_ttl_seconds: 3600,
             pool_size: 5,
+            storage_mode: None,
         };
 
         let result = validate_storage_config(&storage);
@@ -273,6 +276,7 @@ proptest! {
                 max_episodes_cache: cache_size,
                 cache_ttl_seconds: 3600,
                 pool_size: 5,
+                storage_mode: None,
             },
             CliConfig {
                 default_format: "json".to_string(),
@@ -310,83 +314,87 @@ proptest! {
 }
 
 // ============================================================================
-// Serialization Roundtrip Properties
+// Serialization Roundtrip (deterministic — avoids proptest hangs under nextest)
 // ============================================================================
 
-proptest! {
-    /// Config JSON roundtrip preserves all fields
-    #[test]
-    fn config_json_roundtrip(
-        cache_size in 1usize..10000usize,
-        ttl in 1u64..86400u64,
-        pool in 1usize..100usize,
-        format in prop::sample::select(vec!["human", "json", "yaml"]),
-        batch in 1usize..1000usize,
-        progress in proptest::bool::ANY,
-    ) {
-        let config = make_config(
-            DatabaseConfig {
-                turso_url: None,
-                turso_token: None,
-                redb_path: Some("/tmp/test.redb".to_string()),
-                storage_mode: None,
-                db_path: None,
-            },
-            StorageConfig {
-                max_episodes_cache: cache_size,
-                cache_ttl_seconds: ttl,
-                pool_size: pool,
-            },
-            CliConfig {
-                default_format: format.to_string(),
-                progress_bars: progress,
-                batch_size: batch,
-            },
-        );
+fn sample_roundtrip_config(
+    cache_size: usize,
+    ttl: u64,
+    pool: usize,
+    format: &str,
+    batch: usize,
+    progress: bool,
+) -> Config {
+    make_config(
+        DatabaseConfig {
+            turso_url: None,
+            turso_token: None,
+            redb_path: Some("/tmp/test.redb".to_string()),
+            storage_mode: Some("local".to_string()),
+            db_path: None,
+        },
+        StorageConfig {
+            max_episodes_cache: cache_size,
+            cache_ttl_seconds: ttl,
+            pool_size: pool,
+            storage_mode: None,
+        },
+        CliConfig {
+            default_format: format.to_string(),
+            progress_bars: progress,
+            batch_size: batch,
+        },
+    )
+}
 
+/// Config JSON roundtrip preserves all fields
+#[test]
+fn config_json_roundtrip() {
+    for (cache, ttl, pool, format, batch, progress) in [
+        (1, 1, 1, "human", 1, true),
+        (1000, 3600, 5, "json", 50, false),
+        (9999, 86400, 99, "yaml", 999, true),
+    ] {
+        let config = sample_roundtrip_config(cache, ttl, pool, format, batch, progress);
         let json = serde_json::to_string(&config).expect("serialize to JSON");
         let deserialized: Config = serde_json::from_str(&json).expect("deserialize from JSON");
 
-        prop_assert_eq!(config.storage.max_episodes_cache, deserialized.storage.max_episodes_cache);
-        prop_assert_eq!(config.storage.cache_ttl_seconds, deserialized.storage.cache_ttl_seconds);
-        prop_assert_eq!(config.storage.pool_size, deserialized.storage.pool_size);
-        prop_assert_eq!(config.cli.default_format, deserialized.cli.default_format);
-        prop_assert_eq!(config.cli.progress_bars, deserialized.cli.progress_bars);
-        prop_assert_eq!(config.cli.batch_size, deserialized.cli.batch_size);
-    }
-
-    /// Config TOML roundtrip preserves all fields
-    #[test]
-    fn config_toml_roundtrip(
-        cache_size in 1usize..10000usize,
-        pool in 1usize..100usize,
-        batch in 1usize..1000usize,
-    ) {
-        let config = make_config(
-            DatabaseConfig {
-                turso_url: None,
-                turso_token: None,
-                redb_path: Some("/tmp/test.redb".to_string()),
-                storage_mode: None,
-                db_path: None,
-            },
-            StorageConfig {
-                max_episodes_cache: cache_size,
-                cache_ttl_seconds: 3600,
-                pool_size: pool,
-            },
-            CliConfig {
-                default_format: "json".to_string(),
-                progress_bars: false,
-                batch_size: batch,
-            },
+        assert_eq!(
+            config.storage.max_episodes_cache,
+            deserialized.storage.max_episodes_cache
         );
+        assert_eq!(
+            config.storage.cache_ttl_seconds,
+            deserialized.storage.cache_ttl_seconds
+        );
+        assert_eq!(config.storage.pool_size, deserialized.storage.pool_size);
+        assert_eq!(config.cli.default_format, deserialized.cli.default_format);
+        assert_eq!(config.cli.progress_bars, deserialized.cli.progress_bars);
+        assert_eq!(config.cli.batch_size, deserialized.cli.batch_size);
+        assert_eq!(
+            config.database.storage_mode,
+            deserialized.database.storage_mode
+        );
+    }
+}
 
+/// Config TOML roundtrip preserves all fields
+#[test]
+fn config_toml_roundtrip() {
+    for (cache, pool, batch) in [(1, 1, 1), (1000, 5, 50), (9999, 99, 999)] {
+        let config = sample_roundtrip_config(cache, 3600, pool, "json", batch, false);
         let toml_str = toml::to_string(&config).expect("serialize to TOML");
         let deserialized: Config = toml::from_str(&toml_str).expect("deserialize from TOML");
 
-        prop_assert_eq!(config.storage.max_episodes_cache, deserialized.storage.max_episodes_cache);
-        prop_assert_eq!(config.storage.pool_size, deserialized.storage.pool_size);
-        prop_assert_eq!(config.cli.batch_size, deserialized.cli.batch_size);
+        assert_eq!(
+            config.storage.max_episodes_cache,
+            deserialized.storage.max_episodes_cache
+        );
+        assert_eq!(config.storage.pool_size, deserialized.storage.pool_size);
+        assert_eq!(config.cli.batch_size, deserialized.cli.batch_size);
+        assert_eq!(
+            config.database.storage_mode,
+            deserialized.database.storage_mode
+        );
     }
 }

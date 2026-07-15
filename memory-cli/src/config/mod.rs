@@ -77,7 +77,9 @@ pub use wizard::{ConfigWizard, quick_setup, show_template};
 pub fn load_config_with_validation(
     path: Option<&std::path::Path>,
 ) -> Result<Config, anyhow::Error> {
-    let config = load_config(path)?;
+    let mut config = load_config(path)?;
+    // Merge `[storage].storage_mode` → `[database].storage_mode` (issue #832).
+    config.normalize_storage_mode();
     let validation_result = validate_config(&config);
 
     if !validation_result.is_valid {

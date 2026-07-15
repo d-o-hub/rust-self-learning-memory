@@ -45,7 +45,12 @@ impl SelfLearningMemory {
 
     /// Get all patterns with proper lazy loading from storage backends.
     pub async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
-        queries::get_all_patterns(&self.patterns_fallback).await
+        queries::get_all_patterns(
+            &self.patterns_fallback,
+            self.cache_storage.as_ref(),
+            self.turso_storage.as_ref(),
+        )
+        .await
     }
 
     /// List episodes with optional filtering, using proper lazy loading.

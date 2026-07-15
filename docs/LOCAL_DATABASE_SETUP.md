@@ -50,21 +50,19 @@ TURSO_AUTH_TOKEN=
 
 # Local database configuration
 LOCAL_DATABASE_URL=sqlite:./data/memory.db
-MEMORY_REDB_PATH=./data/memory.redb
+REDB_PATH=./data/memory.redb
 
 # Data directories
 MEMORY_DATA_DIR=./data
-MEMORY_BACKUP_DIR=./backups
 
 # Other settings...
 RUST_LOG=info
-MEMORY_MAX_EPISODES_CACHE=1000
 ```
 
 #### Step 2: Create Directories
 
 ```bash
-mkdir -p ./data ./backups
+mkdir -p ./data
 ```
 
 #### Step 3: Initialize Database
@@ -82,11 +80,8 @@ sqlite3 ./data/memory.db < scripts/schema.sql
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `LOCAL_DATABASE_URL` | Path to local SQLite database | `sqlite:./data/memory.db` |
-| `MEMORY_REDB_PATH` | Path to redb cache file | `./data/memory.redb` |
+| `REDB_PATH` | Path to redb cache file | `./data/memory.redb` |
 | `MEMORY_DATA_DIR` | Data directory root | `./data` |
-| `MEMORY_BACKUP_DIR` | Backup directory | `./backups` |
-| `MEMORY_MAX_EPISODES_CACHE` | Max episodes in memory cache | `1000` |
-| `MEMORY_CACHE_TTL_SECONDS` | Cache TTL in seconds | `3600` |
 
 ### Configuration File
 
@@ -110,16 +105,6 @@ pool_size = 10
 default_format = "human"
 progress_bars = true
 batch_size = 100
-
-[backup]
-backup_dir = "./backups"
-max_backup_age_days = 30
-compress_backups = true
-
-[logging]
-level = "info"
-max_log_size_mb = 10
-max_log_files = 5
 ```
 
 ## Database Schema
@@ -251,7 +236,7 @@ Update your `.env` or `do-memory-cli.toml` to use local paths instead of Turso U
 ### Optimization Tips
 
 1. **Batch Operations**: Use batch size > 100 for bulk operations
-2. **Cache Settings**: Increase `MEMORY_MAX_EPISODES_CACHE` for better performance
+2. **Cache Settings**: Tune `[storage].max_episodes_cache` / `cache_ttl_seconds` in the config file for better performance
 3. **File Location**: Place database on fast storage (SSD)
 4. **Regular Maintenance**: Periodically run `VACUUM` and `ANALYZE`
 
@@ -421,7 +406,7 @@ jobs:
           cargo test --all
         env:
           LOCAL_DATABASE_URL: sqlite:./test-data/test.db
-          MEMORY_REDB_PATH: ./test-data/cache.redb
+          REDB_PATH: ./test-data/cache.redb
 ```
 
 ## Advanced Configuration

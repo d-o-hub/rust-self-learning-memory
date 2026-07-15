@@ -110,15 +110,74 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read pattern entry: {}", e)))?;
 
-                let pattern: Pattern = postcard::from_bytes(bytes_guard.value())
-                    .map_err(|e| Error::Storage(format!("Failed to deserialize pattern: {}", e)))?;
-
-                patterns.push(pattern);
+                // Skip unreadable rows (e.g. pre-v4 internally-tagged postcard) so one
+                // stale entry cannot fail the entire list (issue #831).
+                match postcard::from_bytes::<Pattern>(bytes_guard.value()) {
+                    Ok(pattern) => patterns.push(pattern),
+                    Err(e) => {
+                        debug!("Skipping undecodable pattern cache entry: {}", e);
+                    }
+                }
             }
 
             Ok(patterns)
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+    }
+}
+
+#[cfg(test)]
+mod pattern_persistence_tests {
+    use super::*;
+    use do_memory_core::StorageBackend;
+    use do_memory_core::patterns::PatternEffectiveness;
+    use do_memory_core::types::{ComplexityLevel, TaskContext};
+    use uuid::Uuid;
+
+    fn sample_pattern() -> Pattern {
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("tokio".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "cli".to_string(),
+            tags: vec!["regression".to_string()],
+        };
+        Pattern::ToolSequence {
+            id: Uuid::new_v4(),
+            tools: vec!["cargo".to_string(), "test".to_string()],
+            context,
+            success_rate: 1.0,
+            avg_latency: chrono::Duration::milliseconds(10),
+            occurrence_count: 1,
+            effectiveness: PatternEffectiveness::new(),
+        }
+    }
+
+    /// Issue #831: patterns must survive postcard serialize + get_all_patterns.
+    #[tokio::test]
+    async fn store_and_list_patterns_across_trait() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("patterns.redb");
+        let storage = RedbStorage::new(&path).await.expect("open redb");
+
+        let pattern = sample_pattern();
+        let id = pattern.id();
+        storage.store_pattern(&pattern).await.expect("store");
+
+        // Via concrete API
+        let listed = storage
+            .get_all_patterns(&RedbQuery::default())
+            .await
+            .expect("list");
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].id(), id);
+
+        // Via StorageBackend trait (what memory-core uses for CLI list)
+        let via_trait = StorageBackend::get_all_patterns(&storage)
+            .await
+            .expect("trait list");
+        assert_eq!(via_trait.len(), 1);
+        assert_eq!(via_trait[0].id(), id);
     }
 }

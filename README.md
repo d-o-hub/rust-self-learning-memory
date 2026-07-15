@@ -242,7 +242,7 @@ The system supports a first-class local-only mode that requires no Turso account
 # Via CLI (using auto-detected OS data directory)
 do-memory-cli --storage-mode local episode list
 
-# Via CLI (specifying a custom path)
+# Via CLI (specifying a custom database path)
 do-memory-cli --storage-mode local --db-path ./data/memory.db episode list
 
 # Via Environment Variables
@@ -250,6 +250,12 @@ export MEMORY_STORAGE_MODE=local
 export MEMORY_DB_PATH=./data/memory.db
 do-memory-cli episode list
 ```
+
+> **Note on `--db-path` / `MEMORY_DB_PATH`**: these set the local database
+> file path. For the default `local` (redb) backend they set the redb cache
+> file; for Turso `remote` mode with a local file they set the Turso SQLite
+> path. The config-file equivalent is `[database].redb_path` /
+> `[database].db_path`. See [TOML Configuration](#toml-configuration).
 
 For programmatic usage, see the [Local Development example](#local-offline-development).
 
@@ -265,6 +271,12 @@ do-memory-cli config wizard
 # - Database (local SQLite or remote Turso)
 # - Storage (cache size, TTL, connection pool)
 # - CLI (output format, progress bars, batch size)
+
+# Generate a starter config file
+do-memory-cli config init
+
+# Print a starter config template
+do-memory-cli config show-template
 
 # Validate configuration
 do-memory-cli config validate
@@ -469,16 +481,12 @@ When the `csm` feature is enabled, semantic search uses a 4-tier cascade to mini
 
 ```bash
 # Turso Cloud (default)
-TURSO_DATABASE_URL=libsql://your-db.turso.io
-TURSO_AUTH_TOKEN=your-auth-token
+TURSO_URL=libsql://your-db.turso.io
+TURSO_TOKEN=your-auth-token
 
-# Local SQLite (fallback)
+# Local redb cache (default local backend)
 LOCAL_DATABASE_URL=sqlite:./data/memory.db
-MEMORY_REDB_PATH=./data/memory.redb
-
-# Cache settings
-MEMORY_MAX_EPISODES_CACHE=1000
-MEMORY_CACHE_TTL_SECONDS=3600
+REDB_PATH=./data/memory.redb
 
 # CLI config
 MEMORY_CLI_CONFIG=./memory-cli.toml
@@ -493,7 +501,7 @@ EMBEDDING_MODEL=text-embedding-3-small
 EMBEDDING_SIMILARITY_THRESHOLD=0.7
 EMBEDDING_BATCH_SIZE=32
 
-# Sandbox settings
+# Sandbox settings (MCP server only)
 MCP_USE_WASM=true
 JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
 ```
@@ -504,25 +512,23 @@ JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
 [database]
 turso_url = "libsql://your-db.turso.io"
 turso_token = "your-auth-token"
-redb_path = "memory.redb"
+redb_path = "memory.redb"          # local (redb) cache file path
+storage_mode = "local"             # "remote" | "local" | "memory"
+db_path = "./data/memory.db"       # Turso local SQLite path (storage_mode = "local")
 
 [storage]
 max_episodes_cache = 1000
 cache_ttl_seconds = 3600
 pool_size = 10
 
-[sandbox]
-max_execution_time_ms = 5000
-max_memory_mb = 128
-max_cpu_percent = 50
-allow_network = false
-allow_filesystem = false
-
 [cli]
 default_format = "human"
 progress_bars = true
 batch_size = 100
 ```
+
+> Tip: generate a valid starter config with `do-memory-cli config init`
+> (writes `do-memory-cli.toml`) or print one with `do-memory-cli config show-template`.
 
 ## Architecture
 

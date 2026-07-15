@@ -1,7 +1,28 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-06-30 (WG-176..182 complete via PR #675; deps maintenance done)
+- **Last Updated**: 2026-07-15 (CLI UX patch #829–#832)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
+
+## Active Actions (v0.1.35 CLI UX Patch)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-190 | #831 Pattern postcard + get_all_patterns + e2e | ✅ Done |
+| ACT-191 | #830 Honor --db-path for redb_path | ✅ Done |
+| ACT-192 | #829 config init/show-template + serde default + example | ✅ Done |
+| ACT-193 | #832 storage_mode alias + config show | ✅ Done |
+| ACT-194 | Prevention tests (postcard, redb list, loader, snapshot) | ✅ Done |
+| ACT-195 | Update plans/ + CHANGELOG for 0.1.35 | ✅ Done |
+| ACT-196 | Open PR + CI green + merge | 🟡 Next |
+| ACT-197 | Cut v0.1.35 via release.yml (closes #828) | ⏳ After merge |
+
+### Prevention permanently (do not regress)
+- Never `#[serde(tag=)]` on postcard types
+- StorageBackend new methods → all backends
+- CLI path flags → set redb_path
+- Cross-process storage features → e2e CLI test
+
+---
 
 ## Completed Actions Summary
 

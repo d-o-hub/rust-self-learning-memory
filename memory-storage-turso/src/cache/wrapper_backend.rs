@@ -44,6 +44,13 @@ impl StorageBackend for CachedTursoStorage {
             .map_err(|e| Error::Storage(format!("Cache get error: {}", e)))
     }
 
+    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        self.storage
+            .get_all_patterns()
+            .await
+            .map_err(|e| Error::Storage(format!("Cache get-all error: {}", e)))
+    }
+
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         self.store_heuristic_cached(heuristic)
             .await

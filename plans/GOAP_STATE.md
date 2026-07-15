@@ -1,13 +1,31 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-08 (3 PRs created for issues #773, #771, #772; release drift at 30+ commits)
-- **Version**: `0.1.33` (workspace — tag v0.1.33 exists; ~30 commits since release)
-- **Branch**: `main`
-- **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), **ADR-055 (Accepted — v0.1.32 missing-impl remediation; resolved)**, **ADR-056 (Accepted — Local Storage No Connection Pooling)**, **ADR-057 (Accepted — CI Health: PR #616 merged; slow test bounded by PR #620)**, **ADR-058 (Accepted — Scheduled gitleaks false positives, release drift)**
+- **Last Updated**: 2026-07-15 (CLI UX patch #829-#832 on branch `fix/0.1.35-patch-issues`)
+- **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
+- **Branch**: `fix/0.1.35-patch-issues`
+- **Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
+- **Validation**: CLI skill smoke + targeted nextest (see plan)
 
 ---
+
+## Sprint 2026-07-15: CLI UX Patch v0.1.35 ✅ CODE COMPLETE
+
+**Open issues closed in code** (verify after merge/release):
+
+| Issue | Fix | Verified via CLI |
+|-------|-----|------------------|
+| #831 Pattern list empty after complete | Postcard-compatible Pattern + get_all_patterns lazy load | create→complete→list=1, search finds pattern |
+| #830 --db-path ignored | Always set redb_path; default local when no Turso | Opens custom.redb / env.redb |
+| #829 Undocumented config | config init/show-template + serde default + example.toml | partial.toml loads |
+| #832 storage_mode placement | [database] canonical; [storage] alias normalized | config show → Storage Mode: local |
+| #828 Release drift | Workspace 0.1.35 (not 0.2.0) | Version in Cargo.toml |
+
+**Prevention tasks landed**: postcard Pattern test, redb trait list test, e2e pattern list assert, loader partial/alias tests, example config, CHANGELOG.
+
+**Next**: commit → PR → CI green → merge → `release.yml` for v0.1.35 (never manual release).
+
+---
+
 
 ## Sprint 2026-07-08: PR Batch Merge & Mutation Testing
 

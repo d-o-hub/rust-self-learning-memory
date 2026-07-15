@@ -28,15 +28,21 @@ impl SelfLearningMemory {
         context: &TaskContext,
         limit: usize,
     ) -> Vec<Pattern> {
-        let mut patterns = self.patterns_fallback.write().await;
+        // Hydrate from all storage backends (lazy loading) so patterns created
+        // in a previous process are retrievable in a fresh CLI invocation.
+        let all_patterns = match self.get_all_patterns().await {
+            Ok(patterns) => patterns,
+            Err(e) => {
+                debug!("Failed to load patterns from storage: {}", e);
+                Vec::new()
+            }
+        };
 
         debug!(
-            total_patterns = patterns.len(),
+            total_patterns = all_patterns.len(),
             limit = limit,
             "Retrieving relevant patterns"
         );
-
-        let all_patterns: Vec<Pattern> = patterns.values().cloned().collect();
 
         // Rank patterns by relevance and quality (includes effectiveness scoring)
         let mut ranked = rank_patterns(all_patterns, context);
@@ -44,15 +50,19 @@ impl SelfLearningMemory {
         // Deduplicate
         ranked = deduplicate_patterns(ranked);
 
-        // Record retrieval for effectiveness tracking
-        for pattern in &mut ranked.iter_mut().take(limit) {
-            pattern.record_retrieval();
-            // Update the stored pattern with retrieval count
-            patterns.insert(pattern.id(), pattern.clone());
-        }
-
         // Limit results
         ranked.truncate(limit);
+
+        // Record retrieval for in-memory effectiveness tracking (best-effort).
+        // Write-back is limited to the process-local fallback so we never hold
+        // a lock across durable storage I/O.
+        {
+            let mut patterns = self.patterns_fallback.write().await;
+            for pattern in &mut ranked {
+                pattern.record_retrieval();
+                patterns.insert(pattern.id(), pattern.clone());
+            }
+        }
 
         info!(
             retrieved_count = ranked.len(),

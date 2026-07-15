@@ -636,7 +636,26 @@ async fn test_pattern_discovery() {
     assert!(success, "Pattern analyze should succeed");
     println!("  ✓ Analyzed patterns");
 
-    // Search patterns
+    // List patterns (separate process: must read from durable storage, not in-memory cache)
+    let (list_result, list_success) =
+        run_cli(&cli_path, &config_path, &["pattern", "list"]).expect("Failed to list patterns");
+
+    assert!(list_success, "Pattern list should succeed");
+    let listed = list_result
+        .get("patterns")
+        .and_then(|v| v.as_array())
+        .map(|v| v.len())
+        .unwrap_or(0);
+    assert!(
+        listed > 0,
+        "pattern list should return extracted patterns across processes (found {listed})"
+    );
+    println!("  ✓ Listed {listed} patterns");
+
+    // Search patterns (semantic search requires embeddings; with embeddings
+    // disabled the e2e config returns success with an empty result set, which
+    // is expected. The cross-process retrieval fix is validated by the
+    // `pattern list` assertion above.)
     let (search_result, success) = run_cli(
         &cli_path,
         &config_path,
@@ -645,12 +664,14 @@ async fn test_pattern_discovery() {
     .expect("Failed to search patterns");
 
     assert!(success, "Pattern search should succeed");
-    let patterns = search_result
-        .get("patterns")
-        .and_then(|v| v.as_array())
-        .map(|v| v.len())
-        .unwrap_or(0);
-    println!("  ✓ Found {patterns} patterns");
+    println!(
+        "  ✓ Pattern search succeeded (count={})",
+        search_result
+            .get("patterns")
+            .and_then(|v| v.as_array())
+            .map(|v| v.len())
+            .unwrap_or(0)
+    );
 
     // Get pattern recommendations
     let (_rec_result, success) = run_cli(&cli_path, &config_path, &["pattern", "recommend"])

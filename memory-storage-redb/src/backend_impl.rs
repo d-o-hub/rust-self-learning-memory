@@ -30,6 +30,11 @@ impl StorageBackend for RedbStorage {
         self.get_pattern(id).await
     }
 
+    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        self.get_all_patterns(&crate::episodes::RedbQuery::default())
+            .await
+    }
+
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         self.store_heuristic(heuristic).await
     }

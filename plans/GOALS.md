@@ -1,8 +1,17 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-06-30 (WG-176..182 complete via PR #675; dependency maintenance done)
-- **Source ADR**: ADR-037, ADR-052, ADR-053, ADR-057, ADR-058 (Accepted)
-- **Status**: Active
+- **Last Updated**: 2026-07-15 (CLI UX patch v0.1.35)
+- **Status**: Active — code complete for #829–#832; release pending merge
+
+## v0.1.35 Goals (CLI UX Patch)
+
+| Goal | Issues | Status |
+|------|--------|--------|
+| Patterns durable + listable across CLI processes | #831 | ✅ |
+| Project-local DB via --db-path / MEMORY_DB_PATH | #830 | ✅ |
+| Discoverable config (init, template, partial TOML) | #829 | ✅ |
+| Clear storage_mode story | #832 | ✅ |
+| Align version to 0.1.35 and cut release | #828 | 🟡 code ready |
 
 ---
 

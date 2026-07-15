@@ -648,6 +648,8 @@ do-memory-cli --config ci-config.toml episode list
 - `do-memory-cli config validate` - Validate current configuration
 - `do-memory-cli config check` - Check configuration for issues
 - `do-memory-cli config show` - Display current configuration
+- `do-memory-cli config show-template` - Print a starter TOML config
+- `do-memory-cli config init` - Write a starter config file
 - `do-memory-cli episode list` - Test configuration with episode listing
 - `do-memory-cli config wizard` - Run configuration wizard (this command)
 

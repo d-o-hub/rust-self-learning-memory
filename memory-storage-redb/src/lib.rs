@@ -160,7 +160,8 @@ pub(crate) const PROCEDURAL_TABLE: TableDefinition<&str, &[u8]> =
 /// - v1: Initial version (pre-versioning)
 /// - v2: Added checkpoints field to Episode (ADR-044 Feature 3)
 /// - v3: Added weight to relationships, added EpisodePatternRelationship (WG-123)
-pub(crate) const SCHEMA_VERSION: u64 = 3;
+/// - v4: Pattern externally-tagged for postcard (#831; was internally tagged)
+pub(crate) const SCHEMA_VERSION: u64 = 4;
 
 pub(crate) const SCHEMA_VERSION_TABLE: TableDefinition<&str, u64> =
     TableDefinition::new("schema_version");

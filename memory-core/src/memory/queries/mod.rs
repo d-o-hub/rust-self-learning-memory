@@ -129,14 +129,81 @@ pub async fn get_all_episodes(
 ///
 /// This method implements the lazy loading pattern: memory → redb → Turso.
 /// It first checks the in-memory cache, then falls back to cache storage
-/// (redb), and finally to durable storage (Turso) if needed.
+/// (redb), and finally to durable storage (Turso) if needed. This is what
+/// makes `pattern list` / `pattern search` work across process boundaries,
+/// since the in-memory `patterns_fallback` is empty in a fresh CLI process.
 ///
 /// Used primarily for backfilling embeddings and comprehensive pattern retrieval.
 pub async fn get_all_patterns(
     patterns_fallback: &tokio::sync::RwLock<HashMap<crate::episode::PatternId, Pattern>>,
+    cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
+    turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
 ) -> Result<Vec<Pattern>> {
-    let patterns = patterns_fallback.read().await;
-    Ok(patterns.values().cloned().collect())
+    use crate::episode::PatternId;
+
+    let mut all_patterns: HashMap<PatternId, Pattern> = HashMap::new();
+
+    // 1) In-memory cache
+    {
+        let patterns = patterns_fallback.read().await;
+        for (id, pattern) in patterns.iter() {
+            all_patterns.insert(*id, pattern.clone());
+        }
+    }
+
+    // 2) Cache storage (redb)
+    if let Some(cache) = cache_storage {
+        match cache.get_all_patterns().await {
+            Ok(patterns) => {
+                debug!(
+                    cache_count = patterns.len(),
+                    "Fetched patterns from cache storage"
+                );
+                for pattern in patterns {
+                    all_patterns.entry(pattern.id()).or_insert(pattern);
+                }
+            }
+            Err(e) => {
+                debug!("Failed to fetch patterns from cache storage: {}", e);
+            }
+        }
+    }
+
+    // 3) Durable storage (Turso)
+    if let Some(turso) = turso_storage {
+        match turso.get_all_patterns().await {
+            Ok(patterns) => {
+                debug!(
+                    turso_count = patterns.len(),
+                    "Fetched patterns from durable storage"
+                );
+                for pattern in patterns {
+                    all_patterns.entry(pattern.id()).or_insert(pattern);
+                }
+            }
+            Err(e) => {
+                debug!("Failed to fetch patterns from durable storage: {}", e);
+            }
+        }
+    }
+
+    // 4) Update in-memory cache with any newly discovered patterns
+    {
+        let mut patterns_cache = patterns_fallback.write().await;
+        for (id, pattern) in &all_patterns {
+            if !patterns_cache.contains_key(id) {
+                patterns_cache.insert(*id, pattern.clone());
+            }
+        }
+    }
+
+    let total_count = all_patterns.len();
+    info!(
+        total_patterns = total_count,
+        "Retrieved all patterns from all storage backends"
+    );
+
+    Ok(all_patterns.into_values().collect())
 }
 
 /// List episodes with optional filtering, using proper lazy loading.

@@ -106,6 +106,8 @@ fn test_config_display_write_human_with_none_urls() {
             turso_url: None,
             turso_token_configured: false,
             redb_path: None,
+            storage_mode: None,
+            db_path: None,
         },
         storage: StorageConfigDisplay {
             max_episodes_cache: 1000,
@@ -139,6 +141,8 @@ fn test_config_display_write_human_with_empty_features() {
             turso_url: Some("file:test.db".to_string()),
             turso_token_configured: true,
             redb_path: Some("memory.redb".to_string()),
+            storage_mode: Some("local".to_string()),
+            db_path: None,
         },
         storage: StorageConfigDisplay {
             max_episodes_cache: 500,

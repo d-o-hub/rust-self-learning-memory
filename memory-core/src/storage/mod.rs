@@ -109,6 +109,17 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>>;
 
+    /// Retrieve all stored patterns.
+    ///
+    /// Backends that persist patterns should override this so that
+    /// `pattern list` / `pattern search` work across process boundaries
+    /// (the in-memory `patterns_fallback` is empty in a fresh CLI process).
+    /// The default returns an empty list to avoid breaking backends that
+    /// only implement single-pattern retrieval.
+    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        Ok(Vec::new())
+    }
+
     /// Store a heuristic
     ///
     /// # Arguments

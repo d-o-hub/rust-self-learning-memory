@@ -23,13 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the whole list. **Note:** JSON shape of `Pattern` also changes (externally
   tagged); Turso stores a separate JSON DTO and is unaffected.
 
-- **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: these now also drive
-  the redb path via a sibling file (e.g. `memory.db` → `memory.redb`, or a
-  `*.redb` path maps redb directly and Turso SQLite uses `*.db`) so the two
-  engines never share a file. When no Turso URL is configured and
-  `storage_mode` is unset, they also default `storage_mode` to `local` so the
-  path is not a silent no-op. Corrected README docs that misattributed
-  `db_path` to the redb backend.
+- **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: always override
+  `redb_path` (never only-when-None — `Config::default()` pre-fills XDG).
+  Default **redb-only** builds open redb at the exact user path. Builds with
+  the `turso` feature use sibling files (`memory.db` → redb `memory.redb`) so
+  SQLite and redb never share a file. Unset `storage_mode` defaults to
+  `local` when no Turso URL is configured. Unit tests in
+  `config/cli_overrides.rs`.
 
 - **#829 Undocumented config file format**: added `config init [--path]` and
   `config show-template` commands that emit a valid, populated `Config` TOML, and

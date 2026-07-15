@@ -111,6 +111,21 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Root Cause: Manual sequential merge waiting is wasteful when PRs are independent
 - Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
 - Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
+
+## LESSON-017: CLI pattern list empty across processes + `--db-path` no-op (#830 / #831)
+
+- Issue: After `episode complete` logged "Successfully cached pattern", a fresh CLI process showed `pattern list` = 0. Separately, `--db-path` / `MEMORY_DB_PATH` appeared ignored.
+- Root Cause:
+  1. **#831**: `Pattern` used `#[serde(tag = "type")]` (internally tagged) — **postcard cannot deserialize** that form, so durable redb/Turso reads failed silently / returned empty. Also `get_all_patterns` only consulted the empty in-memory map in a new process.
+  2. **#830**: `--db-path` only set Turso `database.db_path`; `Config::default()` already filled `redb_path` with the XDG cache path, so the local redb backend never used the user path.
+- Solution:
+  1. Use postcard-compatible (externally tagged) serde for types persisted with postcard; keep a postcard round-trip unit test on `Pattern`.
+  2. Hydrate patterns via `StorageBackend::get_all_patterns` (memory → redb → Turso) on list/search.
+  3. Always set **both** `db_path` and `redb_path` from `--db-path` / `MEMORY_DB_PATH`.
+  4. Smoke across processes: create → log-step `--success` → complete → `pattern list` with the same `--db-path`.
+- Key insight: Unit tests in one process mask cross-process durability bugs. Never use internally tagged enums with postcard. CLI path flags that choose "where data lives" must override redb, not only Turso.
+- Prevention docs: `.agents/skills/do-memory-cli-ops/SKILL.md`, `troubleshooting.md`
+- References: issues #829–#832; `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
 ## LESSON-013: Local storage mode requires explicit temp directory for redb fallback
 
 - Issue: When `--storage-mode local` was used without configuring `redb_path`, the combination logic created redb with literal `:memory:` path, creating a file named `:memory:` in CWD or failing silently. Episodes appeared to save but weren't persisted across CLI invocations.

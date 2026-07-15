@@ -31,6 +31,7 @@
 //! - **Multiple Formats**: Support for TOML, JSON, YAML
 //! - **Environment Detection**: Automatic configuration based on environment
 
+pub mod cli_overrides;
 pub mod loader;
 pub mod progressive;
 pub mod simple;
@@ -56,6 +57,7 @@ pub use validator::{
     validate_storage_config,
 };
 
+pub use cli_overrides::{apply_db_path_override, sibling_db_and_redb_paths};
 pub use storage::{StorageInfo, StorageInitResult, StorageType, initialize_storage};
 
 pub use simple::{

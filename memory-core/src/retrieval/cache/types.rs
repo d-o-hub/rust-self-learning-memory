@@ -183,13 +183,14 @@ fn normalize_optional_arc(value: Option<String>) -> Option<Arc<str>> {
 
 /// Canonical tag normalization for cache identity (ADR-074).
 ///
-/// Tags are trimmed, empty entries removed, sorted, and deduplicated so that
-/// order and duplicates cannot create distinct cache entries.
+/// Matches the episode tag contract: tags are trimmed, lowercased, empty
+/// entries removed, sorted, and deduplicated so order/case/duplicates cannot
+/// create distinct cache entries.
 #[must_use]
 pub fn normalize_tags(tags: Vec<String>) -> Vec<String> {
     let mut normalized: Vec<String> = tags
         .into_iter()
-        .map(|t| t.trim().to_string())
+        .map(|t| t.trim().to_lowercase())
         .filter(|t| !t.is_empty())
         .collect();
     normalized.sort_unstable();

@@ -479,3 +479,7 @@ pub trait StorageBackend: Send + Sync {
         Ok(Vec::new())
     }
 }
+
+#[cfg(test)]
+#[path = "backend_default_tests.rs"]
+mod backend_default_tests;

@@ -36,24 +36,29 @@ use strsim::normalized_levenshtein;
 /// // Too different
 /// assert_eq!(fuzzy_match("database", "xyz", 0.8), None);
 /// ```
-#[must_use]
-pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
-    let text_lower = text.to_lowercase();
-    let query_lower = query.to_lowercase();
-
+/// Internal helper for fuzzy matching with pre-lowercased strings
+fn fuzzy_match_lowercased(text_lower: &str, query_lower: &str, threshold: f64) -> Option<f64> {
     // Fast path: exact substring match gets perfect score
-    if text_lower.contains(&query_lower) {
+    if text_lower.contains(query_lower) {
         return Some(1.0);
     }
 
     // Calculate similarity score
-    let score = normalized_levenshtein(&text_lower, &query_lower);
+    let score = normalized_levenshtein(text_lower, query_lower);
 
     if score >= threshold {
         Some(score)
     } else {
         None
     }
+}
+
+#[must_use]
+pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
+    let text_lower = text.to_lowercase();
+    let query_lower = query.to_lowercase();
+
+    fuzzy_match_lowercased(&text_lower, &query_lower, threshold)
 }
 
 /// Search for fuzzy matches within a text body
@@ -98,7 +103,7 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
 
     // Try single-word matches
     for (word_idx, word) in text_words.iter().enumerate() {
-        if let Some(score) = fuzzy_match(word, &query_lower, threshold) {
+        if let Some(score) = fuzzy_match_lowercased(word, &query_lower, threshold) {
             // Calculate approximate position in original text
             let position = text_words[..word_idx]
                 .iter()
@@ -113,7 +118,8 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
         for window_size in 2..=query_words.len().min(5) {
             for window in text_words.windows(window_size) {
                 let window_text = window.join(" ");
-                if let Some(score) = fuzzy_match(&window_text, &query_lower, threshold) {
+                // window_text is already lowercase because it's joined from text_words
+                if let Some(score) = fuzzy_match_lowercased(&window_text, &query_lower, threshold) {
                     // Calculate approximate position
                     let word_idx = text_words.iter().position(|&w| w == window[0]).unwrap_or(0);
                     let position = text_words[..word_idx]
@@ -168,9 +174,13 @@ pub fn best_fuzzy_match<'a, I>(texts: I, query: &str, threshold: f64) -> Option<
 where
     I: IntoIterator<Item = &'a str>,
 {
+    let query_lower = query.to_lowercase();
     texts
         .into_iter()
-        .filter_map(|text| fuzzy_match(text, query, threshold))
+        .filter_map(|text| {
+            let text_lower = text.to_lowercase();
+            fuzzy_match_lowercased(&text_lower, &query_lower, threshold)
+        })
         .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
 }
 

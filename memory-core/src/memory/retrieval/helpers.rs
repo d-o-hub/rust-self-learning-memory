@@ -151,3 +151,48 @@ pub fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
 
     embedding
 }
+
+#[cfg(test)]
+mod cache_helper_tests {
+    use super::*;
+    use crate::retrieval::CacheKey;
+    use crate::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
+
+    fn make_episode(artifacts: Vec<String>) -> Arc<Episode> {
+        let mut ep = Episode::new(
+            "cache helper".into(),
+            TaskContext {
+                language: Some("rust".into()),
+                framework: None,
+                complexity: ComplexityLevel::Simple,
+                domain: "test".into(),
+                tags: vec![],
+            },
+            TaskType::Testing,
+        );
+        ep.outcome = Some(TaskOutcome::Success {
+            verdict: "ok".into(),
+            artifacts,
+        });
+        Arc::new(ep)
+    }
+
+    #[test]
+    fn cache_episodes_if_eligible_puts_small_sets() {
+        let cache = QueryCache::new();
+        let key = CacheKey::new("q".into()).with_limit(3);
+        let episodes = vec![make_episode(vec!["a".into()])];
+        cache_episodes_if_eligible(&cache, key.clone(), &episodes);
+        assert!(cache.get(&key).is_some());
+    }
+
+    #[test]
+    fn cache_episodes_if_eligible_skips_large_sets() {
+        let cache = QueryCache::new();
+        let key = CacheKey::new("big".into()).with_limit(3);
+        // >50 episodes triggers the size fast-path reject
+        let episodes: Vec<Arc<Episode>> = (0..51).map(|_| make_episode(vec![])).collect();
+        cache_episodes_if_eligible(&cache, key.clone(), &episodes);
+        assert!(cache.get(&key).is_none());
+    }
+}

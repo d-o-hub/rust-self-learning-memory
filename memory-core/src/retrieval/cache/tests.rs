@@ -506,4 +506,27 @@ mod cache_tests {
             .with_framework(Some("Axum".to_string()));
         assert_eq!(a, b);
     }
+
+    #[test]
+    fn test_cache_key_empty_complexity_and_task_type() {
+        let empty_complexity = CacheKey::new("q".into()).with_complexity(Some("   ".into()));
+        let none_complexity = CacheKey::new("q".into()).with_complexity(None);
+        assert_eq!(empty_complexity, none_complexity);
+
+        let empty_task = CacheKey::new("q".into()).with_task_type(Some(String::new()));
+        let none_task = CacheKey::new("q".into()).with_task_type(None);
+        assert_eq!(empty_task, none_task);
+
+        let timed = CacheKey::new("q".into()).with_time_range(Some(1), Some(2));
+        assert_eq!(timed.time_start, Some(1));
+        assert_eq!(timed.time_end, Some(2));
+
+        assert_eq!(
+            CacheKey::new("q".into())
+                .with_complexity_level(ComplexityLevel::Simple)
+                .complexity
+                .as_deref(),
+            Some("Simple")
+        );
+    }
 }

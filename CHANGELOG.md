@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **S1.3 lock-free step persistence**: `log_step` (immediate path) and
+  `flush_steps_internal` no longer hold `episodes_fallback` write locks across
+  backend `store_episode` awaits; concurrent unique steps persist exactly once.
+- **S1.4 durable capacity eviction**: capacity-constrained completion now deletes
+  evicted episodes (and embeddings) from cache and durable backends instead of
+  only removing them from the in-memory map.
+- **S1.5 embedding health**: introduce `EmbeddingHealth` (`Real` /
+  `DegradedMock` / `Unavailable`). Mock fallback is opt-in via
+  `LocalConfig::allow_mock_fallback`; mock providers are never
+  `is_available()` / production-ready.
+- **S1.6 retry queue semantics**: first attempts do not consume concurrency
+  permits; permits are released before backoff; `retry_queue_timeout` returns
+  `RetryError::QueueTimeout` / `Error::RetryQueueTimeout`; zero
+  `max_concurrent_retries` is rejected.
+- **W2.2 advisory gates**: CI/security no longer soft-pass `cargo audit`;
+  `cargo deny check advisories` is the blocking gate.
 - **#837 fuzzy_match rustdoc**: public `///` docs and doctests restored on
   `pub fn fuzzy_match` (they had been attached to the private lowercased helper
   after the PR #836 performance split).

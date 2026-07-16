@@ -1,15 +1,34 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
+- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
 - **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
-- **Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+- **Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
+- **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Validation**: quality-gates PASS; clippy clean; cache/fuzzy/doctest targeted pass
+- **Prior**: PR #840 merged (S1.2 partial, W2.3, W2.6, #837)
 
 ---
 
-## Sprint 2026-07-16: Missing Tasks Swarm ✅ CODE COMPLETE
+## Sprint 2026-07-16b: S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+
+**Goal**: Land next deferred P0 correctness and gate tasks from the improvements plan.
+
+| Package | Plan ref | Status |
+|---------|----------|--------|
+| B1 S1.3 lock-free backend awaits | improvements S1.3 | ✅ short write lock; I/O outside |
+| B2 S1.4 durable capacity eviction | improvements S1.4 | ✅ delete_episode + embeddings on backends |
+| B3 S1.5 embedding health states | improvements S1.5 | ✅ Real / DegradedMock / Unavailable |
+| B4 S1.6 retry queue semantics | improvements S1.6 | ✅ timeout, first free, zero reject |
+| B5 W2.2 false-green audit | improvements W2.2 | ✅ cargo deny blocking; no soft-pass |
+| B6 tests | — | ✅ s13/s14 + retry + local embedding |
+| B7 plans | — | ✅ |
+| B8 PR + CI + review | — | 🟡 |
+
+**Deferred** (next PRs): S1.7, W2.1 remainder, W2.4/W2.5, K3 skill evals, F4 pilots, S1.2 provenance remainder, v0.1.35 tag via `release.yml`.
+
+---
+
+## Sprint 2026-07-16: Missing Tasks Swarm ✅ MERGED (PR #840)
 
 **Goal**: Implement high-value missing plan tasks from GOAP improvements (P0 correctness + gates + docs).
 
@@ -20,10 +39,8 @@
 | A3 W2.3 build-rust hyphens | improvements W2.3 | ✅ `do-memory-*` accepted |
 | A4 W2.6 LOC splits | improvements W2.6 | ✅ 0 production files >500 LOC |
 | A5 S1.1a/D3.2 docs contract | improvements | ✅ fail-closed execute_agent_code; no wasmtime-backend claim |
-| A6 plans update | — | ✅ this file + ACTIONS/GOALS/ROADMAP/CURRENT |
-| A7 PR + review | — | 🟡 |
-
-**Deferred** (next PRs): S1.3–S1.7, W2.1–W2.5 remainder, K3 skill evals, F4 pilots, v0.1.35 tag via `release.yml`.
+| A6 plans update | — | ✅ |
+| A7 PR + review | — | ✅ PR #840 merged |
 
 ---
 

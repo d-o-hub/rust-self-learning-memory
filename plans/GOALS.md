@@ -1,9 +1,20 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
-- **Status**: Active — missing-tasks code complete; PR pending
+- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+- **Status**: Active — S1.3–S1.6 + W2.2 code complete; PR pending
 
-## 2026-07-16 Missing Tasks Goals
+## 2026-07-16b Goals (S1.3–S1.6 + W2.2)
+
+| Goal | Plan ref | Status |
+|------|----------|--------|
+| No write lock held across backend await on step paths | S1.3 | ✅ |
+| Capacity eviction deletes durable backend data | S1.4 | ✅ |
+| Embedding health truthful (mock ≠ available) | S1.5 | ✅ |
+| Retry queue timeout + first attempt free of permits | S1.6 | ✅ |
+| Advisory audit cannot soft-pass | W2.2 | ✅ |
+| Open PR + CI green + review | B8 | 🟡 |
+
+## 2026-07-16 Missing Tasks Goals (PR #840 ✅)
 
 | Goal | Plan ref | Status |
 |------|----------|--------|
@@ -12,7 +23,7 @@
 | build-rust accepts do-memory-* packages | W2.3 | ✅ |
 | Zero production sources >500 LOC | W2.6 | ✅ |
 | Docs match fail-closed code execution | S1.1a / D3.2 | ✅ |
-| Open PR + review | A7 | 🟡 |
+| Open PR + review | A7 | ✅ PR #840 |
 
 ## v0.1.35 Goals (CLI UX Patch — on main)
 

@@ -1,10 +1,23 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
+- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+- **Active plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 
-## Active Actions (2026-07-16 Missing Tasks Swarm)
+## Active Actions (2026-07-16b S1.3–S1.6 + W2.2)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-210 | S1.3 short write locks; no await under episodes write | ✅ Done |
+| ACT-211 | S1.4 durable capacity eviction backend deletes | ✅ Done |
+| ACT-212 | S1.5 EmbeddingHealth + allow_mock_fallback | ✅ Done |
+| ACT-213 | S1.6 retry queue timeout + first attempt free | ✅ Done |
+| ACT-214 | W2.2 cargo deny blocking; remove audit soft-pass | ✅ Done |
+| ACT-215 | Tests + plans update | ✅ Done |
+| ACT-216 | Open PR + CI green + review | 🟡 Next |
+| ACT-217 | Cut v0.1.35 via release.yml (closes #841) | ⏳ After merge |
+
+## Completed Actions (2026-07-16 Missing Tasks Swarm — PR #840)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -14,8 +27,8 @@
 | ACT-203 | W2.6 split production files >500 LOC | ✅ Done |
 | ACT-204 | S1.1a/D3.2 fail-closed execute_agent_code + README fixes | ✅ Done |
 | ACT-205 | Update plans/ + CHANGELOG for swarm | ✅ Done |
-| ACT-206 | Open PR + CI green + review | 🟡 Next |
-| ACT-207 | Cut v0.1.35 via release.yml (closes #828/#838) | ⏳ After merge |
+| ACT-206 | Open PR + CI green + review | ✅ Done (PR #840) |
+| ACT-207 | Cut v0.1.35 via release.yml (closes #828/#838) | ⏳ After release ready |
 
 ## Completed Actions (v0.1.35 CLI UX Patch — on main)
 

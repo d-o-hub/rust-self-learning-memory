@@ -309,5 +309,8 @@ pub use context::{
     AddResult, BundleAccumulator, BundleConfig, BundleStats, ContextItem, ContextItemType,
 };
 
-// Re-export retry types (issue #753)
-pub use retry::{ConcurrencyLimiter, RetryBudget, RetryConfig, RetryMetrics, RetryPolicy};
+// Re-export retry types (issue #753 / S1.6)
+pub use retry::{
+    ConcurrencyLimiter, QueueTimeout, RetryBudget, RetryConfig, RetryError, RetryMetrics,
+    RetryPolicy,
+};

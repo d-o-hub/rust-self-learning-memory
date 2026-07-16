@@ -9,7 +9,62 @@ use tokio::time::sleep;
 use tracing::warn;
 
 pub use budget::RetryBudget;
-pub use limiter::ConcurrencyLimiter;
+pub use limiter::{ConcurrencyLimiter, QueueTimeout};
+
+/// Error returned by [`RetryPolicy::execute`].
+///
+/// Distinguishes operation failures from queue wait timeouts (S1.6).
+#[derive(Debug)]
+pub enum RetryError<E> {
+    /// The underlying operation failed (after exhausting retries when applicable).
+    Operation(E),
+    /// Timed out waiting for a concurrency permit before a retry attempt.
+    QueueTimeout,
+}
+
+impl<E: std::fmt::Display> std::fmt::Display for RetryError<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Operation(e) => write!(f, "{e}"),
+            Self::QueueTimeout => write!(
+                f,
+                "timed out waiting for a retry concurrency permit (retry_queue_timeout)"
+            ),
+        }
+    }
+}
+
+impl<E: std::error::Error + 'static> std::error::Error for RetryError<E> {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Operation(e) => Some(e),
+            Self::QueueTimeout => None,
+        }
+    }
+}
+
+impl<E> RetryError<E> {
+    /// Convert a queue timeout into a crate [`Error`](crate::error::Error).
+    #[must_use]
+    pub fn into_crate_error(self) -> crate::error::Error
+    where
+        E: Into<crate::error::Error>,
+    {
+        match self {
+            Self::Operation(e) => e.into(),
+            Self::QueueTimeout => crate::error::Error::RetryQueueTimeout,
+        }
+    }
+}
+
+impl From<RetryError<crate::error::Error>> for crate::error::Error {
+    fn from(value: RetryError<crate::error::Error>) -> Self {
+        match value {
+            RetryError::Operation(e) => e,
+            RetryError::QueueTimeout => crate::error::Error::RetryQueueTimeout,
+        }
+    }
+}
 
 pub trait Retryable {
     fn is_recoverable(&self) -> bool;
@@ -127,8 +182,12 @@ impl RetryConfig {
     }
 
     /// Set the maximum number of concurrent retries process-wide.
+    ///
+    /// Must be greater than zero. Zero concurrency is rejected when the
+    /// policy is constructed (see [`ConcurrencyLimiter::new`]).
     #[must_use]
     pub fn with_max_concurrent_retries(mut self, max: usize) -> Self {
+        assert!(max > 0, "max_concurrent_retries must be greater than zero");
         self.max_concurrent_retries = Some(max);
         self
     }
@@ -265,33 +324,52 @@ impl RetryPolicy {
         }
     }
 
-    pub async fn execute<F, T, E, Fut>(&mut self, operation: F) -> Result<T, E>
+    /// Execute `operation` with retries.
+    ///
+    /// # S1.6 semantics
+    ///
+    /// - The **first** attempt does not consume a concurrency permit, so work
+    ///   proceeds even when the retry queue is saturated.
+    /// - Permits are acquired only for retry attempts.
+    /// - Permits are released before backoff sleep so other waiters can progress.
+    /// - If `retry_queue_timeout` is set and waiting for a permit exceeds it,
+    ///   returns [`RetryError::QueueTimeout`].
+    pub async fn execute<F, T, E, Fut>(&mut self, operation: F) -> Result<T, RetryError<E>>
     where
         F: Fn() -> Fut,
         Fut: Future<Output = Result<T, E>>,
         E: Retryable + std::error::Error + Send + Sync + 'static,
         E: std::fmt::Debug,
     {
-        let _permit = if let Some(ref limiter) = self.limiter {
-            Some(limiter.acquire().await)
-        } else {
-            None
-        };
-
         let mut attempt = 0;
 
         loop {
+            // Acquire a permit only for retries (attempt > 0). First attempt is free.
+            let permit = if attempt > 0 {
+                if let Some(ref limiter) = self.limiter {
+                    Some(self.acquire_retry_permit::<E>(limiter).await?)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             match operation().await {
                 Ok(result) => {
+                    drop(permit);
                     self.record_success(attempt);
                     return Ok(result);
                 }
                 Err(e) => {
+                    // Release permit before backoff so other retries can proceed.
+                    drop(permit);
+
                     let error_ref = &e;
                     let is_recoverable = error_ref.is_recoverable();
 
                     if !is_recoverable || !self.can_retry() || attempt >= self.config.max_retries {
-                        return Err(e);
+                        return Err(RetryError::Operation(e));
                     }
 
                     attempt += 1;
@@ -307,6 +385,20 @@ impl RetryPolicy {
                     sleep(delay).await;
                 }
             }
+        }
+    }
+
+    async fn acquire_retry_permit<E>(
+        &self,
+        limiter: &ConcurrencyLimiter,
+    ) -> Result<tokio::sync::OwnedSemaphorePermit, RetryError<E>> {
+        if let Some(timeout_dur) = self.config.retry_queue_timeout {
+            limiter
+                .acquire_timeout(timeout_dur)
+                .await
+                .map_err(|_| RetryError::QueueTimeout)
+        } else {
+            Ok(limiter.acquire().await)
         }
     }
 

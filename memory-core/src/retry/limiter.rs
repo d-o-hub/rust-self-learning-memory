@@ -1,6 +1,23 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
+use tokio::time::timeout;
+
+/// Error returned when acquiring a concurrency permit times out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct QueueTimeout;
+
+impl std::fmt::Display for QueueTimeout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "timed out waiting for a retry concurrency permit (retry_queue_timeout)"
+        )
+    }
+}
+
+impl std::error::Error for QueueTimeout {}
 
 /// Concurrency limiter for retries using tokio semaphore permits.
 ///
@@ -15,7 +32,15 @@ pub struct ConcurrencyLimiter {
 
 impl ConcurrencyLimiter {
     /// Create a new limiter.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `max_concurrent` is zero (S1.6: reject zero concurrency).
     pub fn new(max_concurrent: usize) -> Arc<Self> {
+        assert!(
+            max_concurrent > 0,
+            "max_concurrent_retries must be greater than zero"
+        );
         Arc::new(Self {
             semaphore: Arc::new(Semaphore::new(max_concurrent)),
             max_concurrent,
@@ -31,6 +56,17 @@ impl ConcurrencyLimiter {
             .acquire_owned()
             .await
             .expect("semaphore closed unexpectedly")
+    }
+
+    /// Acquire a permit, failing with [`QueueTimeout`] if `timeout_dur` elapses first.
+    pub async fn acquire_timeout(
+        &self,
+        timeout_dur: Duration,
+    ) -> Result<OwnedSemaphorePermit, QueueTimeout> {
+        match timeout(timeout_dur, self.acquire()).await {
+            Ok(permit) => Ok(permit),
+            Err(_elapsed) => Err(QueueTimeout),
+        }
     }
 
     /// Number of permits currently available (not held).
@@ -96,5 +132,20 @@ mod tests {
 
         drop(p2);
         assert_eq!(limiter.available_permits(), 3);
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "max_concurrent_retries must be greater than zero")]
+    async fn rejects_zero_concurrency() {
+        let _ = ConcurrencyLimiter::new(0);
+    }
+
+    #[tokio::test]
+    async fn acquire_timeout_returns_error_when_saturated() {
+        let limiter = ConcurrencyLimiter::new(1);
+        let _held = limiter.acquire().await;
+
+        let result = limiter.acquire_timeout(Duration::from_millis(20)).await;
+        assert!(result.is_err());
     }
 }

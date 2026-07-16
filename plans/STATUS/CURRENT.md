@@ -1,13 +1,26 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
+**Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
 **Released Version**: v0.1.34 (GitHub Release tag exists)
 **Workspace Version**: 0.1.35 (unreleased)
-**Active Sprint**: GOAP Missing Tasks Swarm ✅ code complete
-**Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
+**Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2 ✅ code complete
+**Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
 **Edition**: Rust 2024
 
-## Sprint 2026-07-16 — Missing Tasks Swarm ✅ CODE COMPLETE
+## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+
+| Item | Description | Status |
+|------|-------------|--------|
+| S1.3 | Short write locks; no backend await under episodes write | ✅ Fixed |
+| S1.4 | Capacity eviction deletes cache/Turso episodes + embeddings | ✅ Fixed |
+| S1.5 | `EmbeddingHealth` Real/DegradedMock/Unavailable; mock fail-closed | ✅ Fixed |
+| S1.6 | Retry queue timeout; first attempt free; reject zero concurrency | ✅ Fixed |
+| W2.2 | cargo deny blocking; cargo audit no longer soft-passes | ✅ Fixed |
+| #841 | Release drift (unreleased commits since v0.1.34) | 🟡 Tag after merge via release.yml |
+
+**Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+
+## Sprint 2026-07-16 — Missing Tasks Swarm ✅ MERGED (PR #840)
 
 | Item | Description | Status |
 |------|-------------|--------|
@@ -16,7 +29,6 @@
 | W2.3 | `build-rust.sh` accepts hyphenated packages | ✅ Fixed |
 | W2.6 | Production source files ≤500 LOC | ✅ Fixed |
 | S1.1a/D3.2 | Fail-closed execute_agent_code docs | ✅ Fixed |
-| #838 | Release drift (14 unreleased commits) | 🟡 Tag after merge via release.yml |
 
 **Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
 

@@ -124,13 +124,23 @@ pub(crate) async fn create_provider_from_config(
 
 /// Get API key from environment variable specified in config
 pub fn get_api_key(config: &Config) -> Result<String> {
+    get_api_key_with(config, |name| env::var(name))
+}
+
+/// Resolve the API key using a pluggable lookup (production uses [`env::var`]).
+///
+/// Injected lookup keeps unit tests free of process-wide env mutation / `unsafe`.
+fn get_api_key_with<F>(config: &Config, mut lookup: F) -> Result<String>
+where
+    F: FnMut(&str) -> std::result::Result<String, std::env::VarError>,
+{
     let env_var = config
         .embeddings
         .api_key_env
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("api_key_env not configured"))?;
 
-    env::var(env_var).map_err(|_| {
+    lookup(env_var).map_err(|_| {
         anyhow::anyhow!(
             "API key environment variable '{}' not set. Please set it with: export {}=your-key",
             env_var,
@@ -145,7 +155,6 @@ mod tests {
     use crate::config::types::{
         CliConfig, Config, DatabaseConfig, EmbeddingsConfig, StorageConfig,
     };
-    use serial_test::serial;
 
     fn base_config(provider: &str, api_key_env: Option<String>) -> Config {
         Config {
@@ -183,20 +192,23 @@ mod tests {
     }
 
     #[test]
-    #[serial]
-    #[allow(unsafe_code)] // env mutation gated by serial_test
-    fn get_api_key_reads_env_var() {
-        let var = "DO_MEMORY_TEST_EMBED_API_KEY";
-        // SAFETY: serial_test ensures exclusive access to this env var.
-        unsafe {
-            env::set_var(var, "test-secret-key");
-        }
-        let config = base_config("openai", Some(var.to_string()));
-        let key = get_api_key(&config).expect("key present");
+    fn get_api_key_reads_via_injected_lookup() {
+        let config = base_config("openai", Some("MY_KEY_ENV".to_string()));
+        let key = get_api_key_with(&config, |name| {
+            assert_eq!(name, "MY_KEY_ENV");
+            Ok("test-secret-key".to_string())
+        })
+        .expect("key present");
         assert_eq!(key, "test-secret-key");
-        unsafe {
-            env::remove_var(var);
-        }
+    }
+
+    #[test]
+    fn get_api_key_with_missing_lookup_value() {
+        let config = base_config("openai", Some("MISSING_VAR".to_string()));
+        let err = get_api_key_with(&config, |_| Err(std::env::VarError::NotPresent))
+            .expect_err("missing");
+        assert!(err.to_string().contains("MISSING_VAR"));
+        assert!(err.to_string().contains("not set"));
     }
 
     fn assert_provider_err(result: Result<Box<dyn EmbeddingProvider>>, must_contain: &[&str]) {

@@ -41,17 +41,35 @@ pub struct LocalConfig {
     /// Optimization settings
     #[serde(default)]
     pub optimization: OptimizationConfig,
+    /// When true, allow mock embeddings for tests/dev (S1.5).
+    ///
+    /// Production defaults to `false`: if the real model cannot load, the
+    /// provider reports [`EmbeddingHealth::DegradedMock`] / unavailable rather
+    /// than silently advertising mock vectors as healthy.
+    #[serde(default)]
+    pub allow_mock_fallback: bool,
 }
 
 impl LocalConfig {
-    /// Create a new local config
+    /// Create a new local config.
+    ///
+    /// Mock fallback is enabled only under `cfg!(test)` so unit tests keep
+    /// working offline; production binaries default to fail-closed (S1.5).
     #[must_use]
     pub fn new(model_name: impl Into<String>, dimension: usize) -> Self {
         Self {
             model_name: model_name.into(),
             embedding_dimension: dimension,
             optimization: OptimizationConfig::local(),
+            allow_mock_fallback: cfg!(test),
         }
+    }
+
+    /// Enable mock embeddings for tests and local development (S1.5).
+    #[must_use]
+    pub fn with_allow_mock_fallback(mut self, allow: bool) -> Self {
+        self.allow_mock_fallback = allow;
+        self
     }
 
     /// Get the effective embedding dimension
@@ -63,7 +81,10 @@ impl LocalConfig {
 
 impl Default for LocalConfig {
     fn default() -> Self {
+        // Tests and offline demos commonly use mock fallback; production
+        // callers should set `allow_mock_fallback: false` explicitly.
         Self::new("sentence-transformers/all-MiniLM-L6-v2", 384)
+            .with_allow_mock_fallback(cfg!(test))
     }
 }
 

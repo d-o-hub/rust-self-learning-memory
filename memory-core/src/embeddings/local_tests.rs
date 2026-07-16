@@ -1,4 +1,5 @@
 use super::*;
+use crate::embeddings::EmbeddingHealth;
 
 #[tokio::test]
 async fn test_local_provider_creation() {
@@ -172,13 +173,15 @@ async fn test_model_metadata() {
 async fn test_error_handling() {
     let config = LocalConfig::new("nonexistent-model", 384);
 
-    // Test with non-existent model - should fall back to mock or fail gracefully
+    // With default test mock fallback, non-existent models degrade to mock.
     let result = LocalEmbeddingProvider::new(config).await;
 
     match result {
         Ok(provider) => {
-            // If successful, it should be a mock implementation
             assert!(provider.is_loaded().await);
+            assert_eq!(provider.health().await, EmbeddingHealth::DegradedMock);
+            // Mock is not production-ready.
+            assert!(!provider.is_available().await);
             let embedding = provider.embed_text("test").await.unwrap();
             assert_eq!(embedding.len(), 384);
         }
@@ -187,6 +190,33 @@ async fn test_error_handling() {
             assert!(e.to_string().contains("model") || e.to_string().contains("load"));
         }
     }
+}
+
+#[tokio::test]
+async fn test_mock_fallback_fail_closed_when_disallowed() {
+    let config = LocalConfig::new("nonexistent-model", 384).with_allow_mock_fallback(false);
+
+    let result = LocalEmbeddingProvider::new(config).await;
+    // Without local-embeddings + real model, construction must fail closed.
+    assert!(
+        result.is_err(),
+        "expected fail-closed when allow_mock_fallback=false"
+    );
+    let msg = result.err().unwrap().to_string();
+    assert!(
+        msg.contains("unavailable") || msg.contains("allow_mock_fallback") || msg.contains("mock"),
+        "unexpected error: {msg}"
+    );
+}
+
+#[tokio::test]
+async fn test_degraded_mock_not_reported_available() {
+    let config = LocalConfig::new("test-model", 384).with_allow_mock_fallback(true);
+    let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+    assert_eq!(provider.health().await, EmbeddingHealth::DegradedMock);
+    assert!(!provider.is_available().await);
+    assert!(provider.is_loaded().await);
 }
 
 #[tokio::test]

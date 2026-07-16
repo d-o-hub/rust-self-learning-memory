@@ -248,17 +248,22 @@ impl SelfLearningMemory {
                 self.flush_steps_internal(episode_id).await;
             }
         } else {
-            // Legacy immediate persistence (batching disabled)
-            // We need to clone, modify, and reinsert since we can't mutate through Arc
-            let mut episodes = self.episodes_fallback.write().await;
-            if let Some(episode_arc) = episodes.get(&episode_id) {
-                // Clone the Episode from the Arc to mutate it
-                // episode_arc is &Arc<Episode>, so *episode_arc gives Arc<Episode>
-                // We need **episode_arc to get Episode via Deref, then clone it
-                let mut episode = (**episode_arc).clone();
-                episode.add_step(step);
+            // Legacy immediate persistence (batching disabled).
+            // S1.3: short write lock for in-memory mutate; release before backend I/O.
+            let episode_for_store = {
+                let mut episodes = self.episodes_fallback.write().await;
+                if let Some(episode_arc) = episodes.get(&episode_id) {
+                    let mut episode = (**episode_arc).clone();
+                    episode.add_step(step);
+                    let stored = Arc::new(episode);
+                    episodes.insert(episode_id, Arc::clone(&stored));
+                    Some(stored)
+                } else {
+                    None
+                }
+            };
 
-                // Update in storage backends
+            if let Some(episode) = episode_for_store {
                 if let Some(cache) = &self.cache_storage {
                     if let Err(e) = cache.store_episode(&episode).await {
                         warn!("Failed to update episode in cache: {}", e);
@@ -270,9 +275,6 @@ impl SelfLearningMemory {
                         warn!("Failed to update episode in Turso: {}", e);
                     }
                 }
-
-                // Re-insert the updated episode as Arc
-                episodes.insert(episode_id, Arc::new(episode));
             }
         }
     }
@@ -346,20 +348,24 @@ impl SelfLearningMemory {
             }
         };
 
-        // Add steps to episode and persist
-        // We need to clone, modify, and reinsert since we can't mutate through Arc
-        let mut episodes = self.episodes_fallback.write().await;
-        if let Some(episode_arc) = episodes.get(&episode_id) {
-            // Clone the Episode from the Arc to mutate it
-            // episode_arc is &Arc<Episode>, so **episode_arc gives Episode via Deref
-            let episode = (**episode_arc).clone();
-            let total_steps = episode.steps.len();
-            let mut episode = episode;
-            for step in steps_to_flush {
-                episode.add_step(step);
+        // S1.3: short write lock for in-memory mutate; release before backend I/O.
+        let (episode_for_store, total_steps) = {
+            let mut episodes = self.episodes_fallback.write().await;
+            if let Some(episode_arc) = episodes.get(&episode_id) {
+                let mut episode = (**episode_arc).clone();
+                for step in steps_to_flush {
+                    episode.add_step(step);
+                }
+                let total_steps = episode.steps.len();
+                let stored = Arc::new(episode);
+                episodes.insert(episode_id, Arc::clone(&stored));
+                (Some(stored), total_steps)
+            } else {
+                (None, 0)
             }
+        };
 
-            // Update in storage backends
+        if let Some(episode) = episode_for_store {
             if let Some(cache) = &self.cache_storage {
                 if let Err(e) = cache.store_episode(&episode).await {
                     warn!("Failed to flush episode to cache: {}", e);
@@ -371,9 +377,6 @@ impl SelfLearningMemory {
                     warn!("Failed to flush episode to Turso: {}", e);
                 }
             }
-
-            // Re-insert the updated episode as Arc
-            episodes.insert(episode_id, Arc::new(episode));
 
             info!(
                 episode_id = %episode_id,

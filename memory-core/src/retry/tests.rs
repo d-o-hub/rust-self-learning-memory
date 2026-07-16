@@ -5,7 +5,7 @@ use tokio::time::timeout;
 
 use super::{RetryConfig, RetryPolicy};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct TestError(bool);
 
 impl std::error::Error for TestError {}
@@ -41,7 +41,7 @@ async fn test_retry_success_first_attempt() {
         })
         .await;
 
-    assert_eq!(result.unwrap(), "success");
+    assert_eq!(result.expect("first attempt success"), "success");
     assert_eq!(call_count.load(Ordering::SeqCst), 1);
 }
 
@@ -68,7 +68,7 @@ async fn test_retry_success_after_failures() {
         })
         .await;
 
-    assert_eq!(result.unwrap(), "success");
+    assert_eq!(result.expect("success after retries"), "success");
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
@@ -91,7 +91,10 @@ async fn test_retry_non_recoverable_error() {
         })
         .await;
 
-    assert!(result.is_err());
+    assert!(matches!(
+        result,
+        Err(super::RetryError::Operation(TestError(false)))
+    ));
     assert_eq!(call_count.load(Ordering::SeqCst), 1);
 }
 
@@ -112,7 +115,7 @@ async fn test_retry_max_retries_exceeded() {
         })
         .await;
 
-    assert!(result.is_err());
+    assert!(matches!(result, Err(super::RetryError::Operation(_))));
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
@@ -148,7 +151,7 @@ async fn test_retry_with_budget() {
 
     // Budget of 2 allows initial + 2 retries = 3 attempts
     // Closure fails on attempts 1-2, succeeds on attempt 3
-    assert_eq!(result.unwrap(), "success");
+    assert_eq!(result.expect("budget allows success"), "success");
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
@@ -191,7 +194,7 @@ async fn test_retry_with_jitter() {
         .await;
 
     let elapsed = start.elapsed();
-    assert_eq!(result.unwrap(), "success");
+    assert_eq!(result.expect("jittered success"), "success");
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
     assert!(elapsed >= Duration::from_millis(100));
     assert!(elapsed < Duration::from_millis(500));
@@ -215,4 +218,134 @@ async fn test_retry_timeout() {
     .await;
 
     assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn first_attempt_does_not_consume_retry_permit() {
+    use super::ConcurrencyLimiter;
+    use std::sync::Arc;
+
+    let limiter = ConcurrencyLimiter::new(1);
+    // Saturate the only permit — first attempts must still proceed (S1.6).
+    let held = limiter.acquire().await;
+
+    let call_count = AtomicUsize::new(0);
+    let mut policy = RetryPolicy::with_config(
+        RetryConfig::new()
+            .with_max_retries(0)
+            .with_base_delay(Duration::from_millis(1)),
+    )
+    .with_limiter(Arc::clone(&limiter));
+
+    let result = policy
+        .execute(|| {
+            call_count.fetch_add(1, Ordering::SeqCst);
+            async move { Ok::<&str, TestError>("ok") }
+        })
+        .await;
+
+    assert_eq!(result.expect("first attempt free"), "ok");
+    assert_eq!(call_count.load(Ordering::SeqCst), 1);
+    drop(held);
+}
+
+#[tokio::test]
+async fn retry_queue_timeout_when_permits_saturated() {
+    use super::{ConcurrencyLimiter, RetryError};
+    use std::sync::Arc;
+
+    let limiter = ConcurrencyLimiter::new(1);
+    let _held = limiter.acquire().await;
+
+    let call_count = AtomicUsize::new(0);
+    let mut policy = RetryPolicy::with_config(
+        RetryConfig::new()
+            .with_max_retries(2)
+            .with_base_delay(Duration::from_millis(1))
+            .with_retry_queue_timeout(Duration::from_millis(30)),
+    )
+    .with_limiter(Arc::clone(&limiter));
+
+    let result = policy
+        .execute(|| {
+            let n = call_count.fetch_add(1, Ordering::SeqCst);
+            async move {
+                // First attempt fails so a retry (which needs a permit) is scheduled.
+                if n == 0 {
+                    Err(TestError(true))
+                } else {
+                    Ok("should-not-reach")
+                }
+            }
+        })
+        .await;
+
+    assert!(matches!(result, Err(RetryError::QueueTimeout)));
+    // Only the free first attempt should have run.
+    assert_eq!(call_count.load(Ordering::SeqCst), 1);
+}
+
+#[tokio::test]
+#[should_panic(expected = "max_concurrent_retries must be greater than zero")]
+async fn rejects_zero_max_concurrent_retries_in_config() {
+    let _ = RetryConfig::new().with_max_concurrent_retries(0);
+}
+
+#[allow(clippy::excessive_nesting)]
+fn fail_then_ok(
+    calls: Arc<AtomicUsize>,
+) -> impl Fn() -> std::pin::Pin<
+    Box<dyn std::future::Future<Output = Result<&'static str, TestError>> + Send>,
+> {
+    move || {
+        let n = calls.fetch_add(1, Ordering::SeqCst);
+        Box::pin(async move {
+            if n == 0 {
+                Err(TestError(true))
+            } else {
+                Ok("a")
+            }
+        })
+    }
+}
+
+#[tokio::test]
+async fn permits_released_during_backoff_allow_other_first_attempts() {
+    use super::ConcurrencyLimiter;
+    use std::sync::Arc;
+
+    let limiter = ConcurrencyLimiter::new(1);
+
+    // Task A: fails first attempt (no permit), then sleeps during backoff without a permit.
+    let limiter_a = Arc::clone(&limiter);
+    let a = tokio::spawn(async move {
+        let mut policy = RetryPolicy::with_config(
+            RetryConfig::new()
+                .with_max_retries(1)
+                .with_base_delay(Duration::from_millis(100)),
+        )
+        .with_limiter(limiter_a);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let result = policy.execute(fail_then_ok(Arc::clone(&calls))).await;
+        (result, calls.load(Ordering::SeqCst))
+    });
+
+    // While A is in backoff (permit free), B's first attempt succeeds immediately.
+    tokio::time::sleep(Duration::from_millis(20)).await;
+    let mut policy_b = RetryPolicy::with_config(
+        RetryConfig::new()
+            .with_max_retries(0)
+            .with_base_delay(Duration::from_millis(1)),
+    )
+    .with_limiter(Arc::clone(&limiter));
+
+    let b_result = policy_b
+        .execute(|| async move { Ok::<&str, TestError>("b") })
+        .await;
+    assert_eq!(b_result.expect("B first attempt free"), "b");
+
+    let (a_result, a_calls) = a.await.unwrap();
+    assert_eq!(a_result.expect("A retry succeeds"), "a");
+    assert_eq!(a_calls, 2);
 }

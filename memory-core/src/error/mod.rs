@@ -54,6 +54,10 @@ pub enum Error {
     #[error("Rate limit exceeded: {0}")]
     RateLimitExceeded(String),
 
+    /// Timed out waiting for a retry concurrency permit (S1.6).
+    #[error("Retry queue timeout: waited longer than configured retry_queue_timeout")]
+    RetryQueueTimeout,
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -95,7 +99,8 @@ impl Error {
             | Error::Security(_)
             | Error::ValidationFailed(_)
             | Error::QuotaExceeded(_)
-            | Error::Configuration(_) => false,
+            | Error::Configuration(_)
+            | Error::RetryQueueTimeout => false,
             // Relationship errors - generally non-recoverable
             Error::Relationship(rel_err) => {
                 matches!(rel_err, RelationshipError::ValidationFailed { .. })

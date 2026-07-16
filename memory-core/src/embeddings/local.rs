@@ -4,7 +4,7 @@
 //! providing offline capability with no external API dependencies.
 
 use super::config::LocalConfig;
-use super::provider::EmbeddingProvider;
+use super::provider::{EmbeddingHealth, EmbeddingProvider};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -44,6 +44,8 @@ pub struct LocalEmbeddingProvider {
     model: Arc<RwLock<Option<Box<dyn LocalEmbeddingModel>>>>,
     /// Model cache directory
     cache_dir: std::path::PathBuf,
+    /// Current health state (S1.5): real vs degraded-mock vs unavailable.
+    health: Arc<RwLock<EmbeddingHealth>>,
 }
 
 impl LocalEmbeddingProvider {
@@ -61,6 +63,7 @@ impl LocalEmbeddingProvider {
             config,
             model: Arc::new(RwLock::new(None)),
             cache_dir,
+            health: Arc::new(RwLock::new(EmbeddingHealth::Unavailable)),
         };
 
         // Initialize/load the model
@@ -69,13 +72,18 @@ impl LocalEmbeddingProvider {
         Ok(provider)
     }
 
+    /// Current embedding health (S1.5).
+    pub async fn health_state(&self) -> EmbeddingHealth {
+        *self.health.read().await
+    }
+
     /// Load the embedding model
     async fn load_model(&self) -> Result<()> {
         tracing::info!("Loading local embedding model: {}", self.config.model_name);
 
         #[cfg(feature = "local-embeddings")]
         {
-            // Try to load real ONNX model, fallback to mock if fails
+            // Try to load real ONNX model; mock only when explicitly allowed (S1.5).
             match self.try_load_real_model().await {
                 Ok(real_model) => {
                     let fallback_model = Box::new(RealEmbeddingModelWithFallback::new(
@@ -86,49 +94,68 @@ impl LocalEmbeddingProvider {
 
                     let mut model_guard = self.model.write().await;
                     *model_guard = Some(fallback_model);
+                    *self.health.write().await = EmbeddingHealth::Real;
 
                     tracing::info!("Local embedding model loaded with real ONNX backend");
                 }
                 Err(e) => {
                     tracing::warn!("Failed to load real embedding model: {}", e);
-                    tracing::warn!(
-                        "Falling back to mock embeddings - semantic search will not work correctly"
-                    );
-
-                    let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
-                        self.config.model_name.clone(),
-                        self.config.embedding_dimension,
-                        None,
-                    ));
-
-                    let mut model_guard = self.model.write().await;
-                    *model_guard = Some(mock_fallback);
-
-                    tracing::info!("Local embedding model loaded with mock fallback");
+                    self.install_mock_or_fail("real model load failure").await?;
                 }
             }
         }
 
         #[cfg(not(feature = "local-embeddings"))]
         {
-            tracing::warn!(
-                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
-            );
-            tracing::warn!(
-                "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
-            );
+            self.install_mock_or_fail("local-embeddings feature disabled")
+                .await?;
+        }
 
+        Ok(())
+    }
+
+    /// Install mock embeddings when allowed; otherwise leave unavailable and error (S1.5).
+    async fn install_mock_or_fail(&self, reason: &str) -> Result<()> {
+        if !self.config.allow_mock_fallback {
+            *self.health.write().await = EmbeddingHealth::Unavailable;
+            tracing::error!(
+                reason,
+                "Refusing mock embedding fallback (allow_mock_fallback=false); provider unavailable"
+            );
+            anyhow::bail!(
+                "Local embedding model unavailable ({reason}); set LocalConfig::allow_mock_fallback \
+                 for tests/dev or enable the local-embeddings feature with a valid model"
+            );
+        }
+
+        tracing::warn!(
+            reason,
+            "Falling back to mock embeddings - semantic search will not work correctly"
+        );
+
+        #[cfg(feature = "local-embeddings")]
+        {
+            let mock_fallback = Box::new(super::mock_model::RealEmbeddingModelWithFallback::new(
+                self.config.model_name.clone(),
+                self.config.embedding_dimension,
+                None,
+            ));
+            let mut model_guard = self.model.write().await;
+            *model_guard = Some(mock_fallback);
+        }
+
+        #[cfg(not(feature = "local-embeddings"))]
+        {
             let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
                 self.config.model_name.clone(),
                 self.config.embedding_dimension,
             ));
-
             let mut model_guard = self.model.write().await;
             *model_guard = Some(mock_fallback);
-
-            tracing::info!("Local embedding model loaded with mock implementation");
         }
 
+        *self.health.write().await = EmbeddingHealth::DegradedMock;
+        tracing::info!("Local embedding model loaded with mock fallback (degraded)");
         Ok(())
     }
 
@@ -180,6 +207,7 @@ impl LocalEmbeddingProvider {
             "dimension": self.config.embedding_dimension,
             "type": "local",
             "cache_dir": self.cache_dir,
+            "allow_mock_fallback": self.config.allow_mock_fallback,
         })
     }
 }
@@ -209,7 +237,11 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
     }
 
     async fn is_available(&self) -> bool {
-        self.is_loaded().await
+        self.health().await.is_production_ready()
+    }
+
+    async fn health(&self) -> EmbeddingHealth {
+        *self.health.read().await
     }
 
     async fn warmup(&self) -> Result<()> {
@@ -224,7 +256,8 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
             "dimension": self.embedding_dimension(),
             "type": "local",
             "provider": "sentence-transformers",
-            "cache_dir": self.cache_dir
+            "cache_dir": self.cache_dir,
+            "allow_mock_fallback": self.config.allow_mock_fallback,
         })
     }
 }

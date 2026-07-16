@@ -85,7 +85,12 @@ impl EmbeddingProvider for MockLocalModel {
     }
 
     async fn is_available(&self) -> bool {
-        true
+        // Mock embeddings are never production-ready (S1.5).
+        false
+    }
+
+    async fn health(&self) -> super::provider::EmbeddingHealth {
+        super::provider::EmbeddingHealth::DegradedMock
     }
 
     async fn warmup(&self) -> Result<()> {
@@ -98,7 +103,8 @@ impl EmbeddingProvider for MockLocalModel {
             "model": self.model_name(),
             "dimension": self.embedding_dimension(),
             "type": "mock",
-            "provider": "testing"
+            "provider": "testing",
+            "health": "degraded-mock"
         })
     }
 }
@@ -248,7 +254,16 @@ impl EmbeddingProvider for RealEmbeddingModelWithFallback {
     }
 
     async fn is_available(&self) -> bool {
-        true
+        // Only real-backed hybrid is production-ready (S1.5).
+        self.real_model.is_some()
+    }
+
+    async fn health(&self) -> super::provider::EmbeddingHealth {
+        if self.real_model.is_some() {
+            super::provider::EmbeddingHealth::Real
+        } else {
+            super::provider::EmbeddingHealth::DegradedMock
+        }
     }
 
     async fn warmup(&self) -> Result<()> {
@@ -261,7 +276,8 @@ impl EmbeddingProvider for RealEmbeddingModelWithFallback {
             "model": self.model_name(),
             "dimension": self.embedding_dimension(),
             "type": "hybrid",
-            "provider": "real-with-fallback"
+            "provider": "real-with-fallback",
+            "has_real_model": self.real_model.is_some(),
         })
     }
 }

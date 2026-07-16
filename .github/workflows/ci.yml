@@ -264,13 +264,37 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 
       - name: Install required tools
-        run: cargo install --locked cargo-audit
+        run: |
+          cargo install --locked cargo-deny
+          # cargo-audit is optional structured reporting; cargo-deny is the
+          # authoritative blocking advisory check (W2.2 / S1.6 gate hygiene).
+          cargo install --locked cargo-audit || true
         shell: bash
 
-      - name: Security Audit
+      - name: Security Audit (blocking)
         run: |
-          # Security audit with 20 minute timeout
-          timeout 1200s cargo audit || echo "Security audit completed with warnings"
+          set -euo pipefail
+          # W2.2: do not soft-pass on advisory failures. cargo-deny is blocking.
+          timeout 1200s cargo deny check advisories
+          # Optional cargo-audit JSON report when the tool can parse the DB.
+          # Fail only when audit completes and reports vulnerabilities > 0.
+          # Tool/DB parse failures must not greenwash after deny already passed.
+          set +e
+          timeout 600s cargo audit --json > audit-report.json 2>audit-err.txt
+          audit_rc=$?
+          set -e
+          if [ "$audit_rc" -eq 0 ] && [ -f audit-report.json ]; then
+            count=$(jq -r '.vulnerabilities.count // 0' audit-report.json)
+            if [ "${count}" -gt 0 ]; then
+              echo "cargo audit found ${count} vulnerabilities"
+              cat audit-report.json
+              exit 1
+            fi
+            echo "cargo audit: 0 vulnerabilities"
+          else
+            echo "cargo audit unavailable or failed to parse advisory DB (rc=${audit_rc}); cargo deny already enforced"
+            cat audit-err.txt || true
+          fi
         env:
           RUST_LOG: info
       - name: Coverage Check (Workspace, PR-aligned)

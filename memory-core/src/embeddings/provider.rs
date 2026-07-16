@@ -3,6 +3,28 @@
 use anyhow::Result;
 use async_trait::async_trait;
 
+/// Production-facing health of an embedding provider (S1.5).
+///
+/// Distinguishes real model availability from mock/degraded fallbacks so
+/// `is_available` cannot report healthy when semantic quality is invalid.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EmbeddingHealth {
+    /// Real model loaded and producing embeddings of declared dimension.
+    Real,
+    /// Operating on mock/hash embeddings (dev/test only; not production-ready).
+    DegradedMock,
+    /// No usable model loaded.
+    Unavailable,
+}
+
+impl EmbeddingHealth {
+    /// Whether this state is acceptable for production semantic search.
+    #[must_use]
+    pub const fn is_production_ready(self) -> bool {
+        matches!(self, Self::Real)
+    }
+}
+
 /// Result from embedding generation
 #[derive(Debug, Clone)]
 pub struct EmbeddingResult {
@@ -99,10 +121,21 @@ pub trait EmbeddingProvider: Send + Sync {
     /// Get the model name/identifier
     fn model_name(&self) -> &str;
 
-    /// Check if the provider is available/configured
+    /// Check if the provider is available/configured for production use.
+    ///
+    /// Providers that fall back to mock embeddings must return `false` unless
+    /// mock mode is explicitly enabled (see [`EmbeddingHealth`]).
     async fn is_available(&self) -> bool {
-        // Default implementation tries to embed a simple test
-        self.embed_text("test").await.is_ok()
+        self.health().await.is_production_ready()
+    }
+
+    /// Report detailed health: real, degraded-mock, or unavailable (S1.5).
+    async fn health(&self) -> EmbeddingHealth {
+        if self.embed_text("test").await.is_ok() {
+            EmbeddingHealth::Real
+        } else {
+            EmbeddingHealth::Unavailable
+        }
     }
 
     /// Warm up the provider (load models, test connections, etc.)

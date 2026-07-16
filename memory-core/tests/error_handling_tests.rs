@@ -882,6 +882,7 @@ fn error_handling_match_all_variants() {
         Error::ValidationFailed("test".to_string()),
         Error::QuotaExceeded("test".to_string()),
         Error::RateLimitExceeded("test".to_string()),
+        Error::RetryQueueTimeout,
         Error::Configuration("test".to_string()),
     ];
 

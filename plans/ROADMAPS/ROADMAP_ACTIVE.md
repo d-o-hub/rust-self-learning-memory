@@ -1,16 +1,33 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
+**Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
 **Released Version**: v0.1.34 (crates.io + GitHub Release)
 **Workspace Version**: 0.1.35 (unreleased)
-**Active Sprint**: GOAP Missing Tasks Swarm (improvements plan P0 slice)
-**Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
-**Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+**Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2
+**Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
+**Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 **Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
 ---
 
-## Sprint 2026-07-16 — Missing Tasks Swarm ✅ CODE COMPLETE
+## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+
+**Focus**: Next deferred P0 correctness and gate tasks from the 2026-07-14 improvements plan.
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | S1.3 | No write lock across backend await (step paths) | ✅ |
+| 2 | S1.4 | Durable capacity eviction (backend delete) | ✅ |
+| 3 | S1.5 | Embedding health Real / DegradedMock / Unavailable | ✅ |
+| 4 | S1.6 | Retry queue timeout + first-attempt free permits | ✅ |
+| 5 | W2.2 | Remove soft-pass cargo audit; deny blocking | ✅ |
+| 6 | Release | Tag v0.1.35 via release.yml | ⏳ After merge |
+
+**Deferred**: S1.7, W2.1 remainder, W2.4/W2.5, K3 skill evals, F4 pilots, S1.2 provenance remainder.
+
+---
+
+## Sprint 2026-07-16 — Missing Tasks Swarm ✅ MERGED (PR #840)
 
 **Focus**: Land P0 correctness, gate, and docs tasks from the 2026-07-14 improvements plan.
 
@@ -21,9 +38,6 @@
 | 3 | W2.3 | `build-rust.sh` accepts `do-memory-*` names | ✅ |
 | 4 | W2.6 | Production LOC ≤500 | ✅ |
 | 5 | S1.1a/D3.2 | Fail-closed code-exec docs; fix TaskContext example | ✅ |
-| 6 | Release | Tag v0.1.35 via release.yml | ⏳ After merge |
-
-**Deferred**: S1.3–S1.7, W2.1–W2.5 remainder, K3 skill evals, F4 pilots.
 
 ---
 

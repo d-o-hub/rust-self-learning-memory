@@ -215,8 +215,25 @@ async fn test_degraded_mock_not_reported_available() {
     let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
     assert_eq!(provider.health().await, EmbeddingHealth::DegradedMock);
+    assert_eq!(provider.health_state().await, EmbeddingHealth::DegradedMock);
     assert!(!provider.is_available().await);
     assert!(provider.is_loaded().await);
+    let meta = provider.metadata();
+    assert_eq!(meta["allow_mock_fallback"], true);
+    let info = provider.model_info();
+    assert_eq!(info["allow_mock_fallback"], true);
+}
+
+#[tokio::test]
+async fn test_mock_local_model_provider_health() {
+    use crate::embeddings::EmbeddingProvider;
+    use crate::embeddings::mock_model::MockLocalModel;
+
+    let mock = MockLocalModel::new("m".into(), 8);
+    assert_eq!(mock.health().await, EmbeddingHealth::DegradedMock);
+    assert!(!mock.is_available().await);
+    let meta = mock.metadata();
+    assert_eq!(meta["health"], "degraded-mock");
 }
 
 #[tokio::test]

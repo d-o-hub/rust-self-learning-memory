@@ -152,13 +152,27 @@ async fn test_episode_embedding_workflow() {
 
 #[tokio::test]
 async fn test_provider_fallback_chain() {
+    use do_memory_core::embeddings::EmbeddingHealth;
+
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
     let service = SemanticService::with_fallback(Box::new(storage), config)
         .await
         .expect("Should create service");
 
-    assert!(service.provider.is_available().await);
+    // Offline/default local path is typically mock (degraded); still embeds.
+    // S1.5: mock must not report production-ready via is_available().
+    let health = service.provider.health().await;
+    assert!(
+        matches!(
+            health,
+            EmbeddingHealth::Real | EmbeddingHealth::DegradedMock
+        ),
+        "expected Real or DegradedMock, got {health:?}"
+    );
+    if health == EmbeddingHealth::DegradedMock {
+        assert!(!service.provider.is_available().await);
+    }
 
     let embedding = service
         .provider

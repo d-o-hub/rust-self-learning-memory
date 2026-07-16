@@ -25,6 +25,54 @@ impl EmbeddingHealth {
     }
 }
 
+#[cfg(test)]
+mod health_tests {
+    use super::*;
+
+    #[test]
+    fn production_ready_only_for_real() {
+        assert!(EmbeddingHealth::Real.is_production_ready());
+        assert!(!EmbeddingHealth::DegradedMock.is_production_ready());
+        assert!(!EmbeddingHealth::Unavailable.is_production_ready());
+    }
+
+    #[tokio::test]
+    async fn default_health_uses_embed_probe() {
+        struct AlwaysOk;
+        #[async_trait]
+        impl EmbeddingProvider for AlwaysOk {
+            async fn embed_text(&self, _text: &str) -> Result<Vec<f32>> {
+                Ok(vec![0.1, 0.2])
+            }
+            fn embedding_dimension(&self) -> usize {
+                2
+            }
+            fn model_name(&self) -> &'static str {
+                "ok"
+            }
+        }
+
+        struct AlwaysFail;
+        #[async_trait]
+        impl EmbeddingProvider for AlwaysFail {
+            async fn embed_text(&self, _text: &str) -> Result<Vec<f32>> {
+                anyhow::bail!("down")
+            }
+            fn embedding_dimension(&self) -> usize {
+                2
+            }
+            fn model_name(&self) -> &'static str {
+                "fail"
+            }
+        }
+
+        assert_eq!(AlwaysOk.health().await, EmbeddingHealth::Real);
+        assert!(AlwaysOk.is_available().await);
+        assert_eq!(AlwaysFail.health().await, EmbeddingHealth::Unavailable);
+        assert!(!AlwaysFail.is_available().await);
+    }
+}
+
 /// Result from embedding generation
 #[derive(Debug, Clone)]
 pub struct EmbeddingResult {

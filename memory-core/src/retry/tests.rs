@@ -220,6 +220,43 @@ async fn test_retry_timeout() {
     assert!(result.is_err());
 }
 
+#[test]
+fn retry_error_display_and_source() {
+    use super::RetryError;
+    use std::error::Error as StdError;
+
+    let op = RetryError::Operation(TestError(true));
+    assert!(op.to_string().contains("TestError"));
+    assert!(op.source().is_some());
+
+    let qt: RetryError<TestError> = RetryError::QueueTimeout;
+    assert!(qt.to_string().contains("retry_queue_timeout"));
+    assert!(qt.source().is_none());
+}
+
+#[test]
+fn retry_error_into_crate_error_and_from() {
+    use super::RetryError;
+    use crate::error::Error;
+
+    let qt: RetryError<Error> = RetryError::QueueTimeout;
+    assert!(matches!(qt.into_crate_error(), Error::RetryQueueTimeout));
+
+    let op = RetryError::Operation(Error::Storage("x".into()));
+    assert!(matches!(Error::from(op), Error::Storage(_)));
+
+    let qt2: RetryError<Error> = RetryError::QueueTimeout;
+    assert!(matches!(Error::from(qt2), Error::RetryQueueTimeout));
+    assert!(!Error::RetryQueueTimeout.is_recoverable());
+}
+
+#[test]
+fn queue_timeout_display() {
+    use super::QueueTimeout;
+    let msg = QueueTimeout.to_string();
+    assert!(msg.contains("retry_queue_timeout") || msg.contains("permit"));
+}
+
 #[tokio::test]
 async fn first_attempt_does_not_consume_retry_permit() {
     use super::ConcurrencyLimiter;

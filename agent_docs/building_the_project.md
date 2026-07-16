@@ -34,9 +34,12 @@ The project supports the following optional features:
 - `full` - Enable all storage backends (implies both turso and redb)
 
 **do-memory-mcp features:**
-- `wasmtime-backend` - Wasmtime WASM sandbox (default)
-- `wasm-rquickjs` - QuickJS JavaScript runtime (deprecated)
-- `javy-backend` - Javy JavaScript to WASM compilation
+- `oauth` - Optional OAuth authorization support (`jsonwebtoken`)
+- `embeddings` - Optional embeddings configuration support
+- `streaming-impl` - Enable streaming implementation tests (see ADR-027)
+
+Note: There is no `wasmtime-backend` / `javy-backend` feature. Agent code
+execution (`execute_agent_code`) is unavailable and fail-closed.
 
 ```bash
 # Build with specific features

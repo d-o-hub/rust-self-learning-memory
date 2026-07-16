@@ -1,9 +1,10 @@
 # GOAP Missing Tasks Swarm — 2026-07-16
 
-**Status**: Code complete — PR pending  
+**Status**: Code complete — PR #840 open (CI running)  
 **Coordinator**: goap-agent + agent-coordination  
 **Strategy**: Hybrid (parallel swarm → sequential quality → PR review)  
 **Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`  
+**PR**: https://github.com/d-o-hub/rust-self-learning-memory/pull/840  
 **Source plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
 **Related ADRs**: ADR-072 (Proposed), ADR-074 (S1.2 partial Implemented), ADR-039  
 **Open issues**: #837 (docs — fixed in this PR), #838 (release drift — cut via release.yml after merge)
@@ -46,7 +47,7 @@ G0: Land high-value missing plan tasks in one PR with evidence
 | A4 | W2.6 LOC splits (6 files) | refactorer + orchestrator | A2 for context.rs | ✅ |
 | A5 | Docs contract: execute_agent_code / wasmtime | feature-implementer | — | ✅ |
 | A6 | Plans/ADR progress | orchestrator | A1–A5 | ✅ |
-| A7 | Quality gates + PR + review | orchestrator | A1–A6 | 🟡 |
+| A7 | Quality gates + PR + review | orchestrator | A1–A6 | 🟡 PR #840; CI pending |
 
 ## Swarm Phases
 

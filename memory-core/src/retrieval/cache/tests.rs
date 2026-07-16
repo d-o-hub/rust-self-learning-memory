@@ -463,10 +463,47 @@ mod cache_tests {
             "alpha".to_string(),
             String::new(),
             "beta".to_string(),
+            "Auth".to_string(),
+            "auth".to_string(),
         ]);
         assert_eq!(
             tags,
-            vec!["alpha".to_string(), "beta".to_string(), "zeta".to_string()]
+            vec![
+                "alpha".to_string(),
+                "auth".to_string(),
+                "beta".to_string(),
+                "zeta".to_string()
+            ]
         );
+    }
+
+    #[test]
+    fn test_cache_key_tag_case_insensitive() {
+        let upper = base_context_key().with_tags(vec!["Auth".to_string(), "REST".to_string()]);
+        let lower = base_context_key().with_tags(vec!["auth".to_string(), "rest".to_string()]);
+        assert_eq!(upper, lower);
+        assert_eq!(upper.tags, vec!["auth".to_string(), "rest".to_string()]);
+    }
+
+    #[test]
+    fn test_cache_key_empty_domain_equals_none() {
+        let empty = CacheKey::new("q".to_string()).with_domain(Some(String::new()));
+        let whitespace = CacheKey::new("q".to_string()).with_domain(Some("   ".to_string()));
+        let none = CacheKey::new("q".to_string()).with_domain(None);
+        assert_eq!(empty, none);
+        assert_eq!(whitespace, none);
+    }
+
+    #[test]
+    fn test_cache_key_domain_language_trimmed() {
+        let a = CacheKey::new("q".to_string())
+            .with_domain(Some("  web-api  ".to_string()))
+            .with_language(Some("  Rust  ".to_string()))
+            .with_framework(Some("  Axum ".to_string()));
+        let b = CacheKey::new("q".to_string())
+            .with_domain(Some("web-api".to_string()))
+            .with_language(Some("Rust".to_string()))
+            .with_framework(Some("Axum".to_string()));
+        assert_eq!(a, b);
     }
 }

@@ -2,7 +2,11 @@
 
 use crate::SelfLearningMemory;
 use crate::episode::ExecutionStep;
-use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use crate::patterns::{Pattern, PatternEffectiveness};
+use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use std::collections::HashMap;
+use tokio::sync::RwLock;
+use uuid::Uuid;
 
 /// Test `get_all_episodes` with lazy loading.
 #[tokio::test(flavor = "multi_thread")]
@@ -118,4 +122,71 @@ pub async fn test_get_episode_lazy_loading() {
     // The existing get_episode method with lazy loading should work
     let episode = memory.get_episode(episode_id).await.unwrap();
     assert_eq!(episode.task_description, "Test lazy loading");
+}
+
+/// Issue #831: patterns extracted on complete are visible via get_all_patterns.
+#[tokio::test(flavor = "multi_thread")]
+pub async fn test_get_all_patterns_after_complete() {
+    let test_config = crate::MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        enable_summarization: false,
+        enable_embeddings: false,
+        batch_config: None,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
+
+    let episode_id = memory
+        .start_episode(
+            "rust error handling".to_string(),
+            TaskContext {
+                language: Some("rust".to_string()),
+                framework: None,
+                complexity: ComplexityLevel::Moderate,
+                domain: "rust".to_string(),
+                tags: vec![],
+            },
+            TaskType::CodeGeneration,
+        )
+        .await;
+
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "ok".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .expect("complete");
+
+    let patterns = memory.get_all_patterns().await.expect("get_all_patterns");
+    assert!(
+        !patterns.is_empty(),
+        "complete should extract at least a ContextPattern (issue #831)"
+    );
+}
+
+/// queries::get_all_patterns with empty backends returns in-memory only.
+#[tokio::test]
+pub async fn test_get_all_patterns_memory_only() {
+    let id = Uuid::new_v4();
+    let sample = Pattern::ContextPattern {
+        id,
+        context_features: vec!["domain:test".to_string()],
+        recommended_approach: "Test".to_string(),
+        evidence: vec![],
+        success_rate: 1.0,
+        effectiveness: PatternEffectiveness::new(),
+    };
+
+    let fallback = RwLock::new(HashMap::from([(id, sample)]));
+    // `queries` is a private sibling of `tests` under `memory`.
+    let result = super::super::queries::get_all_patterns(&fallback, None, None)
+        .await
+        .expect("get_all_patterns");
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].id(), id);
 }

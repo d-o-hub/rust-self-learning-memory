@@ -129,6 +129,10 @@ fn test_config_display_write_human_with_none_urls() {
     assert!(output.contains("Turso URL: Not configured"));
     assert!(output.contains("Turso Token: Not configured"));
     assert!(output.contains("redb Path: Not configured"));
+    assert!(
+        output.contains("Storage Mode: Not set") || output.contains("Not set"),
+        "unset storage_mode should be visible: {output}"
+    );
     assert!(output.contains("Enabled Features"));
     assert!(output.contains("turso"));
     assert!(output.contains("redb"));
@@ -164,7 +168,40 @@ fn test_config_display_write_human_with_empty_features() {
     assert!(output.contains("Turso URL: file:test.db"));
     assert!(output.contains("Turso Token: Configured"));
     assert!(output.contains("redb Path: memory.redb"));
+    assert!(output.contains("Storage Mode: local"));
     assert!(!output.contains("Enabled Features"));
+}
+
+#[test]
+fn test_config_display_shows_db_path_when_set() {
+    let display = ConfigDisplay {
+        database: DatabaseConfigDisplay {
+            turso_url: None,
+            turso_token_configured: false,
+            redb_path: Some("/tmp/cache.redb".to_string()),
+            storage_mode: Some("local".to_string()),
+            db_path: Some("/tmp/memory.db".to_string()),
+        },
+        storage: StorageConfigDisplay {
+            max_episodes_cache: 100,
+            cache_ttl_seconds: 60,
+            pool_size: 2,
+        },
+        cli: CliConfigDisplay {
+            default_format: "human".to_string(),
+            progress_bars: false,
+            batch_size: 10,
+        },
+        features: vec![],
+    };
+
+    let mut buffer = Vec::new();
+    display.write_human(&mut buffer).unwrap();
+    let output = String::from_utf8(buffer).unwrap();
+
+    assert!(output.contains("DB Path: /tmp/memory.db"));
+    assert!(output.contains("Storage Mode: local"));
+    assert!(output.contains("redb Path: /tmp/cache.redb"));
 }
 
 #[test]

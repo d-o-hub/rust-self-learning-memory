@@ -1,6 +1,6 @@
 ---
 name: pr-readiness
-description: "Comprehensive PR health check that verifies merge state, CI status, conflicts, and cancelled checks before recommending merge. Prevents the common mistake of declaring 'CI green, ready to merge' when the PR has conflicts or is behind main."
+description: "Comprehensive PR health check: merge state, CI status, conflicts, cancelled checks, AND all PR comments/reviews (human + bots). Requires addressing actionable feedback before recommending merge. Prevents 'CI green, ready to merge' when conflicts, pending comments, or Codecov/Codacy findings remain."
 ---
 
 # PR Readiness Check Skill
@@ -10,6 +10,7 @@ Verify that a Pull Request is truly ready to merge — not just that CI is green
 ## When to Use
 
 - Before recommending any PR for merge
+- When asked to "review PR", "check PR", "fix PR", or "babysit PR"
 - When analyzing open PRs for a health report
 - When asked to "fix CI" on open PRs
 - After pushing conflict resolution or branch updates
@@ -17,10 +18,12 @@ Verify that a Pull Request is truly ready to merge — not just that CI is green
 ## Critical Rule
 
 **NEVER recommend merge based solely on CI status.** You MUST also check:
+
 1. `mergeable` field (conflicts?)
 2. `mergeStateStatus` field (behind? blocked? dirty?)
 3. All required checks passed (not just non-required ones)
 4. No stale CANCELLED checks that should have run
+5. **All PR comments and reviews** (human + bots) — actionable feedback addressed or explicitly waived with reason
 
 ## Hard Blockers (NEVER BYPASS)
 
@@ -31,24 +34,37 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
 3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Fix the code, don't bypass the gate.
 4. **NEVER merge a PR you haven't personally verified** — Run the full check and confirm ALL conditions.
 5. **NEVER skip loading this skill** — Load this skill before any merge recommendation.
+6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue comments; address actionable feedback before declaring ready.
+
+---
 
 ## Full Procedure
 
 ### 1. Query All PR State
 
 ```bash
-# Get everything in one call
+# Single PR (preferred when number known)
+gh pr view {n} --json number,title,url,mergeable,mergeStateStatus,statusCheckRollup,headRefName,baseRefName,headRefOid,reviews,comments
+
+# All open PRs
 gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup,headRefName,baseRefName
+```
+
+Also use the helper script:
+
+```bash
+./scripts/check-pr-readiness.sh [PR_NUMBER]
+./scripts/check-pr-readiness.sh --fix [PR_NUMBER]   # also update BEHIND branches
 ```
 
 ### 2. Interpret mergeStateStatus
 
 | State | Meaning | Mergeable? | Fix |
 |-------|---------|------------|-----|
-| `CLEAN` | All clear, ready to merge | ✅ YES | None needed |
-| `BEHIND` | Branch is behind base, no conflicts | ⚠️ Not yet | Update branch |
-| `BLOCKED` | Required checks pending/failing | ❌ NO | Wait or fix CI |
-| `UNSTABLE` | Non-required checks failing | ⚠️ Maybe | Check if failures matter |
+| `CLEAN` | All clear (merge state only) | ✅ if CI + comments OK | Still verify CI + comments |
+| `BEHIND` | Branch behind main, no conflicts | ⚠️ Not yet | Update branch |
+| `BLOCKED` | Required checks still pending | ❌ NO | Wait for CI |
+| `UNSTABLE` | Non-required checks failing | ⚠️ Maybe | Investigate |
 | `DIRTY` | Merge conflicts exist | ❌ NO | Resolve conflicts |
 | `HAS_HOOKS` | Pre-receive hooks blocking | ❌ NO | Investigate hooks |
 | `UNKNOWN` | GitHub hasn't computed yet | ⏳ Wait | Re-query in 30s |
@@ -59,72 +75,120 @@ gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusChe
 |------------|---------|--------|
 | `SUCCESS` | Check passed | ✅ None |
 | `SKIPPED` | Expected skip (Release on PRs, Coverage badge on non-main) | ✅ None |
-| `CANCELLED` | Workflow was cancelled — may be stale or dependent | ⚠️ Investigate: was it cancelled because a prerequisite failed? Or stale from a previous push? Re-run if stale. |
+| `CANCELLED` | Workflow was cancelled — may be stale or dependent | ⚠️ Investigate; re-run if stale |
 | `FAILURE` | Check failed | ❌ Must fix |
-| `pending`/`IN_PROGRESS` | Still running | ⏳ Wait — do NOT recommend merge |
+| `pending` / `IN_PROGRESS` | Still running | ⏳ Wait — do NOT recommend merge |
 | `NEUTRAL` | Informational only | ✅ None |
 
-### 4. Fix Procedures
+### 4. Fetch ALL PR Comments (MANDATORY)
 
-#### Branch Behind Main (BEHIND)
+**Do not stop at CI.** Always pull every feedback channel:
+
 ```bash
-# Via GitHub API (preferred — no local checkout needed)
-gh api repos/{owner}/{repo}/pulls/{number}/update-branch -X PUT -f update_method=merge
+OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+N={pr_number}
 
-# If API says "no new commits" but state still shows BEHIND, the state is stale.
-# Push an empty commit or wait for GitHub to recompute.
+# A) Inline review comments (file/line threads)
+gh api "repos/${OWNER_REPO}/pulls/${N}/comments" --paginate > /tmp/pr${N}_inline.json
+
+# B) Submitted reviews (APPROVED / CHANGES_REQUESTED / COMMENTED + body)
+gh api "repos/${OWNER_REPO}/pulls/${N}/reviews" --paginate > /tmp/pr${N}_reviews.json
+
+# C) Issue-style conversation comments (Codecov, Codacy, humans, bots)
+gh api "repos/${OWNER_REPO}/issues/${N}/comments" --paginate > /tmp/pr${N}_issue.json
+
+# Optional: conversation via gh
+gh pr view ${N} --comments
 ```
 
-#### Merge Conflicts (DIRTY / CONFLICTING)
-```bash
-# Checkout the PR branch
-gh pr checkout {number}
+Parse and classify every item:
 
-# Merge main
+| Source | Typical author | Treat as |
+|--------|----------------|----------|
+| Human review (inline or body) | real users | **Must address** unless clearly outdated |
+| `CHANGES_REQUESTED` review | reviewers | **Hard blocker** until fixed or re-reviewed |
+| Codecov bot | `codecov[bot]` | Actionable if patch coverage low / missing lines listed |
+| Codacy bot | `codacy*` | Actionable if new issues > 0 |
+| CodeRabbit / Cursor / other bots | varies | Actionable if concrete code suggestions |
+| GitHub Actions summary bots | `github-actions[bot]` | Usually informational (benchmarks) unless FAIL |
+| Dependabot / security | bots | Actionable if security findings on the PR |
+
+### 5. Address Feedback (not just acknowledge)
+
+For each actionable comment:
+
+1. **Understand** — reproduce or map to code
+2. **Fix or waive** — implement the change, or document why not (with evidence)
+3. **Verify** — tests / clippy / targeted nextest as appropriate
+4. **Close the loop** — push commits; reply on the PR thread summarizing what was done
+5. **Re-check readiness** — CI + merge state + no new unresolved threads
+
+#### Common bot feedback patterns
+
+| Bot / finding | Typical fix |
+|---------------|-------------|
+| Codecov: low patch % / N missing lines | Add unit tests for listed files; extract pure helpers for I/O-heavy paths |
+| Codacy: new issues | Fix lint/complexity/duplication at cited lines |
+| Reviewer: correctness bug | Fix code + regression test |
+| Reviewer: docs drift | Align CHANGELOG/README with behavior |
+| Stale comment on old line | Reply that it was fixed in commit SHA or is no longer applicable |
+
+#### Waiving feedback (rare)
+
+Only waive when:
+
+- Comment is outdated (code already changed) — reply with commit SHA
+- Comment is incorrect — reply with counter-evidence
+- Purely informational bot post (e.g. benchmark dump with no regression)
+
+**Never waive** `CHANGES_REQUESTED` without either implementing the change or getting explicit re-approval.
+
+### 6. Fix Procedures (CI / merge state)
+
+#### Branch Behind Main (`BEHIND`)
+```bash
+gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge
+```
+
+#### Merge Conflicts (`DIRTY` / `CONFLICTING`)
+```bash
+gh pr checkout {n}
 git merge origin/main
-
-# Resolve conflicts in editor
-# Look for <<<<<<< ======= >>>>>>> markers
-grep -rn "<<<<<<" .
-
-# After resolving:
-git add <resolved-files>
-git commit --no-edit
-git push
+# resolve <<<<<<< markers
+git add <files> && git commit --no-edit && git push
 ```
 
-#### Cancelled CI Checks
+#### Cancelled CI
 ```bash
-# Find the run ID from statusCheckRollup detailsUrl
-# Re-run the workflow
 gh run rerun {run_id}
-
-# Or push empty commit to re-trigger all CI
-git commit --allow-empty -m "chore: re-trigger CI" && git push
+# or: git commit --allow-empty -m "chore: re-trigger CI" && git push
 ```
 
-#### Failed CI Checks
+#### Failed CI
 ```bash
-# Get failed job logs
 gh run view {run_id} --log-failed
-
-# Diagnose and fix the code
-# Common patterns in .agents/skills/ci-fix/SKILL.md
+# Fix via .agents/skills/ci-fix/SKILL.md
 ```
 
-### 5. Verification After Fix
-
-After any fix (conflict resolution, branch update, CI re-trigger):
+### 7. Verification After Fix
 
 ```bash
-# Wait ~30s for GitHub to recompute, then re-check
-gh pr view {number} --json mergeable,mergeStateStatus,statusCheckRollup
+gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup
+# Re-fetch comments to ensure no new open threads
+gh api "repos/${OWNER_REPO}/pulls/${n}/comments" --paginate
+gh api "repos/${OWNER_REPO}/issues/${n}/comments" --paginate
 ```
 
-A PR is ready to merge ONLY when:
+A PR is ready to merge ONLY when ALL of:
+
 - `mergeable` = `MERGEABLE`
 - `mergeStateStatus` = `CLEAN`
-- All required `statusCheckRollup` entries show `conclusion: SUCCESS` or `SKIPPED`
+- All required `statusCheckRollup` entries = `SUCCESS` or `SKIPPED`
+- No stale `CANCELLED` checks that should have run
+- **All actionable PR comments addressed** (fixed + pushed, or waived with evidence on the thread)
+- No open `CHANGES_REQUESTED` review without follow-up approval
+
+---
 
 ## Common Mistakes
 
@@ -132,43 +196,39 @@ A PR is ready to merge ONLY when:
 ```
 "All checks pass → ready to merge"
 ```
-This ignores merge conflicts and behind-main state.
 
-### ✅ Correct: Check CI + merge state + conflicts
+### ✅ Correct: CI + merge state + comments
 ```
-"All checks pass, mergeStateStatus=CLEAN, mergeable=MERGEABLE → ready to merge"
+"CI green, mergeStateStatus=CLEAN, all review/bot feedback addressed → ready to merge"
+```
+
+### ❌ Wrong: Ignore Codecov / Codacy conversation comments
+```
+"No human reviews → nothing to address"
+```
+
+### ✅ Correct: Bots count
+```
+"Codecov reports 54 missing lines on config_template.rs → add tests, push, reply on PR"
+```
+
+### ❌ Wrong: "Acknowledged" without code change
+```
+"Thanks for the review" (no fix, no test, no waiver evidence)
+```
+
+### ✅ Correct: Fix or evidence-based waiver
+```
+Implement + test + push; reply with what changed and commit SHA
 ```
 
 ### ❌ Wrong: Recommend merge while checks are pending
-```
-"Most checks pass, a few are pending → probably fine"
-```
+### ✅ Correct: Wait for ALL checks terminal
 
-### ✅ Correct: Wait for all checks
-```
-"3 checks still pending → waiting for completion before recommending merge"
-```
-
-### ❌ Wrong: Ignore CANCELLED checks
-```
-"CANCELLED = skipped, doesn't matter"
-```
-
-### ✅ Correct: Investigate CANCELLED
-```
-"Coverage check CANCELLED — was it because Quick Check failed? Or stale from old push?"
-```
-
-### ❌ Wrong: Use --admin to bypass protection
-```
-"gh pr merge --admin" when checks are failing/pending
-```
-This is NEVER acceptable. Fix the code, don't bypass the gate.
-
+### ❌ Wrong: Use `gh pr merge --admin`
 ### ✅ Correct: Fix the underlying issue
-```
-"Checks failing → diagnose → fix code → push → wait for green → merge normally"
-```
+
+---
 
 ## Output Format
 
@@ -176,15 +236,28 @@ When reporting PR readiness, always include:
 
 ```
 ## PR #{number}: {title}
+- **URL**: {url}
 - **Merge State**: {mergeStateStatus} ({mergeable})
-- **CI Status**: {pass_count} pass, {fail_count} fail, {pending_count} pending, {cancelled_count} cancelled
+- **CI Status**: {pass} pass, {fail} fail, {pending} pending, {cancelled} cancelled
 - **Codacy**: {status}
-- **Verdict**: {READY TO MERGE | NEEDS FIX: {reason}}
-- **Action**: {specific action needed, or "None — merge when ready"}
+- **Comments**:
+  - Inline review threads: {n} ({open} open / {resolved} resolved)
+  - Reviews: {APPROVED / CHANGES_REQUESTED / COMMENTED counts}
+  - Issue comments: {n} (list bots + humans with actionable summary)
+  - Actionable remaining: {list or "none"}
+- **Feedback addressed this session**: {what was fixed / waived}
+- **Verdict**: READY TO MERGE | NEEDS FIX: {reason} | WAITING ON CI
+- **Action**: {specific next step, or "None — merge when ready"}
 ```
 
-## Related Skills
+---
 
+## Related
+
+- **[Comments reference](comments.md)** — Fetch/classify/close-loop templates
 - `.agents/skills/ci-fix/SKILL.md` — CI failure diagnosis and repair
+- `.agents/skills/ci-poll/SKILL.md` — Wait for CI with backoff
 - `.agents/skills/github-workflows/SKILL.md` — Workflow patterns
+- `.agents/skills/code-quality/SKILL.md` — fmt/clippy/coverage gates
 - `AGENTS.md` → "PR Health Check" section — Quick reference table
+- `./scripts/check-pr-readiness.sh` — Automated merge/CI/comment gates

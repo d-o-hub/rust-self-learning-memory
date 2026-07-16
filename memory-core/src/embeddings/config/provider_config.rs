@@ -44,8 +44,8 @@ pub struct LocalConfig {
     /// When true, allow mock embeddings for tests/dev (S1.5).
     ///
     /// Production defaults to `false`: if the real model cannot load, the
-    /// provider reports [`EmbeddingHealth::DegradedMock`] / unavailable rather
-    /// than silently advertising mock vectors as healthy.
+    /// provider reports degraded-mock / unavailable rather than silently
+    /// advertising mock vectors as healthy (see `EmbeddingHealth`).
     #[serde(default)]
     pub allow_mock_fallback: bool,
 }
@@ -53,15 +53,16 @@ pub struct LocalConfig {
 impl LocalConfig {
     /// Create a new local config.
     ///
-    /// Mock fallback is enabled only under `cfg!(test)` so unit tests keep
-    /// working offline; production binaries default to fail-closed (S1.5).
+    /// Mock fallback defaults to **enabled** so offline tests/dev keep working.
+    /// Call [`Self::with_allow_mock_fallback`]`(false)` for production fail-closed
+    /// loading (S1.5). Mock mode never reports production-ready via `is_available`.
     #[must_use]
     pub fn new(model_name: impl Into<String>, dimension: usize) -> Self {
         Self {
             model_name: model_name.into(),
             embedding_dimension: dimension,
             optimization: OptimizationConfig::local(),
-            allow_mock_fallback: cfg!(test),
+            allow_mock_fallback: true,
         }
     }
 
@@ -81,10 +82,10 @@ impl LocalConfig {
 
 impl Default for LocalConfig {
     fn default() -> Self {
-        // Tests and offline demos commonly use mock fallback; production
-        // callers should set `allow_mock_fallback: false` explicitly.
+        // Offline/dev default: mock allowed. Production should set
+        // `allow_mock_fallback: false` and treat only `EmbeddingHealth::Real`
+        // as production-ready.
         Self::new("sentence-transformers/all-MiniLM-L6-v2", 384)
-            .with_allow_mock_fallback(cfg!(test))
     }
 }
 

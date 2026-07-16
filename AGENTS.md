@@ -106,19 +106,26 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 
 ## PR Health Check (MANDATORY before recommending merge)
 
-**Skill**: `.agents/skills/pr-readiness/SKILL.md`
+**Skill**: `.agents/skills/pr-readiness/SKILL.md`  
+**CLI**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
 
-When analyzing open PRs or recommending merge, you MUST check ALL of the following — not just CI status:
+When analyzing open PRs, reviewing a PR, or recommending merge, you MUST check **all** of the following — not just CI status:
+
+1. Merge state (`mergeable`, `mergeStateStatus`)
+2. CI / status checks (including CANCELLED)
+3. **All PR comments and reviews** (human + bots) — and **address** actionable feedback
 
 ### Step 1: Full PR State Query
 ```bash
+gh pr view {n} --json number,title,mergeable,mergeStateStatus,statusCheckRollup,headRefOid
+# or all open:
 gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup
 ```
 
 ### Step 2: Interpret Merge State (CRITICAL)
 | `mergeStateStatus` | `mergeable` | Meaning | Action Required |
 |--------------------|-------------|---------|-----------------|
-| `CLEAN` | `MERGEABLE` | Ready to merge | ✅ None |
+| `CLEAN` | `MERGEABLE` | Merge state OK | Still verify CI **and** comments |
 | `BEHIND` | `MERGEABLE` | Branch behind main, no conflicts | Update branch: `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT` |
 | `BLOCKED` | `MERGEABLE` | Required checks still pending | Wait for CI to complete |
 | `UNSTABLE` | `MERGEABLE` | Non-required checks failing | Check if failures are pre-existing/non-blocking |
@@ -132,27 +139,53 @@ gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusChe
 - **`FAILURE`** → ❌ Must fix before merge
 - **`pending`** → ⏳ Wait for completion (do NOT recommend merge while pending)
 
-### Step 4: Fix Everything
+### Step 4: Fetch and Address ALL PR Comments (MANDATORY)
+
+**Never skip this step.** "No human reviews" does **not** mean nothing to do — bots (Codecov, Codacy, CodeRabbit, etc.) post actionable conversation comments.
+
+```bash
+OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+# Inline file/line review comments
+gh api "repos/${OWNER_REPO}/pulls/{n}/comments" --paginate
+# Submitted reviews (APPROVED / CHANGES_REQUESTED / COMMENTED)
+gh api "repos/${OWNER_REPO}/pulls/{n}/reviews" --paginate
+# Issue conversation (Codecov, Codacy, humans)
+gh api "repos/${OWNER_REPO}/issues/{n}/comments" --paginate
+```
+
+| Feedback type | Action |
+|---------------|--------|
+| Human inline / `CHANGES_REQUESTED` | **Fix code** (or get re-approval after evidence waiver) |
+| Codecov low patch / missing lines | Add tests for listed files; push; reply on PR |
+| Codacy new issues | Fix cited lints/complexity |
+| Stale / incorrect comment | Reply with commit SHA or counter-evidence |
+| Informational bot only (e.g. bench dump) | Note in report; no code change required |
+
+**Address** means: implement + test + push, then reply on the thread — not just acknowledge.
+
+### Step 5: Fix Everything
 A PR is NOT ready to merge unless ALL of:
 1. `mergeable` = `MERGEABLE` (no conflicts)
 2. `mergeStateStatus` = `CLEAN` (not BEHIND, DIRTY, BLOCKED, or UNSTABLE)
 3. All **required** checks = `SUCCESS`
 4. No `CANCELLED` checks that should have run (re-trigger if needed)
 5. No pre-existing failures inherited from base branch
+6. **All actionable PR comments addressed** (or waived with evidence on the thread)
 
-### Step 5: Fix Procedures
+### Step 6: Fix Procedures
 | Problem | Fix |
 |---------|-----|
 | Branch behind (`BEHIND`) | `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge` |
 | Merge conflicts (`DIRTY`/`CONFLICTING`) | `gh pr checkout {n}` → `git merge origin/main` → resolve → `git push` |
 | Cancelled CI | Re-run: `gh run rerun {run_id}` or push empty commit to re-trigger |
 | Failed check | Diagnose with `gh run view {run_id} --log-failed`, fix code, push |
+| Review / bot comments | See Step 4 — fix code, push, reply on PR |
 
 ### Common Mistake (NEVER DO THIS)
-❌ "CI is green, ready to merge" — **WRONG** if `mergeStateStatus` ≠ `CLEAN`
-✅ "CI is green, merge state is CLEAN, ready to merge" — **CORRECT**
+❌ "CI is green, ready to merge" — **WRONG** if `mergeStateStatus` ≠ `CLEAN` **or** comments remain unaddressed  
+✅ "CI green, merge CLEAN, all review/bot feedback addressed → ready to merge" — **CORRECT**
 
-CI checks run against the branch HEAD, not against the merge result. A PR can have green CI but be unmergeable due to conflicts with main.
+CI checks run against the branch HEAD, not against the merge result. A PR can have green CI but be unmergeable due to conflicts with main. Codecov/Codacy conversation comments often require tests or code fixes even when required checks are green.
 
 ### Hard Blockers (NEVER BYPASS)
 
@@ -163,6 +196,7 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
 3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Branch protection exists for a reason. If checks fail, fix the code, don't bypass the gate.
 4. **NEVER merge a PR you haven't personally verified** — Run the full PR readiness check (`gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup`) and confirm ALL conditions before merging.
 5. **NEVER skip the `pr-readiness` skill** — Load `.agents/skills/pr-readiness/SKILL.md` before any merge recommendation. The skill defines the exact verification procedure.
+6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue comments; address actionable feedback (including Codecov/Codacy) before declaring ready.
 
 ### Mandatory Pre-Merge Checklist
 
@@ -176,6 +210,9 @@ Before ANY merge action, ALL of these must be true:
 □ All required checks = SUCCESS (not pending, not FAILURE)
 □ No CANCELLED checks that should have run
 □ No pre-existing failures from base branch
+□ Fetched PR comments: pulls/{n}/comments + pulls/{n}/reviews + issues/{n}/comments
+□ Actionable feedback addressed (code + tests pushed) or waived with evidence on thread
+□ No open CHANGES_REQUESTED without re-approval
 □ Verified locally: cargo nextest run --all passes
 □ Verified locally: cargo clippy --workspace -- -D warnings passes
 ```

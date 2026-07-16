@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # scripts/check-pr-readiness.sh — Check all open PRs for merge readiness
-# Verifies merge state, CI status, conflicts, and cancelled checks.
+# Verifies merge state, CI status, conflicts, cancelled checks, AND PR comments.
+# See .agents/skills/pr-readiness/SKILL.md for the full agent procedure.
 #
 # Usage:
 #   ./scripts/check-pr-readiness.sh          # Check all open PRs
@@ -74,6 +75,33 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
   echo "  CI: $SUCCESS pass, $FAILURE fail, $CANCELLED cancelled, $PENDING pending, $SKIPPED skipped (of $TOTAL)"
   echo "  Codacy: $CODACY"
 
+  # ── PR comments / reviews (human + bots) ───────────────────
+  INLINE_COUNT=$(gh api "repos/$REPO/pulls/$NUMBER/comments" --paginate 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+  REVIEWS_JSON=$(gh api "repos/$REPO/pulls/$NUMBER/reviews" --paginate 2>/dev/null || echo '[]')
+  REVIEW_CHANGES=$(echo "$REVIEWS_JSON" | jq '[.[] | select(.state == "CHANGES_REQUESTED")] | length' 2>/dev/null || echo 0)
+  REVIEW_APPROVED=$(echo "$REVIEWS_JSON" | jq '[.[] | select(.state == "APPROVED")] | length' 2>/dev/null || echo 0)
+  REVIEW_COMMENTED=$(echo "$REVIEWS_JSON" | jq '[.[] | select(.state == "COMMENTED")] | length' 2>/dev/null || echo 0)
+  ISSUE_JSON=$(gh api "repos/$REPO/issues/$NUMBER/comments" --paginate 2>/dev/null || echo '[]')
+  ISSUE_COUNT=$(echo "$ISSUE_JSON" | jq 'length' 2>/dev/null || echo 0)
+  # Flag known bot feedback that is often actionable
+  HAS_CODECOV=$(echo "$ISSUE_JSON" | jq '[.[] | select(.user.login | test("codecov"; "i"))] | length' 2>/dev/null || echo 0)
+  CODECOV_FAIL=$(echo "$ISSUE_JSON" | jq -r '[.[] | select(.user.login | test("codecov"; "i")) | .body] | join("\n")' 2>/dev/null | grep -cE 'Patch coverage is|:x: Patch|Missing :warning:' || true)
+  CODECOV_FAIL=${CODECOV_FAIL:-0}
+  INLINE_COUNT=${INLINE_COUNT:-0}
+  REVIEW_CHANGES=${REVIEW_CHANGES:-0}
+  REVIEW_APPROVED=${REVIEW_APPROVED:-0}
+  REVIEW_COMMENTED=${REVIEW_COMMENTED:-0}
+  ISSUE_COUNT=${ISSUE_COUNT:-0}
+  HAS_CODECOV=${HAS_CODECOV:-0}
+
+  echo "  Comments: inline=$INLINE_COUNT  reviews(approved=$REVIEW_APPROVED changes_requested=$REVIEW_CHANGES commented=$REVIEW_COMMENTED)  conversation=$ISSUE_COUNT"
+  if [ "$HAS_CODECOV" -gt 0 ]; then
+    echo "  ℹ️  Codecov conversation comment present (check for missing-lines / low patch %)"
+  fi
+  if [ "$CODECOV_FAIL" -gt 0 ]; then
+    echo "  ⚠️  Codecov reports missing coverage / low patch % — address before merge (see skill)"
+  fi
+
   # Determine verdict
   VERDICT="✅ READY"
   ACTIONS=""
@@ -145,6 +173,25 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     ALL_READY=false
   fi
 
+  # Review feedback gates (script cannot auto-fix code; flags for agents)
+  if [ "${REVIEW_CHANGES:-0}" -gt 0 ]; then
+    VERDICT="❌ CHANGES REQUESTED"
+    ACTIONS="Address review feedback (gh api repos/$REPO/pulls/$NUMBER/comments + reviews); fix, push, request re-review"
+    ALL_READY=false
+    ((ISSUES_FOUND++))
+  fi
+
+  if [ "${INLINE_COUNT:-0}" -gt 0 ] && [ "$VERDICT" = "✅ READY" ]; then
+    echo "  ℹ️  $INLINE_COUNT inline review comment(s) — agent must verify each is resolved"
+  fi
+
+  if [ "${CODECOV_FAIL:-0}" -gt 0 ] && [ "$VERDICT" = "✅ READY" ]; then
+    VERDICT="⚠️ CODECOV FEEDBACK"
+    ACTIONS="Address Codecov missing lines / patch coverage (add tests); see .agents/skills/pr-readiness/SKILL.md"
+    ALL_READY=false
+    ((ISSUES_FOUND++))
+  fi
+
   echo "  Verdict: $VERDICT"
   if [ -n "$ACTIONS" ]; then
     echo "  Action: $ACTIONS"
@@ -153,8 +200,10 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
 done
 
 echo "═══════════════════════════════════════════════════════"
+echo "Note: Agents must still load .agents/skills/pr-readiness/SKILL.md,"
+echo "      read full comment bodies, implement fixes, and reply on the PR."
 if [ "$ALL_READY" = true ]; then
-  echo "✅ All $PR_COUNT PR(s) are ready to merge."
+  echo "✅ All $PR_COUNT PR(s) pass automated readiness gates."
   exit 0
 else
   echo "⚠️  $ISSUES_FOUND issue(s) found across $PR_COUNT PR(s)."

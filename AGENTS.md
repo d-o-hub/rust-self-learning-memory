@@ -363,7 +363,7 @@ Publish improvements (PR #789):
   - **Episode Tags**: `add_episode_tags`, `remove_episode_tags`, `set_episode_tags`, `get_episode_tags`, `search_episodes_by_tags`
   - **Episode Relationships**: `add_episode_relationship`, `remove_episode_relationship`, `get_episode_relationships`, `find_related_episodes`, `check_relationship_exists`, `get_dependency_graph`, `validate_no_cycles`, `get_topological_order`
   - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `test_embeddings`, `generate_embedding`, `search_by_embedding`, `embedding_provider_status`
-  - **Conditional Tool**: `execute_agent_code` (conditionally available based on WASM availability and `MCP_USE_WASM`).
+  - **Unavailable / fail-closed**: `execute_agent_code` (WASM sandbox removed; calls fail closed and the tool is not a working execution backend).
 - Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
 
 ## Storage Optimization (Batch Eviction)

@@ -1,9 +1,23 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-15 (CLI UX patch #829–#832)
+- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
+- **Active plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
 
-## Active Actions (v0.1.35 CLI UX Patch)
+## Active Actions (2026-07-16 Missing Tasks Swarm)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-200 | #837 restore fuzzy_match public rustdoc | ✅ Done |
+| ACT-201 | S1.2 CacheKey identity (language/framework/complexity/tags) | ✅ Done |
+| ACT-202 | W2.3 build-rust accept do-memory-* hyphens | ✅ Done |
+| ACT-203 | W2.6 split production files >500 LOC | ✅ Done |
+| ACT-204 | S1.1a/D3.2 fail-closed execute_agent_code + README fixes | ✅ Done |
+| ACT-205 | Update plans/ + CHANGELOG for swarm | ✅ Done |
+| ACT-206 | Open PR + CI green + review | 🟡 Next |
+| ACT-207 | Cut v0.1.35 via release.yml (closes #828/#838) | ⏳ After merge |
+
+## Completed Actions (v0.1.35 CLI UX Patch — on main)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -13,8 +27,8 @@
 | ACT-193 | #832 storage_mode alias + config show | ✅ Done |
 | ACT-194 | Prevention tests (postcard, redb list, loader, snapshot) | ✅ Done |
 | ACT-195 | Update plans/ + CHANGELOG for 0.1.35 | ✅ Done |
-| ACT-196 | Open PR + CI green + merge | 🟡 Next |
-| ACT-197 | Cut v0.1.35 via release.yml (closes #828) | ⏳ After merge |
+| ACT-196 | Open PR + CI green + merge | ✅ Done (merged) |
+| ACT-197 | Cut v0.1.35 via release.yml (closes #828) | ⏳ After release ready |
 
 ### Prevention permanently (do not regress)
 - Never `#[serde(tag=)]` on postcard types

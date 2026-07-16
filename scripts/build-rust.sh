@@ -40,11 +40,11 @@ Modes:
   clean      Clean build artifacts
 
 Options:
-  crate      Optional: Build specific crate (e.g., memory-core)
+  crate      Optional: Build specific crate (e.g., do-memory-core)
 
 Examples:
   $0 dev
-  $0 release memory-core
+  $0 release do-memory-core
   $0 profile
   $0 clean
 EOF
@@ -54,7 +54,8 @@ EOF
 # Validate crate name
 validate_crate() {
   local crate="$1"
-  if [[ ! "$crate" =~ ^[a-z0-9_]+$ ]]; then
+  # Accept Cargo package names (lowercase alphanumerics, underscores, hyphens)
+  if [[ ! "$crate" =~ ^[a-z0-9_-]+$ ]]; then
     log_error "Invalid crate name: $crate"
     return 1
   fi

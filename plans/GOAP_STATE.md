@@ -1,14 +1,33 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-15 (CLI UX patch #829-#832 on branch `fix/0.1.35-patch-issues`)
+- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
 - **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `fix/0.1.35-patch-issues`
-- **Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
-- **Validation**: CLI skill smoke + targeted nextest (see plan)
+- **Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
+- **Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+- **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+- **Validation**: quality-gates PASS; clippy clean; cache/fuzzy/doctest targeted pass
 
 ---
 
-## Sprint 2026-07-15: CLI UX Patch v0.1.35 ✅ CODE COMPLETE
+## Sprint 2026-07-16: Missing Tasks Swarm ✅ CODE COMPLETE
+
+**Goal**: Implement high-value missing plan tasks from GOAP improvements (P0 correctness + gates + docs).
+
+| Package | Plan ref | Status |
+|---------|----------|--------|
+| A1 #837 fuzzy rustdoc | issue #837 | ✅ |
+| A2 S1.2 retrieval cache identity | ADR-074 partial | ✅ CacheKey + TaskContext fields + 8 tests |
+| A3 W2.3 build-rust hyphens | improvements W2.3 | ✅ `do-memory-*` accepted |
+| A4 W2.6 LOC splits | improvements W2.6 | ✅ 0 production files >500 LOC |
+| A5 S1.1a/D3.2 docs contract | improvements | ✅ fail-closed execute_agent_code; no wasmtime-backend claim |
+| A6 plans update | — | ✅ this file + ACTIONS/GOALS/ROADMAP/CURRENT |
+| A7 PR + review | — | 🟡 |
+
+**Deferred** (next PRs): S1.3–S1.7, W2.1–W2.5 remainder, K3 skill evals, F4 pilots, v0.1.35 tag via `release.yml`.
+
+---
+
+## Sprint 2026-07-15: CLI UX Patch v0.1.35 ✅ CODE COMPLETE (merged to main)
 
 **Open issues closed in code** (verify after merge/release):
 

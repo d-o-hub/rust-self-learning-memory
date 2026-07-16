@@ -1,10 +1,10 @@
 # GOAP Codebase, Workflow, Documentation, and Skills Improvement Plan
 
-- **Status**: Proposed
+- **Status**: In Progress (swarm 2026-07-16 landed S1.2 partial, W2.3, W2.6, S1.1a/D3.2 docs, #837)
 - **Date**: 2026-07-14
 - **Audit commit**: `a8b7d6d6a350c3f431b5564332b8a5c1365aefb9`
 - **Audit branch**: `main`
-- **Scope**: Planning only; this audit changes no implementation, workflow, root documentation, or skill files
+- **Execution plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
 - **Related decisions**: ADR-022, ADR-033, ADR-039, ADR-042, ADR-059, ADR-072, ADR-073, ADR-074
 
 ## 1. Objective

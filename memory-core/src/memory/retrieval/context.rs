@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 
 use super::super::SelfLearningMemory;
-use super::helpers::{generate_simple_embedding, should_cache_episodes};
+use super::helpers::{cache_episodes_if_eligible, generate_simple_embedding};
 
 impl SelfLearningMemory {
     /// Retrieve relevant past episodes for a new task.
@@ -98,8 +98,9 @@ impl SelfLearningMemory {
         use chrono::{TimeZone, Utc};
 
         // v0.1.12: Check query cache first
+        // ADR-074 / S1.2: identity includes all ranking-affecting TaskContext fields
         let cache_key = crate::retrieval::CacheKey::new(task_description.clone())
-            .with_domain(Some(context.domain.clone()))
+            .with_task_context(&context)
             .with_limit(limit);
 
         if let Some(cached_episodes) = self.query_cache.get(&cache_key) {
@@ -230,10 +231,11 @@ impl SelfLearningMemory {
                                 if !hits.is_empty() {
                                     let hybrid_episodes: Vec<Arc<Episode>> =
                                         hits.into_iter().map(|h| h.episode).collect();
-                                    if should_cache_episodes(&hybrid_episodes) {
-                                        self.query_cache
-                                            .put(cache_key.clone(), hybrid_episodes.clone());
-                                    }
+                                    cache_episodes_if_eligible(
+                                        &self.query_cache,
+                                        cache_key.clone(),
+                                        &hybrid_episodes,
+                                    );
                                     info!(
                                         retrieved_count = hybrid_episodes.len(),
                                         "Retrieved episodes using hybrid search"
@@ -275,18 +277,11 @@ impl SelfLearningMemory {
                             .map(|result| Arc::new(result.item))
                             .collect();
 
-                        // v0.1.12: Cache the results before returning
-                        // Skip caching if result set is too large (>100KB estimated)
-                        if should_cache_episodes(&semantic_episodes) {
-                            // Clone the Vec<Arc<Episode>> for caching (Arc clone is cheap)
-                            self.query_cache
-                                .put(cache_key.clone(), semantic_episodes.clone());
-                        } else {
-                            debug!(
-                                episode_count = semantic_episodes.len(),
-                                "Skipping cache for large result set"
-                            );
-                        }
+                        cache_episodes_if_eligible(
+                            &self.query_cache,
+                            cache_key.clone(),
+                            &semantic_episodes,
+                        );
 
                         return semantic_episodes;
                     }
@@ -403,23 +398,12 @@ impl SelfLearningMemory {
             let relevant: Vec<Arc<Episode>> =
                 decorated.into_iter().take(limit).map(|(_, e)| e).collect();
 
-            // Already have Vec<Arc<Episode>>, no conversion needed
             info!(
                 retrieved_count = relevant.len(),
                 "Retrieved episodes using legacy method"
             );
 
-            // v0.1.12: Cache the results before returning
-            if should_cache_episodes(&relevant) {
-                // Clone the Vec<Arc<Episode>> for caching (Arc clone is cheap)
-                self.query_cache.put(cache_key.clone(), relevant.clone());
-            } else {
-                debug!(
-                    episode_count = relevant.len(),
-                    "Skipping cache for large result set"
-                );
-            }
-
+            cache_episodes_if_eligible(&self.query_cache, cache_key.clone(), &relevant);
             return relevant;
         }
 
@@ -471,30 +455,17 @@ impl SelfLearningMemory {
                 })
                 .collect();
 
-            // Already have Vec<Arc<Episode>>, no conversion needed
             info!(
                 retrieved_count = result_arc_episodes.len(),
                 diversity_score = diversity_score,
                 "Retrieved diverse, relevant episodes using Phase 3 hierarchical retrieval + MMR"
             );
 
-            // v0.1.12: Cache the results before returning
-            if should_cache_episodes(&result_arc_episodes) {
-                // Clone the Vec<Arc<Episode>> for caching (Arc clone is cheap)
-                self.query_cache
-                    .put(cache_key.clone(), result_arc_episodes.clone());
-            } else {
-                debug!(
-                    episode_count = result_arc_episodes.len(),
-                    "Skipping cache for large result set"
-                );
-            }
-
+            cache_episodes_if_eligible(&self.query_cache, cache_key.clone(), &result_arc_episodes);
             return result_arc_episodes;
         }
 
-        // Diversity maximization disabled - just use top scored episodes
-        // Already have Vec<Arc<Episode>> from completed_episodes
+        // Diversity maximization disabled - top scored episodes only
         let result_arc_episodes: Vec<Arc<Episode>> = scored_episodes
             .iter()
             .take(limit)
@@ -506,23 +477,12 @@ impl SelfLearningMemory {
             })
             .collect();
 
-        // Already have Vec<Arc<Episode>>, no conversion needed
         info!(
             retrieved_count = result_arc_episodes.len(),
             "Retrieved episodes using hierarchical retrieval (diversity disabled)"
         );
 
-        // v0.1.12: Cache the results before returning
-        if should_cache_episodes(&result_arc_episodes) {
-            // Clone the Vec<Arc<Episode>> for caching (Arc clone is cheap)
-            self.query_cache.put(cache_key, result_arc_episodes.clone());
-        } else {
-            debug!(
-                episode_count = result_arc_episodes.len(),
-                "Skipping cache for large result set"
-            );
-        }
-
+        cache_episodes_if_eligible(&self.query_cache, cache_key, &result_arc_episodes);
         result_arc_episodes
     }
 }

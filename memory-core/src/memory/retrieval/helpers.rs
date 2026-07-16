@@ -1,10 +1,27 @@
 //! Helper functions for retrieval operations
 
 use crate::episode::Episode;
+use crate::retrieval::{CacheKey, QueryCache};
 use std::sync::Arc;
+use tracing::debug;
 
 /// Maximum size for caching episodes (100KB)
 pub const MAX_CACHEABLE_SIZE: usize = 100 * 1024;
+
+/// Store result episodes in the query cache when the set is small enough.
+///
+/// Large result sets are skipped to avoid expensive clone operations (see
+/// [`should_cache_episodes`]).
+pub fn cache_episodes_if_eligible(cache: &QueryCache, key: CacheKey, episodes: &[Arc<Episode>]) {
+    if should_cache_episodes(episodes) {
+        cache.put(key, episodes.to_vec());
+    } else {
+        debug!(
+            episode_count = episodes.len(),
+            "Skipping cache for large result set"
+        );
+    }
+}
 
 /// Check if episodes should be cached based on estimated size
 ///

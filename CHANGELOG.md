@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **#837 fuzzy_match rustdoc**: public `///` docs and doctests restored on
+  `pub fn fuzzy_match` (they had been attached to the private lowercased helper
+  after the PR #836 performance split).
+- **S1.2 / ADR-074 (partial) retrieval cache identity**: `CacheKey` now includes
+  language, framework, complexity, and normalized tags from `TaskContext`, so
+  context-distinct queries no longer share incorrect cache entries. Wired in
+  `retrieve_relevant_context` via `with_task_context`.
+- **W2.3 build-rust package names**: `./scripts/build-rust.sh` accepts hyphenated
+  `do-memory-*` crate names (was limited to `[a-z0-9_]+`).
+- **W2.6 source LOC gate**: split production files over 500 LOC (`retry`, CLI
+  embedding commands, `storage` backend trait, local embeddings tests, checkpoint
+  op tests, retrieval context cache helper).
+- **S1.1a / D3.2 docs contract**: document `execute_agent_code` as unavailable /
+  fail-closed; remove false `wasmtime-backend` feature claims; fix README
+  `TaskContext` example fields.
+
 ## [0.1.35] - 2026-07-15
 
 ### Fixed

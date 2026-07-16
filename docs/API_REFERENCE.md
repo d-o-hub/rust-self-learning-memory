@@ -142,9 +142,9 @@ The following tool names are the current contract tracked by parity tests.
 - `search_by_embedding`
 - `embedding_provider_status`
 
-### Conditional Tool
+### Unavailable / Fail-Closed Tool
 
-- `execute_agent_code` — conditionally available based on sandbox/runtime configuration (WASM availability and `MCP_USE_WASM` behavior).
+- `execute_agent_code` — **unavailable / fail-closed**. The WASM sandbox was removed; there is no `wasmtime-backend` feature and no working code-execution backend. Calls are rejected (fail closed).
 
 ---
 

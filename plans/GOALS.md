@@ -1,9 +1,20 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-15 (CLI UX patch v0.1.35)
-- **Status**: Active — code complete for #829–#832; release pending merge
+- **Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
+- **Status**: Active — missing-tasks code complete; PR pending
 
-## v0.1.35 Goals (CLI UX Patch)
+## 2026-07-16 Missing Tasks Goals
+
+| Goal | Plan ref | Status |
+|------|----------|--------|
+| Public fuzzy_match rustdoc restored | #837 | ✅ |
+| Retrieval cache identity complete for TaskContext | S1.2 / ADR-074 | ✅ partial (mode/provider/index generation deferred) |
+| build-rust accepts do-memory-* packages | W2.3 | ✅ |
+| Zero production sources >500 LOC | W2.6 | ✅ |
+| Docs match fail-closed code execution | S1.1a / D3.2 | ✅ |
+| Open PR + review | A7 | 🟡 |
+
+## v0.1.35 Goals (CLI UX Patch — on main)
 
 | Goal | Issues | Status |
 |------|--------|--------|
@@ -11,7 +22,7 @@
 | Project-local DB via --db-path / MEMORY_DB_PATH | #830 | ✅ |
 | Discoverable config (init, template, partial TOML) | #829 | ✅ |
 | Clear storage_mode story | #832 | ✅ |
-| Align version to 0.1.35 and cut release | #828 | 🟡 code ready |
+| Align version to 0.1.35 and cut release | #828 / #838 | 🟡 tag via release.yml after PR merges |
 
 ---
 

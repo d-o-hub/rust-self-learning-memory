@@ -7,7 +7,7 @@ mod cache_tests {
     use crate::episode::Episode;
     use crate::retrieval::cache::lru::QueryCache;
     use crate::retrieval::cache::types::{CacheKey, DEFAULT_CACHE_TTL};
-    use crate::types::{TaskContext, TaskType};
+    use crate::types::{ComplexityLevel, TaskContext, TaskType};
     use chrono;
     use std::collections::HashMap;
     use std::sync::Arc;
@@ -334,5 +334,139 @@ mod cache_tests {
         let cache = QueryCache::default();
         assert!(cache.is_empty());
         assert_eq!(cache.size(), 0);
+    }
+
+    // -------------------------------------------------------------------------
+    // ADR-074 / S1.2: complete TaskContext cache identity
+    // -------------------------------------------------------------------------
+
+    fn base_context_key() -> CacheKey {
+        CacheKey::new("implement authentication".to_string())
+            .with_domain(Some("web-api".to_string()))
+            .with_limit(5)
+    }
+
+    #[test]
+    fn test_cache_key_different_language_is_distinct() {
+        let rust_key = base_context_key().with_language(Some("rust".to_string()));
+        let python_key = base_context_key().with_language(Some("python".to_string()));
+
+        assert_ne!(rust_key, python_key);
+        assert_ne!(rust_key.compute_hash(), python_key.compute_hash());
+    }
+
+    #[test]
+    fn test_cache_key_different_framework_is_distinct() {
+        let axum_key = base_context_key().with_framework(Some("axum".to_string()));
+        let django_key = base_context_key().with_framework(Some("django".to_string()));
+
+        assert_ne!(axum_key, django_key);
+        assert_ne!(axum_key.compute_hash(), django_key.compute_hash());
+    }
+
+    #[test]
+    fn test_cache_key_different_complexity_is_distinct() {
+        let simple = base_context_key().with_complexity_level(ComplexityLevel::Simple);
+        let complex = base_context_key().with_complexity_level(ComplexityLevel::Complex);
+
+        assert_ne!(simple, complex);
+        assert_ne!(simple.compute_hash(), complex.compute_hash());
+    }
+
+    #[test]
+    fn test_cache_key_tag_order_independent() {
+        let key_ab = base_context_key().with_tags(vec!["b".to_string(), "a".to_string()]);
+        let key_ba = base_context_key().with_tags(vec!["a".to_string(), "b".to_string()]);
+
+        assert_eq!(key_ab, key_ba);
+        assert_eq!(key_ab.compute_hash(), key_ba.compute_hash());
+        assert_eq!(key_ab.tags, vec!["a".to_string(), "b".to_string()]);
+    }
+
+    #[test]
+    fn test_cache_key_duplicate_tags_collapse() {
+        let key_dup = base_context_key().with_tags(vec![
+            "auth".to_string(),
+            "rest".to_string(),
+            "auth".to_string(),
+            "  rest  ".to_string(),
+            String::new(),
+            "   ".to_string(),
+        ]);
+        let key_clean = base_context_key().with_tags(vec!["auth".to_string(), "rest".to_string()]);
+
+        assert_eq!(key_dup, key_clean);
+        assert_eq!(key_dup.tags, vec!["auth".to_string(), "rest".to_string()]);
+    }
+
+    #[test]
+    fn test_cache_key_with_task_context_includes_all_fields() {
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            complexity: ComplexityLevel::Complex,
+            domain: "web-api".to_string(),
+            tags: vec!["b".to_string(), "a".to_string(), "a".to_string()],
+        };
+
+        let key = CacheKey::new("oauth2".to_string())
+            .with_task_context(&context)
+            .with_limit(3);
+
+        assert_eq!(key.domain.as_deref(), Some("web-api"));
+        assert_eq!(key.language.as_deref(), Some("rust"));
+        assert_eq!(key.framework.as_deref(), Some("axum"));
+        assert_eq!(key.complexity.as_deref(), Some("Complex"));
+        assert_eq!(key.tags, vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(key.limit, 3);
+
+        // Different language via TaskContext produces a different key
+        let mut other = context.clone();
+        other.language = Some("python".to_string());
+        let other_key = CacheKey::new("oauth2".to_string())
+            .with_task_context(&other)
+            .with_limit(3);
+        assert_ne!(key, other_key);
+    }
+
+    #[test]
+    fn test_query_cache_no_collision_on_language_only() {
+        let cache = QueryCache::new();
+        let rust_key = base_context_key().with_language(Some("rust".to_string()));
+        let python_key = base_context_key().with_language(Some("python".to_string()));
+
+        let rust_episodes = vec![create_test_episode("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")];
+        let python_episodes = vec![create_test_episode("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")];
+
+        cache.put(rust_key.clone(), rust_episodes);
+        cache.put(python_key.clone(), python_episodes);
+
+        let rust_hit = cache.get(&rust_key).expect("rust key should hit");
+        let python_hit = cache.get(&python_key).expect("python key should hit");
+
+        assert_eq!(rust_hit.len(), 1);
+        assert_eq!(python_hit.len(), 1);
+        assert_ne!(
+            rust_hit[0].episode_id, python_hit[0].episode_id,
+            "language-distinct keys must not share cache entries"
+        );
+        assert_eq!(cache.size(), 2);
+    }
+
+    #[test]
+    fn test_normalize_tags_public_helper() {
+        use crate::retrieval::cache::types::normalize_tags;
+
+        let tags = normalize_tags(vec![
+            "  zeta ".to_string(),
+            "alpha".to_string(),
+            "alpha".to_string(),
+            String::new(),
+            "beta".to_string(),
+        ]);
+        assert_eq!(
+            tags,
+            vec!["alpha".to_string(), "beta".to_string(), "zeta".to_string()]
+        );
     }
 }

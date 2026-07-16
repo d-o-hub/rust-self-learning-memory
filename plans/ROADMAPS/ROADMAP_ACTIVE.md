@@ -1,11 +1,29 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-15 (CLI UX patch sprint)
+**Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
 **Released Version**: v0.1.34 (crates.io + GitHub Release)
-**Workspace Version**: 0.1.35 (unreleased — branch `fix/0.1.35-patch-issues`)
-**Active Sprint**: v0.1.35 — CLI UX Patch (#829–#832, #828)
-**Branch**: `fix/0.1.35-patch-issues`
-**Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
+**Workspace Version**: 0.1.35 (unreleased)
+**Active Sprint**: GOAP Missing Tasks Swarm (improvements plan P0 slice)
+**Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
+**Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+**Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+
+---
+
+## Sprint 2026-07-16 — Missing Tasks Swarm ✅ CODE COMPLETE
+
+**Focus**: Land P0 correctness, gate, and docs tasks from the 2026-07-14 improvements plan.
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | #837 | Restore public `fuzzy_match` rustdoc | ✅ |
+| 2 | S1.2 | Retrieval `CacheKey` includes full TaskContext | ✅ |
+| 3 | W2.3 | `build-rust.sh` accepts `do-memory-*` names | ✅ |
+| 4 | W2.6 | Production LOC ≤500 | ✅ |
+| 5 | S1.1a/D3.2 | Fail-closed code-exec docs; fix TaskContext example | ✅ |
+| 6 | Release | Tag v0.1.35 via release.yml | ⏳ After merge |
+
+**Deferred**: S1.3–S1.7, W2.1–W2.5 remainder, K3 skill evals, F4 pilots.
 
 ---
 

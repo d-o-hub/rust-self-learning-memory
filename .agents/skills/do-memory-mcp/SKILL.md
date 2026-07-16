@@ -30,9 +30,9 @@ Interacts with and troubleshoot the Memory Model Context Protocol (MCP) server f
 The do-memory-mcp server exposes episodic memory functionality through the Model Context Protocol:
 - Query past experiences and learned patterns
 - Analyze successful strategies from historical episodes
-- Execute code in a secure sandbox environment
 - Perform advanced statistical and predictive analysis
 - Monitor server health and metrics
+- Note: `execute_agent_code` is unavailable / fail-closed (WASM sandbox removed; no working execution backend)
 
 **Location**: `./target/release/do-memory-mcp-server`
 **Configuration**: `.mcp.json`
@@ -45,7 +45,7 @@ The do-memory-mcp server exposes episodic memory functionality through the Model
 | `query_memory` | Query episodic memory for relevant past experiences |
 | `analyze_patterns` | Analyze patterns from past episodes |
 | `advanced_pattern_analysis` | Statistical analysis, predictive modeling |
-| `execute_agent_code` | Execute TypeScript/JavaScript in sandbox |
+| `execute_agent_code` | Unavailable / fail-closed (WASM sandbox removed) |
 | `health_check` | Check server health status |
 | `get_metrics` | Get comprehensive monitoring metrics |
 

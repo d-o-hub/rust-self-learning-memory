@@ -3,6 +3,7 @@
 //! Types for the query cache with LRU eviction and TTL.
 
 use crate::episode::Episode;
+use crate::types::{ComplexityLevel, TaskContext};
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -15,13 +16,25 @@ pub const DEFAULT_CACHE_TTL: Duration = Duration::from_secs(60);
 /// Default maximum cache entries (10,000 queries)
 pub const DEFAULT_MAX_ENTRIES: usize = 10_000;
 
-/// Cache key combining query parameters
+/// Cache key combining query parameters.
+///
+/// Identity includes all `TaskContext` fields that affect ranking so that
+/// context-distinct requests cannot share a cache entry incorrectly
+/// (ADR-074 partial / GOAP S1.2).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CacheKey {
     /// Query text or description
     pub query: String,
     /// Task domain filter (optional)
     pub domain: Option<Arc<str>>,
+    /// Programming language filter (optional)
+    pub language: Option<Arc<str>>,
+    /// Framework filter (optional)
+    pub framework: Option<Arc<str>>,
+    /// Complexity level as a stable string (optional)
+    pub complexity: Option<String>,
+    /// Normalized tags (trimmed, non-empty, sorted, deduped)
+    pub tags: Vec<String>,
     /// Task type filter (optional)
     pub task_type: Option<String>,
     /// Time range start (unix timestamp, optional)
@@ -39,6 +52,10 @@ impl CacheKey {
         Self {
             query,
             domain: None,
+            language: None,
+            framework: None,
+            complexity: None,
+            tags: Vec::new(),
             task_type: None,
             time_start: None,
             time_end: None,
@@ -49,14 +66,72 @@ impl CacheKey {
     /// Set domain filter
     #[must_use]
     pub fn with_domain(mut self, domain: Option<String>) -> Self {
-        self.domain = domain.map(|s| Arc::from(s.as_str()));
+        self.domain = normalize_optional_arc(domain);
         self
+    }
+
+    /// Set programming language filter
+    #[must_use]
+    pub fn with_language(mut self, language: Option<String>) -> Self {
+        self.language = normalize_optional_arc(language);
+        self
+    }
+
+    /// Set framework filter
+    #[must_use]
+    pub fn with_framework(mut self, framework: Option<String>) -> Self {
+        self.framework = normalize_optional_arc(framework);
+        self
+    }
+
+    /// Set complexity filter from a stable string representation
+    #[must_use]
+    pub fn with_complexity(mut self, complexity: Option<String>) -> Self {
+        self.complexity = complexity.and_then(|s| {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        });
+        self
+    }
+
+    /// Set complexity from [`ComplexityLevel`]
+    #[must_use]
+    pub fn with_complexity_level(self, complexity: ComplexityLevel) -> Self {
+        self.with_complexity(Some(complexity_level_key(complexity).to_string()))
+    }
+
+    /// Set tags after canonical normalization (trim, drop empty, sort, dedupe)
+    #[must_use]
+    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
+        self.tags = normalize_tags(tags);
+        self
+    }
+
+    /// Include all ranking-affecting fields from a [`TaskContext`]
+    #[must_use]
+    pub fn with_task_context(self, context: &TaskContext) -> Self {
+        self.with_domain(Some(context.domain.clone()))
+            .with_language(context.language.clone())
+            .with_framework(context.framework.clone())
+            .with_complexity_level(context.complexity)
+            .with_tags(context.tags.clone())
     }
 
     /// Set task type filter
     #[must_use]
     pub fn with_task_type(mut self, task_type: Option<String>) -> Self {
-        self.task_type = task_type;
+        self.task_type = task_type.and_then(|s| {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        });
         self
     }
 
@@ -82,6 +157,44 @@ impl CacheKey {
         Hash::hash(self, &mut hasher);
         hasher.finish()
     }
+}
+
+/// Stable string key for [`ComplexityLevel`] identity.
+#[must_use]
+pub(crate) fn complexity_level_key(level: ComplexityLevel) -> &'static str {
+    match level {
+        ComplexityLevel::Simple => "Simple",
+        ComplexityLevel::Moderate => "Moderate",
+        ComplexityLevel::Complex => "Complex",
+    }
+}
+
+/// Normalize optional string filters: trim and treat empty as `None`.
+fn normalize_optional_arc(value: Option<String>) -> Option<Arc<str>> {
+    value.and_then(|s| {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(Arc::from(trimmed))
+        }
+    })
+}
+
+/// Canonical tag normalization for cache identity (ADR-074).
+///
+/// Tags are trimmed, empty entries removed, sorted, and deduplicated so that
+/// order and duplicates cannot create distinct cache entries.
+#[must_use]
+pub fn normalize_tags(tags: Vec<String>) -> Vec<String> {
+    let mut normalized: Vec<String> = tags
+        .into_iter()
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .collect();
+    normalized.sort_unstable();
+    normalized.dedup();
+    normalized
 }
 
 /// Cached query result with expiration time

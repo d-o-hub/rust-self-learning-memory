@@ -1,13 +1,26 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-15 (CLI UX patch v0.1.35)
+**Last Updated**: 2026-07-16 (GOAP missing-tasks swarm)
 **Released Version**: v0.1.34 (GitHub Release tag exists)
 **Workspace Version**: 0.1.35 (unreleased)
-**Active Sprint**: v0.1.35 — CLI UX Patch ✅ code complete
-**Branch**: `fix/0.1.35-patch-issues`
+**Active Sprint**: GOAP Missing Tasks Swarm ✅ code complete
+**Branch**: `feat/goap-missing-tasks-swarm-2026-07-16`
 **Edition**: Rust 2024
 
-## v0.1.35 Sprint — CLI UX Patch ✅ CODE COMPLETE
+## Sprint 2026-07-16 — Missing Tasks Swarm ✅ CODE COMPLETE
+
+| Item | Description | Status |
+|------|-------------|--------|
+| #837 | Public `fuzzy_match` rustdoc restored | ✅ Fixed |
+| S1.2 | Retrieval cache identity includes TaskContext | ✅ Fixed |
+| W2.3 | `build-rust.sh` accepts hyphenated packages | ✅ Fixed |
+| W2.6 | Production source files ≤500 LOC | ✅ Fixed |
+| S1.1a/D3.2 | Fail-closed execute_agent_code docs | ✅ Fixed |
+| #838 | Release drift (14 unreleased commits) | 🟡 Tag after merge via release.yml |
+
+**Plan**: `plans/GOAP_MISSING_TASKS_SWARM_2026-07-16.md`
+
+## v0.1.35 Sprint — CLI UX Patch ✅ ON MAIN
 
 | Issue | Description | Status |
 |-------|-------------|--------|

@@ -323,7 +323,7 @@ fn quality_gate_pattern_accuracy() {
         .args([
             "test",
             "-p",
-            "memory-core",
+            "do-memory-core",
             "--test",
             "pattern_accuracy",
             "--",
@@ -626,7 +626,7 @@ fn quality_gate_performance_regression() {
         .args([
             "test",
             "-p",
-            "memory-core",
+            "do-memory-core",
             "--test",
             "performance",
             "--",

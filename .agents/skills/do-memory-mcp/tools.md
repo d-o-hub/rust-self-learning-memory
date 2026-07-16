@@ -74,30 +74,11 @@ Perform advanced statistical analysis, predictive modeling, and causal inference
 
 **Use when**: You need deep statistical insights and predictions from historical data.
 
-## 4. execute_agent_code
+## 4. execute_agent_code (unavailable / fail-closed)
 
-Execute TypeScript/JavaScript code in a secure sandbox environment.
+**Status**: Unavailable / fail-closed. The WASM sandbox was removed; there is no `wasmtime-backend` feature and no working code-execution backend. Calls are rejected.
 
-**Parameters**:
-- `code` (required): TypeScript/JavaScript code to execute
-- `context` (required): Execution context
-  - `task`: Task description
-  - `input`: Input data as JSON object
-
-**Example**:
-```json
-{
-  "code": "function process(data) { return data.map(x => x * 2); } process(context.input.numbers);",
-  "context": {
-    "task": "Double all numbers in array",
-    "input": { "numbers": [1, 2, 3, 4, 5] }
-  }
-}
-```
-
-**Note**: Only available if WASM sandbox is enabled.
-
-**Use when**: You need to safely execute user-provided or generated code.
+Do not rely on this tool for sandbox execution. Prefer other MCP tools for memory, patterns, and monitoring.
 
 ## 5. health_check
 

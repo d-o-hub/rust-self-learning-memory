@@ -6,6 +6,23 @@
 
 use strsim::normalized_levenshtein;
 
+/// Internal helper for fuzzy matching with pre-lowercased strings.
+fn fuzzy_match_lowercased(text_lower: &str, query_lower: &str, threshold: f64) -> Option<f64> {
+    // Fast path: exact substring match gets perfect score
+    if text_lower.contains(query_lower) {
+        return Some(1.0);
+    }
+
+    // Calculate similarity score
+    let score = normalized_levenshtein(text_lower, query_lower);
+
+    if score >= threshold {
+        Some(score)
+    } else {
+        None
+    }
+}
+
 /// Perform fuzzy matching between a query and text
 ///
 /// Returns the similarity score (0.0 to 1.0) if the text matches the query
@@ -36,23 +53,6 @@ use strsim::normalized_levenshtein;
 /// // Too different
 /// assert_eq!(fuzzy_match("database", "xyz", 0.8), None);
 /// ```
-/// Internal helper for fuzzy matching with pre-lowercased strings
-fn fuzzy_match_lowercased(text_lower: &str, query_lower: &str, threshold: f64) -> Option<f64> {
-    // Fast path: exact substring match gets perfect score
-    if text_lower.contains(query_lower) {
-        return Some(1.0);
-    }
-
-    // Calculate similarity score
-    let score = normalized_levenshtein(text_lower, query_lower);
-
-    if score >= threshold {
-        Some(score)
-    } else {
-        None
-    }
-}
-
 #[must_use]
 pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
     let text_lower = text.to_lowercase();

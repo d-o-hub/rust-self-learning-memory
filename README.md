@@ -349,14 +349,16 @@ async fn main() -> anyhow::Result<()> {
 **Episode Recording**
 
 ```rust
-use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let memory = SelfLearningMemory::new();
 
     let context = TaskContext {
-        language: "rust".to_string(),
+        language: Some("rust".to_string()),
+        framework: None,
+        complexity: ComplexityLevel::Moderate,
         domain: "web".to_string(),
         tags: vec!["api".to_string()],
     };
@@ -458,7 +460,8 @@ cargo build --features embeddings-full
 - `turso`: Turso cloud storage with keepalive pool (do-memory-cli)
 - `redb`: redb local cache layer (do-memory-cli, default)
 - `full`: All features combined (do-memory-cli)
-- `wasmtime-backend`: Wasmtime WASM sandbox (do-memory-mcp, default)
+- `oauth`: Optional OAuth authorization support (do-memory-mcp)
+- `embeddings`: Optional embeddings configuration support (do-memory-mcp)
 - `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
 - `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
 
@@ -645,8 +648,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [redb](https://github.com/cberner/redb) for the embedded key-value store
 - [tokio](https://github.com/tokio-rs/tokio) for asynchronous runtime
 - [Turso](https://turso.tech/) for the cloud database service
-- [Wasmtime](https://github.com/bytecodealliance/wasmtime) for the secure WASM runtime
-- [Javy](https://github.com/bytecodealliance/javy) for JavaScript compilation
 
 ---
 

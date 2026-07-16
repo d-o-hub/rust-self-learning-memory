@@ -1,0 +1,481 @@
+//! Storage backend trait definitions.
+//!
+//! Unified async interface implemented by Turso, redb, and in-memory backends.
+
+use crate::episode::{
+    CleanupResult, Direction, EpisodePatternRelationship, EpisodeRelationship,
+    EpisodeRetentionPolicy, PatternId, RelationshipType,
+};
+use crate::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
+use crate::procedural::ProceduralMemory;
+use crate::{Episode, Heuristic, Pattern, Result};
+use async_trait::async_trait;
+use uuid::Uuid;
+
+/// Unified storage backend trait
+///
+/// Provides a common interface for different storage implementations.
+/// All operations are async to support both async (Turso) and sync (redb via `spawn_blocking`).
+#[async_trait]
+pub trait StorageBackend: Send + Sync {
+    /// Store an episode
+    ///
+    /// # Arguments
+    ///
+    /// * `episode` - Episode to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_episode(&self, episode: &Episode) -> Result<()>;
+
+    /// Retrieve an episode by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Episode UUID
+    ///
+    /// # Returns
+    ///
+    /// `Some(Episode)` if found, `None` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
+
+    /// Delete an episode by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Episode UUID
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn delete_episode(&self, id: Uuid) -> Result<()>;
+
+    /// Store a pattern
+    ///
+    /// # Arguments
+    ///
+    /// * `pattern` - Pattern to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_pattern(&self, pattern: &Pattern) -> Result<()>;
+
+    /// Retrieve a pattern by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Pattern ID
+    ///
+    /// # Returns
+    ///
+    /// `Some(Pattern)` if found, `None` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>>;
+
+    /// Retrieve all stored patterns.
+    ///
+    /// Backends that persist patterns should override this so that
+    /// `pattern list` / `pattern search` work across process boundaries
+    /// (the in-memory `patterns_fallback` is empty in a fresh CLI process).
+    /// The default returns an empty list to avoid breaking backends that
+    /// only implement single-pattern retrieval.
+    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        Ok(Vec::new())
+    }
+
+    /// Store a heuristic
+    ///
+    /// # Arguments
+    ///
+    /// * `heuristic` - Heuristic to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()>;
+
+    /// Retrieve a heuristic by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Heuristic UUID
+    ///
+    /// # Returns
+    ///
+    /// `Some(Heuristic)` if found, `None` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>>;
+
+    /// Query episodes modified since a given timestamp
+    ///
+    /// Used for incremental synchronization between storage layers.
+    ///
+    /// # Arguments
+    ///
+    /// * `since` - Timestamp to query from
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes with `start_time` >= since
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>>;
+
+    /// Query episodes by metadata key-value pair
+    ///
+    /// Used for specialized queries like monitoring data retrieval.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>>;
+
+    // ========== Embedding Storage Methods ==========
+
+    /// Store embedding for an episode or pattern
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Unique identifier for the embedding (e.g., `episode_id` or `pattern_id`)
+    /// * `embedding` - Vector of f32 values representing the embedding
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()>;
+
+    /// Retrieve embedding by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Unique identifier for the embedding
+    ///
+    /// # Returns
+    ///
+    /// `Some(Vec<f32>)` if found, `None` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>>;
+
+    /// Delete embedding by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Unique identifier for the embedding
+    ///
+    /// # Returns
+    ///
+    /// `true` if deleted, `false` if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn delete_embedding(&self, id: &str) -> Result<bool>;
+
+    /// Store multiple embeddings in batch
+    ///
+    /// # Arguments
+    ///
+    /// * `embeddings` - Vector of (id, embedding) tuples
+    ///
+    /// # Errors
+    ///
+    /// Returns error if any storage operation fails
+    async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()>;
+
+    /// Get embeddings for multiple IDs
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - Vector of embedding IDs
+    ///
+    /// # Returns
+    ///
+    /// Vector of `Option<Vec<f32>>` corresponding to each ID (None if not found)
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>>;
+
+    // ========== Relationship Storage Methods ==========
+
+    /// Store a relationship between two episodes
+    ///
+    /// # Arguments
+    ///
+    /// * `relationship` - The relationship to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
+        let _ = relationship;
+        Ok(())
+    }
+
+    /// Remove a relationship by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `relationship_id` - The UUID of the relationship to remove
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
+        let _ = relationship_id;
+        Ok(())
+    }
+
+    /// Get relationships for an episode
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - The episode to query
+    /// * `direction` - Which relationships to return (Outgoing, Incoming, or Both)
+    ///
+    /// # Returns
+    ///
+    /// Vector of relationships matching the query
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_relationships(
+        &self,
+        episode_id: Uuid,
+        direction: Direction,
+    ) -> Result<Vec<EpisodeRelationship>> {
+        let _ = (episode_id, direction);
+        Ok(Vec::new())
+    }
+
+    /// Fetch every relationship across the entire store (WG-150 / WG-151, ADR-055).
+    ///
+    /// Default implementation returns an empty `Vec` for backends that do not
+    /// support relationship listing.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails.
+    async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
+        Ok(Vec::new())
+    }
+
+    /// Look up a single relationship by its ID (WG-150, ADR-055).
+    ///
+    /// Default implementation returns `None`. Backends that index by
+    /// relationship ID should override this for O(1)/O(log N) lookup.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails.
+    async fn get_relationship_by_id(
+        &self,
+        relationship_id: Uuid,
+    ) -> Result<Option<EpisodeRelationship>> {
+        let _ = relationship_id;
+        Ok(None)
+    }
+
+    /// Check if a relationship exists
+    ///
+    /// # Arguments
+    ///
+    /// * `from_episode_id` - Source episode
+    /// * `to_episode_id` - Target episode  
+    /// * `relationship_type` - Type of relationship
+    ///
+    /// # Returns
+    ///
+    /// `true` if the relationship exists
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn relationship_exists(
+        &self,
+        from_episode_id: Uuid,
+        to_episode_id: Uuid,
+        relationship_type: RelationshipType,
+    ) -> Result<bool> {
+        let _ = (from_episode_id, to_episode_id, relationship_type);
+        Ok(false)
+    }
+
+    /// Store a relationship between an episode and a pattern
+    async fn store_episode_pattern_relationship(
+        &self,
+        relationship: &EpisodePatternRelationship,
+    ) -> Result<()> {
+        let _ = relationship;
+        Ok(())
+    }
+
+    /// Get pattern relationships for an episode
+    async fn get_episode_pattern_relationships(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Vec<EpisodePatternRelationship>> {
+        let _ = episode_id;
+        Ok(Vec::new())
+    }
+
+    /// Get weighted neighbors (episodes and patterns) for an episode
+    ///
+    /// Returns a list of (target_id, weight, is_pattern)
+    async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
+        let _ = episode_id;
+        Ok(Vec::new())
+    }
+
+    // ========== Recommendation Attribution (ADR-044) ==========
+
+    /// Persist a recommendation session for durability and analytics.
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        let _ = session;
+        Ok(())
+    }
+
+    /// Retrieve a recommendation session by ID.
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let _ = session_id;
+        Ok(None)
+    }
+
+    /// Retrieve the most recent recommendation session for an episode.
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let _ = episode_id;
+        Ok(None)
+    }
+
+    /// Persist feedback associated with a recommendation session.
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        let _ = feedback;
+        Ok(())
+    }
+
+    /// Retrieve feedback for a recommendation session.
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        let _ = session_id;
+        Ok(None)
+    }
+
+    /// Compute global recommendation statistics.
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        Ok(RecommendationStats::default())
+    }
+
+    // ========== Episode GC/TTL (WG-075) ==========
+
+    /// Clean up expired episodes based on retention policy
+    ///
+    /// Implements garbage collection for episodes that exceed age limits,
+    /// have low reward scores, or are unreferenced by patterns/heuristics.
+    ///
+    /// # Arguments
+    ///
+    /// * `policy` - Retention policy specifying cleanup criteria
+    ///
+    /// # Returns
+    ///
+    /// `CleanupResult` with count of deleted episodes and any errors
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
+        let _ = policy;
+        Ok(CleanupResult::new())
+    }
+
+    /// Get count of episodes that would be cleaned up (dry run)
+    ///
+    /// Useful for monitoring and pre-cleanup analysis.
+    ///
+    /// # Arguments
+    ///
+    /// * `policy` - Retention policy specifying cleanup criteria
+    ///
+    /// # Returns
+    ///
+    /// Number of episodes eligible for cleanup
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
+        let _ = policy;
+        Ok(0)
+    }
+
+    // ========== Procedural Memory Methods ==========
+
+    /// Store a procedural memory
+    async fn store_procedural(&self, _procedural: &ProceduralMemory) -> Result<()> {
+        Ok(())
+    }
+
+    /// Retrieve a procedural memory by ID
+    async fn get_procedural(&self, _id: Uuid) -> Result<Option<ProceduralMemory>> {
+        Ok(None)
+    }
+
+    /// Delete a procedural memory by ID
+    async fn delete_procedural(&self, _id: Uuid) -> Result<()> {
+        Ok(())
+    }
+
+    /// Query procedural memories
+    async fn query_procedural(&self, _limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
+        Ok(Vec::new())
+    }
+}

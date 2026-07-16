@@ -164,7 +164,9 @@ pub async fn get_all_patterns(
                 }
             }
             Err(e) => {
-                debug!("Failed to fetch patterns from cache storage: {}", e);
+                // Prefer warn so empty list after backend failure is diagnosable
+                // (issue #831 symptom looks identical to "no patterns").
+                tracing::warn!("Failed to fetch patterns from cache storage: {}", e);
             }
         }
     }
@@ -182,7 +184,7 @@ pub async fn get_all_patterns(
                 }
             }
             Err(e) => {
-                debug!("Failed to fetch patterns from durable storage: {}", e);
+                tracing::warn!("Failed to fetch patterns from durable storage: {}", e);
             }
         }
     }

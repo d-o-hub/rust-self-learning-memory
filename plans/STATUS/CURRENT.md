@@ -1,20 +1,21 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-17 (pre-release v0.1.35)
-**Released Version**: v0.1.34 (tag); **cutting v0.1.35**
+**Last Updated**: 2026-07-17 (v0.1.35 release)
+**Released Version**: v0.1.35
 **Workspace Version**: 0.1.35
-**Active Sprint**: Release v0.1.35 after PR #850 + #851 merge
+**Active Sprint**: Tag + `release.yml` for v0.1.35
 **Branch**: `main`
 **Edition**: Rust 2024
-**Open GitHub issues**: release-drift #849 (closes on matching tag)
+**Open GitHub issues**: #849 closes when tag `v0.1.35` is pushed
 
-## Release v0.1.35 — READY TO TAG
+## Release v0.1.35 — TAGGING
 
 | Item | Status |
 |------|--------|
 | PR #850 ADR-075/076 open-issue fixes | ✅ Merged |
 | PR #851 K3.1 skill evals + W2.1 gate contract | ✅ Merged |
-| CHANGELOG folded Unreleased → `[0.1.35]` | ✅ |
+| PR #852 CHANGELOG / status fold | ✅ Merged |
+| CHANGELOG `[0.1.35] - 2026-07-17` | ✅ |
 | Tag via `release-manager` + `release.yml` only | 🟡 Next |
 
 ## Open Issues vs Codebase — 2026-07-17

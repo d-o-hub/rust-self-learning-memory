@@ -1,66 +1,132 @@
 ---
 name: release-guard
-description: "STRICT GitHub release gatekeeper. Blocks premature releases (from develop, incomplete CI). Verifies PR merged to main + ALL CI passed before allowing tag/release. Triggers on \"release\", \"tag\", \"publish\", \"deploy\", \"version\"."
-allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
+description: "Canonical release workflow for this repo. One path every time: main green → release-manager ship → tag vX.Y.Z → release.yml. Use when the user says release, tag, publish, deploy, version, or cut a GitHub release."
 ---
 
-# Release Guard Skill
+# Release Guard — Canonical Release Skill
 
-## Core Rules (NEVER VIOLATE)
-- Releases **ONLY** from **main** after PR merge.
-- **ALL** CI jobs must COMPLETE + SUCCESS. NO queued jobs. NO partial passes.
-- Verify branch protection requires status checks.
-- **Version MUST match tag** before creating release (cargo-dist requirement).
-- **NEVER use `--admin` or `--force`** to bypass branch protection or merge checks.
-- **NEVER merge when `mergeStateStatus` is `UNSTABLE` or `BLOCKED`** — wait for `CLEAN`.
-- **NEVER skip the pr-readiness skill** — load it before any merge action.
-- **ALWAYS use the `release.yml` workflow** — push a git tag, let the workflow handle everything. NEVER use `gh release create` manually. NEVER bypass the release pipeline.
+**One workflow. Same for humans and agents. No alternate paths.**
 
-## Activation Steps
-1. **PR Check**: Ask for PR# if needed. Run `gh pr view $PR_NUM --json state,baseRefName`. Must: state=CLOSED, baseRefName=main.
-2. **Branch**: `git branch --show-current` + `gh repo view --json default_branch`. Fail if not main.
-3. **CI**: `gh run list --branch main --limit 5 --json status,conclusion`. ALL: completed + success. Log/screenshot.
-4. **Clean**: `git status` (clean working dir).
-5. **Version Check** (CRITICAL): `grep '^version =' Cargo.toml` must match tag (without 'v' prefix).
+## Golden path (memorize this)
 
-## Fail Response
-```
-🚫 BLOCKED: [Exact violation]
-Fix:
-- Merge PR to main
-- Wait CI: gh run list --branch main
-- git checkout main && git pull
-- BUMP VERSION in Cargo.toml FIRST (must match tag)
-Re-run task.
+```text
+1. Version + CHANGELOG already on main (via PR)
+2. origin/main CI fully green
+3. ./scripts/release-manager.sh ship --execute
+4. release.yml builds artifacts + creates GitHub Release
+5. Optional: ./scripts/release-manager.sh wait-release
 ```
 
-## Version Mismatch Example (v0.1.22 Incident)
+| Step | Who | Tool |
+|------|-----|------|
+| Bump `Cargo.toml` version + CHANGELOG | Human/agent via **PR** | PR to main |
+| Docs: `Released Version` = workspace version | Same PR | ROADMAP + STATUS |
+| Wait for main CI | Agent | `gh run list --branch main --commit $(git rev-parse origin/main)` |
+| Tag + push **only** | Agent/human | `./scripts/release-manager.sh ship --execute` |
+| Build + GitHub Release | **GitHub Actions** | `.github/workflows/release.yml` (on tag push) |
+| crates.io (if needed) | **GitHub Actions** | `publish-crates.yml` (separate) |
+
+## NEVER
+
+| Forbidden | Why |
+|-----------|-----|
+| `gh release create` by hand | Bypasses cargo-dist / preflight / artifacts |
+| Tag from non-`main` | Policy + dist target |
+| Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
+| `--admin` / force merge | Branch protection exists for a reason |
+| Ship while main CI pending/failed | Broken release |
+| Multiple competing “release procedures” | This skill + `release-manager.sh` only |
+
+## Agent checklist (every release)
+
+```bash
+# 0) Status
+./scripts/release-manager.sh status
+
+# 1) On clean main, synced
+git checkout main && git pull --ff-only origin main
+test -z "$(git status --porcelain)"
+
+# 2) Version consistency (docs + crates)
+./scripts/verify-release-state.sh --check-unreleased   # exit 0 (warnings OK)
+
+# 3) Main CI green (also enforced by ship)
+./scripts/release-manager.sh ci-check
+
+# 4) Ship (local quality + CI re-check + tag + push tag)
+./scripts/release-manager.sh ship --execute
+
+# 5) Watch release.yml
+./scripts/release-manager.sh wait-release
+# or: gh run list --workflow=release.yml --limit 3
 ```
-Tag: v0.1.22 pushed at commit 05c0481
-Cargo.toml version: 0.1.21 (MISMATCH!)
-Result: cargo-dist failed: "This workspace doesn't have anything for dist to Release!"
 
-Fix: ALWAYS bump version BEFORE pushing tag.
-Use: cargo release patch|minor|major (handles atomically)
+Dry-run first if unsure:
+
+```bash
+./scripts/release-manager.sh ship          # no --execute → dry-run
 ```
 
-## Pass: Safe Release
-- Semver check: `cargo semver-checks check-release --workspace` (ADR-034)
-- Tag: vMAJOR.MINOR.PATCH (semantic).
-- Prefer: `cargo release patch|minor|major` (ADR-034)
-- Fallback: `gh release create v1.2.3 --generate-notes --target main`
-- Confirm before execute.
+## Version rules
 
-## Examples
-- User: "Create release from develop PR #199" → BLOCK: Wrong branch.
-- User: "Tag v1.0.0 after PR #199" → Check PR/CI/branch → Proceed if pass.
+- **Workspace** `Cargo.toml` `version = "X.Y.Z"` is the source of truth.
+- **Git tag** is always `vX.Y.Z` (leading `v`).
+- **release.yml** rejects tag/version mismatch.
+- **ROADMAP_ACTIVE** and **STATUS/CURRENT** first `Released Version` line must equal `X.Y.Z` before ship (verify-release-state).
+- CHANGELOG must have `## [X.Y.Z]` section.
 
-Progressive disclosure: For CI details, see [ci-reference.md](ci-reference.md) if needed.
+Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (team convention).
+
+## What `ship` does
+
+1. `verify-release-state.sh --check-unreleased`
+2. Local: fmt, clippy, build check, nextest, doctest, quality-gates  
+   (skip with `--skip-local-tests` only in documented emergencies)
+3. `ci-check` on `origin/main` HEAD (all runs completed success/skipped)
+4. `git tag -a vX.Y.Z -m "Release vX.Y.Z"` on that HEAD
+5. `git push origin refs/tags/vX.Y.Z` only (does **not** push commits)
+6. Prints how to monitor `release.yml`
+
+## After ship
+
+- Confirm: `gh release view vX.Y.Z`
+- Drift issue (#849-style) should close when tag matches workspace version
+- Bump workspace to next patch for development in a **follow-up PR** (optional)
+
+## Failure playbook
+
+| Symptom | Fix |
+|---------|-----|
+| verify-release-state fails docs | PR: set `Released Version: vX.Y.Z` in ROADMAP + STATUS |
+| ci-check pending | Wait; re-run `ci-check` |
+| ci-check failed | Fix main CI first |
+| Tag already on remote | Do not retag; inspect `gh release view` |
+| release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
+| Want crates.io | Use publish workflow / team process after GitHub Release |
+
+## Relationship to other skills
+
+| Skill | Use for |
+|-------|---------|
+| **release-guard** (this) | **All** release/tag/publish/deploy requests |
+| github-release-best-practices | Background only; defers to this skill |
+| pr-readiness | Merging the version-bump PR before ship |
+| release-drift workflow | Alerts when main outruns tags — does not ship |
+
+## Commands reference
+
+```bash
+./scripts/release-manager.sh status
+./scripts/release-manager.sh validate
+./scripts/release-manager.sh ci-check
+./scripts/release-manager.sh ship              # dry-run
+./scripts/release-manager.sh ship --execute    # production
+./scripts/release-manager.sh wait-release
+./scripts/release-manager.sh rollback --tag vX.Y.Z --execute   # local tag only
 ```
 
-## Best Practices Applied
-- **Description**: Keyword-rich for matching ("release", "tag").
-- **allowed-tools**: Read + Bash wildcards (gh/git CLI). Install `gh`.[2]
-- **Structure**: Essential in SKILL.md; link supports (add `ci-reference.md` for details).
-- **Load/Test**: Restart Claude Code. Ask "What Skills available?". Test: "Create release PR #199".
+## Progressive disclosure
 
+- CI wait patterns: [ci-reference.md](ci-reference.md)
+- Workflow definition: `.github/workflows/release.yml`
+- Version consistency: `./scripts/verify-release-state.sh`

@@ -6,14 +6,29 @@
       "exec": "test -f .agents/skills/release-guard/SKILL.md"
     },
     {
+      "name": "canonical-ship-command",
+      "description": "Documents release-manager ship --execute as the ship path",
+      "exec": "rg -q 'release-manager.sh ship --execute' .agents/skills/release-guard/SKILL.md"
+    },
+    {
       "name": "blocks-manual-release",
-      "description": "forbids manual gh release create",
-      "exec": "rg -q 'release.yml|NEVER.*gh release create|manual' .agents/skills/release-guard/SKILL.md"
+      "description": "Forbids manual gh release create",
+      "exec": "rg -q 'gh release create' .agents/skills/release-guard/SKILL.md && rg -q 'NEVER' .agents/skills/release-guard/SKILL.md"
     },
     {
       "name": "release-manager-script-exists",
-      "description": "release-manager.sh present",
-      "exec": "test -x ./scripts/release-manager.sh || test -f ./scripts/release-manager.sh"
+      "description": "release-manager.sh present and executable",
+      "exec": "test -x ./scripts/release-manager.sh"
+    },
+    {
+      "name": "ship-action-in-script",
+      "description": "release-manager implements ship action",
+      "exec": "rg -q 'ship\\|full' ./scripts/release-manager.sh && ./scripts/release-manager.sh help 2>&1 | rg -q 'ship'"
+    },
+    {
+      "name": "release-yml-is-authority",
+      "description": "Points at release.yml for GitHub Release creation",
+      "exec": "rg -q 'release.yml' .agents/skills/release-guard/SKILL.md"
     }
   ]
 }

@@ -215,7 +215,28 @@ fn print_complete_success(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Config;
+    use crate::output::OutputFormat;
     use do_memory_core::TaskOutcome as CoreTaskOutcome;
+    use do_memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskType};
+
+    fn test_memory() -> SelfLearningMemory {
+        // Match CLI config: quality_threshold 0.0 so minimal episodes complete.
+        let config = MemoryConfig {
+            quality_threshold: 0.0,
+            pattern_extraction_threshold: 1.0,
+            enable_summarization: false,
+            enable_embeddings: false,
+            ..Default::default()
+        };
+        SelfLearningMemory::with_config(config)
+    }
+
+    async fn start_test_episode(memory: &SelfLearningMemory, task: &str) -> uuid::Uuid {
+        memory
+            .start_episode(task.to_string(), TaskContext::default(), TaskType::Testing)
+            .await
+    }
 
     #[test]
     fn map_cli_outcome_success() {
@@ -278,5 +299,167 @@ mod tests {
                 error_details: Some(_)
             } if reason.contains("CLI")
         ));
+    }
+
+    // --- print_complete_success formats (default features = not turso) ---
+
+    #[test]
+    fn print_complete_success_json() {
+        let result = print_complete_success("ep-json", TaskOutcome::Success, OutputFormat::Json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn print_complete_success_yaml() {
+        let result =
+            print_complete_success("ep-yaml", TaskOutcome::PartialSuccess, OutputFormat::Yaml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn print_complete_success_human() {
+        let result = print_complete_success("ep-human", TaskOutcome::Failure, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    // --- async complete / fail paths with real SelfLearningMemory ---
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn complete_episode_success_happy_path() {
+        let memory = test_memory();
+        let config = Config::default();
+        let episode_id = start_test_episode(&memory, "CLI complete success").await;
+
+        let result = complete_episode(
+            episode_id.to_string(),
+            TaskOutcome::Success,
+            &memory,
+            &config,
+            OutputFormat::Human,
+            false,
+        )
+        .await;
+        assert!(result.is_ok(), "{result:?}");
+
+        let episode = memory.get_episode(episode_id).await.unwrap();
+        assert!(episode.is_complete());
+        assert!(matches!(
+            episode.outcome,
+            Some(CoreTaskOutcome::Success { .. })
+        ));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn complete_episode_partial_success_json() {
+        let memory = test_memory();
+        let config = Config::default();
+        let episode_id = start_test_episode(&memory, "CLI complete partial").await;
+
+        let result = complete_episode(
+            episode_id.to_string(),
+            TaskOutcome::PartialSuccess,
+            &memory,
+            &config,
+            OutputFormat::Json,
+            false,
+        )
+        .await;
+        assert!(result.is_ok(), "{result:?}");
+
+        let episode = memory.get_episode(episode_id).await.unwrap();
+        assert!(episode.is_complete());
+        assert!(matches!(
+            episode.outcome,
+            Some(CoreTaskOutcome::PartialSuccess { .. })
+        ));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn fail_episode_happy_path() {
+        let memory = test_memory();
+        let config = Config::default();
+        let episode_id = start_test_episode(&memory, "CLI fail episode").await;
+
+        let result = fail_episode(
+            episode_id.to_string(),
+            &memory,
+            &config,
+            OutputFormat::Yaml,
+            false,
+        )
+        .await;
+        assert!(result.is_ok(), "{result:?}");
+
+        let episode = memory.get_episode(episode_id).await.unwrap();
+        assert!(episode.is_complete());
+        assert!(matches!(
+            episode.outcome,
+            Some(CoreTaskOutcome::Failure { .. })
+        ));
+    }
+
+    #[tokio::test]
+    async fn complete_episode_dry_run_skips_write() {
+        let memory = test_memory();
+        let config = Config::default();
+        let result = complete_episode(
+            "00000000-0000-0000-0000-000000000001".to_string(),
+            TaskOutcome::Success,
+            &memory,
+            &config,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn complete_episode_invalid_uuid() {
+        let memory = test_memory();
+        let config = Config::default();
+        let err = complete_episode(
+            "not-a-uuid".to_string(),
+            TaskOutcome::Success,
+            &memory,
+            &config,
+            OutputFormat::Human,
+            false,
+        )
+        .await
+        .expect_err("invalid uuid");
+        assert!(err.to_string().contains("Invalid episode ID"));
+    }
+
+    #[tokio::test]
+    async fn complete_episode_not_found() {
+        let memory = test_memory();
+        let config = Config::default();
+        let err = complete_episode(
+            "00000000-0000-0000-0000-000000000099".to_string(),
+            TaskOutcome::Failure,
+            &memory,
+            &config,
+            OutputFormat::Json,
+            false,
+        )
+        .await
+        .expect_err("missing episode");
+        assert!(err.to_string().contains("Episode not found"));
+    }
+
+    #[tokio::test]
+    async fn fail_episode_dry_run() {
+        let memory = test_memory();
+        let config = Config::default();
+        let result = fail_episode(
+            "00000000-0000-0000-0000-000000000002".to_string(),
+            &memory,
+            &config,
+            OutputFormat::Human,
+            true,
+        )
+        .await;
+        assert!(result.is_ok());
     }
 }

@@ -1,6 +1,6 @@
 use crate::commands::episode::{
-    bulk_get_episodes, checkpoint, complete_episode, create_episode, delete_episode, fail_episode,
-    handoff, log_step, resume, search_episodes, update_episode, EpisodeCommands,
+    EpisodeCommands, bulk_get_episodes, checkpoint, complete_episode, create_episode,
+    delete_episode, fail_episode, handoff, log_step, resume, search_episodes, update_episode,
 };
 use crate::config::Config;
 use crate::output::OutputFormat;

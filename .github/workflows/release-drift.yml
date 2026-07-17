@@ -1,4 +1,3 @@
----
 name: Release Drift Check
 
 on:
@@ -73,6 +72,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: Create or update drift issue
         if: needs.check-drift.outputs.severity != 'clean'

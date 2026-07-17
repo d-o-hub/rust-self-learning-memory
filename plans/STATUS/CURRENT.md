@@ -1,21 +1,30 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-17 (open issues analysis)
-**Released Version**: v0.1.34 (GitHub Release tag exists)
-**Workspace Version**: 0.1.35 (unreleased; 27 commits since tag)
-**Active Sprint**: Open Issues GOAP (ADR-075 / ADR-076) — analysis complete
+**Last Updated**: 2026-07-17 (pre-release v0.1.35)
+**Released Version**: v0.1.34 (tag); **cutting v0.1.35**
+**Workspace Version**: 0.1.35
+**Active Sprint**: Release v0.1.35 after PR #850 + #851 merge
 **Branch**: `main`
 **Edition**: Rust 2024
-**Open GitHub issues**: 4 (`#845`, `#846`, `#847`, `#849`)
+**Open GitHub issues**: release-drift #849 (closes on matching tag)
 
-## Open Issues vs Codebase — 2026-07-17 ✅ ANALYZED
+## Release v0.1.35 — READY TO TAG
 
-| Issue | Verdict | Next |
-|-------|---------|------|
-| #849 | Release cadence warning | Tag `v0.1.35` via `release.yml` |
-| #847 | **Open bug** — complete can false-green without durable write | ADR-075 implement |
-| #845 | Fixed on main as #831; residual empty-result UX | Release + ADR-076 |
-| #846 | Fixed on main as #829 | Release + close |
+| Item | Status |
+|------|--------|
+| PR #850 ADR-075/076 open-issue fixes | ✅ Merged |
+| PR #851 K3.1 skill evals + W2.1 gate contract | ✅ Merged |
+| CHANGELOG folded Unreleased → `[0.1.35]` | ✅ |
+| Tag via `release-manager` + `release.yml` only | 🟡 Next |
+
+## Open Issues vs Codebase — 2026-07-17
+
+| Issue | Verdict | Status |
+|-------|---------|--------|
+| #849 | Release cadence critical | 🟡 Tag v0.1.35 |
+| #847 | ADR-075 durable complete + `episode fail` | ✅ Merged #850 |
+| #845 | ADR-076 pattern empty diagnostics | ✅ Merged #850 |
+| #846 | Config precedence docs | ✅ Merged #850 |
 
 **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`  
 **ADRs**: ADR-075, ADR-076

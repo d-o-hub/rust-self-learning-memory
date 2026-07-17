@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.35] - 2026-07-17
+
 ### Added
 
 - **K3.1 skill eval contract**: `scripts/run-evals.sh` enforces a strict
@@ -71,11 +73,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **S1.1a / D3.2 docs contract**: document `execute_agent_code` as unavailable /
   fail-closed; remove false `wasmtime-backend` feature claims; fix README
   `TaskContext` example fields.
-
-## [0.1.35] - 2026-07-15
-
-### Fixed
-
 - **#831 Pattern retrieval across processes**: `Pattern` enum was internally
   tagged (`#[serde(tag = "type")]`), which Postcard cannot deserialize. Patterns
   were written to storage but never read back, so `pattern list` / `pattern search`
@@ -86,9 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from durable storage. Bumped redb `SCHEMA_VERSION` to 4 so stale caches are
   cleared on upgrade; undecodable pattern rows are skipped rather than failing
   the whole list. **Note:** JSON shape of `Pattern` also changes (externally
-  tagged); Turso stores a separate JSON DTO and is unaffected. Related UX/docs for
-  empty results and config precedence: #845 / #846 / ADR-075 / ADR-076 (see
-  Unreleased).
+  tagged); Turso stores a separate JSON DTO and is unaffected.
 
 - **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: always override
   `redb_path` (never only-when-None — `Config::default()` pre-fills XDG).

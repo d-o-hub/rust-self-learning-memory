@@ -3,11 +3,12 @@
 <div align="center">
 
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
+![Version](https://img.shields.io/badge/version-v0.1.35-orange)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
 ![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
 
-A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and optional sandboxed code execution.
+A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and a full-featured CLI.
 
 [Overview](#overview) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Quality Gates](#quality-gates) • [License](#license)
 
@@ -21,13 +22,14 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **do-memory-core**: Core memory operations, pattern extraction, and reward scoring
 - **do-memory-storage-turso**: Primary database storage (libSQL)
 - **do-memory-storage-redb**: Fast embedded cache layer
-- **do-memory-mcp**: MCP server with secure WASM sandbox
+- **do-memory-mcp**: MCP server (lazy tool loading; code-exec fail-closed)
 - **do-memory-cli**: Full-featured command-line interface (episode, pattern, storage, playbook, feedback, and more)
 - **do-memory-test-utils**: Shared testing utilities
 - **do-memory-benches**: Comprehensive benchmark suite
 - **do-memory-examples**: Usage examples and demonstrations
 
-**Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Mistral, local)
+**Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Mistral, local)  
+**Latest release:** [v0.1.35](https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.35) (workspace version `0.1.35`)
 
 ## Features
 
@@ -65,11 +67,10 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
 
-### 🔒 Secure Code Sandbox (conditional)
-- Wasmtime WASM sandbox for safe code execution when enabled/available
-- Resource limits (timeout, memory, CPU)
-- Defense-in-depth security with access controls
-- Support for concurrent executions (20 parallel by default)
+### 🔒 Agent Code Execution (fail-closed)
+- `execute_agent_code` is **not** a working execution backend; calls fail closed
+- Prefer episode lifecycle tools and external runners for agent code
+- Historical WASM/Javy sandbox paths are removed from the supported feature set
 
 ### 📊 Advanced Analysis
 - Statistical analysis (ETS forecasting, MSTL decomposition)
@@ -79,7 +80,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🔍 MCP Server
 - MCP protocol implementation (v2025-11-25) with lazy tool loading
-- **MCP tools** for memory operations, pattern search, and code execution
+- **MCP tools** for memory operations, pattern search, episodes, and embeddings
 - **`search_patterns`** - Semantic pattern search with configurable ranking
 - **`recommend_patterns`** - Task-specific pattern recommendations
 - **`recommend_playbook`** - Actionable step-by-step guidance
@@ -90,11 +91,12 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🛠️ Full-Featured CLI
 - Top-level command groups include: episode, pattern, storage, config, health, backup, monitor, logs, eval, embedding, completion, tag, relationship, playbook, feedback
-- Episode management (create, list, view, search, complete, delete, update, bulk, filter)
-- Pattern analysis and effectiveness tracking (list, view, analyze, decay, batch)
+- Episode management (create, list, view, search, log-step, complete, **fail**, delete, update, bulk, filter)
+- Pattern analysis and effectiveness tracking (list, view, search, analyze, decay, batch)
+- Discoverable config (`config init` / `config show-template`) and documented precedence (flags → env → config → defaults)
 - Tag management (add, remove, search, rename, stats)
 - Relationship management (add, remove, list, graph, validate)
-- Storage operations (stats, sync, vacuum, health, connections)
+- Storage operations (stats, sync, vacuum, health, connections) — **sync** is Turso↔redb only, not pattern extraction
 - Backup and restore capabilities
 - Multiple output formats (human, JSON, YAML)
 
@@ -106,13 +108,13 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Automatic embedding caching and batch processing
 
 ### 🛡️ Quality Assurance
-- Automated quality gates (`./scripts/quality-gates.sh`)
-- ~2,900 test functions across all crates (cargo-nextest)
+- Automated quality gates (`./scripts/quality-gates.sh`; see `plans/GATE_CONTRACT.md`)
+- Large nextest suite across crates; doctests via `cargo test --doc`
 - Property-based testing (proptest) and snapshot testing (insta)
 - Mutation testing (cargo-mutants) in nightly CI
-- Security auditing and semver checking in CI
-- Zero clippy warnings policy
-- Pre-commit hooks for code quality
+- Blocking advisory gate via `cargo deny`; semver checks in CI
+- Zero clippy warnings policy (`-D warnings`)
+- Skill eval contract: `./scripts/run-evals.sh` (strict non-noop tests)
 
 ## Quick Start
 
@@ -293,17 +295,22 @@ Configuration Wizard provides interactive step-by-step setup with sensible defau
 # Create an episode
 do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
-# List episodes
-do-memory-cli episode list --limit 10
+# Log steps (needed for tool-sequence pattern extraction)
+do-memory-cli episode log-step <episode-id> --tool cargo --action "run tests" --success true
 
-# Search episodes
+# Complete with outcome (success | partial-success | failure)
+do-memory-cli episode complete <episode-id> success
+
+# Force-fail abandoned in_progress rows (operator path; ADR-075)
+do-memory-cli episode fail <episode-id>
+
+# List / search episodes
+do-memory-cli episode list --limit 10
 do-memory-cli episode search "authentication" --limit 5
 
-# Search patterns semantically
-do-memory-cli pattern search --query "How to build REST API" --limit 5
-
-# Analyze patterns
+# Patterns (populated after complete with steps; empty list explains why)
 do-memory-cli pattern list --min-confidence 0.8
+do-memory-cli pattern search --query "How to build REST API" --limit 5
 
 # Tag management
 do-memory-cli tag add <episode-id> "important"
@@ -522,9 +529,8 @@ EMBEDDING_MODEL=text-embedding-3-small
 EMBEDDING_SIMILARITY_THRESHOLD=0.7
 EMBEDDING_BATCH_SIZE=32
 
-# Sandbox settings (MCP server only)
-MCP_USE_WASM=true
-JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
+# MCP OAuth (production HMAC verification)
+# MCP_OAUTH_TOKEN_SECRET=...
 ```
 
 ### TOML Configuration
@@ -565,8 +571,8 @@ batch_size = 100
 ┌─────────────────────────────────────────────────────────────┐
 │                 do-memory-mcp                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │  MCP Tools  │  │  WASM       │  │  Advanced   │          │
-│  │  Interface  │  │  Sandbox    │  │  Analysis   │          │
+│  │  MCP Tools  │  │  Lazy Tool  │  │  Advanced   │          │
+│  │  Interface  │  │  Loading    │  │  Analysis   │          │
 │  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
@@ -599,6 +605,7 @@ The MCP server exposes tools via lazy loading (ADR-024):
 - **search_by_embedding** / **embedding_provider_status** — Semantic search and provider monitoring
 - **Episode lifecycle tools** — create, complete, log steps, get, timeline
 - **Advanced analysis** — Statistical analysis, forecasting, anomaly detection, causal inference
+- **Unavailable / fail-closed** — `execute_agent_code` (no working WASM execution backend)
 
 ## Performance
 
@@ -611,7 +618,6 @@ All operations meet or exceed performance targets:
 | Episode Completion | < 500ms | ~3.8 µs (130,890x faster) |
 | Pattern Extraction | < 1000ms | ~10.4 µs (95,880x faster) |
 | Memory Retrieval | < 100ms | ~721 µs (138x faster) |
-| WASM Execution | < 200ms | ~50-200ms (typical) |
 
 Typical performance numbers are from internal benchmarks on a warm cache; results vary by hardware and configuration. Run `cargo bench` for local measurements and see `docs/QUALITY_GATES.md` for the performance regression gate.
 

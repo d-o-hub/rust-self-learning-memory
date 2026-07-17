@@ -1,73 +1,47 @@
 ---
 name: github-release-best-practices
-description: "GitHub release preparation for Rust workspace projects. Use when preparing releases with proper versioning, changelog, and quality gates."
+description: "Background reference for release prep (SemVer, changelog categories). For actual releases, ALWAYS use the release-guard skill and release-manager.sh ship — never manual gh release create."
 audience: maintainers
 workflow: github
 ---
-# GitHub Release Best Practices
 
-Release management for Rust workspaces with versioning, changelog, and quality gates.
+# GitHub Release Best Practices (reference only)
 
-## Key Steps
+> **Canonical procedure:** [release-guard](../release-guard/SKILL.md)  
+> **Canonical CLI:** `./scripts/release-manager.sh ship --execute`  
+> **GitHub Release creator:** `.github/workflows/release.yml` (tag push only)
 
-1. **Quality Gates**: `./scripts/quality-gates.sh`
-2. **Version Bump**: Update `Cargo.toml` workspace version
-3. **Changelog**: Update `CHANGELOG.md` (Keep a Changelog format)
-4. **Tag + Push**: `git tag -a v0.X.Y -m "Release v0.X.Y" && git push origin v0.X.Y`
-5. **GitHub Release**: `gh release create v0.X.Y --title "v0.X.Y" --notes-file CHANGELOG.md`
+Do **not** invent a second release path. This file is supporting context only.
 
-## Semver Matrix
+## Prep before ship (via PR to main)
 
-| Change Type | Bump | Example |
-|-------------|------|---------|
-| Breaking | MAJOR | 0.1.7 → 1.0.0 |
-| New Feature | MINOR | 0.1.7 → 0.2.0 |
-| Bug Fix | PATCH | 0.1.7 → 0.1.8 |
+1. Bump workspace `version` in root `Cargo.toml` (all members follow workspace).
+2. Update `CHANGELOG.md` with `## [X.Y.Z] - YYYY-MM-DD`.
+3. Set **Released Version** in `plans/ROADMAPS/ROADMAP_ACTIVE.md` and `plans/STATUS/CURRENT.md` to `vX.Y.Z`.
+4. Merge PR; wait for main CI green.
+5. Run: `./scripts/release-manager.sh ship --execute`
 
-For 0.x: MINOR for most changes, PATCH for critical bug fixes.
+## Semver (0.x)
 
-## Changelog Categories
+| Change | Bump |
+|--------|------|
+| Breaking | minor or major (team call) |
+| Feature | minor preferred |
+| Fix | patch |
 
-1. Added - New features
-2. Changed - Modified functionality
-3. Deprecated - Planned removals
-4. Removed - Deleted features
-5. Fixed - Bug fixes
-6. Security - Vulnerability patches
+## Changelog categories
 
-## Modern Tooling (ADR-034)
+Added · Changed · Deprecated · Removed · Fixed · Security
+
+## Forbidden
 
 ```bash
-# API compatibility check
-cargo semver-checks check-release --workspace
-
-# Version bump automation
-cargo release patch  # handles version + commit + tag
-
-# Binary distribution
-cargo dist init      # generates release.yml workflow
-```
-
-**CRITICAL**: Cargo.toml version must match git tag (without 'v'). Use `cargo release` to ensure atomicity.
-
-## Release Notes Template
-
-```markdown
-## Summary
-Brief description of changes.
-
-## Fixed / Changed / Added
-- Item 1
-- Item 2
-
-## Performance / Security (if applicable)
-- Metrics, improvements
-
-## Full Changelog
-https://github.com/d-o-hub/rust-self-learning-memory/compare/v0.1.7...v0.1.8
+# DO NOT — bypasses cargo-dist and release.yml preflight
+gh release create vX.Y.Z ...
 ```
 
 ## References
 
-- ADR-034: Release Engineering Modernization
-- ADR-031: Cargo Lock Integrity
+- ADR-034 Release Engineering
+- `.agents/skills/release-guard/SKILL.md`
+- `./scripts/release-manager.sh`

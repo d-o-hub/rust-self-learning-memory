@@ -3,7 +3,6 @@
 <div align="center">
 
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
-![Version](https://img.shields.io/badge/version-v0.1.35-orange)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
 ![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
@@ -29,7 +28,6 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **do-memory-examples**: Usage examples and demonstrations
 
 **Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Mistral, local)  
-**Latest release:** [v0.1.35](https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.35) (workspace version `0.1.35`)
 
 ## Features
 

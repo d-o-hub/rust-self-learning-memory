@@ -1,25 +1,25 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-17 (open issues analysis #845–#849)
-**Released Version**: v0.1.34 (crates.io + GitHub Release)
-**Workspace Version**: 0.1.35 (unreleased; **27 commits** since tag)
-**Active Sprint**: Open Issues GOAP (ADR-075 / ADR-076)
+**Last Updated**: 2026-07-17 (v0.1.35 release prep)
+**Released Version**: v0.1.35 (crates.io + GitHub Release)
+**Workspace Version**: 0.1.35
+**Active Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7)
 **Branch**: `main`
-**Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
-**Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+**Plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+**Backlog**: K3.1b, W2.1b, S1.7, W2.4/W2.5, S1.2 provenance remainder
 
 ---
 
-## Sprint 2026-07-17 — Open GitHub Issues ✅ ANALYZED
+## Sprint 2026-07-17 — Open GitHub Issues ✅ MERGED (#850)
 
-**Focus**: Codebase-verify all open issues; ADR + GOAP execution queue.
+**Focus**: Codebase-verify all open issues; ADR + GOAP execution; ship in v0.1.35.
 
 | Priority | Issue | Verdict | Status |
 |----------|-------|---------|--------|
-| P0 | #849 Release due (27 commits / 6 days) | Tag `v0.1.35` via release.yml | 🟡 |
-| P0 | #847 `episode complete failure` no-op | Silent durable write / no verify — **ADR-075** | 🟡 implement |
-| P1 | #845 pattern list empty after ingest | Mostly fixed by #831 on main; residual UX — **ADR-076** | 🟡 after/with release |
-| P2 | #846 config format undocumented | Fixed by #829 on main; needs release | 🟡 close after tag |
+| P0 | #849 Release due | Tag `v0.1.35` via release.yml | 🟡 tagging |
+| P0 | #847 `episode complete failure` no-op | ADR-075 durable complete + `episode fail` | ✅ #850 |
+| P1 | #845 pattern list empty after ingest | ADR-076 empty diagnostics | ✅ #850 |
+| P2 | #846 config format undocumented | Precedence docs + config init | ✅ #850 |
 
 **ADRs**: `plans/adr/ADR-075-CLI-Episode-Complete-Durability-and-Operator-Fail.md`, `plans/adr/ADR-076-Pattern-Extraction-Discoverability-and-Empty-Result-Semantics.md`
 

@@ -1,11 +1,24 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+**Last Updated**: 2026-07-17 (release-drift prevention #843)
 **Released Version**: v0.1.34 (GitHub Release tag exists)
 **Workspace Version**: 0.1.35 (unreleased)
 **Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2 ✅ code complete
 **Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
 **Edition**: Rust 2024
+
+## Release Drift Prevention #843 — ✅ CODE COMPLETE
+
+| Item | Status |
+|------|--------|
+| One canonical issue updated in place | ✅ Implemented |
+| PR cadence warning/blocking thresholds | ✅ Implemented |
+| 30-commit / 14-day hard limit | ✅ Implemented |
+| Trusted release-preparation escape hatch | ✅ Implemented |
+| Exact-tag-only release manager | ✅ Implemented |
+| Shell regression suite | ✅ Passing |
+
+**Plan**: `plans/GOAP_RELEASE_DRIFT_ISSUE_843_2026-07-17.md`
 
 ## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
 
@@ -16,7 +29,7 @@
 | S1.5 | `EmbeddingHealth` Real/DegradedMock/Unavailable; mock fail-closed | ✅ Fixed |
 | S1.6 | Retry queue timeout; first attempt free; reject zero concurrency | ✅ Fixed |
 | W2.2 | cargo deny blocking; cargo audit no longer soft-passes | ✅ Fixed |
-| #841 | Release drift (unreleased commits since v0.1.34) | 🟡 Tag after merge via release.yml |
+| #843 | Release drift (25 commits since v0.1.34) | 🟡 Prevention complete; v0.1.35 release still required |
 
 **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 

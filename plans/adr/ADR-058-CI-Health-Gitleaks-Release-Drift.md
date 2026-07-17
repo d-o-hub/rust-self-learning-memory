@@ -46,8 +46,12 @@ At the time of analysis: 94 commits since `v0.1.32`. By 2026-06-30: 100 commits.
 ### D2: Release Cadence Enforcement
 
 - Target release every 20-30 commits or biweekly, whichever comes first
-- Issue #674 tracks current drift; WG-175 is the release work group
-- Use `gh release create` with auto-generated changelog from conventional commits
+- Warn at 20 commits or 10 days; block ordinary PRs at 30 commits or 14 days
+- Maintain one canonical drift issue by updating it in place
+- Permit a trusted collaborator to label only the release-preparation PR to
+  break a hard-limit deadlock
+- Push one exact version tag only after the release PR merges and all required
+  checks on `main` pass; the mandatory `release.yml` workflow creates the release
 - Post-release, verify crates.io publish completes for all workspace members
 
 ## Implementation
@@ -57,11 +61,14 @@ At the time of analysis: 94 commits since `v0.1.32`. By 2026-06-30: 100 commits.
 PR #675 (merged 2026-06-30) added the missing fingerprints to `.gitleaksignore`.
 The scheduled security scan is now green.
 
-### D2 — Release Drift (Pending)
+### D2 — Release Drift (Implemented)
 
-WG-175 is queued to cut v0.1.33. The 100-commit drift exceeds the target cadence
-by ~3-4× and should not recur. After release, the release-guard skill should be
-consulted every 2 weeks.
+WG-175 cut v0.1.33, but issue #843 showed that alert-only automation still
+allowed repeated drift and recreated the tracking issue on every push. The
+2026-07-17 remediation centralizes the state calculation in
+`scripts/check-release-drift.sh`, adds boundary regression tests, enforces the
+cadence on pull requests, and gives issue mutation to a separate least-privilege
+job. Tag pushes trigger immediate issue closure after a successful release.
 
 ## Consequences
 
@@ -72,14 +79,18 @@ consulted every 2 weeks.
 
 ### Negative
 - `.gitleaksignore` continues to grow (84 entries); may need periodic pruning of entries for deleted files
-- Release cadence target is aspirational — no automated enforcement yet
+- The hard cadence gate requires a trusted-collaborator label for a release PR
+  that starts after the deadline
 
 ### Neutral
 - thiserror v1/v2 duplication remains (transitive, not actionable until upstream updates)
-- The 100-commit drift will be resolved when WG-175 executes
+- Historical replacement drift issues remain closed as an audit trail; new
+  workflow runs update one canonical issue
 
 ## Follow-up
 
-- [ ] WG-175: Cut v0.1.33 release (closes #674)
-- [ ] Consider GitHub Action to warn when commit count since last tag exceeds 30
-- [ ] Consider automated release-please or similar for cadence enforcement
+- [x] WG-175: Cut v0.1.33 release (closes #674)
+- [x] Add GitHub Action warning and enforcement for release cadence (#843)
+- [x] Replace per-push issue recreation with a canonical issue upsert (#843)
+- [ ] Evaluate release-please only if the enforced existing pipeline remains
+  operationally expensive

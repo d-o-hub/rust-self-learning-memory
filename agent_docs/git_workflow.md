@@ -26,11 +26,18 @@ Direct pushes to `main` are BLOCKED. Always work on a branch.
 
 **CRITICAL**: Version in `Cargo.toml` MUST match the tag before pushing. cargo-dist requires this.
 
-### Recommended: Use `cargo release` (ADR-034)
+### Recommended: Use the release manager
 ```bash
-# Handles version bump + commit + tag atomically
-cargo release patch  # or minor/major
+# Cargo.toml must already contain the intended release version. Finalize the
+# changelog and released-version documents before running this command.
+./scripts/release-manager.sh full --execute
 ```
+
+The manager validates metadata and quality before creating the matching tag.
+It does not increment the version during release preparation. If the release
+cadence gate is already blocking ordinary PRs, a maintainer may apply the
+`release-preparation` label to the release PR; the tag must be pushed
+immediately after that PR merges.
 
 ### Manual Release Process
 ```bash
@@ -51,14 +58,16 @@ grep '^version =' Cargo.toml  # Must show 0.1.X for tag v0.1.X
 # 5. Commit changes
 git add . && git commit -m "chore: release v0.1.X"
 
-# 6. Create tag (only after version bump committed)
-git tag -a v0.1.X -m "Release v0.1.X"
-
-# 7. Push branch AND tag
-git push origin release/v0.1.X --tags
-
-# 8. Create PR (CI will run, tag triggers release workflow after merge)
+# 6. Push only the release branch and create the PR
+git push origin release/v0.1.X
 gh pr create --title "chore: release v0.1.X" --body "..."
+
+# 7. Merge the PR and wait for every required check on main to pass
+
+# 8. Update local main, then create and push only the intended tag
+git checkout main
+git pull --ff-only origin main
+./scripts/release-manager.sh full --execute
 ```
 
 ### Common Release Failure: Version Mismatch

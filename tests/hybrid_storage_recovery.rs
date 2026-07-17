@@ -218,7 +218,10 @@ async fn test_reconciliation_stale_cache() {
 
 #[cfg(feature = "redb")]
 #[tokio::test]
-async fn test_recovery_turso_failure_on_write_does_not_block() {
+async fn test_recovery_turso_failure_on_write_hard_fails_complete() {
+    // ADR-075: any configured backend store failure on complete is a hard error
+    // (no false-green complete). Cache may still receive the write; callers must
+    // treat the Err as incomplete durability across all backends.
     let (redb, _redb_dir) = in_memory_redb_storage().await;
     redb.initialize_schema().await.unwrap();
     let failing_turso = Arc::new(FailingStorage);
@@ -239,8 +242,6 @@ async fn test_recovery_turso_failure_on_write_does_not_block() {
         )
         .await;
 
-    // Complete episode - should succeed even if Turso fails, as long as it's logged/warned
-    // Currently SelfLearningMemory::complete_episode logs warnings for storage failures but continues.
     let outcome = TaskOutcome::Success {
         verdict: "ok".to_string(),
         artifacts: vec![],
@@ -248,12 +249,20 @@ async fn test_recovery_turso_failure_on_write_does_not_block() {
     let result = memory.complete_episode(episode_id, outcome).await;
 
     assert!(
-        result.is_ok(),
-        "complete_episode should be resilient to single backend failure"
+        result.is_err(),
+        "ADR-075: complete_episode must hard-fail when a configured backend fails"
+    );
+    let err = result.unwrap_err().to_string();
+    assert!(
+        err.to_lowercase().contains("turso") || err.to_lowercase().contains("storage"),
+        "error should name the failed backend(s): {err}"
     );
 
-    // Verify it was at least stored in redb
+    // Cache may still hold the completed episode (best-effort multi-backend write).
     let (_, cache) = memory.storage_backends();
     let redb_ep = cache.unwrap().get_episode(episode_id).await.unwrap();
-    assert!(redb_ep.is_some());
+    assert!(
+        redb_ep.is_some(),
+        "successful cache backend should still store the completed episode"
+    );
 }

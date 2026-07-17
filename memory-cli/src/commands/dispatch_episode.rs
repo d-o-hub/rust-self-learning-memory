@@ -1,6 +1,6 @@
 use crate::commands::episode::{
-    EpisodeCommands, bulk_get_episodes, checkpoint, complete_episode, create_episode,
-    delete_episode, handoff, log_step, resume, search_episodes, update_episode,
+    bulk_get_episodes, checkpoint, complete_episode, create_episode, delete_episode, fail_episode,
+    handoff, log_step, resume, search_episodes, update_episode, EpisodeCommands,
 };
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -152,6 +152,9 @@ pub async fn handle_episode_command(
             episode_id,
             outcome,
         } => complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
+        EpisodeCommands::Fail { episode_id } => {
+            fail_episode(episode_id, memory, config, format, dry_run).await
+        }
         EpisodeCommands::Delete { episode_id } => {
             delete_episode(episode_id, memory, config, format, dry_run).await
         }

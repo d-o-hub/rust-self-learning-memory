@@ -1,7 +1,18 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
-- **Status**: Active — S1.3–S1.6 + W2.2 code complete; PR pending
+- **Last Updated**: 2026-07-17 (open issues analysis)
+- **Status**: Active — open-issue GOAP planned; implement #847 + release #849 next
+- **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
+
+## 2026-07-17 Goals (Open Issues → Code)
+
+| Goal | Issues | ADR | Status |
+|------|--------|-----|--------|
+| G1 Cut v0.1.35 via release.yml | #849 | ADR-058 / #843 plan | 🟡 P0 |
+| G2 Durable complete + operator fail path | #847 | ADR-075 | 🟡 P0 |
+| G3 Pattern empty-result UX + docs | #845 residual | ADR-076 | 🟡 P1 |
+| G4 Close config discoverability after release | #846 | (done #829) | 🟡 P2 |
+| G5 Verify #845/#846 against released binary | #845, #846 | — | ⏳ After G1 |
 
 ## 2026-07-16b Goals (S1.3–S1.6 + W2.2)
 

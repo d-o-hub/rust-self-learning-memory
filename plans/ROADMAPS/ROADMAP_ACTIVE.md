@@ -1,12 +1,27 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-17 (release-drift prevention #843)
+**Last Updated**: 2026-07-17 (open issues analysis #845–#849)
 **Released Version**: v0.1.34 (crates.io + GitHub Release)
-**Workspace Version**: 0.1.35 (unreleased)
-**Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2
-**Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
-**Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+**Workspace Version**: 0.1.35 (unreleased; **27 commits** since tag)
+**Active Sprint**: Open Issues GOAP (ADR-075 / ADR-076)
+**Branch**: `main`
+**Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
 **Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+
+---
+
+## Sprint 2026-07-17 — Open GitHub Issues ✅ ANALYZED
+
+**Focus**: Codebase-verify all open issues; ADR + GOAP execution queue.
+
+| Priority | Issue | Verdict | Status |
+|----------|-------|---------|--------|
+| P0 | #849 Release due (27 commits / 6 days) | Tag `v0.1.35` via release.yml | 🟡 |
+| P0 | #847 `episode complete failure` no-op | Silent durable write / no verify — **ADR-075** | 🟡 implement |
+| P1 | #845 pattern list empty after ingest | Mostly fixed by #831 on main; residual UX — **ADR-076** | 🟡 after/with release |
+| P2 | #846 config format undocumented | Fixed by #829 on main; needs release | 🟡 close after tag |
+
+**ADRs**: `plans/adr/ADR-075-CLI-Episode-Complete-Durability-and-Operator-Fail.md`, `plans/adr/ADR-076-Pattern-Extraction-Discoverability-and-Empty-Result-Semantics.md`
 
 ---
 

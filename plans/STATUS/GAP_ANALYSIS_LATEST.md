@@ -1,7 +1,9 @@
 # Gap Analysis — 2026-04-22 Audit (v0.1.30 Post-Release)
 
 **Generated**: 2026-04-22
-**Last Re-verified**: 2026-06-10 (PR #611 open with CI failures; 6 WGs from v0.1.32 sprint still open — see footer)
+**Last Re-verified**: 2026-06-10 (historical footer below)
+**Current open-issue gap register (2026-07-17)**: [`../GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`](../GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md) — 4 open issues (#845–#849); ADR-075/076.
+
 **Method**: Fresh metrics collection + ROADMAP_ACTIVE.md review
 **Scope**: Verify resolution of v0.1.22 gaps, assess current state
 

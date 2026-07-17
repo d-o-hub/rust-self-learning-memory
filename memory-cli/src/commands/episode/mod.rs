@@ -28,6 +28,7 @@ pub use core::complete_episode;
 pub use core::create_episode;
 pub use core::delete;
 pub use core::delete_episode;
+pub use core::fail_episode;
 pub use core::filter;
 pub use core::handle_filter_command;
 pub use core::handoff;
@@ -40,6 +41,13 @@ pub use core::update_episode;
 pub use core::view_episode;
 
 // Re-export relationship commands and types
+pub use relationships::add_relationship;
+pub use relationships::dependency_graph;
+pub use relationships::find_related;
+pub use relationships::list_relationships;
+pub use relationships::remove_relationship;
+pub use relationships::topological_sort;
+pub use relationships::validate_cycles;
 pub use relationships::AddRelationshipResult;
 pub use relationships::DependencyGraphResult;
 pub use relationships::DirectionArg;
@@ -54,13 +62,6 @@ pub use relationships::RelationshipTypeArg;
 pub use relationships::RemoveRelationshipResult;
 pub use relationships::TopologicalSortResult;
 pub use relationships::ValidateCyclesResult;
-pub use relationships::add_relationship;
-pub use relationships::dependency_graph;
-pub use relationships::find_related;
-pub use relationships::list_relationships;
-pub use relationships::remove_relationship;
-pub use relationships::topological_sort;
-pub use relationships::validate_cycles;
 
 #[cfg(test)]
 mod tests {

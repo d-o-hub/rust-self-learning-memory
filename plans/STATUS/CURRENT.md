@@ -1,11 +1,24 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-17 (release-drift prevention #843)
+**Last Updated**: 2026-07-17 (open issues analysis)
 **Released Version**: v0.1.34 (GitHub Release tag exists)
-**Workspace Version**: 0.1.35 (unreleased)
-**Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2 ✅ code complete
-**Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
+**Workspace Version**: 0.1.35 (unreleased; 27 commits since tag)
+**Active Sprint**: Open Issues GOAP (ADR-075 / ADR-076) — analysis complete
+**Branch**: `main`
 **Edition**: Rust 2024
+**Open GitHub issues**: 4 (`#845`, `#846`, `#847`, `#849`)
+
+## Open Issues vs Codebase — 2026-07-17 ✅ ANALYZED
+
+| Issue | Verdict | Next |
+|-------|---------|------|
+| #849 | Release cadence warning | Tag `v0.1.35` via `release.yml` |
+| #847 | **Open bug** — complete can false-green without durable write | ADR-075 implement |
+| #845 | Fixed on main as #831; residual empty-result UX | Release + ADR-076 |
+| #846 | Fixed on main as #829 | Release + close |
+
+**Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`  
+**ADRs**: ADR-075, ADR-076
 
 ## Release Drift Prevention #843 — ✅ CODE COMPLETE
 

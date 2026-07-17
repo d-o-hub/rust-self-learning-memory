@@ -118,3 +118,77 @@ fn test_monitor_command() {
     harness.execute(["monitor", "status"]).assert().success();
     harness.execute(["monitor", "metrics"]).assert().success();
 }
+
+/// ADR-075: `episode fail` is exposed as an operator subcommand.
+#[test]
+fn test_episode_fail_help_lists_subcommand() {
+    let harness = CliHarness::new();
+
+    harness
+        .execute(["episode", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("fail"))
+        .stdout(predicate::str::contains("Force-fail"));
+}
+
+/// ADR-075: dry-run for fail only prints the planned action (no success banner).
+#[test]
+fn test_episode_fail_dry_run() {
+    let harness = CliHarness::new();
+    let id = "123e4567-e89b-12d3-a456-426614174000";
+
+    harness
+        .execute(["--dry-run", "episode", "fail", id])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Would complete episode"))
+        .stdout(predicate::str::contains("Failure"))
+        .stdout(predicate::str::contains(id));
+}
+
+/// ADR-075: invalid UUID fails without printing "Status: completed".
+#[test]
+fn test_episode_fail_invalid_uuid_no_success_banner() {
+    let harness = CliHarness::new();
+
+    let output = harness
+        .execute(["episode", "fail", "not-a-uuid"])
+        .output()
+        .expect("run episode fail");
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        !stdout.contains("Status: completed"),
+        "must not print success banner on failure path; stdout={stdout}"
+    );
+    assert!(
+        stderr.contains("Invalid episode ID") || stdout.contains("Invalid episode ID"),
+        "expected invalid ID error; stderr={stderr} stdout={stdout}"
+    );
+}
+
+/// ADR-075: complete unknown id fails without printing "Status: completed".
+#[test]
+fn test_episode_complete_unknown_id_no_success_banner() {
+    let harness = CliHarness::new();
+    let id = "00000000-0000-0000-0000-000000000000";
+
+    let output = harness
+        .execute(["episode", "complete", id, "failure"])
+        .output()
+        .expect("run episode complete");
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("Status: completed"),
+        "must not print success banner on failure path; stdout={stdout}"
+    );
+    assert!(
+        !stdout.contains("Episode Completed"),
+        "must not print completed banner on failure path; stdout={stdout}"
+    );
+}

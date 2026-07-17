@@ -1,11 +1,28 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+- **Last Updated**: 2026-07-17 (open issues analysis + ADR-075/076)
 - **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
-- **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+- **Branch**: `main`
+- **Active plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
+- **ADRs**: ADR-075 (episode complete durability), ADR-076 (pattern empty-result UX)
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Prior**: PR #840 merged (S1.2 partial, W2.3, W2.6, #837)
+- **Prior**: S1.3–S1.6 + W2.2 on main; PR #840 merged
+
+---
+
+## Sprint 2026-07-17: Open Issues Analysis + Implementation 🟡 PR IN FLIGHT
+
+**Goal**: Map open issues to codebase; implement ADR-075/076 via GOAP swarm; land PR with CI green; then release.
+
+| Package | Issue | Codebase verdict | Status |
+|---------|-------|------------------|--------|
+| I1 | #849 release drift (27 commits / 6 days) | Tag `v0.1.35` via `release.yml` | ⏳ After merge |
+| I2 | #847 complete failure no-op | ADR-075: hard-fail store + CLI verify + `episode fail` | ✅ Code |
+| I3 | #845 pattern list empty after ingest | ADR-076 empty diagnostics + sync messaging | ✅ Code |
+| I4 | #846 config format undocumented | Precedence table README + CONFIGURATION_GUIDE | ✅ Code |
+
+**Branch**: `feat/goap-open-issues-847-845-846-2026-07-17`  
+**Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
 
 ---
 

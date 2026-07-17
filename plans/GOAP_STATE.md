@@ -1,15 +1,31 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-17 (merge main into K3.1/W2.1 PR #851)
-- **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `feat/goap-k31-w21-deferred-2026-07-17`
-- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1, W2.1)
-- **ADRs**: ADR-075/076 on main via PR #850
+- **Last Updated**: 2026-07-17 (post #850/#851 merge; cutting v0.1.35)
+- **Version**: `0.1.35` (workspace; tagging next)
+- **Branch**: `main`
+- **Active plan**: release v0.1.35 → then improvements backlog
+- **ADRs**: ADR-075/076 on main (PR #850); K3.1/W2.1 on main (PR #851)
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
 ---
 
-## Sprint 2026-07-17b: K3.1 + W2.1 🟡 PR #851 (conflict resolve)
+## Release v0.1.35 🟡 IN PROGRESS
+
+| Step | Status |
+|------|--------|
+| Merge #850 open issues | ✅ |
+| Merge #851 K3.1/W2.1 | ✅ |
+| CHANGELOG + STATUS for tag | 🟡 |
+| Main CI green on release SHA | ⏳ |
+| `./scripts/release-manager.sh full --execute` | ⏳ |
+| `release.yml` GitHub Release | ⏳ |
+| Close #849 | ⏳ |
+
+**Deferred after tag**: K3.1b, W2.1b, S1.7, W2.4/W2.5, K3.2, S1.2 provenance, F4 pilots.
+
+---
+
+## Sprint 2026-07-17b: K3.1 + W2.1 ✅ MERGED (PR #851)
 
 | Package | Status |
 |---------|--------|
@@ -17,11 +33,8 @@
 | Migrate skill evals off noop/`evals` key | ✅ 32 skills |
 | W2.1a `plans/GATE_CONTRACT.md` | ✅ |
 | `validate-gate-contract.sh` | ✅ |
-| Merge main (PR #850) into #851 | ✅ this commit |
 | K3.1b CI job for changed skills | ⏳ follow-up |
 | W2.1b full CI parity | ⏳ follow-up |
-
-**Still deferred**: S1.7, W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots, v0.1.35 tag.
 
 ---
 

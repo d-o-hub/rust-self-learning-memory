@@ -1,12 +1,30 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+**Last Updated**: 2026-07-17 (release-drift prevention #843)
 **Released Version**: v0.1.34 (crates.io + GitHub Release)
 **Workspace Version**: 0.1.35 (unreleased)
 **Active Sprint**: GOAP Missing Tasks S1.3–S1.6 + W2.2
 **Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
 **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 **Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+
+---
+
+## Release Engineering 2026-07-17 — Drift Prevention #843 ✅ CODE COMPLETE
+
+**Focus**: Replace alert-only release drift with enforceable cadence and one
+stable tracking issue.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| State model | Distinguish next development version from invalid tag state | ✅ |
+| Cadence gate | Warn at 20 commits/10 days; block at 30 commits/14 days | ✅ |
+| Issue lifecycle | Upsert one canonical issue; close it on matching tag push | ✅ |
+| Least privilege | PR calculation is read-only; issue writes use a separate job | ✅ |
+| Release safety | Tag clean, synchronized `main`; push only the exact tag | ✅ |
+| Regression suite | Clean/warning/critical/SemVer/divergent-tag scenarios | ✅ |
+
+**Plan**: `plans/GOAP_RELEASE_DRIFT_ISSUE_843_2026-07-17.md`
 
 ---
 

@@ -1,5 +1,9 @@
 # GOAP Codebase Analysis — v0.1.30 Refresh
 
+> **Superseding analysis (2026-07-17)**: Open GitHub issues vs codebase is in
+> [`../GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`](../GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md)
+> with ADR-075 / ADR-076. Live snapshot: [`../GOAP_STATE.md`](../GOAP_STATE.md).
+
 **Status**: Refreshed against v0.1.30 workspace
 **Date**: 2026-04-22
 **Branch**: `main`

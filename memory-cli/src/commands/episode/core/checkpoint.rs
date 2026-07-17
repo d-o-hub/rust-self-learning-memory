@@ -2,11 +2,11 @@
 
 use crate::config::Config;
 use crate::output::OutputFormat;
-use anyhow::{Result, anyhow};
-use do_memory_core::SelfLearningMemory;
+use anyhow::{anyhow, Result};
 use do_memory_core::memory::checkpoint::{
     checkpoint_episode, checkpoint_episode_with_note, get_handoff_pack, resume_from_handoff,
 };
+use do_memory_core::SelfLearningMemory;
 use serde::Serialize;
 use uuid::Uuid;
 

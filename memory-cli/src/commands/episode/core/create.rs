@@ -2,7 +2,7 @@
 
 use crate::config::Config;
 #[cfg(feature = "turso")]
-use crate::errors::{EnhancedError, helpers};
+use crate::errors::{helpers, EnhancedError};
 #[cfg(feature = "turso")]
 use crate::output::Output;
 use crate::output::OutputFormat;

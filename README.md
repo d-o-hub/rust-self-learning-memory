@@ -480,6 +480,20 @@ When the `csm` feature is enabled, semantic search uses a 4-tier cascade to mini
 
 ## Configuration
 
+### Configuration Precedence
+
+Settings resolve highest-wins in this order (issue #846):
+
+| Priority | Source | Examples |
+|----------|--------|----------|
+| 1 (highest) | CLI flags | `--db-path`, `--storage-mode` |
+| 2 | Environment variables | `MEMORY_DB_PATH`, `MEMORY_STORAGE_MODE` |
+| 3 | Explicit config file | `--config /path/to.toml` |
+| 4 | Auto-discovered config in CWD | `do-memory-cli.toml`, `memory-cli.toml` (and `.memory-cli.toml` / JSON / YAML variants) |
+| 5 (lowest) | Built-in defaults | XDG paths, local storage defaults |
+
+`--db-path` / `MEMORY_DB_PATH` and `--storage-mode` / `MEMORY_STORAGE_MODE` are clap options with env fallbacks: a CLI flag always beats the env var for that option, and both beat values loaded from a config file. See [memory-cli/CONFIGURATION_GUIDE.md](memory-cli/CONFIGURATION_GUIDE.md) for the full reference.
+
 ### Environment Variables
 
 ```bash
@@ -490,6 +504,10 @@ TURSO_TOKEN=your-auth-token
 # Local redb cache (default local backend)
 LOCAL_DATABASE_URL=sqlite:./data/memory.db
 REDB_PATH=./data/memory.redb
+
+# CLI path / mode overrides (precedence levels 1–2 above)
+MEMORY_DB_PATH=./data/memory.db
+MEMORY_STORAGE_MODE=local
 
 # CLI config
 MEMORY_CLI_CONFIG=./memory-cli.toml

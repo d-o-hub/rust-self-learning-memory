@@ -19,17 +19,17 @@ pub mod view;
 
 pub use bulk::bulk_get_episodes;
 pub use checkpoint::{
-    CheckpointResult, HandoffResult, ResumeResult, checkpoint, handoff, list_checkpoints, resume,
+    checkpoint, handoff, list_checkpoints, resume, CheckpointResult, HandoffResult, ResumeResult,
 };
-pub use complete::complete_episode;
+pub use complete::{complete_episode, fail_episode};
 pub use create::create_episode;
-pub use delete::DeletionResult;
 pub use delete::delete_episode;
+pub use delete::DeletionResult;
 pub use filter::handle_filter_command;
 pub use list::list_episodes;
 pub use log_step::log_step;
 pub use search::search_episodes;
 pub use types::*;
-pub use update::UpdateResult;
 pub use update::update_episode;
+pub use update::UpdateResult;
 pub use view::view_episode;

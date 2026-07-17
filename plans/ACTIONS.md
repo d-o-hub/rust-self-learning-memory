@@ -1,8 +1,25 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+- **Last Updated**: 2026-07-17 (open issues analysis)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+- **Active plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
+- **ADRs**: ADR-075, ADR-076
+
+## Active Actions (2026-07-17 Open Issues)
+
+| ID | Action | Issue / ADR | Status |
+|----|--------|-------------|--------|
+| ACT-220 | Accept ADR-075 / ADR-076 + GOAP analysis docs | plans | ✅ Done |
+| ACT-221 | Fail complete when configured backend store fails | #847 / ADR-075 | ✅ Done |
+| ACT-222 | CLI verify-after-write; never false-green complete | #847 / ADR-075 | ✅ Done |
+| ACT-223 | `episode fail` operator path | #847 / ADR-075 | ✅ Done |
+| ACT-224 | Tests: durability mock backends + CLI command tests | #847 | ✅ Done |
+| ACT-225 | Cut v0.1.35 via release-manager + release.yml | #849 | ⏳ After PR merge |
+| ACT-226 | Pattern empty-list human diagnostics | #845 / ADR-076 | ✅ Done |
+| ACT-227 | storage sync local-only messaging (not extraction) | #845 / ADR-076 | ✅ Done |
+| ACT-228 | Config precedence table polish | #846 | ✅ Done |
+| ACT-229 | Close/comment #845/#846 after release verification | #845, #846 | ⏳ After ACT-225 |
+| ACT-230 | Open PR + all CI green + merge | swarm | 🟡 In progress |
 
 ## Active Actions (2026-07-16b S1.3–S1.6 + W2.2)
 
@@ -14,8 +31,8 @@
 | ACT-213 | S1.6 retry queue timeout + first attempt free | ✅ Done |
 | ACT-214 | W2.2 cargo deny blocking; remove audit soft-pass | ✅ Done |
 | ACT-215 | Tests + plans update | ✅ Done |
-| ACT-216 | Open PR + CI green + review | 🟡 Next |
-| ACT-217 | Cut v0.1.35 via release.yml (closes #841) | ⏳ After merge |
+| ACT-216 | Open PR + CI green + review | ✅ Code on main |
+| ACT-217 | Cut v0.1.35 via release.yml (superseded by ACT-225 / #849) | ⏳ |
 
 ## Completed Actions (2026-07-16 Missing Tasks Swarm — PR #840)
 

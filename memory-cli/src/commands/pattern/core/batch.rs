@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::Subcommand;
 use do_memory_core::{
-    Pattern, PatternEffectiveness, TaskContext, episode::PatternId, types::OutcomeStats,
+    episode::PatternId, types::OutcomeStats, Pattern, PatternEffectiveness, TaskContext,
 };
 
 #[cfg(feature = "turso")]

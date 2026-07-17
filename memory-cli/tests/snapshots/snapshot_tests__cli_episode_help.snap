@@ -13,6 +13,7 @@ Commands:
   filter         Manage saved episode filters
   view           View episode details
   complete       Complete an episode
+  fail           Force-fail an abandoned in-progress episode (ADR-075)
   delete         Delete an episode
   update         Update an episode
   search         Search episodes

@@ -130,6 +130,12 @@ pub async fn list_patterns(
     };
 
     pattern_list.write(&mut std::io::stdout(), &format)?;
+
+    // ADR-076: human empty-result diagnostics (JSON/YAML stay machine-stable).
+    if total_count == 0 && format == OutputFormat::Human {
+        super::print_empty_pattern_diagnostics();
+    }
+
     Ok(())
 }
 

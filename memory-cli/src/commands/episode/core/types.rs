@@ -104,6 +104,16 @@ pub enum EpisodeCommands {
         outcome: TaskOutcome,
     },
 
+    /// Force-fail an abandoned in-progress episode (ADR-075)
+    ///
+    /// Completes the episode with `TaskOutcome::Failure` using the same
+    /// verify-after-write durability rules as `episode complete`.
+    Fail {
+        /// Episode ID
+        #[arg(value_name = "EPISODE_ID")]
+        episode_id: String,
+    },
+
     /// Delete an episode
     Delete {
         /// Episode ID
@@ -280,7 +290,7 @@ pub enum EpisodeStatus {
     Completed,
 }
 
-#[derive(Debug, Clone, PartialEq, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, ValueEnum)]
 pub enum TaskOutcome {
     /// Task completed successfully
     Success,

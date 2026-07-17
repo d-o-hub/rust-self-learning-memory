@@ -2,8 +2,8 @@
 
 use colored::Colorize;
 use do_memory_core::episode::{Direction, RelationshipMetadata};
-use do_memory_core::memory::relationship_query::RelationshipFilter;
 use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::memory::relationship_query::RelationshipFilter;
 use uuid::Uuid;
 
 use crate::config::Config;

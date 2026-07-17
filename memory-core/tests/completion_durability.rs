@@ -48,7 +48,10 @@ impl OkStoreBackend {
 impl StorageBackend for FailingStoreBackend {
     async fn store_episode(&self, _episode: &Episode) -> Result<()> {
         self.store_calls.fetch_add(1, Ordering::SeqCst);
-        Err(Error::Storage(format!("{} store_episode failed", self.label)))
+        Err(Error::Storage(format!(
+            "{} store_episode failed",
+            self.label
+        )))
     }
     async fn get_episode(&self, _id: Uuid) -> Result<Option<Episode>> {
         Ok(None)
@@ -188,18 +191,23 @@ async fn complete_episode_errs_when_cache_store_fails() {
     );
 
     let episode_id = memory
-        .start_episode("stuck bot".into(), TaskContext::default(), TaskType::Testing)
+        .start_episode(
+            "stuck bot".into(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
         .await;
 
     // Isolate complete_episode store attempts from start_episode writes.
     cache.store_calls.store(0, Ordering::SeqCst);
     turso.store_calls.store(0, Ordering::SeqCst);
 
-    let result = memory
-        .complete_episode(episode_id, failure_outcome())
-        .await;
+    let result = memory.complete_episode(episode_id, failure_outcome()).await;
 
-    assert!(result.is_err(), "must not return Ok after cache store failure");
+    assert!(
+        result.is_err(),
+        "must not return Ok after cache store failure"
+    );
     let err = result.unwrap_err();
     match err {
         Error::Storage(msg) => {
@@ -238,11 +246,12 @@ async fn complete_episode_errs_when_turso_store_fails() {
     cache.store_calls.store(0, Ordering::SeqCst);
     turso.store_calls.store(0, Ordering::SeqCst);
 
-    let result = memory
-        .complete_episode(episode_id, failure_outcome())
-        .await;
+    let result = memory.complete_episode(episode_id, failure_outcome()).await;
 
-    assert!(result.is_err(), "must not return Ok after turso store failure");
+    assert!(
+        result.is_err(),
+        "must not return Ok after turso store failure"
+    );
     let err = result.unwrap_err();
     match err {
         Error::Storage(msg) => {
@@ -270,12 +279,14 @@ async fn complete_episode_errs_listing_all_failed_backends() {
     );
 
     let episode_id = memory
-        .start_episode("both fail".into(), TaskContext::default(), TaskType::Testing)
+        .start_episode(
+            "both fail".into(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
         .await;
 
-    let result = memory
-        .complete_episode(episode_id, failure_outcome())
-        .await;
+    let result = memory.complete_episode(episode_id, failure_outcome()).await;
 
     let err = result.expect_err("both backends failing must hard-fail complete");
     match err {

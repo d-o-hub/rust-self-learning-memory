@@ -19,6 +19,41 @@ fn test_pattern_list_command() {
         .success();
 }
 
+/// ADR-076: empty human-format `pattern list` prints diagnostic hints.
+#[test]
+fn test_pattern_list_empty_human_diagnostics() {
+    let harness = CliHarness::new();
+
+    harness
+        .execute(["--format", "human", "pattern", "list"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("No durable patterns found"))
+        .stdout(predicate::str::contains("episode complete"))
+        .stdout(predicate::str::contains("storage sync"));
+}
+
+/// ADR-076: empty human-format `pattern search` prints diagnostic hints.
+#[test]
+fn test_pattern_search_empty_human_diagnostics() {
+    let harness = CliHarness::new();
+
+    harness
+        .execute([
+            "--format",
+            "human",
+            "pattern",
+            "search",
+            "something-unique-xyz",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("No patterns found matching query"))
+        .stdout(predicate::str::contains("No durable patterns found"))
+        .stdout(predicate::str::contains("episode complete"))
+        .stdout(predicate::str::contains("storage sync"));
+}
+
 #[test]
 fn test_pattern_view_command() {
     let harness = CliHarness::new();
@@ -101,6 +136,82 @@ fn test_storage_command() {
         .execute(["storage", "connections"])
         .assert()
         .success();
+}
+
+/// ADR-076: `storage sync` is Turso↔redb reconciliation only.
+///
+/// When dual backends are not configured, the command must fail with messaging
+/// that distinguishes sync from pattern extraction (issue #845 residual UX).
+#[tokio::test]
+async fn test_storage_sync_missing_dual_backends_adr076() {
+    // Arrange: memory with no Turso and no redb backends attached
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = do_memory_cli::config::Config::default();
+
+    // Act
+    let result = do_memory_cli::commands::sync_storage(
+        &memory,
+        &config,
+        do_memory_cli::output::OutputFormat::Human,
+        false,
+        false,
+    )
+    .await;
+
+    // Assert: fail closed with ADR-076 guidance (not a silent no-op)
+    assert!(result.is_err(), "sync without dual backends must fail");
+    let msg = result.unwrap_err().to_string();
+    assert!(
+        msg.contains("pattern extraction"),
+        "must clarify sync is not pattern extraction; got: {msg}"
+    );
+    assert!(
+        msg.contains("Turso") || msg.contains("redb") || msg.contains("reconcile"),
+        "must mention dual backends / reconcile; got: {msg}"
+    );
+}
+
+/// ADR-076: CLI binary path — unusable local cache yields the same dual-backend error.
+#[test]
+fn test_storage_sync_cli_missing_dual_backends_adr076() {
+    let harness = CliHarness::new();
+    let temp = harness.temp_dir();
+
+    // Parent path is a regular file so redb cannot open → init falls back to no backends
+    let blocker = temp.join("not-a-directory");
+    std::fs::write(&blocker, b"block").expect("write blocker file");
+    let bad_redb = blocker.join("cache.redb");
+    let bad_redb_str = bad_redb.display().to_string().replace('\\', "/");
+
+    let config_content = format!(
+        r#"
+[database]
+redb_path = "{bad_redb_str}"
+
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "json"
+progress_bars = false
+batch_size = 10
+"#
+    );
+    std::fs::write(harness.config_path(), config_content).expect("write config");
+
+    harness
+        .execute(["storage", "sync"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("pattern extraction").and(
+                predicate::str::contains("Turso")
+                    .or(predicate::str::contains("redb"))
+                    .or(predicate::str::contains("reconcile")),
+            ),
+        );
 }
 
 #[test]

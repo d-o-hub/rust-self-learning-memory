@@ -53,4 +53,12 @@ mod tests {
         assert!(text.contains("--db-path"));
         assert!(text.contains("config show"));
     }
+
+    /// Smoke coverage for the stdout wrapper used by human list/search paths.
+    #[test]
+    fn print_empty_pattern_diagnostics_smoke() {
+        // Exercises `print_empty_pattern_diagnostics` → stdout write path.
+        // Content is validated by `empty_diagnostics_cover_adr076_contract`.
+        print_empty_pattern_diagnostics();
+    }
 }

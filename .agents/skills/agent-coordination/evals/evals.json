@@ -3,7 +3,7 @@
     {
       "name": "Goal breakdown",
       "description": "Verify the agent can break down complex tasks into atomic goals.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/agent-coordination/SKILL.md && rg -q . .agents/skills/agent-coordination/SKILL.md"
     }
   ]
 }

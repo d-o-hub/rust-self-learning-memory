@@ -3,7 +3,7 @@
     {
       "name": "Documentation alignment",
       "description": "Verify agent documentation remains aligned.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/agents-update/SKILL.md && rg -q . .agents/skills/agents-update/SKILL.md"
     }
   ]
 }

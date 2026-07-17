@@ -3,7 +3,7 @@
     {
       "name": "Task orchestration",
       "description": "Verify GOAP orchestration.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/goap-agent/SKILL.md && rg -q . .agents/skills/goap-agent/SKILL.md"
     }
   ]
 }

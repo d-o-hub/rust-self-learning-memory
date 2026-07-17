@@ -3,7 +3,7 @@
     {
       "name": "Atomic commits",
       "description": "Verify the agent follows atomic commit rules.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/commit/SKILL.md && rg -q . .agents/skills/commit/SKILL.md"
     }
   ]
 }

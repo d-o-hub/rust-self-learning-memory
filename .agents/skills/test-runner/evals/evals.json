@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Workspace tests",
-      "description": "Verify all workspace tests pass.",
-      "exec": "cargo test --workspace"
+      "name": "skill-md-present",
+      "description": "test-runner skill exists",
+      "exec": "test -f .agents/skills/test-runner/SKILL.md"
+    },
+    {
+      "name": "documents-nextest",
+      "description": "prefers cargo nextest",
+      "exec": "rg -q 'nextest' .agents/skills/test-runner/SKILL.md"
     }
   ]
 }

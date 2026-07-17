@@ -3,7 +3,7 @@
     {
       "name": "Flaky test repair",
       "description": "Verify fixes for failing tests.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/test-fix/SKILL.md && rg -q . .agents/skills/test-fix/SKILL.md"
     }
   ]
 }

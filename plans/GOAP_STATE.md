@@ -1,27 +1,41 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-17 (open issues analysis + ADR-075/076)
+- **Last Updated**: 2026-07-17 (merge main into K3.1/W2.1 PR #851)
 - **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `main`
-- **Active plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
-- **ADRs**: ADR-075 (episode complete durability), ADR-076 (pattern empty-result UX)
+- **Branch**: `feat/goap-k31-w21-deferred-2026-07-17`
+- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1, W2.1)
+- **ADRs**: ADR-075/076 on main via PR #850
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Prior**: S1.3–S1.6 + W2.2 on main; PR #840 merged
 
 ---
 
-## Sprint 2026-07-17: Open Issues Analysis + Implementation 🟡 PR IN FLIGHT
+## Sprint 2026-07-17b: K3.1 + W2.1 🟡 PR #851 (conflict resolve)
 
-**Goal**: Map open issues to codebase; implement ADR-075/076 via GOAP swarm; land PR with CI green; then release.
+| Package | Status |
+|---------|--------|
+| K3.1 strict `run-evals.sh` + fixtures | ✅ |
+| Migrate skill evals off noop/`evals` key | ✅ 32 skills |
+| W2.1a `plans/GATE_CONTRACT.md` | ✅ |
+| `validate-gate-contract.sh` | ✅ |
+| Merge main (PR #850) into #851 | ✅ this commit |
+| K3.1b CI job for changed skills | ⏳ follow-up |
+| W2.1b full CI parity | ⏳ follow-up |
+
+**Still deferred**: S1.7, W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots, v0.1.35 tag.
+
+---
+
+## Sprint 2026-07-17: Open Issues Analysis + Implementation ✅ MERGED (PR #850)
+
+**Goal**: Map open issues to codebase; implement ADR-075/076; land PR with CI green.
 
 | Package | Issue | Codebase verdict | Status |
 |---------|-------|------------------|--------|
-| I1 | #849 release drift (27 commits / 6 days) | Tag `v0.1.35` via `release.yml` | ⏳ After merge |
-| I2 | #847 complete failure no-op | ADR-075: hard-fail store + CLI verify + `episode fail` | ✅ Code |
-| I3 | #845 pattern list empty after ingest | ADR-076 empty diagnostics + sync messaging | ✅ Code |
-| I4 | #846 config format undocumented | Precedence table README + CONFIGURATION_GUIDE | ✅ Code |
+| I1 | #849 release drift | Tag `v0.1.35` via `release.yml` | ⏳ After release ready |
+| I2 | #847 complete failure no-op | ADR-075 hard-fail store + CLI verify + `episode fail` | ✅ Merged |
+| I3 | #845 pattern list empty after ingest | ADR-076 empty diagnostics + sync messaging | ✅ Merged |
+| I4 | #846 config format undocumented | Precedence table README + CONFIGURATION_GUIDE | ✅ Merged |
 
-**Branch**: `feat/goap-open-issues-847-845-846-2026-07-17`  
 **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
 
 ---

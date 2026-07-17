@@ -3,7 +3,7 @@
     {
       "name": "Skill generation",
       "description": "Verify new skills follow conventions.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/skill-creator/SKILL.md && rg -q . .agents/skills/skill-creator/SKILL.md"
     }
   ]
 }

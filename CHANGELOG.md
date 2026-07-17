@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **K3.1 skill eval contract**: `scripts/run-evals.sh` enforces a strict
+  `tests[]` schema (rejects legacy `evals` key, zero tests, missing `exec`, and
+  noop `true`). Schema fixtures under `scripts/fixtures/skill-evals/`. Skill
+  evals migrated to non-noop contract checks; `pr-readiness` validates
+  merge-state and comment-fetch requirements.
+- **W2.1 gate contract**: `plans/GATE_CONTRACT.md` documents measured / blocking
+  floor / aspirational target / authority for each advertised gate (explicit
+  coverage 70% floor vs 90% target). Validator:
+  `./scripts/validate-gate-contract.sh` (optional `--ci-parity`).
 - **#845 / ADR-076 empty pattern diagnostics**: when `pattern list` / `pattern
   search` return zero results in **Human** format, print a short diagnostic
   footer (patterns come from episode complete with ≥1 step for tool sequences;

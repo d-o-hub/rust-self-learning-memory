@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "noop",
+      "description": "must fail validation",
+      "exec": "true"
+    }
+  ]
+}

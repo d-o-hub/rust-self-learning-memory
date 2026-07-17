@@ -1,0 +1,9 @@
+{
+  "evals": [
+    {
+      "input": "x",
+      "expected_behavior": "y",
+      "failure_mode": "z"
+    }
+  ]
+}

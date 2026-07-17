@@ -3,7 +3,7 @@
     {
       "name": "Documentation fetch",
       "description": "Verify the agent can fetch and resolve web documentation.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/web-doc-resolver/SKILL.md && rg -q . .agents/skills/web-doc-resolver/SKILL.md"
     }
   ]
 }

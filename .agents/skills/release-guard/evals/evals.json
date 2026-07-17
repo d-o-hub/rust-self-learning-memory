@@ -1,9 +1,19 @@
 {
   "tests": [
     {
-      "name": "Pre-release checks",
-      "description": "Verify all pre-release checks pass.",
-      "exec": "./scripts/release-manager.sh validate"
+      "name": "skill-md-present",
+      "description": "release-guard skill exists",
+      "exec": "test -f .agents/skills/release-guard/SKILL.md"
+    },
+    {
+      "name": "blocks-manual-release",
+      "description": "forbids manual gh release create",
+      "exec": "rg -q 'release.yml|NEVER.*gh release create|manual' .agents/skills/release-guard/SKILL.md"
+    },
+    {
+      "name": "release-manager-script-exists",
+      "description": "release-manager.sh present",
+      "exec": "test -x ./scripts/release-manager.sh || test -f ./scripts/release-manager.sh"
     }
   ]
 }

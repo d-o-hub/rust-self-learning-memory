@@ -1,11 +1,22 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-17 (open issues analysis)
+- **Last Updated**: 2026-07-17 (merge main + K3.1/W2.1)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
-- **ADRs**: ADR-075, ADR-076
+- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1/W2.1)
+- **ADRs**: ADR-075, ADR-076 (merged via PR #850)
 
-## Active Actions (2026-07-17 Open Issues)
+## Active Actions (2026-07-17b K3.1 + W2.1)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-240 | Strict run-evals schema + fixtures (K3.1a) | ✅ Done |
+| ACT-241 | Migrate skill evals off noop true / legacy evals | ✅ Done |
+| ACT-242 | Gate contract matrix (W2.1a) | ✅ Done |
+| ACT-243 | validate-gate-contract.sh | ✅ Done |
+| ACT-244 | Open PR for K3.1/W2.1 | 🟡 PR #851 |
+| ACT-245 | CI wire K3.1b / W2.1b | ⏳ |
+
+## Completed Actions (2026-07-17 Open Issues — PR #850 ✅ MERGED)
 
 | ID | Action | Issue / ADR | Status |
 |----|--------|-------------|--------|
@@ -14,12 +25,12 @@
 | ACT-222 | CLI verify-after-write; never false-green complete | #847 / ADR-075 | ✅ Done |
 | ACT-223 | `episode fail` operator path | #847 / ADR-075 | ✅ Done |
 | ACT-224 | Tests: durability mock backends + CLI command tests | #847 | ✅ Done |
-| ACT-225 | Cut v0.1.35 via release-manager + release.yml | #849 | ⏳ After PR merge |
+| ACT-225 | Cut v0.1.35 via release-manager + release.yml | #849 | ⏳ After release ready |
 | ACT-226 | Pattern empty-list human diagnostics | #845 / ADR-076 | ✅ Done |
 | ACT-227 | storage sync local-only messaging (not extraction) | #845 / ADR-076 | ✅ Done |
 | ACT-228 | Config precedence table polish | #846 | ✅ Done |
 | ACT-229 | Close/comment #845/#846 after release verification | #845, #846 | ⏳ After ACT-225 |
-| ACT-230 | Open PR + all CI green + merge | swarm | 🟡 In progress |
+| ACT-230 | Open PR + all CI green + merge | swarm | ✅ PR #850 merged |
 
 ## Active Actions (2026-07-16b S1.3–S1.6 + W2.2)
 

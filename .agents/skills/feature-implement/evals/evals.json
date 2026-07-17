@@ -3,7 +3,7 @@
     {
       "name": "End-to-end feature",
       "description": "Verify full feature implementation.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/feature-implement/SKILL.md && rg -q . .agents/skills/feature-implement/SKILL.md"
     }
   ]
 }

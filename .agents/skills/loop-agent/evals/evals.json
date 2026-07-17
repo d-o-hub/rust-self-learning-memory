@@ -3,7 +3,7 @@
     {
       "name": "Self-correction",
       "description": "Verify the agent can correct its own mistakes.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/loop-agent/SKILL.md && rg -q . .agents/skills/loop-agent/SKILL.md"
     }
   ]
 }

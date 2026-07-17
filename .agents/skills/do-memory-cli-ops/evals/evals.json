@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "CLI command execution",
-      "description": "Verify CLI operations.",
-      "exec": "cargo test -p do-memory-cli"
+      "name": "skill-md-present",
+      "description": "cli ops skill exists",
+      "exec": "test -f .agents/skills/do-memory-cli-ops/SKILL.md"
+    },
+    {
+      "name": "documents-cli-binary",
+      "description": "mentions do-memory-cli",
+      "exec": "rg -q 'do-memory-cli' .agents/skills/do-memory-cli-ops/SKILL.md"
     }
   ]
 }

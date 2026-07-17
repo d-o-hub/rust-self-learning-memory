@@ -3,7 +3,7 @@
     {
       "name": "Regression fix",
       "description": "Verify the agent can fix regressions.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/debug-troubleshoot/SKILL.md && rg -q . .agents/skills/debug-troubleshoot/SKILL.md"
     }
   ]
 }

@@ -1,39 +1,29 @@
 {
-  "evals": [
+  "tests": [
     {
-      "input": "Check if PR #796 is ready to merge",
-      "expected_behavior": "Agent queries gh pr view with mergeable and mergeStateStatus fields, not just statusCheckRollup. Also fetches PR comments (pulls comments, reviews, issues comments). Reports merge state, CI, and comment status.",
-      "failure_mode": "Agent only checks statusCheckRollup and declares 'all CI green, ready to merge' without checking mergeable/mergeStateStatus or PR comments"
+      "name": "skill-md-present",
+      "description": "pr-readiness skill file exists",
+      "exec": "test -f .agents/skills/pr-readiness/SKILL.md"
     },
     {
-      "input": "Analyze all open PRs and recommend which to merge",
-      "expected_behavior": "Agent runs gh pr list with --json number,title,mergeable,mergeStateStatus,statusCheckRollup. For each PR, reports CI, merge state, and whether comments need addressing. Only recommends merge for PRs with mergeStateStatus=CLEAN and no open actionable feedback.",
-      "failure_mode": "Agent recommends merge for PR with CONFLICTING mergeable state because CI checks passed"
+      "name": "requires-merge-state",
+      "description": "Documents mergeable and mergeStateStatus (not CI-only)",
+      "exec": "rg -q 'mergeStateStatus' .agents/skills/pr-readiness/SKILL.md && rg -q 'mergeable' .agents/skills/pr-readiness/SKILL.md"
     },
     {
-      "input": "PR has all CI checks green but mergeStateStatus is DIRTY",
-      "expected_behavior": "Agent identifies merge conflicts, checks out branch, merges main, resolves conflicts, pushes, and waits for CI re-run before recommending merge",
-      "failure_mode": "Agent says 'ready to merge' because CI is green, ignoring DIRTY state"
+      "name": "requires-comment-fetch",
+      "description": "Documents fetching PR comments and reviews",
+      "exec": "rg -q 'pulls/.*/comments|issues/.*/comments|reviews' .agents/skills/pr-readiness/SKILL.md"
     },
     {
-      "input": "PR has CANCELLED coverage check",
-      "expected_behavior": "Agent investigates why it was cancelled (dependent on Quick Check? stale push?). If stale, re-runs the workflow. Does not ignore it.",
-      "failure_mode": "Agent ignores CANCELLED check as equivalent to SKIPPED"
+      "name": "cancelled-not-skipped",
+      "description": "Documents CANCELLED as non-equivalent to SKIPPED",
+      "exec": "rg -q 'CANCELLED' .agents/skills/pr-readiness/SKILL.md"
     },
     {
-      "input": "Review PR #834 and fix any feedback",
-      "expected_behavior": "Agent fetches inline review comments (pulls/N/comments), reviews (pulls/N/reviews), and issue comments (issues/N/comments). Classifies Codecov/Codacy/human feedback. Implements fixes (e.g. missing tests for Codecov lines), pushes, and replies on the PR summarizing what was done. Does not claim ready until feedback is addressed.",
-      "failure_mode": "Agent only runs CI status check and code review of the diff, ignoring conversation comments from Codecov or human reviewers"
-    },
-    {
-      "input": "PR has no human reviews but Codecov reports 54 missing lines",
-      "expected_behavior": "Agent treats Codecov conversation comment as actionable, maps missing files to tests, adds coverage, pushes, and posts a PR comment closing the loop. Does not say 'no comments to address' because there were no human reviews.",
-      "failure_mode": "Agent says nothing to do because only bots commented"
-    },
-    {
-      "input": "PR has CHANGES_REQUESTED review",
-      "expected_behavior": "Agent treats CHANGES_REQUESTED as a hard blocker, implements the requested fixes or provides evidence-based rebuttal and seeks re-approval. Does not recommend merge while CHANGES_REQUESTED stands.",
-      "failure_mode": "Agent recommends merge because CI is green despite open CHANGES_REQUESTED"
+      "name": "changes-requested-blocker",
+      "description": "Documents CHANGES_REQUESTED as merge blocker",
+      "exec": "rg -q 'CHANGES_REQUESTED' .agents/skills/pr-readiness/SKILL.md"
     }
   ]
 }

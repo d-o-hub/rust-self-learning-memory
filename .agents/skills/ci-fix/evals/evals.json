@@ -3,7 +3,7 @@
     {
       "name": "CI failure diagnosis",
       "description": "Verify the agent can diagnose CI failures.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/ci-fix/SKILL.md && rg -q . .agents/skills/ci-fix/SKILL.md"
     }
   ]
 }

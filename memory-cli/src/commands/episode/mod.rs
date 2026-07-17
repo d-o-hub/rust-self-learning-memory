@@ -28,6 +28,7 @@ pub use core::complete_episode;
 pub use core::create_episode;
 pub use core::delete;
 pub use core::delete_episode;
+pub use core::fail_episode;
 pub use core::filter;
 pub use core::handle_filter_command;
 pub use core::handoff;

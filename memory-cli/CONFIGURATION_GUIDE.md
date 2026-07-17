@@ -39,17 +39,32 @@ let config = Config::simple_with_performance(PerformanceLevel::High).await?;
 
 Manual configuration via file:
 
+## Configuration Precedence (issue #846)
+
+Settings resolve highest-wins in this order:
+
+| Priority | Source | Examples |
+|----------|--------|----------|
+| 1 (highest) | CLI flags | `--db-path`, `--storage-mode` |
+| 2 | Environment variables | `MEMORY_DB_PATH`, `MEMORY_STORAGE_MODE` |
+| 3 | Explicit config file | `--config /path/to.toml` |
+| 4 | Auto-discovered config in CWD | `do-memory-cli.toml`, `memory-cli.toml` (and `.memory-cli.toml` / JSON / YAML variants) |
+| 5 (lowest) | Built-in defaults | XDG paths, local storage defaults |
+
+`--db-path` / `MEMORY_DB_PATH` and `--storage-mode` / `MEMORY_STORAGE_MODE` are clap options with env fallbacks: a CLI flag always beats the env var for that option, and both beat values loaded from a config file.
+
 ## Configuration File Locations
 
-The CLI searches for configuration files in this order:
+When no `--config` path is given, the CLI searches the current working directory for:
 
-1. **Explicit path**: `--config /path/to/config.toml`
-2. `do-memory-cli.toml`
-3. `do-memory-cli.json`
-4. `do-memory-cli.yaml`
-5. `.do-memory-cli.toml`
-6. `.do-memory-cli.json`
-7. `.do-memory-cli.yaml`
+1. `memory-cli.toml` / `do-memory-cli.toml`
+2. `memory-cli.json` / `do-memory-cli.json`
+3. `memory-cli.yaml` / `do-memory-cli.yaml`
+4. `.memory-cli.toml` / `.do-memory-cli.toml`
+5. `.memory-cli.json` / `.do-memory-cli.json`
+6. `.memory-cli.yaml` / `.do-memory-cli.yaml`
+
+Explicit path via `--config /path/to/config.toml` always takes precedence over auto-discovery (level 3 above).
 
 
 ## Progressive Disclosure Configuration

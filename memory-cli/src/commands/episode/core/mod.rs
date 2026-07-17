@@ -21,7 +21,7 @@ pub use bulk::bulk_get_episodes;
 pub use checkpoint::{
     CheckpointResult, HandoffResult, ResumeResult, checkpoint, handoff, list_checkpoints, resume,
 };
-pub use complete::complete_episode;
+pub use complete::{complete_episode, fail_episode};
 pub use create::create_episode;
 pub use delete::DeletionResult;
 pub use delete::delete_episode;

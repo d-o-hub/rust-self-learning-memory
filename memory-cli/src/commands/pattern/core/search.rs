@@ -56,6 +56,8 @@ pub async fn search_patterns(
         OutputFormat::Human => {
             if results.is_empty() {
                 println!("No patterns found matching query: {}", query);
+                // ADR-076: human empty-result diagnostics (JSON/YAML stay machine-stable).
+                super::print_empty_pattern_diagnostics();
                 return Ok(());
             }
 

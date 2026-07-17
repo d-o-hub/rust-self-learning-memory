@@ -1,8 +1,8 @@
 # Plans Directory
 
-**Version**: v0.1.22 (released)  
-**Sprint**: v0.1.23 remediation (WG-051 through WG-058 complete)  
-**Last Updated**: 2026-03-24
+**Version**: workspace `0.1.35` (released tag `v0.1.34`)  
+**Sprint**: Open Issues GOAP 2026-07-17 (ADR-075 / ADR-076)  
+**Last Updated**: 2026-07-17
 
 ## Quick Navigation
 
@@ -15,6 +15,7 @@
 | [GOALS.md](GOALS.md) | GOAP goal index |
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot and execution plan state |
+| [GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md](GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md) | **Active**: open issues vs codebase + execution plan |
 
 ## Architecture
 
@@ -24,7 +25,7 @@
 | [ARCHITECTURE/ARCHITECTURE_PATTERNS.md](ARCHITECTURE/ARCHITECTURE_PATTERNS.md) | Design patterns |
 | [ARCHITECTURE/ARCHITECTURE_INTEGRATION.md](ARCHITECTURE/ARCHITECTURE_INTEGRATION.md) | Integration architecture |
 | [ARCHITECTURE/API_DOCUMENTATION.md](ARCHITECTURE/API_DOCUMENTATION.md) | API reference |
-| [adr/](adr/) | Architecture Decision Records (ADR-022 through ADR-047) |
+| [adr/](adr/) | Architecture Decision Records (ADR-022+; latest ADR-075, ADR-076) |
 
 ## Status & Validation
 

@@ -71,10 +71,17 @@ pub async fn sync_storage(
     let (turso, redb) = match (memory.turso_storage(), memory.cache_storage()) {
         (Some(t), Some(r)) => (Arc::clone(&t), Arc::clone(&r)),
         _ => {
+            // ADR-076: sync is Turso↔redb reconciliation only — not pattern extraction.
             return Err(anyhow::anyhow!(helpers::format_error_message(
-                "Storage sync requires both Turso and redb storage backends",
-                "Both storage backends must be configured for synchronization",
-                helpers::STORAGE_CONNECTION_HELP
+                "Both Turso (durable) and redb (cache) must be configured. \
+                 Local-only redb has no dual backend to reconcile.",
+                "storage sync is Turso↔redb reconciliation — not pattern extraction",
+                &[
+                    "Patterns are created on episode complete (with ≥1 step for tool sequences), then listed via `pattern list`",
+                    "To use sync: configure both a Turso URL and a redb path (dual backends)",
+                    "Confirm path/config with `do-memory-cli config show`",
+                    "Check backends: `do-memory-cli storage health`",
+                ]
             )));
         }
     };

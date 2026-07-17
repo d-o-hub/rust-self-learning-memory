@@ -36,11 +36,17 @@ impl SelfLearningMemory {
     ///
     /// # Returns
     ///
-    /// `Ok(())` on success, or an error if the episode doesn't exist.
+    /// `Ok(())` on success after all configured backends persist the episode.
     ///
     /// # Errors
     ///
     /// Returns [`Error::NotFound`] if the episode ID doesn't exist.
+    ///
+    /// Returns [`Error::ValidationFailed`] if the episode quality score is below threshold.
+    ///
+    /// Returns [`Error::Storage`] if any configured storage backend (`cache_storage`
+    /// and/or `turso_storage`) fails to store the completed episode (ADR-075).
+    /// Pattern extraction and in-memory map update are aborted on store failure.
     ///
     /// # Examples
     ///
@@ -314,17 +320,38 @@ impl SelfLearningMemory {
         // Use the episode for storage operations
         let episode_ref = &episode;
 
-        // Store updated episode in backends
+        // ADR-075: durable complete is all-or-nothing for configured backends.
+        // Collect every store failure, then hard-fail before claiming success
+        // (skip in-memory map update and pattern extraction on failure).
+        let mut store_failures: Vec<String> = Vec::new();
+
         if let Some(cache) = &self.cache_storage {
             if let Err(e) = cache.store_episode(episode_ref).await {
-                warn!("Failed to store completed episode in cache: {}", e);
+                warn!(
+                    episode_id = %episode_id,
+                    error = %e,
+                    "Failed to store completed episode in cache"
+                );
+                store_failures.push(format!("cache: {e}"));
             }
         }
 
         if let Some(turso) = &self.turso_storage {
             if let Err(e) = turso.store_episode(episode_ref).await {
-                warn!("Failed to store completed episode in Turso: {}", e);
+                warn!(
+                    episode_id = %episode_id,
+                    error = %e,
+                    "Failed to store completed episode in Turso"
+                );
+                store_failures.push(format!("turso: {e}"));
             }
+        }
+
+        if !store_failures.is_empty() {
+            return Err(Error::Storage(format!(
+                "Failed to store completed episode to configured backend(s): {}",
+                store_failures.join("; ")
+            )));
         }
 
         // Store episode summary if generated

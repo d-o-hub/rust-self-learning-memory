@@ -18,9 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   floor / aspirational target / authority for each advertised gate (explicit
   coverage 70% floor vs 90% target). Validator:
   `./scripts/validate-gate-contract.sh` (optional `--ci-parity`).
+- **#845 / ADR-076 empty pattern diagnostics**: when `pattern list` / `pattern
+  search` return zero results in **Human** format, print a short diagnostic
+  footer (patterns come from episode complete with ≥1 step for tool sequences;
+  not from `storage sync`; confirm `--db-path` / `config show`). JSON/YAML empty
+  arrays stay machine-stable.
+- **#846 config precedence docs**: document the 5-level precedence table
+  (CLI flags → env → `--config` → auto-discovered CWD config → defaults) in
+  root `README.md` and `memory-cli/CONFIGURATION_GUIDE.md`.
+- **ADR-076 `storage sync` messaging**: when only local redb / missing dual
+  backends, error text states sync is Turso↔redb reconciliation, **not** pattern
+  extraction.
+- **#847 / ADR-075 operator `episode fail`**: force-fail abandoned in-progress
+  episodes with `TaskOutcome::Failure` using the same verify-after-write path as
+  `episode complete`.
 
 ### Fixed
 
+- **#847 / ADR-075 durable episode complete**: configured backend `store_episode`
+  failures on complete no longer soft-warn and return success. Any cache/Turso
+  store failure returns `Error::Storage` and skips in-memory finalize / pattern
+  extract. CLI re-fetches and asserts `is_complete()` before printing success
+  (no false-green complete banner).
 - **S1.3 lock-free step persistence**: `log_step` (immediate path) and
   `flush_steps_internal` no longer hold `episodes_fallback` write locks across
   backend `store_episode` awaits; concurrent unique steps persist exactly once.
@@ -67,7 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from durable storage. Bumped redb `SCHEMA_VERSION` to 4 so stale caches are
   cleared on upgrade; undecodable pattern rows are skipped rather than failing
   the whole list. **Note:** JSON shape of `Pattern` also changes (externally
-  tagged); Turso stores a separate JSON DTO and is unaffected.
+  tagged); Turso stores a separate JSON DTO and is unaffected. Related UX/docs for
+  empty results and config precedence: #845 / #846 / ADR-075 / ADR-076 (see
+  Unreleased).
 
 - **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: always override
   `redb_path` (never only-when-None — `Config::default()` pre-fills XDG).

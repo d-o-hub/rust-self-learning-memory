@@ -242,7 +242,7 @@ run_fixtures() {
   local f
   for f in "$FIXTURE_DIR"/*.json; do
     [[ -f "$f" ]] || continue
-    local base expect
+    local base
     base=$(basename "$f")
     # Files named expect-fail-*.json must fail validation
     # Files named expect-pass-*.json must pass

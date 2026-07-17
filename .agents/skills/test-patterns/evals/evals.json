@@ -3,7 +3,7 @@
     {
       "name": "Test pattern extraction",
       "description": "Verify patterns are correctly extracted from tests.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/test-patterns/SKILL.md && rg -q . .agents/skills/test-patterns/SKILL.md"
     }
   ]
 }

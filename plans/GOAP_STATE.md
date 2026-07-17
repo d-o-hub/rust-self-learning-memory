@@ -1,11 +1,26 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+- **Last Updated**: 2026-07-17 (K3.1 + W2.1 deferred parallel)
 - **Version**: `0.1.35` (workspace; tag v0.1.34 latest released)
-- **Branch**: `feat/goap-missing-tasks-s13-s16-w22-2026-07-16`
-- **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+- **Branch**: `feat/goap-k31-w21-deferred-2026-07-17`
+- **Plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1, W2.1)
+- **Parallel**: open-issues PR #850 (ADR-075/076) on separate branch
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Prior**: PR #840 merged (S1.2 partial, W2.3, W2.6, #837)
+
+---
+
+## Sprint 2026-07-17b: K3.1 + W2.1 🟡 CODE COMPLETE (PR next)
+
+| Package | Status |
+|---------|--------|
+| K3.1 strict `run-evals.sh` + fixtures | ✅ |
+| Migrate skill evals off noop/`evals` key | ✅ 32 skills |
+| W2.1a `plans/GATE_CONTRACT.md` | ✅ |
+| `validate-gate-contract.sh` | ✅ |
+| K3.1b CI job for changed skills | ⏳ follow-up |
+| W2.1b full CI parity | ⏳ follow-up |
+
+**Still deferred**: S1.7, W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots, v0.1.35 tag.
 
 ---
 

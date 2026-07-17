@@ -3,7 +3,7 @@
     {
       "name": "Signal integration",
       "description": "Verify external signals are correctly integrated.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/external-signal-provider/SKILL.md && rg -q . .agents/skills/external-signal-provider/SKILL.md"
     }
   ]
 }

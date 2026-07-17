@@ -1,0 +1,8 @@
+{
+  "tests": [
+    {
+      "name": "no exec field",
+      "description": "must fail"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
     {
       "name": "Codebase analysis",
       "description": "Verify the agent can analyze the codebase effectively.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/analysis-swarm/SKILL.md && rg -q . .agents/skills/analysis-swarm/SKILL.md"
     }
   ]
 }

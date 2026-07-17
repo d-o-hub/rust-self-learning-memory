@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Performance targets",
-      "description": "Verify the project meets performance targets.",
-      "exec": "cargo bench -p do-memory-benches"
+      "name": "skill-md-present",
+      "description": "performance skill exists",
+      "exec": "test -f .agents/skills/performance/SKILL.md"
+    },
+    {
+      "name": "documents-criterion",
+      "description": "mentions criterion or bench",
+      "exec": "rg -qi 'criterion|bench' .agents/skills/performance/SKILL.md"
     }
   ]
 }

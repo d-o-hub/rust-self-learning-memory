@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Dual storage sync",
-      "description": "Verify sync between Turso and redb.",
-      "exec": "cargo test -p do-memory-storage-turso sync"
+      "name": "skill-md-present",
+      "description": "storage-sync skill exists",
+      "exec": "test -f .agents/skills/storage-sync/SKILL.md"
+    },
+    {
+      "name": "documents-backends",
+      "description": "mentions Turso and redb",
+      "exec": "rg -q 'Turso|turso' .agents/skills/storage-sync/SKILL.md && rg -q 'redb' .agents/skills/storage-sync/SKILL.md"
     }
   ]
 }

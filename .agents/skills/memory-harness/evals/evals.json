@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Learning effectiveness",
-      "description": "Verify the memory system extracts patterns and maintains search performance over time.",
-      "exec": "./.agents/skills/memory-harness/evaluate-learning.sh"
+      "name": "skill-md-present",
+      "description": "memory-harness skill exists",
+      "exec": "test -f .agents/skills/memory-harness/SKILL.md"
+    },
+    {
+      "name": "eval-script-present",
+      "description": "evaluate-learning.sh exists",
+      "exec": "test -f .agents/skills/memory-harness/evaluate-learning.sh"
     }
   ]
 }

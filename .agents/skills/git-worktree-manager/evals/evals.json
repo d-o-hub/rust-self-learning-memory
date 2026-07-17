@@ -3,7 +3,7 @@
     {
       "name": "Worktree isolation",
       "description": "Verify worktree usage.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/git-worktree-manager/SKILL.md && rg -q . .agents/skills/git-worktree-manager/SKILL.md"
     }
   ]
 }

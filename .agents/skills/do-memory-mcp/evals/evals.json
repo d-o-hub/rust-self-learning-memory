@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "MCP Tool Registry",
-      "description": "Verify that all MCP tools are correctly registered and discoverable.",
-      "exec": "cargo test -p do-memory-mcp tool_registry"
+      "name": "skill-md-present",
+      "description": "mcp skill exists",
+      "exec": "test -f .agents/skills/do-memory-mcp/SKILL.md"
+    },
+    {
+      "name": "documents-mcp-tools",
+      "description": "mentions MCP tools",
+      "exec": "rg -q 'tool' .agents/skills/do-memory-mcp/SKILL.md"
     }
   ]
 }

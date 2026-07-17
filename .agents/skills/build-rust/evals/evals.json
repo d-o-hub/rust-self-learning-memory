@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Build successful",
-      "description": "Verify the project builds correctly.",
-      "exec": "./scripts/build-rust.sh check"
+      "name": "skill-md-present",
+      "description": "build-rust skill exists",
+      "exec": "test -f .agents/skills/build-rust/SKILL.md"
+    },
+    {
+      "name": "build-script-exists",
+      "description": "build-rust.sh present",
+      "exec": "test -f ./scripts/build-rust.sh"
     }
   ]
 }

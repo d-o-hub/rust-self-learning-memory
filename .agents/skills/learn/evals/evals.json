@@ -3,7 +3,7 @@
     {
       "name": "Knowledge acquisition",
       "description": "Verify learning from task outcomes.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/learn/SKILL.md && rg -q . .agents/skills/learn/SKILL.md"
     }
   ]
 }

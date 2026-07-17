@@ -3,7 +3,7 @@
     {
       "name": "Goal alignment",
       "description": "Verify plans align with current goals.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/plan-gap-analysis/SKILL.md && rg -q . .agents/skills/plan-gap-analysis/SKILL.md"
     }
   ]
 }

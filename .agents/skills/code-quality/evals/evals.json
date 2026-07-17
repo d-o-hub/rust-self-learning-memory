@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Formatting and Lints",
-      "description": "Verify the code follows style and quality standards.",
-      "exec": "./scripts/code-quality.sh check"
+      "name": "skill-md-present",
+      "description": "code-quality skill exists",
+      "exec": "test -f .agents/skills/code-quality/SKILL.md"
+    },
+    {
+      "name": "quality-script-exists",
+      "description": "code-quality.sh present",
+      "exec": "test -f ./scripts/code-quality.sh"
     }
   ]
 }

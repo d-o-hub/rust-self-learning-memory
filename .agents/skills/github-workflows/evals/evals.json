@@ -3,7 +3,7 @@
     {
       "name": "Workflow validation",
       "description": "Verify GH actions workflows.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/github-workflows/SKILL.md && rg -q . .agents/skills/github-workflows/SKILL.md"
     }
   ]
 }

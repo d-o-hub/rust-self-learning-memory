@@ -3,7 +3,7 @@
     {
       "name": "Context retrieval",
       "description": "Verify memory context is correctly retrieved.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/memory-context/SKILL.md && rg -q . .agents/skills/memory-context/SKILL.md"
     }
   ]
 }

@@ -1,8 +1,19 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-16 (S1.3–S1.6 + W2.2 swarm)
+- **Last Updated**: 2026-07-17 (K3.1 + W2.1)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
+- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+
+## Active Actions (2026-07-17b K3.1 + W2.1)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-240 | Strict run-evals schema + fixtures (K3.1a) | ✅ Done |
+| ACT-241 | Migrate skill evals off noop true / legacy evals | ✅ Done |
+| ACT-242 | Gate contract matrix (W2.1a) | ✅ Done |
+| ACT-243 | validate-gate-contract.sh | ✅ Done |
+| ACT-244 | Open PR for K3.1/W2.1 | 🟡 |
+| ACT-245 | CI wire K3.1b / W2.1b | ⏳ |
 
 ## Active Actions (2026-07-16b S1.3–S1.6 + W2.2)
 

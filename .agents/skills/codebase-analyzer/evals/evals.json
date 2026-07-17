@@ -3,7 +3,7 @@
     {
       "name": "Pattern discovery",
       "description": "Verify the agent can discover code patterns.",
-      "exec": "true"
+      "exec": "test -f .agents/skills/codebase-analyzer/SKILL.md && rg -q . .agents/skills/codebase-analyzer/SKILL.md"
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {
+      "name": "echo works",
+      "description": "non-noop command",
+      "exec": "test -n \"skill-eval-fixture\""
+    }
+  ]
+}

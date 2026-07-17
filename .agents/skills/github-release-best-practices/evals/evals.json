@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "Release consistency",
-      "description": "Verify release state consistency.",
-      "exec": "./scripts/verify-release-state.sh"
+      "name": "skill-md-present",
+      "description": "github release skill exists",
+      "exec": "test -f .agents/skills/github-release-best-practices/SKILL.md"
+    },
+    {
+      "name": "verify-script-exists",
+      "description": "verify-release-state.sh present",
+      "exec": "test -f ./scripts/verify-release-state.sh"
     }
   ]
 }

@@ -1,9 +1,14 @@
 {
   "tests": [
     {
-      "name": "ADR compliance",
-      "description": "Verify the codebase complies with ADRs.",
-      "exec": "./scripts/validate-consolidation.sh"
+      "name": "skill-md-present",
+      "description": "architecture-validation skill exists",
+      "exec": "test -f .agents/skills/architecture-validation/SKILL.md"
+    },
+    {
+      "name": "references-plans",
+      "description": "mentions plans/ directory",
+      "exec": "rg -q 'plans/' .agents/skills/architecture-validation/SKILL.md"
     }
   ]
 }

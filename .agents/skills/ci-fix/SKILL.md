@@ -66,6 +66,25 @@ cargo tarpaulin --workspace
 # Increase timeout-minutes in workflow YAML
 ```
 
+### Check Quick Check Status CANCELLED after 15m
+```bash
+# Symptom: YAML Lint (or CI) "Check Quick Check Status" cancelled; real jobs skipped
+# Cause: wait-on-check timeout-minutes:15 < Quick Check wall time (~15–20m)
+# Permanent fix:
+#  1. Remove wait gate from cheap workflows (yaml-lint.yml)
+#  2. Raise remaining wait jobs to timeout-minutes: 40
+#  3. Raise Quick Check job to timeout-minutes: 25
+#  4. running-workflow-name must match this workflow's name:
+# See LESSON-021, agent_docs/github_actions_patterns.md
+```
+
+### Insta snapshot fails only on macOS
+```bash
+# Cause: f32/f64 {:?} Debug differs by platform
+# Fix: format!("{:.4}", value) before assert_snapshot!
+# See LESSON-022
+```
+
 ## Fix Commands
 
 ```bash

@@ -279,7 +279,9 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 
 | Job | Time | Trigger |
 |-----|------|---------|
-| Quick Check | ~7 min | All PRs |
+| Quick Check | ~7–20 min (cold) | All PRs |
+
+**Quick Check wait gates (2026-07-18 / LESSON-021)**: Never use `timeout-minutes: 15` on `Check Quick Check Status`. Wait jobs need **40m**; Quick Check job **25m**. **Do not gate yaml-lint** on Quick Check — run it immediately. See `agent_docs/github_actions_patterns.md`.
 | Tests | ~12 min | All PRs |
 | MCP Build | ~10 min | All PRs |
 | Multi-Platform | ~12-15 min | All PRs |

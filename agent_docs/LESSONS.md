@@ -112,6 +112,26 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
 - Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
 
+## LESSON-021: Never gate cheap CI jobs on a 15m Quick Check wait
+
+- Issue: `YAML Lint / Check Quick Check Status` repeatedly **CANCELLED after ~15m**, skipping `yamllint` and `actionlint`. Quick Check itself often took 15–20m (queue + cold cache). PR #860 stayed `UNSTABLE` with a permanent cancelled check.
+- Root Cause: Multiple workflows used `lewagon/wait-on-check-action` with `timeout-minutes: 15` equal to (or less than) Quick Check's real runtime. GitHub marks job timeouts as **cancelled**. Downstream `needs: check-quick-check` + `result == 'success'` then **skipped** the real lint jobs. #871 fixed `running-workflow-name` / concurrency but left the 15m race.
+- Solution (permanent):
+  1. **Do not gate cheap path-filtered jobs** (yaml-lint) on Quick Check — run them immediately.
+  2. Raise remaining wait jobs to **`timeout-minutes: 40`** (must exceed Quick Check job timeout + queue headroom).
+  3. Raise Quick Check job timeout to **25m**.
+  4. Set `fail-on-no-checks: false` and poll interval ≥15s.
+  5. Prefer `concurrency.group: ${{ github.workflow }}-${{ github.sha }}` so mid-wait runs are not torn down by same-ref re-triggers.
+- Key insight: A wait job that times out is worse than no gate — it produces CANCELLED checks and skips the work it was meant to protect.
+- Prevention: `agent_docs/github_actions_patterns.md`, `.agents/skills/github-workflows/`, `ci-fix`
+
+## LESSON-022: Insta snapshots must not use `{:?}` on f32/f64
+
+- Issue: macOS Multi-Platform failed `behaviour_harness::snapshot_store_and_recall_exact_match` while Linux passed — same bits, different Debug text (`1.885494` vs `1.8854939`).
+- Root Cause: Platform-dependent float Debug formatting in snapshot strings.
+- Solution: Format rewards/scores with fixed precision (`format!("{:.4}", v)`) before `insta::assert_snapshot!`.
+- Key insight: Snapshot exact-string equality + Debug floats = cross-platform flakes.
+
 ## LESSON-020: Advance workspace version immediately after a release tag
 
 - Issue: PR CI failed Release Drift with `version_not_advanced` after `v0.1.35` shipped while workspace remained `0.1.35` with new feat commits.

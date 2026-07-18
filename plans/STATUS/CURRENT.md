@@ -1,11 +1,23 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b)
+**Last Updated**: 2026-07-18 (PR swarm + permanent YAML wait fix)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.36 (post-release development; unreleased)
-**Active Sprint**: S1.7 audit hardening + skill/gate CI (K3.1b / W2.1b)
-**Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
+**Active Sprint**: Merge open PR stack with all CI green
+**Branch**: multi-PR swarm (#860 → #870 → #872)
 **Edition**: Rust 2024
+
+## Sprint 2026-07-18 — Open PR swarm (GOAP)
+
+| PR | Title | Status |
+|----|-------|--------|
+| #860 | S1.7 + K3.1b/W2.1b | 🟡 CI re-run after permanent yaml-lint fix |
+| #870 | Harness engineering sprint | 🟡 macos snapshot + HARNESS.md + main sync |
+| #872 | release-cadence-manager | 🟡 rebased on #870; waits on stack |
+
+**Merge order**: #860 → #870 → #872  
+**Validation**: `plans/STATUS/VALIDATION_LATEST.md`  
+**Lessons**: LESSON-021 (yaml wait cancel), LESSON-022 (f32 insta)
 
 ## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b
 
@@ -15,7 +27,8 @@
 | K3.1b `.github/workflows/skill-evals.yml` | ✅ |
 | W2.1b `validate-gate-contract.sh --ci-parity` | ✅ |
 | Plans + LESSONS-018/019 | ✅ |
-| PR + CI | 🟡 |
+| Permanent CI: yaml-lint ungated + 40m waits | ✅ code |
+| PR + CI | 🟡 re-running |
 
 **Plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
 

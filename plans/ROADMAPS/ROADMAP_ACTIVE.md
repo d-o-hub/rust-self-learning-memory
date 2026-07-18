@@ -1,23 +1,46 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b)
+**Last Updated**: 2026-07-18 (missing-tasks master Wave 1–3)
 **Released Version**: v0.1.35 (crates.io + GitHub Release)
 **Workspace Version**: 0.1.36 (unreleased development)
-**Active Sprint**: S1.7 audit + K3.1b/W2.1b CI gates
-**Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
-**Plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
-**Backlog after this PR**: W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots
+**Active Sprint**: GOAP missing tasks S1.2 / S1.4b / S1.1b / K3.2 / W2 guards
+**Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
+**Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
+**Plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
+**Still deferred after this PR**: F4 pilots only
 
 ---
 
-## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b 🟡 PR
+## Sprint 2026-07-18c — Missing tasks Wave 1–3 🟡 PR #873
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | S1.2 | CacheKey mode/provider/ranking/generation + provenance | ✅ |
+| 2 | S1.4b | Typed eviction partial failure + reconcile | ✅ |
+| 3 | S1.1b | sandbox-dev feature + source reachability | ✅ |
+| 4 | K3.2 | High-risk skill behavioral evals | ✅ |
+| 5 | K3.3 | skill-rules expansion + validate-skill-routes | ✅ partial |
+| 6 | W2.2b/W2.4 | Workflow cancelled + release publish fixtures | ✅ |
+| 7 | W2.3b | quality_gates refuse failed-subprocess metrics | ✅ |
+| 8 | W2.5 | Benchmark hard-fail; nightly upload-before-cleanup + ignore ratchet | ✅ |
+| 9 | Harness | Issues #862–#869 closed (shipped in #870) | ✅ |
+| 10 | D3.3/V5.1 | Plans + VALIDATION_LATEST aligned | ✅ |
+| 11 | PR | #873 CI green + review + merge | 🟡 |
+| — | F4 | Feature pilots | 🔵 deferred |
+
+**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
+**Master record**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
+
+---
+
+## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b ✅ MERGED (#860)
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
 | 1 | S1.7 | Audit recursive redaction, size init, non-blocking writer | ✅ |
 | 2 | K3.1b | Skill Evals CI (fixtures + --changed + schedule full) | ✅ |
 | 3 | W2.1b | Gate contract --ci-parity wired in Skill Evals job | ✅ |
-| 4 | PR | All CI green + merge | 🟡 |
+| 4 | PR | All CI green + merge | ✅ #860 |
 
 **Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 

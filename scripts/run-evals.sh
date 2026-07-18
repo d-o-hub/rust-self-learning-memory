@@ -167,14 +167,26 @@ find_evals() {
 }
 
 find_changed_skills() {
-  # Skills with any change under .agents/skills/<name>/ vs origin/main (or HEAD~1)
+  # Skills with any change under .agents/skills/<name>/ vs origin/main (or HEAD~1).
+  # Only directories that contain SKILL.md count as skills.
+  # Root-level files under .agents/skills/ (e.g. skill-rules.json routing config)
+  # are NOT skills and must never be treated as skill names by --changed.
   local base_ref="origin/main"
   if ! git -C "$PROJECT_ROOT" rev-parse --verify "$base_ref" >/dev/null 2>&1; then
     base_ref="HEAD~1"
   fi
-  git -C "$PROJECT_ROOT" diff --name-only "$base_ref"...HEAD -- .agents/skills 2>/dev/null \
-    | awk -F/ '/\.agents\/skills\// {print $3}' \
-    | sort -u
+  local name
+  while IFS= read -r name; do
+    [[ -z "$name" ]] && continue
+    # Require a real skill directory: .agents/skills/<name>/SKILL.md
+    if [[ -f "$SKILL_DIR/$name/SKILL.md" ]]; then
+      printf '%s\n' "$name"
+    fi
+  done < <(
+    git -C "$PROJECT_ROOT" diff --name-only "$base_ref"...HEAD -- .agents/skills 2>/dev/null \
+      | awk -F/ '/\.agents\/skills\// {print $3}' \
+      | sort -u
+  )
 }
 
 run_eval() {

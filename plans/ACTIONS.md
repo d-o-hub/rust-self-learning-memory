@@ -1,11 +1,29 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b swarm)
+- **Last Updated**: 2026-07-18 (missing-tasks master Wave 1–3)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
+- **Active plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
 - **Backlog source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+- **Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
 
-## Active Actions (2026-07-18 S1.7 + K3.1b + W2.1b)
+## Active Actions (2026-07-18c Missing tasks S1.2/S1.4b/S1.1b/K3.2/W2)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-260 | S1.2 mode/provider/ranking/generation + provenance | ✅ Done |
+| ACT-261 | S1.4b typed eviction partial failure + reconcile | ✅ Done |
+| ACT-262 | S1.1b sandbox-dev gate + check-source-reachability | ✅ Done |
+| ACT-263 | K3.2 high-risk skill positive/negative evals | ✅ Done |
+| ACT-264 | K3.3 skill-rules expansion + validate-skill-routes | ✅ Partial |
+| ACT-265 | W2.2b/W2.4 workflow + release guard scripts | ✅ Done |
+| ACT-266 | W2.3b quality_gates refuse failed-subprocess metrics | ✅ Done |
+| ACT-267 | W2.5 benchmark hard-fail + nightly upload-before-cleanup + ignore ratchet | ✅ Done |
+| ACT-268 | Close harness issues #862–#869 | ✅ Done |
+| ACT-269 | D3.3/V5.1 plans + VALIDATION_LATEST + master record | ✅ Done |
+| ACT-270 | PR #873 CI green + review + merge | 🟡 |
+| ACT-271 | F4 feature pilots | 🔵 Deferred |
+
+## Completed Actions (2026-07-18 S1.7 + K3.1b + W2.1b — PR #860 ✅)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -14,7 +32,7 @@
 | ACT-252 | K3.1b skill-evals.yml fixtures + --changed | ✅ Done |
 | ACT-253 | W2.1b --ci-parity + GATE_CONTRACT update | ✅ Done |
 | ACT-254 | Plans + LESSONS-018/019 + CHANGELOG Unreleased | ✅ Done |
-| ACT-255 | Open PR + all CI green | 🟡 |
+| ACT-255 | Open PR + all CI green | ✅ PR #860 |
 
 ## Completed Actions (2026-07-17b K3.1 + W2.1)
 

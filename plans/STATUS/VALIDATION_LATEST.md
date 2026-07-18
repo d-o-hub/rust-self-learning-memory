@@ -1,42 +1,60 @@
-# Validation Latest — 2026-07-18 PR swarm
+# Validation Latest — 2026-07-18 Missing-tasks master (PR #873)
 
-**Orchestrator**: GOAP + agent-coordination swarm  
-**Goal**: All open PRs green (including Codacy), permanent YAML wait fix, merge order #860 → #870 → #872
+**Orchestrator**: GOAP + agent-coordination swarm (Agent A: run-evals; Agent B: docs + W2.5 nightly polish)  
+**Goal**: Land remaining improvements-backlog packages on branch `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`  
+**Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35` · **PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
 
-## Open PRs
+## Packages completed this sprint
 
-| PR | Branch | Role | Fixes applied |
-|----|--------|------|---------------|
-| #860 | `feat/goap-s17-k31b-w21b-2026-07-18` | S1.7 + skill/gate CI; **merge first** | Permanent yaml-lint ungated + 40m waits (`e0a41340`) |
-| #870 | `feat/harness-engineering-sprint` | Harness sprint; **merge second** | HARNESS.md permanent, f32 snapshot stability, CI waits, merge main |
-| #872 | `feat/release-cadence-manager` | Release cadence manager; **merge third** (stacks on #870) | Rebased on fixed #870 |
+| Package | Evidence | Status |
+|---------|----------|--------|
+| S1.2 remainder | CacheKey mode/provider/ranking/generation + RetrievalProvenance | ✅ |
+| S1.4b | `pending_eviction_failures` / `reconcile_pending_evictions` + tests | ✅ |
+| S1.1b | `sandbox-dev` feature; `scripts/check-source-reachability.sh` | ✅ |
+| K3.2 | High-risk skill positive/negative eval fixtures | ✅ |
+| K3.3 | Expanded `skill-rules.json` + `validate-skill-routes.sh` | ✅ partial |
+| W2.2b / W2.4 | `test-workflow-guards.sh`, `test-release-workflow.sh` | ✅ |
+| W2.3b | quality_gates refuse metrics from failed subprocesses | ✅ |
+| W2.5a | benchmarks.yml no dummy soft-pass; `fail-on-alert: true` | ✅ |
+| W2.5b nightly | upload **before** cleanup; `check-ignored-tests.sh` ratchet step | ✅ |
+| Harness #862–#869 | Closed (code shipped in #870) | ✅ |
+| D3.3 / V5.1 | GOALS / ACTIONS / ROADMAP / CURRENT / GOAP_STATE / this file | ✅ |
 
-## Permanent CI fix (YAML Lint cancel)
+## Still deferred
 
-| Symptom | Cause | Permanent solution |
-|---------|-------|-------------------|
-| `YAML Lint / Check Quick Check Status` CANCELLED ~15m | wait job timeout ≤ Quick Check wall time | Remove gate from yaml-lint; 40m waits elsewhere; Quick Check 25m |
+| Item | Notes |
+|------|-------|
+| **F4 pilots only** | Feature pilots intentionally out of this PR |
 
-#871 (on main) fixed concurrency/`running-workflow-name` but left the 15m race — incomplete.
+## Open PR
 
-## Comments
+| PR | Branch | Role | Status |
+|----|--------|------|--------|
+| #873 | `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18` | Missing tasks Wave 1–3 | 🟡 Open — CI/review |
 
-| PR | Codacy | Codecov check | Actionable human/bot |
-|----|--------|---------------|----------------------|
-| #860 | SUCCESS 0 issues | patch SUCCESS 95.77% | None (codecov body informational) |
-| #870 | SUCCESS 0 issues | re-running | File structure + macos fixed in code |
-| #872 | re-running | re-running | None |
+## W2.5 nightly polish (Agent B)
 
-## Learnings recorded
+| Check | Result |
+|-------|--------|
+| Upload before cleanup | ✅ Fixed: extract trends → upload results → upload trends → then `cargo clean` |
+| Ignored-test ratchet in nightly | ✅ Added `./scripts/check-ignored-tests.sh` step before regular tests |
+| Honor `run_slow_tests` dispatch input once / de-dupe suites | 🔵 Residual (not required for this polish; avoid larger nightly redesign) |
 
-- LESSON-021: Never gate cheap CI on 15m Quick Check wait
-- LESSON-022: No `{:?}` on f32 in insta snapshots
-- `agent_docs/github_actions_patterns.md` — Quick Check Wait Gate section
-- `agent_docs/common_friction_points.md` — CANCELLED after 15m
+## Prior merged swarm (context)
 
-## Merge gate (per PR)
+| PR | Status |
+|----|--------|
+| #860 S1.7 + K3.1b/W2.1b | ✅ Merged |
+| #870 Harness engineering | ✅ Merged |
+| #872 release-cadence-manager | ✅ Merged |
+
+## Merge gate (PR #873)
 
 - [ ] `mergeable=MERGEABLE` and `mergeStateStatus=CLEAN`
-- [ ] Codacy Static Code Analysis SUCCESS
-- [ ] No FAILURE/CANCELLED on non-skipped checks
-- [ ] Actionable comments addressed
+- [ ] Required checks SUCCESS (no FAILURE/CANCELLED on non-skipped)
+- [ ] Actionable PR comments addressed
+- [ ] Do not touch `scripts/run-evals.sh` ownership (Agent A)
+
+## Master execution record
+
+`plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`

@@ -1,11 +1,22 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-17 (merge main + K3.1/W2.1)
+- **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b swarm)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1/W2.1)
-- **ADRs**: ADR-075, ADR-076 (merged via PR #850)
+- **Active plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
+- **Backlog source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
-## Active Actions (2026-07-17b K3.1 + W2.1)
+## Active Actions (2026-07-18 S1.7 + K3.1b + W2.1b)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-250 | S1.7a recursive redaction + existing-file size init | ✅ Done |
+| ACT-251 | S1.7b bounded writer + dropped_writes metrics | ✅ Done |
+| ACT-252 | K3.1b skill-evals.yml fixtures + --changed | ✅ Done |
+| ACT-253 | W2.1b --ci-parity + GATE_CONTRACT update | ✅ Done |
+| ACT-254 | Plans + LESSONS-018/019 + CHANGELOG Unreleased | ✅ Done |
+| ACT-255 | Open PR + all CI green | 🟡 |
+
+## Completed Actions (2026-07-17b K3.1 + W2.1)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -13,8 +24,8 @@
 | ACT-241 | Migrate skill evals off noop true / legacy evals | ✅ Done |
 | ACT-242 | Gate contract matrix (W2.1a) | ✅ Done |
 | ACT-243 | validate-gate-contract.sh | ✅ Done |
-| ACT-244 | Open PR for K3.1/W2.1 | 🟡 PR #851 |
-| ACT-245 | CI wire K3.1b / W2.1b | ⏳ |
+| ACT-244 | Open PR for K3.1/W2.1 | ✅ PR #851 |
+| ACT-245 | CI wire K3.1b / W2.1b | ✅ ACT-252/253 |
 
 ## Completed Actions (2026-07-17 Open Issues — PR #850 ✅ MERGED)
 

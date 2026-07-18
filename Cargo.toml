@@ -14,7 +14,7 @@ members = [
 exclude = ["fuzz"]
 
 [workspace.package]
-version = "0.1.35"
+version = "0.1.36"
 edition = "2024"
 authors = ["Self-Learning Memory Contributors"]
 license = "MIT"

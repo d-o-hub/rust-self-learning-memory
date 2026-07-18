@@ -7,8 +7,9 @@
 //!
 //! - Structured JSON logging format
 //! - Configurable log destinations (file, stdout, or both)
-//! - Log rotation support
-//! - Sensitive data redaction
+//! - Log rotation with size tracking initialized from existing files
+//! - Recursive sensitive-data redaction (nested objects/arrays, case-insensitive)
+//! - Non-blocking bounded file writer with overflow drop metrics
 //! - All security-relevant operations tracked
 //!
 //! ## Security Operations Logged
@@ -45,10 +46,14 @@ pub mod core;
 pub mod episode_ops;
 pub mod pattern_ops;
 pub mod query_ops;
+pub mod redaction;
 pub mod relationship_ops;
 pub mod security_ops;
 pub mod tag_ops;
 pub mod types;
+pub mod writer;
 
 pub use core::AuditLogger;
+pub use redaction::redact_sensitive_data;
 pub use types::{AuditConfig, AuditDestination, AuditLogEntry, AuditLogLevel};
+pub use writer::{AuditFileWriter, DEFAULT_AUDIT_WRITE_QUEUE_CAPACITY, WriterConfig};

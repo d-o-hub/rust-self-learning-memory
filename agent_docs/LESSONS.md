@@ -112,6 +112,47 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
 - Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
 
+## LESSON-021: Never gate cheap CI jobs on a 15m Quick Check wait
+
+- Issue: `YAML Lint / Check Quick Check Status` repeatedly **CANCELLED after ~15m**, skipping `yamllint` and `actionlint`. Quick Check itself often took 15–20m (queue + cold cache). PR #860 stayed `UNSTABLE` with a permanent cancelled check.
+- Root Cause: Multiple workflows used `lewagon/wait-on-check-action` with `timeout-minutes: 15` equal to (or less than) Quick Check's real runtime. GitHub marks job timeouts as **cancelled**. Downstream `needs: check-quick-check` + `result == 'success'` then **skipped** the real lint jobs. #871 fixed `running-workflow-name` / concurrency but left the 15m race.
+- Solution (permanent):
+  1. **Do not gate cheap path-filtered jobs** (yaml-lint) on Quick Check — run them immediately.
+  2. Raise remaining wait jobs to **`timeout-minutes: 40`** (must exceed Quick Check job timeout + queue headroom).
+  3. Raise Quick Check job timeout to **25m**.
+  4. Set `fail-on-no-checks: false` and poll interval ≥15s.
+  5. Prefer `concurrency.group: ${{ github.workflow }}-${{ github.sha }}` so mid-wait runs are not torn down by same-ref re-triggers.
+- Key insight: A wait job that times out is worse than no gate — it produces CANCELLED checks and skips the work it was meant to protect.
+- Prevention: `agent_docs/github_actions_patterns.md`, `.agents/skills/github-workflows/`, `ci-fix`
+
+## LESSON-022: Insta snapshots must not use `{:?}` on f32/f64
+
+- Issue: macOS Multi-Platform failed `behaviour_harness::snapshot_store_and_recall_exact_match` while Linux passed — same bits, different Debug text (`1.885494` vs `1.8854939`).
+- Root Cause: Platform-dependent float Debug formatting in snapshot strings.
+- Solution: Format rewards/scores with fixed precision (`format!("{:.4}", v)`) before `insta::assert_snapshot!`.
+- Key insight: Snapshot exact-string equality + Debug floats = cross-platform flakes.
+
+## LESSON-020: Advance workspace version immediately after a release tag
+
+- Issue: PR CI failed Release Drift with `version_not_advanced` after `v0.1.35` shipped while workspace remained `0.1.35` with new feat commits.
+- Root Cause: Drift policy treats equal workspace+latest-tag with unreleased commits as invalid (not “clean”).
+- Solution: Bump `[workspace.package] version` (and path-dep version pins + Cargo.lock) to the next SemVer step in the first post-release PR.
+- Key insight: Released Version docs stay at the tag; workspace version leads by one until the next ship.
+
+## LESSON-018: Audit log size init + nested redaction (S1.7)
+
+- Issue: Audit file rotation tracked `current_file_size` as `0` after open even when the file already existed and was large; nested JSON secrets under objects/arrays were never redacted; `writeln!` ran on the async request path.
+- Root Cause: Size was read into a local and discarded; redaction walked only top-level object keys; file I/O was synchronous under `async fn log_event`.
+- Solution: Dedicated bounded `sync_channel` + OS writer thread initializes size from metadata; recursive case-insensitive key redaction; drop counter when queue is full (`dropped_writes()`).
+- Key insight: Startup metadata must seed runtime accounting; “sensitive field” policies must recurse JSON structure; disk I/O belongs off the Tokio worker.
+
+## LESSON-019: Skill evals need a dedicated lightweight CI workflow (K3.1b)
+
+- Issue: K3.1a delivered `run-evals.sh` but nothing required fixtures on every PR, so schema regressions could merge green.
+- Root Cause: Gate contract documented skill evals as optional until CI wiring; no workflow invoked the runner.
+- Solution: `.github/workflows/skill-evals.yml` (no Rust compile): always fixtures + gate-contract; PRs also `--changed` with `fetch-depth: 0`; full suite on schedule/dispatch.
+- Key insight: Schema validation CI must not depend on cargo; keep skill-eval and gate-contract checks on a cheap path so they always run.
+
 ## LESSON-017: CLI pattern list empty across processes + `--db-path` no-op (#830 / #831)
 
 - Issue: After `episode complete` logged "Successfully cached pattern", a fresh CLI process showed `pattern list` = 0. Separately, `--db-path` / `MEMORY_DB_PATH` appeared ignored.

@@ -1,27 +1,41 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-17 (post #850/#851 merge; cutting v0.1.35)
-- **Version**: `0.1.35` (workspace; tagging next)
-- **Branch**: `main`
-- **Active plan**: release v0.1.35 → then improvements backlog
+- **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b swarm)
+- **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)
+- **Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
+- **Active plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
 - **ADRs**: ADR-075/076 on main (PR #850); K3.1/W2.1 on main (PR #851)
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
 ---
 
-## Release v0.1.35 🟡 IN PROGRESS
+## Sprint 2026-07-18: S1.7 + K3.1b + W2.1b 🟡 PR
+
+| Package | Status |
+|---------|--------|
+| C1 S1.7a recursive redaction + existing-file size init | ✅ |
+| C2 S1.7b bounded writer + drop metrics | ✅ |
+| C3 K3.1b skill-evals.yml (fixtures + --changed) | ✅ |
+| C4 W2.1b gate contract --ci-parity in CI | ✅ |
+| C5 tests + local gates | ✅ |
+| C6 plans + LESSONS-018/019 | ✅ |
+| C7 PR + CI green | 🟡 |
+
+**Deferred**: W2.4/W2.5, K3.2 behavioral fixtures, S1.2 provenance remainder, F4 pilots.
+
+---
+
+## Release v0.1.35 ✅ SHIPPED
 
 | Step | Status |
 |------|--------|
 | Merge #850 open issues | ✅ |
 | Merge #851 K3.1/W2.1 | ✅ |
-| CHANGELOG + STATUS for tag | 🟡 |
-| Main CI green on release SHA | ⏳ |
-| `./scripts/release-manager.sh full --execute` | ⏳ |
-| `release.yml` GitHub Release | ⏳ |
-| Close #849 | ⏳ |
+| CHANGELOG + STATUS for tag | ✅ |
+| Tag `v0.1.35` + `release.yml` GitHub Release | ✅ |
+| Close #849 | ✅ (release cadence) |
 
-**Deferred after tag**: K3.1b, W2.1b, S1.7, W2.4/W2.5, K3.2, S1.2 provenance, F4 pilots.
+**Follow-ups done this sprint**: K3.1b, W2.1b, S1.7.
 
 ---
 
@@ -33,8 +47,8 @@
 | Migrate skill evals off noop/`evals` key | ✅ 32 skills |
 | W2.1a `plans/GATE_CONTRACT.md` | ✅ |
 | `validate-gate-contract.sh` | ✅ |
-| K3.1b CI job for changed skills | ⏳ follow-up |
-| W2.1b full CI parity | ⏳ follow-up |
+| K3.1b CI job for changed skills | ✅ 2026-07-18 |
+| W2.1b full CI parity | ✅ 2026-07-18 |
 
 ---
 

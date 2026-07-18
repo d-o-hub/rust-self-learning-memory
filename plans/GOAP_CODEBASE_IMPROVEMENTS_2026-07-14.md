@@ -1,6 +1,6 @@
 # GOAP Codebase, Workflow, Documentation, and Skills Improvement Plan
 
-- **Status**: In Progress (PR #840: S1.2/W2.3/W2.6/S1.1a; 2026-07-16b: S1.3/S1.4/S1.5/S1.6/W2.2)
+- **Status**: In Progress (PR #840 S1.2/W2.*; 2026-07-16b S1.3–S1.6/W2.2; 2026-07-18 S1.7/K3.1b/W2.1b)
 - **Date**: 2026-07-14
 - **Audit commit**: `a8b7d6d6a350c3f431b5564332b8a5c1365aefb9`
 - **Audit branch**: `main`

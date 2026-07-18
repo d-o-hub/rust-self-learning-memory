@@ -1,0 +1,98 @@
+---
+# K3.1b / W2.1b — Skill eval schema + gate-contract CI parity
+# Lightweight: bash + jq + rg only (no Rust compile).
+name: Skill Evals
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly full skill-eval suite (Sunday 04:00 UTC)
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual skill-evals run'
+        required: false
+        default: 'Manual skill-evals run'
+      full_suite:
+        description: 'Run full skill eval suite (not only fixtures/--changed)'
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  skill-evals:
+    name: Skill schema + evals
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # Full history so --changed can diff against origin/main
+          fetch-depth: 0
+
+      - name: Ensure origin/main for changed-skill diff
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify origin/main >/dev/null 2>&1; then
+            git fetch --no-tags origin main:refs/remotes/origin/main
+          fi
+          git rev-parse --verify origin/main
+
+      - name: Install jq and ripgrep
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends jq ripgrep
+
+      - name: Gate contract (default)
+        run: |
+          chmod +x scripts/validate-gate-contract.sh scripts/run-evals.sh
+          ./scripts/validate-gate-contract.sh
+
+      - name: Gate contract (CI parity)
+        run: ./scripts/validate-gate-contract.sh --ci-parity
+
+      - name: Skill-eval schema fixtures
+        run: ./scripts/run-evals.sh --fixtures
+
+      - name: Changed skill evals (pull requests)
+        if: github.event_name == 'pull_request'
+        run: ./scripts/run-evals.sh --changed
+
+      - name: Full skill eval suite
+        # Weekly schedule always; workflow_dispatch when full_suite input is true
+        # (default true). PRs use fixtures + --changed only.
+        if: >-
+          github.event_name == 'schedule' ||
+          (github.event_name == 'workflow_dispatch' && inputs.full_suite == true)
+        run: ./scripts/run-evals.sh
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Skill Evals / Gate Contract"
+            echo ""
+            echo "| Check | When |"
+            echo "|-------|------|"
+            echo "| validate-gate-contract | always |"
+            echo "| validate-gate-contract --ci-parity | always |"
+            echo "| run-evals --fixtures | always |"
+            echo "| run-evals --changed | pull_request |"
+            echo "| run-evals (full) | schedule / workflow_dispatch |"
+            echo ""
+            echo "Event: \`${{ github.event_name }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

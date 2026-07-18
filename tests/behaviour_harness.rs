@@ -72,14 +72,22 @@ async fn snapshot_store_and_recall_exact_match() {
 
     let recalled = memory.get_episode(ep_id).await.unwrap();
 
+    // Format reward with fixed precision so f32 Debug display is platform-stable
+    // (Linux may print 1.885494 while macOS prints 1.8854939 for the same bits).
+    let reward_str = recalled
+        .reward
+        .as_ref()
+        .map(|r| format!("{:.4}", r.total))
+        .unwrap_or_else(|| "None".to_string());
+
     insta::assert_snapshot!(
         "exact_match_recall",
         format!(
-            "task={}, steps={}, complete={}, reward={:?}",
+            "task={}, steps={}, complete={}, reward={}",
             recalled.task_description,
             recalled.steps.len(),
             recalled.outcome.is_some(),
-            recalled.reward.as_ref().map(|r| r.total)
+            reward_str
         )
     );
 }
@@ -120,14 +128,16 @@ async fn snapshot_multi_entry_search_ordering() {
         .retrieve_relevant_context("Fix database connection timeout".to_string(), query_ctx, 5)
         .await;
 
+    // Fixed-precision scores keep snapshots platform-stable across f32 Debug variants.
     let result_summary: Vec<String> = results
         .iter()
         .map(|ep| {
-            format!(
-                "{} (score={:?})",
-                ep.task_description,
-                ep.reward.as_ref().map(|r| r.total)
-            )
+            let score = ep
+                .reward
+                .as_ref()
+                .map(|r| format!("{:.4}", r.total))
+                .unwrap_or_else(|| "None".to_string());
+            format!("{} (score={})", ep.task_description, score)
         })
         .collect();
 

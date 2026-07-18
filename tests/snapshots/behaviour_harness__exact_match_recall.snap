@@ -1,5 +1,5 @@
 ---
 source: tests/behaviour_harness.rs
-expression: "format!(\"task={}, steps={}, complete={}, reward={:?}\",\nrecalled.task_description, recalled.steps.len(), recalled.outcome.is_some(),\nrecalled.reward.as_ref().map(|r| r.total))"
+expression: "format!(\"task={}, steps={}, complete={}, reward={}\",\nrecalled.task_description, recalled.steps.len(), recalled.outcome.is_some(),\nreward_str)"
 ---
-task=Implement JWT authentication middleware, steps=1, complete=true, reward=Some(1.885494)
+task=Implement JWT authentication middleware, steps=1, complete=true, reward=1.8855

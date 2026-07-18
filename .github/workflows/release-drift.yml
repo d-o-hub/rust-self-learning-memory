@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: write
     outputs:
       workspace_version: ${{ steps.check.outputs.workspace_version }}
       latest_tag: ${{ steps.check.outputs.latest_tag }}
@@ -66,29 +67,33 @@ jobs:
           echo "| Unreleased | ${{ steps.check.outputs.total }} commits (${{ steps.check.outputs.feats }} feat, ${{ steps.check.outputs.fixes }} fix) |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Release age | ${{ steps.check.outputs.release_age_days }} days |" >> "$GITHUB_STEP_SUMMARY"
 
+      # Optional: auto-label via release-cadence-manager (best-effort; does not
+      # replace the hard gate). GHA expressions cannot appear inside bash —
+      # label membership must stay in the step `if:` only.
+      - name: Auto-label release-preparation
+        if: >-
+          github.event_name == 'pull_request' &&
+          steps.check.outputs.severity == 'critical' &&
+          !contains(github.event.pull_request.labels.*.name, 'release-preparation')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ -f "./scripts/release-cadence-manager.sh" ]]; then
+            echo "Critical drift (${{ steps.check.outputs.reason }}): invoking release-cadence-manager resolve" >&2
+            ./scripts/release-cadence-manager.sh resolve --pr "${{ github.event.pull_request.number }}" || true
+          fi
+
       - name: Enforce release cadence
         if: >-
           github.event_name == 'pull_request' &&
-          steps.check.outputs.severity == 'critical'
+          steps.check.outputs.severity == 'critical' &&
+          !contains(github.event.pull_request.labels.*.name, 'release-preparation')
         run: |
-          # Use release-cadence-manager skill for resolution
-          if [[ -f "./scripts/release-cadence-manager.sh" ]]; then
-            echo "Release cadence exceeded or version state is invalid: ${{ steps.check.outputs.reason }}" >&2
-            echo "Using release-cadence-manager for automated resolution..." >&2
-            
-            # Check if PR already has release-preparation label
-            if ! contains(github.event.pull_request.labels.*.name, 'release-preparation'); then
-              # Add release-preparation label to PR
-              ./scripts/release-cadence-manager.sh resolve --pr "${{ github.event.pull_request.number }}"
-            else
-              echo "PR already has release-preparation label" >&2
-            fi
-          else
-            # Fallback to original behavior if skill not available
-            echo "Release cadence exceeded or version state is invalid: ${{ steps.check.outputs.reason }}" >&2
-            echo "A maintainer may label the release PR 'release-preparation' to break a cadence deadlock." >&2
-            exit 1
-          fi
+          echo "Release cadence exceeded or version state is invalid: ${{ steps.check.outputs.reason }}" >&2
+          echo "A maintainer may label the release PR 'release-preparation' to break a cadence deadlock." >&2
+          echo "Or re-run after: ./scripts/release-cadence-manager.sh resolve --pr ${{ github.event.pull_request.number }}" >&2
+          exit 1
 
   maintain-issue:
     name: Maintain canonical drift issue

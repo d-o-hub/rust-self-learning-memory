@@ -149,19 +149,24 @@ Phase 5: Update Plans & Documentation [Documentation]
 ## Commands Reference
 
 ```bash
-# Detect drift
+# Primary CLI (this skill)
+./scripts/release-cadence-manager.sh detect
+./scripts/release-cadence-manager.sh resolve --pr {n}
+./scripts/release-cadence-manager.sh validate
+./scripts/release-cadence-manager.sh status
+./scripts/release-cadence-manager.sh help
+
+# Low-level drift check (used by CI)
 ./scripts/check-release-drift.sh
 
-# Add label to PR
+# Add / remove escape-hatch label
 gh pr edit {n} --add-label "release-preparation"
-
-# Remove label from PR
 gh pr edit {n} --remove-label "release-preparation"
 
 # Check PR status
 gh pr view {n} --json labels,state,headRefName
 
-# Monitor release
+# Ship (use release-guard skill / release-manager)
 ./scripts/release-manager.sh status
 ```
 

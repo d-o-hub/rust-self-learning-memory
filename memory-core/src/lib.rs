@@ -271,7 +271,10 @@ pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
-pub use memory::{EvictionBackend, EvictionBackendFailure, EvictionOutcome, SelfLearningMemory};
+pub use memory::{
+    EvictionBackend, EvictionBackendFailure, EvictionOutcome, JournalEntry, JournalOpKind,
+    JournalOutcome, OperationJournal, ProvenancedRetrieval, SelfLearningMemory,
+};
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use patterns::{
     Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,

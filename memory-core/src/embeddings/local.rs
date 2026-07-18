@@ -77,9 +77,48 @@ impl LocalEmbeddingProvider {
         *self.health.read().await
     }
 
+    /// S1.5b: when digest/size pins are set and a model file is present, verify it.
+    async fn verify_cached_artifact_if_configured(&self) -> Result<()> {
+        if self.config.expected_sha256.is_none() && self.config.max_artifact_bytes.is_none() {
+            return Ok(());
+        }
+        // Common ONNX/model filenames under cache_dir/model_name
+        let candidates = [
+            self.cache_dir
+                .join(&self.config.model_name)
+                .join("model.onnx"),
+            self.cache_dir.join(&self.config.model_name),
+            std::path::PathBuf::from(&self.config.model_name),
+        ];
+        for path in &candidates {
+            if path.is_file() {
+                if let Err(e) = super::config::verify_model_artifact(
+                    path,
+                    self.config.expected_sha256.as_deref(),
+                    self.config.max_artifact_bytes,
+                ) {
+                    *self.health.write().await = EmbeddingHealth::Unavailable;
+                    return Err(e);
+                }
+                tracing::info!(
+                    path = %path.display(),
+                    revision = ?self.config.model_revision,
+                    "Local model artifact verified (S1.5b)"
+                );
+                return Ok(());
+            }
+        }
+        // Pins configured but no file yet — load path will fail closed / mock as configured
+        tracing::debug!("Model integrity pins set but no local artifact found yet under cache");
+        Ok(())
+    }
+
     /// Load the embedding model
     async fn load_model(&self) -> Result<()> {
         tracing::info!("Loading local embedding model: {}", self.config.model_name);
+
+        // S1.5b: if a pinned path exists under cache, verify digest/size first
+        self.verify_cached_artifact_if_configured().await?;
 
         #[cfg(feature = "local-embeddings")]
         {

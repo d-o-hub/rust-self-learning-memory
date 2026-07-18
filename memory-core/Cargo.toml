@@ -68,6 +68,9 @@ lru = { workspace = true }
 # Synchronization
 parking_lot = "0.12.5"
 
+# Model artifact digests (S1.5b / F4.3)
+sha2 = "0.10"
+
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.13.4", features = ["json"], optional = true }
 

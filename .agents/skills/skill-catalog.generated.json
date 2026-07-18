@@ -1,0 +1,210 @@
+{
+  "generated_at": "2026-07-18T18:22:52Z",
+  "schema_version": 1,
+  "skills": [
+    {
+      "description": "Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, hybrid, or iterative execution strategies. Use when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates.",
+      "has_evals": true,
+      "id": "agent-coordination",
+      "name": "agent-coordination"
+    },
+    {
+      "description": "Update AGENTS.md and agent_docs/ following best practices. Use when modifying agent guidelines, adding new documentation, or restructuring agent instructions.",
+      "has_evals": true,
+      "id": "agents-update",
+      "name": "agents-update"
+    },
+    {
+      "description": "Multi-perspective code analysis using three AI personas (RYAN, FLASH, SOCRATES) for comprehensive decision-making. Use when complex code decisions need analysis from multiple viewpoints, or when avoiding single-perspective blind spots is critical.",
+      "has_evals": true,
+      "id": "analysis-swarm",
+      "name": "analysis-swarm"
+    },
+    {
+      "description": "Dynamically validate that the implemented codebase matches architectural decisions documented in plan files. Use when validating implementation matches planning documents, checking for architecture drift, or preparing for architecture reviews.",
+      "has_evals": true,
+      "id": "architecture-validation",
+      "name": "architecture-validation"
+    },
+    {
+      "description": "Build Rust code with proper error handling, optimization, and workspace support for development, testing, and production",
+      "has_evals": true,
+      "id": "build-rust",
+      "name": "build-rust"
+    },
+    {
+      "description": "Diagnose and fix GitHub Actions CI failures for Rust projects. Use when CI fails, tests timeout, or linting issues occur. Captures common patterns from CLAUDE_INSIGHTS_REPORT.md.",
+      "has_evals": true,
+      "id": "ci-fix",
+      "name": "ci-fix"
+    },
+    {
+      "description": "Poll GitHub CI status with exponential backoff until all checks complete. Use after pushing to a PR branch to monitor CI until merge-ready or failure. Covers the wait-and-check loop that avoids manual sleep cycles.",
+      "has_evals": false,
+      "id": "ci-poll",
+      "name": "ci-poll"
+    },
+    {
+      "description": "Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt.",
+      "has_evals": true,
+      "id": "codebase-analyzer",
+      "name": "codebase-analyzer"
+    },
+    {
+      "description": "Maintain high code quality through formatting, linting, static analysis, and clean code principles. Use for rustfmt, clippy, cargo audit, code reviews, refactoring, and quality gates.",
+      "has_evals": true,
+      "id": "code-quality",
+      "name": "code-quality"
+    },
+    {
+      "description": "Git commit with enforced quality gates, proper message format, and safe push workflow",
+      "has_evals": true,
+      "id": "commit",
+      "name": "commit"
+    },
+    {
+      "description": "Systematic debugging approach for Rust async code with Tokio, Turso, and redb. Use when diagnosing runtime issues, performance problems, async deadlocks, database connection issues, or panics.",
+      "has_evals": true,
+      "id": "debug-troubleshoot",
+      "name": "debug-troubleshoot"
+    },
+    {
+      "description": "Execute and troubleshoot do-memory-cli commands for episode management, pattern analysis, and storage operations. Use this skill when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.",
+      "has_evals": true,
+      "id": "do-memory-cli-ops",
+      "name": "do-memory-cli-ops"
+    },
+    {
+      "description": "Use and troubleshoot the Memory MCP server for episodic memory retrieval and pattern analysis. Use when working with MCP server tools, validating the MCP implementation, or debugging MCP server issues.",
+      "has_evals": true,
+      "id": "do-memory-mcp",
+      "name": "do-memory-mcp"
+    },
+    {
+      "description": "Integrate external signal providers (AgentFS, audit trails, toolcall logs) into the reward system. Use when adding external reward signals, processing toolcall audit trails, or connecting third-party agent telemetry to episode scoring.",
+      "has_evals": true,
+      "id": "external-signal-provider",
+      "name": "external-signal-provider"
+    },
+    {
+      "description": "Systematic approach to implementing new features in the Rust memory system following project conventions. Use when adding new functionality with proper testing and documentation, maintaining code quality and test coverage.",
+      "has_evals": true,
+      "id": "feature-implement",
+      "name": "feature-implement"
+    },
+    {
+      "description": "Background reference for release prep (SemVer, changelog categories). For actual releases, ALWAYS use the release-guard skill and release-manager.sh ship — never manual gh release create.",
+      "has_evals": true,
+      "id": "github-release-best-practices",
+      "name": "github-release-best-practices"
+    },
+    {
+      "description": "Diagnose, fix, and optimize GitHub Actions workflows for Rust projects. Use when setting up CI/CD, troubleshooting workflow failures, optimizing build times, or ensuring best practices.",
+      "has_evals": true,
+      "id": "github-workflows",
+      "name": "github-workflows"
+    },
+    {
+      "description": "Manage git worktrees for efficient multi-branch development. Use when creating worktrees for feature branches, organizing worktree directories, cleaning up unused worktrees, or implementing worktree-based workflows.",
+      "has_evals": true,
+      "id": "git-worktree-manager",
+      "name": "git-worktree-manager"
+    },
+    {
+      "description": "Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm/iterative execution strategies, or coordination of multiple specialized agents.",
+      "has_evals": true,
+      "id": "goap-agent",
+      "name": "goap-agent"
+    },
+    {
+      "description": "Extract non-obvious session learnings into scoped AGENTS.md files",
+      "has_evals": true,
+      "id": "learn",
+      "name": "learn"
+    },
+    {
+      "description": "Execute workflow agents iteratively for refinement and progressive improvement until quality criteria are met. Use when tasks require repetitive refinement, multi-iteration improvements, progressive optimization, or feedback loops until convergence.",
+      "has_evals": true,
+      "id": "loop-agent",
+      "name": "loop-agent"
+    },
+    {
+      "description": "Retrieve relevant context from memory and preserve essential state. Use for episode retrieval, semantic search, or context compaction when window fills.",
+      "has_evals": true,
+      "id": "memory-context",
+      "name": "memory-context"
+    },
+    {
+      "description": "Universal agent memory harness — record, replay, and benchmark real agent sessions. Use when testing memory system learning, generating test fixtures, or benchmarking CLI performance.",
+      "has_evals": true,
+      "id": "memory-harness",
+      "name": "memory-harness"
+    },
+    {
+      "description": "Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI.",
+      "has_evals": true,
+      "id": "performance",
+      "name": "performance"
+    },
+    {
+      "description": "Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project",
+      "has_evals": true,
+      "id": "plan-gap-analysis",
+      "name": "plan-gap-analysis"
+    },
+    {
+      "description": "Comprehensive PR health check: merge state, CI status, conflicts, cancelled checks, AND all PR comments/reviews (human + bots). Requires addressing actionable feedback before recommending merge. Prevents 'CI green, ready to merge' when conflicts, pending comments, or Codecov/Codacy findings remain.",
+      "has_evals": true,
+      "id": "pr-readiness",
+      "name": "pr-readiness"
+    },
+    {
+      "description": "Monitor release cadence, detect drift, and coordinate resolution using GOAP orchestrator with swarm agents. Use when release drift is detected, PRs need release-preparation labels, or automated release coordination is required.",
+      "has_evals": true,
+      "id": "release-cadence-manager",
+      "name": "release-cadence-manager"
+    },
+    {
+      "description": "Canonical release workflow for this repo. One path every time: main green → release-manager ship → tag vX.Y.Z → release.yml. Use when the user says release, tag, publish, deploy, version, or cut a GitHub release.",
+      "has_evals": true,
+      "id": "release-guard",
+      "name": "release-guard"
+    },
+    {
+      "description": "Create new Claude Code skills with proper structure, YAML frontmatter, and best practices. Use when creating reusable knowledge modules, adding specialized guidance, or building domain-specific expertise.",
+      "has_evals": true,
+      "id": "skill-creator",
+      "name": "skill-creator"
+    },
+    {
+      "description": "Synchronize memories between Turso (durable) and redb (cache) storage layers. Use when cache appears stale, after failures, or during periodic maintenance.",
+      "has_evals": true,
+      "id": "storage-sync",
+      "name": "storage-sync"
+    },
+    {
+      "description": "Systematic approach to diagnosing and fixing failing tests in Rust projects. Use when tests fail and you need to diagnose root causes, fix async/await issues, handle race conditions, or resolve database connection problems.",
+      "has_evals": true,
+      "id": "test-fix",
+      "name": "test-fix"
+    },
+    {
+      "description": "Unified testing patterns for Rust: unit testing quality, episodic memory operations, and async/tokio code. Use when writing tests, reviewing test code, or diagnosing test failures.",
+      "has_evals": true,
+      "id": "test-patterns",
+      "name": "test-patterns"
+    },
+    {
+      "description": "Execute Rust tests (unit, integration, doc). Use cargo nextest for fast parallel execution.",
+      "has_evals": true,
+      "id": "test-runner",
+      "name": "test-runner"
+    },
+    {
+      "description": "Resolve queries or URLs into compact, LLM-ready markdown using a low-cost cascade. Prioritizes llms.txt for structured docs, uses web fetch/search tools for extraction. Use when you need to fetch documentation, resolve web URLs to markdown, search for technical content, or build context from web sources.",
+      "has_evals": true,
+      "id": "web-doc-resolver",
+      "name": "web-doc-resolver"
+    }
+  ]
+}

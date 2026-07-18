@@ -248,6 +248,33 @@ async fn test_warmup_functionality() {
 }
 
 #[test]
+fn test_verify_model_artifact_size_and_digest() {
+    use crate::embeddings::config::verify_model_artifact;
+    use sha2::{Digest, Sha256};
+    use std::io::Write;
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("model.bin");
+    let data = b"fixture-model-bytes";
+    {
+        let mut f = std::fs::File::create(&path).unwrap();
+        f.write_all(data).unwrap();
+    }
+    let digest = format!("{:x}", Sha256::digest(data));
+
+    verify_model_artifact(&path, Some(&digest), Some(1024)).unwrap();
+
+    let err = verify_model_artifact(&path, Some(&digest), Some(4)).unwrap_err();
+    assert!(
+        err.to_string().contains("exceeds max_artifact_bytes"),
+        "{err}"
+    );
+
+    let err = verify_model_artifact(&path, Some("deadbeef"), None).unwrap_err();
+    assert!(err.to_string().contains("digest mismatch"), "{err}");
+}
+
+#[test]
 fn test_utils_list_models() {
     let models = list_available_models();
     assert!(!models.is_empty());

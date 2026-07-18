@@ -2,12 +2,9 @@
 //! Helper functions for pattern accuracy tests
 //!
 
-use chrono::Duration;
 use do_memory_core::{
-    ComplexityLevel, Episode, ExecutionResult, ExecutionStep, Pattern, TaskContext, TaskOutcome,
-    TaskType,
+    ComplexityLevel, Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
-use uuid::Uuid;
 
 /// Create a test context for episodes
 pub fn create_test_context(domain: &str, language: Option<&str>) -> TaskContext {

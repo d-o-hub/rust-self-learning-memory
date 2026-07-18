@@ -1,7 +1,9 @@
 //! Configuration for embedding providers
 
 // Provider-specific configurations
-pub use provider_config::{AzureOpenAIConfig, CustomConfig, LocalConfig, ProviderConfig};
+pub use provider_config::{
+    AzureOpenAIConfig, CustomConfig, LocalConfig, ProviderConfig, verify_model_artifact,
+};
 
 // Provider enums (unchanged)
 pub use provider_enum::EmbeddingProvider;

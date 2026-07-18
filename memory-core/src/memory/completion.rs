@@ -253,16 +253,33 @@ impl SelfLearningMemory {
                         }
                     }
 
-                    // S1.4 / S1.4b: durable backend deletion with typed partial failures
+                    // S1.4 / S1.4b / F4.2: durable backend deletion + journal
                     let outcome = super::eviction::delete_evicted_from_backends(
                         &evicted_ids,
                         self.cache_storage.as_ref(),
                         self.turso_storage.as_ref(),
                     )
                     .await;
+                    let op_id = Uuid::new_v4();
                     if outcome.needs_reconciliation() {
                         let mut pending = self.pending_eviction_failures.write().await;
-                        pending.extend(outcome.failures);
+                        pending.extend(outcome.failures.clone());
+                        self.op_journal
+                            .record_eviction_failures(op_id, &outcome.failures)
+                            .await;
+                    } else if !outcome.evicted_ids.is_empty() {
+                        let mut backends = Vec::new();
+                        if self.cache_storage.is_some() {
+                            backends.push(super::eviction::EvictionBackend::Cache);
+                            backends.push(super::eviction::EvictionBackend::EmbeddingCache);
+                        }
+                        if self.turso_storage.is_some() {
+                            backends.push(super::eviction::EvictionBackend::Durable);
+                            backends.push(super::eviction::EvictionBackend::EmbeddingDurable);
+                        }
+                        self.op_journal
+                            .record_eviction_successes(op_id, &outcome.evicted_ids, &backends)
+                            .await;
                     }
 
                     // Phase 3: Remove evicted episodes from spatiotemporal index

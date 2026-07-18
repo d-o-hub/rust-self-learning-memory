@@ -26,7 +26,10 @@
 | W2.5b nightly upload-before-cleanup + ignore ratchet step | ✅ |
 | K3.3 skill-rules expansion + validate-skill-routes | ✅ partial |
 | D3.3/V5.1 plans + VALIDATION_LATEST + master record | ✅ |
-| F4 pilots | 🔵 Deferred only |
+| F4.1 provenance API | ✅ |
+| F4.2 operation journal | ✅ |
+| S1.5b/F4.3 model digests | ✅ |
+| F4.4 skill contract compiler | ✅ |
 
 ---
 

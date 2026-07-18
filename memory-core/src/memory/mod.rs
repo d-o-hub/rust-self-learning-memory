@@ -57,6 +57,7 @@ mod init;
 mod learning;
 mod management;
 mod monitoring;
+mod op_journal;
 pub mod pattern_api;
 mod pattern_search;
 mod persistence;
@@ -80,7 +81,11 @@ use std::sync::Arc;
 
 // Re-export pattern search types for public API
 pub use eviction::{EvictionBackend, EvictionBackendFailure, EvictionOutcome};
+pub use op_journal::{
+    JournalEntry, JournalOpKind, JournalOutcome, OperationJournal, SharedJournal,
+};
 pub use pattern_search::{PatternSearchResult, ScoreBreakdown, SearchConfig};
+pub use retrieval::ProvenancedRetrieval;
 pub use types::SelfLearningMemory;
 
 impl Default for SelfLearningMemory {

@@ -169,6 +169,13 @@ impl SelfLearningMemory {
             *pending = remaining.clone();
         }
 
+        // F4.2: re-journal remaining failures under a new op_id for audit trail
+        if !remaining.is_empty() {
+            self.op_journal
+                .record_eviction_failures(Uuid::new_v4(), &remaining)
+                .await;
+        }
+
         if remaining.is_empty() {
             info!("Capacity eviction reconciliation complete; no pending failures");
         } else {
@@ -179,6 +186,16 @@ impl SelfLearningMemory {
         }
 
         Ok(remaining)
+    }
+
+    /// Snapshot the durable operation journal (F4.2).
+    pub async fn operation_journal_snapshot(&self) -> Vec<super::op_journal::JournalEntry> {
+        self.op_journal.snapshot().await
+    }
+
+    /// Journal rows still needing repair (F4.2).
+    pub async fn operation_journal_pending(&self) -> Vec<super::op_journal::JournalEntry> {
+        self.op_journal.pending_repairs().await
     }
 }
 

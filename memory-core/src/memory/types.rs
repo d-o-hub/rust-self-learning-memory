@@ -163,6 +163,10 @@ pub struct SelfLearningMemory {
     /// Pending backend delete failures from capacity eviction
     pub(super) pending_eviction_failures:
         Arc<tokio::sync::RwLock<Vec<super::eviction::EvictionBackendFailure>>>,
+
+    // F4.2 — durable operation journal (eviction / delete intents)
+    /// Append-only journal for multi-backend repair
+    pub(super) op_journal: super::op_journal::SharedJournal,
 }
 
 impl SelfLearningMemory {

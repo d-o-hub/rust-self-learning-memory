@@ -167,6 +167,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         event_sender,
         event_emitter,
         pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
+        op_journal: Arc::new(super::op_journal::OperationJournal::default()),
     }
 }
 
@@ -327,6 +328,7 @@ pub fn with_storage(
         event_sender,
         event_emitter,
         pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
+        op_journal: Arc::new(super::op_journal::OperationJournal::default()),
     }
 }
 pub fn with_semantic_config(

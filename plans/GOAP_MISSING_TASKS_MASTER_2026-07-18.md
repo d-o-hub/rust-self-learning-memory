@@ -1,11 +1,10 @@
 # GOAP Missing Tasks Master — 2026-07-18
 
-**Status**: Code + plans complete — PR #873 open  
+**Status**: PR #873 merged; F4 remainder on `feat/goap-f4-remaining-missing-2026-07-18`  
 **Coordinator**: goap-agent + agent-coordination swarm  
-**Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`  
 **Workspace**: `0.1.36` (unreleased) · **Released tag**: `v0.1.35`  
 **Backlog source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
-**Open PR**: <https://github.com/d-o-hub/rust-self-learning-memory/pull/873>
+**Merged PR**: <https://github.com/d-o-hub/rust-self-learning-memory/pull/873>
 
 ---
 
@@ -36,11 +35,18 @@ Land the highest-value remaining packages from the 2026-07-14 improvements backl
 | Harness | #862–#869 | Closed; implementation already in #870 |
 | D3.3 / V5.1 | Plan hygiene | GOALS, ACTIONS, ROADMAP_ACTIVE, CURRENT, VALIDATION_LATEST, GOAP_STATE |
 
+## F4 remainder (post-#873)
+
+| ID | Package | Status |
+|----|---------|--------|
+| F4.1 | Provenanced retrieval API | ✅ Implemented |
+| F4.2 | Operation journal | ✅ Implemented |
+| S1.5b/F4.3 | Local model digests/size pins | ✅ Implemented |
+| F4.4 | Skill contract compiler | ✅ Implemented |
+
 ## Still deferred
 
-| Item | Reason |
-|------|--------|
-| **F4 pilots only** | Optional feature pilots; not blocking correctness/gates |
+None from the 2026-07-14 improvements backlog (F4 pilots implemented). Research backlog WG-108/110/125 remain optional product epics, not this plan's missing tasks.
 
 ## Prior waves (same day / series)
 

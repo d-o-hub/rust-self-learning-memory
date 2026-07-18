@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **F4.1** retrieval provenance API: `retrieve_relevant_context_with_provenance`
+  returns redacted `RetrievalProvenance` + latency (no raw query leakage).
+- **F4.2** operation journal for capacity-eviction multi-backend intents with
+  `operation_journal_snapshot` / `operation_journal_pending`.
+- **S1.5b / F4.3** local model integrity pins: `expected_sha256`,
+  `max_artifact_bytes`, `model_revision` on `LocalConfig` +
+  `verify_model_artifact`.
+- **F4.4** skill contract compiler: `scripts/compile-skill-contracts.sh` and
+  generated `.agents/skills/skill-catalog.generated.json`.
+
 ### Changed
 
 - Workspace version advanced to **0.1.36** after shipping `v0.1.35` so

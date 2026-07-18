@@ -36,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on PRs and never for Dependabot to avoid timeout issues
     if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
-    timeout-minutes: 15
+    # Must exceed Quick Check job timeout (25m) + runner queue/cold-start headroom.
+    # Historical failure: timeout-minutes:15 cancelled while Quick Check still ran (~15–20m).
+    timeout-minutes: 40
     steps:
       - name: Wait for Quick Check with timeout protection
         uses: lewagon/wait-on-check-action@1d57e2c51a58d812d2765e036a028b6bdb5a6154 # v1.8.1
@@ -44,8 +46,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
+          wait-interval: 15
           running-workflow-name: Quick Check
+          fail-on-no-checks: false
           allowed-conclusions: success,skipped,cancelled
 
   # Core testing - optimized for speed with proper timeouts

@@ -90,20 +90,32 @@ Common tool errors and fixes:
 
 ## CI/CD Friction Points
 
+### Check Quick Check Status CANCELLED after 15m
+
+**Problem**: `YAML Lint / Check Quick Check Status` (and similar gates) show **CANCELLED**; real lint/test jobs are **SKIPPED**.
+
+**Root cause**: Wait job `timeout-minutes: 15` < Quick Check wall time (queue + cold cache ~15–20m). GitHub reports job timeouts as cancelled.
+
+**Solution**:
+1. Do **not** gate cheap jobs (yaml-lint) on Quick Check.
+2. For expensive gates: `timeout-minutes: 40`, Quick Check job `25m`, `fail-on-no-checks: false`.
+3. `running-workflow-name` must match the **current** workflow `name:`.
+4. Concurrency group on `${{ github.sha }}` not only `head_ref`.
+
+See `github_actions_patterns.md` → Quick Check Wait Gate and LESSON-021.
+
 ### GitHub Actions Version Issues
 
 **Problem**: `wait-on-check-action@v1.5.0` deprecated, causes failures.
 
-**Solution**: Use `fountainhead/action-wait-for-check@v2.0.0`.
+**Solution**: Pin current SHA for `lewagon/wait-on-check-action` (repo standard) or equivalent maintained action; never float major tags without pin.
 
 ```yaml
-# Correct
-- uses: fountainhead/action-wait-for-check@v2.0.0
+# Correct (repo pattern — pin full SHA)
+- uses: lewagon/wait-on-check-action@1d57e2c51a58d812d2765e036a028b6bdb5a6154 # v1.8.1
   with:
-    checkName: ci-check
-
-# Avoid (deprecated)
-- uses: fountainhead/action-wait-for-check@v1.5.0
+    check-name: 'Quick PR Check (Format + Clippy)'
+    running-workflow-name: 'CI'  # must match workflow name:
 ```
 
 ### --all-features Libclang Dependency

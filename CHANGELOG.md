@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Workspace version advanced to **0.1.36** after shipping `v0.1.35` so
+  release-drift gates treat new commits as normal development
+  (`version_not_advanced` no longer applies).
+- **CHANGELOG uniqueness** (from PR #858): rename historical duplicate
+  `## [0.1.11]` / `## [0.1.10]` headings so `parse-changelog` / cargo-dist can
+  emit GitHub Release notes. `verify-release-state.sh` rejects duplicate
+  version headings.
+
+### Added
+
+- **S1.7 audit hardening**: recursive nested/array redaction (case-insensitive
+  field match); rotation size initialized from existing file metadata; bounded
+  non-blocking file writer thread with `dropped_writes()` overflow metrics.
+- **K3.1b skill-eval CI**: `.github/workflows/skill-evals.yml` runs schema
+  fixtures always, `run-evals.sh --changed` on PRs, full suite on weekly
+  schedule / workflow_dispatch.
+- **W2.1b gate contract CI parity**: `validate-gate-contract.sh --ci-parity`
+  verifies authoritative workflows (quick-check, ci, release-drift,
+  security/supply-chain, skill-evals); Skill Evals job runs the validator.
+
+### Fixed
+
+- Audit logger no longer reset in-memory size to `0` after opening an existing
+  log file (oversized logs now rotate on first write when rotation is enabled).
+
 ## [0.1.35] - 2026-07-17
 
 ### Added
@@ -2431,7 +2458,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+## [0.1.11-2026-01-04] - 2026-01-04
 
 
 
@@ -2542,7 +2569,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+## [0.1.10-2026-01-02] - 2026-01-02
 
 
 

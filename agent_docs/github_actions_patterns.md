@@ -41,6 +41,36 @@ if: ${{ always() && (github.event_name != 'pull_request' || needs.check-quick-ch
 
 **Pattern**: If job A only runs on PR → it's skipped on push → job B needing A skips → use `always()`
 
+## Quick Check Wait Gate (CRITICAL — 2026-07-18)
+
+Expensive workflows may wait for `Quick PR Check (Format + Clippy)` before running. **Cheap / path-filtered workflows must not.**
+
+| Rule | Detail |
+|------|--------|
+| Wait job timeout | **`timeout-minutes: 40`** minimum (not 15) |
+| Quick Check job timeout | **`timeout-minutes: 25`** |
+| `running-workflow-name` | Must match **this** workflow's `name:` field exactly |
+| `allowed-conclusions` | Prefer `success,skipped` (do not treat cancelled upstream as pass for expensive gates) |
+| `fail-on-no-checks` | `false` (avoid false failure when check not yet registered) |
+| Concurrency | `group: ${{ github.workflow }}-${{ github.sha }}` for wait workflows |
+| **YAML Lint / similar** | **No wait gate** — run yamllint/actionlint immediately |
+
+```yaml
+# WRONG — cancels after 15m while Quick Check still running
+timeout-minutes: 15
+# uses wait-on-check for a 5-second yamllint job
+
+# CORRECT for expensive jobs
+timeout-minutes: 40
+wait-interval: 15
+fail-on-no-checks: false
+running-workflow-name: 'CI'   # exact workflow name
+
+# CORRECT for yaml-lint: no check-quick-check job at all
+```
+
+Historical: PR #860 cancelled YAML Lint wait every push; #871 fixed name/concurrency only; permanent fix removed the gate (LESSON-021).
+
 ## Benchmark/Cargo.toml Sync
 
 **Rule**: `benchmarks.yml` `bench_configs` must mirror `benches/Cargo.toml` `[[bench]]` entries.

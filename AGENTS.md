@@ -56,6 +56,9 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
 - Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.
 - For CPU/token work, use `goap-agent` first, then `agent-coordination`, then the implementation/validation skills.
+- **Audit file accounting**: After opening an existing audit log, seed size tracking from file metadata (never reset to 0) or rotation will not fire until the new-write sum alone exceeds max size.
+- **Skill / gate CI**: After changing skills or `GATE_CONTRACT.md`, run `./scripts/run-evals.sh --fixtures` and `./scripts/validate-gate-contract.sh --ci-parity` locally; Skill Evals workflow enforces both on PRs.
+- **Post-release version**: After tagging `vX.Y.Z`, immediately bump workspace to the next patch before more `feat`/`fix` commits land. Equal workspace+tag with unreleased commits fails Release Drift as `version_not_advanced`.
 
 Before implementing: Read 3+ source files, check ADRs
 
@@ -276,7 +279,9 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 
 | Job | Time | Trigger |
 |-----|------|---------|
-| Quick Check | ~7 min | All PRs |
+| Quick Check | ~7–20 min (cold) | All PRs |
+
+**Quick Check wait gates (2026-07-18 / LESSON-021)**: Never use `timeout-minutes: 15` on `Check Quick Check Status`. Wait jobs need **40m**; Quick Check job **25m**. **Do not gate yaml-lint** on Quick Check — run it immediately. See `agent_docs/github_actions_patterns.md`.
 | Tests | ~12 min | All PRs |
 | MCP Build | ~10 min | All PRs |
 | Multi-Platform | ~12-15 min | All PRs |

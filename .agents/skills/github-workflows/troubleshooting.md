@@ -2,6 +2,20 @@
 
 ## Common Issues and Fixes
 
+### Issue 0: Check Quick Check Status CANCELLED after 15m
+
+**Symptom**: Workflow shows `Check Quick Check Status` **CANCELLED**; real jobs (yamllint, tests) **SKIPPED**.
+
+**Cause**: `timeout-minutes: 15` on `wait-on-check` while Quick Check takes 15–20m wall clock.
+
+**Fix**:
+- Cheap workflows (yaml-lint): **remove** the wait job entirely.
+- Expensive workflows: wait timeout **40m**, Quick Check job **25m**, `fail-on-no-checks: false`.
+- `running-workflow-name` = exact workflow `name:`.
+- Concurrency: `${{ github.workflow }}-${{ github.sha }}`.
+
+See LESSON-021 and `agent_docs/github_actions_patterns.md`.
+
 ### Issue 1: Cache Not Saved on Failure
 
 **Problem**: Cache is not saved when job fails.

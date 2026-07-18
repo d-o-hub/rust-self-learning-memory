@@ -173,6 +173,10 @@ if [[ "$CHECK_UNRELEASED" == "true" ]]; then
 fi
 
 # ─── 7. Check CHANGELOG.md has entry for current version ───
+# cargo-dist (release.yml) uses parse-changelog on root CHANGELOG.md.
+# Duplicate ## [X.Y.Z] headings make parse-changelog fail, so GitHub Releases
+# only get download tables and NO "## Release Notes" section (see v0.1.35).
+# Required format matches v0.1.34: ## Release Notes + version section + downloads.
 echo ""
 echo "── Checking CHANGELOG.md ──"
 if [[ -f "CHANGELOG.md" ]]; then
@@ -181,6 +185,44 @@ if [[ -f "CHANGELOG.md" ]]; then
   else
     echo "  ❌ CHANGELOG.md missing entry for v$WORKSPACE_VERSION"
     failures=$((failures + 1))
+  fi
+
+  # Unique Keep-a-Changelog version headings (exclude Unreleased and dated suffixes)
+  DUP_VERS=$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md \
+    | while IFS= read -r line; do
+        # strip ## [ and trailing ]
+        ver="${line#\#\# \[}"
+        ver="${ver%\]}"
+        printf '%s\n' "$ver"
+      done \
+    | sort | uniq -d || true)
+  if [[ -n "$DUP_VERS" ]]; then
+    echo "  ❌ CHANGELOG.md has duplicate version headings (breaks cargo-dist notes):"
+    while IFS= read -r dline; do
+      [[ -z "$dline" ]] && continue
+      echo "       ${dline}"
+    done <<<"$DUP_VERS"
+    failures=$((failures + 1))
+  else
+    echo "  ✅ No duplicate ## [X.Y.Z] version headings"
+  fi
+
+  if command -v parse-changelog >/dev/null 2>&1; then
+    if parse-changelog CHANGELOG.md >/dev/null 2>&1 \
+      && parse-changelog CHANGELOG.md "$WORKSPACE_VERSION" >/dev/null 2>&1; then
+      echo "  ✅ parse-changelog accepts CHANGELOG.md and extracts v$WORKSPACE_VERSION"
+    else
+      echo "  ❌ parse-changelog cannot parse CHANGELOG.md / v$WORKSPACE_VERSION"
+      echo "     cargo-dist will ship download tables only (no Release Notes)."
+      while IFS= read -r dline; do
+        [[ -z "$dline" ]] && continue
+        echo "       ${dline}"
+      done < <(parse-changelog CHANGELOG.md 2>&1 | head -3 || true)
+      failures=$((failures + 1))
+    fi
+  else
+    echo "  ⚠️  parse-changelog not installed (cargo install parse-changelog-cli)"
+    warnings=$((warnings + 1))
   fi
 else
   echo "  ⚠️  CHANGELOG.md not found"

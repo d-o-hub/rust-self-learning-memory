@@ -268,10 +268,10 @@ pub use indexing::{
     spatiotemporal::{IndexStats, QueryOptions, SpatiotemporalIndex, TimeBucket},
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
-pub use memory::SelfLearningMemory;
 pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
+pub use memory::{EvictionBackend, EvictionBackendFailure, EvictionOutcome, SelfLearningMemory};
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use patterns::{
     Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,
@@ -283,7 +283,9 @@ pub use patterns::{
 };
 pub use procedural::ProceduralMemory;
 pub use reflection::ReflectionGenerator;
-pub use retrieval::{CacheKey, CacheMetrics, QueryCache};
+pub use retrieval::{
+    CacheKey, CacheMetrics, QueryCache, RANKING_CONFIG_VERSION, RetrievalProvenance,
+};
 pub use reward::{
     AdaptiveRewardCalculator, DomainStatistics, DomainStatisticsCache, RewardCalculator,
 };

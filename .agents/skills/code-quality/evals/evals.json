@@ -6,9 +6,19 @@
       "exec": "test -f .agents/skills/code-quality/SKILL.md"
     },
     {
-      "name": "quality-script-exists",
-      "description": "code-quality.sh present",
-      "exec": "test -f ./scripts/code-quality.sh"
+      "name": "invokes-script",
+      "description": "References ./scripts/code-quality.sh",
+      "exec": "rg -q 'scripts/code-quality\\.sh' .agents/skills/code-quality/SKILL.md && test -f ./scripts/code-quality.sh"
+    },
+    {
+      "name": "clippy-deny-warnings",
+      "description": "Documents clippy with -D warnings / zero warnings",
+      "exec": "rg -q 'clippy|-D warnings|zero warning' .agents/skills/code-quality/SKILL.md"
+    },
+    {
+      "name": "no-blanket-allow-advice",
+      "description": "Does not recommend silencing clippy with #[allow] as default",
+      "exec": "! rg -qi 'use #\\[allow\\]|add #\\[allow\\(clippy' .agents/skills/code-quality/SKILL.md"
     }
   ]
 }

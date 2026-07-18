@@ -90,6 +90,56 @@ fn parse_percent_token(raw: &str) -> Option<f64> {
     value.trim().parse::<f64>().ok()
 }
 
+/// Packages accepted by targeted quality wrappers (W2.3a).
+const CANONICAL_PACKAGES: &[&str] = &[
+    "do-memory-core",
+    "do-memory-storage-redb",
+    "do-memory-storage-turso",
+    "do-memory-mcp",
+    "do-memory-cli",
+];
+
+/// Reject unknown package names before spawning cargo (W2.3a).
+fn assert_known_package(name: &str) {
+    // Legacy pre-rename names must fail with a clear migration message.
+    if matches!(
+        name,
+        "memory-core"
+            | "memory-mcp"
+            | "memory-cli"
+            | "memory-storage-redb"
+            | "memory-storage-turso"
+    ) {
+        panic!(
+            "HARNESS VIOLATION: package '{name}' is obsolete; use do-memory-core (or matching do-memory-* name)"
+        );
+    }
+    assert!(
+        CANONICAL_PACKAGES.contains(&name) || name.starts_with("do-memory-"),
+        "HARNESS VIOLATION: unknown package '{name}' — use do-memory-* names from cargo metadata"
+    );
+}
+
+/// W2.3b: never parse metric values from a failed subprocess.
+///
+/// Returns `Ok(stdout)` only when the process exited successfully. On failure
+/// returns an error string suitable for gate panics (does not soft-pass).
+fn require_successful_output(
+    command_label: &str,
+    status: std::process::ExitStatus,
+    stdout: &str,
+    stderr: &str,
+) -> Result<String, String> {
+    if status.success() {
+        Ok(stdout.to_string())
+    } else {
+        Err(format!(
+            "HARNESS VIOLATION: {command_label} exited non-zero (status={status}); \
+             refusing to parse metrics from failed output.\nstdout:\n{stdout}\nstderr:\n{stderr}"
+        ))
+    }
+}
+
 #[cfg(test)]
 mod unit_tests {
     use super::*;
@@ -169,6 +219,53 @@ TOTAL 250 20 92.00% 50 2 96.00%
 
         let coverage = parse_coverage_percentage(stdout, stderr);
         assert_eq!(coverage, 92.0);
+    }
+
+    #[test]
+    fn package_names_accept_do_memory_core() {
+        assert_known_package("do-memory-core");
+        assert_known_package("do-memory-cli");
+    }
+
+    #[test]
+    #[should_panic(expected = "HARNESS VIOLATION: package 'memory-core' is obsolete")]
+    fn package_names_reject_legacy_memory_core() {
+        assert_known_package("memory-core");
+    }
+
+    #[test]
+    #[should_panic(expected = "HARNESS VIOLATION: unknown package")]
+    fn package_names_reject_nonexistent() {
+        assert_known_package("not-a-real-crate");
+    }
+
+    #[test]
+    fn subprocess_success_allows_parse() {
+        let status = Command::new("true").status().expect("spawn true");
+        let out = require_successful_output("cargo test", status, "Quality Score: 0.80", "")
+            .expect("success path");
+        assert!(out.contains("0.80"));
+    }
+
+    #[test]
+    fn subprocess_failure_cannot_use_fallback_metrics() {
+        // Failed process status — must not soft-pass with high metric strings
+        let status = Command::new("false").status().expect("spawn false");
+        let err = require_successful_output(
+            "cargo test -p do-memory-core --test pattern_accuracy",
+            status,
+            "Quality Score: 0.99",
+            "error: test failed",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("HARNESS VIOLATION"),
+            "failed subprocess must surface harness violation, got: {err}"
+        );
+        assert!(
+            err.contains("refusing to parse metrics"),
+            "must refuse metric parse on failure: {err}"
+        );
     }
 }
 
@@ -319,6 +416,7 @@ fn quality_gate_pattern_accuracy() {
 
     // Run pattern accuracy tests and capture output
     println!("Running pattern accuracy tests...");
+    assert_known_package("do-memory-core");
     let output = Command::new("cargo")
         .args([
             "test",
@@ -336,8 +434,19 @@ fn quality_gate_pattern_accuracy() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Parse accuracy from test output
-    let accuracy = parse_pattern_accuracy(&stdout, &stderr);
+    // W2.3b: never parse metrics from a failed subprocess (no soft-pass baseline)
+    let stdout = match require_successful_output(
+        "cargo test -p do-memory-core --test pattern_accuracy",
+        output.status,
+        &stdout,
+        &stderr,
+    ) {
+        Ok(s) => s,
+        Err(msg) => panic!("{msg}"),
+    };
+
+    // Parse accuracy from successful test output only
+    let accuracy = parse_pattern_accuracy(&stdout, "");
 
     println!("Current Pattern Accuracy: {:.2}%", accuracy * 100.0);
     println!("Required: {threshold:.2}%");
@@ -622,6 +731,7 @@ fn quality_gate_performance_regression() {
     // For now, we ensure performance tests pass
 
     println!("Running performance tests...");
+    assert_known_package("do-memory-core");
     let output = Command::new("cargo")
         .args([
             "test",

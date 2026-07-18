@@ -1,7 +1,10 @@
 //! Comprehensive penetration tests for sandbox security
 //!
+//! Requires `--features sandbox-dev` (S1.1b: Node sandbox is quarantined).
+//!
 //! This test suite simulates real-world attack scenarios to validate
 //! the security hardening of the MCP sandbox.
+#![cfg(feature = "sandbox-dev")]
 //!
 //! Test categories:
 //! 1. Sandbox Escape Attempts

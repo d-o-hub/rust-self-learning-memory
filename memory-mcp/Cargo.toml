@@ -59,6 +59,10 @@ embeddings = []
 # See ADR-027: Strategy for Ignored Tests
 # Use: cargo test --features streaming-impl
 streaming-impl = []
+# Trusted-development-only Node code sandbox (S1.1b / ADR-073).
+# NOT enabled by default. Production MCP keeps execute_agent_code fail-closed.
+# Enable only for local experimentation: cargo test -p do-memory-mcp --features sandbox-dev
+sandbox-dev = []
 
 [dev-dependencies]
 jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }

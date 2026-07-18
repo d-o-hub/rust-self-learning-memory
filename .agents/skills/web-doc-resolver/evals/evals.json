@@ -1,9 +1,24 @@
 {
   "tests": [
     {
-      "name": "Documentation fetch",
-      "description": "Verify the agent can fetch and resolve web documentation.",
-      "exec": "test -f .agents/skills/web-doc-resolver/SKILL.md && rg -q . .agents/skills/web-doc-resolver/SKILL.md"
+      "name": "skill-md-present",
+      "description": "web-doc-resolver skill exists",
+      "exec": "test -f .agents/skills/web-doc-resolver/SKILL.md"
+    },
+    {
+      "name": "llms-txt-preference",
+      "description": "Prefers llms.txt or structured docs when available",
+      "exec": "rg -q 'llms\\.txt|structured' .agents/skills/web-doc-resolver/SKILL.md"
+    },
+    {
+      "name": "cascade-or-fetch",
+      "description": "Documents cascade/fetch resolution path",
+      "exec": "rg -q 'cascade|fetch|search|URL' .agents/skills/web-doc-resolver/SKILL.md"
+    },
+    {
+      "name": "markdown-output",
+      "description": "Targets compact markdown for LLM consumption",
+      "exec": "rg -q 'markdown|LLM|compact' .agents/skills/web-doc-resolver/SKILL.md"
     }
   ]
 }

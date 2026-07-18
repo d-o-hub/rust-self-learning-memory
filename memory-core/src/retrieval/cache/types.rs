@@ -16,11 +16,18 @@ pub const DEFAULT_CACHE_TTL: Duration = Duration::from_secs(60);
 /// Default maximum cache entries (10,000 queries)
 pub const DEFAULT_MAX_ENTRIES: usize = 10_000;
 
+/// Ranking / scoring configuration identity version for cache keys (ADR-074).
+///
+/// Bump when default scoring weights, MMR lambda handling, or hybrid blend
+/// formulas change in a way that would alter result ordering.
+pub const RANKING_CONFIG_VERSION: u32 = 1;
+
 /// Cache key combining query parameters.
 ///
-/// Identity includes all `TaskContext` fields that affect ranking so that
-/// context-distinct requests cannot share a cache entry incorrectly
-/// (ADR-074 partial / GOAP S1.2).
+/// Identity includes all `TaskContext` fields plus retrieval mode, provider,
+/// ranking config version, and index generation so context-distinct or
+/// configuration-distinct requests cannot share a cache entry incorrectly
+/// (ADR-074 / GOAP S1.2).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CacheKey {
     /// Query text or description
@@ -43,6 +50,14 @@ pub struct CacheKey {
     pub time_end: Option<i64>,
     /// Maximum results to return
     pub limit: usize,
+    /// Retrieval mode (`keyword` / `semantic` / `hybrid`)
+    pub retrieval_mode: String,
+    /// Stable embedding provider + model + dimension identity
+    pub provider_identity: String,
+    /// Ranking/scoring configuration version
+    pub ranking_config_version: u32,
+    /// Index/cache generation; entries from older generations never match
+    pub index_generation: u64,
 }
 
 impl CacheKey {
@@ -60,6 +75,10 @@ impl CacheKey {
             time_start: None,
             time_end: None,
             limit: 10,
+            retrieval_mode: String::new(),
+            provider_identity: String::new(),
+            ranking_config_version: RANKING_CONFIG_VERSION,
+            index_generation: 0,
         }
     }
 
@@ -150,6 +169,47 @@ impl CacheKey {
         self
     }
 
+    /// Set retrieval mode identity (keyword / semantic / hybrid)
+    #[must_use]
+    pub fn with_retrieval_mode(mut self, mode: impl Into<String>) -> Self {
+        let mode = mode.into();
+        self.retrieval_mode = mode.trim().to_ascii_lowercase();
+        self
+    }
+
+    /// Set embedding provider identity (`provider:model:dims`)
+    #[must_use]
+    pub fn with_provider_identity(mut self, identity: impl Into<String>) -> Self {
+        let identity = identity.into();
+        let trimmed = identity.trim();
+        self.provider_identity = if trimmed.is_empty() {
+            String::new()
+        } else {
+            trimmed.to_string()
+        };
+        self
+    }
+
+    /// Set ranking configuration version
+    #[must_use]
+    pub fn with_ranking_config_version(mut self, version: u32) -> Self {
+        self.ranking_config_version = version;
+        self
+    }
+
+    /// Set index/cache generation (must match current generation to hit)
+    #[must_use]
+    pub fn with_index_generation(mut self, generation: u64) -> Self {
+        self.index_generation = generation;
+        self
+    }
+
+    /// Opaque diagnostic fingerprint (not used for cache equality)
+    #[must_use]
+    pub fn fingerprint(&self) -> String {
+        format!("{:016x}", self.compute_hash())
+    }
+
     /// Compute hash for this cache key
     #[must_use]
     pub fn compute_hash(&self) -> u64 {
@@ -157,6 +217,65 @@ impl CacheKey {
         Hash::hash(self, &mut hasher);
         hasher.finish()
     }
+}
+
+/// Redacted retrieval provenance envelope (ADR-074 / S1.2c).
+///
+/// Safe for diagnostics: no raw query text or sensitive identifiers.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RetrievalProvenance {
+    /// Cache key identity version label
+    pub identity_version: u32,
+    /// Opaque fingerprint of the request identity
+    pub fingerprint: String,
+    /// Whether the query cache served this result
+    pub cache_hit: bool,
+    /// Index generation at request time
+    pub index_generation: u64,
+    /// Retrieval mode used
+    pub retrieval_mode: String,
+    /// Provider identity (no secrets)
+    pub provider_identity: String,
+    /// Ranking config version
+    pub ranking_config_version: u32,
+    /// Candidate count before limit truncation (if known)
+    pub candidate_count: Option<usize>,
+    /// Final result count
+    pub result_count: usize,
+}
+
+impl RetrievalProvenance {
+    /// Build provenance from a cache key and hit/miss outcome
+    #[must_use]
+    pub fn from_key(
+        key: &CacheKey,
+        cache_hit: bool,
+        candidate_count: Option<usize>,
+        result_count: usize,
+    ) -> Self {
+        Self {
+            identity_version: 1,
+            fingerprint: key.fingerprint(),
+            cache_hit,
+            index_generation: key.index_generation,
+            retrieval_mode: key.retrieval_mode.clone(),
+            provider_identity: key.provider_identity.clone(),
+            ranking_config_version: key.ranking_config_version,
+            candidate_count,
+            result_count,
+        }
+    }
+}
+
+/// Build a stable provider identity string for cache keys.
+#[must_use]
+pub fn provider_cache_identity(provider_kind: &str, model: &str, dimensions: usize) -> String {
+    format!(
+        "{}:{}:{}",
+        provider_kind.trim().to_ascii_lowercase(),
+        model.trim(),
+        dimensions
+    )
 }
 
 /// Stable string key for [`ComplexityLevel`] identity.

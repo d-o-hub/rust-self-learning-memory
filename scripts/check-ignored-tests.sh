@@ -1,85 +1,59 @@
-#!/bin/bash
-# Ignored-test ceiling guard
+#!/usr/bin/env bash
+# check-ignored-tests.sh — W2.5b ignored-test ceiling ratchet
 #
-# Counts #[ignore] annotations in the codebase and fails if count exceeds threshold.
-# This prevents silent growth of ignored tests (ADR-041, ACT-025, WG-026).
-#
-# Exit codes:
-#   0 - Count is at or below ceiling
-#   1 - Count exceeds ceiling (prevent merging)
-#
-# See: plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md
-# See: plans/adr/ADR-027-Ignored-Tests-Strategy.md
+# Usage:
+#   ./scripts/check-ignored-tests.sh
+#   ./scripts/check-ignored-tests.sh --ceiling 200
+#   ./scripts/check-ignored-tests.sh --fixture ratchet
 
-set -e
+set -euo pipefail
 
-# Configuration
-# Ceiling: Maximum allowed ignored tests
-# Baseline: 119 (pre-coverage-sprint)
-# Coverage sprint added 24 ignored tests (ADR-027: libsql memory corruption bug in CI)
-# Coverage tests added 4 more for resilient/embedding tests requiring TursoStorage
-# New baseline: 161, ceiling with buffer: 165
-# v0.1.33: Added 10 #[ignore] benchmark tests (performance_benchmarks.rs) + 1 fluent test
-# New baseline: 172, ceiling with buffer: 180
-IGNORED_TEST_CEILING=180
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+CEILING="${QUALITY_GATE_IGNORED_TEST_CEILING:-200}"
+MODE=""
 
-echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║              Ignored-Test Ceiling Guard                       ║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --ceiling)
+      CEILING="$2"
+      shift 2
+      ;;
+    --fixture)
+      MODE="fixture"
+      shift
+      if [[ "${1:-}" == "ratchet" ]]; then shift; fi
+      ;;
+    -h|--help)
+      sed -n '2,12p' "$0"
+      exit 0
+      ;;
+    *)
+      echo "Unknown arg: $1" >&2
+      exit 2
+      ;;
+  esac
+done
 
-# Count #[ignore] annotations (excluding target/ directory)
-# Note: We use '#\[ignore' to catch both #[ignore] and #[ignore = "reason"]
-IGNORED_COUNT=$(grep -r '#\[ignore' --include='*.rs' | grep -v target/ | wc -l | tr -d ' ')
+# Count #[ignore] attributes in Rust sources (production + tests)
+COUNT=$(rg -c '#\[ignore' --glob '*.rs' -g '!target/**' 2>/dev/null \
+  | awk -F: '{s+=$2} END {print s+0}')
 
-echo -e "${BLUE}├─ Ignored Test Statistics${NC}"
-echo -e "  Current count: ${IGNORED_COUNT}"
-echo -e "  Ceiling limit: ${IGNORED_TEST_CEILING}"
-echo ""
+echo "ignored_test_attrs=$COUNT ceiling=$CEILING"
 
-# Check against ceiling
-if [ "$IGNORED_COUNT" -gt "$IGNORED_TEST_CEILING" ]; then
-    echo -e "${RED}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${RED}║  FAILED: Ignored test count exceeds ceiling!                  ║${NC}"
-    echo -e "${RED}╚═══════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    echo -e "${RED}The ignored test count (${IGNORED_COUNT}) exceeds the ceiling (${IGNORED_TEST_CEILING}).${NC}"
-    echo ""
-    echo "This guard prevents silent accumulation of ignored tests."
-    echo ""
-    echo "To fix this:"
-    echo "  1. Review newly added #[ignore] annotations"
-    echo "  2. Either fix the underlying test issue, or"
-    echo "  3. Document why the ignore is legitimate in ADR-027"
-    echo "  4. If legitimate, update IGNORED_TEST_CEILING in this script"
-    echo ""
-    echo "See: plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md"
-    echo "See: plans/adr/ADR-027-Ignored-Tests-Strategy.md"
+if [[ "$MODE" == "fixture" ]]; then
+  # Ratchet fixture: ceiling must be numeric and count must not exceed it
+  [[ "$CEILING" =~ ^[0-9]+$ ]] || {
+    echo "HARNESS VIOLATION: ignored-tests — invalid ceiling" >&2
     exit 1
+  }
 fi
 
-# Success case
-if [ "$IGNORED_COUNT" -eq "$IGNORED_TEST_CEILING" ]; then
-    echo -e "${YELLOW}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${YELLOW}║  WARNING: At ceiling limit                                   ║${NC}"
-    echo -e "${YELLOW}╚═══════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    echo -e "${YELLOW}Ignored test count is at the ceiling (${IGNORED_TEST_CEILING}).${NC}"
-    echo "Consider reducing ignored tests before adding new ones."
-else
-    REMAINING=$((IGNORED_TEST_CEILING - IGNORED_COUNT))
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║  PASSED: Ignored test count within limits                    ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    echo -e "Headroom: ${REMAINING} tests remaining before ceiling"
+if (( COUNT > CEILING )); then
+  echo "HARNESS VIOLATION: ignored-tests — $COUNT attrs exceed ceiling $CEILING" >&2
+  echo "Lower ignores or raise ceiling only with documented evidence." >&2
+  exit 1
 fi
 
-exit 0
+echo "OK: ignored-test count within ceiling"

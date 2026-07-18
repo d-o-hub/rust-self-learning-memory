@@ -158,6 +158,11 @@ pub struct SelfLearningMemory {
     /// External event emitter for CloudEvents interoperability.
     /// Uses NoOpEmitter by default (zero overhead) unless configured.
     pub(super) event_emitter: Arc<dyn EventEmitter>,
+
+    // S1.4b — capacity eviction partial-failure reconciliation
+    /// Pending backend delete failures from capacity eviction
+    pub(super) pending_eviction_failures:
+        Arc<tokio::sync::RwLock<Vec<super::eviction::EvictionBackendFailure>>>,
 }
 
 impl SelfLearningMemory {

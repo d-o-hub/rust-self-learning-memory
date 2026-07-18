@@ -51,6 +51,7 @@ pub mod attribution;
 pub mod checkpoint;
 mod completion;
 mod episode;
+mod eviction;
 pub mod filters;
 mod init;
 mod learning;
@@ -78,6 +79,7 @@ use crate::types::MemoryConfig;
 use std::sync::Arc;
 
 // Re-export pattern search types for public API
+pub use eviction::{EvictionBackend, EvictionBackendFailure, EvictionOutcome};
 pub use pattern_search::{PatternSearchResult, ScoreBreakdown, SearchConfig};
 pub use types::SelfLearningMemory;
 

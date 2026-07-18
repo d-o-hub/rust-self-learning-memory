@@ -253,50 +253,16 @@ impl SelfLearningMemory {
                         }
                     }
 
-                    // S1.4: durable backend deletion (idempotent per backend)
-                    let mut backend_failures = 0usize;
-                    for evicted_id in &evicted_ids {
-                        if let Some(cache) = &self.cache_storage {
-                            if let Err(e) = cache.delete_episode(*evicted_id).await {
-                                backend_failures += 1;
-                                warn!(
-                                    episode_id = %evicted_id,
-                                    error = %e,
-                                    "Failed to delete capacity-evicted episode from cache storage"
-                                );
-                            }
-                        }
-                        if let Some(turso) = &self.turso_storage {
-                            if let Err(e) = turso.delete_episode(*evicted_id).await {
-                                backend_failures += 1;
-                                warn!(
-                                    episode_id = %evicted_id,
-                                    error = %e,
-                                    "Failed to delete capacity-evicted episode from durable storage"
-                                );
-                            }
-                        }
-                        // Drop embeddings for the evicted episode when backends support it
-                        let embedding_key = evicted_id.to_string();
-                        if let Some(cache) = &self.cache_storage {
-                            let _ = cache.delete_embedding(&embedding_key).await;
-                        }
-                        if let Some(turso) = &self.turso_storage {
-                            let _ = turso.delete_embedding(&embedding_key).await;
-                        }
-                    }
-
-                    if backend_failures > 0 {
-                        warn!(
-                            evicted_count = evicted_ids.len(),
-                            backend_failures,
-                            "Capacity eviction partially failed; in-memory map updated, backends may need reconciliation"
-                        );
-                    } else {
-                        info!(
-                            evicted_ids = ?evicted_ids,
-                            "Capacity-evicted episodes deleted from memory and storage backends"
-                        );
+                    // S1.4 / S1.4b: durable backend deletion with typed partial failures
+                    let outcome = super::eviction::delete_evicted_from_backends(
+                        &evicted_ids,
+                        self.cache_storage.as_ref(),
+                        self.turso_storage.as_ref(),
+                    )
+                    .await;
+                    if outcome.needs_reconciliation() {
+                        let mut pending = self.pending_eviction_failures.write().await;
+                        pending.extend(outcome.failures);
                     }
 
                     // Phase 3: Remove evicted episodes from spatiotemporal index

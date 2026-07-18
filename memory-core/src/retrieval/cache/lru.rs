@@ -17,6 +17,7 @@ use parking_lot::RwLock;
 use std::collections::{HashMap, HashSet};
 use std::num::NonZeroUsize;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 /// Query cache with LRU eviction and TTL
@@ -39,6 +40,9 @@ pub struct QueryCache {
     default_ttl: Duration,
     /// Maximum number of entries
     max_entries: usize,
+    /// Monotonic index generation (ADR-074). Bumped on mutation/invalidation so
+    /// keys from a prior generation cannot collide with post-mutation keys.
+    index_generation: AtomicU64,
 }
 
 impl QueryCache {
@@ -69,7 +73,21 @@ impl QueryCache {
             metrics: Arc::new(RwLock::new(metrics)),
             default_ttl: ttl,
             max_entries: safe_capacity,
+            index_generation: AtomicU64::new(0),
         }
+    }
+
+    /// Current index generation for cache identity (ADR-074 / S1.2).
+    #[must_use]
+    pub fn index_generation(&self) -> u64 {
+        self.index_generation.load(Ordering::Acquire)
+    }
+
+    /// Bump index generation after mutations that change retrieval results.
+    ///
+    /// Returns the new generation value.
+    pub fn bump_index_generation(&self) -> u64 {
+        self.index_generation.fetch_add(1, Ordering::AcqRel) + 1
     }
 
     /// Get a cached query result
@@ -181,6 +199,10 @@ impl QueryCache {
         let mut metrics = self.metrics.write();
         metrics.size = 0;
         metrics.invalidations += count as u64;
+
+        // ADR-074: bump generation so new keys cannot collide with pre-mutation entries
+        drop(metrics);
+        self.bump_index_generation();
     }
 
     /// Invalidate entries for a specific domain
@@ -220,6 +242,9 @@ impl QueryCache {
                 let mut metrics = self.metrics.write();
                 metrics.invalidations += count as u64;
             } // Write lock on metrics released here
+
+            // ADR-074: domain mutation still advances generation for identity
+            self.bump_index_generation();
         }
         // If domain not found, no-op (already cleared or never existed)
     }

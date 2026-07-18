@@ -1,15 +1,33 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b swarm)
+- **Last Updated**: 2026-07-18 (missing-tasks master: S1.2/S1.4b/S1.1b/K3.2/W2 guards)
 - **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)
-- **Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
-- **Active plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
-- **ADRs**: ADR-075/076 on main (PR #850); K3.1/W2.1 on main (PR #851)
+- **Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
+- **Active plan**: GOAP master missing-tasks plan (session plan.md)
+- **ADRs**: ADR-074 remainder; ADR-075/076 shipped; harness issues #862–#869 closed
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
 ---
 
-## Sprint 2026-07-18: S1.7 + K3.1b + W2.1b 🟡 PR
+## Sprint 2026-07-18c: Missing tasks Wave 1–3 🟡 PR
+
+| Package | Status |
+|---------|--------|
+| Wave 0 close harness issues #862–#869 | ✅ Closed (code was #870) |
+| S1.2 mode/provider/index generation + provenance | ✅ |
+| S1.4b eviction reconciliation | ✅ |
+| S1.1b sandbox-dev quarantine + reachability script | ✅ |
+| K3.2 high-risk skill behavioral evals | ✅ |
+| W2.2b/W2.4 guard scripts | ✅ |
+| W2.3b quality_gates subprocess success | ✅ |
+| W2.5 benchmark no dummy soft-pass + fail-on-alert | ✅ |
+| K3.3 skill-rules expansion + validate-skill-routes | ✅ |
+| D3.3 validate-plans.sh active-set/version/release | ✅ |
+| F4 pilots | 🔵 Optional |
+
+---
+
+## Sprint 2026-07-18: S1.7 + K3.1b + W2.1b ✅ MERGED (#860)
 
 | Package | Status |
 |---------|--------|
@@ -19,9 +37,9 @@
 | C4 W2.1b gate contract --ci-parity in CI | ✅ |
 | C5 tests + local gates | ✅ |
 | C6 plans + LESSONS-018/019 | ✅ |
-| C7 PR + CI green | 🟡 |
+| C7 PR + CI green | ✅ |
 
-**Deferred**: W2.4/W2.5, K3.2 behavioral fixtures, S1.2 provenance remainder, F4 pilots.
+**Deferred to later PRs**: W2.5, full K3.3 routes, D3.3 plan validators, F4 pilots.
 
 ---
 

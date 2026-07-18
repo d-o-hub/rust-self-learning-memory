@@ -237,6 +237,24 @@ impl ProviderConfig {
         }
     }
 
+    /// Stable cache/provider identity string (`kind:model:dims`) for ADR-074.
+    #[must_use]
+    pub fn cache_identity(&self) -> String {
+        let kind = match self {
+            Self::Local(_) => "local",
+            Self::OpenAI(_) => "openai",
+            Self::Mistral(_) => "mistral",
+            Self::AzureOpenAI(_) => "azure_openai",
+            Self::Custom(_) => "custom",
+        };
+        format!(
+            "{}:{}:{}",
+            kind,
+            self.model_name().trim(),
+            self.effective_dimension()
+        )
+    }
+
     /// Validate the configuration
     ///
     /// # Errors

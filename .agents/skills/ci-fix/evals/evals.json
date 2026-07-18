@@ -1,9 +1,24 @@
 {
   "tests": [
     {
-      "name": "CI failure diagnosis",
-      "description": "Verify the agent can diagnose CI failures.",
-      "exec": "test -f .agents/skills/ci-fix/SKILL.md && rg -q . .agents/skills/ci-fix/SKILL.md"
+      "name": "skill-md-present",
+      "description": "ci-fix skill exists",
+      "exec": "test -f .agents/skills/ci-fix/SKILL.md"
+    },
+    {
+      "name": "uses-gh-run-logs",
+      "description": "Documents gh run view / log-failed diagnosis",
+      "exec": "rg -q 'gh run|log-failed|workflow' .agents/skills/ci-fix/SKILL.md"
+    },
+    {
+      "name": "cancelled-not-success",
+      "description": "Does not treat CANCELLED required checks as success",
+      "exec": "! rg -qi 'CANCELLED.*(is success|means pass|is ok)' .agents/skills/ci-fix/SKILL.md"
+    },
+    {
+      "name": "positive-investigation-path",
+      "description": "Has actionable failure diagnosis steps",
+      "exec": "rg -q 'fail|timeout|clippy|test' .agents/skills/ci-fix/SKILL.md"
     }
   ]
 }

@@ -140,6 +140,151 @@ async fn s14_capacity_eviction_deletes_from_backends() {
     // Evicted episode must not remain in in-memory map.
     assert!(memory.get_episode(ep1).await.is_err());
     assert!(memory.get_episode(ep2).await.is_ok());
+    assert!(
+        memory.pending_eviction_failures().await.is_empty(),
+        "successful durable deletes leave no reconciliation debt"
+    );
+}
+
+/// Failing durable backend for S1.4b partial-failure reconciliation.
+#[derive(Default)]
+struct FlakyDurable {
+    fail_deletes: Mutex<bool>,
+    deleted: Mutex<HashSet<Uuid>>,
+    stored: Mutex<HashSet<Uuid>>,
+}
+
+#[async_trait]
+impl StorageBackend for FlakyDurable {
+    async fn store_episode(&self, episode: &Episode) -> Result<()> {
+        self.stored.lock().unwrap().insert(episode.episode_id);
+        Ok(())
+    }
+    async fn get_episode(&self, _id: Uuid) -> Result<Option<Episode>> {
+        Ok(None)
+    }
+    async fn delete_episode(&self, id: Uuid) -> Result<()> {
+        if *self.fail_deletes.lock().unwrap() {
+            return Err(do_memory_core::Error::Storage(
+                "injected delete failure".into(),
+            ));
+        }
+        self.deleted.lock().unwrap().insert(id);
+        Ok(())
+    }
+    async fn store_pattern(&self, _pattern: &Pattern) -> Result<()> {
+        Ok(())
+    }
+    async fn get_pattern(&self, _id: PatternId) -> Result<Option<Pattern>> {
+        Ok(None)
+    }
+    async fn store_heuristic(&self, _heuristic: &Heuristic) -> Result<()> {
+        Ok(())
+    }
+    async fn get_heuristic(&self, _id: Uuid) -> Result<Option<Heuristic>> {
+        Ok(None)
+    }
+    async fn query_episodes_since(
+        &self,
+        _since: chrono::DateTime<Utc>,
+        _limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        Ok(vec![])
+    }
+    async fn query_episodes_by_metadata(
+        &self,
+        _key: &str,
+        _value: &str,
+        _limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        Ok(vec![])
+    }
+    async fn store_embedding(&self, _id: &str, _embedding: Vec<f32>) -> Result<()> {
+        Ok(())
+    }
+    async fn get_embedding(&self, _id: &str) -> Result<Option<Vec<f32>>> {
+        Ok(None)
+    }
+    async fn delete_embedding(&self, _id: &str) -> Result<bool> {
+        Ok(true)
+    }
+    async fn store_embeddings_batch(&self, _embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
+        Ok(())
+    }
+    async fn get_embeddings_batch(&self, _ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
+        Ok(vec![])
+    }
+}
+
+#[tokio::test]
+async fn s14b_partial_eviction_failure_is_reconcilable() {
+    let cache = Arc::new(RecordingBackend::default());
+    let durable = Arc::new(FlakyDurable {
+        fail_deletes: Mutex::new(true),
+        ..Default::default()
+    });
+
+    let config = MemoryConfig {
+        max_episodes: Some(1),
+        eviction_policy: Some(EvictionPolicy::LRU),
+        quality_threshold: 0.0,
+        batch_config: None,
+        ..MemoryConfig::default()
+    };
+
+    let memory = SelfLearningMemory::with_storage(
+        config,
+        Arc::clone(&durable) as Arc<dyn StorageBackend>,
+        Arc::clone(&cache) as Arc<dyn StorageBackend>,
+    );
+
+    let ctx = TaskContext::default();
+    let ep1 = memory
+        .start_episode("first".into(), ctx.clone(), TaskType::Testing)
+        .await;
+    memory
+        .log_step(ep1, ExecutionStep::new(1, "tool".into(), "act".into()))
+        .await;
+    memory
+        .complete_episode(ep1, success_outcome())
+        .await
+        .expect("complete first");
+
+    let ep2 = memory
+        .start_episode("second".into(), ctx, TaskType::Testing)
+        .await;
+    memory
+        .log_step(ep2, ExecutionStep::new(1, "tool".into(), "act".into()))
+        .await;
+    memory
+        .complete_episode(ep2, success_outcome())
+        .await
+        .expect("complete second even when durable eviction fails");
+
+    let pending = memory.pending_eviction_failures().await;
+    assert!(
+        !pending.is_empty(),
+        "durable delete failure must surface as pending reconciliation"
+    );
+    assert!(
+        pending
+            .iter()
+            .any(|f| f.episode_id == ep1 && f.backend == do_memory_core::EvictionBackend::Durable),
+        "pending failure should reference durable backend for evicted episode"
+    );
+
+    // Heal the backend and reconcile.
+    *durable.fail_deletes.lock().unwrap() = false;
+    let remaining = memory
+        .reconcile_pending_evictions()
+        .await
+        .expect("reconcile");
+    assert!(remaining.is_empty(), "reconcile should clear failures");
+    assert!(memory.pending_eviction_failures().await.is_empty());
+    assert!(
+        durable.deleted.lock().unwrap().contains(&ep1),
+        "reconcile must delete the previously failed episode"
+    );
 }
 
 #[tokio::test]

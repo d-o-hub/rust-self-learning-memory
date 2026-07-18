@@ -1,5 +1,7 @@
 //! Security penetration tests for the code sandbox
 //!
+//! Requires `--features sandbox-dev` (S1.1b: Node sandbox is quarantined).
+//!
 //! These tests verify that the sandbox properly blocks various attack vectors:
 //! - File system access attempts
 //! - Network access attempts
@@ -10,6 +12,7 @@
 //! - Path traversal attacks
 //! - Environment variable access
 
+#![cfg(feature = "sandbox-dev")]
 #![allow(clippy::needless_raw_string_hashes)]
 
 use do_memory_mcp::{

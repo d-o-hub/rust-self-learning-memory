@@ -31,7 +31,10 @@ pub use chaotic_semantic_memory::retrieval::{
     normalize_scores,
 };
 
-pub use cache::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache};
+pub use cache::{
+    CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache,
+    RANKING_CONFIG_VERSION, RetrievalProvenance, provider_cache_identity,
+};
 pub use cascade::{CascadeConfig, CascadeResult, CascadeRetriever};
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
 pub use semantic_retriever::{HybridHit, ScoreComponents, SemanticRetriever};

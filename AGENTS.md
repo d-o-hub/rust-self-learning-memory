@@ -9,6 +9,7 @@
 - **Quality Gates**: `./scripts/quality-gates.sh`
 - **PR Readiness**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
+- **Release Cadence**: `release-cadence-manager` | `./scripts/release-cadence-manager.sh`
 
 Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
 Crates: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
@@ -21,6 +22,7 @@ Always use Skill + CLI first for high-frequency ops:
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
+| Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
 
 Before task tool: skill? → script? → Skill+CLI? → task tool?
 
@@ -272,6 +274,42 @@ git checkout main && git pull --ff-only
 
 **NEVER** manually `gh release create`, tag off main, or `--admin` merge.  
 **Tag format:** `v` + workspace `Cargo.toml` version (must match).
+
+## Release Cadence Management (MANDATORY when drift detected)
+
+**Skill:** `.agents/skills/release-cadence-manager/SKILL.md`  
+**CLI:** `./scripts/release-cadence-manager.sh`
+
+### When to Use
+- Release drift detected (`version_not_advanced`, `commit_limit`, `age_limit`)
+- PRs need `release-preparation` label
+- Automated release coordination required
+- Manual intervention needed for critical drift
+
+### Workflow
+1. **Detect drift**: `./scripts/release-cadence-manager.sh detect`
+2. **Resolve drift**: `./scripts/release-cadence-manager.sh resolve --pr {n}`
+3. **Validate**: `./scripts/release-cadence-manager.sh validate`
+
+### Swarm Agents
+- **Drift Detector Agent**: Monitors release cadence and detects drift
+- **Label Manager Agent**: Manages the `release-preparation` label
+- **Release Coordinator Agent**: Coordinates the release process
+- **Validation Agent**: Validates that all steps are completed correctly
+
+### Integration
+- Works with `release-guard` for release execution
+- Works with `analysis-swarm` for strategy selection
+- Works with `goap-agent` for orchestration
+- Works with `agent-coordination` for swarm management
+
+### Critical Conditions
+- `version_not_advanced`: Version in Cargo.toml matches latest tag
+- `tag_not_ancestor`: Latest tag is not an ancestor of HEAD
+- `invalid_next_version`: Version doesn't follow semver rules
+- `commit_limit`: Unreleased commits >= 30
+- `age_limit`: Release age >= 14 days
+- `no_release_tag`: No release tags found
 
 Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
 

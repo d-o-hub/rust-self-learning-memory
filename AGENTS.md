@@ -58,6 +58,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - For CPU/token work, use `goap-agent` first, then `agent-coordination`, then the implementation/validation skills.
 - **Audit file accounting**: After opening an existing audit log, seed size tracking from file metadata (never reset to 0) or rotation will not fire until the new-write sum alone exceeds max size.
 - **Skill / gate CI**: After changing skills or `GATE_CONTRACT.md`, run `./scripts/run-evals.sh --fixtures` and `./scripts/validate-gate-contract.sh --ci-parity` locally; Skill Evals workflow enforces both on PRs.
+- **Post-release version**: After tagging `vX.Y.Z`, immediately bump workspace to the next patch before more `feat`/`fix` commits land. Equal workspace+tag with unreleased commits fails Release Drift as `version_not_advanced`.
 
 Before implementing: Read 3+ source files, check ADRs
 

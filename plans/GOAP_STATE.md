@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
 - **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b swarm)
-- **Version**: `0.1.35` (workspace; GitHub Release published)
+- **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)
 - **Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
 - **Active plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
 - **ADRs**: ADR-075/076 on main (PR #850); K3.1/W2.1 on main (PR #851)

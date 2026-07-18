@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b)
 **Released Version**: v0.1.35
-**Workspace Version**: 0.1.35
+**Workspace Version**: 0.1.36 (post-release development; unreleased)
 **Active Sprint**: S1.7 audit hardening + skill/gate CI (K3.1b / W2.1b)
 **Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
 **Edition**: Rust 2024

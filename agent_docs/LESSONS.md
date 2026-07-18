@@ -112,6 +112,13 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
 - Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
 
+## LESSON-020: Advance workspace version immediately after a release tag
+
+- Issue: PR CI failed Release Drift with `version_not_advanced` after `v0.1.35` shipped while workspace remained `0.1.35` with new feat commits.
+- Root Cause: Drift policy treats equal workspace+latest-tag with unreleased commits as invalid (not “clean”).
+- Solution: Bump `[workspace.package] version` (and path-dep version pins + Cargo.lock) to the next SemVer step in the first post-release PR.
+- Key insight: Released Version docs stay at the tag; workspace version leads by one until the next ship.
+
 ## LESSON-018: Audit log size init + nested redaction (S1.7)
 
 - Issue: Audit file rotation tracked `current_file_size` as `0` after open even when the file already existed and was large; nested JSON secrets under objects/arrays were never redacted; `writeln!` ran on the async request path.

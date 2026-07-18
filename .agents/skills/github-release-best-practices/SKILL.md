@@ -16,10 +16,11 @@ Do **not** invent a second release path. This file is supporting context only.
 ## Prep before ship (via PR to main)
 
 1. Bump workspace `version` in root `Cargo.toml` (all members follow workspace).
-2. Update `CHANGELOG.md` with `## [X.Y.Z] - YYYY-MM-DD`.
+2. Update `CHANGELOG.md` with **exactly one** `## [X.Y.Z] - YYYY-MM-DD` (unique version headers — cargo-dist/parse-changelog fails silently on duplicates → empty GitHub Release body).
 3. Set **Released Version** in `plans/ROADMAPS/ROADMAP_ACTIVE.md` and `plans/STATUS/CURRENT.md` to `vX.Y.Z`.
 4. Merge PR; wait for main CI green.
 5. Run: `./scripts/release-manager.sh ship --execute`
+6. Confirm notes: `gh release view vX.Y.Z` shows `## Release Notes` content (v0.1.34/v0.1.35 format).
 
 ## Semver (0.x)
 

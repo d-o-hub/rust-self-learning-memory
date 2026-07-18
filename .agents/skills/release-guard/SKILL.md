@@ -73,9 +73,24 @@ Dry-run first if unsure:
 - **Git tag** is always `vX.Y.Z` (leading `v`).
 - **release.yml** rejects tag/version mismatch.
 - **ROADMAP_ACTIVE** and **STATUS/CURRENT** first `Released Version` line must equal `X.Y.Z` before ship (verify-release-state).
-- CHANGELOG must have `## [X.Y.Z]` section.
+- CHANGELOG must have **exactly one** `## [X.Y.Z]` section (unique version headers).
 
 Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (team convention).
+
+### CHANGELOG / GitHub Release notes (mandatory)
+
+`release.yml` (cargo-dist) uses **parse-changelog** to fill the GitHub Release body from `CHANGELOG.md`. Format must stay consistent with published releases (e.g. v0.1.34 / v0.1.35):
+
+1. **Unique** `## [X.Y.Z] - YYYY-MM-DD` headings — duplicate historical versions make parse-changelog fail and produce an **empty** release body.
+2. Ship notes under standard Keep a Changelog sections (`### Added`, `### Fixed`, …).
+3. After `wait-release`, confirm: `gh release view vX.Y.Z` shows `## Release Notes` content (not blank).
+4. If notes were empty: fix CHANGELOG uniqueness → `gh release edit vX.Y.Z --notes-file …` (or re-run notes step); land verify gate (PR #858 pattern) so it cannot regress.
+
+```bash
+# Pre-ship: changelog must parse for the version being tagged
+parse-changelog CHANGELOG.md "$VERSION" >/dev/null
+./scripts/verify-release-state.sh --check-unreleased
+```
 
 ## What `ship` does
 
@@ -102,6 +117,7 @@ Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (te
 | ci-check failed | Fix main CI first |
 | Tag already on remote | Do not retag; inspect `gh release view` |
 | release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
+| GitHub Release body empty / no notes | Duplicate `## [X.Y.Z]` in CHANGELOG (parse-changelog fails). Make versions unique; `gh release edit` to restore notes; keep gate in verify-release-state |
 | Want crates.io | Use publish workflow / team process after GitHub Release |
 
 ## Relationship to other skills

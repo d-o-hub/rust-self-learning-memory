@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "release-cadence-manager skill exists",
+      "exec": "test -f .agents/skills/release-cadence-manager/SKILL.md"
+    },
+    {
+      "name": "documents-detect-resolve",
+      "description": "Skill documents detect and resolve CLI entrypoints",
+      "exec": "rg -q 'release-cadence-manager.sh detect' .agents/skills/release-cadence-manager/SKILL.md && rg -q 'resolve' .agents/skills/release-cadence-manager/SKILL.md"
+    },
+    {
+      "name": "cli-script-executable",
+      "description": "release-cadence-manager.sh present and executable",
+      "exec": "test -x ./scripts/release-cadence-manager.sh"
+    },
+    {
+      "name": "cli-help-works",
+      "description": "CLI help documents detect/resolve/validate",
+      "exec": "./scripts/release-cadence-manager.sh help 2>&1 | rg -q 'detect|resolve|validate'"
+    },
+    {
+      "name": "no-gha-expr-in-bash-docs",
+      "description": "Integration docs warn not to put GHA expressions inside bash run blocks",
+      "exec": "rg -q 'if:' .agents/skills/release-cadence-manager/integration.md || rg -q 'release-preparation' .agents/skills/release-cadence-manager/SKILL.md"
+    },
+    {
+      "name": "release-drift-label-gate",
+      "description": "release-drift workflow skips enforce when release-preparation label is present",
+      "exec": "rg -q \"release-preparation\" .github/workflows/release-drift.yml && rg -q 'contains\\(github.event.pull_request.labels' .github/workflows/release-drift.yml"
+    }
+  ]
+}

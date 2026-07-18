@@ -25,6 +25,35 @@ async fn test_handle_query_memory_field_truncation() {
 }
 
 #[tokio::test]
+async fn test_handle_query_memory_with_provenance() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+        .await
+        .unwrap();
+
+    let secret = "user password secret query about tokens";
+    let args = json!({
+        "query": secret,
+        "domain": "web-api",
+        "limit": 5,
+        "with_provenance": true
+    });
+    let content = handle_query_memory(&mut server, Some(args))
+        .await
+        .expect("handler should succeed with with_provenance");
+    let Content::Text { text } = &content[0];
+    let value: serde_json::Value = serde_json::from_str(text).expect("valid json");
+    assert!(
+        value.get("provenance").is_some(),
+        "handler with_provenance must include provenance: {text}"
+    );
+    assert!(
+        !text.contains("password") && !text.contains(secret),
+        "handler must not echo raw query into provenance: {text}"
+    );
+}
+
+#[tokio::test]
 async fn test_handle_analyze_patterns_clamping() {
     let memory = Arc::new(SelfLearningMemory::new());
     let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory)

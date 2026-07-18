@@ -1,13 +1,29 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-18 (missing-tasks master: S1.2/S1.4b/S1.1b/K3.2/W2 + D3.3/V5.1)
+- **Last Updated**: 2026-07-18 (F4 complete; S1.1c NO-GO; no release)
 - **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)
-- **Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
-- **Open PR**: #873
+- **Branch**: `feat/goap-f4-remaining-missing-2026-07-18`
+- **Open PR**: #874 (F4 remainder); prior #873
 - **Active plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
-- **ADRs**: ADR-074 remainder shipped in this PR; ADR-075/076 shipped; harness #862–#869 closed
+- **ADRs**: ADR-074 remainder; ADR-075/076 shipped; harness #862–#869 closed
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Still deferred**: F4 pilots only
+- **Still deferred (this plan)**: *(empty)*
+- **Release**: ⛔ not in this sprint
+
+---
+
+## Sprint 2026-07-18d: F4 remainder 🟡 PR #874
+
+| Package | Status |
+|---------|--------|
+| F4.1 provenance API | ✅ Implemented + spike **GO** (`plans/STATUS/spikes/F4.1.json`) |
+| F4.2 operation journal | ✅ Implemented + spike **GO** |
+| S1.5b/F4.3 model digests | ✅ Implemented + spike **GO** |
+| F4.4 skill contract compiler | ✅ Implemented + spike **GO** |
+| S1.1c Wasmtime/WASI feasibility | ✅ Spike **NO-GO** — fail-closed retained; S1.1d blocked |
+| Spike schema README | ✅ `plans/STATUS/spikes/README.md` |
+| Plans / VALIDATION / GOALS / ACTIONS | ✅ Agent C update |
+| Release | ⛔ No release |
 
 ---
 
@@ -26,10 +42,7 @@
 | W2.5b nightly upload-before-cleanup + ignore ratchet step | ✅ |
 | K3.3 skill-rules expansion + validate-skill-routes | ✅ partial |
 | D3.3/V5.1 plans + VALIDATION_LATEST + master record | ✅ |
-| F4.1 provenance API | ✅ |
-| F4.2 operation journal | ✅ |
-| S1.5b/F4.3 model digests | ✅ |
-| F4.4 skill contract compiler | ✅ |
+| F4 pilots | ✅ Completed in sprint 2026-07-18d / PR #874 |
 
 ---
 
@@ -45,7 +58,7 @@
 | C6 plans + LESSONS-018/019 | ✅ |
 | C7 PR + CI green | ✅ |
 
-**Historical note**: Items once deferred here (W2.5, K3.3 partial, D3.3) landed in PR #873. Remaining deferred: F4 pilots only.
+**Historical note**: Items once deferred here (W2.5, K3.3 partial, D3.3) landed in PR #873; F4 pilots + S1.1c NO-GO in PR #874.
 
 ---
 

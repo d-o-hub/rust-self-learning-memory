@@ -1,23 +1,25 @@
 # GOAP Missing Tasks Master — 2026-07-18
 
-**Status**: PR #873 merged; F4 remainder on `feat/goap-f4-remaining-missing-2026-07-18`  
+**Status**: Wave 1–3 on PR #873; F4 remainder + spikes on PR #874 — **all missing implemented, no release**  
 **Coordinator**: goap-agent + agent-coordination swarm  
 **Workspace**: `0.1.36` (unreleased) · **Released tag**: `v0.1.35`  
 **Backlog source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
-**Merged PR**: <https://github.com/d-o-hub/rust-self-learning-memory/pull/873>
+**PRs**: <https://github.com/d-o-hub/rust-self-learning-memory/pull/873> · <https://github.com/d-o-hub/rust-self-learning-memory/pull/874>
 
 ---
 
 ## Goal
 
-Land the highest-value remaining packages from the 2026-07-14 improvements backlog after harness (#870), S1.7/K3.1b/W2.1b (#860), and release-cadence-manager (#872) merged to main.
+Land the highest-value remaining packages from the 2026-07-14 improvements backlog after harness (#870), S1.7/K3.1b/W2.1b (#860), and release-cadence-manager (#872) merged to main. **Do not cut a release** in this campaign.
 
 ## Swarm split
 
-| Agent | Ownership | Outcome |
-|-------|-----------|---------|
-| A | `scripts/run-evals.sh` (do not conflict) | Skill-eval runner work |
-| B | Plans D3.3/V5.1 + optional W2.5 nightly polish | This record + plan docs + nightly reorder |
+| Phase | Agent | Ownership | Outcome |
+|-------|-------|-----------|---------|
+| 1 | A | `scripts/run-evals.sh` (do not conflict) | Skill-eval runner work |
+| 1 | B | Plans D3.3/V5.1 + optional W2.5 nightly polish | Plan docs + nightly reorder |
+| 2 | A | `scripts/run-feature-spike.sh` (+ configs) when ready | Spike producer script |
+| 2 | C | Spike decisions + canonical plans | `plans/STATUS/spikes/*.json` + GOALS/ACTIONS/ROADMAP/CURRENT/GOAP_STATE/VALIDATION |
 
 ## Packages completed
 
@@ -34,19 +36,24 @@ Land the highest-value remaining packages from the 2026-07-14 improvements backl
 | W2.5 | Benchmark + nightly signal | No dummy soft-pass; `fail-on-alert: true`; nightly **upload before cleanup**; ignore-ceiling ratchet step |
 | Harness | #862–#869 | Closed; implementation already in #870 |
 | D3.3 / V5.1 | Plan hygiene | GOALS, ACTIONS, ROADMAP_ACTIVE, CURRENT, VALIDATION_LATEST, GOAP_STATE |
+| F4.1–F4.4 | Feature pilots | Implemented on PR #874; spikes **GO** |
+| S1.1c | Wasmtime/WASI spike | Decision artifact **NO-GO**; fail-closed retained |
 
-## F4 remainder (post-#873)
+## F4 remainder (PR #874)
 
-| ID | Package | Status |
-|----|---------|--------|
-| F4.1 | Provenanced retrieval API | ✅ Implemented |
-| F4.2 | Operation journal | ✅ Implemented |
-| S1.5b/F4.3 | Local model digests/size pins | ✅ Implemented |
-| F4.4 | Skill contract compiler | ✅ Implemented |
+| ID | Package | Status | Spike |
+|----|---------|--------|-------|
+| F4.1 | Provenanced retrieval API | ✅ Implemented | **GO** `plans/STATUS/spikes/F4.1.json` |
+| F4.2 | Operation journal | ✅ Implemented | **GO** `plans/STATUS/spikes/F4.2.json` |
+| S1.5b/F4.3 | Local model digests/size pins | ✅ Implemented | **GO** `plans/STATUS/spikes/F4.3.json` |
+| F4.4 | Skill contract compiler | ✅ Implemented | **GO** `plans/STATUS/spikes/F4.4.json` |
+| S1.1c | Wasmtime/WASI feasibility | ✅ Decided | **NO-GO** `plans/STATUS/spikes/S1.1c.json` |
+
+**Phase 2 note**: Spike producer `scripts/run-feature-spike.sh` + validator `scripts/validate-feature-spike.sh` used with configs `plans/spikes/*.toml` (single-line arrays; `force_decision` GO for F4.1–4, NO-GO for S1.1c). Schema: `plans/STATUS/spikes/README.md`.
 
 ## Still deferred
 
-None from the 2026-07-14 improvements backlog (F4 pilots implemented). Research backlog WG-108/110/125 remain optional product epics, not this plan's missing tasks.
+None from the 2026-07-14 improvements backlog (F4 pilots implemented; S1.1c NO-GO recorded). Research backlog WG-108/110/125 remain optional product epics, not this plan's missing tasks. **Release intentionally deferred.**
 
 ## Prior waves (same day / series)
 
@@ -55,7 +62,8 @@ None from the 2026-07-14 improvements backlog (F4 pilots implemented). Research 
 | S1.7 + K3.1b + W2.1b | `GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md` / #860 | ✅ Merged |
 | Harness engineering | `GOAP_EXECUTION_PLAN_HARNESS_SPRINT_2026-07-18.md` / #870 | ✅ Merged |
 | Release cadence manager | `GOAP_RELEASE_CADENCE_MANAGER.md` / #872 | ✅ Merged |
-| This master wave | PR #873 | 🟡 Open |
+| Master wave 1–3 | PR #873 | 🟡 Open |
+| F4 remainder + spikes | PR #874 | 🟡 Open |
 
 ## Acceptance snapshot
 
@@ -68,7 +76,9 @@ None from the 2026-07-14 improvements backlog (F4 pilots implemented). Research 
 | Benchmark fixtures | `./scripts/test-benchmark-workflow.sh --fixtures` |
 | Ignored ratchet | `./scripts/check-ignored-tests.sh` / `--fixture ratchet` |
 | Nightly order | Extract + upload artifacts **before** `cargo clean` |
-| Plans | Active set points at this master + PR #873; deferred = F4 only |
+| F4 spikes | `plans/STATUS/spikes/F4.{1,2,3,4}.json` decision=GO |
+| S1.1c spike | `plans/STATUS/spikes/S1.1c.json` decision=NO-GO |
+| Plans | Active set → this master + PR #874; deferred empty; **no release** |
 
 ## Validation pointer
 

@@ -1,0 +1,19 @@
+# Feature spike config for F4.1 — Retrieval provenance and explainability envelope
+# Consumed by: ./scripts/run-feature-spike.sh F4.1 --config plans/spikes/F4.1.toml --output plans/STATUS/spikes/F4.1.json
+# Note: run-feature-spike.sh parses TOML via Python tomllib (multi-line arrays OK).
+id = "F4.1"
+owner = "goap-agent"
+reviewers = ["maintainer", "goap-orchestrator"]
+commands = []
+required_files = ["memory-core/src/memory/retrieval/provenance_api.rs", "plans/adr/ADR-074-Retrieval-Provenance-Deterministic-Cache-Identity.md"]
+force_decision = "GO"
+result_notes = "Provenance envelope pilot: code on branch; no quality regression; P95 overhead target <2%. Decision GO for PR #874 (no release)."
+
+[metrics]
+target_p95_overhead_pct = 2.0
+quality_regression_allowed = false
+implementation_present = true
+
+[preapproved_thresholds]
+max_p95_overhead_pct = 2.0
+max_quality_regression = false

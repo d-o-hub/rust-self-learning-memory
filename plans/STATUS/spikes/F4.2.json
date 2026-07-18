@@ -1,0 +1,30 @@
+{
+  "id": "F4.2",
+  "commit": "41978c1e2b4757d5531d82558cc033706e2ccb78",
+  "timestamp": "2026-07-18T18:29:40Z",
+  "owner": "goap-agent",
+  "commands": [],
+  "metrics": {
+    "zero_resurrection": true,
+    "zero_duplicate_steps": true,
+    "implementation_present": true,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "Operation journal pilot: code on branch. Decision GO for PR #874 (no release)."
+  },
+  "preapproved_thresholds": {
+    "max_storage_growth_pct": 10.0,
+    "require_restart_fault_matrix": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "maintainer",
+    "goap-orchestrator"
+  ]
+}

@@ -1,9 +1,21 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-18 (missing-tasks master: S1.2/S1.4b/S1.1b/K3.2/W2)
-- **Status**: Active — PR #873 open (workspace 0.1.36, tag v0.1.35)
+- **Last Updated**: 2026-07-18 (F4 remainder PR #874; no release)
+- **Status**: Active — PR #874 open (workspace 0.1.36, tag v0.1.35); **no release**
 - **Plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
 - **Backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+
+## 2026-07-18d Goals (F4 remainder — PR #874)
+
+| Goal | Plan ref | Status |
+|------|----------|--------|
+| Provenanced retrieval API pilot | F4.1 | ✅ GO + code |
+| Operation journal pilot | F4.2 | ✅ GO + code |
+| Local model digests/size pins | S1.5b / F4.3 | ✅ GO + code |
+| Skill contract compiler pilot | F4.4 | ✅ GO + code |
+| Wasmtime/WASI feasibility spike | S1.1c | ✅ **NO-GO** (fail-closed) |
+| Spike decision artifacts | `plans/STATUS/spikes/` | ✅ |
+| PR + CI (no release) | — | 🟡 PR #874 |
 
 ## 2026-07-18c Goals (Missing tasks Wave 1–3 — PR #873)
 
@@ -18,9 +30,9 @@
 | quality_gates subprocess success | W2.3b | ✅ |
 | Benchmark signal + nightly upload/ratchet | W2.5 | ✅ |
 | Close harness issues #862–#869 | — | ✅ |
-| Plans hygiene (D3.3 / V5.1) | D3.3 | ✅ this update |
+| Plans hygiene (D3.3 / V5.1) | D3.3 | ✅ |
 | PR + all CI green | — | 🟡 PR #873 |
-| Feature pilots | F4 | 🔵 deferred only |
+| Feature pilots | F4 | ✅ Completed in PR #874 |
 
 ## 2026-07-18 Goals (S1.7 + K3.1b + W2.1b) ✅ MERGED (#860)
 

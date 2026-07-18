@@ -1,15 +1,32 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-18 (missing-tasks Wave 1–3 + D3.3/V5.1 docs)
+**Last Updated**: 2026-07-18 (F4 remainder PR #874; no release)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.36 (post-release development; unreleased)
-**Active Sprint**: GOAP missing tasks (S1.2/S1.4b/S1.1b/K3.2/W2 guards)
-**Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
-**Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
+**Active Sprint**: F4 remainder (provenanced retrieval, op journal, model digests, skill compiler)
+**Branch**: `feat/goap-f4-remaining-missing-2026-07-18`
+**Open PR**: [#874](https://github.com/d-o-hub/rust-self-learning-memory/pull/874)
 **Edition**: Rust 2024
-**Still deferred**: F4 pilots only
+**Still deferred (this plan)**: *(empty)* — research WG-108/110/125 optional product epics only
+**Release policy**: **no release** this sprint (stay on tag `v0.1.35`)
 
-## Sprint 2026-07-18c — Missing tasks (GOAP) 🟡 PR #873
+## Sprint 2026-07-18d — F4 remainder (GOAP) 🟡 PR #874
+
+| Item | Status |
+|------|--------|
+| F4.1 Provenanced retrieval API | ✅ Code + spike **GO** |
+| F4.2 Operation journal | ✅ Code + spike **GO** |
+| S1.5b/F4.3 Local model digests/size pins | ✅ Code + spike **GO** |
+| F4.4 Skill contract compiler | ✅ Code + spike **GO** |
+| S1.1c Wasmtime/WASI feasibility | ✅ Spike **NO-GO** (fail-closed retained) |
+| Spike artifacts | ✅ `plans/STATUS/spikes/*.json` |
+| Release | ⛔ Not in scope |
+
+**Master plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`  
+**Validation**: `plans/STATUS/VALIDATION_LATEST.md`  
+**Spikes**: `plans/STATUS/spikes/README.md`
+
+## Sprint 2026-07-18c — Missing tasks Wave 1–3 (GOAP) 🟡 PR #873
 
 | Item | Status |
 |------|--------|
@@ -23,10 +40,7 @@
 | W2.5 benchmark hard-fail + nightly upload/ratchet | ✅ |
 | D3.3/V5.1 plans alignment | ✅ |
 | PR + CI | 🟡 PR #873 |
-| F4 feature pilots | 🔵 Deferred |
-
-**Master plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`  
-**Validation**: `plans/STATUS/VALIDATION_LATEST.md`
+| F4 feature pilots | ✅ Moved to PR #874 |
 
 ## Sprint 2026-07-18 — Open PR swarm (GOAP) ✅ MERGED
 

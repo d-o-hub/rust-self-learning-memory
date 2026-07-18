@@ -189,6 +189,69 @@ async fn test_query_memory_with_sort_options() {
 }
 
 #[tokio::test]
+async fn test_query_memory_with_provenance_redacted() {
+    use crate::server::tools::core::QueryMemoryRequest;
+
+    let server = create_test_server().await;
+    let secret = "user password secret query about tokens".to_string();
+
+    let result = server
+        .query_memory_with_options(QueryMemoryRequest {
+            query: secret.clone(),
+            domain: "web-api".to_string(),
+            task_type: Some("debugging".to_string()),
+            limit: 5,
+            sort: "relevance".to_string(),
+            fields: None,
+            with_provenance: true,
+        })
+        .await
+        .expect("query_memory_with_options should succeed");
+
+    let provenance = result
+        .get("provenance")
+        .expect("with_provenance=true must return provenance");
+    assert!(
+        provenance
+            .get("fingerprint")
+            .and_then(|v| v.as_str())
+            .is_some_and(|s| !s.is_empty()),
+        "fingerprint must be non-empty"
+    );
+    assert!(
+        provenance
+            .get("cache_hit")
+            .and_then(|v| v.as_bool())
+            .is_some()
+    );
+    assert!(provenance.get("index_generation").is_some());
+    assert!(result.get("latency_ms").and_then(|v| v.as_u64()).is_some());
+
+    let debug = result.to_string();
+    assert!(
+        !debug.contains("password") && !debug.contains(&secret),
+        "provenance path must not embed raw query: {debug}"
+    );
+
+    // Default path must not include provenance
+    let plain = server
+        .query_memory(
+            "plain query".to_string(),
+            "web-api".to_string(),
+            None,
+            5,
+            "relevance".to_string(),
+            None,
+        )
+        .await
+        .expect("plain query_memory should succeed");
+    assert!(
+        plain.get("provenance").is_none(),
+        "default query_memory must omit provenance"
+    );
+}
+
+#[tokio::test]
 async fn test_analyze_patterns() {
     let server = create_test_server().await;
 

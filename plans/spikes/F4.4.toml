@@ -1,0 +1,18 @@
+# Feature spike config for F4.4 — Agent skill contract compiler
+# Note: run-feature-spike.sh parses TOML via Python tomllib (multi-line arrays OK).
+id = "F4.4"
+owner = "goap-agent"
+reviewers = ["maintainer", "goap-orchestrator"]
+commands = []
+required_files = ["scripts/compile-skill-contracts.sh", ".agents/skills/skill-catalog.generated.json"]
+force_decision = "GO"
+result_notes = "Skill contract compiler + generated catalog on branch. Decision GO for PR #874 (no release)."
+
+[metrics]
+target_changed_skill_runtime_s = 30
+generated_duplication_count = 0
+implementation_present = true
+
+[preapproved_thresholds]
+max_changed_skill_runtime_s = 30
+max_generated_duplication_count = 0

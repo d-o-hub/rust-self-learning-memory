@@ -1,12 +1,26 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-18 (missing-tasks master Wave 1–3)
+- **Last Updated**: 2026-07-18 (F4 remainder PR #874; no release)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 - **Active plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
 - **Backlog source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-- **Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
+- **Open PR**: [#874](https://github.com/d-o-hub/rust-self-learning-memory/pull/874) (F4); prior [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
 
-## Active Actions (2026-07-18c Missing tasks S1.2/S1.4b/S1.1b/K3.2/W2)
+## Active Actions (2026-07-18d F4 remainder + spikes)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-271 | F4.1 provenanced retrieval API | ✅ Done (spike GO) |
+| ACT-272 | F4.2 operation journal | ✅ Done (spike GO) |
+| ACT-273 | S1.5b/F4.3 local model digests/size pins | ✅ Done (spike GO) |
+| ACT-274 | F4.4 skill contract compiler | ✅ Done (spike GO) |
+| ACT-275 | S1.1c Wasmtime/WASI spike decision | ✅ **NO-GO** recorded |
+| ACT-276 | Spike artifacts under `plans/STATUS/spikes/` | ✅ Done |
+| ACT-277 | Canonical plans: F4 complete, deferred empty, no release | ✅ Done |
+| ACT-278 | PR #874 CI green + review + merge | 🟡 |
+| ACT-279 | Release | ⛔ Not in scope |
+
+## Completed Actions (2026-07-18c Missing tasks S1.2/S1.4b/S1.1b/K3.2/W2)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -21,7 +35,6 @@
 | ACT-268 | Close harness issues #862–#869 | ✅ Done |
 | ACT-269 | D3.3/V5.1 plans + VALIDATION_LATEST + master record | ✅ Done |
 | ACT-270 | PR #873 CI green + review + merge | 🟡 |
-| ACT-271 | F4 feature pilots | 🔵 Deferred |
 
 ## Completed Actions (2026-07-18 S1.7 + K3.1b + W2.1b — PR #860 ✅)
 

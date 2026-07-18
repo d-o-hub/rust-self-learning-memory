@@ -9,6 +9,25 @@ use serde_json::json;
 use std::collections::HashMap;
 use tracing::debug;
 
+/// Parameters for [`MemoryMCPServer::query_memory_with_options`].
+#[derive(Debug, Clone)]
+pub struct QueryMemoryRequest {
+    /// Search query
+    pub query: String,
+    /// Task domain
+    pub domain: String,
+    /// Optional task type filter
+    pub task_type: Option<String>,
+    /// Maximum results to return
+    pub limit: usize,
+    /// Sort order (relevance, newest, oldest, duration, success)
+    pub sort: String,
+    /// Optional field projection paths
+    pub fields: Option<Vec<String>>,
+    /// When true, include F4.1 redacted retrieval provenance (ADR-074)
+    pub with_provenance: bool,
+}
+
 /// Calculate a success score for an episode (higher = more successful)
 fn outcome_score(episode: &Episode) -> u8 {
     match &episode.outcome {
@@ -85,6 +104,37 @@ impl crate::server::MemoryMCPServer {
         sort: String,
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
+        self.query_memory_with_options(QueryMemoryRequest {
+            query,
+            domain,
+            task_type,
+            limit,
+            sort,
+            fields,
+            with_provenance: false,
+        })
+        .await
+    }
+
+    /// Execute `query_memory` with optional F4.1 redacted provenance (ADR-074).
+    ///
+    /// When `with_provenance` is true, the response includes a `provenance` object
+    /// (fingerprint, cache_hit, index_generation, etc.) and `latency_ms`. Raw query
+    /// text is never returned in provenance.
+    pub async fn query_memory_with_options(
+        &self,
+        request: QueryMemoryRequest,
+    ) -> Result<serde_json::Value> {
+        let QueryMemoryRequest {
+            query,
+            domain,
+            task_type,
+            limit,
+            sort,
+            fields,
+            with_provenance,
+        } = request;
+
         self.track_tool_usage("query_memory").await;
 
         // Start monitoring request
@@ -100,8 +150,8 @@ impl crate::server::MemoryMCPServer {
             .await;
 
         debug!(
-            "Querying memory: query='{}', domain='{}', limit={}",
-            query, domain, limit
+            "Querying memory: query='{}', domain='{}', limit={}, with_provenance={}",
+            query, domain, limit, with_provenance
         );
 
         let start = std::time::Instant::now();
@@ -119,10 +169,20 @@ impl crate::server::MemoryMCPServer {
         };
 
         // Query actual memory for relevant episodes (returns Vec<Arc<Episode>>)
-        let arc_episodes = self
-            .memory
-            .retrieve_relevant_context(query.clone(), context.clone(), limit)
-            .await;
+        // F4.1: use provenance path when diagnostics are requested.
+        let (arc_episodes, provenance) = if with_provenance {
+            let provenanced = self
+                .memory
+                .retrieve_relevant_context_with_provenance(query.clone(), context.clone(), limit)
+                .await;
+            (provenanced.episodes, Some(provenanced.provenance))
+        } else {
+            let episodes = self
+                .memory
+                .retrieve_relevant_context(query.clone(), context.clone(), limit)
+                .await;
+            (episodes, None)
+        };
 
         // Strict filtering: only return episodes that actually contain the query.
         // Dereference Arc<Episode> to access Episode fields
@@ -211,8 +271,8 @@ impl crate::server::MemoryMCPServer {
 
         debug!("Memory query completed in {}ms", duration_ms);
 
-        // Build result
-        let result = json!({
+        // Build result (optionally attach F4.1 redacted provenance)
+        let mut result = json!({
             "episodes": episodes,
             "patterns": patterns,
             "insights": {
@@ -221,6 +281,16 @@ impl crate::server::MemoryMCPServer {
                 "success_rate": avg_success_rate
             }
         });
+
+        if let Some(prov) = provenance {
+            if let Some(obj) = result.as_object_mut() {
+                obj.insert(
+                    "provenance".to_string(),
+                    serde_json::to_value(prov).unwrap_or(json!({})),
+                );
+                obj.insert("latency_ms".to_string(), json!(duration_ms));
+            }
+        }
 
         // Apply field projection if requested
         if let Some(field_list) = fields {

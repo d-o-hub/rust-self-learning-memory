@@ -2431,7 +2431,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+## [0.1.11-2026-01-04] - 2026-01-04
 
 
 
@@ -2542,7 +2542,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+## [0.1.10-2026-01-02] - 2026-01-02
 
 
 

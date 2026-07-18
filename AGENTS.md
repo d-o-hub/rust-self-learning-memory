@@ -217,27 +217,22 @@ Before ANY merge action, ALL of these must be true:
 □ Verified locally: cargo clippy --workspace -- -D warnings passes
 ```
 
-## Release Process (MANDATORY)
-**NEVER manually create GitHub releases.** Always use the automated workflow:
-1. Bump version in `Cargo.toml`
-2. Commit + push to `main`
-3. Push git tag: `git tag v<VERSION> && git push origin v<VERSION>`
-4. `release.yml` workflow triggers automatically (preflight → build → create release)
-5. Do NOT use `gh release create` manually — the workflow handles everything
+## Release Process (MANDATORY — one path only)
 
-**NEVER bypass the release pipeline.** The `release.yml` workflow runs preflight checks, builds artifacts, and creates the GitHub release. Skipping steps, creating releases manually, or using `--admin` to force a release bypasses critical safety checks (version validation, build verification, artifact signing).
+**Skill:** `.agents/skills/release-guard/SKILL.md`  
+**CLI:** `./scripts/release-manager.sh ship --execute`  
+**GitHub Release:** tag push → `.github/workflows/release.yml` (never `gh release create`)
 
-**Before tagging a release**, ALL of these must be true:
+```bash
+# After version + CHANGELOG + Released Version docs are on main and main CI is green:
+git checkout main && git pull --ff-only
+./scripts/release-manager.sh status
+./scripts/release-manager.sh ship --execute
+./scripts/release-manager.sh wait-release   # optional poll
 ```
-□ All PRs merged to main with CLEAN merge state
-□ All CI workflows on main pass (no failures, no pending)
-□ Pre-existing failures investigated and fixed (not ignored)
-□ CHANGELOG.md updated with all changes
-□ STATUS/CURRENT.md updated
-□ GOAP_STATE.md updated
-□ Local verification: cargo nextest run --all passes
-□ Local verification: cargo clippy --workspace -- -D warnings passes
-```
+
+**NEVER** manually `gh release create`, tag off main, or `--admin` merge.  
+**Tag format:** `v` + workspace `Cargo.toml` version (must match).
 
 Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
 
@@ -256,13 +251,9 @@ cargo build --features csm
 
 **Docs**: `agent_docs/csm_integration.md` for full cascade pipeline (WG-128 through WG-131).
 
-## Release Process (MANDATORY)
-**NEVER manually create GitHub releases.** Always use the automated workflow:
-1. Bump version in `Cargo.toml`
-2. Commit + push to `main`
-3. Push git tag: `git tag v<VERSION> && git push origin v<VERSION>`
-4. `release.yml` workflow triggers automatically (preflight → build → create release)
-5. Do NOT use `gh release create` manually — the workflow handles everything
+## Release Process
+
+Same as **Release Process (MANDATORY — one path only)** above: skill `release-guard`, CLI `./scripts/release-manager.sh ship --execute`, GitHub `release.yml` on tag push.
 
 **Future (2026)**: Migrate to Trusted Publishing (OIDC) to eliminate `CARGO_REGISTRY_TOKEN` secret.
 See <https://crates.io/docs/trusted-publishing> for setup.

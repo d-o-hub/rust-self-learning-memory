@@ -82,8 +82,24 @@
 - Workflow triggers `release-cadence-manager` skill
 - Workflow applies resolution strategies
 
-**Current State**:
+**CRITICAL**: GitHub Actions expressions (`contains(github.event...)`) may appear
+only in step **`if:`** conditions — never inside a bash `run:` block (causes
+`syntax error near unexpected token` and exit 2). Label membership must stay in
+`if:`.
+
+**Canonical gate** (hard fail skipped when `release-preparation` is already on the PR):
 ```yaml
+- name: Auto-label release-preparation
+  if: >-
+    github.event_name == 'pull_request' &&
+    steps.check.outputs.severity == 'critical' &&
+    !contains(github.event.pull_request.labels.*.name, 'release-preparation')
+  continue-on-error: true
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    ./scripts/release-cadence-manager.sh resolve --pr "${{ github.event.pull_request.number }}" || true
+
 - name: Enforce release cadence
   if: >-
     github.event_name == 'pull_request' &&
@@ -91,22 +107,8 @@
     !contains(github.event.pull_request.labels.*.name, 'release-preparation')
   run: |
     echo "Release cadence exceeded or version state is invalid: ${{ steps.check.outputs.reason }}" >&2
-    echo "A maintainer may label the release PR 'release-preparation' to break a cadence deadlock." >&2
+    echo "Label the PR 'release-preparation' or run: ./scripts/release-cadence-manager.sh resolve --pr N" >&2
     exit 1
-```
-
-**Enhanced State**:
-```yaml
-- name: Enforce release cadence
-  if: >-
-    github.event_name == 'pull_request' &&
-    steps.check.outputs.severity == 'critical'
-  run: |
-    # Use release-cadence-manager skill for resolution
-    ./scripts/release-cadence-manager.sh resolve \
-      --severity "${{ steps.check.outputs.severity }}" \
-      --reason "${{ steps.check.outputs.reason }}" \
-      --pr "${{ github.event.pull_request.number }}"
 ```
 
 ### release.yml Workflow

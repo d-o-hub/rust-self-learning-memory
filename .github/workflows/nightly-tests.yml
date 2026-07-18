@@ -95,6 +95,9 @@ jobs:
           fi
           echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
+      - name: Ignored-test ceiling ratchet
+        run: ./scripts/check-ignored-tests.sh
+
       - name: Run regular tests
         env:
           NEXTEST_EXPERIMENTAL_LIBTEST_JSON: 1
@@ -156,29 +159,7 @@ jobs:
           # yamllint enable rule:line-length
           RUST_TEST_THREADS: 2
 
-      - name: Cleanup artifacts after slow tests
-        if: always()
-        run: |
-          echo "=== Final cleanup after slow tests ==="
-          df -h
-          cargo clean || true
-          sudo rm -rf "$CARGO_TARGET_DIR"/debug
-          sudo rm -rf "$CARGO_TARGET_DIR"/release
-          sudo apt-get clean || true
-          sudo apt-get autoclean || true
-          df -h
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
-        with:
-          name: nightly-test-results
-          path: |
-            ${{ env.CARGO_TARGET_DIR }}/debug/nextest/
-            ${{ env.CARGO_TARGET_DIR }}/nextest/nightly/
-          if-no-files-found: warn
-          retention-days: 14
-
+      # W2.5b: extract + upload reports BEFORE cleanup (cargo clean wipes target/)
       - name: Extract trend metrics
         if: always()
         run: |
@@ -197,6 +178,17 @@ jobs:
              echo "${DATE},0,0,0,0" >> metrics/trends/test-stats-${DATE}.csv
           fi
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: nightly-test-results
+          path: |
+            ${{ env.CARGO_TARGET_DIR }}/debug/nextest/
+            ${{ env.CARGO_TARGET_DIR }}/nextest/nightly/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Upload trend metrics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
@@ -204,6 +196,18 @@ jobs:
           name: nightly-test-trends
           path: metrics/trends/
           retention-days: 90
+
+      - name: Cleanup artifacts after slow tests
+        if: always()
+        run: |
+          echo "=== Final cleanup after slow tests ==="
+          df -h
+          cargo clean || true
+          sudo rm -rf "$CARGO_TARGET_DIR"/debug
+          sudo rm -rf "$CARGO_TARGET_DIR"/release
+          sudo apt-get clean || true
+          sudo apt-get autoclean || true
+          df -h
 
   # Run slow tests on ubuntu only (macOS not needed for slow test coverage)
   cross-platform-slow-tests:

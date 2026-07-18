@@ -1,15 +1,17 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-18 (missing-tasks master: S1.2/S1.4b/S1.1b/K3.2/W2 guards)
+- **Last Updated**: 2026-07-18 (missing-tasks master: S1.2/S1.4b/S1.1b/K3.2/W2 + D3.3/V5.1)
 - **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)
 - **Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
-- **Active plan**: GOAP master missing-tasks plan (session plan.md)
-- **ADRs**: ADR-074 remainder; ADR-075/076 shipped; harness issues #862–#869 closed
+- **Open PR**: #873
+- **Active plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
+- **ADRs**: ADR-074 remainder shipped in this PR; ADR-075/076 shipped; harness #862–#869 closed
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+- **Still deferred**: F4 pilots only
 
 ---
 
-## Sprint 2026-07-18c: Missing tasks Wave 1–3 🟡 PR
+## Sprint 2026-07-18c: Missing tasks Wave 1–3 🟡 PR #873
 
 | Package | Status |
 |---------|--------|
@@ -20,10 +22,11 @@
 | K3.2 high-risk skill behavioral evals | ✅ |
 | W2.2b/W2.4 guard scripts | ✅ |
 | W2.3b quality_gates subprocess success | ✅ |
-| W2.5 benchmark no dummy soft-pass + fail-on-alert | ✅ |
-| K3.3 skill-rules expansion + validate-skill-routes | ✅ |
-| D3.3 validate-plans.sh active-set/version/release | ✅ |
-| F4 pilots | 🔵 Optional |
+| W2.5a benchmark no dummy soft-pass + fail-on-alert | ✅ |
+| W2.5b nightly upload-before-cleanup + ignore ratchet step | ✅ |
+| K3.3 skill-rules expansion + validate-skill-routes | ✅ partial |
+| D3.3/V5.1 plans + VALIDATION_LATEST + master record | ✅ |
+| F4 pilots | 🔵 Deferred only |
 
 ---
 
@@ -39,7 +42,7 @@
 | C6 plans + LESSONS-018/019 | ✅ |
 | C7 PR + CI green | ✅ |
 
-**Deferred to later PRs**: W2.5, full K3.3 routes, D3.3 plan validators, F4 pilots.
+**Historical note**: Items once deferred here (W2.5, K3.3 partial, D3.3) landed in PR #873. Remaining deferred: F4 pilots only.
 
 ---
 

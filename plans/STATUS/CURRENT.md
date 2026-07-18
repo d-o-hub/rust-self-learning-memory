@@ -1,13 +1,15 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-18 (missing-tasks Wave 1–3 implementation)
+**Last Updated**: 2026-07-18 (missing-tasks Wave 1–3 + D3.3/V5.1 docs)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.36 (post-release development; unreleased)
 **Active Sprint**: GOAP missing tasks (S1.2/S1.4b/S1.1b/K3.2/W2 guards)
 **Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
+**Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
 **Edition**: Rust 2024
+**Still deferred**: F4 pilots only
 
-## Sprint 2026-07-18c — Missing tasks (GOAP)
+## Sprint 2026-07-18c — Missing tasks (GOAP) 🟡 PR #873
 
 | Item | Status |
 |------|--------|
@@ -16,8 +18,15 @@
 | S1.4b eviction reconciliation | ✅ Code |
 | S1.1b sandbox-dev quarantine | ✅ Code |
 | K3.2 high-risk skill evals | ✅ Code |
-| W2 reachability / cancelled / release fixtures | ✅ Scripts |
-| PR + CI | 🟡 |
+| K3.3 skill-rules + validate-skill-routes | ✅ Partial |
+| W2.2b/W2.3b/W2.4 guards | ✅ Scripts |
+| W2.5 benchmark hard-fail + nightly upload/ratchet | ✅ |
+| D3.3/V5.1 plans alignment | ✅ |
+| PR + CI | 🟡 PR #873 |
+| F4 feature pilots | 🔵 Deferred |
+
+**Master plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`  
+**Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 
 ## Sprint 2026-07-18 — Open PR swarm (GOAP) ✅ MERGED
 
@@ -27,10 +36,9 @@
 | #870 | Harness engineering sprint | ✅ Merged |
 | #872 | release-cadence-manager | ✅ Merged |
 
-**Validation**: `plans/STATUS/VALIDATION_LATEST.md`  
 **Lessons**: LESSON-021 (yaml wait cancel), LESSON-022 (f32 insta)
 
-## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b
+## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b ✅ MERGED (#860)
 
 | Item | Status |
 |------|--------|
@@ -38,8 +46,7 @@
 | K3.1b `.github/workflows/skill-evals.yml` | ✅ |
 | W2.1b `validate-gate-contract.sh --ci-parity` | ✅ |
 | Plans + LESSONS-018/019 | ✅ |
-| Permanent CI: yaml-lint ungated + 40m waits | ✅ code |
-| PR + CI | 🟡 re-running |
+| Permanent CI: yaml-lint ungated + 40m waits | ✅ |
 
 **Plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
 
@@ -51,11 +58,11 @@
 | PR #851 K3.1 skill evals + W2.1 gate contract | ✅ Merged |
 | Tag `v0.1.35` + `release.yml` | ✅ |
 
-## Open Issues vs Codebase — 2026-07-17
+## Open Issues vs Codebase — 2026-07-17 (historical)
 
 | Issue | Verdict | Status |
 |-------|---------|--------|
-| #849 | Release cadence critical | 🟡 Tag v0.1.35 |
+| #849 | Release cadence critical | ✅ Tag v0.1.35 shipped |
 | #847 | ADR-075 durable complete + `episode fail` | ✅ Merged #850 |
 | #845 | ADR-076 pattern empty diagnostics | ✅ Merged #850 |
 | #846 | Config precedence docs | ✅ Merged #850 |

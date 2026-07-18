@@ -1,8 +1,8 @@
 # Plans Directory
 
-**Version**: workspace `0.1.35` (released tag `v0.1.34`)  
-**Sprint**: Open Issues GOAP 2026-07-17 (ADR-075 / ADR-076)  
-**Last Updated**: 2026-07-17
+**Version**: workspace `0.1.35` (released tag `v0.1.35`)  
+**Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7)  
+**Last Updated**: 2026-07-18
 
 ## Quick Navigation
 
@@ -15,7 +15,8 @@
 | [GOALS.md](GOALS.md) | GOAP goal index |
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot and execution plan state |
-| [GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md](GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md) | **Active**: open issues vs codebase + execution plan |
+| [GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md](GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md) | **Active**: post-release improvements backlog |
+| [GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md](GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md) | Completed: open issues vs codebase (v0.1.35) |
 
 ## Architecture
 

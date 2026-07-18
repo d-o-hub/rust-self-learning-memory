@@ -1,25 +1,26 @@
 # GOAP: Open GitHub Issues vs Codebase — 2026-07-17
 
-- **Status**: Active planning (analysis complete; implementation queued)
-- **Date**: 2026-07-17
+- **Status**: ✅ COMPLETE (implemented PR #850; shipped `v0.1.35` 2026-07-17; all four issues closed)
+- **Date**: 2026-07-17 (analysis); closeout 2026-07-18
 - **Analyst**: GOAP agent (codebase-verified)
-- **Workspace**: `0.1.35` on `main` (tag `v0.1.34` still latest release)
-- **Open issues**: 4 (`#845`, `#846`, `#847`, `#849`)
+- **Workspace**: `0.1.35` on `main` (tag `v0.1.35` published)
+- **Original open issues**: 4 (`#845`, `#846`, `#847`, `#849`) — all **closed**
 - **Related ADRs**: ADR-075, ADR-076, ADR-058 / release-drift plan for #843→#849
 - **Prior related closed**: `#831` (patterns), `#829` (config), `#830` (db-path), `#832` (storage_mode), `#843` (drift automation)
+- **Ship path**: `release-guard` + `./scripts/release-manager.sh ship --execute` → `release.yml`
 
 ---
 
 ## Executive Summary
 
-| Issue | Title (short) | Labels | Codebase verdict | Priority |
-|-------|---------------|--------|------------------|----------|
-| [#849](https://github.com/d-o-hub/rust-self-learning-memory/issues/849) | Release due: 27 commits / 6 days since v0.1.34 | `release-drift` | **Action required** — cut `v0.1.35` via `release.yml` | **P0** |
-| [#847](https://github.com/d-o-hub/rust-self-learning-memory/issues/847) | `episode complete … failure` no-op for stuck `in_progress` | `bug` | **Open defect on main** — silent durability / operator path | **P0** |
-| [#845](https://github.com/d-o-hub/rust-self-learning-memory/issues/845) | Pattern list empty after create→complete ingest | `bug` | **Mostly fixed on main (#831)**; residual UX/docs + release | **P1** |
-| [#846](https://github.com/d-o-hub/rust-self-learning-memory/issues/846) | Config format undocumented / hard to discover | `bug` | **Fixed on main (#829)**; needs release + minor doc polish | **P2** |
+| Issue | Title (short) | Labels | Codebase verdict | Final status |
+|-------|---------------|--------|------------------|--------------|
+| [#849](https://github.com/d-o-hub/rust-self-learning-memory/issues/849) | Release due: 27 commits / 6 days since v0.1.34 | `release-drift` | Cut `v0.1.35` via `release.yml` | ✅ Closed (tag shipped) |
+| [#847](https://github.com/d-o-hub/rust-self-learning-memory/issues/847) | `episode complete … failure` no-op for stuck `in_progress` | `bug` | ADR-075 durable complete + `episode fail` | ✅ Closed (PR #850) |
+| [#845](https://github.com/d-o-hub/rust-self-learning-memory/issues/845) | Pattern list empty after create→complete ingest | `bug` | ADR-076 empty diagnostics (+ #831) | ✅ Closed |
+| [#846](https://github.com/d-o-hub/rust-self-learning-memory/issues/846) | Config format undocumented / hard to discover | `bug` | Precedence docs (+ #829) | ✅ Closed |
 
-All four issues cite **v0.1.34** binaries. Workspace `main` already carries the v0.1.35 CLI UX patch and subsequent GOAP sprints, but **no `v0.1.35` tag exists**. Shipping the release unblocks #845/#846 for users and clears #849; #847 still needs code work on top of that.
+All four issues cited **v0.1.34** binaries. They were fixed on main (CLI UX + ADR-075/076) and **shipped in GitHub Release `v0.1.35`** (2026-07-17).
 
 ---
 
@@ -281,8 +282,6 @@ Older backlog issues (#770, #753, #749, #746, #743, #800, #799, etc.) are **not 
 
 ## Next Immediate Actions
 
-1. Accept ADR-075 and ADR-076  
-2. Choose release order (a) tag-now vs (b) #847-then-tag  
-3. Implement WP-B (#847)  
-4. Execute WP-A (#849)  
-5. WP-C / WP-D closeout comments on GitHub  
+~~1–5 completed:~~ ADR-075/076 accepted; WP-B (#847) in PR #850; WP-A (#849) tag shipped; issues #845–#849 closed.
+
+**Post-closeout (2026-07-18)**: post-release backlog in `GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`; merge PR #858 for parse-changelog uniqueness gate; keep single ship path (`release-guard`). 

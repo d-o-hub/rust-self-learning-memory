@@ -1,20 +1,31 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-17 (open issues analysis)
-- **Status**: Active — open-issue GOAP planned; implement #847 + release #849 next
-- **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
+- **Last Updated**: 2026-07-18 (v0.1.35 shipped)
+- **Status**: Active — post-release backlog (K3.1b / W2.1b / S1.7) + PR #858 hygiene
+- **Plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+- **Completed sprint plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
 
-## 2026-07-17 Goals (Open Issues → Code)
+## 2026-07-18 Goals (Post-Release)
+
+| Goal | Ref | Status |
+|------|-----|--------|
+| Merge parse-changelog uniqueness gate | PR #858 | 🟡 |
+| K3.1b skill-eval CI for changed skills | improvements K3.1b | ⏳ |
+| W2.1b gate-contract CI parity | improvements W2.1b | ⏳ |
+| S1.7 + remaining correctness backlog | improvements | ⏳ |
+| Keep release path single (`release-guard` + ship) | PR #855 | ✅ |
+
+## 2026-07-17 Goals (Open Issues → Code) ✅ COMPLETE
 
 | Goal | Issues | ADR | Status |
 |------|--------|-----|--------|
-| G1 Cut v0.1.35 via release.yml | #849 | ADR-058 / #843 plan | 🟡 P0 |
-| G2 Durable complete + operator fail path | #847 | ADR-075 | 🟡 P0 |
-| G3 Pattern empty-result UX + docs | #845 residual | ADR-076 | 🟡 P1 |
-| G4 Close config discoverability after release | #846 | (done #829) | 🟡 P2 |
-| G5 Verify #845/#846 against released binary | #845, #846 | — | ⏳ After G1 |
+| G1 Cut v0.1.35 via release.yml | #849 | ADR-058 / #843 plan | ✅ Shipped 2026-07-17 |
+| G2 Durable complete + operator fail path | #847 | ADR-075 | ✅ Merged + closed |
+| G3 Pattern empty-result UX + docs | #845 residual | ADR-076 | ✅ Merged + closed |
+| G4 Close config discoverability after release | #846 | (done #829) | ✅ Closed |
+| G5 Verify #845/#846 against released binary | #845, #846 | — | ✅ Closed on release |
 
-## 2026-07-16b Goals (S1.3–S1.6 + W2.2)
+## 2026-07-16b Goals (S1.3–S1.6 + W2.2) ✅ SHIPPED IN v0.1.35
 
 | Goal | Plan ref | Status |
 |------|----------|--------|
@@ -23,7 +34,7 @@
 | Embedding health truthful (mock ≠ available) | S1.5 | ✅ |
 | Retry queue timeout + first attempt free of permits | S1.6 | ✅ |
 | Advisory audit cannot soft-pass | W2.2 | ✅ |
-| Open PR + CI green + review | B8 | 🟡 |
+| Open PR + CI green + review | B8 | ✅ on main / in release |
 
 ## 2026-07-16 Missing Tasks Goals (PR #840 ✅)
 
@@ -36,7 +47,7 @@
 | Docs match fail-closed code execution | S1.1a / D3.2 | ✅ |
 | Open PR + review | A7 | ✅ PR #840 |
 
-## v0.1.35 Goals (CLI UX Patch — on main)
+## v0.1.35 Goals (CLI UX Patch) ✅ SHIPPED
 
 | Goal | Issues | Status |
 |------|--------|--------|
@@ -44,7 +55,7 @@
 | Project-local DB via --db-path / MEMORY_DB_PATH | #830 | ✅ |
 | Discoverable config (init, template, partial TOML) | #829 | ✅ |
 | Clear storage_mode story | #832 | ✅ |
-| Align version to 0.1.35 and cut release | #828 / #838 | 🟡 tag via release.yml after PR merges |
+| Align version to 0.1.35 and cut release | #828 / #838 / #849 | ✅ tag `v0.1.35` via release-manager + release.yml |
 
 ---
 

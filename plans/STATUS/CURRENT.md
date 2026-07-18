@@ -1,14 +1,14 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-17 (v0.1.35 release)
+**Last Updated**: 2026-07-18 (v0.1.35 shipped; post-release backlog)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.35
-**Active Sprint**: Tag + `release.yml` for v0.1.35
+**Active Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7) + PR hygiene (#858)
 **Branch**: `main`
 **Edition**: Rust 2024
-**Open GitHub issues**: #849 closes when tag `v0.1.35` is pushed
+**Open GitHub issues**: #857 (release-drift after post-tag commits; expected until next bump)
 
-## Release v0.1.35 — TAGGING
+## Release v0.1.35 — ✅ SHIPPED (2026-07-17)
 
 | Item | Status |
 |------|--------|
@@ -16,21 +16,26 @@
 | PR #851 K3.1 skill evals + W2.1 gate contract | ✅ Merged |
 | PR #852 CHANGELOG / status fold | ✅ Merged |
 | CHANGELOG `[0.1.35] - 2026-07-17` | ✅ |
-| Tag via `release-manager` + `release.yml` only | 🟡 Next |
+| Tag via `release-manager ship` + `release.yml` only | ✅ `v0.1.35` published |
+| PR #855 canonical ship path + release-guard skill | ✅ Merged |
+| GitHub Release notes format (v0.1.34 parity) | ✅ restored; PR #858 hardens parse gate |
+| Issues #849 / #847 / #845 / #846 | ✅ Closed |
 
-## Open Issues vs Codebase — 2026-07-17
+**Ship path (canonical)**: `.agents/skills/release-guard/SKILL.md` → `./scripts/release-manager.sh ship --execute` → `.github/workflows/release.yml`
+
+## Open Issues vs Codebase — 2026-07-17 ✅ COMPLETE
 
 | Issue | Verdict | Status |
 |-------|---------|--------|
-| #849 | Release cadence critical | 🟡 Tag v0.1.35 |
-| #847 | ADR-075 durable complete + `episode fail` | ✅ Merged #850 |
-| #845 | ADR-076 pattern empty diagnostics | ✅ Merged #850 |
-| #846 | Config precedence docs | ✅ Merged #850 |
+| #849 | Release cadence critical | ✅ Closed (tag shipped) |
+| #847 | ADR-075 durable complete + `episode fail` | ✅ Closed (merged #850 + release) |
+| #845 | ADR-076 pattern empty diagnostics | ✅ Closed |
+| #846 | Config precedence docs | ✅ Closed |
 
 **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`  
 **ADRs**: ADR-075, ADR-076
 
-## Release Drift Prevention #843 — ✅ CODE COMPLETE
+## Release Drift Prevention #843 — ✅ CODE COMPLETE + EXERCISED
 
 | Item | Status |
 |------|--------|
@@ -38,12 +43,12 @@
 | PR cadence warning/blocking thresholds | ✅ Implemented |
 | 30-commit / 14-day hard limit | ✅ Implemented |
 | Trusted release-preparation escape hatch | ✅ Implemented |
-| Exact-tag-only release manager | ✅ Implemented |
+| Exact-tag-only release manager | ✅ Implemented + used for v0.1.35 |
 | Shell regression suite | ✅ Passing |
 
 **Plan**: `plans/GOAP_RELEASE_DRIFT_ISSUE_843_2026-07-17.md`
 
-## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ SHIPPED IN v0.1.35
 
 | Item | Description | Status |
 |------|-------------|--------|
@@ -52,7 +57,7 @@
 | S1.5 | `EmbeddingHealth` Real/DegradedMock/Unavailable; mock fail-closed | ✅ Fixed |
 | S1.6 | Retry queue timeout; first attempt free; reject zero concurrency | ✅ Fixed |
 | W2.2 | cargo deny blocking; cargo audit no longer soft-passes | ✅ Fixed |
-| #843 | Release drift (25 commits since v0.1.34) | 🟡 Prevention complete; v0.1.35 release still required |
+| #843 / #849 | Release drift cleared by v0.1.35 tag | ✅ Released |
 
 **Plan**: `plans/GOAP_MISSING_TASKS_S13_S16_W22_2026-07-16.md`
 
@@ -76,7 +81,7 @@
 | #830 | `--db-path` / `MEMORY_DB_PATH` ignored for redb | ✅ Fixed |
 | #829 | Config file format hard to discover | ✅ Fixed |
 | #832 | `storage_mode` config placement unclear | ✅ Fixed |
-| #828 | Release drift | 🟡 Ready to tag after merge |
+| #828 | Release drift | ✅ Closed with v0.1.35 |
 
 **Plan**: `plans/GOAP_CLI_UX_PATCH_0.1.35_2026-07-15.md`
 
@@ -95,7 +100,7 @@
 | Feature | #746 | WASM compile-check CI job | ✅ Merged (PR #806) |
 | Publish | #770 | CLI crates.io publish prep | ✅ Merged (PR #806) |
 
-**All 6 open issues resolved.** Release tag v0.1.34 pending.
+**All 6 open issues resolved.** Tag `v0.1.34` published (superseded by `v0.1.35`).
 
 ## v0.1.33 Sprint — COMPLETE ✅ (Released)
 
@@ -117,21 +122,21 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.33 | — | ✅ Released (tag v0.1.33 exists) |
-| Latest GitHub release | v0.1.33 | — | ✅ Published |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.33` in workspace  |
-| Commits since v0.1.34 | 0 | 0 | ✅ Released |
+| Workspace version | 0.1.35 | — | ✅ Matches tag `v0.1.35` |
+| Latest GitHub release | v0.1.35 | — | ✅ Published 2026-07-17 |
+| Publishable workspace crates | 6 | — | ✅ Workspace `0.1.35` |
+| Commits since v0.1.35 | small (post-tag hygiene) | keep low | 🟡 #857 tracks until next bump |
 | Clippy (default features) | Clean | Clean | ✅ |
-| Clippy (--all-features) | Clean | 0 | ✅ Fixed in PR #675 |
-| Production src files >500 LOC | 0 | 0 | ✅ Fixed in PR #675 (wrapper_backend.rs split) |
+| Clippy (--all-features) | Clean | 0 | ✅ |
+| Production src files >500 LOC | 0 | 0 | ✅ |
 | Push CI (main) | Green | Green | ✅ |
-| Scheduled Security | Fixed | Green | ✅ WG-176 done (PR #675) |
-| Nightly Full Tests | Fixed | Green | ✅ WG-177 done (PR #675 disk cleanup) |
-| Mutation Testing | Fixed | Completes | ✅ WG-178 done (scoped to memory-core) |
+| Scheduled Security | Fixed | Green | ✅ |
+| Nightly Full Tests | Fixed | Green | ✅ |
+| Mutation Testing | Fixed | Completes | ✅ |
 | Fuzzing | Green | Green | ✅ |
-| Security audit (`cargo deny`) | Clean | Clean | ✅ Fixed in PR #682 |
-| Open issues | 10 | 0 | 🟡 (#773, #772, #771, #784, #770, +5 others) |
-| Open PRs | 3 | 0 | 🟡 PRs #787, #788, #789 |
+| Security audit (`cargo deny`) | Clean | Clean | ✅ |
+| Open issues | 1 (#857 drift after post-tag commits) | 0 | 🟡 expected until 0.1.36 prep |
+| Open PRs | #858 (+ optional #856) | 0 | 🟡 merge #858 for parse-changelog gate |
 | Fuzz harness | Present | Present | ✅ |
 | Property test files | 17 | ≥13 | ✅ |
 | MSRV | Rust 2024 / stable 1.95.0 | — | ✅ |

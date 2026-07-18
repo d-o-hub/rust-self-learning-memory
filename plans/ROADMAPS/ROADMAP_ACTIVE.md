@@ -1,49 +1,62 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-17 (v0.1.35 release prep)
-**Released Version**: v0.1.35 (crates.io + GitHub Release)
+**Last Updated**: 2026-07-18 (v0.1.35 shipped)
+**Released Version**: v0.1.35 (GitHub Release published 2026-07-17)
 **Workspace Version**: 0.1.35
-**Active Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7)
+**Active Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7) + PR #858
 **Branch**: `main`
 **Plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 **Backlog**: K3.1b, W2.1b, S1.7, W2.4/W2.5, S1.2 provenance remainder
+**Release path**: `release-guard` skill + `./scripts/release-manager.sh ship --execute` → `release.yml`
 
 ---
 
-## Sprint 2026-07-17 — Open GitHub Issues ✅ MERGED (#850)
+## Sprint 2026-07-18 — Post-Release Hygiene 🟡
+
+| Priority | Item | Status |
+|----------|------|--------|
+| P0 | PR #858 unique CHANGELOG versions + parse-changelog gate | 🟡 open |
+| P1 | K3.1b CI job for changed skill evals | ⏳ |
+| P1 | W2.1b full gate-contract CI parity | ⏳ |
+| P2 | S1.7, W2.4/W2.5, S1.2 remainder, F4 pilots | ⏳ |
+
+---
+
+## Sprint 2026-07-17 — Open GitHub Issues ✅ RELEASED (#850 + v0.1.35)
 
 **Focus**: Codebase-verify all open issues; ADR + GOAP execution; ship in v0.1.35.
 
 | Priority | Issue | Verdict | Status |
 |----------|-------|---------|--------|
-| P0 | #849 Release due | Tag `v0.1.35` via release.yml | 🟡 tagging |
-| P0 | #847 `episode complete failure` no-op | ADR-075 durable complete + `episode fail` | ✅ #850 |
-| P1 | #845 pattern list empty after ingest | ADR-076 empty diagnostics | ✅ #850 |
-| P2 | #846 config format undocumented | Precedence docs + config init | ✅ #850 |
+| P0 | #849 Release due | Tag `v0.1.35` via release.yml | ✅ Closed (shipped) |
+| P0 | #847 `episode complete failure` no-op | ADR-075 durable complete + `episode fail` | ✅ #850 + closed |
+| P1 | #845 pattern list empty after ingest | ADR-076 empty diagnostics | ✅ #850 + closed |
+| P2 | #846 config format undocumented | Precedence docs + config init | ✅ #850 + closed |
 
 **ADRs**: `plans/adr/ADR-075-CLI-Episode-Complete-Durability-and-Operator-Fail.md`, `plans/adr/ADR-076-Pattern-Extraction-Discoverability-and-Empty-Result-Semantics.md`
 
 ---
 
-## Release Engineering 2026-07-17 — Drift Prevention #843 ✅ CODE COMPLETE
+## Release Engineering 2026-07-17 — Drift Prevention #843 ✅ CODE COMPLETE + EXERCISED
 
 **Focus**: Replace alert-only release drift with enforceable cadence and one
-stable tracking issue.
+stable tracking issue. Canonical ship path consolidated in PR #855.
 
 | Item | Description | Status |
 |------|-------------|--------|
 | State model | Distinguish next development version from invalid tag state | ✅ |
 | Cadence gate | Warn at 20 commits/10 days; block at 30 commits/14 days | ✅ |
-| Issue lifecycle | Upsert one canonical issue; close it on matching tag push | ✅ |
+| Issue lifecycle | Upsert one canonical issue; close it on matching tag push | ✅ exercised (#849) |
 | Least privilege | PR calculation is read-only; issue writes use a separate job | ✅ |
-| Release safety | Tag clean, synchronized `main`; push only the exact tag | ✅ |
+| Release safety | Tag clean, synchronized `main`; push only the exact tag | ✅ used for v0.1.35 |
+| Single skill/CLI path | `release-guard` + `release-manager.sh ship` only | ✅ PR #855 |
 | Regression suite | Clean/warning/critical/SemVer/divergent-tag scenarios | ✅ |
 
 **Plan**: `plans/GOAP_RELEASE_DRIFT_ISSUE_843_2026-07-17.md`
 
 ---
 
-## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ SHIPPED IN v0.1.35
 
 **Focus**: Next deferred P0 correctness and gate tasks from the 2026-07-14 improvements plan.
 
@@ -54,7 +67,7 @@ stable tracking issue.
 | 3 | S1.5 | Embedding health Real / DegradedMock / Unavailable | ✅ |
 | 4 | S1.6 | Retry queue timeout + first-attempt free permits | ✅ |
 | 5 | W2.2 | Remove soft-pass cargo audit; deny blocking | ✅ |
-| 6 | Release | Tag v0.1.35 via release.yml | ⏳ After merge |
+| 6 | Release | Tag v0.1.35 via release.yml | ✅ Shipped |
 
 **Deferred**: S1.7, W2.1 remainder, W2.4/W2.5, K3 skill evals, F4 pilots, S1.2 provenance remainder.
 
@@ -74,35 +87,34 @@ stable tracking issue.
 
 ---
 
-## Sprint v0.1.35 — CLI UX Patch ✅ CODE COMPLETE (2026-07-15)
+## Sprint v0.1.35 — CLI UX Patch ✅ SHIPPED (2026-07-15 → tag 2026-07-17)
 
 **Focus**: Fix user-reported v0.1.34 CLI/config bugs; prevent recurrence with postcard/list/config tests.
 
 | Priority | Issue | Description | Status |
 |----------|-------|-------------|--------|
-| 1 (critical) | #831 | Pattern list/search empty after complete | ✅ Fixed + CLI verified |
-| 2 (critical) | #830 | `--db-path` / `MEMORY_DB_PATH` ignored | ✅ Fixed + CLI verified |
-| 3 (UX) | #829 | Config format undocumented / hard to discover | ✅ Fixed + CLI verified |
-| 4 (UX) | #832 | `storage_mode` vs config file unclear | ✅ Fixed + CLI verified |
-| 5 (release) | #828 | Release drift after v0.1.34 | 🟡 Version 0.1.35 ready; tag after merge |
+| 1 (critical) | #831 | Pattern list/search empty after complete | ✅ Fixed + shipped |
+| 2 (critical) | #830 | `--db-path` / `MEMORY_DB_PATH` ignored | ✅ Fixed + shipped |
+| 3 (UX) | #829 | Config format undocumented / hard to discover | ✅ Fixed + shipped |
+| 4 (UX) | #832 | `storage_mode` vs config file unclear | ✅ Fixed + shipped |
+| 5 (release) | #828 / #849 | Release drift after v0.1.34 | ✅ Tag `v0.1.35` shipped |
 
 **Prevention**: postcard Pattern roundtrip, redb get_all_patterns trait test, e2e cross-process pattern list, config partial/alias unit tests, example.toml.
 
 ---
 
-## Sprint v0.1.34 — IN PROGRESS (2026-07-08)
+## Sprint v0.1.34 — COMPLETE ✅ (Released; superseded by v0.1.35)
 
 **Focus**: Bug fix + CI modernization + release
-**PRs**: #787, #788, #789
-**Issues**: #773, #772, #771, #784, #770
+**PRs**: #787, #788, #789 (merged); tag `v0.1.34` published then superseded by `v0.1.35`
 
 | Priority | Issue | PR | Description | Status |
 |----------|-------|----|-------------|--------|
-| 1 (critical) | #773 | #787 | Fix local storage persistence bug | 🟡 In Review |
-| 2 (easy) | #771 | #788 | Document build dependencies | 🟡 In Review |
-| 3 (enabling) | #772 | #789 | CI publish pipeline: --locked, polling, deps | 🟡 In Review |
-| 4 (release) | #784 | — | Cut v0.1.34 release | ⏳ Blocked on #787 |
-| 5 (publish) | #770 | — | Publish to crates.io | ⏳ Blocked on #789 + release |
+| 1 (critical) | #773 | #787 | Fix local storage persistence bug | ✅ Merged |
+| 2 (easy) | #771 | #788 | Document build dependencies | ✅ Merged |
+| 3 (enabling) | #772 | #789 | CI publish pipeline: --locked, polling, deps | ✅ Merged |
+| 4 (release) | #784 | — | Cut v0.1.34 release | ✅ Done |
+| 5 (publish) | #770 | — | Publish to crates.io | ✅ Done |
 
 **2026 Best Practices Applied**:
 - `cargo publish --locked` for reproducible builds

@@ -1,11 +1,23 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-17 (merge main + K3.1/W2.1)
+- **Last Updated**: 2026-07-18 (v0.1.35 shipped)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
-- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (K3.1/W2.1)
+- **Active plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` (post-release: K3.1b / W2.1b / S1.7)
 - **ADRs**: ADR-075, ADR-076 (merged via PR #850)
+- **Release path**: `release-guard` + `./scripts/release-manager.sh ship --execute` only
 
-## Active Actions (2026-07-17b K3.1 + W2.1)
+## Active Actions (2026-07-18 Post-Release)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-250 | Merge PR #858 (unique CHANGELOG versions + parse-changelog gate) | 🟡 Open |
+| ACT-251 | Close or supersede optional PR #856 if #858 covers notes | ⏳ |
+| ACT-252 | K3.1b CI job for changed skill evals | ⏳ Backlog |
+| ACT-253 | W2.1b full gate-contract CI parity | ⏳ Backlog |
+| ACT-254 | S1.7 / W2.4 / W2.5 / S1.2 provenance remainder | ⏳ Backlog |
+| ACT-255 | When next version ready: bump workspace + ship via release-guard | ⏳ Not started |
+
+## Completed Actions (2026-07-17b K3.1 + W2.1 — PR #851 ✅ MERGED)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -13,10 +25,10 @@
 | ACT-241 | Migrate skill evals off noop true / legacy evals | ✅ Done |
 | ACT-242 | Gate contract matrix (W2.1a) | ✅ Done |
 | ACT-243 | validate-gate-contract.sh | ✅ Done |
-| ACT-244 | Open PR for K3.1/W2.1 | 🟡 PR #851 |
-| ACT-245 | CI wire K3.1b / W2.1b | ⏳ |
+| ACT-244 | Open PR for K3.1/W2.1 | ✅ PR #851 merged |
+| ACT-245 | CI wire K3.1b / W2.1b | ⏳ follow-up (ACT-252/253) |
 
-## Completed Actions (2026-07-17 Open Issues — PR #850 ✅ MERGED)
+## Completed Actions (2026-07-17 Open Issues — PR #850 + v0.1.35 ✅)
 
 | ID | Action | Issue / ADR | Status |
 |----|--------|-------------|--------|
@@ -25,14 +37,16 @@
 | ACT-222 | CLI verify-after-write; never false-green complete | #847 / ADR-075 | ✅ Done |
 | ACT-223 | `episode fail` operator path | #847 / ADR-075 | ✅ Done |
 | ACT-224 | Tests: durability mock backends + CLI command tests | #847 | ✅ Done |
-| ACT-225 | Cut v0.1.35 via release-manager + release.yml | #849 | ⏳ After release ready |
+| ACT-225 | Cut v0.1.35 via release-manager + release.yml | #849 | ✅ Done (published 2026-07-17) |
 | ACT-226 | Pattern empty-list human diagnostics | #845 / ADR-076 | ✅ Done |
 | ACT-227 | storage sync local-only messaging (not extraction) | #845 / ADR-076 | ✅ Done |
 | ACT-228 | Config precedence table polish | #846 | ✅ Done |
-| ACT-229 | Close/comment #845/#846 after release verification | #845, #846 | ⏳ After ACT-225 |
+| ACT-229 | Close/comment #845/#846 after release verification | #845, #846 | ✅ Closed |
 | ACT-230 | Open PR + all CI green + merge | swarm | ✅ PR #850 merged |
+| ACT-231 | Canonical release path (ship + release-guard skill) | PR #855 | ✅ Merged |
+| ACT-232 | Restore GitHub release notes to v0.1.34 format | release | ✅ Done on live release |
 
-## Active Actions (2026-07-16b S1.3–S1.6 + W2.2)
+## Completed Actions (2026-07-16b S1.3–S1.6 + W2.2)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -43,7 +57,7 @@
 | ACT-214 | W2.2 cargo deny blocking; remove audit soft-pass | ✅ Done |
 | ACT-215 | Tests + plans update | ✅ Done |
 | ACT-216 | Open PR + CI green + review | ✅ Code on main |
-| ACT-217 | Cut v0.1.35 via release.yml (superseded by ACT-225 / #849) | ⏳ |
+| ACT-217 | Cut v0.1.35 via release.yml (superseded by ACT-225 / #849) | ✅ Done (ACT-225) |
 
 ## Completed Actions (2026-07-16 Missing Tasks Swarm — PR #840)
 
@@ -56,9 +70,9 @@
 | ACT-204 | S1.1a/D3.2 fail-closed execute_agent_code + README fixes | ✅ Done |
 | ACT-205 | Update plans/ + CHANGELOG for swarm | ✅ Done |
 | ACT-206 | Open PR + CI green + review | ✅ Done (PR #840) |
-| ACT-207 | Cut v0.1.35 via release.yml (closes #828/#838) | ⏳ After release ready |
+| ACT-207 | Cut v0.1.35 via release.yml (closes #828/#838) | ✅ Done (ACT-225) |
 
-## Completed Actions (v0.1.35 CLI UX Patch — on main)
+## Completed Actions (v0.1.35 CLI UX Patch — shipped)
 
 | ID | Action | Status |
 |----|--------|--------|
@@ -69,7 +83,7 @@
 | ACT-194 | Prevention tests (postcard, redb list, loader, snapshot) | ✅ Done |
 | ACT-195 | Update plans/ + CHANGELOG for 0.1.35 | ✅ Done |
 | ACT-196 | Open PR + CI green + merge | ✅ Done (merged) |
-| ACT-197 | Cut v0.1.35 via release.yml (closes #828) | ⏳ After release ready |
+| ACT-197 | Cut v0.1.35 via release.yml (closes #828) | ✅ Done (ACT-225) |
 
 ### Prevention permanently (do not regress)
 - Never `#[serde(tag=)]` on postcard types

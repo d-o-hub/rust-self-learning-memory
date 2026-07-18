@@ -1,27 +1,31 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-17 (post #850/#851 merge; cutting v0.1.35)
-- **Version**: `0.1.35` (workspace; tagging next)
+- **Last Updated**: 2026-07-18 (v0.1.35 released; post-release backlog)
+- **Version**: `0.1.35` (workspace = tag `v0.1.35`)
 - **Branch**: `main`
-- **Active plan**: release v0.1.35 → then improvements backlog
+- **Active plan**: post-release backlog (K3.1b / W2.1b / S1.7) + open PR hygiene
 - **ADRs**: ADR-075/076 on main (PR #850); K3.1/W2.1 on main (PR #851)
 - **Source backlog**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
+- **Release path**: `release-guard` skill + `./scripts/release-manager.sh ship --execute` only
 
 ---
 
-## Release v0.1.35 🟡 IN PROGRESS
+## Release v0.1.35 ✅ SHIPPED
 
 | Step | Status |
 |------|--------|
-| Merge #850 open issues | ✅ |
+| Merge #850 open issues (ADR-075/076) | ✅ |
 | Merge #851 K3.1/W2.1 | ✅ |
-| CHANGELOG + STATUS for tag | 🟡 |
-| Main CI green on release SHA | ⏳ |
-| `./scripts/release-manager.sh full --execute` | ⏳ |
-| `release.yml` GitHub Release | ⏳ |
-| Close #849 | ⏳ |
+| CHANGELOG + STATUS for tag | ✅ |
+| Main CI green on release SHA | ✅ |
+| `./scripts/release-manager.sh ship --execute` | ✅ |
+| `release.yml` GitHub Release | ✅ published 2026-07-17 |
+| Close #849 | ✅ |
+| Close #845 / #846 / #847 | ✅ |
+| Canonical release path (PR #855) | ✅ `release-manager` ship + release-guard skill |
+| Release notes format | ✅ restored to match v0.1.34 (`## Release Notes` + downloads); open PR #858 hardens parse-changelog uniqueness gate |
 
-**Deferred after tag**: K3.1b, W2.1b, S1.7, W2.4/W2.5, K3.2, S1.2 provenance, F4 pilots.
+**Next (post-release)**: K3.1b, W2.1b, S1.7, W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots. Open PRs: #858 (changelog parse gate), optional #856.
 
 ---
 
@@ -38,16 +42,16 @@
 
 ---
 
-## Sprint 2026-07-17: Open Issues Analysis + Implementation ✅ MERGED (PR #850)
+## Sprint 2026-07-17: Open Issues Analysis + Implementation ✅ MERGED + RELEASED
 
-**Goal**: Map open issues to codebase; implement ADR-075/076; land PR with CI green.
+**Goal**: Map open issues to codebase; implement ADR-075/076; land PR with CI green; ship v0.1.35.
 
 | Package | Issue | Codebase verdict | Status |
 |---------|-------|------------------|--------|
-| I1 | #849 release drift | Tag `v0.1.35` via `release.yml` | ⏳ After release ready |
-| I2 | #847 complete failure no-op | ADR-075 hard-fail store + CLI verify + `episode fail` | ✅ Merged |
-| I3 | #845 pattern list empty after ingest | ADR-076 empty diagnostics + sync messaging | ✅ Merged |
-| I4 | #846 config format undocumented | Precedence table README + CONFIGURATION_GUIDE | ✅ Merged |
+| I1 | #849 release drift | Tag `v0.1.35` via `release.yml` | ✅ Released + closed |
+| I2 | #847 complete failure no-op | ADR-075 hard-fail store + CLI verify + `episode fail` | ✅ Merged + closed |
+| I3 | #845 pattern list empty after ingest | ADR-076 empty diagnostics + sync messaging | ✅ Merged + closed |
+| I4 | #846 config format undocumented | Precedence table README + CONFIGURATION_GUIDE | ✅ Merged + closed |
 
 **Plan**: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`
 
@@ -66,9 +70,9 @@
 | B5 W2.2 false-green audit | improvements W2.2 | ✅ cargo deny blocking; no soft-pass |
 | B6 tests | — | ✅ s13/s14 + retry + local embedding |
 | B7 plans | — | ✅ |
-| B8 PR + CI + review | — | 🟡 |
+| B8 PR + CI + review | — | ✅ on main / shipped in v0.1.35 |
 
-**Deferred** (next PRs): S1.7, W2.1 remainder, W2.4/W2.5, K3 skill evals, F4 pilots, S1.2 provenance remainder, v0.1.35 tag via `release.yml`.
+**Deferred** (next PRs): S1.7, W2.1b, W2.4/W2.5, K3.1b skill-eval CI, F4 pilots, S1.2 provenance remainder.
 
 ---
 
@@ -102,7 +106,7 @@
 
 **Prevention tasks landed**: postcard Pattern test, redb trait list test, e2e pattern list assert, loader partial/alias tests, example config, CHANGELOG.
 
-**Next**: commit → PR → CI green → merge → `release.yml` for v0.1.35 (never manual release).
+**Outcome**: merged to main; shipped in `v0.1.35` via release-manager ship + `release.yml`.
 
 ---
 

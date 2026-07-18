@@ -21,8 +21,8 @@ pub use ground_truth::{
 pub use helpers::{create_episodes_with_patterns, create_test_context};
 
 use do_memory_core::{
-    patterns::{EffectivenessTracker, PatternMetrics, PatternValidator, ValidationConfig},
     Pattern, PatternExtractor,
+    patterns::{EffectivenessTracker, PatternMetrics, PatternValidator, ValidationConfig},
 };
 use uuid::Uuid;
 
@@ -77,12 +77,7 @@ fn should_extract_patterns_by_type_with_minimum_accuracy() {
     // Then: Each pattern type should meet minimum accuracy thresholds
     // Test data: (pattern_name, ground_truth, min_true_positives, min_quality_score)
     let test_cases = vec![
-        (
-            "ToolSequence",
-            create_ground_truth_tool_sequences(),
-            3,
-            0.5,
-        ),
+        ("ToolSequence", create_ground_truth_tool_sequences(), 3, 0.5),
         (
             "DecisionPoint",
             create_ground_truth_decision_points(),

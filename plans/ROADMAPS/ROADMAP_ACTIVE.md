@@ -1,13 +1,31 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-18 (missing-tasks master Wave 1–3)
+**Last Updated**: 2026-07-18 (F4 remainder PR #874; no release)
 **Released Version**: v0.1.35 (crates.io + GitHub Release)
 **Workspace Version**: 0.1.36 (unreleased development)
-**Active Sprint**: GOAP missing tasks S1.2 / S1.4b / S1.1b / K3.2 / W2 guards
-**Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
-**Open PR**: [#873](https://github.com/d-o-hub/rust-self-learning-memory/pull/873)
+**Active Sprint**: F4 remainder (provenanced retrieval, journal, model digests, skill compiler)
+**Branch**: `feat/goap-f4-remaining-missing-2026-07-18`
+**Open PR**: [#874](https://github.com/d-o-hub/rust-self-learning-memory/pull/874)
 **Plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
-**Still deferred after this PR**: F4 pilots only
+**Still deferred after this plan**: *(empty)* for 2026-07-14 missing tasks
+**Release**: ⛔ not in this sprint
+
+---
+
+## Sprint 2026-07-18d — F4 remainder 🟡 PR #874
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | F4.1 | Provenanced retrieval API | ✅ + spike GO |
+| 2 | F4.2 | Operation journal | ✅ + spike GO |
+| 3 | S1.5b/F4.3 | Local model digests/size pins | ✅ + spike GO |
+| 4 | F4.4 | Skill contract compiler | ✅ + spike GO |
+| 5 | S1.1c | Wasmtime/WASI feasibility | ✅ spike **NO-GO** |
+| 6 | Spikes | Decision artifacts `plans/STATUS/spikes/` | ✅ |
+| 7 | PR | #874 CI + review (no release) | 🟡 |
+
+**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
+**Master record**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
 
 ---
 
@@ -26,7 +44,7 @@
 | 9 | Harness | Issues #862–#869 closed (shipped in #870) | ✅ |
 | 10 | D3.3/V5.1 | Plans + VALIDATION_LATEST aligned | ✅ |
 | 11 | PR | #873 CI green + review + merge | 🟡 |
-| — | F4 | Feature pilots | 🔵 deferred |
+| — | F4 | Feature pilots | ✅ PR #874 |
 
 **Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
 **Master record**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`

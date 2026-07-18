@@ -1,0 +1,18 @@
+# Feature spike config for F4.2 — Multi-backend reconciliation / operation journal
+# Note: run-feature-spike.sh parses TOML via Python tomllib (multi-line arrays OK).
+id = "F4.2"
+owner = "goap-agent"
+reviewers = ["maintainer", "goap-orchestrator"]
+commands = []
+required_files = ["memory-core/src/memory/op_journal.rs"]
+force_decision = "GO"
+result_notes = "Operation journal pilot: code on branch. Decision GO for PR #874 (no release)."
+
+[metrics]
+zero_resurrection = true
+zero_duplicate_steps = true
+implementation_present = true
+
+[preapproved_thresholds]
+max_storage_growth_pct = 10.0
+require_restart_fault_matrix = true

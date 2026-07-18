@@ -77,8 +77,7 @@ async fn snapshot_store_and_recall_exact_match() {
     let reward_str = recalled
         .reward
         .as_ref()
-        .map(|r| format!("{:.4}", r.total))
-        .unwrap_or_else(|| "None".to_string());
+        .map_or_else(|| "None".to_string(), |r| format!("{:.4}", r.total));
 
     insta::assert_snapshot!(
         "exact_match_recall",
@@ -135,8 +134,7 @@ async fn snapshot_multi_entry_search_ordering() {
             let score = ep
                 .reward
                 .as_ref()
-                .map(|r| format!("{:.4}", r.total))
-                .unwrap_or_else(|| "None".to_string());
+                .map_or_else(|| "None".to_string(), |r| format!("{:.4}", r.total));
             format!("{} (score={})", ep.task_description, score)
         })
         .collect();

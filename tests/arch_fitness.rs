@@ -4,7 +4,7 @@
 //!   memory-types → memory-core → memory-storage-{redb,turso} → memory-mcp
 //!                                                                    → memory-cli
 //!
-//! This test uses cargo_metadata to resolve the actual dependency graph
+//! This test uses `cargo_metadata` to resolve the actual dependency graph
 //! and fails with a HARNESS VIOLATION message if any forbidden edge exists.
 
 use std::collections::HashMap;

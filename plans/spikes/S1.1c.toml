@@ -1,0 +1,20 @@
+# Feature spike config for S1.1c — Wasmtime/WASI feasibility (NO-GO, fail-closed)
+# force_decision = "NO-GO" keeps execute_agent_code unavailable; no S1.1d backend.
+# Note: run-feature-spike.sh parses TOML via Python tomllib (multi-line arrays OK).
+id = "S1.1c"
+owner = "goap-agent"
+reviewers = ["maintainer", "goap-orchestrator", "security"]
+commands = []
+required_files = ["plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md"]
+force_decision = "NO-GO"
+result_notes = "WASI/Wasmtime reintroduction NO-GO. Keep execute_agent_code fail-closed; no capability backend (S1.1d not scheduled)."
+
+[metrics]
+wasmtime_dependency = false
+wasi_backend_exposed = false
+execute_agent_code_fail_closed = true
+threat_review = "not-approved-for-reintroduction"
+
+[preapproved_thresholds]
+require_capability_controls = true
+require_platform_matrix = true

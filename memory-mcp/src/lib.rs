@@ -156,6 +156,7 @@ pub use server::audit::{
     AuditConfig, AuditDestination, AuditFileWriter, AuditLogEntry, AuditLogLevel, AuditLogger,
     DEFAULT_AUDIT_WRITE_QUEUE_CAPACITY, WriterConfig, redact_sensitive_data,
 };
+pub use server::tools::core::QueryMemoryRequest;
 pub use types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, ResourceLimits, SandboxConfig,
     SecurityViolationType, Tool,

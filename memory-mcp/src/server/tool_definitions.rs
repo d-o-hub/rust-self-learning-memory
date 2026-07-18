@@ -49,6 +49,11 @@ pub fn create_default_tools() -> Vec<Tool> {
                     "enum": ["relevance", "newest", "oldest", "duration", "success"],
                     "default": "relevance",
                     "description": "Sort order for results"
+                },
+                "with_provenance": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, include F4.1 redacted retrieval provenance (fingerprint, cache_hit, index_generation; never raw query text)"
                 }
             },
             "required": ["query", "domain"]

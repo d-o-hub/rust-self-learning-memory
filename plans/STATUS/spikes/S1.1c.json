@@ -1,0 +1,32 @@
+{
+  "id": "S1.1c",
+  "commit": "41978c1e2b4757d5531d82558cc033706e2ccb78",
+  "timestamp": "2026-07-18T18:30:01Z",
+  "owner": "goap-agent",
+  "commands": [],
+  "metrics": {
+    "wasmtime_dependency": false,
+    "wasi_backend_exposed": false,
+    "execute_agent_code_fail_closed": true,
+    "threat_review": "not-approved-for-reintroduction",
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "NO-GO",
+        "pass": true
+      }
+    ],
+    "notes": "WASI/Wasmtime reintroduction NO-GO. Keep execute_agent_code fail-closed; no capability backend (S1.1d not scheduled)."
+  },
+  "preapproved_thresholds": {
+    "require_capability_controls": true,
+    "require_platform_matrix": true
+  },
+  "result": "forced_no-go",
+  "decision": "NO-GO",
+  "reviewers": [
+    "maintainer",
+    "goap-orchestrator",
+    "security"
+  ]
+}

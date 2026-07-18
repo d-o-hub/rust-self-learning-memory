@@ -52,9 +52,22 @@ pub async fn handle_query_memory(
             .take(do_memory_mcp::constants::MAX_QUERY_FIELDS)
             .collect()
     });
+    // F4.1 diagnostic flag: redacted retrieval provenance (ADR-074)
+    let with_provenance = args
+        .get("with_provenance")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
     let result = server
-        .query_memory(query.clone(), domain, task_type, limit, sort, fields)
+        .query_memory_with_options(do_memory_mcp::QueryMemoryRequest {
+            query: query.clone(),
+            domain,
+            task_type,
+            limit,
+            sort,
+            fields,
+            with_provenance,
+        })
         .await;
 
     // Audit log the operation

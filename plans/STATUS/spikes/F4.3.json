@@ -1,0 +1,31 @@
+{
+  "id": "F4.3",
+  "commit": "41978c1e2b4757d5531d82558cc033706e2ccb78",
+  "timestamp": "2026-07-18T18:29:40Z",
+  "owner": "goap-agent",
+  "commands": [],
+  "metrics": {
+    "tamper_rejection_required": true,
+    "offline_reproducibility_required": true,
+    "implementation_present": true,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "Model digests/size pins implemented on branch. Decision GO for PR #874 (no release)."
+  },
+  "preapproved_thresholds": {
+    "require_trust_root_approval": true,
+    "require_license_review": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "maintainer",
+    "goap-orchestrator",
+    "security"
+  ]
+}

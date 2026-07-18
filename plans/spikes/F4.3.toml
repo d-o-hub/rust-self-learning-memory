@@ -1,0 +1,18 @@
+# Feature spike config for F4.3 / S1.5b — Verifiable local-model registry (digests/size pins)
+# Note: run-feature-spike.sh parses TOML via Python tomllib (multi-line arrays OK).
+id = "F4.3"
+owner = "goap-agent"
+reviewers = ["maintainer", "goap-orchestrator", "security"]
+commands = []
+required_files = ["memory-core/src/embeddings/config/provider_config.rs", "memory-core/src/embeddings/local.rs"]
+force_decision = "GO"
+result_notes = "Model digests/size pins implemented on branch. Decision GO for PR #874 (no release)."
+
+[metrics]
+tamper_rejection_required = true
+offline_reproducibility_required = true
+implementation_present = true
+
+[preapproved_thresholds]
+require_trust_root_approval = true
+require_license_review = true

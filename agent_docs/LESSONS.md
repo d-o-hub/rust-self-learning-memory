@@ -112,6 +112,20 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
 - Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
 
+## LESSON-018: Audit log size init + nested redaction (S1.7)
+
+- Issue: Audit file rotation tracked `current_file_size` as `0` after open even when the file already existed and was large; nested JSON secrets under objects/arrays were never redacted; `writeln!` ran on the async request path.
+- Root Cause: Size was read into a local and discarded; redaction walked only top-level object keys; file I/O was synchronous under `async fn log_event`.
+- Solution: Dedicated bounded `sync_channel` + OS writer thread initializes size from metadata; recursive case-insensitive key redaction; drop counter when queue is full (`dropped_writes()`).
+- Key insight: Startup metadata must seed runtime accounting; “sensitive field” policies must recurse JSON structure; disk I/O belongs off the Tokio worker.
+
+## LESSON-019: Skill evals need a dedicated lightweight CI workflow (K3.1b)
+
+- Issue: K3.1a delivered `run-evals.sh` but nothing required fixtures on every PR, so schema regressions could merge green.
+- Root Cause: Gate contract documented skill evals as optional until CI wiring; no workflow invoked the runner.
+- Solution: `.github/workflows/skill-evals.yml` (no Rust compile): always fixtures + gate-contract; PRs also `--changed` with `fetch-depth: 0`; full suite on schedule/dispatch.
+- Key insight: Schema validation CI must not depend on cargo; keep skill-eval and gate-contract checks on a cheap path so they always run.
+
 ## LESSON-017: CLI pattern list empty across processes + `--db-path` no-op (#830 / #831)
 
 - Issue: After `episode complete` logged "Successfully cached pattern", a fresh CLI process showed `pattern list` = 0. Separately, `--db-path` / `MEMORY_DB_PATH` appeared ignored.

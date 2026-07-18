@@ -1,22 +1,31 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-17 (v0.1.35 release)
+**Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.35
-**Active Sprint**: Tag + `release.yml` for v0.1.35
-**Branch**: `main`
+**Active Sprint**: S1.7 audit hardening + skill/gate CI (K3.1b / W2.1b)
+**Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
 **Edition**: Rust 2024
-**Open GitHub issues**: #849 closes when tag `v0.1.35` is pushed
 
-## Release v0.1.35 — TAGGING
+## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b
+
+| Item | Status |
+|------|--------|
+| S1.7 recursive redaction + rotation size + bounded writer | ✅ |
+| K3.1b `.github/workflows/skill-evals.yml` | ✅ |
+| W2.1b `validate-gate-contract.sh --ci-parity` | ✅ |
+| Plans + LESSONS-018/019 | ✅ |
+| PR + CI | 🟡 |
+
+**Plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
+
+## Release v0.1.35 — ✅ SHIPPED
 
 | Item | Status |
 |------|--------|
 | PR #850 ADR-075/076 open-issue fixes | ✅ Merged |
 | PR #851 K3.1 skill evals + W2.1 gate contract | ✅ Merged |
-| PR #852 CHANGELOG / status fold | ✅ Merged |
-| CHANGELOG `[0.1.35] - 2026-07-17` | ✅ |
-| Tag via `release-manager` + `release.yml` only | 🟡 Next |
+| Tag `v0.1.35` + `release.yml` | ✅ |
 
 ## Open Issues vs Codebase — 2026-07-17
 

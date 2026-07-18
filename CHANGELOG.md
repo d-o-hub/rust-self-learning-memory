@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **S1.7 audit hardening**: recursive nested/array redaction (case-insensitive
+  field match); rotation size initialized from existing file metadata; bounded
+  non-blocking file writer thread with `dropped_writes()` overflow metrics.
+- **K3.1b skill-eval CI**: `.github/workflows/skill-evals.yml` runs schema
+  fixtures always, `run-evals.sh --changed` on PRs, full suite on weekly
+  schedule / workflow_dispatch.
+- **W2.1b gate contract CI parity**: `validate-gate-contract.sh --ci-parity`
+  verifies authoritative workflows (quick-check, ci, release-drift,
+  security/supply-chain, skill-evals); Skill Evals job runs the validator.
+
+### Fixed
+
+- Audit logger no longer reset in-memory size to `0` after opening an existing
+  log file (oversized logs now rotate on first write when rotation is enabled).
+
 ## [0.1.35] - 2026-07-17
 
 ### Added

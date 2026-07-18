@@ -56,6 +56,8 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
 - Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.
 - For CPU/token work, use `goap-agent` first, then `agent-coordination`, then the implementation/validation skills.
+- **Audit file accounting**: After opening an existing audit log, seed size tracking from file metadata (never reset to 0) or rotation will not fire until the new-write sum alone exceeds max size.
+- **Skill / gate CI**: After changing skills or `GATE_CONTRACT.md`, run `./scripts/run-evals.sh --fixtures` and `./scripts/validate-gate-contract.sh --ci-parity` locally; Skill Evals workflow enforces both on PRs.
 
 Before implementing: Read 3+ source files, check ADRs
 

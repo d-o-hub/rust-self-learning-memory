@@ -1,12 +1,25 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-17 (v0.1.35 release prep)
+**Last Updated**: 2026-07-18 (S1.7 + K3.1b + W2.1b)
 **Released Version**: v0.1.35 (crates.io + GitHub Release)
 **Workspace Version**: 0.1.35
-**Active Sprint**: Post-release backlog (K3.1b / W2.1b / S1.7)
-**Branch**: `main`
-**Plan**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-**Backlog**: K3.1b, W2.1b, S1.7, W2.4/W2.5, S1.2 provenance remainder
+**Active Sprint**: S1.7 audit + K3.1b/W2.1b CI gates
+**Branch**: `feat/goap-s17-k31b-w21b-2026-07-18`
+**Plan**: `plans/GOAP_MISSING_TASKS_S17_K31B_W21B_2026-07-18.md`
+**Backlog after this PR**: W2.4/W2.5, K3.2, S1.2 provenance remainder, F4 pilots
+
+---
+
+## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b 🟡 PR
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | S1.7 | Audit recursive redaction, size init, non-blocking writer | ✅ |
+| 2 | K3.1b | Skill Evals CI (fixtures + --changed + schedule full) | ✅ |
+| 3 | W2.1b | Gate contract --ci-parity wired in Skill Evals job | ✅ |
+| 4 | PR | All CI green + merge | 🟡 |
+
+**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
 
 ---
 

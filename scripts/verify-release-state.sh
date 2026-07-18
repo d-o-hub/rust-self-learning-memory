@@ -198,7 +198,10 @@ if [[ -f "CHANGELOG.md" ]]; then
     | sort | uniq -d || true)
   if [[ -n "$DUP_VERS" ]]; then
     echo "  ❌ CHANGELOG.md has duplicate version headings (breaks cargo-dist notes):"
-    echo "$DUP_VERS" | sed 's/^/       /'
+    while IFS= read -r dline; do
+      [[ -z "$dline" ]] && continue
+      echo "       ${dline}"
+    done <<<"$DUP_VERS"
     failures=$((failures + 1))
   else
     echo "  ✅ No duplicate ## [X.Y.Z] version headings"
@@ -211,7 +214,10 @@ if [[ -f "CHANGELOG.md" ]]; then
     else
       echo "  ❌ parse-changelog cannot parse CHANGELOG.md / v$WORKSPACE_VERSION"
       echo "     cargo-dist will ship download tables only (no Release Notes)."
-      parse-changelog CHANGELOG.md 2>&1 | head -3 | sed 's/^/       /' || true
+      while IFS= read -r dline; do
+        [[ -z "$dline" ]] && continue
+        echo "       ${dline}"
+      done < <(parse-changelog CHANGELOG.md 2>&1 | head -3 || true)
       failures=$((failures + 1))
     fi
   else

@@ -205,7 +205,7 @@ pub fn map(retrieved_lists: &[Vec<usize>], relevant_sets: &[HashSet<usize>]) -> 
             for (i, id) in retrieved.iter().enumerate() {
                 if relevant.contains(id) {
                     relevant_count += 1;
-                    #[allow(clippy::cast_precision_loss)]
+                    #[expect(clippy::cast_precision_loss)]
                     let precision_at_i = f64::from(relevant_count) / (i + 1) as f64;
                     sum_precision += precision_at_i;
                 }

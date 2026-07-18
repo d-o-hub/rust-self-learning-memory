@@ -14,7 +14,6 @@ impl TursoStorage {
     ///
     /// This uses Turso's native `vector_top_k()` function with DiskANN index
     /// for O(log n) similarity search instead of O(n) brute-force.
-    #[allow(clippy::excessive_nesting)]
     pub(crate) async fn find_similar_patterns_native(
         &self,
         conn: &Connection,
@@ -99,7 +98,6 @@ impl TursoStorage {
         let query_json = serde_json::to_string(query_embedding)
             .map_err(|e| Error::Storage(format!("Failed to serialize embedding: {}", e)))?;
 
-        #[allow(clippy::literal_string_with_formatting_args)]
         let sql = format!(
             r#"
             SELECT

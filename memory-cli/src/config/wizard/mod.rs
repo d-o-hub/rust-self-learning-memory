@@ -52,7 +52,6 @@ impl ConfigWizard {
     }
 
     /// Run the interactive configuration wizard
-    #[allow(clippy::excessive_nesting)]
     pub async fn run(&self) -> Result<Config> {
         println!("\n🚀 Memory CLI Configuration Wizard");
         println!("===================================");

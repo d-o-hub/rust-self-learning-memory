@@ -30,7 +30,7 @@ impl crate::output::Output for UpdateResult {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn update_episode(
     episode_id: String,
     description: Option<String>,

@@ -3,7 +3,6 @@ use dialoguer::{Confirm, Input};
 
 impl ConfigWizard {
     /// Configure database settings
-    #[allow(clippy::excessive_nesting)]
     pub fn configure_database(&self, preset: &ConfigPreset) -> Result<DatabaseConfig> {
         let mut config = preset.create_config().database;
 

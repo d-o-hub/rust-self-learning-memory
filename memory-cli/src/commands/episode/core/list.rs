@@ -14,7 +14,7 @@ const MAX_LIST_LIMIT: usize = 1000;
 /// Minimum allowed limit for episode list operations
 const MIN_LIST_LIMIT: usize = 1;
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn list_episodes(
     task_type: Option<String>,
     mut limit: usize,
@@ -236,7 +236,7 @@ pub async fn list_episodes(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn list_episodes_basic(
     task_type: Option<String>,
     mut limit: usize,

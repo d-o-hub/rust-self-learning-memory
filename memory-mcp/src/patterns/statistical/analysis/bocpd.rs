@@ -72,7 +72,7 @@ impl SimpleBOCPD {
     }
 
     /// Update posterior distribution
-    #[allow(clippy::needless_range_loop)]
+    #[expect(clippy::needless_range_loop)]
     fn update_posterior(&mut self, observation: f64) -> Result<()> {
         let max_r = self.state.log_posterior.len() - 1;
         let mut new_posterior = vec![f64::NEG_INFINITY; self.state.log_posterior.len()];

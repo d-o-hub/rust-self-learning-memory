@@ -20,7 +20,6 @@ impl TursoStorage {
     /// - DiskANN index created on the embedding table
     ///
     /// Falls back to brute-force if vector column not populated.
-    #[allow(clippy::excessive_nesting)]
     pub(crate) async fn find_similar_episodes_native(
         &self,
         conn: &Connection,
@@ -112,7 +111,6 @@ impl TursoStorage {
         // Use vector_top_k table-valued function for O(log n) DiskANN search
         // SAFETY: Table and index names come from fixed whitelists in get_embedding_table_for_dimension
         // and get_vector_index_for_dimension. No user input can influence these names.
-        #[allow(clippy::literal_string_with_formatting_args)]
         let sql = format!(
             r#"
             SELECT
@@ -229,7 +227,6 @@ impl TursoStorage {
     }
 
     /// Find similar episodes using brute-force search (fallback)
-    #[allow(clippy::excessive_nesting)]
     pub(crate) async fn find_similar_episodes_brute_force(
         &self,
         query_embedding: &[f32],

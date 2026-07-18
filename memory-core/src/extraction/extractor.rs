@@ -81,7 +81,7 @@ impl PatternExtractor {
     }
 
     /// Calculate step success rate
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss)]
     pub(crate) fn calculate_step_success_rate(episode: &Episode) -> f32 {
         if episode.steps.is_empty() {
             return 0.0;
@@ -92,7 +92,6 @@ impl PatternExtractor {
     }
 
     /// Calculate average latency
-    #[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
     pub(crate) fn calculate_average_latency(episode: &Episode) -> Duration {
         if episode.steps.is_empty() {
             return Duration::zero();

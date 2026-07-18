@@ -7,7 +7,7 @@ use anyhow::Result;
 use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
 /// Generate a playbook recommendation for a task
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn recommend_playbook(
     task: &str,
     domain: &str,

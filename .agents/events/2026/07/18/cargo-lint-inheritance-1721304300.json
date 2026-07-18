@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-07-18T12:05:00Z",
+  "sensor": "cargo::cargo_lint_inheritance_limitation",
+  "category": "architecture",
+  "violation_count": 1,
+  "root_cause": "Cargo does not support per-crate [lints.clippy] overrides when workspace = true is set in [lints]",
+  "guide_updated": "AGENTS.md#cargo-lint-limitations",
+  "skill_created": false,
+  "resolution": "Documented limitation in GOAP execution plan; used workspace-level lint suppression as workaround"
+}

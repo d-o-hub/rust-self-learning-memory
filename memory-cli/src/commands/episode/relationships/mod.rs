@@ -15,7 +15,7 @@ mod types;
 use helpers::*;
 pub use types::*;
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn add_relationship(
     from_episode_id: String,
     to: String,
@@ -104,7 +104,7 @@ pub async fn remove_relationship(
 }
 
 /// List relationships for an episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn list_relationships(
     episode_id: String,
     direction: DirectionArg,
@@ -162,7 +162,7 @@ pub async fn list_relationships(
 }
 
 /// Find episodes related to a given episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn find_related(
     episode_id: String,
     relationship_type: Option<RelationshipTypeArg>,
@@ -231,7 +231,7 @@ pub async fn find_related(
 }
 
 /// Generate a dependency graph for an episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn dependency_graph(
     episode_id: String,
     depth: usize,
@@ -271,7 +271,7 @@ pub async fn dependency_graph(
 }
 
 /// Render graph as ASCII tree
-#[allow(clippy::items_after_statements)]
+#[expect(clippy::items_after_statements)]
 fn render_ascii_tree(
     graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     root_id: Uuid,
@@ -279,7 +279,7 @@ fn render_ascii_tree(
     let mut output = String::new();
     let mut visited = std::collections::HashSet::new();
 
-    #[allow(clippy::format_push_string)]
+    #[expect(clippy::format_push_string)]
     fn render_node(
         graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
         node_id: Uuid,

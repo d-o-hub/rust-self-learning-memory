@@ -16,7 +16,7 @@ mod validation;
 use validation::validate_relationships;
 
 /// Add a relationship between two episodes
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn add_relationship(
     source: String,
     target: String,
@@ -121,7 +121,7 @@ pub async fn remove_relationship(
 }
 
 /// List relationships for an episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn list_relationships(
     episode: String,
     direction: DirectionArg,
@@ -187,7 +187,7 @@ pub async fn list_relationships(
 }
 
 /// Find episodes related to a given episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn find_related(
     episode: String,
     types: Vec<RelationshipTypeArg>,
@@ -327,7 +327,7 @@ pub async fn get_relationship_info(
 }
 
 /// Generate a dependency graph for an episode
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn generate_graph(
     episode: String,
     max_depth: usize,

@@ -208,7 +208,7 @@ impl QualityMetricsTool {
     }
 
     /// Build quality score distribution histogram
-    #[allow(clippy::expect_used)]
+    #[expect(clippy::expect_used)]
     fn build_distribution(&self, scores: &[f32]) -> HashMap<String, usize> {
         let mut distribution = HashMap::new();
         distribution.insert("0.0-0.3 (Low)".to_string(), 0);

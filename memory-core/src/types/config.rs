@@ -134,7 +134,7 @@ impl Default for ConcurrencyConfig {
 /// };
 /// ```
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)]
+#[expect(clippy::struct_excessive_bools)]
 pub struct MemoryConfig {
     // Core behavior
     /// Storage backend configuration

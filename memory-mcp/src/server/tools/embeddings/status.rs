@@ -63,7 +63,7 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::manual_async_fn)]
+    #[expect(clippy::manual_async_fn)]
     fn test_embedding_provider_status_signature_compile() {
         // This test ensures the method signature compiles correctly
         use crate::mcp::tools::embeddings::EmbeddingProviderStatusInput;

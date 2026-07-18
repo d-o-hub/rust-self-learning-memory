@@ -89,7 +89,7 @@ impl TaskAdapter {
     /// A new adapter initialized with identity transformation
     fn new_identity(task_type: TaskType, dimension: usize) -> Self {
         let mut matrix = vec![vec![0.0; dimension]; dimension];
-        #[allow(clippy::needless_range_loop)]
+        #[expect(clippy::needless_range_loop)]
         for i in 0..dimension {
             matrix[i][i] = 1.0;
         }
@@ -118,7 +118,7 @@ impl TaskAdapter {
         let mut adapted = vec![0.0; dim];
 
         // Matrix multiplication: adapted[i] = sum(base[j] * matrix[j][i])
-        #[allow(clippy::needless_range_loop)]
+        #[expect(clippy::needless_range_loop)]
         for i in 0..dim {
             for j in 0..dim {
                 adapted[i] += base_embedding[j] * self.adaptation_matrix[j][i];

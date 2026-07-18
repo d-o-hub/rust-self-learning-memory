@@ -118,7 +118,6 @@ impl SelfLearningMemory {
     }
 
     /// Get patterns extracted from a specific episode
-    #[allow(clippy::unused_async)]
     pub async fn get_episode_patterns(&self, episode_id: Uuid) -> Result<Vec<Pattern>> {
         queries::get_episode_patterns(episode_id, &self.patterns_fallback).await
     }

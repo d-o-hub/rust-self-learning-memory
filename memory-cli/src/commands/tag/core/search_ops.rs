@@ -14,7 +14,7 @@ const MAX_TAG_SEARCH_LIMIT: usize = 1000;
 const MIN_TAG_SEARCH_LIMIT: usize = 1;
 
 /// Search episodes by tags
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn search_by_tags(
     mut tags: Vec<String>,
     require_all: bool,

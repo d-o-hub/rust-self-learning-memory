@@ -27,7 +27,6 @@ use tokio::sync::Mutex;
 use tracing::{error, info};
 
 /// Handle tools/call request
-#[allow(clippy::excessive_nesting)]
 pub async fn handle_call_tool(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,

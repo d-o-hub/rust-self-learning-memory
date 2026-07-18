@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-07-18T12:00:00Z",
+  "sensor": "clippy::unfulfilled_lint_expectations",
+  "category": "maintainability",
+  "violation_count": 26,
+  "root_cause": "Bulk allow→expect migration created unfulfilled expectations for lints that don't fire in certain configurations (unnecessary_wraps, excessive_nesting, literal_string_with_formatting_args)",
+  "guide_updated": "AGENTS.md#allow-attributes-deny",
+  "skill_created": false,
+  "resolution": "Removed unfulfilled #[expect] attributes; suppressed unnecessary_wraps at workspace level in Cargo.toml"
+}

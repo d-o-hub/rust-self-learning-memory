@@ -26,7 +26,6 @@ pub enum PerformanceLevel {
 
 /// Configuration error types
 #[derive(Debug, thiserror::Error)]
-#[allow(clippy::enum_variant_names)]
 pub enum ConfigError {
     #[error("Simple mode error: {message}")]
     SimpleMode { message: String },

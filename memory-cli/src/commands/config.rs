@@ -85,7 +85,7 @@ pub async fn validate_config(
         match turso.get_episode(uuid::Uuid::new_v4()).await {
             Ok(_) => {
                 turso_connected = true;
-                #[allow(clippy::cast_possible_truncation)]
+                #[expect(clippy::cast_possible_truncation)]
                 let latency = start.elapsed().as_millis() as u64;
                 latency_ms = Some(latency);
             }
@@ -179,7 +179,7 @@ pub async fn check_config(
         match turso.get_episode(uuid::Uuid::new_v4()).await {
             Ok(_) => {
                 turso_connected = true;
-                #[allow(clippy::cast_possible_truncation)]
+                #[expect(clippy::cast_possible_truncation)]
                 let latency = start.elapsed().as_millis() as u64;
                 latency_ms = Some(latency);
             }

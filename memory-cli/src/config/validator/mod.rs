@@ -16,7 +16,7 @@ pub use rules::{
 };
 
 #[cfg(test)]
-#[allow(clippy::unreadable_literal)]
+#[expect(clippy::unreadable_literal)]
 mod tests {
     use super::*;
     use crate::config::types::{

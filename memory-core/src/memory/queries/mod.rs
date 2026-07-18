@@ -323,7 +323,7 @@ pub async fn list_episodes_filtered(
 }
 
 /// Get patterns extracted from a specific episode
-#[allow(clippy::unused_async)]
+#[expect(clippy::unused_async)]
 pub async fn get_episode_patterns(
     _episode_id: Uuid,
     _patterns_fallback: &tokio::sync::RwLock<HashMap<crate::episode::PatternId, Pattern>>,

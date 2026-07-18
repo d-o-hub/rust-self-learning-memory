@@ -1,7 +1,7 @@
 //! Tests for real embedding model
 
 #[cfg(test)]
-#[allow(clippy::module_inception)]
+#[expect(clippy::module_inception)]
 mod tests {
     #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
     use crate::embeddings::real_model::download::validate_downloaded_file;

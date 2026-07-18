@@ -103,7 +103,6 @@ pub async fn test_embeddings(config: &Config) -> Result<()> {
     println!("   Count: {}", batch_results.len());
     println!("   Time: {:?}", duration);
     // Batch size is always small, cast to u32 is safe
-    #[allow(clippy::cast_possible_truncation)]
     let batch_count = batch_texts.len() as u32;
     println!("   Avg per text: {:?}", duration / batch_count);
     println!();
@@ -134,7 +133,6 @@ pub async fn test_embeddings(config: &Config) -> Result<()> {
 }
 
 /// Show current embedding configuration
-#[allow(clippy::unnecessary_wraps)]
 pub fn show_config(config: &Config) -> Result<()> {
     println!("⚙️  Embedding Configuration");
     println!("{}", "=".repeat(60));
@@ -192,7 +190,6 @@ pub fn show_config(config: &Config) -> Result<()> {
 }
 
 /// List available embedding providers
-#[allow(clippy::unnecessary_wraps)]
 pub fn list_providers() -> Result<()> {
     println!("📚 Available Embedding Providers");
     println!("{}", "=".repeat(60));
@@ -251,7 +248,6 @@ pub fn list_providers() -> Result<()> {
 }
 
 /// Enable embeddings in the current session
-#[allow(clippy::unnecessary_wraps)]
 pub fn enable_embeddings() -> Result<()> {
     println!("✅ Embeddings Enabled");
     println!();
@@ -267,7 +263,6 @@ pub fn enable_embeddings() -> Result<()> {
 }
 
 /// Disable embeddings in the current session
-#[allow(clippy::unnecessary_wraps)]
 pub fn disable_embeddings() -> Result<()> {
     println!("⚠️  Embeddings Disabled");
     println!();
@@ -344,7 +339,6 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
         let duration = start.elapsed();
 
         // Batch sizes are small, cast to u32 is safe
-        #[allow(clippy::cast_possible_truncation)]
         let size = batch_size as u32;
         println!(
             "  Batch size {}: {:?} ({:?} per item)",

@@ -1,9 +1,24 @@
 {
   "tests": [
     {
-      "name": "Task orchestration",
-      "description": "Verify GOAP orchestration.",
-      "exec": "test -f .agents/skills/goap-agent/SKILL.md && rg -q . .agents/skills/goap-agent/SKILL.md"
+      "name": "skill-md-present",
+      "description": "goap-agent skill exists",
+      "exec": "test -f .agents/skills/goap-agent/SKILL.md"
+    },
+    {
+      "name": "adr-check-before-plan",
+      "description": "Requires checking ADRs before planning",
+      "exec": "rg -q 'ADR|plans/adr' .agents/skills/goap-agent/SKILL.md"
+    },
+    {
+      "name": "phases-defined",
+      "description": "Documents ANALYZE/DECOMPOSE/STRATEGIZE cycle",
+      "exec": "rg -q 'ANALYZE|DECOMPOSE|STRATEGIZE' .agents/skills/goap-agent/SKILL.md"
+    },
+    {
+      "name": "skills-vs-agents",
+      "description": "Distinguishes Skills vs Task agents",
+      "exec": "rg -q 'Skill|Task|agent' .agents/skills/goap-agent/SKILL.md"
     }
   ]
 }

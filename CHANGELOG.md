@@ -16,9 +16,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `## [0.1.11]` / `## [0.1.10]` headings so `parse-changelog` / cargo-dist can
   emit GitHub Release notes. `verify-release-state.sh` rejects duplicate
   version headings.
+- **S1.1b**: Node code sandbox module gated behind optional `sandbox-dev`
+  feature (default off). Production MCP remains fail-closed for
+  `execute_agent_code`.
 
 ### Added
 
+- **S1.2 remainder (ADR-074)**: retrieval `CacheKey` identity now includes
+  retrieval mode, provider/model/dimension identity, ranking config version,
+  and monotonic index generation; redacted `RetrievalProvenance` envelope;
+  generation bumps on cache invalidation.
+- **S1.4b**: typed capacity-eviction partial failures with
+  `pending_eviction_failures` / `reconcile_pending_evictions()`.
+- **K3.2**: positive/negative eval fixtures for high-risk skills
+  (release-guard, pr-readiness, commit, ci-fix, code-quality, test-runner,
+  goap-agent, web-doc-resolver).
+- **W2 tooling**: `scripts/check-source-reachability.sh`,
+  `scripts/test-workflow-guards.sh`, `scripts/test-release-workflow.sh`,
+  `scripts/generate-skill-inventory.sh`, `scripts/test-benchmark-workflow.sh`,
+  `scripts/check-ignored-tests.sh`, `scripts/validate-skill-routes.sh`,
+  `scripts/validate-plans.sh`.
+- **W2.3b**: quality_gates refuse metric parse on failed subprocess; package
+  name guards reject legacy `memory-core`.
+- **W2.5**: benchmarks workflow fails on missing Criterion output (no dummy
+  soft-pass); `fail-on-alert: true` for >10% regression.
+- **K3.3**: expanded `skill-rules.json` routes for high-frequency skills.
 - **S1.7 audit hardening**: recursive nested/array redaction (case-insensitive
   field match); rotation size initialized from existing file metadata; bounded
   non-blocking file writer thread with `dropped_writes()` overflow metrics.

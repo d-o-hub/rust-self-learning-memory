@@ -98,10 +98,14 @@ impl SelfLearningMemory {
         use chrono::{TimeZone, Utc};
 
         // v0.1.12: Check query cache first
-        // ADR-074 / S1.2: identity includes all ranking-affecting TaskContext fields
+        // ADR-074 / S1.2: full identity = TaskContext + mode + provider + ranking + generation
         let cache_key = crate::retrieval::CacheKey::new(task_description.clone())
             .with_task_context(&context)
-            .with_limit(limit);
+            .with_limit(limit)
+            .with_retrieval_mode(self.config.retrieval_mode.to_string())
+            .with_provider_identity(self.semantic_config.provider.cache_identity())
+            .with_ranking_config_version(crate::retrieval::RANKING_CONFIG_VERSION)
+            .with_index_generation(self.query_cache.index_generation());
 
         if let Some(cached_episodes) = self.query_cache.get(&cache_key) {
             debug!(

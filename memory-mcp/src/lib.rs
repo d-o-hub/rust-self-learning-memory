@@ -131,6 +131,11 @@ pub mod mcp;
 pub mod monitoring;
 pub mod patterns;
 pub mod protocol;
+/// Legacy Node sandbox executor — **not compiled by default** (S1.1b).
+///
+/// Enable with `--features sandbox-dev` for trusted local experimentation only.
+/// Production MCP does not register a working `execute_agent_code` tool.
+#[cfg(feature = "sandbox-dev")]
 pub mod sandbox;
 pub mod server;
 pub mod types;
@@ -142,7 +147,9 @@ pub use batch::{
 };
 pub use cache::{CacheConfig, CacheStats, QueryCache};
 pub use error::{Error, Result};
+#[cfg(feature = "sandbox-dev")]
 pub use sandbox::CodeSandbox;
+#[cfg(feature = "sandbox-dev")]
 pub use sandbox::{FileSystemRestrictions, IsolationConfig, NetworkRestrictions};
 pub use server::MemoryMCPServer;
 pub use server::audit::{

@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Atomic commits",
-      "description": "Verify the agent follows atomic commit rules.",
-      "exec": "test -f .agents/skills/commit/SKILL.md && rg -q . .agents/skills/commit/SKILL.md"
+      "name": "skill-md-present",
+      "description": "commit skill exists",
+      "exec": "test -f .agents/skills/commit/SKILL.md"
+    },
+    {
+      "name": "quality-gates-before-commit",
+      "description": "Documents quality gates (fmt/clippy/tests) before commit",
+      "exec": "rg -q 'code-quality|clippy|nextest|quality' .agents/skills/commit/SKILL.md"
+    },
+    {
+      "name": "no-force-push-default",
+      "description": "Does not advise unsolicited force-push",
+      "exec": "! rg -qi 'force.?push.*always|always.*force.?push' .agents/skills/commit/SKILL.md"
+    },
+    {
+      "name": "no-lockfile-delete",
+      "description": "Does not advise deleting Cargo.lock",
+      "exec": "! rg -q 'rm .*Cargo\\.lock|delete.*Cargo\\.lock' .agents/skills/commit/SKILL.md"
+    },
+    {
+      "name": "atomic-commit-message",
+      "description": "Documents conventional or atomic commit format",
+      "exec": "rg -q 'feat\\(|fix\\(|commit' .agents/skills/commit/SKILL.md"
     }
   ]
 }

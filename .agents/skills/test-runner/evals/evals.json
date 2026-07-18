@@ -6,9 +6,19 @@
       "exec": "test -f .agents/skills/test-runner/SKILL.md"
     },
     {
-      "name": "documents-nextest",
-      "description": "prefers cargo nextest",
+      "name": "nextest-primary",
+      "description": "Documents cargo nextest as primary runner",
       "exec": "rg -q 'nextest' .agents/skills/test-runner/SKILL.md"
+    },
+    {
+      "name": "doctest-coverage",
+      "description": "Documents cargo test --doc for doctests",
+      "exec": "rg -q 'test --doc|doctest' .agents/skills/test-runner/SKILL.md"
+    },
+    {
+      "name": "package-filter",
+      "description": "Supports package-scoped runs",
+      "exec": "rg -q 'package|workspace|nextest run' .agents/skills/test-runner/SKILL.md"
     }
   ]
 }

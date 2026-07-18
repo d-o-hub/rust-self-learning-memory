@@ -166,6 +166,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
         event_emitter,
+        pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
     }
 }
 
@@ -325,6 +326,7 @@ pub fn with_storage(
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
         event_emitter,
+        pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
     }
 }
 pub fn with_semantic_config(

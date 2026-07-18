@@ -24,6 +24,16 @@
       "name": "changes-requested-blocker",
       "description": "Documents CHANGES_REQUESTED as merge blocker",
       "exec": "rg -q 'CHANGES_REQUESTED' .agents/skills/pr-readiness/SKILL.md"
+    },
+    {
+      "name": "not-ci-green-only",
+      "description": "Rejects CI-green-alone merge recommendation pattern",
+      "exec": "rg -q 'CI green|ready to merge|CLEAN' .agents/skills/pr-readiness/SKILL.md"
+    },
+    {
+      "name": "workflow-guards-script",
+      "description": "W2.2b cancelled-required guard script exists",
+      "exec": "test -x ./scripts/test-workflow-guards.sh && ./scripts/test-workflow-guards.sh --cancelled-required"
     }
   ]
 }

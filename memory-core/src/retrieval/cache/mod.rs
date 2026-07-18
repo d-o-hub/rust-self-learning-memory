@@ -123,4 +123,7 @@ pub mod types;
 
 // Re-export public API
 pub use lru::QueryCache;
-pub use types::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, normalize_tags};
+pub use types::{
+    CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, RANKING_CONFIG_VERSION,
+    RetrievalProvenance, normalize_tags, provider_cache_identity,
+};

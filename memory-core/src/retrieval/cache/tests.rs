@@ -529,4 +529,103 @@ mod cache_tests {
             Some("Simple")
         );
     }
+
+    // -------------------------------------------------------------------------
+    // ADR-074 / S1.2 remainder: mode, provider, ranking version, generation
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_cache_key_different_retrieval_mode_is_distinct() {
+        let keyword = base_context_key().with_retrieval_mode("keyword");
+        let hybrid = base_context_key().with_retrieval_mode("hybrid");
+        assert_ne!(keyword, hybrid);
+        assert_ne!(keyword.compute_hash(), hybrid.compute_hash());
+    }
+
+    #[test]
+    fn test_cache_key_retrieval_mode_normalized() {
+        let a = base_context_key().with_retrieval_mode("  Hybrid ");
+        let b = base_context_key().with_retrieval_mode("hybrid");
+        assert_eq!(a, b);
+        assert_eq!(a.retrieval_mode, "hybrid");
+    }
+
+    #[test]
+    fn test_cache_key_different_provider_is_distinct() {
+        let local = base_context_key().with_provider_identity("local:mini:384");
+        let openai =
+            base_context_key().with_provider_identity("openai:text-embedding-3-small:1536");
+        assert_ne!(local, openai);
+    }
+
+    #[test]
+    fn test_cache_key_different_ranking_version_is_distinct() {
+        let v1 = base_context_key().with_ranking_config_version(1);
+        let v2 = base_context_key().with_ranking_config_version(2);
+        assert_ne!(v1, v2);
+    }
+
+    #[test]
+    fn test_cache_key_different_index_generation_is_distinct() {
+        let g0 = base_context_key().with_index_generation(0);
+        let g1 = base_context_key().with_index_generation(1);
+        assert_ne!(g0, g1);
+        assert_ne!(g0.compute_hash(), g1.compute_hash());
+    }
+
+    #[test]
+    fn test_query_cache_generation_bumps_on_invalidate_all() {
+        let cache = QueryCache::new();
+        assert_eq!(cache.index_generation(), 0);
+        let key = base_context_key().with_index_generation(cache.index_generation());
+        cache.put(
+            key.clone(),
+            vec![create_test_episode("cccccccc-cccc-cccc-cccc-cccccccccccc")],
+        );
+        assert!(cache.get(&key).is_some());
+
+        cache.invalidate_all();
+        assert_eq!(cache.index_generation(), 1);
+
+        // Old generation key must not hit even if hash collided in practice
+        // (entry was cleared); new generation key is a distinct identity.
+        let new_key = base_context_key().with_index_generation(cache.index_generation());
+        assert_ne!(key, new_key);
+        assert!(cache.get(&key).is_none());
+        assert!(cache.get(&new_key).is_none());
+    }
+
+    #[test]
+    fn test_retrieval_provenance_has_no_raw_query() {
+        use crate::retrieval::cache::types::RetrievalProvenance;
+
+        let key = CacheKey::new("secret user query about passwords".into())
+            .with_retrieval_mode("hybrid")
+            .with_provider_identity("local:mini:384")
+            .with_index_generation(3)
+            .with_limit(5);
+        let prov = RetrievalProvenance::from_key(&key, true, Some(12), 5);
+
+        assert!(prov.cache_hit);
+        assert_eq!(prov.index_generation, 3);
+        assert_eq!(prov.retrieval_mode, "hybrid");
+        assert_eq!(prov.provider_identity, "local:mini:384");
+        assert_eq!(prov.result_count, 5);
+        assert_eq!(prov.candidate_count, Some(12));
+        let debug = format!("{prov:?}");
+        assert!(
+            !debug.contains("secret user query"),
+            "provenance must not embed raw query text: {debug}"
+        );
+        assert!(!prov.fingerprint.is_empty());
+    }
+
+    #[test]
+    fn test_provider_cache_identity_helper() {
+        use crate::retrieval::cache::types::provider_cache_identity;
+        assert_eq!(
+            provider_cache_identity("Local", " mini ", 384),
+            "local:mini:384"
+        );
+    }
 }

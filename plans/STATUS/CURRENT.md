@@ -1,21 +1,32 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-18 (PR swarm + permanent YAML wait fix)
+**Last Updated**: 2026-07-18 (missing-tasks Wave 1–3 implementation)
 **Released Version**: v0.1.35
 **Workspace Version**: 0.1.36 (post-release development; unreleased)
-**Active Sprint**: Merge open PR stack with all CI green
-**Branch**: multi-PR swarm (#860 → #870 → #872)
+**Active Sprint**: GOAP missing tasks (S1.2/S1.4b/S1.1b/K3.2/W2 guards)
+**Branch**: `feat/goap-missing-tasks-s12-s14b-s11b-2026-07-18`
 **Edition**: Rust 2024
 
-## Sprint 2026-07-18 — Open PR swarm (GOAP)
+## Sprint 2026-07-18c — Missing tasks (GOAP)
+
+| Item | Status |
+|------|--------|
+| Open issues #862–#869 (harness) | ✅ Closed (implemented in #870) |
+| S1.2 retrieval identity remainder | ✅ Code |
+| S1.4b eviction reconciliation | ✅ Code |
+| S1.1b sandbox-dev quarantine | ✅ Code |
+| K3.2 high-risk skill evals | ✅ Code |
+| W2 reachability / cancelled / release fixtures | ✅ Scripts |
+| PR + CI | 🟡 |
+
+## Sprint 2026-07-18 — Open PR swarm (GOAP) ✅ MERGED
 
 | PR | Title | Status |
 |----|-------|--------|
-| #860 | S1.7 + K3.1b/W2.1b | 🟡 CI re-run after permanent yaml-lint fix |
-| #870 | Harness engineering sprint | 🟡 macos snapshot + HARNESS.md + main sync |
-| #872 | release-cadence-manager | 🟡 rebased on #870; waits on stack |
+| #860 | S1.7 + K3.1b/W2.1b | ✅ Merged |
+| #870 | Harness engineering sprint | ✅ Merged |
+| #872 | release-cadence-manager | ✅ Merged |
 
-**Merge order**: #860 → #870 → #872  
 **Validation**: `plans/STATUS/VALIDATION_LATEST.md`  
 **Lessons**: LESSON-021 (yaml wait cancel), LESSON-022 (f32 insta)
 

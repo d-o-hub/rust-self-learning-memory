@@ -10,29 +10,146 @@
       "priority": "high"
     },
     {
-      "skill": "test-runner",
+      "skill": "build-rust",
       "triggers": {
-        "keywords": ["test", "async", "tokio", "await", "#[tokio::test]", "episode", "pattern", "memory"],
-        "patterns": ["test_.*async", ".*_async_test", "test_episode_.*", "test_pattern_.*"],
-        "files": ["**/tests/**/*.rs", "**/src/**/tests.rs", "memory-core/**/*.rs"]
+        "keywords": ["build", "cargo build", "compile", "check", "release build"],
+        "patterns": ["build-rust\\.sh", "cargo (build|check)"],
+        "files": ["**/Cargo.toml", "**/src/**/*.rs", "scripts/build-rust.sh"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "code-quality",
+      "triggers": {
+        "keywords": ["clippy", "fmt", "format", "lint", "rustfmt", "code quality", "audit"],
+        "patterns": ["code-quality\\.sh", "clippy", "rustfmt"],
+        "files": ["scripts/code-quality.sh", "**/*.rs"]
       },
       "priority": "high"
     },
     {
       "skill": "test-runner",
       "triggers": {
-        "keywords": ["nextest", "benchmark", "proptest", "criterion", "optimize"],
+        "keywords": ["test", "nextest", "doctest", "async", "tokio", "#[tokio::test]"],
+        "patterns": ["nextest", "cargo test", "test_.*async"],
+        "files": ["**/tests/**/*.rs", "**/src/**/tests.rs", ".config/nextest.toml"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "test-runner",
+      "triggers": {
+        "keywords": ["benchmark", "proptest", "criterion", "performance test"],
         "patterns": ["bench_.*", "prop_.*"],
-        "files": ["benches/**/*.rs", ".config/nextest.toml"]
+        "files": ["benches/**/*.rs"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "ci-fix",
+      "triggers": {
+        "keywords": ["CI fail", "github actions", "workflow failed", "cancelled check", "Actions"],
+        "patterns": ["gh run", "workflow", "\\.github/workflows"],
+        "files": [".github/workflows/**/*.yml"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "pr-readiness",
+      "triggers": {
+        "keywords": ["PR ready", "merge", "mergeable", "pr-readiness", "pull request"],
+        "patterns": ["mergeStateStatus", "gh pr", "pulls/.*/comments"],
+        "files": []
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "commit",
+      "triggers": {
+        "keywords": ["commit", "git commit", "conventional commit"],
+        "patterns": ["git commit", "feat\\(|fix\\("],
+        "files": []
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "release-guard",
+      "triggers": {
+        "keywords": ["release", "tag", "publish", "ship", "crates.io", "GitHub Release"],
+        "patterns": ["release-manager", "release\\.yml", "v[0-9]+\\.[0-9]+"],
+        "files": ["scripts/release-manager.sh", ".github/workflows/release.yml"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "release-cadence-manager",
+      "triggers": {
+        "keywords": ["release drift", "release-preparation", "cadence", "version_not_advanced"],
+        "patterns": ["release-cadence", "commit_limit", "age_limit"],
+        "files": ["scripts/release-cadence-manager.sh", "scripts/check-release-drift.sh"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "goap-agent",
+      "triggers": {
+        "keywords": ["GOAP", "orchestrat", "multi-step plan", "decompose", "swarm"],
+        "patterns": ["goap-agent", "ANALYZE|DECOMPOSE|STRATEGIZE"],
+        "files": ["plans/GOAP_*.md", "plans/GOAP_STATE.md"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "github-workflows",
+      "triggers": {
+        "keywords": ["workflow", "github actions", "yaml workflow", "gha"],
+        "patterns": ["\\.github/workflows"],
+        "files": [".github/workflows/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "feature-implement",
+      "triggers": {
+        "keywords": ["implement feature", "new module", "add API", "feature"],
+        "patterns": ["feature-implement"],
+        "files": ["memory-core/src/**", "memory-mcp/src/**", "memory-cli/src/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "debug-troubleshoot",
+      "triggers": {
+        "keywords": ["deadlock", "panic", "segfault", "race", "debug", "hang"],
+        "patterns": ["tokio::", "spawn_blocking"],
+        "files": []
       },
       "priority": "medium"
     },
     {
       "skill": "web-doc-resolver",
       "triggers": {
-        "keywords": ["fetch", "documentation", "web", "search", "url", "markdown"],
+        "keywords": ["fetch", "documentation", "web", "search", "url", "markdown", "llms.txt"],
         "patterns": ["docs\\..*", "readme", "tutorial", "guide"],
         "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "do-memory-cli-ops",
+      "triggers": {
+        "keywords": ["do-memory-cli", "episode create", "CLI command", "memory cli"],
+        "patterns": ["do-memory-cli"],
+        "files": ["memory-cli/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "do-memory-mcp",
+      "triggers": {
+        "keywords": ["MCP", "mcp server", "tool call", "query_memory"],
+        "patterns": ["do-memory-mcp", "execute_agent_code"],
+        "files": ["memory-mcp/**"]
       },
       "priority": "medium"
     }

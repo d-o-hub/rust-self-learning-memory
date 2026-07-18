@@ -24,6 +24,7 @@ use do_memory_core::{
     patterns::{EffectivenessTracker, PatternMetrics, PatternValidator, ValidationConfig},
     Pattern, PatternExtractor,
 };
+use uuid::Uuid;
 
 #[test]
 #[allow(clippy::float_cmp)]
@@ -329,19 +330,23 @@ fn should_utilize_schwartzian_transform_for_ranking() {
     let ok_pattern = create_ground_truth_decision_points()[0].clone();
     let bad_pattern = create_ground_truth_error_recoveries()[0].clone();
 
-    let good_id = good_pattern.id().clone();
-    let ok_id = ok_pattern.id().clone();
-    let bad_id = bad_pattern.id().clone();
+    let good_id = good_pattern.id();
+    let ok_id = ok_pattern.id();
+    let bad_id = bad_pattern.id();
 
-    // Register all
-    tracker.record_pattern_usage(&good_pattern, true);
-    tracker.record_pattern_usage(&good_pattern, true);
-
-    tracker.record_pattern_usage(&ok_pattern, true);
-    tracker.record_pattern_usage(&ok_pattern, false);
-
-    tracker.record_pattern_usage(&bad_pattern, false);
-    tracker.record_pattern_usage(&bad_pattern, false);
+    // Register via current EffectivenessTracker API (retrieval + application)
+    for _ in 0..2 {
+        tracker.record_retrieval(good_id);
+        tracker.record_application(good_id, true);
+    }
+    tracker.record_retrieval(ok_id);
+    tracker.record_application(ok_id, true);
+    tracker.record_retrieval(ok_id);
+    tracker.record_application(ok_id, false);
+    for _ in 0..2 {
+        tracker.record_retrieval(bad_id);
+        tracker.record_application(bad_id, false);
+    }
 
     // Retrieve ranked - this goes through rank_patterns internally in tracker
     let ranked = tracker.get_ranked_patterns();

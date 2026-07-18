@@ -130,6 +130,11 @@ postcard = { workspace = true }
 # Enable proptest-arbitrary feature for tests
 do-memory-core = { path = ".", features = ["proptest-arbitrary"] }
 
+# Pattern accuracy BDD suite (quality_gates + storage matrix)
+[[test]]
+name = "pattern_accuracy"
+path = "tests/pattern_accuracy/mod.rs"
+
 # Inherit workspace lints
 
 [lints]

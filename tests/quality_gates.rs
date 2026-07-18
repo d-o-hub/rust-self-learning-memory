@@ -425,14 +425,27 @@ fn quality_gate_pattern_accuracy() {
             "--test",
             "pattern_accuracy",
             "--",
-            "test_overall_pattern_recognition_accuracy",
+            // Real test name in tests/pattern_accuracy/mod.rs (prints Quality Score:)
+            "should_achieve_minimum_overall_pattern_recognition_quality",
             "--nocapture",
+            "--exact",
         ])
         .output()
         .expect("Failed to run pattern accuracy tests");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Misconfigured/missing target is a gate config bug, not a metric soft-pass.
+    if !output.status.success()
+        && (stderr.contains("no test target named") || stderr.contains("0 tests"))
+    {
+        panic!(
+            "HARNESS VIOLATION: pattern_accuracy test target/filter missing or empty.\n\
+             Ensure memory-core declares [[test]] name=pattern_accuracy and filter matches.\n\
+             stderr:\n{stderr}"
+        );
+    }
 
     // W2.3b: never parse metrics from a failed subprocess (no soft-pass baseline)
     let stdout = match require_successful_output(

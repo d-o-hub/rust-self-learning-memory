@@ -36,9 +36,29 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Count #[ignore] attributes in Rust sources (production + tests)
-COUNT=$(rg -c '#\[ignore' --glob '*.rs' -g '!target/**' 2>/dev/null \
-  | awk -F: '{s+=$2} END {print s+0}')
+# Count #[ignore] attributes in Rust sources (production + tests).
+# Prefer ripgrep; fall back to find+grep when rg is not installed (minimal CI images).
+# Never fail with exit 127 when rg is missing — that broke Quick Check (CI).
+count_ignores() {
+  local n=0
+  if command -v rg >/dev/null 2>&1; then
+    n=$(rg -c '#\[ignore' --glob '*.rs' -g '!target/**' 2>/dev/null \
+      | awk -F: '{s+=$2} END {print s+0}')
+  elif command -v find >/dev/null 2>&1 && command -v grep >/dev/null 2>&1; then
+    n=$(find . \( -path ./target -o -path ./.git \) -prune -o -name '*.rs' -print 2>/dev/null \
+      | xargs grep -c '#\[ignore' 2>/dev/null \
+      | awk -F: '{s+=$2} END {print s+0}')
+  else
+    echo "WARN: neither rg nor find+grep available; treating ignore count as 0" >&2
+    n=0
+  fi
+  # Normalize empty
+  echo "${n:-0}"
+}
+
+COUNT=$(count_ignores)
+# Bash arithmetic requires integer
+COUNT=$((COUNT + 0))
 
 echo "ignored_test_attrs=$COUNT ceiling=$CEILING"
 

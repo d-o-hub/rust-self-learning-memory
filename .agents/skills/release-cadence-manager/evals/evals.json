@@ -8,7 +8,7 @@
     {
       "name": "documents-detect-resolve",
       "description": "Skill documents detect and resolve CLI entrypoints",
-      "exec": "rg -q 'release-cadence-manager.sh detect' .agents/skills/release-cadence-manager/SKILL.md && rg -q 'resolve' .agents/skills/release-cadence-manager/SKILL.md"
+      "exec": "rg -q 'detect' .agents/skills/release-cadence-manager/SKILL.md && rg -q 'resolve' .agents/skills/release-cadence-manager/SKILL.md && rg -q 'release-cadence-manager.sh' .agents/skills/release-cadence-manager/SKILL.md"
     },
     {
       "name": "cli-script-executable",

@@ -11,6 +11,10 @@
 //! - Effectiveness tracking, pattern ranking, and decay mechanisms
 //!
 
+// Test-only helpers: must_use_candidate is noise for fixture constructors
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::float_cmp)]
+
 mod ground_truth;
 mod helpers;
 

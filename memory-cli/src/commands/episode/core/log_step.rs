@@ -8,7 +8,7 @@ use do_memory_core::SelfLearningMemory;
 use do_memory_core::{ExecutionResult, ExecutionStep};
 use uuid::Uuid;
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn log_step(
     episode_id: String,
     tool: String,

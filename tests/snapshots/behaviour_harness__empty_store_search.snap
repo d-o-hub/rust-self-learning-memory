@@ -1,0 +1,5 @@
+---
+source: tests/behaviour_harness.rs
+expression: "format!(\"query='Anything at all', results_count={}, results_empty={}\",\nresults.len(), results.is_empty())"
+---
+query='Anything at all', results_count=0, results_empty=true

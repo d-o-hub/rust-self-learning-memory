@@ -45,6 +45,42 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 - **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
 
+## Steering Loop
+
+The steering loop is the mechanism by which repeated sensor violations improve the harness rather than just being fixed in isolation.
+
+### Protocol
+
+When any computational sensor fires more than 2 times in a single sprint (across different PRs or commits):
+
+1. Identify root cause category: Is this a maintainability, architecture, behaviour, or security issue?
+2. Locate or create the guide: Find the corresponding feedforward guide in HARNESS.md. If no guide covers this pattern, proceed to step 3.
+3. Create a new skill: Use .agents/skills/skill-creator/ to scaffold a new skill in .agents/skills/<category>/. The skill should prevent the violation, not just describe it.
+4. Update the sensor table: Add or update the sensor row in HARNESS.md with the correct fix hint pointing to the new guide.
+5. Log the update: Add an entry to CHANGELOG.md under the current sprint.
+
+### Metrics Events
+
+Every time a sensor fires and is resolved, write a structured event log:
+
+Path: `.agents/events/YYYY/MM/DD/<sensor>-<timestamp>.json`
+
+Example JSON structure:
+```json
+{
+  "timestamp": "2026-07-18T12:00:00Z",
+  "sensor": "clippy::too_many_arguments",
+  "category": "maintainability",
+  "violation_count": 3,
+  "root_cause": "Function signatures grown beyond manageable parameter count",
+  "guide_updated": "AGENTS.md#function-signatures",
+  "skill_created": false,
+  "resolution": "Refactored to use config struct"
+}
+```
+
+This creates a searchable audit trail that future agents can use to avoid repeating known violations.
+
 ## Documentation Rules
 - Wrap URLs in angle brackets, re-export new public types from `lib.rs`, and run `cargo doc --no-deps --document-private-items` before commit
 

@@ -10,7 +10,6 @@ use do_memory_core::SelfLearningMemory;
 use do_memory_core::{TaskContext, TaskType};
 use std::path::PathBuf;
 
-#[allow(clippy::too_many_arguments)]
 pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,

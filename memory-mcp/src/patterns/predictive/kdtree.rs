@@ -3,9 +3,6 @@
 //! Provides forecasting models, anomaly detection, and causal inference capabilities
 //! using advanced algorithms from augurs and deep_causality.
 
-#[allow(clippy::cast_precision_loss)]
-#[allow(clippy::cast_possible_wrap)]
-#[allow(clippy::cast_sign_loss)]
 use serde::{Deserialize, Serialize};
 
 /// DBSCAN Anomaly Detection Implementation
@@ -56,7 +53,6 @@ impl Point {
         features.push(std_dev);
 
         // Trend features
-        #[allow(clippy::cast_precision_loss)]
         let trend = if let (Some(&first_val), Some(&last_val)) = (values.first(), values.last()) {
             (last_val - first_val) / (values.len() - 1) as f64
         } else {

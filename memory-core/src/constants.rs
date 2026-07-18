@@ -151,25 +151,28 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::assertions_on_constants)]
     fn test_default_values() {
-        assert!(defaults::DEFAULT_CACHE_SIZE > 0);
-        assert!(defaults::DEFAULT_BATCH_SIZE > 0);
-        assert!(defaults::MAX_BATCH_SIZE >= defaults::DEFAULT_BATCH_SIZE);
-        assert!(defaults::MIN_BATCH_SIZE <= defaults::DEFAULT_BATCH_SIZE);
+        #[expect(clippy::assertions_on_constants)]
+        {
+            assert!(defaults::DEFAULT_CACHE_SIZE > 0);
+            assert!(defaults::DEFAULT_BATCH_SIZE > 0);
+            assert!(defaults::MAX_BATCH_SIZE >= defaults::DEFAULT_BATCH_SIZE);
+            assert!(defaults::MIN_BATCH_SIZE <= defaults::DEFAULT_BATCH_SIZE);
+        }
     }
 
     #[test]
-    #[allow(clippy::assertions_on_constants)]
     fn test_similarity_thresholds() {
-        assert!(defaults::MIN_SIMILARITY_THRESHOLD >= 0.0);
-        assert!(defaults::MAX_SIMILARITY_THRESHOLD <= 1.0);
-        assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD >= defaults::MIN_SIMILARITY_THRESHOLD);
-        assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD <= defaults::MAX_SIMILARITY_THRESHOLD);
+        #[expect(clippy::assertions_on_constants)]
+        {
+            assert!(defaults::MIN_SIMILARITY_THRESHOLD >= 0.0);
+            assert!(defaults::MAX_SIMILARITY_THRESHOLD <= 1.0);
+            assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD >= defaults::MIN_SIMILARITY_THRESHOLD);
+            assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD <= defaults::MAX_SIMILARITY_THRESHOLD);
+        }
     }
 
     #[test]
-    #[allow(clippy::const_is_empty)]
     fn test_error_messages_not_empty() {
         assert!(!errors::EPISODE_NOT_FOUND.is_empty());
         assert!(!errors::PATTERN_NOT_FOUND.is_empty());

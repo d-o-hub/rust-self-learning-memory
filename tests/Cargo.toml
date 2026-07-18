@@ -33,6 +33,9 @@ uuid.workspace = true
 serde_json.workspace = true
 regex = "1.10"
 
+# Architecture testing
+cargo_metadata.workspace = true
+
 # CLI testing (needed for e2e tests)
 assert_cmd = "2.2"
 predicates = "3.1"
@@ -41,6 +44,7 @@ futures = "0.3"
 governor = "0.10"
 sysinfo = "0.39"
 chrono.workspace = true
+insta.workspace = true
 
 
 # Soak tests - long-running stability and load tests
@@ -49,6 +53,11 @@ chrono.workspace = true
 #
 # Priority: P4 (nice-to-have, not blocking)
 # ADR Reference: ADR-027: Strategy for Ignored Tests
+
+[[test]]
+name = "arch_fitness"
+path = "arch_fitness.rs"
+harness = true
 
 [[test]]
 name = "quality_gates"
@@ -78,6 +87,11 @@ harness = true
 [[test]]
 name = "hybrid_storage_recovery"
 path = "hybrid_storage_recovery.rs"
+harness = true
+
+[[test]]
+name = "behaviour_harness"
+path = "behaviour_harness.rs"
 harness = true
 
 # NOTE: These embedding tests use APIs that don't exist or have changed.

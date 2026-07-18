@@ -1,0 +1,27 @@
+# Gitleaks configuration for rust-self-learning-memory
+# Extends default ruleset with project-specific allowlists
+# See: https://github.com/gitleaks/gitleaks/blob/master/config.toml
+
+title = "Gitleaks config for rust-self-learning-memory"
+
+# Extend default rules
+[extend]
+useDefault = true
+
+# Project-specific allowlists
+[allowlist]
+  description = "Global allowlist for rust-self-learning-memory"
+  paths = [
+    '''tests/''',
+    '''benches/''',
+    '''examples/''',
+    '''test-utils/''',
+  ]
+  # Documentation examples showing API key formats (not real secrets)
+  regexes = [
+    '''generic-api-key['":\s]*['"]?['"]?[a-zA-Z0-9]{20,}''',
+    '''sidekiq-secret['":\s]*['"]?['"]?[a-zA-Z0-9]{20,}''',
+    # Placeholder test keys
+    '''sk-invalid-key-12345''',
+    '''test-key-[a-zA-Z0-9]+''',
+  ]

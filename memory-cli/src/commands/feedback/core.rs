@@ -182,7 +182,7 @@ async fn record_session(
 }
 
 /// Record feedback about a recommendation session
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 async fn record_feedback(
     session_id: String,
     applied_patterns: Vec<String>,

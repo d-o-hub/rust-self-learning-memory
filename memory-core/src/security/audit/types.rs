@@ -172,7 +172,7 @@ pub enum AuditResult {
 
 /// Configuration for audit logging.
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)] // Independent config flags are appropriate here
+#[expect(clippy::struct_excessive_bools)] // Independent config flags are appropriate here
 pub struct AuditConfig {
     /// Whether audit logging is enabled
     pub enabled: bool,

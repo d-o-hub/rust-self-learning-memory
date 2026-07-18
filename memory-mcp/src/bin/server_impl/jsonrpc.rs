@@ -209,7 +209,7 @@ pub async fn handle_health_check(request: JsonRpcRequest) -> Option<JsonRpcRespo
 }
 
 /// Main message loop for JSON-RPC
-#[allow(clippy::excessive_nesting)]
+#[expect(clippy::excessive_nesting)]
 pub async fn run_jsonrpc_server(
     mcp_server: Arc<Mutex<MemoryMCPServer>>,
     oauth_config: OAuthConfig,
@@ -243,7 +243,6 @@ pub async fn run_jsonrpc_server(
                 if line.is_empty() {
                     continue;
                 }
-                #[allow(clippy::excessive_nesting)]
                 match serde_json::from_str::<JsonRpcRequest>(line) {
                     Ok(request) => {
                         let response = handle_request(
@@ -299,7 +298,6 @@ pub async fn run_jsonrpc_server(
 }
 
 /// Handle a JSON-RPC request with rate limiting
-#[allow(clippy::excessive_nesting, deprecated)]
 pub async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,

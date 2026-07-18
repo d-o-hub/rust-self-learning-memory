@@ -3,7 +3,7 @@
 //! Unit tests for the changepoint detection system.
 
 #[cfg(test)]
-#[allow(clippy::module_inception)]
+#[expect(clippy::module_inception)]
 mod tests {
     use crate::patterns::changepoint::algorithms::{compute_segment_stats, normal_cdf};
     use crate::patterns::changepoint::detector::ChangepointDetector;

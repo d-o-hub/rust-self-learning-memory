@@ -12,7 +12,7 @@ const MAX_SEARCH_LIMIT: usize = 100;
 /// Minimum allowed limit for pattern search operations
 const MIN_SEARCH_LIMIT: usize = 1;
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn search_patterns(
     memory: &SelfLearningMemory,
     query: &str,

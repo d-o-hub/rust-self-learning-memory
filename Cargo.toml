@@ -69,6 +69,9 @@ clap = { version = "4.6.1", features = ["derive"] }
 # Async utilities
 futures = "0.3.32"
 
+# Architecture testing
+cargo_metadata = "0.18"
+
 # Consolidated duplicate dependencies
 base64 = "0.22.1"
 lru = "0.18.0"
@@ -107,6 +110,9 @@ rust_2024_compatibility = { level = "warn", priority = -1 }
 all = { level = "deny", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "allow", priority = -1 }
+allow_attributes = "deny"
+# unnecessary_wraps: CI allows this; functions return Result for API consistency
+unnecessary_wraps = "allow"
 
 # Async/Tokio-specific lints (critical for async safety)
 await_holding_lock = "deny"

@@ -117,7 +117,6 @@ impl TursoStorage {
         // SAFETY: This function is only called with table names from a fixed whitelist
         // in capacity.rs (episodes, patterns, heuristics, embeddings, etc.).
         // No user input can reach this function, preventing SQL injection.
-        #[allow(clippy::literal_string_with_formatting_args)]
         let sql = format!("SELECT COUNT(*) as count FROM {}", table);
         let mut rows = conn
             .query(&sql, ())

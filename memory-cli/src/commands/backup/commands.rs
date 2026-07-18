@@ -97,7 +97,7 @@ pub async fn create_backup(
         episodes_count: episodes.len(),
         patterns_count: patterns.len(),
         size_bytes: content.len() as u64,
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(clippy::cast_possible_truncation)]
         duration_ms: start_time.elapsed().as_millis() as u64,
         timestamp: chrono::Utc::now().to_rfc3339(),
     };
@@ -214,7 +214,7 @@ pub async fn restore_backup(
         backup_id,
         episodes_restored,
         patterns_restored,
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(clippy::cast_possible_truncation)]
         duration_ms: start_time.elapsed().as_millis() as u64,
         errors,
     };

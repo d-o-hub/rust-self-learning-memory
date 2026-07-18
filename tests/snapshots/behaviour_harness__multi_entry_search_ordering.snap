@@ -1,0 +1,5 @@
+---
+source: tests/behaviour_harness.rs
+expression: "format!(\"query='Fix database connection timeout', results={:?}, total_stored={}\",\nresult_summary, descriptions.len())"
+---
+query='Fix database connection timeout', results=["Fix database connection pooling bug (score=1.1000)", "Write unit tests for search module (score=1.1000)", "Refactor error handling in storage layer (score=1.1000)", "Add rate limiting to API endpoints (score=1.1000)", "Implement user authentication (score=1.1000)"], total_stored=5

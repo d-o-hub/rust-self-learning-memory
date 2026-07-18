@@ -3,7 +3,7 @@
 //! Unit tests for pattern clustering functionality.
 
 #[cfg(test)]
-#[allow(clippy::module_inception)]
+#[expect(clippy::module_inception)]
 mod tests {
     use crate::Episode;
     use crate::ExecutionStep;

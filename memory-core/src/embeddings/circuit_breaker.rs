@@ -81,7 +81,7 @@ impl CircuitBreaker {
 
     /// Create a circuit breaker with default configuration
     #[must_use]
-    #[allow(clippy::should_implement_trait)]
+    #[expect(clippy::should_implement_trait)]
     pub fn default() -> Self {
         Self::new(CircuitBreakerConfig::default())
     }

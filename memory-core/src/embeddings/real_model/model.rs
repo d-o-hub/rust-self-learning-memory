@@ -111,7 +111,7 @@ impl RealEmbeddingModel {
                 .ok_or_else(|| anyhow::anyhow!("Failed to convert embedding array to slice"))?;
 
             // Clippy: Indexing is necessary for accumulation across sequence dimension
-            #[allow(clippy::needless_range_loop)]
+            #[expect(clippy::needless_range_loop)]
             for seq_idx in 0..seq_length {
                 for hidden_idx in 0..hidden_size {
                     let idx = seq_idx * hidden_size + hidden_idx;
@@ -140,7 +140,7 @@ impl RealEmbeddingModel {
     /// Attempts to load the model from cache. If files don't exist and
     /// the `reqwest` feature is enabled, automatically downloads them
     /// from `HuggingFace` Hub.
-    #[allow(clippy::unused_async)] // Required for API compatibility with async trait methods
+    #[expect(clippy::unused_async)] // Required for API compatibility with async trait methods
     pub async fn try_load_from_cache(
         config: &LocalConfig,
         cache_dir: &std::path::Path,
@@ -222,7 +222,7 @@ impl RealEmbeddingModel {
     }
 
     /// Try to load real model (always fails without feature)
-    #[allow(clippy::unused_async)]
+    #[expect(clippy::unused_async)]
     pub async fn try_load_from_cache(
         _config: &LocalConfig,
         _cache_dir: &std::path::Path,
@@ -233,7 +233,7 @@ impl RealEmbeddingModel {
     }
 
     /// Generate real embedding (always fails without feature)
-    #[allow(clippy::unused_async)]
+    #[expect(clippy::unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"

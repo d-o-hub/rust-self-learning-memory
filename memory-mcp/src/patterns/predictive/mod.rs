@@ -3,9 +3,6 @@
 //! Provides forecasting models, anomaly detection, and causal inference capabilities
 //! using advanced algorithms from augurs and deep_causality.
 
-#[allow(clippy::cast_precision_loss)]
-#[allow(clippy::cast_possible_wrap)]
-#[allow(clippy::cast_sign_loss)]
 use anyhow::Result;
 use std::collections::HashMap;
 use tracing::{info, instrument};

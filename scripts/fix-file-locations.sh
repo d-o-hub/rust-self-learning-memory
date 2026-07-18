@@ -54,6 +54,7 @@ PERMANENT_DOCS=(
   "SECURITY.md"
   "DEPLOYMENT.md"
   "TESTING.md"
+  "HARNESS.md"
   "LICENSE"
 )
 

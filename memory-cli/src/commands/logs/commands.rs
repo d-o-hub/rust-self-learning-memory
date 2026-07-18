@@ -98,7 +98,7 @@ pub async fn search_logs(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub async fn export_logs(
     memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,

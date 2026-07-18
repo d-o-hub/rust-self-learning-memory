@@ -40,7 +40,7 @@ impl ConfigCache {
     /// - The path is not in the cache
     /// - The file has been modified since caching
     /// - The cache lock is poisoned (another thread panicked while holding the lock)
-    #[allow(clippy::excessive_nesting)]
+    #[expect(clippy::excessive_nesting)]
     pub fn get(&self, path: &Path) -> Option<Config> {
         // If the lock is poisoned, another thread panicked while holding it.
         // Return None to allow the caller to fall back to loading from file.

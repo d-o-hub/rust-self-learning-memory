@@ -22,7 +22,6 @@ impl super::Retryable for TestError {
     }
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_success_first_attempt() {
     let call_count = AtomicUsize::new(0);
@@ -45,7 +44,6 @@ async fn test_retry_success_first_attempt() {
     assert_eq!(call_count.load(Ordering::SeqCst), 1);
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_success_after_failures() {
     let call_count = AtomicUsize::new(0);
@@ -72,7 +70,6 @@ async fn test_retry_success_after_failures() {
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_non_recoverable_error() {
     let call_count = AtomicUsize::new(0);
@@ -98,7 +95,6 @@ async fn test_retry_non_recoverable_error() {
     assert_eq!(call_count.load(Ordering::SeqCst), 1);
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_max_retries_exceeded() {
     let call_count = AtomicUsize::new(0);
@@ -119,7 +115,6 @@ async fn test_retry_max_retries_exceeded() {
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
-#[allow(clippy::excessive_nesting)]
 fn make_failing_closure(
     cc: Arc<AtomicUsize>,
 ) -> impl Fn() -> std::pin::Pin<
@@ -138,7 +133,6 @@ fn make_failing_closure(
     }
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_with_budget() {
     let call_count = Arc::new(AtomicUsize::new(0));
@@ -177,7 +171,6 @@ async fn test_retry_sync() {
     assert_eq!(call_count.load(Ordering::SeqCst), 3);
 }
 
-#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn test_retry_with_jitter() {
     let call_count = Arc::new(AtomicUsize::new(0));
@@ -328,7 +321,6 @@ async fn rejects_zero_max_concurrent_retries_in_config() {
     let _ = RetryConfig::new().with_max_concurrent_retries(0);
 }
 
-#[allow(clippy::excessive_nesting)]
 fn fail_then_ok(
     calls: Arc<AtomicUsize>,
 ) -> impl Fn() -> std::pin::Pin<

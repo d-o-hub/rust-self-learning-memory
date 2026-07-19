@@ -9,7 +9,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use tracing::debug;
 
-/// Parameters for [`MemoryMCPServer::query_memory_with_options`].
+/// Parameters for [`crate::server::MemoryMCPServer::query_memory_with_options`].
 #[derive(Debug, Clone)]
 pub struct QueryMemoryRequest {
     /// Search query

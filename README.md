@@ -2,11 +2,6 @@
 
 <div align="center">
 
-![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
-![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
-
 A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and a full-featured CLI.
 
 [Overview](#overview) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Quality Gates](#quality-gates) • [License](#license)

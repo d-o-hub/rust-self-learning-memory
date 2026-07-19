@@ -73,6 +73,28 @@ check_missing_criterion_fixture() {
   echo "OK: missing criterion handling present"
 }
 
+check_jq_conversion() {
+  # Conversion must use jq (not fragile grep) for Criterion estimates.json
+  if ! rg -q 'jq -r' "$WF"; then
+    fail "benchmarks.yml Criterion conversion must use jq for point_estimate parsing"
+  fi
+  if ! rg -q 'refusing dummy benchmark soft-pass' "$WF"; then
+    fail "benchmarks.yml must hard-fail when converted results are empty"
+  fi
+  # Fixture: sample Criterion-like estimates.json parses with the same jq expression
+  if command -v jq >/dev/null 2>&1; then
+    local sample mean
+    sample=$(mktemp)
+    cat >"$sample" <<'JSON'
+{"mean":{"point_estimate":12345.67,"standard_error":1.0},"std_dev":{"point_estimate":10.2}}
+JSON
+    mean=$(jq -r '(.mean.point_estimate // empty) | floor' "$sample")
+    rm -f "$sample"
+    [[ "$mean" == "12345" ]] || fail "jq floor extraction fixture failed (got: $mean)"
+  fi
+  echo "OK: jq-based Criterion conversion present"
+}
+
 case "$MODE" in
   --fixtures)
     check_workflow_exists
@@ -80,6 +102,7 @@ case "$MODE" in
     check_cli_paths_or_benches_package
     check_regression_threshold
     check_missing_criterion_fixture
+    check_jq_conversion
     echo "OK: benchmark workflow fixtures passed"
     ;;
   -h|--help)

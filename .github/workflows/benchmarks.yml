@@ -214,32 +214,56 @@ jobs:
 
       - name: Convert Criterion output to bencher format
         run: |
+           set -euo pipefail
+           # jq is required for reliable Criterion estimates.json parsing (W2.5)
+           if ! command -v jq >/dev/null 2>&1; then
+             sudo apt-get update -qq && sudo apt-get install -y -qq jq
+           fi
            mkdir -p benchmark_results
            bench_results_file="benchmark_results/output.txt"
            criterion_dir="$CARGO_TARGET_DIR/criterion"
-           if [ -d "$criterion_dir" ] && [ -n "$(find "$criterion_dir" -name "estimates.json" 2>/dev/null)" ]; then
-             : > "$bench_results_file"
+           : > "$bench_results_file"
+           estimate_count=0
+           converted_count=0
+           if [ -d "$criterion_dir" ]; then
              while IFS= read -r json_file; do
+               estimate_count=$((estimate_count + 1))
+               # Criterion layout: <group>/<bench>/new/estimates.json (also base/change)
                bench_name=$(echo "$json_file" | sed "s|$criterion_dir/||" | \
-                 sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
-               mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
-                 grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
-               std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
-                 grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
-               if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
-                 if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
+                 sed 's|/new/estimates.json||' | sed 's|/base/estimates.json||' | \
+                 sed 's|/change/estimates.json||' | sed 's|/.*benchmarks/||' | tr '/' '_')
+               # Prefer jq: Criterion stores mean/std_dev.point_estimate as floats (ns)
+               mean_ns=$(jq -r '(.mean.point_estimate // empty) | floor' "$json_file" 2>/dev/null || true)
+               std_dev=$(jq -r '(.std_dev.point_estimate // empty) | floor' "$json_file" 2>/dev/null || true)
+               if [ -z "$mean_ns" ] || [ "$mean_ns" = "null" ]; then
+                 # Fallback for older/nested layouts
+                 mean_ns=$(jq -r '.. | objects | select(has("point_estimate")) | .point_estimate' "$json_file" 2>/dev/null \
+                   | head -1 | awk '{printf "%d", $1}')
+               fi
+               if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ] && [ "$mean_ns" != "null" ]; then
+                 if [ -n "${std_dev:-}" ] && [ "$std_dev" != "0" ] && [ "$std_dev" != "null" ]; then
                    echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
                  else
                    echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
                  fi
+                 converted_count=$((converted_count + 1))
+               else
+                 echo "⚠️  Could not parse mean from $json_file (sample):"
+                 head -c 400 "$json_file" || true
+                 echo
                fi
-             done < <(find "$criterion_dir" -type f -path "*/new/estimates.json")
-             sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
-             mv "${bench_results_file}.tmp" "$bench_results_file"
+             done < <(find "$criterion_dir" -type f -name "estimates.json" 2>/dev/null | sort)
+             if [ -s "$bench_results_file" ]; then
+               sort -u "$bench_results_file" -o "$bench_results_file"
+             fi
            fi
+           echo "Criterion estimates.json files found: $estimate_count"
+           echo "Converted benchmark lines: $converted_count"
            if [ ! -s "$bench_results_file" ]; then
              # W2.5: empty converted results block — do not substitute dummy data
              echo "❌ No converted Criterion estimates; refusing dummy benchmark soft-pass"
+             echo "Listing criterion tree (depth 4):"
+             find "$criterion_dir" -maxdepth 4 -type f 2>/dev/null | head -50 || true
              exit 1
            fi
            echo "Generated benchmark results:"

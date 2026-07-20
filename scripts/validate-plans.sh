@@ -63,7 +63,15 @@ check_active_set() {
   for f in "${required[@]}"; do
     [[ -f "$f" ]] || fail "missing canonical plan file: $f"
   done
-  echo "OK: active-set present"
+
+  # R-G4: warn on excess dated GOAP/analysis files at plans root (ADR-039)
+  local dated_count
+  dated_count=$(find plans -maxdepth 1 -type f \( -name 'GOAP_*20[0-9][0-9]-*.md' -o -name '*-20[0-9][0-9]-*.md' \) 2>/dev/null | wc -l | tr -d ' ')
+  # Allow a small number of active dated analysis files (e.g. current recommendations)
+  if [[ "${dated_count}" -gt 5 ]]; then
+    warn "excess dated files at plans/ root (${dated_count} > 5); archive completed plans per ADR-039"
+  fi
+  echo "OK: active-set present (dated_root=${dated_count})"
 }
 
 check_version_state() {

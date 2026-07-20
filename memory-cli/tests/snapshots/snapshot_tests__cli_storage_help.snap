@@ -12,6 +12,7 @@ Commands:
   vacuum       Vacuum and optimize storage
   health       Check storage health
   connections  Show connection status
+  journal      Show operation journal status (F4.2) — pending repairs and entry counts
   help         Print this message or the help of the given subcommand(s)
 
 Options:

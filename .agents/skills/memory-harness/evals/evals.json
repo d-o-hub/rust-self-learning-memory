@@ -9,6 +9,21 @@
       "name": "eval-script-present",
       "description": "evaluate-learning.sh exists",
       "exec": "test -f .agents/skills/memory-harness/evaluate-learning.sh"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*memory-harness' .agents/skills/memory-harness/SKILL.md"
+    },
+    {
+      "name": "has-description",
+      "description": "description frontmatter present",
+      "exec": "rg -q '^description:' .agents/skills/memory-harness/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/memory-harness/SKILL.md"
     }
   ]
 }

@@ -9,6 +9,21 @@
       "name": "documents-backends",
       "description": "mentions Turso and redb",
       "exec": "rg -q 'Turso|turso' .agents/skills/storage-sync/SKILL.md && rg -q 'redb' .agents/skills/storage-sync/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*storage-sync' .agents/skills/storage-sync/SKILL.md"
+    },
+    {
+      "name": "has-description",
+      "description": "description frontmatter present",
+      "exec": "rg -q '^description:' .agents/skills/storage-sync/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/storage-sync/SKILL.md"
     }
   ]
 }

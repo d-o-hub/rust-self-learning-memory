@@ -1,0 +1,22 @@
+# Python bytecode / caches (any skill that ships scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~

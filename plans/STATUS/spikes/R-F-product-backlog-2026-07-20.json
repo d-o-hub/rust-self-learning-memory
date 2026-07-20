@@ -1,0 +1,25 @@
+{
+  "id": "R-F-product-backlog",
+  "commit": "pending",
+  "timestamp": "2026-07-20T00:00:00Z",
+  "owner": "maintainers",
+  "commands": ["plans review only — no implementation"],
+  "metrics": {},
+  "preapproved_thresholds": {},
+  "result": "Product epics R-F1..R-F10 remain spike-gated; no GO this sprint",
+  "decision": "DEFER",
+  "reviewers": ["recommendations-2026-07-20"],
+  "items": [
+    "R-F1 distributed sync",
+    "R-F2 OTel/Prometheus",
+    "R-F3 multi-tenancy",
+    "R-F4 SIMD (WG-110)",
+    "R-F5 version-retained persistence (WG-108)",
+    "R-F6 MoE (WG-125)",
+    "R-F7 federated HDC (WG-135)",
+    "R-F8 CLI relationship show polish",
+    "R-F9 ANN retrieval hardening",
+    "R-F10 Trusted Publishing OIDC"
+  ],
+  "notes": "Explicit non-goals for implementation without individual spikes under plans/STATUS/spikes/."
+}

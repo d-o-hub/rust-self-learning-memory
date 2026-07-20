@@ -77,7 +77,7 @@ The following tool names are the current contract tracked by parity tests.
 
 ### Core and Monitoring
 
-- `query_memory`
+- `query_memory` (optional `with_provenance: true` for F4.1 redacted retrieval provenance)
 - `analyze_patterns`
 - `health_check`
 - `get_metrics`
@@ -146,6 +146,10 @@ The following tool names are the current contract tracked by parity tests.
 
 - `execute_agent_code` — **unavailable / fail-closed**. The WASM sandbox was removed; there is no `wasmtime-backend` feature and no working code-execution backend. Calls are rejected (fail closed).
 
+### Provenance diagnostics (F4.1 / ADR-074)
+
+- `query_memory` accepts optional `with_provenance: true` — response may include a redacted `provenance` object (fingerprint, cache_hit, index_generation, latency). Raw query text is never returned in provenance.
+
 ---
 
 ## Deferred Batch Tools (Intentionally Absent)
@@ -156,7 +160,9 @@ Per WG-053 and parity tests, these tool names are intentionally **not advertised
 - `batch_pattern_analysis`
 - `batch_compare_episodes`
 
-Status: **Deferred / absent from active MCP tool contract** until handlers are implemented and wired.
+Status: **Deferred / absent from active MCP tool contract** (R-C7) until handlers are implemented and wired. Do not advertise them as available.
+
+---
 
 ---
 

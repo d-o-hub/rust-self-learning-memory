@@ -31,6 +31,22 @@ Always use Skill + CLI first for high-frequency ops:
 Full skill inventory: [`.agents/SKILLS.md`](.agents/SKILLS.md).  
 Before task tool: skill? → script? → Skill+CLI? → task tool?
 
+### GitHub CLI agent skills (user scope — R-H1/H2/H7)
+
+Install official patterns once per machine (not a substitute for this repo’s domain skills):
+
+```bash
+gh skill install cli/cli gh --scope user --agent <host>        # how to use gh
+gh skill install cli/cli gh-skill --scope user --agent <host>  # manage skills
+```
+
+| Layout | Path | Purpose |
+|--------|------|---------|
+| **User** | `~/.…/skills/gh` via `gh skill install` | Cross-repo `gh` JSON/pagination/API patterns |
+| **Project** | `.agents/skills/*` | Domain: release-guard, pr-readiness, memory, etc. |
+
+Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship --execute` (tag → `release.yml`). Never `gh release create` for shipping.
+
 ## Change Workflow
 1. Identify owner crate + module
 2. Read existing patterns

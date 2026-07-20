@@ -72,70 +72,65 @@ IDs use prefix **R** (recommendation). Priorities:
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | 18 commits since `v0.1.35`; release-drift gate already tracking | Tag = workspace version; `release.yml` GitHub Release; no `gh release create` |
-| **R-A2** | Immediately bump workspace to **0.1.37** after tag (LESSON: equal version+tag blocks feat commits) | AGENTS post-release rule | Workspace > tag before next feat |
-| **R-A3** | Re-run `./scripts/release-manager.sh status` and resolve any “main CI failed” stale signal | Status script reported 1 failed while recent runs success | Status green before ship |
+| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | After #878 merge + main green | 🟡 After merge |
+| **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 After R-A1 |
+| **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | 🟡 With R-A1 |
 
 ### Track B — Code quality & invariants (P0/P1)
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-B1** | Split `memory-core/src/embeddings/config/provider_config.rs` (511 LOC) | Only production file over 500 LOC | `./scripts/quality-gates.sh --loc-only` clean |
-| **R-B2** | Wire F4 operator surfaces: CLI/MCP diagnostics for retrieval provenance + op-journal health/repair | Pilots are library-level; users cannot exercise them | Documented commands; at least one integration test each |
-| **R-B3** | Reconcile `docs/TECH_DEBT.md` with reality (ignored-test counts, batch tools, WASM wording) | Tech debt registry still claims WASM “disabled with issues” and stale ignore counts | TECH_DEBT matches fail-closed docs + current ignore inventory |
-| **R-B4** | Audit remaining ignored tests; keep ratchet (`check-ignored-tests.sh`) and only lower ceiling with evidence | Historical ~100+ ignores; media STOR-01 libsql | Ratchet green; no unevidenced ceiling raise |
-| **R-B5** | ADR registry hygiene: alias duplicates **025** and **054**; ban new collisions | Two ADR numbers reused | `./scripts/validate-plans.sh --identifiers` green; index in `plans/adr/README.md` or registry note |
+| **R-B1** | Split provider configs ≤500 LOC | ✅ Done |
+| **R-B2** | F4 CLI journal + MCP `with_provenance` | ✅ CLI journal; MCP already had provenance |
+| **R-B3** | TECH_DEBT refresh | ✅ Done |
+| **R-B4** | Ignored-test ratchet | ✅ 173/200 ceiling; keep ratchet |
+| **R-B5** | ADR 025/054 aliases | ✅ `plans/adr/README.md` |
 
 ### Track C — Missing / partial implementations (P1)
 
 | ID | Surface | Status | Recommendation |
 |----|---------|--------|----------------|
-| **R-C1** | Skill routing (K3.3 remainder) | 16/34 skills in `skill-rules.json` | Add routes for 18 unrouted skills; expand negative-routing fixtures; `./scripts/validate-skill-routes.sh` green |
-| **R-C2** | `ci-poll` skill evals | No `evals/evals.json` | Add positive + timeout/cancel fixtures; include in Skill Evals |
-| **R-C3** | `.agents/SKILLS.md` inventory | ✅ Generated 2026-07-20; keep synced when skills change | Regenerate via catalog compiler; wire `--check` in CI if not already |
-| **R-C4** | F4 provenance in MCP tool responses | Partial library API | Optional fields on `query_memory` / pattern search with redaction policy (ADR-074) |
-| **R-C5** | Operation journal repair CLI | Core module exists | `do-memory-cli storage journal status|repair` (or equivalent) |
-| **R-C6** | Model digest enforcement path in default local embedding load | S1.5b code path | Document config keys; e2e fixture for wrong-digest reject |
-| **R-C7** | Batch MCP tools | Explicitly deferred | Keep deferred **or** schedule ADR to remove dead metadata if still advertised anywhere |
+| **R-C1** | Skill routing | ✅ 34/34 |
+| **R-C2** | `ci-poll` evals | ✅ + `pr checks --watch` |
+| **R-C3** | `.agents/SKILLS.md` | ✅ |
+| **R-C4** | MCP `with_provenance` | ✅ Already on main/PR; docs updated |
+| **R-C5** | `storage journal` CLI | ✅ |
+| **R-C6** | Model digest docs + unit tests | ✅ EMBEDDINGS guide + `verify_model_artifact` tests |
+| **R-C7** | Batch tools deferred | ✅ API_REFERENCE explicit deferred |
 
 ### Track D — Documentation contracts (P1)
 
 | ID | Recommendation | Files | Acceptance |
 |----|----------------|-------|------------|
-| **R-D1** | Keep README examples compilable (`TaskContext`, playbook, local mode) | `README.md` | `cargo test --doc` + optional `validate-readme-contracts.sh` |
-| **R-D2** | Align README quality claims with GATE_CONTRACT (coverage floor vs target vs Codecov) | `README.md`, `plans/GATE_CONTRACT.md` | One matrix; no conflicting % |
-| **R-D3** | AGENTS.md skill quick-ref: add `release-guard`, `pr-readiness`, `ci-poll`, `memory-harness` | `AGENTS.md` | Table lists high-frequency ops only; full inventory in SKILLS.md |
-| **R-D4** | Fix HARNESS.md link to missing `.agents/SKILLS.md` | `HARNESS.md` | Link resolves |
-| **R-D5** | Refresh `agent_docs/` for post-v0.1.35: release path, gate contract, fail-closed exec | `agent_docs/*.md` | No manual `gh release create`; no wasmtime-backend claim |
-| **R-D6** | Regenerate or verify `docs/CLI_COMMANDS.md` / `docs/API_REFERENCE.md` against Clap + tool registry | `docs/` | Diff-check or generator `--check` |
-| **R-D7** | Update `plans/ROADMAPS/ROADMAP_V030_VISION.md` title/dates (still “v0.1.9+”) | vision doc | Honest future framing for 0.2/1.0 |
+| **R-D1** | README examples | Keep under doctest/CI; no known wasmtime claim |
+| **R-D2** | README ↔ GATE_CONTRACT coverage | ✅ |
+| **R-D3** | AGENTS skill quick-ref + gh bootstrap | ✅ |
+| **R-D4** | `.agents/SKILLS.md` | ✅ |
+| **R-D5** | agent_docs release + fail-closed | ✅ git_workflow + architecture |
+| **R-D6** | CLI_COMMANDS journal + API provenance | ✅ |
+| **R-D7** | Vision title | ✅ |
 
 ### Track E — Skills & harness (P1)
 
 | ID | Recommendation | Why |
 |----|----------------|-----|
-| **R-E1** | Complete K3.3: inventory + routes + link lint for all 34 skills | Partial completion from #873 |
-| **R-E2** | Behavioral evals for remaining medium-risk skills: `agent-coordination`, `analysis-swarm`, `storage-sync`, `memory-harness`, `loop-agent` | K3.2 covered high-risk set only |
-| **R-E3** | `github-release-best-practices` skill: ensure it only references release-guard (no manual release drift) | Historical contradiction risk |
-| **R-E4** | Skill frontmatter: verify every skill has name, description, allowed tools, related skills | Contract compiler F4.4 GO — enforce in CI |
-| **R-E5** | Remove or gitignore `__pycache__` under `web-doc-resolver` | Noise in skill tree |
+| **R-E1** | K3.3 routes + inventory | ✅ |
+| **R-E2** | Medium-risk skill evals expanded | ✅ |
+| **R-E3** | github-release-best-practices → release-guard only | ✅ Already |
+| **R-E4** | Frontmatter name/description evals | ✅ medium set + compiler |
+| **R-E5** | pycache gitignore | ✅ skill + skills/ + root |
 
 ### Track F — New features (P2, spike-gated)
 
 Do **not** implement without spike artifacts under `plans/STATUS/spikes/`.
 
-| ID | Feature | Rationale | Spike seed |
-|----|---------|-----------|------------|
-| **R-F1** | Distributed multi-instance sync (CRDT / vector clocks) | Vision roadmap; multi-agent deployments | F5.1 |
-| **R-F2** | Prometheus + OpenTelemetry export for episode/retrieval/embedding SLIs | Ops readiness | F5.2 |
-| **R-F3** | Multi-tenancy / RBAC for MCP | SaaS path | F5.3 |
-| **R-F4** | SIMD similarity (WG-110) | Only if bench shows clear win | F5.4 / WG-110 |
-| **R-F5** | Version-retained persistence / concept drift (WG-108) | Long-horizon learning | F5.5 / WG-108 |
-| **R-F6** | Routing-free MoE eval (WG-125) | Research | keep evaluation only until GO |
-| **R-F7** | Federated HDC multi-agent (WG-135) | Research evaluation exists | promote only with GO |
-| **R-F8** | CLI `relationship show` + global cycle validation if still hidden | Historical gap register; re-verify before work | product polish |
-| **R-F9** | ANN semantic episode retrieval hardening (post #775 lineage) | Performance path for large stores | bench vs BM25/HDC cascade |
-| **R-F10** | Trusted Publishing (OIDC) for crates.io | AGENTS future note | release engineering |
+**Status 2026-07-20:** All R-F* **DEFER** — decision artifact  
+`plans/STATUS/spikes/R-F-product-backlog-2026-07-20.json` (`decision: DEFER`).  
+No product/research implementation this sprint.
+
+| ID | Feature | Status |
+|----|---------|--------|
+| **R-F1**…**R-F10** | Distributed sync, OTel, multi-tenancy, SIMD, WG-108/125/135, relationship polish, ANN, OIDC | ⏸ DEFER (spike-gated) |
 
 ### Track G — Plans governance (P1 — this sprint)
 
@@ -144,8 +139,22 @@ Do **not** implement without spike artifacts under `plans/STATUS/spikes/`.
 | **R-G1** | Archive superseded dated GOAP / analysis / CI plans | ✅ Done 2026-07-20 → `archive/2026-07-consolidation/` |
 | **R-G2** | Keep root `plans/*.md` to canonical set only | ✅ Reduced; see `plans/README.md` |
 | **R-G3** | Refresh CURRENT / GOALS / ACTIONS / GOAP_STATE / ROADMAP / GAP / VALIDATION | ✅ This document + companion updates |
-| **R-G4** | Make `validate-plans.sh --active-set` optionally warn on excess dated root files | Proposed follow-up script enhancement |
-| **R-G5** | One active analysis file: this recommendations doc | ✅ |
+| **R-G4** | Warn excess dated plans root files | ✅ `validate-plans.sh --active-set` |
+| **R-G5** | One active analysis + gh analysis doc | ✅ |
+
+### Track H — GitHub CLI skills & best practices (P1)
+
+**Analysis**: `plans/ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md`
+
+| ID | Recommendation | Status |
+|----|----------------|--------|
+| **R-H1** | Bootstrap official `gh` skill docs in AGENTS | ✅ |
+| **R-H2** | `gh-skill` install docs | ✅ |
+| **R-H3** | ci-poll → `gh pr checks --watch` / `gh run watch` | ✅ |
+| **R-H4** | `gh pr update-branch` in pr-readiness | ✅ |
+| **R-H5** | `release.yml` tag on main ancestry preflight | ✅ |
+| **R-H6** | Ban manual `gh release create` for ship | ✅ |
+| **R-H7** | Dual skill layout documented | ✅ |
 
 ---
 

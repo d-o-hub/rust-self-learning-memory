@@ -72,6 +72,21 @@ jobs:
           fi
           echo "✅ Tag matches Cargo.toml version"
 
+      - name: Verify tag commit is on main (R-H5)
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          TAG_SHA=$(git rev-list -n 1 "refs/tags/${TAG}" 2>/dev/null || git rev-parse "${TAG}^{commit}")
+          echo "Tag SHA: ${TAG_SHA}"
+          # Ensure we have main for ancestry check
+          git fetch origin main --depth=0 2>/dev/null || git fetch origin main
+          if ! git merge-base --is-ancestor "${TAG_SHA}" origin/main; then
+            echo "::error::Tag ${TAG} (${TAG_SHA}) is not an ancestor of origin/main. Release tags must point at main history."
+            echo "Fix: tag only from main after merge: ./scripts/release-manager.sh ship --execute"
+            exit 1
+          fi
+          echo "✅ Tag commit is reachable from origin/main"
+
   plan:
     needs:
       - preflight

@@ -1,9 +1,9 @@
 //! Configuration for embedding providers
 
-// Provider-specific configurations
-pub use provider_config::{
-    AzureOpenAIConfig, CustomConfig, LocalConfig, ProviderConfig, verify_model_artifact,
-};
+// Provider-specific configurations (split for ≤500 LOC)
+pub use cloud_config::{AzureOpenAIConfig, CustomConfig};
+pub use local_config::{LocalConfig, verify_model_artifact};
+pub use provider_config::ProviderConfig;
 
 // Provider enums (unchanged)
 pub use provider_enum::EmbeddingProvider;
@@ -19,7 +19,9 @@ pub mod mistral;
 pub mod openai;
 
 // Internal modules
+mod cloud_config;
 mod embedding_config;
+mod local_config;
 mod optimization_config;
 mod provider_config;
 mod provider_enum;

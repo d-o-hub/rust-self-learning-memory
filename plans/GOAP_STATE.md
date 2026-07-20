@@ -3,22 +3,25 @@
 - **Last Updated**: 2026-07-20  
 - **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)  
 - **Branch**: `main` @ `2e0a2b89`  
-- **Open PR**: none  
+- **Open PR**: [#878](https://github.com/d-o-hub/rust-self-learning-memory/pull/878)  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: 🟡 recommended (R-A1) — not started in plans-cleanup wave  
+- **Release**: 🟡 after #878 merge (R-A1)  
 
 ---
 
-## Phase: Recommendations & plans consolidation ✅
+## Phase: Recommendations implementation 🟡 PR #878
 
 | Package | Status |
 |---------|--------|
 | Archive dated GOAP / CI / research plans | ✅ |
 | Single recommendations backlog | ✅ |
 | CURRENT / GOALS / ACTIONS / GAP / VALIDATION / README | ✅ |
-| Code changes | ⛔ none in this wave |
-| Release | ⛔ deferred to ACT-301–303 |
+| R-B1 LOC split provider configs | ✅ |
+| R-C1–C3 skill routes + ci-poll + SKILLS.md | ✅ |
+| R-B2/C5 `storage journal` CLI | ✅ |
+| R-B3/B5/D docs + ADR aliases | ✅ |
+| R-A1/A2 release v0.1.36 | 🟡 after merge |
 
 ---
 

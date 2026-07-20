@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CLI** `storage journal` — operator view of F4.2 operation journal
+  (`--pending`, `--repair` via `reconcile_pending_evictions`).
+- **Skills**: `.agents/SKILLS.md` inventory; full `skill-rules.json` routing;
+  `ci-poll` skill evals.
+- **Plans**: 2026-07-20 recommendations backlog + ADR-039 consolidation archive.
 - **F4.1** retrieval provenance API: `retrieve_relevant_context_with_provenance`
   returns redacted `RetrievalProvenance` + latency (no raw query leakage).
 - **F4.2** operation journal for capacity-eviction multi-backend intents with
@@ -21,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Split embedding provider configs (`LocalConfig`, Azure/Custom) out of
+  `provider_config.rs` to restore production ≤500 LOC invariant.
 - Workspace version advanced to **0.1.36** after shipping `v0.1.35` so
   release-drift gates treat new commits as normal development
   (`version_not_advanced` no longer applies).

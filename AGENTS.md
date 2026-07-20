@@ -22,8 +22,13 @@ Always use Skill + CLI first for high-frequency ops:
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
+| PR merge readiness | `pr-readiness` | `./scripts/check-pr-readiness.sh` |
+| Wait for CI | `ci-poll` | `gh pr checks` / Actions |
+| Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
 | Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
+| Complex multi-step | `goap-agent` | - |
 
+Full skill inventory: [`.agents/SKILLS.md`](.agents/SKILLS.md).  
 Before task tool: skill? → script? → Skill+CLI? → task tool?
 
 ## Change Workflow

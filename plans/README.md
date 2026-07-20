@@ -19,6 +19,7 @@
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
 | [GATE_CONTRACT.md](GATE_CONTRACT.md) | Local/CI quality gate matrix |
 | [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md) | **Active**: full recommendations backlog |
+| [ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md](ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md) | Official `gh` / `gh skill` skills + manual vs repo policy |
 
 ## Architecture
 

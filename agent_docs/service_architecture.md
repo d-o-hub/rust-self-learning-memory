@@ -121,7 +121,7 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 - `src/server.rs` - Main server implementation
 - `src/mcp/tools/` - MCP tool implementations
 - `src/sandbox/` - Security sandbox layers
-- `src/wasmtime_sandbox.rs` - WASM execution
+- Agent code execution is **fail-closed** (`execute_agent_code` unavailable; no wasmtime/javy backend)
 - `src/patterns/` - Advanced pattern analysis
 - `src/monitoring/` - Health and metrics
 

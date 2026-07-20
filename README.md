@@ -633,21 +633,24 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Code Standards
 
 - Follow [Rust idioms](agent_docs/code_conventions.md)
-- Test coverage targets per ADR-042 phases (70% → 75% → 80%)
+- Coverage: see [gate contract](plans/GATE_CONTRACT.md) (blocking floor vs aspirational target)
 - Run `cargo fmt` and `cargo clippy` before committing
 - Document public APIs
 - Write descriptive commit messages
 
 ### Quality Requirements
 
-- All tests must pass
-- No clippy warnings
-- Test coverage targets per ADR-042:
-  - Phase 1: 70% (current focus - actual: 61.22%)
-  - Phase 2: 75%
-  - Phase 3: 80% (codecov.yml project target)
-- Security audit must pass
-- Performance benchmarks must not degrade >10%
+Authoritative matrix: [`plans/GATE_CONTRACT.md`](plans/GATE_CONTRACT.md).
+
+| Gate | Blocking floor | Aspirational target |
+|------|----------------|---------------------|
+| Tests | All pass (`cargo nextest run --all` + doctests) | — |
+| Clippy | Zero warnings (`-D warnings`) | — |
+| Coverage | **70%** local default (`QUALITY_GATE_COVERAGE_THRESHOLD`) | **90%** (AGENTS ratchet) |
+| Security | `cargo deny` blocking | No unjustified ignores |
+| Benchmarks | No fabricated soft-pass; >10% regression fails where configured | Stable baselines |
+
+Do **not** claim “coverage passed at 90%” unless the blocking floor and measured report both show ≥90%.
 
 ## License
 

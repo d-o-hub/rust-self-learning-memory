@@ -39,6 +39,29 @@ dimension = 384
 - **Setup**: Requires `--features local-embeddings`
 - **Privacy**: All data stays local
 
+##### Local model integrity pins (S1.5b / F4.3 — R-C6)
+
+When loading local model files, pin integrity via `LocalConfig` (programmatic) or equivalent provider config fields:
+
+| Field | Purpose |
+|-------|---------|
+| `expected_sha256` | SHA-256 hex of the primary model artifact; mismatch → load fails |
+| `max_artifact_bytes` | Reject oversized downloads/files |
+| `model_revision` | Human-readable pin / revision label |
+| `allow_mock_fallback` | `true` for tests/dev only; production should use `false` |
+
+```rust
+use do_memory_core::embeddings::config::LocalConfig;
+
+let cfg = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384)
+    .with_allow_mock_fallback(false)
+    .with_expected_sha256("abc…")  // hex digest
+    .with_max_artifact_bytes(500_000_000);
+// verify_model_artifact(&path, cfg.expected_sha256.as_deref(), cfg.max_artifact_bytes)?;
+```
+
+Wrong digest / oversize fails closed; mock vectors never report production-ready when mock fallback is disabled.
+
 #### OpenAI Provider
 
 ```toml

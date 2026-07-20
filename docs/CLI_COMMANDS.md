@@ -500,3 +500,13 @@ do-memory-cli config wizard
 - [Configuration Guide](../memory-cli/CONFIGURATION_GUIDE.md) - Complete configuration reference
 - [Config Commands (CLI Reference)](#config-commands) - All config subcommands
 - [Local Database Setup](./LOCAL_DATABASE_SETUP.md) - Database implementation details
+
+## Storage journal (F4.2)
+
+```bash
+# Snapshot journal / pending repairs
+do-memory-cli storage journal
+do-memory-cli storage journal --pending
+# Attempt eviction reconcile
+do-memory-cli storage journal --repair
+```

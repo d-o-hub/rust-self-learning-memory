@@ -147,7 +147,10 @@ Only waive when:
 
 #### Branch Behind Main (`BEHIND`)
 ```bash
-gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge
+# Preferred: typed CLI (R-H4)
+gh pr update-branch {n}
+# Fallback if needed:
+# gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge
 ```
 
 #### Merge Conflicts (`DIRTY` / `CONFLICTING`)

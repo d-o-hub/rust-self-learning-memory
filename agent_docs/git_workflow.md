@@ -24,61 +24,42 @@ Direct pushes to `main` are BLOCKED. Always work on a branch.
 
 ## Release Workflow
 
-**CRITICAL**: Version in `Cargo.toml` MUST match the tag before pushing. cargo-dist requires this.
+**Canonical skill:** `.agents/skills/release-guard/SKILL.md`  
+**Canonical CLI:** `./scripts/release-manager.sh ship --execute`  
+**GitHub Release creator:** `.github/workflows/release.yml` (tag push only)
 
-### Recommended: Use the release manager
+**CRITICAL**: Version in `Cargo.toml` MUST match the tag (`vX.Y.Z` ↔ `X.Y.Z`). cargo-dist preflight enforces this. Tags must point at **main** history (R-H5).
+
+### Ship (only path)
+
 ```bash
-# Cargo.toml must already contain the intended release version. Finalize the
-# changelog and released-version documents before running this command.
-./scripts/release-manager.sh full --execute
+# 1. Version + CHANGELOG + Released Version docs already on main (via PR)
+git checkout main && git pull --ff-only origin main
+
+# 2. Preflight
+./scripts/release-manager.sh status
+./scripts/verify-release-state.sh --check-unreleased
+
+# 3. Tag + push tag only (triggers release.yml)
+./scripts/release-manager.sh ship --execute
+
+# 4. Observe
+gh run list --workflow=release.yml --limit 3
+gh release view "v$(grep -E '^version' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
 ```
 
-The manager validates metadata and quality before creating the matching tag.
-It does not increment the version during release preparation. If the release
-cadence gate is already blocking ordinary PRs, a maintainer may apply the
-`release-preparation` label to the release PR; the tag must be pushed
-immediately after that PR merges.
+**Forbidden for shipping:**
 
-### Manual Release Process
 ```bash
-# 1. Create release branch from main
-git checkout main
-git checkout -b release/v0.1.X
-
-# 2. BUMP VERSION FIRST in Cargo.toml
-#    workspace.package.version = "0.1.X"
-
-# 3. Update snapshot tests if needed
-cargo insta test --accept
-git add memory-cli/tests/snapshots/
-
-# 4. Verify version matches intended tag
-grep '^version =' Cargo.toml  # Must show 0.1.X for tag v0.1.X
-
-# 5. Commit changes
-git add . && git commit -m "chore: release v0.1.X"
-
-# 6. Push only the release branch and create the PR
-git push origin release/v0.1.X
-gh pr create --title "chore: release v0.1.X" --body "..."
-
-# 7. Merge the PR and wait for every required check on main to pass
-
-# 8. Update local main, then create and push only the intended tag
-git checkout main
-git pull --ff-only origin main
-./scripts/release-manager.sh full --execute
+gh release create …   # bypasses cargo-dist multi-platform artifacts
 ```
+
+After tag, bump workspace to the next patch on a follow-up PR so release-drift stays clean.
 
 ### Common Release Failure: Version Mismatch
 
-**v0.1.22 Incident**: Tag was pushed with `Cargo.toml` still at `0.1.21`. cargo-dist failed:
-```
-× This workspace doesn't have anything for dist to Release!
-help: --tag=v0.1.21 will Announce: do-memory-mcp, do-memory-cli
-```
-
-**Prevention**: Always verify `grep '^version =' Cargo.toml` matches tag (without 'v' prefix) before pushing tag.
+Tag pushed while `Cargo.toml` still at an older version → cargo-dist preflight fails.  
+**Prevention**: `grep '^version =' Cargo.toml` must match intended tag (without `v`).
 
 ## Post-Change Verification
 

@@ -29,6 +29,15 @@ pub enum StorageCommands {
     Health,
     /// Show connection status
     Connections,
+    /// Show operation journal status (F4.2) — pending repairs and entry counts
+    Journal {
+        /// Only list entries that still need repair (failed/pending)
+        #[arg(long)]
+        pending: bool,
+        /// Attempt to reconcile pending eviction failures
+        #[arg(long)]
+        repair: bool,
+    },
 }
 
 #[derive(Debug, Serialize)]
@@ -305,6 +314,64 @@ impl Output for ConnectionStatus {
             writeln!(writer, "  Last Activity: {}", activity)?;
         }
 
+        Ok(())
+    }
+}
+
+/// Operation journal summary for operators (F4.2).
+#[derive(Debug, Serialize)]
+pub struct JournalStatus {
+    pub total_entries: usize,
+    pub pending_repairs: usize,
+    pub remaining_after_repair: Option<usize>,
+    pub repair_attempted: bool,
+    pub entries: Vec<JournalEntryView>,
+}
+
+/// One journal row for CLI display (no secrets).
+#[derive(Debug, Serialize)]
+pub struct JournalEntryView {
+    pub op_id: String,
+    pub episode_id: String,
+    pub kind: String,
+    pub backend: String,
+    pub outcome: String,
+    pub recorded_at_ms: i64,
+}
+
+impl Output for JournalStatus {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "{}", "Operation Journal (F4.2)".bold())?;
+        writeln!(writer, "{}", "─".repeat(40))?;
+        writeln!(writer, "Total entries: {}", self.total_entries)?;
+        writeln!(
+            writer,
+            "Pending repairs: {}",
+            if self.pending_repairs > 0 {
+                self.pending_repairs.to_string().yellow().to_string()
+            } else {
+                self.pending_repairs.to_string().green().to_string()
+            }
+        )?;
+        if self.repair_attempted {
+            writeln!(
+                writer,
+                "After repair remaining: {}",
+                self.remaining_after_repair.unwrap_or(0)
+            )?;
+        }
+        if !self.entries.is_empty() {
+            writeln!(writer, "\nEntries (showing up to {}):", self.entries.len())?;
+            for e in &self.entries {
+                writeln!(
+                    writer,
+                    "  {} | {} | {} | {} | {}",
+                    e.kind, e.backend, e.outcome, e.episode_id, e.op_id
+                )?;
+            }
+        }
         Ok(())
     }
 }

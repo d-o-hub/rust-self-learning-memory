@@ -63,6 +63,9 @@ pub async fn handle_storage_command(
         } => storage::vacuum_storage(memory, config, format, vacuum_dry_run || dry_run).await,
         StorageCommands::Health => storage::storage_health(memory, config, format).await,
         StorageCommands::Connections => storage::connection_status(memory, config, format).await,
+        StorageCommands::Journal { pending, repair } => {
+            storage::journal_status(memory, config, format, pending, repair).await
+        }
     }
 }
 

@@ -1,595 +1,69 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-18 (F4 remainder PR #874; no release)
-**Released Version**: v0.1.35 (crates.io + GitHub Release)
-**Workspace Version**: 0.1.36 (unreleased development)
-**Active Sprint**: F4 remainder (provenanced retrieval, journal, model digests, skill compiler)
-**Branch**: `feat/goap-f4-remaining-missing-2026-07-18`
-**Open PR**: [#874](https://github.com/d-o-hub/rust-self-learning-memory/pull/874)
-**Plan**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
-**Still deferred after this plan**: *(empty)* for 2026-07-14 missing tasks
-**Release**: ⛔ not in this sprint
+**Last Updated**: 2026-07-20  
+**Released Version**: v0.1.35  
+**Workspace Version**: 0.1.36 (unreleased development)  
+**Active Sprint**: Recommendations backlog + release readiness  
+**Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
+**Branch**: `main`  
+**Open PR**: none  
 
 ---
 
-## Sprint 2026-07-18d — F4 remainder 🟡 PR #874
+## Sprint 2026-07-20 — Recommendations & plans consolidation
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
-| 1 | F4.1 | Provenanced retrieval API | ✅ + spike GO |
-| 2 | F4.2 | Operation journal | ✅ + spike GO |
-| 3 | S1.5b/F4.3 | Local model digests/size pins | ✅ + spike GO |
-| 4 | F4.4 | Skill contract compiler | ✅ + spike GO |
-| 5 | S1.1c | Wasmtime/WASI feasibility | ✅ spike **NO-GO** |
-| 6 | Spikes | Decision artifacts `plans/STATUS/spikes/` | ✅ |
-| 7 | PR | #874 CI + review (no release) | 🟡 |
-
-**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
-**Master record**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
+| 1 | Plans hygiene | Archive superseded GOAP/CI/research plans (ADR-039) | ✅ |
+| 2 | Recommendations register | Single active backlog with R-A…R-G tracks | ✅ |
+| 3 | Canonical status refresh | CURRENT, GOALS, ACTIONS, GOAP_STATE, GAP, VALIDATION | ✅ |
+| 4 | Code / release | No code or tag in this sprint | ⛔ |
 
 ---
 
-## Sprint 2026-07-18c — Missing tasks Wave 1–3 🟡 PR #873
+## Next sprint (proposed) — Release + invariants
 
-| Priority | Item | Description | Status |
-|----------|------|-------------|--------|
-| 1 | S1.2 | CacheKey mode/provider/ranking/generation + provenance | ✅ |
-| 2 | S1.4b | Typed eviction partial failure + reconcile | ✅ |
-| 3 | S1.1b | sandbox-dev feature + source reachability | ✅ |
-| 4 | K3.2 | High-risk skill behavioral evals | ✅ |
-| 5 | K3.3 | skill-rules expansion + validate-skill-routes | ✅ partial |
-| 6 | W2.2b/W2.4 | Workflow cancelled + release publish fixtures | ✅ |
-| 7 | W2.3b | quality_gates refuse failed-subprocess metrics | ✅ |
-| 8 | W2.5 | Benchmark hard-fail; nightly upload-before-cleanup + ignore ratchet | ✅ |
-| 9 | Harness | Issues #862–#869 closed (shipped in #870) | ✅ |
-| 10 | D3.3/V5.1 | Plans + VALIDATION_LATEST aligned | ✅ |
-| 11 | PR | #873 CI green + review + merge | 🟡 |
-| — | F4 | Feature pilots | ✅ PR #874 |
-
-**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`  
-**Master record**: `plans/GOAP_MISSING_TASKS_MASTER_2026-07-18.md`
+| Priority | Item | Rec | Status |
+|----------|------|-----|--------|
+| 1 | Cut **v0.1.36** via release-manager + `release.yml` | R-A1 | 🟡 |
+| 2 | Immediate workspace bump to **0.1.37** | R-A2 | 🟡 |
+| 3 | Split `provider_config.rs` ≤500 LOC | R-B1 | 🟡 |
+| 4 | ADR-025 / ADR-054 identifier aliases | R-B5 | 🟡 |
+| 5 | Complete skill routes (34/34) + `ci-poll` evals + `.agents/SKILLS.md` | R-C1–C3 | 🟡 |
+| 6 | F4 productization (provenance + journal operator surfaces) | R-B2 | 🟡 |
+| 7 | Docs contract pass (README, AGENTS, HARNESS, TECH_DEBT) | R-D*, R-B3 | 🟡 |
 
 ---
 
-## Sprint 2026-07-18 — S1.7 + K3.1b + W2.1b ✅ MERGED (#860)
+## Follow-on backlog (P1/P2)
 
-| Priority | Item | Description | Status |
-|----------|------|-------------|--------|
-| 1 | S1.7 | Audit recursive redaction, size init, non-blocking writer | ✅ |
-| 2 | K3.1b | Skill Evals CI (fixtures + --changed + schedule full) | ✅ |
-| 3 | W2.1b | Gate contract --ci-parity wired in Skill Evals job | ✅ |
-| 4 | PR | All CI green + merge | ✅ #860 |
-
-**Source**: `plans/GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md`
-
----
-
-## Sprint 2026-07-17 — Open GitHub Issues ✅ MERGED (#850)
-
-**Focus**: Codebase-verify all open issues; ADR + GOAP execution; ship in v0.1.35.
-
-| Priority | Issue | Verdict | Status |
-|----------|-------|---------|--------|
-| P0 | #849 Release due | Tag `v0.1.35` via release.yml | 🟡 tagging |
-| P0 | #847 `episode complete failure` no-op | ADR-075 durable complete + `episode fail` | ✅ #850 |
-| P1 | #845 pattern list empty after ingest | ADR-076 empty diagnostics | ✅ #850 |
-| P2 | #846 config format undocumented | Precedence docs + config init | ✅ #850 |
-
-**ADRs**: `plans/adr/ADR-075-CLI-Episode-Complete-Durability-and-Operator-Fail.md`, `plans/adr/ADR-076-Pattern-Extraction-Discoverability-and-Empty-Result-Semantics.md`
+| Priority | Theme | Items | Status |
+|----------|-------|-------|--------|
+| P1 | Skills depth | Medium-risk behavioral evals (R-E2); skill link lint (R-E4) | Backlog |
+| P1 | Operator F4 | MCP provenance fields; journal CLI repair; digest e2e | Backlog |
+| P2 | Research | WG-108 version retention; WG-110 SIMD (bench-gated); WG-125 MoE; WG-135 federated HDC | Backlog |
+| P2 | Vision | Distributed sync, multi-tenancy/RBAC, OTel/Prometheus (see `ROADMAP_V030_VISION.md`) | Future |
+| P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
 
 ---
 
-## Release Engineering 2026-07-17 — Drift Prevention #843 ✅ CODE COMPLETE
+## Standing product decisions (do not reopen casually)
 
-**Focus**: Replace alert-only release drift with enforceable cadence and one
-stable tracking issue.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| State model | Distinguish next development version from invalid tag state | ✅ |
-| Cadence gate | Warn at 20 commits/10 days; block at 30 commits/14 days | ✅ |
-| Issue lifecycle | Upsert one canonical issue; close it on matching tag push | ✅ |
-| Least privilege | PR calculation is read-only; issue writes use a separate job | ✅ |
-| Release safety | Tag clean, synchronized `main`; push only the exact tag | ✅ |
-| Regression suite | Clean/warning/critical/SemVer/divergent-tag scenarios | ✅ |
-
-**Plan**: `plans/GOAP_RELEASE_DRIFT_ISSUE_843_2026-07-17.md`
+| Topic | Decision |
+|-------|----------|
+| Agent code execution | **Fail-closed**; S1.1c Wasmtime/WASI **NO-GO** |
+| Batch MCP tools | Explicitly deferred |
+| Release creation | Automated only: `release-manager.sh ship` → tag → `release.yml` |
+| Serialization | Postcard required |
 
 ---
 
-## Sprint 2026-07-16b — S1.3–S1.6 + W2.2 ✅ CODE COMPLETE
+## History pointer
 
-**Focus**: Next deferred P0 correctness and gate tasks from the 2026-07-14 improvements plan.
+Completed sprint tables (v0.1.28–v0.1.35, July GOAP waves) live under:
 
-| Priority | Item | Description | Status |
-|----------|------|-------------|--------|
-| 1 | S1.3 | No write lock across backend await (step paths) | ✅ |
-| 2 | S1.4 | Durable capacity eviction (backend delete) | ✅ |
-| 3 | S1.5 | Embedding health Real / DegradedMock / Unavailable | ✅ |
-| 4 | S1.6 | Retry queue timeout + first-attempt free permits | ✅ |
-| 5 | W2.2 | Remove soft-pass cargo audit; deny blocking | ✅ |
-| 6 | Release | Tag v0.1.35 via release.yml | ⏳ After merge |
+- `plans/archive/2026-07-consolidation/completed-sprints/`
+- `plans/archive/2026-03-consolidation/`
+- Older `plans/archive/2026-0{1,2}-completed/`
 
-**Deferred**: S1.7, W2.1 remainder, W2.4/W2.5, K3 skill evals, F4 pilots, S1.2 provenance remainder.
-
----
-
-## Sprint 2026-07-16 — Missing Tasks Swarm ✅ MERGED (PR #840)
-
-**Focus**: Land P0 correctness, gate, and docs tasks from the 2026-07-14 improvements plan.
-
-| Priority | Item | Description | Status |
-|----------|------|-------------|--------|
-| 1 | #837 | Restore public `fuzzy_match` rustdoc | ✅ |
-| 2 | S1.2 | Retrieval `CacheKey` includes full TaskContext | ✅ |
-| 3 | W2.3 | `build-rust.sh` accepts `do-memory-*` names | ✅ |
-| 4 | W2.6 | Production LOC ≤500 | ✅ |
-| 5 | S1.1a/D3.2 | Fail-closed code-exec docs; fix TaskContext example | ✅ |
-
----
-
-## Sprint v0.1.35 — CLI UX Patch ✅ CODE COMPLETE (2026-07-15)
-
-**Focus**: Fix user-reported v0.1.34 CLI/config bugs; prevent recurrence with postcard/list/config tests.
-
-| Priority | Issue | Description | Status |
-|----------|-------|-------------|--------|
-| 1 (critical) | #831 | Pattern list/search empty after complete | ✅ Fixed + CLI verified |
-| 2 (critical) | #830 | `--db-path` / `MEMORY_DB_PATH` ignored | ✅ Fixed + CLI verified |
-| 3 (UX) | #829 | Config format undocumented / hard to discover | ✅ Fixed + CLI verified |
-| 4 (UX) | #832 | `storage_mode` vs config file unclear | ✅ Fixed + CLI verified |
-| 5 (release) | #828 | Release drift after v0.1.34 | 🟡 Version 0.1.35 ready; tag after merge |
-
-**Prevention**: postcard Pattern roundtrip, redb get_all_patterns trait test, e2e cross-process pattern list, config partial/alias unit tests, example.toml.
-
----
-
-## Sprint v0.1.34 — IN PROGRESS (2026-07-08)
-
-**Focus**: Bug fix + CI modernization + release
-**PRs**: #787, #788, #789
-**Issues**: #773, #772, #771, #784, #770
-
-| Priority | Issue | PR | Description | Status |
-|----------|-------|----|-------------|--------|
-| 1 (critical) | #773 | #787 | Fix local storage persistence bug | 🟡 In Review |
-| 2 (easy) | #771 | #788 | Document build dependencies | 🟡 In Review |
-| 3 (enabling) | #772 | #789 | CI publish pipeline: --locked, polling, deps | 🟡 In Review |
-| 4 (release) | #784 | — | Cut v0.1.34 release | ⏳ Blocked on #787 |
-| 5 (publish) | #770 | — | Publish to crates.io | ⏳ Blocked on #789 + release |
-
-**2026 Best Practices Applied**:
-- `cargo publish --locked` for reproducible builds
-- Sparse-index polling (vs sleep) for dependency propagation
-- Trusted Publishing (OIDC) identified for future migration
-- Microsoft CI pattern: check → test → coverage → security → cross → release
-
----
-
-## Sprint v0.1.33 — COMPLETE ✅ (Released)
-
-**Focus**: Release + CI Health + Quality (WG-175..185)
-**Released**: v0.1.33 tag created
-
-| Phase | WGs | Strategy | Status |
-|-------|-----|----------|--------|
-| P1 — Release | WG-175 | Sequential | ✅ Complete |
-| P2 — CI Health | WG-176..WG-179 | Parallel | ✅ Complete (PR #675, #681) |
-| P3 — Code Quality | WG-180..WG-181 | Parallel | ✅ Complete (PR #675) |
-| P4 — Architecture | WG-182 | Sequential | ✅ Complete (PR #675) |
-| P5 — DevX Backlog | WG-183..WG-184 | Parallel | ✅ WG-183 done |
-| P6 — Code Health | WG-185 | Parallel | ✅ WG-185 done (LOC boundary splits) |
-
-**Completed 2026-06-30 → 2026-07-02**:
-- PR #675: CI health + code quality fixes (WG-176..182)
-- PR #682: Stale advisory cleanup + anyhow update
-- PR #681: GitHub Actions bumps (13 actions to latest)
-- PR #684: Rust patch/minor deps
-- PR #678: sysinfo major bump
-- PR remediation campaign: 7 PRs merged, 0 open
-
----
-
-## Sprint v0.1.32 — COMPLETE ✅ (Released 2026-05-24)
-
-All 15 functional work groups (WG-150 through WG-164) are complete.
-v0.1.32 was released on 2026-05-24. PR #620 landed the final fixes
-(gitleaks false positives, slow test bounding, telemetry stub re-audit).
-
-| Phase | WGs | Strategy | Status |
-|-------|-----|----------|--------|
-| P1 — User contract | WG-150..WG-155 | Sequential per crate | 🟢 6/6 ✅ |
-| P2 — Telemetry | WG-156..WG-160 | Parallel | 🟢 5/5 ✅ |
-| P3 — Internal debt | WG-161..WG-164 | Parallel | 🟢 4/4 ✅ |
-| P4 — Validation + release | WG-165..WG-170 | Sequential | 🟢 Complete (v0.1.32 released) |
-
----
-
-## PR #620 — CI Health Fixes (Merged 2026-06-14)
-
-**PR**: [#620](https://github.com/d-o-hub/rust-self-learning-memory/pull/620) — fix(ci): resolve gitleaks false positives, bound slow test, close WG-156-162
-**Status**: ✅ Merged to main (c48668e3)
-
-| Fix | Description | Status |
-|-----|-------------|--------|
-| B1 | Add 3 gitleaks false-positive fingerprints (ADR-058) | ✅ Done |
-| B3 | Add stop_workers() drain-first-then-shutdown; fix slow test (ADR-057 A3) | ✅ Done |
-| B4 | Re-audit WG-156/157/158/160/161/162 — all resolved | ✅ Done |
-
-## PR #611 — Local/Offline Mode (Deferred)
-
-**Issue**: [#610](https://github.com/d-o-hub/rust-self-learning-memory/issues/610)
-**PR**: [#611](https://github.com/d-o-hub/rust-self-learning-memory/pull/611)
-**Status**: 🔴 CI failing — fix documented in `GOAP_PR611_CI_FIX_2026-06-09.md`, needs push to branch
-
----
-
-## Current State
-
-`v0.1.33` was released (git tag exists). Workspace version is `0.1.33`. Current sprint is v0.1.34, focused on bug fix (#773), docs (#771), and CI improvements (#772).
-
-**2026-07-08 Progress**:
-- PR #787 open: Fix local storage persistence bug (#773)
-- PR #788 open: Document build dependencies (#771)
-- PR #789 open: CI publish pipeline improvements (#772)
-
-**2026-07-08 Progress**:
-- PR #787 merged: fix(cli) persist episodes in local storage mode (fixes #773) ✅
-- PR #788 merged: docs(readme) add build dependencies section (fixes #771) ✅
-- PR #789 merged: ci(publish) improve crates.io publish pipeline (fixes #772) ✅
-- PR #790 merged: docs(plans) update status for v0.1.34 sprint
-- PR #791 merged: docs(agents) add lessons #013-#014
-- Issue #747: Mutation testing workflow — 🔧 In progress (non-blocking, weekly schedule)
-- Skills canonical path moved from `.claude/skills/` to `.agents/skills/`
-
-**Plan**: `plans/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-28.md`
-
-## v0.1.32 Release — COMPLETE ✅ (Released 2026-05-24)
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-123-127, WG-134 | Research-inspired features merged | ✅ Shipped in v0.1.32 |
-| WG-149 | CloudEvents EventEmitter | ✅ Shipped in v0.1.32 |
-| Version bump | Bump workspace to 0.1.32 | ✅ Done 2026-05-21 |
-| Release | Tag, GitHub Release, crates.io publish | ✅ Released 2026-05-24 |
-
-Verified publishable workspace packages at `0.1.32`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
-
-The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
-
-See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
-
----
-
-## Current Sprint — v0.1.31 (Released ✅)
-
-**Source**: Release/package verification (2026-04-30)
-**ADR**: ADR-053 (Accepted)
-
-### Phase 0: Release & Package Truth
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-111 | Verify `v0.1.30` GitHub release and publishable crate parity | ✅ Complete | 111 |
-| WG-112 | Bump workspace + publishable crates to `0.1.31`, update CHANGELOG | ✅ Complete | 112 |
-| WG-113 | Refresh stale roadmap/status/GOAP truth sources after release verification | ✅ Complete | 113 |
-
-### Phase 1: CPU Efficiency
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-114 | Reduce QueryCache contention and lock overhead (`parking_lot::RwLock` + benchmarks) | ✅ Complete | 114 |
-| WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | ✅ Complete | 115 |
-| WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | ✅ Complete | 116 |
-
-### Phase 1.5: CSM Integration (CPU-Local Retrieval) ✅ Complete
-
-**Implementation**: CSM added as crate dependency (`chaotic_semantic_memory = "0.3.2"`), not source code copy.
-Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`.
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
-| WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
-| WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
-| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | ✅ Complete (all 4 tiers, 30 tests) | 131 |
-
-### Phase 2: Token Efficiency
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-117 | Implement `BundleAccumulator` sliding window for bounded context assembly | ✅ Complete | 117 |
-| WG-118 | Add hierarchical/gist reranking to return fewer, denser context items | ✅ Complete | 118 |
-| WG-119 | Compact high-frequency skills/docs to reduce prompt token load | ✅ Complete | 119 |
-
-### Phase 3: Research-Inspired Retrieval Upgrades
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | ✅ Complete | 120 |
-| WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
-| WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
-| WG-149 | CloudEvents EventEmitter Integration (ADR-054) | ✅ Complete | 149 |
-
-### P3: Backlog (Future Sprints)
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-123 | Temporal graph edges in episode store (REMem-inspired, arXiv:2602.13530) | ✅ Complete (PR #570: weighted traversal, pattern edges, significance weights) | 123 |
-| WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | ✅ Complete (PR #569) | 124 |
-| WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | 🔵 Backlog | 125 |
-| WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
-| WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | ✅ Complete (WG-117) | 109 |
-| WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
-| WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | ✅ Complete (PR #572: trajectory distillation, contrastive adapter, collaborative prototypes) | 126 |
-| WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | ✅ Complete | 127 |
-| WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | ✅ Complete (evaluation doc) | 132 |
-| WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | ✅ Complete (evaluation doc) | 133 |
-| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | ✅ Complete (~1,320 LOC, 24 tests, ADR-054) | 134 |
-| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
-| WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
-| WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |
-| WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | ✅ Complete | 138 |
-| WG-139 | Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09) | ✅ Complete | 139 |
-
----
-
-## Completed Sprint — v0.1.30 ✅
-
-**Source**: Cross-repo impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` (2026-04-09)
-**ADR**: ADR-037 (Selective Workflow Automation Adoption)
-
-### P1: Runtime Pattern Adoption from CSM
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-103 | `MemoryEvent` broadcast channel for episode lifecycle | ✅ Complete | 103 |
-| WG-104 | `select_nth_unstable_by` O(n) top-k in retrieval hot paths | ✅ Complete | 104 |
-| WG-105 | Idempotent cargo publish (crates.io version check) | ✅ Already exists | 105 |
-
-### P2: Agent Harness Skill Adoption from Template
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-106 | `memory-context` skill — CSM CLI for HDC retrieval over lessons | ✅ Complete | 106 |
-| WG-107 | `learn` skill — dual-write post-task learning pattern | ✅ Complete | 107 |
-
----
-
-## Completed Sprint — v0.1.29 ✅
-
-**ADR**: [ADR-052](../adr/ADR-052-Comprehensive-Analysis-v0.1.29.md)
-**PR**: [#425](https://github.com/d-o-hub/rust-self-learning-memory/pull/425)
-
-### Phase 0: Version & Hygiene
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-094 | Bump workspace version to 0.1.29, update CHANGELOG | ✅ Complete | 94 |
-| WG-095 | Archive stale GOAP plans, trim GOALS/ACTIONS | ✅ Complete | 95 |
-
-### Phase 1: WASM Removal — Swarm Decision
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-096 | Remove WASM sandbox (1,899 LOC, 127 refs, 11 files) | ✅ Complete | 96 |
-| WG-097 | Remove wasmtime + rquickjs from workspace deps | ✅ Complete | 97 |
-
-### Phase 2: Turso Native Vector Search
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-098 | Replace brute-force with `vector_top_k()` DiskANN queries | ✅ Complete | 98 |
-| WG-099 | Add embedding migration (JSON text → F32_BLOB binary) | ✅ Complete | 99 |
-| WG-100 | Integration tests for native vector search | ✅ Complete | 100 |
-
-### Phase 3: Quality
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-101 | Split remaining >500 LOC files (6 files split) | ✅ Complete | 101 |
-| WG-102 | Dead code audit (31 → target ≤25 `#[allow(dead_code)]`) | ✅ Complete | 102 |
-
----
-
-## Completed Sprint — v0.1.28 ✅
-
-### P1: Feature Enhancements
-
-| Task | Description | Status | WG | Source |
-|------|-------------|--------|----|--------|
-| WG-089 | DyMoE routing-drift protection + affinity gating | ✅ Complete | 89 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
-| WG-090 | Dual reward scoring (stability + novelty signals) | ✅ Complete | 90 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
-
-### P1: Security
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-092 | Resolve open Dependabot alerts | ✅ Analyzed (transitive) | 92 |
-| WG-093 | Fix CodeQL cleartext logging alert in feedback CLI | ✅ Fixed | 93 |
-
-### P2: CI/Infra
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-091 | Merge AI spam detector PR #406 | ✅ Merged | 91 |
-
----
-
-## Previous Sprint — v0.1.27 Feature Sprint (Complete ✅)
-
-### P1: Feature Enhancements
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-073 | Bayesian ranking with Wilson score from attribution data | ✅ Complete | 73 |
-| WG-077 | MMR diversity retrieval for search results | ✅ Complete | 77 |
-| WG-075 | Episode GC/TTL with retention policy | ✅ Complete | 75 |
-| WG-078 | MCP Server Card at `.well-known/mcp.json` | ✅ Complete | 78 |
-
-### P2: Code Quality
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-079 | Audit spawn_blocking usage for CPU-heavy async paths | ✅ Complete |
-
-### P2: Infrastructure
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-084 | Restore GitHub Pages with mdBook | ✅ Complete |
-| WG-085 | Add llms.txt for LLM context | ✅ Complete |
-
-### P3: CI Optimization
-
-| Task | Description | Status |
-|------|-------------|--------|
-| Semver timeout fix | Increase timeout + add baseline caching | ✅ Complete (PR #416) |
-
----
-
-## Upcoming Sprint — v0.1.23 Remediation (Complete)
-
-The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene.
-
-### P0: Feature Integrity (ADR-044)
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-051 | Persist recommendation sessions + feedback via storage traits and schema updates | ✅ Complete (2026-03-24) | 51 |
-| WG-052 | Persist checkpoints/handoffs across Turso/redb read paths | ✅ Complete (2026-03-24) | 52 |
-| WG-053 | Decide/implement batch MCP tool strategy + align status/docs | ✅ Complete (2026-03-24) | 53 |
-
-### P1: Documentation & Contract Truth Sources
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-054 | Regenerate API reference, README, playbook/checkpoint docs, CLI command tables | ✅ Complete (2026-03-24) |
-| WG-058 | Align AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflow + disk/cov guidance | ✅ Complete (2026-03-24) |
-
-### P1: Validation & Coverage Parity
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-055 | Expand PR-required CI workflows to cover integration + CLI/MCP suites, benchmark coverage | ✅ Complete (2026-03-24) |
-| WG-056 | Enforce ≥90% coverage threshold in scripts/tests (update `scripts/check-coverage.sh`, `quality_gates.rs`) | ✅ Complete (2026-03-24) |
-
-### P2: Disk & Developer Experience
-
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-057 | Reduce local disk footprint (target/node_modules) + automate cleanup | ✅ Complete (2026-03-24) |
-
----
-
-## Sprint v0.1.22 — COMPLETE ✅
-
-### P0: Critical Fixes — ALL COMPLETE ✅
-
-| Task | Description | Status | Issue |
-|------|-------------|--------|-------|
-| WG-040 | Fix 2 failing doctests (attribution, playbook) | ✅ Complete | #374 — CLOSED |
-| WG-041 | Fix test timeout (quality_gate_no_clippy_warnings) | ✅ Complete | #375 — CLOSED |
-| WG-042 | Split 3 production files >500 LOC | ✅ Complete | #376 — CLOSED |
-
-### P1: Quality Polish — ALL COMPLETE ✅
-
-| Task | Description | Final | Target | Status | Issue |
-|------|-------------|-------|--------|--------|-------|
-| WG-043 | Reduce `#[allow(dead_code)]` | 31 | ≤40 | ✅ Target met | #377 — CLOSED |
-| WG-044 | Fix broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) | #378 — CLOSED |
-| WG-045 | Add snapshot tests for new features | 80 | ≥80 | ✅ Complete | #379 — CLOSED |
-| WG-046 | Add property tests for new features | 16 | ≥13 | ✅ Exceeds target | #380 — CLOSED |
-
-### P2: Feature Enhancements — ALL COMPLETE ✅
-
-| Task | Description | Status | Issue |
-|------|-------------|--------|-------|
-| WG-047 | MCP tool contract parity for new tools | ✅ Complete | #381 — CLOSED |
-| WG-048 | Integration tests for attribution + checkpoint flows | ✅ Complete | #382 — CLOSED |
-| WG-049 | Changelog automation (git-cliff) | ✅ Complete | #383 — CLOSED |
-| WG-050 | Documentation for new features | ✅ Complete | #384 — CLOSED |
-
-### P3: Infrastructure — ALL COMPLETE ✅
-
-| Task | Description | Since | Status | Issue |
-|------|-------------|-------|--------|-------|
-| WG-051 | Nightly trend tracking artifact | v0.1.20 | ✅ Complete | #385 — CLOSED |
-| WG-052 | libsql upstream version monitor | v0.1.20 | ✅ Complete | #386 — CLOSED |
-| WG-053 | Structured tech-debt registry | v0.1.17 | ✅ Complete | #387 — CLOSED |
-
-### Shipped in v0.1.21
-
-- ✅ ADR-045: Publishing infrastructure (supply chain, OIDC, metadata)
-- ✅ ADR-046: Claude Code configuration improvements (session analysis, tool enforcement)
-
-### Shipped in v0.1.22 (Features — Pre-Tag)
-
-- ✅ ADR-044: High-Impact Features (100% code complete)
-  - ✅ Feature 1: Actionable Playbooks (26 tests)
-  - ✅ Feature 2: Recommendation Attribution (8 tests)
-  - ✅ Feature 3: Episode Checkpoints/Handoff (6 tests)
-  - ✅ Feature 4: Recommendation Feedback (3 tests)
-
----
-
-## Backlog
-
-### Code Quality (from #373 epic — ALL RESOLVED)
-
-| Item | Current | Target | Status | Notes |
-|------|---------|--------|--------|-------|
-| `#[allow(dead_code)]` annotations | 31 | ≤40 | ✅ Target met | Down from 70 |
-| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) | |
-
-### Testing
-
-| Item | Current | Target | Status | Notes |
-|------|---------|--------|--------|-------|
-| Ignored tests | 124 | ≤125 ceiling | ✅ | 70 upstream libsql bug, rest by design |
-| Property test expansion | 16 files | ≥13 | ✅ Exceeds target | |
-| Snapshot test growth | 80 snaps | ≥80 | ✅ Target met | |
-
-### Infrastructure
-
-| Item | Status | Notes |
-|------|--------|-------|
-| Changelog automation (git-cliff) | ✅ Complete | `.github/workflows/changelog.yml` |
-| Structured tech-debt registry | ✅ Complete | `docs/TECH_DEBT.md` |
-| libsql version monitor | ✅ Complete | `scripts/check-libsql-version.sh` |
-| Nightly trend tracking | ✅ Complete | Artifact added |
-| CLI workflow parity generator | Not started | Opportunity O6 |
-
----
-
-## Release History
-
-| Version | Date | Highlights |
-|---------|------|------------|
-| v0.1.32 | 2026-05 | Missing-impl remediation (15 WGs), telemetry stubs, local/offline mode, cosine-similarity perf, CI health fixes (ADR-057/058), release-drift closure |
-| v0.1.31 | 2026-04 | CSM integration (BM25+HDC+ConceptGraph via crate dependency), BundleAccumulator, hierarchical reranking, skills consolidation (31 skills, ≤35 target met), release verification |
-| v0.1.30 | 2026-04 | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill, zero-copy retrieval caching, CSM pattern adoption (WG-103/104) |
-| v0.1.29 | 2026-04 | WASM sandbox removal (-6,982 LOC), Turso native vector search (vector_top_k/DiskANN), file splitting (6 files), release workflow improvements |
-| v0.1.27 | 2026-04 | Wilson score ranking, Episode GC/TTL, spawn_blocking audit, MCP Server Card, GitHub Pages, llms.txt, semver timeout fix |
-| v0.1.24 | 2026-03 | Test stability (DBSCAN budget, quality gate timeout), dependency updates |
-| v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) |
-| v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |
-| v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |
-| v0.1.19 | 2026-03 | MCP enhancements, gitleaks fixes |
-| v0.1.18 | 2026-03 | AdaptiveCache, CLI filters, transport compression docs |
-| v0.1.17 | 2026-03 | MCP contract parity, dead code removal, doc fixes, G2/G9 |
-| v0.1.16 | 2026-02 | Edition 2024, CI stabilization, quick wins |
-| v0.1.15 | 2026-02 | MCP token optimization, GitHub Actions modernization |
-| v0.1.14 | 2026-02 | Episode tagging, relationships, file compliance |
-| v0.1.13 | 2026-01 | Semantic pattern search, recommendation engine |
-| v0.1.12 | 2026-01 | Tasks utility, embedding config, contrastive learning |
-
----
-
-## Cross-References
-
-- **Current status**: [STATUS/CURRENT.md](../STATUS/CURRENT.md)
-- **Gap analysis**: [STATUS/GAP_ANALYSIS_LATEST.md](../STATUS/GAP_ANALYSIS_LATEST.md)
-- **Execution plans**: [GOAP Execution Plans](../archive/2026-03-consolidation/)
-- **Long-term vision**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
-- **ADRs**: [adr/](../adr/)
+Do not re-expand completed WG tables into this file (ADR-039: roadmap is forward-only).

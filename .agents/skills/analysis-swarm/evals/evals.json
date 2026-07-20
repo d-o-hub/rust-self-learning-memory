@@ -4,6 +4,21 @@
       "name": "Codebase analysis",
       "description": "Verify the agent can analyze the codebase effectively.",
       "exec": "test -f .agents/skills/analysis-swarm/SKILL.md && rg -q . .agents/skills/analysis-swarm/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*analysis-swarm' .agents/skills/analysis-swarm/SKILL.md"
+    },
+    {
+      "name": "has-description",
+      "description": "description frontmatter present",
+      "exec": "rg -q '^description:' .agents/skills/analysis-swarm/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/analysis-swarm/SKILL.md"
     }
   ]
 }

@@ -1,14 +1,17 @@
-# Self-Learning Memory - v0.1.9+ Vision
+# Self-Learning Memory — Long-Term Vision (0.2 → 1.0)
 
-**Target Date**: Q2-Q4 2026
-**Status**: VISION
-**Focus**: Advanced capabilities and future research integration
+**Target Date**: 2026–2027  
+**Status**: VISION (not committed sprint work)  
+**Focus**: Distributed systems, multi-tenancy, observability, continuous learning  
+**Active product backlog**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
 
 ---
 
 ## Executive Summary
 
-v0.1.9+ represents the future vision of Self-Learning Memory System, focusing on advanced capabilities beyond v0.1.8's research integration. This roadmap outlines ambitious but achievable goals for distributed systems, advanced observability, and continuous learning.
+This document sketches **post-0.1.x** capabilities after the single-instance
+memory system is stable (currently workspace 0.1.36 / released v0.1.35). It is
+aspirational — every item needs a spike and go/no-go before implementation.
 
 **Vision Goals**:
 - Distributed memory synchronization across multiple instances

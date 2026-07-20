@@ -46,11 +46,38 @@
       "priority": "medium"
     },
     {
+      "skill": "test-fix",
+      "triggers": {
+        "keywords": ["test fail", "failing test", "flaky test", "fix test"],
+        "patterns": ["test-fix", "assert!.*fail"],
+        "files": ["**/tests/**/*.rs"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "test-patterns",
+      "triggers": {
+        "keywords": ["AAA pattern", "proptest", "tokio::test", "test pattern", "write tests"],
+        "patterns": ["test-patterns", "#\\[tokio::test\\]"],
+        "files": ["**/tests/**/*.rs"]
+      },
+      "priority": "medium"
+    },
+    {
       "skill": "ci-fix",
       "triggers": {
         "keywords": ["CI fail", "github actions", "workflow failed", "cancelled check", "Actions"],
         "patterns": ["gh run", "workflow", "\\.github/workflows"],
         "files": [".github/workflows/**/*.yml"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "ci-poll",
+      "triggers": {
+        "keywords": ["poll CI", "wait for CI", "CI status", "checks pending", "ci-poll"],
+        "patterns": ["ci-poll", "statusCheckRollup", "watch.*CI"],
+        "files": []
       },
       "priority": "high"
     },
@@ -91,6 +118,15 @@
       "priority": "high"
     },
     {
+      "skill": "github-release-best-practices",
+      "triggers": {
+        "keywords": ["semver", "changelog categories", "release notes structure"],
+        "patterns": ["keep a changelog", "semver"],
+        "files": ["CHANGELOG.md"]
+      },
+      "priority": "medium"
+    },
+    {
       "skill": "goap-agent",
       "triggers": {
         "keywords": ["GOAP", "orchestrat", "multi-step plan", "decompose", "swarm"],
@@ -98,6 +134,42 @@
         "files": ["plans/GOAP_*.md", "plans/GOAP_STATE.md"]
       },
       "priority": "high"
+    },
+    {
+      "skill": "agent-coordination",
+      "triggers": {
+        "keywords": ["agent coordination", "parallel agents", "swarm execution", "quality gates orchestration"],
+        "patterns": ["agent-coordination", "execution strateg"],
+        "files": []
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "analysis-swarm",
+      "triggers": {
+        "keywords": ["analysis swarm", "RYAN", "FLASH", "SOCRATES", "multi-persona"],
+        "patterns": ["analysis-swarm"],
+        "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "architecture-validation",
+      "triggers": {
+        "keywords": ["architecture validation", "ADR compliance", "plan vs code"],
+        "patterns": ["architecture-validation", "plans/adr"],
+        "files": ["plans/adr/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "plan-gap-analysis",
+      "triggers": {
+        "keywords": ["gap analysis", "plan gap", "missing implementation"],
+        "patterns": ["plan-gap", "GAP_ANALYSIS"],
+        "files": ["plans/STATUS/GAP_ANALYSIS_LATEST.md", "plans/**/*.md"]
+      },
+      "priority": "medium"
     },
     {
       "skill": "github-workflows",
@@ -150,6 +222,96 @@
         "keywords": ["MCP", "mcp server", "tool call", "query_memory"],
         "patterns": ["do-memory-mcp", "execute_agent_code"],
         "files": ["memory-mcp/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "codebase-analyzer",
+      "triggers": {
+        "keywords": ["analyze codebase", "trace data flow", "technical debt", "how does"],
+        "patterns": ["codebase-analyzer"],
+        "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "external-signal-provider",
+      "triggers": {
+        "keywords": ["external signal", "AgentFS", "reward signal", "toolcall audit"],
+        "patterns": ["external-signal", "AgentFS"],
+        "files": ["memory-core/src/**/external*", "memory-mcp/**/external*"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "git-worktree-manager",
+      "triggers": {
+        "keywords": ["worktree", "git worktree", "isolated branch"],
+        "patterns": ["worktree"],
+        "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "learn",
+      "triggers": {
+        "keywords": ["record lesson", "session learning", "LESSONS.md"],
+        "patterns": ["learn skill", "agent_docs/LESSONS"],
+        "files": ["agent_docs/LESSONS.md"]
+      },
+      "priority": "low"
+    },
+    {
+      "skill": "loop-agent",
+      "triggers": {
+        "keywords": ["iterative refinement", "loop until", "progressive improvement"],
+        "patterns": ["loop-agent"],
+        "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "memory-context",
+      "triggers": {
+        "keywords": ["retrieve memory", "semantic search", "context compaction", "episode retrieval"],
+        "patterns": ["memory-context", "query_memory"],
+        "files": []
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "memory-harness",
+      "triggers": {
+        "keywords": ["memory harness", "replay session", "export fixtures", "benchmark CLI"],
+        "patterns": ["memory-harness", "replay-trace"],
+        "files": [".agents/skills/memory-harness/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "performance",
+      "triggers": {
+        "keywords": ["benchmark", "criterion", "performance regression", "profiling"],
+        "patterns": ["criterion", "perf"],
+        "files": ["benches/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "skill-creator",
+      "triggers": {
+        "keywords": ["create skill", "new skill", "skill scaffold"],
+        "patterns": ["skill-creator"],
+        "files": [".agents/skills/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "storage-sync",
+      "triggers": {
+        "keywords": ["storage sync", "turso redb", "cache stale", "synchronize backends"],
+        "patterns": ["storage sync", "StorageSynchronizer"],
+        "files": ["memory-storage-*/**", "memory-cli/src/commands/storage/**"]
       },
       "priority": "medium"
     }

@@ -22,9 +22,30 @@ Always use Skill + CLI first for high-frequency ops:
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
+| PR merge readiness | `pr-readiness` | `./scripts/check-pr-readiness.sh` |
+| Wait for CI | `ci-poll` | `gh pr checks` / Actions |
+| Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
 | Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
+| Complex multi-step | `goap-agent` | - |
 
+Full skill inventory: [`.agents/SKILLS.md`](.agents/SKILLS.md).  
 Before task tool: skill? → script? → Skill+CLI? → task tool?
+
+### GitHub CLI agent skills (user scope — R-H1/H2/H7)
+
+Install official patterns once per machine (not a substitute for this repo’s domain skills):
+
+```bash
+gh skill install cli/cli gh --scope user --agent <host>        # how to use gh
+gh skill install cli/cli gh-skill --scope user --agent <host>  # manage skills
+```
+
+| Layout | Path | Purpose |
+|--------|------|---------|
+| **User** | `~/.…/skills/gh` via `gh skill install` | Cross-repo `gh` JSON/pagination/API patterns |
+| **Project** | `.agents/skills/*` | Domain: release-guard, pr-readiness, memory, etc. |
+
+Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship --execute` (tag → `release.yml`). Never `gh release create` for shipping.
 
 ## Change Workflow
 1. Identify owner crate + module

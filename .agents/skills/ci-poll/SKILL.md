@@ -1,11 +1,11 @@
 ---
 name: ci-poll
-description: "Poll GitHub CI status with exponential backoff until all checks complete. Use after pushing to a PR branch to monitor CI until merge-ready or failure. Covers the wait-and-check loop that avoids manual sleep cycles."
+description: "Poll GitHub CI status with exponential backoff until all checks complete. Use after pushing to a PR branch to monitor CI until merge-ready or failure. Prefer gh pr checks --watch and gh run watch over bare sleep loops."
 ---
 
 # CI Poll Skill
 
-Poll GitHub Actions CI status with structured backoff until all checks resolve.
+Poll GitHub Actions CI status until all checks resolve. Prefer **typed `gh` waiters** from the [GitHub CLI manual](https://cli.github.com/manual/) over manual sleep loops.
 
 ## When to Use
 
@@ -14,95 +14,108 @@ Poll GitHub Actions CI status with structured backoff until all checks resolve.
 - When you need to know if a PR is merge-ready without manual polling
 - After updating a branch to re-trigger CI
 
-## Quick Start
+## Preferred: `gh pr checks --watch` (R-H3)
 
 ```bash
-# Single check (no polling)
-gh pr view <PR> --json mergeStateStatus,statusCheckRollup \
-  --jq '{state: .mergeStateStatus, pending: [.statusCheckRollup[] | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[] | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
+# Required checks only; blocks until complete.
+# Exit 0 = all listed checks passed
+# Exit 8 = still pending (when not using --watch)
+# Non-zero (other) = failure
+gh pr checks <PR> --required --watch --interval 30
+
+# Structured one-shot status
+gh pr checks <PR> --required --json name,state,bucket,workflow,link
 ```
 
-## Polling Procedure
+| `bucket` (JSON) | Meaning |
+|-----------------|---------|
+| `pass` | Check succeeded |
+| `fail` | Check failed |
+| `pending` | Still running / queued |
+| `skipping` | Skipped (often OK) |
+| `cancel` | Cancelled — investigate / re-run |
 
-### Step 1: Initial Wait (60s)
-
-CI rarely completes in under 60s. Wait once before first check.
+## Preferred: `gh run watch` for a single workflow
 
 ```bash
-sleep 60 && gh pr view <PR> --json mergeStateStatus,statusCheckRollup \
-  --jq '{state: .mergeStateStatus, pending: [.statusCheckRollup[] | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[] | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
+# List runs for this branch / commit
+gh run list --branch "$(git branch --show-current)" --limit 5 \
+  --json databaseId,name,status,conclusion,url
+
+# Block until one run finishes
+gh run watch <run_id>
+
+# Diagnose failures
+gh run view <run_id> --log-failed
+gh run rerun <run_id> --failed
 ```
 
-### Step 2: Exponential Backoff
-
-If checks are still pending, increase wait time:
-
-| Round | Sleep | Timeout |
-|-------|-------|---------|
-| 1 | 60s | 120s |
-| 2 | 120s | 180s |
-| 3 | 300s | 360s |
-| 4+ | 600s | 720s |
+## Quick status (no watch)
 
 ```bash
-# Round 2
-sleep 120 && gh pr view <PR> --json mergeStateStatus,statusCheckRollup \
-  --jq '{state: .mergeStateStatus, pending: [.statusCheckRollup[] | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[] | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
-
-# Round 3+
-sleep 300 && gh pr view <PR> --json mergeStateStatus,statusCheckRollup \
-  --jq '{state: .mergeStateStatus, pending: [.statusCheckRollup[] | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[] | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
+gh pr view <PR> --json mergeStateStatus,statusCheckRollup,mergeable \
+  --jq '{state: .mergeStateStatus, mergeable: .mergeable, pending: [.statusCheckRollup[]? | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[]? | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
 ```
 
-### Step 3: Interpret Result
+## Fallback polling (only if watch is unavailable)
+
+CI rarely completes in under 60s. Use **bounded** sleep + re-check (max 5 rounds):
+
+| Round | Sleep |
+|-------|-------|
+| 1 | 60s |
+| 2 | 120s |
+| 3 | 300s |
+| 4+ | 600s |
+
+```bash
+sleep 60
+gh pr checks <PR> --required --json name,state,bucket
+```
+
+## Interpret merge readiness
 
 | `mergeStateStatus` | Meaning | Action |
 |--------------------|---------|--------|
-| `CLEAN` | All checks pass, no conflicts | ✅ Ready to merge |
-| `BEHIND` | Branch is behind base | Update branch: `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT` |
-| `BLOCKED` | Required checks still pending | Wait more or investigate |
-| `UNSTABLE` | Non-required checks failing | Check if failures are pre-existing |
+| `CLEAN` | Checks OK, no conflicts | Ready to merge (still address PR comments) |
+| `BEHIND` | Branch behind base | `gh pr update-branch <PR>` |
+| `BLOCKED` | Required checks pending | Keep watching |
+| `UNSTABLE` | Non-required checks failing | Inspect whether blocking |
 | `DIRTY` | Merge conflicts | Resolve conflicts |
-| `BLOCKED` + all checks `SUCCESS` | Hooks or rules blocking | Investigate branch protection |
 
-### Step 4: Terminal Conditions (stop polling)
+### Terminal conditions (stop)
 
-Stop polling when ANY of:
-1. `mergeStateStatus` = `CLEAN` → success
-2. Any required check has `conclusion: "FAILURE"` → investigate
-3. Max 5 rounds reached → report current state
-4. `mergeStateStatus` = `DIRTY` → resolve conflicts
+1. `mergeStateStatus` = `CLEAN` and required checks pass  
+2. Required check `bucket=fail` → fix and re-push  
+3. Max 5 rounds / policy timeout → report state  
+4. `DIRTY` → stop and fix conflicts  
 
-## For Run-Level Monitoring
-
-When monitoring a specific workflow run (not full PR state):
+## Branch update (prefer typed CLI)
 
 ```bash
-# Check a specific run
-gh run view <run_id> --json conclusion,status
+# Preferred (R-H4)
+gh pr update-branch <PR>
 
-# List recent runs for a branch
-gh run list --workflow=ci.yml --branch <branch> --limit 3 --json status,conclusion,name
+# Fallback only if gh version lacks update-branch
+gh api repos/{owner}/{repo}/pulls/<PR>/update-branch -X PUT -f update_method=merge
 ```
 
-## Common Pitfalls
+## Common pitfalls
 
-- **Don't poll faster than 60s** — GitHub Actions needs time to schedule runners
-- **Don't assume SKIPPED is failure** — SKIPPED is expected (e.g., Release workflow on PRs)
-- **Don't forget CANCELLED** — Re-trigger if a required check was cancelled
-- **Always check `mergeStateStatus`, not just CI** — A PR can have green CI but be unmergeable due to conflicts
-- **Set timeout on bash calls** — Use `timeout: 360000` (6 min) for 5-minute sleep calls
+- Prefer `gh pr checks --watch` over bare `sleep` loops  
+- `SKIPPED` is often expected (e.g. Release workflow on PRs)  
+- `CANCELLED` on required checks → re-run; do not merge  
+- Green checks ≠ mergeable if conflicts (`DIRTY`) or comments remain  
+- Never `gh pr merge --admin`  
 
-## Codacy Integration
-
-When waiting for Codacy reanalysis after a fix:
+## Codacy
 
 ```bash
-# Trigger reanalysis
 codacy pull-request gh <owner> <repo> <PR> --reanalyze-and-wait 2>&1
-
-# Or poll Codacy status
-codacy pull-request gh <owner> <repo> <PR> 2>&1 | head -25
 ```
 
-Codacy typically takes 2-5 minutes. Use the same backoff pattern.
+## See also
+
+- Official agent skill: `gh skill install cli/cli gh --scope user`  
+- Manual: <https://cli.github.com/manual/gh_pr_checks> · <https://cli.github.com/manual/gh_run>  
+- Merge readiness: `pr-readiness` skill  

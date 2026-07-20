@@ -125,3 +125,11 @@ debug_config
 
 # Prevent re-introduction of CI trigger file anti-pattern
 .trigger-ci.txt
+
+# Python bytecode (skills, scripts, tooling)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

@@ -408,7 +408,7 @@ send_alert "critical" "High failed authentication rate detected"
 | `security_violation` | error | Policy violation detected |
 | `config_change` | info | Configuration modifications |
 | `delete_episode` | warn | Episode deletion |
-| `execute_agent_code` | info | Code execution in sandbox |
+| `execute_agent_code` | info | Code execution unavailable (fail-closed) |
 
 ### Audit Log Analysis
 

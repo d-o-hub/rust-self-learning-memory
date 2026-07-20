@@ -4,6 +4,21 @@
       "name": "Self-correction",
       "description": "Verify the agent can correct its own mistakes.",
       "exec": "test -f .agents/skills/loop-agent/SKILL.md && rg -q . .agents/skills/loop-agent/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*loop-agent' .agents/skills/loop-agent/SKILL.md"
+    },
+    {
+      "name": "has-description",
+      "description": "description frontmatter present",
+      "exec": "rg -q '^description:' .agents/skills/loop-agent/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/loop-agent/SKILL.md"
     }
   ]
 }

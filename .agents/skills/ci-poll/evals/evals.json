@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "ci-poll skill exists",
+      "exec": "test -f .agents/skills/ci-poll/SKILL.md"
+    },
+    {
+      "name": "documents-poll-loop",
+      "description": "Documents CI polling / wait behavior",
+      "exec": "rg -qi 'poll|backoff|statusCheckRollup|gh run|checks' .agents/skills/ci-poll/SKILL.md"
+    },
+    {
+      "name": "no-hardcoded-sleep-only",
+      "description": "Does not recommend bare sleep as the only wait strategy",
+      "exec": "! rg -q 'just sleep|only sleep [0-9]' .agents/skills/ci-poll/SKILL.md"
+    },
+    {
+      "name": "no-force-merge-advice",
+      "description": "Does not recommend admin/force merge while waiting",
+      "exec": "! rg -qi 'gh pr merge --admin|merge --admin' .agents/skills/ci-poll/SKILL.md"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T18:22:52Z",
+  "generated_at": "2026-07-20T10:02:33Z",
   "schema_version": 1,
   "skills": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "description": "Poll GitHub CI status with exponential backoff until all checks complete. Use after pushing to a PR branch to monitor CI until merge-ready or failure. Covers the wait-and-check loop that avoids manual sleep cycles.",
-      "has_evals": false,
+      "has_evals": true,
       "id": "ci-poll",
       "name": "ci-poll"
     },

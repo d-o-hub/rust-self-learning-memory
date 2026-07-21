@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.36] - 2026-07-20
+
 ### Added
 
 - **CLI** `storage journal` — operator view of F4.2 operation journal

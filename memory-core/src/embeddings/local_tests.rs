@@ -260,7 +260,7 @@ fn test_verify_model_artifact_size_and_digest() {
         let mut f = std::fs::File::create(&path).unwrap();
         f.write_all(data).unwrap();
     }
-    let digest = format!("{:x}", Sha256::digest(data));
+    let digest = crate::embeddings::config::hex_encode_lower(Sha256::digest(data).as_slice());
 
     verify_model_artifact(&path, Some(&digest), Some(1024)).unwrap();
 

@@ -2,7 +2,7 @@
 
 // Provider-specific configurations (split for ≤500 LOC)
 pub use cloud_config::{AzureOpenAIConfig, CustomConfig};
-pub use local_config::{LocalConfig, verify_model_artifact};
+pub use local_config::{LocalConfig, hex_encode_lower, verify_model_artifact};
 pub use provider_config::ProviderConfig;
 
 // Provider enums (unchanged)

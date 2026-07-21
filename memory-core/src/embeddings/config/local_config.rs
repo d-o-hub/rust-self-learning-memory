@@ -86,6 +86,18 @@ impl LocalConfig {
     }
 }
 
+/// Lowercase hex encoding for digest bytes (sha2 0.10/0.11 portable).
+#[must_use]
+pub fn hex_encode_lower(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len().saturating_mul(2));
+    for &b in bytes {
+        out.push(HEX[(b >> 4) as usize] as char);
+        out.push(HEX[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
 /// Verify a model artifact against optional digest and size limits (S1.5b / F4.3).
 ///
 /// # Errors
@@ -126,7 +138,8 @@ pub fn verify_model_artifact(
             }
             hasher.update(&buf[..n]);
         }
-        let actual = format!("{:x}", hasher.finalize());
+        // sha2 0.11 Output no longer implements LowerHex; encode bytes explicitly.
+        let actual = hex_encode_lower(hasher.finalize().as_slice());
         if actual != expected {
             anyhow::bail!(
                 "model artifact {} digest mismatch: expected {expected}, got {actual}",

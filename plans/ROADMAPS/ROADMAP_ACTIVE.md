@@ -1,9 +1,9 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-21  
-**Released Version**: v0.1.35  
-**Workspace Version**: 0.1.36 (unreleased development)  
-**Active Sprint**: Release v0.1.36 + open PR CI hygiene  
+**Last Updated**: 2026-07-20  
+**Released Version**: v0.1.36
+**Workspace Version**: 0.1.36
+**Active Sprint**: Recommendations backlog + release readiness  
 **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 **Branch**: `main`  
 **Open PRs**: #880 (release docs), #877 (rust-major deps)  

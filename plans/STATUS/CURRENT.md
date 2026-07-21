@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-21  
-**Released Version**: v0.1.35  
-**Workspace Version**: 0.1.36 (unreleased; 26 commits since tag)  
+**Last Updated**: 2026-07-20  
+**Released Version**: v0.1.36
+**Workspace Version**: 0.1.36
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 **Branch**: `main` @ `1ebab995`  

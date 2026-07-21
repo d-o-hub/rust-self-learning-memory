@@ -46,7 +46,8 @@ fn enforce_crate_layering() {
             })
             .map(|dep| dep.name.clone())
             .collect();
-        dep_graph.insert(package.name.clone(), deps);
+        // cargo_metadata 0.23: Package::name is PackageName, not String.
+        dep_graph.insert(package.name.to_string(), deps);
     }
 
     let mut violations = Vec::new();

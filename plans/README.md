@@ -2,7 +2,8 @@
 
 **Workspace**: `0.1.36` (unreleased) · **Released tag**: `v0.1.35`  
 **Active plan**: [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)  
-**Last Updated**: 2026-07-20  
+**Last Updated**: 2026-07-21  
+**Open PRs**: #880 (release), #877 (deps) · **Open issue**: #879 (drift)  
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

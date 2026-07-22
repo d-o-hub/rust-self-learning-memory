@@ -1,10 +1,10 @@
 # Comprehensive Codebase Recommendations — 2026-07-20
 
-- **Status**: Active backlog (post–v0.1.35; workspace `0.1.36` unreleased)
-- **Audit commit**: refreshed 2026-07-22
-- **Released tag**: `v0.1.35`
-- **Open PRs**: R-E2 skill evals / plans truth (this wave); #877/#880/#881 merged
-- **Open issues**: none (#879 resolved with release-docs path)
+- **Status**: Active backlog (post–v0.1.36; workspace `0.1.37`)
+- **Audit commit**: refreshed 2026-07-22 after ship
+- **Released tag**: `v0.1.36`
+- **Open PRs**: post-release bump to 0.1.37
+- **Open issues**: none
 - **Coordinator**: goap-agent + agent-coordination
 - **Supersedes**: archived `GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` and dated 2026-06/07 execution plans
 - **Archive**: `plans/archive/2026-07-consolidation/`
@@ -72,9 +72,9 @@ IDs use prefix **R** (recommendation). Priorities:
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | #880 merged; main green | 🟡 ship |
-| **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 After R-A1 |
-| **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | 🟡 With R-A1 |
+| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | Shipped | ✅ |
+| **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 This PR |
+| **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | ✅ |
 
 ### Track B — Code quality & invariants (P0/P1)
 

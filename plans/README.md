@@ -1,6 +1,6 @@
 # Plans Directory
 
-**Workspace**: `0.1.36` (unreleased) · **Released tag**: `v0.1.35`  
+**Workspace**: `0.1.36` (release-ready) · **Released tag**: `v0.1.35` · **Next tag**: `v0.1.36`  
 **Active plan**: [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)  
 **Last Updated**: 2026-07-21  
 **Open PRs**: #880 (release), #877 (deps) · **Open issue**: #879 (drift)  

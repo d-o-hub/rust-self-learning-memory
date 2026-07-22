@@ -505,7 +505,7 @@ match memory.add_episode_relationship(...).await {
 ## See Also
 
 - [Storage Layer](../memory-storage-turso/src/relationships.rs)
-- [Memory Layer](../memory-core/src/memory/relationships.rs)
+- [Memory Layer](../memory-core/src/memory/relationships/)
 - [Integration Tests](../memory-core/tests/relationship_integration.rs)
-- [MCP Tools](../memory-mcp/src/server/tools/episode_relationships.rs)
+- [MCP Tools](../memory-mcp/src/server/tools/episode_relationships/)
 - [CLI Commands](../memory-core/src/episode/relationships.rs)

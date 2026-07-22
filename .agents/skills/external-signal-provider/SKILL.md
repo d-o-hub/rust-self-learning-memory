@@ -20,7 +20,7 @@ Guide for integrating external signal providers into the rust-self-learning-memo
 - **[Signal Ingestion](./signal-ingestion.md)** - Protocol handling and authentication
 - **[Reward Integration](./reward-integration.md)** - Merging signals with RewardCalculator
 - **[Examples](./examples.md)** - AgentFS-specific implementation patterns
-- **[Architecture](../../plans/adr/ADR-051-External-Signal-Provider.md)** - ADR with trait design
+- **[Architecture](../../../plans/adr/ADR-051-External-Signal-Provider.md)** - ADR with trait design
 
 ## Quick Reference
 

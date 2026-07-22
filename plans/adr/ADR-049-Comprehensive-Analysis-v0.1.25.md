@@ -219,4 +219,4 @@ Prioritized by: **user-facing value × feasibility × builds on existing code**
 - [ROADMAP_V030_VISION.md](../ROADMAPS/ROADMAP_V030_VISION.md) — features NOT recommended
 - [ADR-044](ADR-044-High-Impact-Features-v0.1.20.md) — attribution/checkpoint features this builds on
 - [ADR-048](ADR-048-v0.1.24-Stability-Sprint.md) — preceding stability sprint
-- [GOAP_EXECUTION_PLAN_v0.1.25.md](../GOAP_EXECUTION_PLAN_v0.1.25.md) — execution plan
+- [GOAP_EXECUTION_PLAN_v0.1.25.md](../archive/2026-03-consolidation/GOAP_EXECUTION_PLAN_v0.1.25.md) — execution plan

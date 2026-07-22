@@ -205,7 +205,7 @@ These 3 features directly enable:
 
 - [ADR-028: Feature Enhancement Roadmap](ADR-028-Feature-Enhancement-Roadmap.md)
 - [ADR-043: Codebase Analysis v0.1.20](ADR-043-Comprehensive-Codebase-Analysis-v0.1.20.md)
-- [completion.rs](../../do-memory-core/src/memory/completion.rs) — episode completion & summary generation
-- [recommendation.rs](../../do-memory-core/src/memory/pattern_search/recommendation.rs) — pattern recommendation engine
-- [learning.rs](../../do-memory-core/src/memory/learning.rs) — heuristic update loop
-- [context.rs](../../do-memory-core/src/memory/retrieval/context.rs) — context retrieval
+- [completion.rs](../../memory-core/src/memory/completion.rs) — episode completion & summary generation
+- [recommendation.rs](../../memory-core/src/memory/pattern_search/recommendation.rs) — pattern recommendation engine
+- [learning.rs](../../memory-core/src/memory/learning.rs) — heuristic update loop
+- [context.rs](../../memory-core/src/memory/retrieval/context.rs) — context retrieval

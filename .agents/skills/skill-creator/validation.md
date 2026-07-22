@@ -123,7 +123,7 @@ echo "Validating new skills..."
 
 for skill_dir in .agents/skills/*/; do
     skill_name=$(basename "$skill_dir")
-    ./scripts/validate-skill.sh "$skill_name" || exit 1
+    ./scripts/validate-skills.sh "$skill_name" || exit 1
 done
 
 echo "✓ All skills validated"

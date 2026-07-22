@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.36] - 2026-07-20
 
+### Fixed
+
+- **Docs integrity**: repair live markdown links; skip archive link rot in
+  `check-docs-integrity.sh` so release-manager ship can gate on live docs only.
+
 ### Added
 
 - **Skills (R-E2)**: medium-risk skill behavioral eval fixtures (second wave) —

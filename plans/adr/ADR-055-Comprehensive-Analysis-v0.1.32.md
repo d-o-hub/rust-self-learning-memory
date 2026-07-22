@@ -33,7 +33,7 @@ Four active plan docs reference two files that **were never created**:
 Referencing files: `GOAP_STATE.md`, `ROADMAPS/ROADMAP_ACTIVE.md`, `STATUS/CURRENT.md`,
 `STATUS/GAP_ANALYSIS_LATEST.md`. This ADR fills the ADR-055 slot with the actual,
 verified analysis and the referenced GOAP plan is created as
-[`GOAP_COMPREHENSIVE_ANALYSIS_2026-06-06.md`](../GOAP_COMPREHENSIVE_ANALYSIS_2026-06-06.md).
+[`GOAP_COMPREHENSIVE_ANALYSIS_2026-06-06.md`](../archive/2026-07-consolidation/analyses/GOAP_COMPREHENSIVE_ANALYSIS_2026-06-06.md).
 
 ### Genuine remaining implementation gaps (verified by `rg`, not by stale docs)
 

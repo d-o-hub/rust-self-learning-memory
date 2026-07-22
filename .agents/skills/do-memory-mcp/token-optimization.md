@@ -85,7 +85,7 @@ tools/list: ~1,237 tokens (full schemas)
   "mcp": {
     "do-memory-mcp": {
       "type": "local",
-      "command": ["/path/to/scripts/preflight-do-memory-mcp.sh"],
+      "command": ["/path/to/scripts/preflight-memory-mcp.sh"],
       "enabled": true,
       "timeout": 3000
     }

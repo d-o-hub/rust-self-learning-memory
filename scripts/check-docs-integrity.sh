@@ -56,7 +56,17 @@ import sys
 repo = os.getcwd()
 link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
-files = subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+# Skip historical archives: links rot intentionally after consolidation (ADR-039).
+SKIP_PREFIXES = (
+    "plans/archive/",
+    "plans/STATUS/archive/",
+)
+
+files = [
+    p
+    for p in subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+    if not p.startswith(SKIP_PREFIXES)
+]
 broken = []
 
 for rel_path in files:
@@ -109,7 +119,15 @@ import subprocess
 
 repo = os.getcwd()
 link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-files = subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+SKIP_PREFIXES = (
+    "plans/archive/",
+    "plans/STATUS/archive/",
+)
+files = [
+    p
+    for p in subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+    if not p.startswith(SKIP_PREFIXES)
+]
 for rel_path in files:
     abs_path = os.path.join(repo, rel_path)
     if not os.path.exists(abs_path):
@@ -145,13 +163,54 @@ else
 fi
 
 echo "[docs-integrity] Checking script references in markdown..."
-while IFS=: read -r file _line _match; do
-  ref=$(echo "$file:${_line}:${_match}" | awk -F: '{print $3}')
-  if [[ -n "$ref" && ! -e "$ref" ]]; then
-    echo "  - Missing script reference: $file:${_line} -> $ref"
-    script_failures=1
-  fi
-done < <(rg -n --no-heading --color never "scripts/[A-Za-z0-9_./-]+\.sh" --glob "*.md" || true)
+# Extract bare scripts/*.sh paths (ignore archives; strip backticks/args).
+python3 - <<'PY' || script_failures=1
+import os
+import re
+import subprocess
+import sys
+
+repo = os.getcwd()
+SKIP_PREFIXES = (
+    "plans/archive/",
+    "plans/STATUS/archive/",
+)
+# Match scripts/foo.sh or ./scripts/foo.sh inside markdown (not only line starts).
+pat = re.compile(r"(?:\./)?(scripts/[A-Za-z0-9_./-]+\.sh)")
+files = [
+    p
+    for p in subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+    if not p.startswith(SKIP_PREFIXES)
+]
+missing = []
+for rel_path in files:
+    abs_path = os.path.join(repo, rel_path)
+    if not os.path.exists(abs_path):
+        continue
+    try:
+        with open(abs_path, "r", encoding="utf-8") as f:
+            in_code_block = False
+            for idx, line in enumerate(f, start=1):
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_code_block = not in_code_block
+                    continue
+                # Skip fenced examples (ADR snippets often show proposed scripts).
+                if in_code_block:
+                    continue
+                for m in pat.finditer(line):
+                    rel_script = m.group(1)
+                    if not os.path.exists(os.path.join(repo, rel_script)):
+                        missing.append((rel_path, idx, rel_script))
+    except UnicodeDecodeError:
+        continue
+
+if missing:
+    for rel_path, idx, rel_script in missing:
+        print(f"  - Missing script reference: {rel_path}:{idx} -> {rel_script}")
+    sys.exit(1)
+print("OK")
+PY
 
 if [[ $script_failures -eq 0 ]]; then
   echo "[docs-integrity] Script reference check passed"

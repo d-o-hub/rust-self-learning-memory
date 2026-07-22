@@ -1,47 +1,48 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-20  
-**Released Version**: v0.1.36
-**Workspace Version**: 0.1.36
-**Active Sprint**: Recommendations backlog + release readiness  
+**Last Updated**: 2026-07-22  
+**Released Version**: v0.1.36  
+**Workspace Version**: 0.1.36  
+**Active Sprint**: Release readiness + residual recommendations  
 **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 **Branch**: `main`  
-**Open PRs**: #880 (release docs), #877 (rust-major deps)  
-**Open issues**: #879 (release drift)
+**Open PRs**: *(implementation PR for R-E2 may be open)*  
+**Open issues**: none  
 
 ---
 
-## Sprint 2026-07-21 — Release + CI
+## Sprint 2026-07-22 — Release
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
-| 1 | Release docs | PR #880 finalize CHANGELOG / ROADMAP / CURRENT for v0.1.36 | 🟡 CI |
-| 2 | Ship v0.1.36 | `release-manager.sh ship --execute` after #880 + main green | 🟡 |
-| 3 | Post-bump | Workspace → 0.1.37 immediately after tag | 🟡 |
-| 4 | rust-major deps | PR #877 sha2 0.11 / lz4_flex 0.14 / cargo_metadata 0.23 | 🟡 CI |
-| 5 | Plans truth | CURRENT / GAP / GOALS / ACTIONS / GOAP_STATE tracker refresh | 🟡 |
+| 1 | Ship v0.1.36 | `release-manager.sh ship --execute` when main green | 🟡 |
+| 2 | Post-bump | Workspace → 0.1.37 immediately after tag | 🟡 |
+| 3 | R-E2 skill evals | Medium-risk behavioral fixtures second wave | ✅ |
+| 4 | Plans truth | CURRENT / GAP / GOALS / ACTIONS / GOAP_STATE | ✅ |
 
 ---
 
-## Completed last sprint (2026-07-20)
+## Completed last sprint (2026-07-20…21)
 
 | Priority | Item | Status |
 |----------|------|--------|
 | Plans hygiene (ADR-039 archive) | ✅ |
 | Recommendations register R-A…R-G | ✅ |
 | Implementation #878 (LOC, skills, journal CLI, docs) | ✅ |
+| Release docs #880 | ✅ |
+| rust-major deps #877 | ✅ |
+| Tracker refresh #881 | ✅ |
 
 ---
 
-## Follow-on backlog (P1/P2)
+## Follow-on backlog (P2)
 
 | Priority | Theme | Items | Status |
 |----------|-------|-------|--------|
-| P1 | Skills depth | Medium-risk behavioral evals (R-E2) | Backlog |
-| P1 | Operator F4 | Any remaining MCP provenance gaps (R-C4) | Backlog |
-| P2 | Research | WG-108 version retention; WG-110 SIMD (bench-gated); WG-125 MoE; WG-135 federated HDC | Backlog |
+| P2 | Research | WG-108 version retention; WG-110 SIMD (bench-gated); WG-125 MoE; WG-135 federated HDC | ⏸ DEFER |
 | P2 | Vision | Distributed sync, multi-tenancy/RBAC, OTel/Prometheus (see `ROADMAP_V030_VISION.md`) | Future |
 | P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
+| P2 | Security | Transitive Dependabot advisories (upstream libsql/openssl chains) | Monitor |
 
 ---
 

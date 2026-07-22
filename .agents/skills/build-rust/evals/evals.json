@@ -6,9 +6,24 @@
       "exec": "test -f .agents/skills/build-rust/SKILL.md"
     },
     {
-      "name": "build-script-exists",
-      "description": "build-rust.sh present",
-      "exec": "test -f ./scripts/build-rust.sh"
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*build-rust' .agents/skills/build-rust/SKILL.md"
+    },
+    {
+      "name": "documents-build-script",
+      "description": "References ./scripts/build-rust.sh",
+      "exec": "rg -q 'scripts/build-rust\\.sh' .agents/skills/build-rust/SKILL.md && test -x ./scripts/build-rust.sh"
+    },
+    {
+      "name": "documents-modes",
+      "description": "Documents dev/release/check modes",
+      "exec": "rg -q 'dev' .agents/skills/build-rust/SKILL.md && rg -q 'release' .agents/skills/build-rust/SKILL.md && rg -q 'check' .agents/skills/build-rust/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/build-rust/SKILL.md"
     }
   ]
 }

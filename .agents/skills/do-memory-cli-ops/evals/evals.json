@@ -2,13 +2,33 @@
   "tests": [
     {
       "name": "skill-md-present",
-      "description": "cli ops skill exists",
+      "description": "do-memory-cli-ops skill exists",
       "exec": "test -f .agents/skills/do-memory-cli-ops/SKILL.md"
     },
     {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*do-memory-cli-ops' .agents/skills/do-memory-cli-ops/SKILL.md"
+    },
+    {
       "name": "documents-cli-binary",
-      "description": "mentions do-memory-cli",
+      "description": "Documents do-memory-cli binary path/name",
       "exec": "rg -q 'do-memory-cli' .agents/skills/do-memory-cli-ops/SKILL.md"
+    },
+    {
+      "name": "documents-output-formats",
+      "description": "Documents human/json/yaml formats",
+      "exec": "rg -q 'json|yaml|human' .agents/skills/do-memory-cli-ops/SKILL.md"
+    },
+    {
+      "name": "documents-config-flag",
+      "description": "Documents --config option",
+      "exec": "rg -q -- '--config|config' .agents/skills/do-memory-cli-ops/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/do-memory-cli-ops/SKILL.md"
     }
   ]
 }

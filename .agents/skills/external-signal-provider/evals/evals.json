@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Signal integration",
-      "description": "Verify external signals are correctly integrated.",
-      "exec": "test -f .agents/skills/external-signal-provider/SKILL.md && rg -q . .agents/skills/external-signal-provider/SKILL.md"
+      "name": "skill-md-present",
+      "description": "external-signal-provider skill exists",
+      "exec": "test -f .agents/skills/external-signal-provider/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*external-signal-provider' .agents/skills/external-signal-provider/SKILL.md"
+    },
+    {
+      "name": "documents-trait",
+      "description": "Documents ExternalSignalProvider trait",
+      "exec": "rg -q 'ExternalSignalProvider' .agents/skills/external-signal-provider/SKILL.md"
+    },
+    {
+      "name": "documents-agentfs-or-reward",
+      "description": "Documents AgentFS or reward integration",
+      "exec": "rg -qi 'AgentFS|reward|signal' .agents/skills/external-signal-provider/SKILL.md"
+    },
+    {
+      "name": "references-adr-051",
+      "description": "Links ADR-051 architecture",
+      "exec": "rg -q 'ADR-051' .agents/skills/external-signal-provider/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/external-signal-provider/SKILL.md"
     }
   ]
 }

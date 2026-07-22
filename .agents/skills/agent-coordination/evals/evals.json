@@ -1,9 +1,9 @@
 {
   "tests": [
     {
-      "name": "Goal breakdown",
-      "description": "Verify the agent can break down complex tasks into atomic goals.",
-      "exec": "test -f .agents/skills/agent-coordination/SKILL.md && rg -q . .agents/skills/agent-coordination/SKILL.md"
+      "name": "skill-md-present",
+      "description": "agent-coordination skill exists",
+      "exec": "test -f .agents/skills/agent-coordination/SKILL.md"
     },
     {
       "name": "has-frontmatter-name",
@@ -11,9 +11,14 @@
       "exec": "rg -q '^name:[[:space:]]*agent-coordination' .agents/skills/agent-coordination/SKILL.md"
     },
     {
-      "name": "has-description",
-      "description": "description frontmatter present",
-      "exec": "rg -q '^description:' .agents/skills/agent-coordination/SKILL.md"
+      "name": "documents-strategies",
+      "description": "Documents parallel/sequential/swarm strategies",
+      "exec": "rg -qi 'parallel|sequential|swarm' .agents/skills/agent-coordination/SKILL.md"
+    },
+    {
+      "name": "documents-quality-gates",
+      "description": "Documents quality gates in coordination",
+      "exec": "rg -qi 'quality|gate' .agents/skills/agent-coordination/SKILL.md"
     },
     {
       "name": "no-unguarded-gh-release-create",

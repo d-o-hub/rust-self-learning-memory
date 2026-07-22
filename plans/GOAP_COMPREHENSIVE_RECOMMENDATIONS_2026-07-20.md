@@ -1,17 +1,17 @@
 # Comprehensive Codebase Recommendations — 2026-07-20
 
 - **Status**: Active backlog (post–v0.1.35; workspace `0.1.36` unreleased)
-- **Audit commit**: `1ebab995` (`main`) — refreshed 2026-07-21
+- **Audit commit**: refreshed 2026-07-22
 - **Released tag**: `v0.1.35`
-- **Open PRs**: #880 (release docs), #877 (rust-major deps)
-- **Open issues**: #879 (release drift)
+- **Open PRs**: R-E2 skill evals / plans truth (this wave); #877/#880/#881 merged
+- **Open issues**: none (#879 resolved with release-docs path)
 - **Coordinator**: goap-agent + agent-coordination
 - **Supersedes**: archived `GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` and dated 2026-06/07 execution plans
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## 1. Executive summary
 
-The 2026-07-14 → 2026-07-20 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, F4 pilot, and recommendations packages. PRs **#840–#878** are merged; workspace is **`0.1.36`** with **26 unreleased commits** on top of `v0.1.35`. Remaining P0 is **ship v0.1.36** (via #880 + release-manager) and land **#877** dep majors.
+The 2026-07-14 → 2026-07-22 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, F4 pilot, and recommendations packages. PRs **#840–#881** are merged (including release docs #880 and rust-major #877); workspace is **`0.1.36`**. Remaining P0 is **ship v0.1.36** via `./scripts/release-manager.sh ship --execute` when main is green.
 
 This plan is the **single active recommendations register**. It covers:
 
@@ -37,7 +37,7 @@ This plan is the **single active recommendations register**. It covers:
 |------|----------|---------|
 | Version | `Cargo.toml` `0.1.36`; tag `v0.1.35`; 26 unreleased commits | Unreleased development |
 | Main CI | Recent CI green on main HEAD | Green enough to plan release |
-| Open work | PRs #880, #877; issue #879 | Release + deps CI in flight |
+| Open work | Release ship only | #877/#880/#881 merged |
 | Production LOC >500 (non-test `src`) | No production offenders (`provider_config.rs` 237) | ✅ |
 | `todo!` / `unimplemented!` / “not yet implemented” in prod `src` | 0 matches | Clean surface |
 | Skills | Catalog + `ci-poll` evals present; routes complete | ✅ |
@@ -72,7 +72,7 @@ IDs use prefix **R** (recommendation). Priorities:
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | Merge #880 + main green | 🟡 CI / ship |
+| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | #880 merged; main green | 🟡 ship |
 | **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 After R-A1 |
 | **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | 🟡 With R-A1 |
 
@@ -115,7 +115,7 @@ IDs use prefix **R** (recommendation). Priorities:
 | ID | Recommendation | Why |
 |----|----------------|-----|
 | **R-E1** | K3.3 routes + inventory | ✅ |
-| **R-E2** | Medium-risk skill evals expanded | ✅ |
+| **R-E2** | Medium-risk skill evals expanded | ✅ Second wave (behavioral fixtures for thin skills) |
 | **R-E3** | github-release-best-practices → release-guard only | ✅ Already |
 | **R-E4** | Frontmatter name/description evals | ✅ medium set + compiler |
 | **R-E5** | pycache gitignore | ✅ skill + skills/ + root |

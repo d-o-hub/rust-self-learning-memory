@@ -2,13 +2,23 @@
   "tests": [
     {
       "name": "skill-md-present",
-      "description": "github release skill exists",
+      "description": "github-release-best-practices skill exists",
       "exec": "test -f .agents/skills/github-release-best-practices/SKILL.md"
     },
     {
+      "name": "defers-to-release-guard",
+      "description": "Defers shipping to release-guard / release-manager",
+      "exec": "rg -q 'release-guard|release-manager' .agents/skills/github-release-best-practices/SKILL.md"
+    },
+    {
+      "name": "blocks-manual-create",
+      "description": "Does not present bare gh release create as ship path",
+      "exec": "rg -q 'release-manager.sh ship|NEVER|never' .agents/skills/github-release-best-practices/SKILL.md || ! rg -q 'gh release create' .agents/skills/github-release-best-practices/SKILL.md"
+    },
+    {
       "name": "verify-script-exists",
-      "description": "verify-release-state.sh present",
-      "exec": "test -f ./scripts/verify-release-state.sh"
+      "description": "Related release scripts present",
+      "exec": "test -x ./scripts/release-manager.sh || test -f ./scripts/verify-release-state.sh"
     }
   ]
 }

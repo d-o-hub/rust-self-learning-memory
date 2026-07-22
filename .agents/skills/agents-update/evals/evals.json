@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Documentation alignment",
-      "description": "Verify agent documentation remains aligned.",
-      "exec": "test -f .agents/skills/agents-update/SKILL.md && rg -q . .agents/skills/agents-update/SKILL.md"
+      "name": "skill-md-present",
+      "description": "agents-update skill exists",
+      "exec": "test -f .agents/skills/agents-update/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*agents-update' .agents/skills/agents-update/SKILL.md"
+    },
+    {
+      "name": "documents-loc-budget",
+      "description": "Documents AGENTS.md LOC budget",
+      "exec": "rg -q '140' .agents/skills/agents-update/SKILL.md"
+    },
+    {
+      "name": "documents-agent-docs",
+      "description": "Documents moving detail to agent_docs/",
+      "exec": "rg -q 'agent_docs' .agents/skills/agents-update/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/agents-update/SKILL.md"
     }
   ]
 }

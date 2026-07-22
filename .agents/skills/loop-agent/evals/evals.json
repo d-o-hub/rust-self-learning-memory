@@ -1,9 +1,9 @@
 {
   "tests": [
     {
-      "name": "Self-correction",
-      "description": "Verify the agent can correct its own mistakes.",
-      "exec": "test -f .agents/skills/loop-agent/SKILL.md && rg -q . .agents/skills/loop-agent/SKILL.md"
+      "name": "skill-md-present",
+      "description": "loop-agent skill exists",
+      "exec": "test -f .agents/skills/loop-agent/SKILL.md"
     },
     {
       "name": "has-frontmatter-name",
@@ -11,9 +11,14 @@
       "exec": "rg -q '^name:[[:space:]]*loop-agent' .agents/skills/loop-agent/SKILL.md"
     },
     {
-      "name": "has-description",
-      "description": "description frontmatter present",
-      "exec": "rg -q '^description:' .agents/skills/loop-agent/SKILL.md"
+      "name": "documents-iteration",
+      "description": "Documents iterative refinement loop",
+      "exec": "rg -qi 'iterat|loop|refine|converg' .agents/skills/loop-agent/SKILL.md"
+    },
+    {
+      "name": "documents-quality-criteria",
+      "description": "Documents quality criteria / stop conditions",
+      "exec": "rg -qi 'quality|criteria|max iter|until' .agents/skills/loop-agent/SKILL.md"
     },
     {
       "name": "no-unguarded-gh-release-create",

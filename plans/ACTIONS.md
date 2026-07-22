@@ -1,10 +1,10 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-21  
+- **Last Updated**: 2026-07-22  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
-## Active actions (2026-07-21)
+## Active actions (2026-07-22)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
@@ -15,16 +15,16 @@
 | ACT-306 | Expand `skill-rules.json` to all catalog skills | R-C1 | ✅ Done |
 | ACT-307 | Add `ci-poll` evals + SKILLS.md sync | R-C2, R-C3 | ✅ Done |
 | ACT-308 | F4 operator UX: `storage journal` CLI (`--pending`/`--repair`) | R-B2, R-C5 | ✅ Done |
+| ACT-308b | MCP provenance fields on query responses | R-C4 | ✅ Already on main |
 | ACT-309 | Align AGENTS skill table + TECH_DEBT + vision title | R-D*, R-B3 | ✅ Done |
-| ACT-301 | Prepare CHANGELOG + release docs for v0.1.36 | R-A1 | 🟡 PR #880 |
-| ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | 🟡 After #880 merge + main green |
+| ACT-310 | Medium-risk skill behavioral evals (second wave) | R-E2 | ✅ Done |
+| ACT-311 | `validate-plans.sh` warn on excess dated root files | R-G4 | ✅ Done |
+| ACT-301 | Prepare CHANGELOG + release docs for v0.1.36 | R-A1 | ✅ #880 merged |
+| ACT-313 | Land rust-major dependabot (sha2/lz4/cargo_metadata) | deps | ✅ #877 merged |
+| ACT-314 | Refresh plans tracker truth | R-G* | ✅ Done |
+| ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | 🟡 After main green |
 | ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | 🟡 After ACT-302 |
-| ACT-313 | Land rust-major dependabot (#877) with sha2/lz4/cargo_metadata adapters | deps | 🟡 PR #877 |
-| ACT-314 | Refresh plans tracker truth (open PRs/issues, closed gaps) | R-G* | 🟡 This branch |
-| ACT-308b | MCP provenance fields on query responses (if any remaining gaps) | R-C4 | Backlog |
-| ACT-310 | Medium-risk skill behavioral evals (second wave) | R-E2 | Backlog |
-| ACT-311 | Optional: `validate-plans.sh` warn on excess dated root files | R-G4 | Backlog |
-| ACT-312 | Optional product/research spikes R-F* | R-F* | Backlog |
+| ACT-312 | Optional product/research spikes R-F* | R-F* | ⏸ DEFER |
 
 ## Completed actions (summary)
 

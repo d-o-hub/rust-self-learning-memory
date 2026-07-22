@@ -1,7 +1,7 @@
-# Codebase Analysis Latest — 2026-07-20
+# Codebase Analysis Latest — 2026-07-22
 
-**Commit**: `2e0a2b89` · **Branch**: `main`  
-**Workspace**: `0.1.36` · **Released**: `v0.1.35`  
+**Branch**: `main` (+ R-E2 PR)  
+**Workspace**: `0.1.36` · **Released tag**: `v0.1.35`  
 **Companion**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
 
 ## Architecture (as implemented)
@@ -22,35 +22,34 @@
 | Check | Result |
 |-------|--------|
 | Production `todo!` / unimplemented strings | None found |
-| Production LOC >500 | **1** (`embeddings/config/provider_config.rs`) |
-| Open GitHub issues/PRs | **0** |
-| Skills with evals | 33/34 (`ci-poll` missing) |
-| Skill routes | 16/34 |
-| Mainline CI (recent runs) | Success (CI, Security, Skill Evals, Storage Matrix) |
+| Production LOC >500 (non-test `src`) | **0** |
+| Open GitHub issues | **0** |
+| Skills with evals | 34/34 (medium-risk behavioral second wave) |
+| Skill routes | 34/34 |
+| Mainline CI (recent runs) | Success (Quick Check, Skill Evals, Storage Matrix, Release Drift) |
 | Fail-closed code execution | Preserved |
 | Plans active-set | Canonical after 2026-07 consolidation |
+| Release readiness | `verify-release-state` ready for v0.1.36 |
 
 ## Strengths
 
 1. Strong correctness campaign (locks, eviction, cache identity, embedding health).  
 2. Gate honesty (deny blocking, benchmark hard-fail, workflow cancelled guards).  
-3. Skill eval schema + high-risk behavioral fixtures.  
+3. Skill eval schema + high-risk and medium-risk behavioral fixtures.  
 4. Release path singularity (`release-manager` + `release.yml` + cadence manager).  
 5. Rich episodic/pattern/playbook/checkpoint MCP+CLI surface.
 
 ## Weaknesses
 
 1. Release lag (0.1.36 unreleased).  
-2. Skills discoverability incomplete (routes, SKILLS.md, one missing eval).  
-3. F4 pilots under-exposed to operators.  
-4. ADR numbering collisions.  
-5. Some user docs / TECH_DEBT lag code truth.
+2. Historical ADR filename collisions (aliased, not renumbered).  
+3. Transitive Dependabot advisories on upstream chains.  
+4. Product/research epics remain spike-gated (R-F*).
 
 ## Recommended focus order
 
-1. Release v0.1.36  
-2. LOC + skill contract completion  
-3. F4 productization  
-4. Optional research spikes  
+1. Ship v0.1.36 + post-bump 0.1.37  
+2. Optional research spikes only after GO artifacts  
+3. Upstream security chain hygiene when direct upgrades are available  
 
 Full prioritized backlog: recommendations plan §3–4.

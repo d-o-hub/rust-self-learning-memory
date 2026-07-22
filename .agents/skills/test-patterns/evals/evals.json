@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Test pattern extraction",
-      "description": "Verify patterns are correctly extracted from tests.",
-      "exec": "test -f .agents/skills/test-patterns/SKILL.md && rg -q . .agents/skills/test-patterns/SKILL.md"
+      "name": "skill-md-present",
+      "description": "test-patterns skill exists",
+      "exec": "test -f .agents/skills/test-patterns/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*test-patterns' .agents/skills/test-patterns/SKILL.md"
+    },
+    {
+      "name": "documents-aaa",
+      "description": "Documents Arrange-Act-Assert pattern",
+      "exec": "rg -q 'AAA|Arrange|Act|Assert' .agents/skills/test-patterns/SKILL.md"
+    },
+    {
+      "name": "documents-tokio-test",
+      "description": "Documents #[tokio::test]",
+      "exec": "rg -q 'tokio::test' .agents/skills/test-patterns/SKILL.md"
+    },
+    {
+      "name": "documents-naming",
+      "description": "Documents test naming convention",
+      "exec": "rg -q 'test_<|naming|scenario' .agents/skills/test-patterns/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/test-patterns/SKILL.md"
     }
   ]
 }

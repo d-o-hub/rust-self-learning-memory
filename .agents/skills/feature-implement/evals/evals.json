@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "End-to-end feature",
-      "description": "Verify full feature implementation.",
-      "exec": "test -f .agents/skills/feature-implement/SKILL.md && rg -q . .agents/skills/feature-implement/SKILL.md"
+      "name": "skill-md-present",
+      "description": "feature-implement skill exists",
+      "exec": "test -f .agents/skills/feature-implement/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*feature-implement' .agents/skills/feature-implement/SKILL.md"
+    },
+    {
+      "name": "documents-process-phases",
+      "description": "Documents planning/design/implementation/testing process",
+      "exec": "rg -q 'Planning|Design|Implementation|Testing' .agents/skills/feature-implement/SKILL.md"
+    },
+    {
+      "name": "documents-loc-limit",
+      "description": "Documents \u2264500 LOC file size invariant",
+      "exec": "rg -q '500' .agents/skills/feature-implement/SKILL.md"
+    },
+    {
+      "name": "documents-coverage-target",
+      "description": "Documents coverage target",
+      "exec": "rg -q '90%|coverage' .agents/skills/feature-implement/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/feature-implement/SKILL.md"
     }
   ]
 }

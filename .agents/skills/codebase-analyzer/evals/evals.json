@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Pattern discovery",
-      "description": "Verify the agent can discover code patterns.",
-      "exec": "test -f .agents/skills/codebase-analyzer/SKILL.md && rg -q . .agents/skills/codebase-analyzer/SKILL.md"
+      "name": "skill-md-present",
+      "description": "codebase-analyzer skill exists",
+      "exec": "test -f .agents/skills/codebase-analyzer/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*codebase-analyzer' .agents/skills/codebase-analyzer/SKILL.md"
+    },
+    {
+      "name": "documents-analysis-modes",
+      "description": "Documents Locator/Analyzer/Consolidator modes",
+      "exec": "rg -q 'Locator|Analyzer|Consolidator' .agents/skills/codebase-analyzer/SKILL.md"
+    },
+    {
+      "name": "documents-data-flow",
+      "description": "Documents data-flow / implementation tracing",
+      "exec": "rg -qi 'data flow|trace|implementation' .agents/skills/codebase-analyzer/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/codebase-analyzer/SKILL.md"
     }
   ]
 }

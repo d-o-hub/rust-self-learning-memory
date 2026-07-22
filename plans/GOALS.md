@@ -1,24 +1,24 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-21  
-- **Status**: Active — release v0.1.36 + open PR hygiene  
+- **Last Updated**: 2026-07-22  
+- **Status**: Active — release v0.1.36 readiness  
 - **Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35`  
 - **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals (2026-07-21)
+## Active goals (2026-07-22)
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Ship v0.1.36 + post-bump | R-A1, R-A2, R-A3 | P0 | 🟡 After #880 + main green |
-| Green open CI (release docs + rust-major deps) | — | P0 | 🟡 #880 / #877 |
+| Ship v0.1.36 + post-bump | R-A1, R-A2, R-A3 | P0 | 🟡 Main green → release-manager ship |
 | Restore production LOC ≤500 | R-B1 | P0 | ✅ Done |
 | ADR identifier uniqueness (aliases) | R-B5 | P0 | ✅ Documented |
 | Complete skill routes + ci-poll evals + SKILLS.md | R-C1–C3, R-E1 | P1 | ✅ Done |
 | Productize F4 (provenance / journal / digests UX) | R-B2, R-C4–C6 | P1 | ✅ CLI journal; MCP provenance present |
+| Medium-risk skill behavioral evals | R-E2 | P1 | ✅ Done (second wave) |
 | Docs contract alignment (README, AGENTS, HARNESS, TECH_DEBT) | R-D*, R-B3 | P1 | ✅ |
-| Plans hygiene (archive + live tracker truth) | R-G1–G3 | P1 | ✅ 2026-07-21 refresh |
-| Optional research/product spikes | R-F* | P2 | Backlog |
+| Plans hygiene (archive + live tracker truth) | R-G1–G3 | P1 | ✅ 2026-07-22 refresh |
+| Optional research/product spikes | R-F* | P2 | ⏸ DEFER |
 
 ## Completed goal series (pointer only)
 

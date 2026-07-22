@@ -6,9 +6,24 @@
       "exec": "test -f .agents/skills/architecture-validation/SKILL.md"
     },
     {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*architecture-validation' .agents/skills/architecture-validation/SKILL.md"
+    },
+    {
       "name": "references-plans",
-      "description": "mentions plans/ directory",
+      "description": "References plans/ directory for architecture",
       "exec": "rg -q 'plans/' .agents/skills/architecture-validation/SKILL.md"
+    },
+    {
+      "name": "documents-drift",
+      "description": "Documents architecture drift detection",
+      "exec": "rg -qi 'drift|compliance|gap' .agents/skills/architecture-validation/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/architecture-validation/SKILL.md"
     }
   ]
 }

@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Knowledge acquisition",
-      "description": "Verify learning from task outcomes.",
-      "exec": "test -f .agents/skills/learn/SKILL.md && rg -q . .agents/skills/learn/SKILL.md"
+      "name": "skill-md-present",
+      "description": "learn skill exists",
+      "exec": "test -f .agents/skills/learn/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*learn' .agents/skills/learn/SKILL.md"
+    },
+    {
+      "name": "documents-agents-md",
+      "description": "Documents writing scoped AGENTS.md learnings",
+      "exec": "rg -q 'AGENTS\\.md' .agents/skills/learn/SKILL.md"
+    },
+    {
+      "name": "documents-non-obvious",
+      "description": "Captures non-obvious learnings only",
+      "exec": "rg -qi 'non-obvious' .agents/skills/learn/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/learn/SKILL.md"
     }
   ]
 }

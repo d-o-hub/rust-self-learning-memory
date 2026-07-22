@@ -2,13 +2,33 @@
   "tests": [
     {
       "name": "skill-md-present",
-      "description": "mcp skill exists",
+      "description": "do-memory-mcp skill exists",
       "exec": "test -f .agents/skills/do-memory-mcp/SKILL.md"
     },
     {
-      "name": "documents-mcp-tools",
-      "description": "mentions MCP tools",
-      "exec": "rg -q 'tool' .agents/skills/do-memory-mcp/SKILL.md"
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*do-memory-mcp' .agents/skills/do-memory-mcp/SKILL.md"
+    },
+    {
+      "name": "documents-query-memory",
+      "description": "Documents query_memory tool",
+      "exec": "rg -q 'query_memory' .agents/skills/do-memory-mcp/SKILL.md"
+    },
+    {
+      "name": "documents-fail-closed-exec",
+      "description": "Documents fail-closed execute_agent_code",
+      "exec": "rg -q 'execute_agent_code|fail-closed|fail closed' .agents/skills/do-memory-mcp/SKILL.md"
+    },
+    {
+      "name": "documents-analyze-patterns",
+      "description": "Documents pattern analysis tools",
+      "exec": "rg -q 'analyze_patterns|pattern' .agents/skills/do-memory-mcp/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/do-memory-mcp/SKILL.md"
     }
   ]
 }

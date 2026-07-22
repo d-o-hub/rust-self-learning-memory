@@ -6,9 +6,29 @@
       "exec": "test -f .agents/skills/performance/SKILL.md"
     },
     {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*performance' .agents/skills/performance/SKILL.md"
+    },
+    {
       "name": "documents-criterion",
-      "description": "mentions criterion or bench",
-      "exec": "rg -qi 'criterion|bench' .agents/skills/performance/SKILL.md"
+      "description": "Documents Criterion benchmarks",
+      "exec": "rg -qi 'criterion' .agents/skills/performance/SKILL.md"
+    },
+    {
+      "name": "documents-latency-targets",
+      "description": "Documents episode/retrieval latency targets",
+      "exec": "rg -q '50ms|100ms|Episode' .agents/skills/performance/SKILL.md"
+    },
+    {
+      "name": "documents-profiling",
+      "description": "Documents profiling tools",
+      "exec": "rg -qi 'flamegraph|profiling|perf|tokio-console' .agents/skills/performance/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/performance/SKILL.md"
     }
   ]
 }

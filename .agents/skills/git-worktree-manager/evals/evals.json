@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Worktree isolation",
-      "description": "Verify worktree usage.",
-      "exec": "test -f .agents/skills/git-worktree-manager/SKILL.md && rg -q . .agents/skills/git-worktree-manager/SKILL.md"
+      "name": "skill-md-present",
+      "description": "git-worktree-manager skill exists",
+      "exec": "test -f .agents/skills/git-worktree-manager/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*git-worktree-manager' .agents/skills/git-worktree-manager/SKILL.md"
+    },
+    {
+      "name": "documents-worktree",
+      "description": "Documents git worktree commands",
+      "exec": "rg -q 'worktree' .agents/skills/git-worktree-manager/SKILL.md"
+    },
+    {
+      "name": "documents-branch-isolation",
+      "description": "Documents branch/isolation workflow",
+      "exec": "rg -qi 'branch|isolat' .agents/skills/git-worktree-manager/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/git-worktree-manager/SKILL.md"
     }
   ]
 }

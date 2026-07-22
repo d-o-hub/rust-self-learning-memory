@@ -6,29 +6,24 @@
       "exec": "test -f .agents/skills/ci-poll/SKILL.md"
     },
     {
-      "name": "prefers-pr-checks-watch",
-      "description": "Documents gh pr checks --watch as primary wait",
-      "exec": "rg -q 'pr checks.*--watch|checks --required --watch' .agents/skills/ci-poll/SKILL.md"
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*ci-poll' .agents/skills/ci-poll/SKILL.md"
     },
     {
-      "name": "documents-run-watch",
-      "description": "Documents gh run watch for single workflows",
-      "exec": "rg -q 'gh run watch' .agents/skills/ci-poll/SKILL.md"
+      "name": "documents-pr-checks-watch",
+      "description": "Documents gh pr checks --watch or gh run watch",
+      "exec": "rg -q 'pr checks --watch|run watch|statusCheckRollup' .agents/skills/ci-poll/SKILL.md"
     },
     {
-      "name": "prefers-update-branch-cli",
-      "description": "Prefers gh pr update-branch over raw API only",
-      "exec": "rg -q 'gh pr update-branch' .agents/skills/ci-poll/SKILL.md"
+      "name": "documents-backoff-or-poll",
+      "description": "Documents polling / wait until complete",
+      "exec": "rg -qi 'poll|watch|backoff|pending' .agents/skills/ci-poll/SKILL.md"
     },
     {
-      "name": "no-force-merge-advice",
-      "description": "Forbids admin merge (may document as NEVER)",
-      "exec": "rg -qi 'never.*admin|do not.*admin|Never.*admin' .agents/skills/ci-poll/SKILL.md"
-    },
-    {
-      "name": "no-hardcoded-sleep-only",
-      "description": "Does not recommend bare sleep as the only wait strategy",
-      "exec": "! rg -q 'just sleep|only sleep [0-9]' .agents/skills/ci-poll/SKILL.md"
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/ci-poll/SKILL.md"
     }
   ]
 }

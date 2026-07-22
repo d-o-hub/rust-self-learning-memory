@@ -1,16 +1,17 @@
 # Comprehensive Codebase Recommendations — 2026-07-20
 
 - **Status**: Active backlog (post–v0.1.35; workspace `0.1.36` unreleased)
-- **Audit commit**: `2e0a2b89` (`main`)
+- **Audit commit**: `1ebab995` (`main`) — refreshed 2026-07-21
 - **Released tag**: `v0.1.35`
-- **Open PRs / issues**: none
+- **Open PRs**: #880 (release docs), #877 (rust-major deps)
+- **Open issues**: #879 (release drift)
 - **Coordinator**: goap-agent + agent-coordination
 - **Supersedes**: archived `GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` and dated 2026-06/07 execution plans
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## 1. Executive summary
 
-The 2026-07-14 → 2026-07-18 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, and F4 pilot packages. PRs **#840–#875** are merged; workspace is **`0.1.36`** with **18 unreleased commits** on top of `v0.1.35`.
+The 2026-07-14 → 2026-07-20 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, F4 pilot, and recommendations packages. PRs **#840–#878** are merged; workspace is **`0.1.36`** with **26 unreleased commits** on top of `v0.1.35`. Remaining P0 is **ship v0.1.36** (via #880 + release-manager) and land **#877** dep majors.
 
 This plan is the **single active recommendations register**. It covers:
 
@@ -34,16 +35,15 @@ This plan is the **single active recommendations register**. It covers:
 
 | Area | Evidence | Verdict |
 |------|----------|---------|
-| Version | `Cargo.toml` `0.1.36`; tag `v0.1.35` | Unreleased development |
-| Main CI | Recent CI / Security / Storage Matrix / Skill Evals **success** | Green enough to plan release |
-| Open work | `gh issue list` / `gh pr list` → empty open sets | No tracker debt |
-| Production LOC >500 | `provider_config.rs` **511** | One invariant breach |
+| Version | `Cargo.toml` `0.1.36`; tag `v0.1.35`; 26 unreleased commits | Unreleased development |
+| Main CI | Recent CI green on main HEAD | Green enough to plan release |
+| Open work | PRs #880, #877; issue #879 | Release + deps CI in flight |
+| Production LOC >500 (non-test `src`) | No production offenders (`provider_config.rs` 237) | ✅ |
 | `todo!` / `unimplemented!` / “not yet implemented” in prod `src` | 0 matches | Clean surface |
-| Skills | 34 skill dirs; 33 eval files; **`ci-poll` missing evals** | Partial |
-| Skill routes | `skill-rules.json` covers **16 / 34** skills | Partial (K3.3 remainder) |
-| `.agents/SKILLS.md` | Generated 2026-07-20 from catalog | ✅ present; keep in sync |
-| ADR IDs | Duplicate **025** and **054** filenames | Registry debt |
-| F4 pilots | `provenance_api.rs`, `op_journal.rs`, model digests, skill contract compiler | Code present; operator UX incomplete |
+| Skills | Catalog + `ci-poll` evals present; routes complete | ✅ |
+| `.agents/SKILLS.md` | Generated / maintained | ✅ keep in sync |
+| ADR IDs | Duplicate **025** / **054** filenames | Aliased in `plans/adr/README.md` |
+| F4 pilots | provenance, `storage journal`, model digests | ✅ operator surfaces landed |
 | Batch MCP tools | Intentionally deferred / fail-closed | Documented in AGENTS |
 | Code execution | Fail-closed; S1.1c **NO-GO** | Correct |
 
@@ -72,7 +72,7 @@ IDs use prefix **R** (recommendation). Priorities:
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | After #878 merge + main green | 🟡 After merge |
+| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | Merge #880 + main green | 🟡 CI / ship |
 | **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 After R-A1 |
 | **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | 🟡 With R-A1 |
 

@@ -1,9 +1,9 @@
 {
   "tests": [
     {
-      "name": "Codebase analysis",
-      "description": "Verify the agent can analyze the codebase effectively.",
-      "exec": "test -f .agents/skills/analysis-swarm/SKILL.md && rg -q . .agents/skills/analysis-swarm/SKILL.md"
+      "name": "skill-md-present",
+      "description": "analysis-swarm skill exists",
+      "exec": "test -f .agents/skills/analysis-swarm/SKILL.md"
     },
     {
       "name": "has-frontmatter-name",
@@ -11,9 +11,14 @@
       "exec": "rg -q '^name:[[:space:]]*analysis-swarm' .agents/skills/analysis-swarm/SKILL.md"
     },
     {
-      "name": "has-description",
-      "description": "description frontmatter present",
-      "exec": "rg -q '^description:' .agents/skills/analysis-swarm/SKILL.md"
+      "name": "documents-personas",
+      "description": "Documents multi-persona analysis (RYAN/FLASH/SOCRATES or personas)",
+      "exec": "rg -qi 'RYAN|FLASH|SOCRATES|persona' .agents/skills/analysis-swarm/SKILL.md"
+    },
+    {
+      "name": "documents-tradeoffs",
+      "description": "Documents trade-off / multi-perspective analysis",
+      "exec": "rg -qi 'trade|perspective|decision|analysis' .agents/skills/analysis-swarm/SKILL.md"
     },
     {
       "name": "no-unguarded-gh-release-create",

@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Regression fix",
-      "description": "Verify the agent can fix regressions.",
-      "exec": "test -f .agents/skills/debug-troubleshoot/SKILL.md && rg -q . .agents/skills/debug-troubleshoot/SKILL.md"
+      "name": "skill-md-present",
+      "description": "debug-troubleshoot skill exists",
+      "exec": "test -f .agents/skills/debug-troubleshoot/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*debug-troubleshoot' .agents/skills/debug-troubleshoot/SKILL.md"
+    },
+    {
+      "name": "documents-tokio",
+      "description": "Documents Tokio async debugging context",
+      "exec": "rg -qi 'tokio' .agents/skills/debug-troubleshoot/SKILL.md"
+    },
+    {
+      "name": "documents-rust-log",
+      "description": "Documents RUST_LOG / tracing logging",
+      "exec": "rg -q 'RUST_LOG|tracing' .agents/skills/debug-troubleshoot/SKILL.md"
+    },
+    {
+      "name": "documents-storage-backends",
+      "description": "Mentions Turso and/or redb connection issues",
+      "exec": "rg -qi 'turso|redb' .agents/skills/debug-troubleshoot/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/debug-troubleshoot/SKILL.md"
     }
   ]
 }

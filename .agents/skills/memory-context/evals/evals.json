@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Context retrieval",
-      "description": "Verify memory context is correctly retrieved.",
-      "exec": "test -f .agents/skills/memory-context/SKILL.md && rg -q . .agents/skills/memory-context/SKILL.md"
+      "name": "skill-md-present",
+      "description": "memory-context skill exists",
+      "exec": "test -f .agents/skills/memory-context/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*memory-context' .agents/skills/memory-context/SKILL.md"
+    },
+    {
+      "name": "documents-cli-binary",
+      "description": "References do-memory-cli for retrieval",
+      "exec": "rg -q 'do-memory-cli' .agents/skills/memory-context/SKILL.md"
+    },
+    {
+      "name": "documents-episode-or-query",
+      "description": "Documents episode/query retrieval operations",
+      "exec": "rg -qi 'episode|query|retrieve|semantic' .agents/skills/memory-context/SKILL.md"
+    },
+    {
+      "name": "documents-local-or-turso-env",
+      "description": "Documents local or Turso database env setup",
+      "exec": "rg -q 'TURSO_|LOCAL_DATABASE|file:' .agents/skills/memory-context/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/memory-context/SKILL.md"
     }
   ]
 }

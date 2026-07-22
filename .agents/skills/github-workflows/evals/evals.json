@@ -1,9 +1,29 @@
 {
   "tests": [
     {
-      "name": "Workflow validation",
-      "description": "Verify GH actions workflows.",
-      "exec": "test -f .agents/skills/github-workflows/SKILL.md && rg -q . .agents/skills/github-workflows/SKILL.md"
+      "name": "skill-md-present",
+      "description": "github-workflows skill exists",
+      "exec": "test -f .agents/skills/github-workflows/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*github-workflows' .agents/skills/github-workflows/SKILL.md"
+    },
+    {
+      "name": "documents-gh-workflow",
+      "description": "Documents gh workflow inspection",
+      "exec": "rg -q 'gh workflow|workflow list|Actions' .agents/skills/github-workflows/SKILL.md"
+    },
+    {
+      "name": "documents-caching-or-ci",
+      "description": "Documents CI/CD or caching guidance",
+      "exec": "rg -qi 'cache|CI/CD|workflow' .agents/skills/github-workflows/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/github-workflows/SKILL.md"
     }
   ]
 }

@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Skill generation",
-      "description": "Verify new skills follow conventions.",
-      "exec": "test -f .agents/skills/skill-creator/SKILL.md && rg -q . .agents/skills/skill-creator/SKILL.md"
+      "name": "skill-md-present",
+      "description": "skill-creator skill exists",
+      "exec": "test -f .agents/skills/skill-creator/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*skill-creator' .agents/skills/skill-creator/SKILL.md"
+    },
+    {
+      "name": "documents-frontmatter",
+      "description": "Documents YAML frontmatter requirement",
+      "exec": "rg -qi 'frontmatter|YAML' .agents/skills/skill-creator/SKILL.md"
+    },
+    {
+      "name": "documents-skill-md",
+      "description": "Documents SKILL.md required file",
+      "exec": "rg -q 'SKILL\\.md' .agents/skills/skill-creator/SKILL.md"
+    },
+    {
+      "name": "documents-name-field",
+      "description": "Documents name field in frontmatter",
+      "exec": "rg -q 'name:' .agents/skills/skill-creator/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/skill-creator/SKILL.md"
     }
   ]
 }

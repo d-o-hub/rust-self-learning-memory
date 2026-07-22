@@ -1,17 +1,17 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-21  
+- **Last Updated**: 2026-07-22  
 - **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)  
-- **Branch**: `main` @ `1ebab995`  
-- **Open PRs**: [#880](https://github.com/d-o-hub/rust-self-learning-memory/pull/880) (release docs), [#877](https://github.com/d-o-hub/rust-self-learning-memory/pull/877) (rust-major deps)  
-- **Open issues**: [#879](https://github.com/d-o-hub/rust-self-learning-memory/issues/879) (release drift)  
+- **Branch**: `main`  
+- **Open PRs**: none (implementation PR for R-E2 may be open)  
+- **Open issues**: none  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: 🟡 after #880 merge + main green (R-A1)
+- **Release**: 🟡 ship when main CI green (`verify-release-state` ready)
 
 ---
 
-## Phase: Release readiness + open PR CI 🟡
+## Phase: Release readiness 🟡
 
 | Package | Status |
 |---------|--------|
@@ -20,9 +20,11 @@
 | R-C1–C3 skill routes + ci-poll + SKILLS.md | ✅ |
 | R-B2/C5 `storage journal` CLI | ✅ |
 | R-B3/B5/D docs + ADR aliases | ✅ |
-| Release docs PR #880 | 🟡 CI (commitlint fixed) |
-| Dependabot rust-major #877 | 🟡 CI (compat fixes pushed) |
-| R-A1/A2 release v0.1.36 + post-bump | 🟡 blocked on #880 + main green |
+| R-E2 medium-risk skill evals (second wave) | ✅ |
+| Release docs PR #880 | ✅ Merged |
+| Dependabot rust-major #877 | ✅ Merged |
+| Plans tracker #881 | ✅ Merged |
+| R-A1/A2 release v0.1.36 + post-bump | 🟡 next |
 
 ---
 
@@ -41,10 +43,10 @@ Details: `plans/archive/2026-07-consolidation/completed-sprints/`.
 
 ---
 
-## Goal-state flags (2026-07-21)
+## Goal-state flags (2026-07-22)
 
 ```text
-truth_reconciled                  ≈ true (plans refreshed 2026-07-21; release lag remains)
+truth_reconciled                  ≈ true (plans refreshed 2026-07-22; release lag remains)
 sandbox_capability_boundary       = true (fail-closed; S1.1c NO-GO)
 retrieval_identity_complete       = true
 storage_awaits_lock_free          = true (step paths)
@@ -54,6 +56,7 @@ retry_backpressure_effective      = true
 gates_match_policy                ≈ true (GATE_CONTRACT + ci-parity)
 skill_evals_executable            = true
 skill_routes_complete             = true
+skill_evals_medium_depth          = true (R-E2 second wave)
 docs_match_code                   ≈ true (refresh after release)
 plan_registry_unique              ≈ true (ADR 025/054 aliased)
 feature_pilots_have_baselines     = true (F4 spikes)

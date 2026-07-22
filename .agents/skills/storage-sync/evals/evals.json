@@ -6,19 +6,19 @@
       "exec": "test -f .agents/skills/storage-sync/SKILL.md"
     },
     {
-      "name": "documents-backends",
-      "description": "mentions Turso and redb",
-      "exec": "rg -q 'Turso|turso' .agents/skills/storage-sync/SKILL.md && rg -q 'redb' .agents/skills/storage-sync/SKILL.md"
-    },
-    {
       "name": "has-frontmatter-name",
       "description": "YAML name frontmatter matches skill",
       "exec": "rg -q '^name:[[:space:]]*storage-sync' .agents/skills/storage-sync/SKILL.md"
     },
     {
-      "name": "has-description",
-      "description": "description frontmatter present",
-      "exec": "rg -q '^description:' .agents/skills/storage-sync/SKILL.md"
+      "name": "documents-backends",
+      "description": "Mentions Turso and redb",
+      "exec": "rg -q 'Turso|turso' .agents/skills/storage-sync/SKILL.md && rg -q 'redb' .agents/skills/storage-sync/SKILL.md"
+    },
+    {
+      "name": "documents-sync-purpose",
+      "description": "Documents cache sync / stale recovery",
+      "exec": "rg -qi 'sync|stale|cache|maintenance' .agents/skills/storage-sync/SKILL.md"
     },
     {
       "name": "no-unguarded-gh-release-create",

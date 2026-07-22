@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Flaky test repair",
-      "description": "Verify fixes for failing tests.",
-      "exec": "test -f .agents/skills/test-fix/SKILL.md && rg -q . .agents/skills/test-fix/SKILL.md"
+      "name": "skill-md-present",
+      "description": "test-fix skill exists",
+      "exec": "test -f .agents/skills/test-fix/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*test-fix' .agents/skills/test-fix/SKILL.md"
+    },
+    {
+      "name": "documents-cargo-test",
+      "description": "Documents cargo test reproduction",
+      "exec": "rg -q 'cargo test' .agents/skills/test-fix/SKILL.md"
+    },
+    {
+      "name": "documents-async-or-race",
+      "description": "Documents async/await or race condition patterns",
+      "exec": "rg -qi 'async|race|flaky|tokio' .agents/skills/test-fix/SKILL.md"
+    },
+    {
+      "name": "documents-debug-log",
+      "description": "Documents RUST_LOG debug reproduction",
+      "exec": "rg -q 'RUST_LOG' .agents/skills/test-fix/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/test-fix/SKILL.md"
     }
   ]
 }

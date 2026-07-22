@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Skills (R-E2)**: medium-risk skill behavioral eval fixtures (second wave) —
+  presence-only checks replaced with contract tests (frontmatter, domain
+  keywords, ship-path negative guards) across 26 skills.
 - **CLI** `storage journal` — operator view of F4.2 operation journal
   (`--pending`, `--repair` via `reconcile_pending_evictions`).
 - **Skills**: `.agents/SKILLS.md` inventory; full `skill-rules.json` routing;

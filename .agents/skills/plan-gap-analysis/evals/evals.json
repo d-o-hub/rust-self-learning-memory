@@ -1,9 +1,34 @@
 {
   "tests": [
     {
-      "name": "Goal alignment",
-      "description": "Verify plans align with current goals.",
-      "exec": "test -f .agents/skills/plan-gap-analysis/SKILL.md && rg -q . .agents/skills/plan-gap-analysis/SKILL.md"
+      "name": "skill-md-present",
+      "description": "plan-gap-analysis skill exists",
+      "exec": "test -f .agents/skills/plan-gap-analysis/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*plan-gap-analysis' .agents/skills/plan-gap-analysis/SKILL.md"
+    },
+    {
+      "name": "documents-plans-inventory",
+      "description": "Documents reading plan files",
+      "exec": "rg -q 'plans/' .agents/skills/plan-gap-analysis/SKILL.md"
+    },
+    {
+      "name": "documents-gap-priorities",
+      "description": "Documents Critical/High/Medium prioritization",
+      "exec": "rg -qi 'Critical|High|Medium|priorit' .agents/skills/plan-gap-analysis/SKILL.md"
+    },
+    {
+      "name": "documents-crates",
+      "description": "Mentions workspace crates to analyze",
+      "exec": "rg -q 'do-memory-core|memory-core' .agents/skills/plan-gap-analysis/SKILL.md"
+    },
+    {
+      "name": "no-unguarded-gh-release-create",
+      "description": "Does not teach manual gh release create as ship path",
+      "exec": "! rg -q 'gh release create' .agents/skills/plan-gap-analysis/SKILL.md"
     }
   ]
 }

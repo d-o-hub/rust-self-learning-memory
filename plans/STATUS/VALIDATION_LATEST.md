@@ -1,41 +1,38 @@
-# Validation Latest — 2026-07-21 Open Tracker + Gap Refresh
+# Validation Latest — 2026-07-22 Missing Tasks (R-E2 + Tracker)
 
-**Goal**: Reconcile plans status with live GitHub open PRs/issues; close completed gap rows; keep single active recommendations plan.  
-**Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35` · **HEAD**: `1ebab995`  
-**Release**: ⛔ not performed by this validation (R-A1 remains next after #880)
+**Goal**: Close remaining implementable plan gaps (medium-risk skill eval depth, tracker truth).  
+**Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35`  
+**Release**: ⛔ not performed by this validation (R-A1 remains next after main green)
 
 ## Evidence
 
 | Check | Command / observation | Result |
 |-------|----------------------|--------|
-| Active set files present | `./scripts/validate-plans.sh --active-set` | Run on this branch |
+| Active set files present | `./scripts/validate-plans.sh --active-set` | ✅ |
 | Version in CURRENT | workspace `0.1.36` | ✅ |
-| Open PRs | `gh pr list --state open` | #880, #877 |
-| Open issues | `gh issue list --state open` | #879 release drift |
-| Commits since tag | `git rev-list --count v0.1.35..origin/main` | **26** |
-| Prod LOC >500 (non-test `src`) | `provider_config.rs` | **237** ✅ |
+| Open issues | `gh issue list --state open` | empty |
+| Prod LOC >500 (non-test `src`) | production offenders | **0** ✅ |
 | Skill eval files | `find .agents/skills -path '*/evals/evals.json'` | 34 |
+| Skill evals run | `./scripts/run-evals.sh` | All passed |
+| Schema fixtures | `./scripts/run-evals.sh --fixtures` | All passed |
+| Skill routes | `./scripts/validate-skill-routes.sh` | 34 unique skills |
 | `todo!` / `unimplemented!` in prod `src` | `rg` | 0 |
-| ADR 025/054 | filenames dual; `plans/adr/README.md` aliases | ✅ documented |
-| #880 commitlint | body-max-line-length; squashed rewrite | ✅ pushed |
-| #877 compile breakers | sha2 0.11 hex; lz4_flex `std`; cargo_metadata `PackageName` | ✅ pushed |
+| MCP provenance | `with_provenance` on `query_memory` | ✅ present |
+| Release readiness | `./scripts/verify-release-state.sh` | ready to release v0.1.36 |
 
-## Prior waves (historical)
+## This change set
 
-- Recommendations implementation: PR **#878** merged  
-- F4 remainder / missing-tasks / harness: #873/#874/#870 (2026-07-18)  
-- Archive: `plans/archive/2026-07-consolidation/`
+- **ACT-310 / R-E2**: Expanded medium-risk skill `evals.json` fixtures from presence-only checks to behavioral contract tests (frontmatter, domain keywords, negative ship-path guards).
+- **Plans truth**: CURRENT / GOALS / ACTIONS / GOAP_STATE / ROADMAP / GAP / VALIDATION refreshed for post-#877/#880/#881 state.
 
 ## Still open after this validation
 
 | Item | Next step |
 |------|-----------|
-| G-P0-1 / R-A1 | Merge #880 → main green → `./scripts/release-manager.sh ship --execute` |
+| G-P0-1 / R-A1 | Main green → `./scripts/release-manager.sh ship --execute` |
 | R-A2 | Immediate post-tag bump to 0.1.37 |
-| #877 | Wait CI green; merge when ready (has `release-preparation`) |
-| #879 | Auto-resolves / updates after release |
-| R-E2 / R-F* | Backlog |
+| R-F* | DEFER until individual spikes under `plans/STATUS/spikes/` return GO |
 
 ## Merge / ship note
 
-This change set is **plans/docs tracker refresh only**. Do not ship a release from this PR alone — use release-guard path after #880 lands on main.
+This change set is **skills + plans**. Do not ship a release from this PR alone unless main is green and release-guard path is followed after merge.

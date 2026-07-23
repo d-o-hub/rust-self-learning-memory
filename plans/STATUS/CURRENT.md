@@ -11,7 +11,7 @@
 
 | Kind | Items |
 |------|--------|
-| Open PRs | post-release bump PR (this branch) |
+| Open PRs | *(none)* |
 | Open issues | *(none expected after release drift auto-close)* |
 
 ## Snapshot
@@ -19,7 +19,7 @@
 | Area | State |
 |------|--------|
 | Release v0.1.36 | ✅ Shipped (`release-manager.sh ship --execute` → tag `v0.1.36`) |
-| Post-release workspace bump | 🟡 This PR → `0.1.37` |
+| Post-release workspace bump | ✅ Done |
 | Recommendations + F4 + skill contracts | ✅ Closed on main |
 | Medium-risk skill evals (R-E2) | ✅ #883 |
 | Docs integrity ship gate | ✅ #885 |
@@ -32,7 +32,7 @@
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Land post-bump `0.1.37` | R-A2 | 🟡 This PR |
+| P0 | Land post-bump `0.1.37` | R-A2 | ✅ Done |
 | P2 | Research/product spikes (R-F*) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
 

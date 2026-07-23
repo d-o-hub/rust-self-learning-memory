@@ -14,7 +14,7 @@
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
 | 1 | Ship v0.1.36 | `release-manager.sh ship --execute` | ✅ |
-| 2 | Post-bump | Workspace → 0.1.37 | 🟡 |
+| 2 | Post-bump | Workspace → 0.1.37 | ✅ |
 | 3 | R-E2 skill evals | Medium-risk behavioral fixtures | ✅ #883 |
 | 4 | Docs integrity | Unblock ship gate | ✅ #885 |
 

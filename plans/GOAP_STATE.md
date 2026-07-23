@@ -15,7 +15,7 @@
 | Package | Status |
 |---------|--------|
 | R-A1 ship v0.1.36 | ✅ |
-| R-A2 post-bump 0.1.37 | 🟡 This PR |
+| R-A2 post-bump 0.1.37 | ✅ Done |
 | R-E2 medium-risk skill evals | ✅ #883 |
 | Docs integrity ship unblock | ✅ #885 |
 | Recommendations #878 | ✅ |

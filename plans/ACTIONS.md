@@ -9,7 +9,7 @@
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
 | ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | ✅ Done |
-| ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | 🟡 This PR |
+| ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | ✅ Done |
 | ACT-312 | Optional product/research spikes R-F* | R-F* | ⏸ DEFER |
 
 All other ACT-300…ACT-314 items (LOC, skills, journal, provenance, plans hygiene, evals, docs integrity) are **complete**.

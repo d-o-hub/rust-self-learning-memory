@@ -10,7 +10,7 @@
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Post-release workspace bump | R-A2 | P0 | 🟡 This PR → `0.1.37` |
+| Post-release workspace bump | R-A2 | P0 | ✅ Done |
 | Optional research/product spikes | R-F* | P2 | ⏸ DEFER |
 
 ## Closed this wave

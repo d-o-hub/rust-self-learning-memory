@@ -33,23 +33,85 @@ pub struct SimilarityMetadata {
 /// Higher scores indicate greater similarity.
 ///
 /// # Optimization:
-/// 1. Uses f32 accumulators to enable LLVM SIMD autovectorization (AVX/SSE/NEON).
-/// 2. Uses a single pass for dot-product and magnitude calculations.
+/// 1. Processes vector chunks of size 8 using chunks_exact to allow LLVM to generate
+///    highly efficient SIMD instruction sets (AVX/SSE/NEON).
+/// 2. Employs 8 separate accumulators for the dot product and magnitude components
+///    to break data dependency chains, improving instruction-level parallelism.
 /// 3. Maintains dynamic range stability by using individual square roots.
 #[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
-    if a.len() != b.len() || a.is_empty() {
+    let len = a.len();
+    if len != b.len() || len == 0 {
         return 0.0;
     }
 
-    let mut dot_product = 0.0f32;
-    let mut norm_a_sq = 0.0f32;
-    let mut norm_b_sq = 0.0f32;
+    // Unroll 8-way to break dependency chains & trigger autovectorization
+    let mut dp0 = 0.0f32;
+    let mut dp1 = 0.0f32;
+    let mut dp2 = 0.0f32;
+    let mut dp3 = 0.0f32;
+    let mut dp4 = 0.0f32;
+    let mut dp5 = 0.0f32;
+    let mut dp6 = 0.0f32;
+    let mut dp7 = 0.0f32;
 
-    // Single pass with f32 enables SIMD autovectorization.
-    // f32 is sufficient for embedding similarity and provides a ~4-8x speedup over f64
-    // when properly vectorized by the compiler.
-    for (&x, &y) in a.iter().zip(b.iter()) {
+    let mut na0 = 0.0f32;
+    let mut na1 = 0.0f32;
+    let mut na2 = 0.0f32;
+    let mut na3 = 0.0f32;
+    let mut na4 = 0.0f32;
+    let mut na5 = 0.0f32;
+    let mut na6 = 0.0f32;
+    let mut na7 = 0.0f32;
+
+    let mut nb0 = 0.0f32;
+    let mut nb1 = 0.0f32;
+    let mut nb2 = 0.0f32;
+    let mut nb3 = 0.0f32;
+    let mut nb4 = 0.0f32;
+    let mut nb5 = 0.0f32;
+    let mut nb6 = 0.0f32;
+    let mut nb7 = 0.0f32;
+
+    let chunks_a = a.chunks_exact(8);
+    let chunks_b = b.chunks_exact(8);
+    let rem_a = chunks_a.remainder();
+    let rem_b = chunks_b.remainder();
+
+    for (ca, cb) in chunks_a.zip(chunks_b) {
+        dp0 += ca[0] * cb[0];
+        dp1 += ca[1] * cb[1];
+        dp2 += ca[2] * cb[2];
+        dp3 += ca[3] * cb[3];
+        dp4 += ca[4] * cb[4];
+        dp5 += ca[5] * cb[5];
+        dp6 += ca[6] * cb[6];
+        dp7 += ca[7] * cb[7];
+
+        na0 += ca[0] * ca[0];
+        na1 += ca[1] * ca[1];
+        na2 += ca[2] * ca[2];
+        na3 += ca[3] * ca[3];
+        na4 += ca[4] * ca[4];
+        na5 += ca[5] * ca[5];
+        na6 += ca[6] * ca[6];
+        na7 += ca[7] * ca[7];
+
+        nb0 += cb[0] * cb[0];
+        nb1 += cb[1] * cb[1];
+        nb2 += cb[2] * cb[2];
+        nb3 += cb[3] * cb[3];
+        nb4 += cb[4] * cb[4];
+        nb5 += cb[5] * cb[5];
+        nb6 += cb[6] * cb[6];
+        nb7 += cb[7] * cb[7];
+    }
+
+    let mut dot_product = dp0 + dp1 + dp2 + dp3 + dp4 + dp5 + dp6 + dp7;
+    let mut norm_a_sq = na0 + na1 + na2 + na3 + na4 + na5 + na6 + na7;
+    let mut norm_b_sq = nb0 + nb1 + nb2 + nb3 + nb4 + nb5 + nb6 + nb7;
+
+    for (&x, &y) in rem_a.iter().zip(rem_b.iter()) {
         dot_product += x * y;
         norm_a_sq += x * x;
         norm_b_sq += y * y;
@@ -59,8 +121,6 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
         return 0.0;
     }
 
-    // We keep individual sqrt calls to maintain dynamic range stability and avoid
-    // potential product overflow/underflow before the sqrt is taken.
     let similarity = dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt());
 
     // Normalize from [-1, 1] to [0, 1] range for semantic scores

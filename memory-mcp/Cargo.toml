@@ -27,9 +27,9 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 # Local dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.36", features = ["agentfs"] }
-do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.36" }
-do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.36" }
+do-memory-core = { path = "../memory-core", version = "0.1.37", features = ["agentfs"] }
+do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.37" }
+do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.37" }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"

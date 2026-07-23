@@ -1,37 +1,34 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-22  
+**Last Updated**: 2026-07-23  
 **Released Version**: v0.1.36  
-**Workspace Version**: 0.1.36  
-**Active Sprint**: Release readiness + residual recommendations  
+**Workspace Version**: 0.1.37  
+**Active Sprint**: Post-v0.1.36 development  
 **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 **Branch**: `main`  
-**Open PRs**: *(implementation PR for R-E2 may be open)*  
+**Open PRs**: #889 (plans), #888 (perf), #887 (changelog)  
 **Open issues**: none  
 
 ---
 
-## Sprint 2026-07-22 — Release
+## Completed sprint 2026-07-22…23 — Ship + post-bump
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
-| 1 | Ship v0.1.36 | `release-manager.sh ship --execute` when main green | 🟡 |
-| 2 | Post-bump | Workspace → 0.1.37 immediately after tag | 🟡 |
-| 3 | R-E2 skill evals | Medium-risk behavioral fixtures second wave | ✅ |
-| 4 | Plans truth | CURRENT / GAP / GOALS / ACTIONS / GOAP_STATE | ✅ |
+| 1 | Ship v0.1.36 | `release-manager.sh ship --execute` + release.yml | ✅ |
+| 2 | Post-bump | Workspace → 0.1.37 (#886) | ✅ |
+| 3 | R-E2 skill evals | Medium-risk behavioral fixtures (#883) | ✅ |
+| 4 | Docs integrity | Unblock ship gate (#885) | ✅ |
 
 ---
 
-## Completed last sprint (2026-07-20…21)
+## Current sprint — hygiene + optional perf
 
-| Priority | Item | Status |
-|----------|------|--------|
-| Plans hygiene (ADR-039 archive) | ✅ |
-| Recommendations register R-A…R-G | ✅ |
-| Implementation #878 (LOC, skills, journal CLI, docs) | ✅ |
-| Release docs #880 | ✅ |
-| rust-major deps #877 | ✅ |
-| Tracker refresh #881 | ✅ |
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | Plans truth | CURRENT / GOALS / ACTIONS / GOAP_STATE / GAP / VALIDATION | 🟡 #889 |
+| 2 | Changelog hygiene | PR #887 | 🟡 open |
+| 3 | Cosine unrolled | PR #888 — review + bench evidence | 🟡 open |
 
 ---
 
@@ -39,10 +36,10 @@
 
 | Priority | Theme | Items | Status |
 |----------|-------|-------|--------|
-| P2 | Research | WG-108 version retention; WG-110 SIMD (bench-gated); WG-125 MoE; WG-135 federated HDC | ⏸ DEFER |
-| P2 | Vision | Distributed sync, multi-tenancy/RBAC, OTel/Prometheus (see `ROADMAP_V030_VISION.md`) | Future |
+| P2 | Research | WG-108 / WG-110 / WG-125 / WG-135 | ⏸ DEFER |
+| P2 | Vision | Distributed sync, multi-tenancy, OTel | Future |
 | P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
-| P2 | Security | Transitive Dependabot advisories (upstream libsql/openssl chains) | Monitor |
+| P2 | Security | Transitive Dependabot advisories | Monitor |
 
 ---
 
@@ -59,10 +56,5 @@
 
 ## History pointer
 
-Completed sprint tables (v0.1.28–v0.1.35, July GOAP waves) live under:
-
-- `plans/archive/2026-07-consolidation/completed-sprints/`
-- `plans/archive/2026-03-consolidation/`
-- Older `plans/archive/2026-0{1,2}-completed/`
-
-Do not re-expand completed WG tables into this file (ADR-039: roadmap is forward-only).
+Completed sprint tables live under `plans/archive/2026-07-consolidation/` and older archives.  
+Do not re-expand completed WG tables (ADR-039).

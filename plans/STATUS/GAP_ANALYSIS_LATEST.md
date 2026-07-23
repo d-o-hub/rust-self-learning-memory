@@ -1,66 +1,58 @@
-# Gap Analysis — 2026-07-22
+# Gap Analysis — 2026-07-23
 
-**Generated**: 2026-07-22  
-**Audit commit**: `main` HEAD at PR time  
-**Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35`  
+**Generated**: 2026-07-23  
+**Audit commit**: `66286948` (`main`)  
+**Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 
 ## Method
 
-- Live tree inspection (Cargo version, production LOC, skills, ADR IDs)
-- `rg` for `todo!` / `unimplemented!` / “not yet implemented” in production `src` → **0**
-- GitHub: open PRs/issues checked at audit time
-- Prior gap register re-verified; completed rows closed with evidence
-- Skill eval depth audit: medium-risk skills expanded to behavioral fixtures (R-E2)
+- Live GitHub: open PRs **#889**, **#888**, **#887**; open issues **none**  
+- Release: `gh release view v0.1.36` published  
+- Workspace version advanced post-tag (R-A2 / #886)  
+- Prior gap register closed for all P0 ship items  
 
-## Resolved since 2026-07-21 register
+## Closed this wave
 
-| Historical gap | Resolution |
-|----------------|------------|
-| G-P0-4 Release docs CI | #880 merged |
-| G-P0-5 Dependabot rust-major CI | #877 merged |
-| G-P1-7 Medium-risk skill eval depth | R-E2 second wave (this PR) |
-| Stale open-PR tracker rows | #881 + this refresh |
+| Gap | Resolution |
+|-----|------------|
+| G-P0-1 v0.1.36 unreleased | ✅ Tag + GitHub Release 2026-07-22 |
+| G-P0-4 / G-P0-5 release docs / rust-major | ✅ #880 / #877 |
+| G-P1-7 medium-risk eval depth | ✅ R-E2 #883 |
+| Docs integrity ship blocker | ✅ #885 |
+| Post-tag version lag | ✅ workspace `0.1.37` #886 |
 
 ## Open gaps (current)
 
 ### P0
 
-| ID | Gap | Evidence | Track |
-|----|-----|----------|-------|
-| G-P0-1 | v0.1.36 unreleased | tag still `v0.1.35`; workspace `0.1.36` | R-A1 |
+*None.*
 
 ### P1
 
 | ID | Gap | Evidence | Track |
 |----|-----|----------|-------|
-| G-P1-8 | Historical ADR number reuse remains on disk | Filenames still dual 025/054; aliases documented | R-B5 residual (docs only) |
-| G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki); not direct product surface | security hygiene |
+| G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | residual docs |
+| G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki) | security hygiene |
+| G-P1-10 | Open hygiene/perf PRs | #887, #888, #889 | land or close with evidence |
 
 ### P2 (product / research)
 
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
-| G-P2-1 | WG-108 version-retained persistence | Backlog epic | R-F5 |
-| G-P2-2 | WG-110 SIMD similarity | Bench-gated | R-F4 |
-| G-P2-3 | WG-125 MoE routing eval | Research only | R-F6 |
-| G-P2-4 | WG-135 federated HDC | Evaluation archived | R-F7 |
-| G-P2-5 | Distributed sync / multi-tenancy / OTel | Vision | R-F1–F3 |
-| G-P2-6 | Trusted Publishing OIDC | crates.io | R-F10 |
+| G-P2-1…6 | R-F* epics | Spike-gated DEFER | R-F* |
 
 ## Explicit non-gaps
 
 | Claim | Verdict |
 |-------|---------|
-| `execute_agent_code` working backend | **Not a gap** — intentional fail-closed |
-| Batch MCP tools | Deferred by product decision; document only |
-| Production `src` LOC >500 | **Closed** — remaining >500 files are test modules |
-| `todo!` / `unimplemented!` in prod `src` | **0 matches** |
-| MCP `with_provenance` | **Closed** — present + tested |
-| Skill routes / SKILLS.md / ci-poll evals | **Closed** |
-| Medium-risk skill eval presence-only fixtures | **Closed** by R-E2 second wave |
+| Working `execute_agent_code` backend | Intentional fail-closed |
+| Batch MCP tools | Deferred product decision |
+| Production LOC >500 | Closed |
+| Medium-risk skill presence-only evals | Closed |
+| Release lag / commit_limit on tag | Closed by v0.1.36 ship |
 
-## Exit criteria for this gap register
+## Exit criteria for this register
 
-- G-P0-1 closed by shipping `v0.1.36` and post-bump to `0.1.37`  
-- P2 rows remain spikes, not silent code stubs  
+- G-P1-10 closed when open PRs merge or are declined with reason  
+- P2 rows remain spikes until GO artifacts under `plans/STATUS/spikes/`  

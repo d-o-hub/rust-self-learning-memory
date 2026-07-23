@@ -577,13 +577,13 @@ batch_size = 100
 │  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
-            ┌──────────────────┴──────┬────────────────────────┐
-            │                         │                        │
-┌───────────▼───────────┐ ┌───────────▼───────────┐ ┌───────────▼───────────┐
-│do-memory-storage-turso│ │do-memory-storage-redb │ │do-memory-storage-redb │
-│                       │ │                       │ │                       │
-│     libSQL/Remote     │ │      Fast Access      │ │  In-Memory/Temporary  │
-└───────────────────────┘ └───────────────────────┘ └───────────────────────┘
+            ┌──────────────────┴────────────────────────┐
+            │                                           │
+┌───────────▼───────────┐                   ┌───────────▼───────────┐
+│do-memory-storage-turso│                   │do-memory-storage-redb │
+│                       │                   │                       │
+│ libSQL (remote/local) │                   │ Embedded cache (redb) │
+└───────────────────────┘                   └───────────────────────┘
 ```
 
 ## MCP Server Tools
@@ -594,6 +594,7 @@ The MCP server exposes tools via lazy loading (ADR-024):
 - **analyze_patterns** — Identify successful strategies and recommendations
 - **search_patterns** — Semantic pattern search with multi-signal ranking
 - **recommend_patterns** — Task-specific pattern recommendations
+- **recommend_playbook** — Actionable step-by-step playbook retrieval
 - **configure_embeddings** / **test_embeddings** / **generate_embedding** — Embedding management
 - **search_by_embedding** / **embedding_provider_status** — Semantic search and provider monitoring
 - **Episode lifecycle tools** — create, complete, log steps, get, timeline

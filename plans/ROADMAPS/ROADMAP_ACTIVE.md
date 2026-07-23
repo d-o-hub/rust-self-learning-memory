@@ -1,22 +1,34 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-22  
+**Last Updated**: 2026-07-23  
 **Released Version**: v0.1.36  
 **Workspace Version**: 0.1.37  
 **Active Sprint**: Post-v0.1.36 development  
 **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 **Branch**: `main`  
+**Open PRs**: #889 (plans), #888 (perf), #887 (changelog)  
+**Open issues**: none  
 
 ---
 
-## Sprint 2026-07-22 — Ship + post-bump
+## Completed sprint 2026-07-22…23 — Ship + post-bump
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
-| 1 | Ship v0.1.36 | `release-manager.sh ship --execute` | ✅ |
-| 2 | Post-bump | Workspace → 0.1.37 | ✅ |
-| 3 | R-E2 skill evals | Medium-risk behavioral fixtures | ✅ #883 |
-| 4 | Docs integrity | Unblock ship gate | ✅ #885 |
+| 1 | Ship v0.1.36 | `release-manager.sh ship --execute` + release.yml | ✅ |
+| 2 | Post-bump | Workspace → 0.1.37 (#886) | ✅ |
+| 3 | R-E2 skill evals | Medium-risk behavioral fixtures (#883) | ✅ |
+| 4 | Docs integrity | Unblock ship gate (#885) | ✅ |
+
+---
+
+## Current sprint — hygiene + optional perf
+
+| Priority | Item | Description | Status |
+|----------|------|-------------|--------|
+| 1 | Plans truth | CURRENT / GOALS / ACTIONS / GOAP_STATE / GAP / VALIDATION | 🟡 #889 |
+| 2 | Changelog hygiene | PR #887 | 🟡 open |
+| 3 | Cosine unrolled | PR #888 — review + bench evidence | 🟡 open |
 
 ---
 

@@ -1,17 +1,17 @@
 # Comprehensive Codebase Recommendations — 2026-07-20
 
-- **Status**: Active backlog (post–v0.1.35; workspace `0.1.36` unreleased)
-- **Audit commit**: refreshed 2026-07-22
-- **Released tag**: `v0.1.35`
-- **Open PRs**: R-E2 skill evals / plans truth (this wave); #877/#880/#881 merged
-- **Open issues**: none (#879 resolved with release-docs path)
+- **Status**: Active backlog (post–v0.1.36; workspace `0.1.37`)
+- **Audit commit**: refreshed 2026-07-23
+- **Released tag**: `v0.1.36` (published 2026-07-22)
+- **Open PRs**: #889 (plans progress), #888 (perf cosine), #887 (changelog)
+- **Open issues**: none
 - **Coordinator**: goap-agent + agent-coordination
 - **Supersedes**: archived `GOAP_CODEBASE_IMPROVEMENTS_2026-07-14.md` and dated 2026-06/07 execution plans
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## 1. Executive summary
 
-The 2026-07-14 → 2026-07-22 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, F4 pilot, and recommendations packages. PRs **#840–#881** are merged (including release docs #880 and rust-major #877); workspace is **`0.1.36`**. Remaining P0 is **ship v0.1.36** via `./scripts/release-manager.sh ship --execute` when main is green.
+The 2026-07-14 → 2026-07-23 GOAP campaign closed the high-priority correctness, gate honesty, skill-eval, F4 pilot, recommendations, **ship of v0.1.36**, and **post-bump to 0.1.37**. PRs **#840–#886** are merged (including #883 R-E2, #885 docs integrity, #886 post-bump). Remaining work is optional hygiene/perf PRs and spike-gated **R-F*** research.
 
 This plan is the **single active recommendations register**. It covers:
 
@@ -35,9 +35,9 @@ This plan is the **single active recommendations register**. It covers:
 
 | Area | Evidence | Verdict |
 |------|----------|---------|
-| Version | `Cargo.toml` `0.1.36`; tag `v0.1.35`; 26 unreleased commits | Unreleased development |
-| Main CI | Recent CI green on main HEAD | Green enough to plan release |
-| Open work | Release ship only | #877/#880/#881 merged |
+| Version | `Cargo.toml` `0.1.37`; tag `v0.1.36` published | Post-release development |
+| Main CI | Green on ship HEAD | Release artifacts published |
+| Open work | #887–#889 hygiene/perf | Ship + post-bump closed |
 | Production LOC >500 (non-test `src`) | No production offenders (`provider_config.rs` 237) | ✅ |
 | `todo!` / `unimplemented!` / “not yet implemented” in prod `src` | 0 matches | Clean surface |
 | Skills | Catalog + `ci-poll` evals present; routes complete | ✅ |
@@ -72,9 +72,9 @@ IDs use prefix **R** (recommendation). Priorities:
 
 | ID | Recommendation | Why | Acceptance |
 |----|----------------|-----|------------|
-| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | #880 merged; main green | 🟡 ship |
-| **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule | 🟡 After R-A1 |
-| **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | 🟡 With R-A1 |
+| **R-A1** | Cut **v0.1.36** via `./scripts/release-manager.sh ship --execute` after CHANGELOG + Released Version docs | Shipped 2026-07-22 | ✅ |
+| **R-A2** | Immediately bump workspace to **0.1.37** after tag | AGENTS post-release rule; #886 | ✅ |
+| **R-A3** | Re-run `./scripts/release-manager.sh status` before ship | Status green before ship | ✅ |
 
 ### Track B — Code quality & invariants (P0/P1)
 

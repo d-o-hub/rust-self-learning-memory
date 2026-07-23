@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.36] - 2026-07-20
+### Changed
+
+- Workspace version advanced to **0.1.37** after shipping `v0.1.36` so release-drift
+  gates treat new commits as normal development (`version_not_advanced` no longer applies).
+
+## [0.1.36] - 2026-07-22
 
 ### Fixed
 

@@ -7,175 +7,189 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.36] - 2026-07-22
-
-
-
-### Added
-
-- one canonical ship path + release-guard skill ([75f9711](https://github.com/d-o-hub/rust-self-learning-memory/commit/75f97117dab2af4d6d1983361dbf1e9a81c6261e))
-
-- S1.7 audit hardening + K3.1b/W2.1b skill and gate CI (#860) ([7dc86d3](https://github.com/d-o-hub/rust-self-learning-memory/commit/7dc86d31fadcc71d8b25128f1de77082ccdc772f))
-
-- implement harness engineering sprint (Issues #861-#869) (#870) ([0cc90bf](https://github.com/d-o-hub/rust-self-learning-memory/commit/0cc90bfe47d65108d8a53285b6d725bd95b915b9))
-
-- add release-cadence-manager skill with GOAP orchestrator ([ca00f04](https://github.com/d-o-hub/rust-self-learning-memory/commit/ca00f0403cd4933ebb5e14296d581973716259aa))
-
-- land goap missing tasks through w2.5 ([7593406](https://github.com/d-o-hub/rust-self-learning-memory/commit/7593406dd0949612ccaea8617b1c9300591bb1e9))
-
-- implement f4 pilots and s1.5b model integrity ([9679480](https://github.com/d-o-hub/rust-self-learning-memory/commit/9679480ce6150f34bdc64c850d1f3db8cb4a377a))
-
-- complete ledger validators spikes and mcp provenance ([6c553c4](https://github.com/d-o-hub/rust-self-learning-memory/commit/6c553c4c6f606e8ff356fa6b48c47f3d099fbda0))
-
-- add storage journal operator command for F4.2 ([68db07d](https://github.com/d-o-hub/rust-self-learning-memory/commit/68db07d95c18bc95d16d8730929e675deed5d9af))
-
-- complete recommendations backlog (skills, gates, docs, release) ([1ebab99](https://github.com/d-o-hub/rust-self-learning-memory/commit/1ebab995c8e367b4657571fd435f43f44055cc1d))
-
-- expand medium-risk evals and refresh plans truth ([44bf599](https://github.com/d-o-hub/rust-self-learning-memory/commit/44bf59952520d58048742703303f0d2a4178d0cd))
-
-
-### CI/CD
-
-- bump the actions-all group with 4 updates ([108f6aa](https://github.com/d-o-hub/rust-self-learning-memory/commit/108f6aa7483c2fb2f284d29a34aeff666cd350ce))
-
-
 ### Changed
 
-- rustfmt pattern_accuracy tests ([1e5b0ed](https://github.com/d-o-hub/rust-self-learning-memory/commit/1e5b0edc654c6e279a37cb91768451a4fa69bff1))
+- Workspace version advanced to **0.1.37** after shipping `v0.1.36` so release-drift
+  gates treat new commits as normal development (`version_not_advanced` no longer applies).
 
-- split embedding provider configs under 500 LOC ([d34f569](https://github.com/d-o-hub/rust-self-learning-memory/commit/d34f569723f47c8062ae756084ae795a27b5c762))
-
-
-### Documentation
-
-- consolidate backlog and archive superseded GOAP plans ([54caed6](https://github.com/d-o-hub/rust-self-learning-memory/commit/54caed60c4e5080f29d13478e9d39628e6788b11))
-
-- align AGENTS skills table, TECH_DEBT, and CHANGELOG ([2b39d3c](https://github.com/d-o-hub/rust-self-learning-memory/commit/2b39d3c1d5db3f7171428eead71e306d886c108d))
-
-- point GOAP_STATE at PR #878 ([a9308e5](https://github.com/d-o-hub/rust-self-learning-memory/commit/a9308e57103532996fe03b9cd1fe88d16c9659ab))
-
-- finalize documentation for v0.1.36 ([938e391](https://github.com/d-o-hub/rust-self-learning-memory/commit/938e39165f6832d43bb6198fce9ca202e9a098ff))
-
-- refresh tracker for open PRs, gaps, and release state (#881) ([2e10b90](https://github.com/d-o-hub/rust-self-learning-memory/commit/2e10b90307c0fe08355cbc25bc8b8a76d956631a))
-
+## [0.1.36] - 2026-07-22
 
 ### Fixed
 
-- prevent cancelled Check Quick Check Status in yaml-lint workflow (#871) ([5bf2da7](https://github.com/d-o-hub/rust-self-learning-memory/commit/5bf2da749bc411b5727e404ca47d5d4d150c67f9))
+- **Docs integrity**: repair live markdown links; skip archive link rot in
+  `check-docs-integrity.sh` so release-manager ship can gate on live docs only.
 
-- restore drift gate; ban GHA expr in bash ([0cd2fb7](https://github.com/d-o-hub/rust-self-learning-memory/commit/0cd2fb7a14441f69b1b0e0b954dff9558b00c06b))
+### Added
 
-- add skill evals for release-cadence-manager ([50de93a](https://github.com/d-o-hub/rust-self-learning-memory/commit/50de93a78c914f11c55b68a27accaa54b17ff3d1))
+- **Skills (R-E2)**: medium-risk skill behavioral eval fixtures (second wave) —
+  presence-only checks replaced with contract tests (frontmatter, domain
+  keywords, ship-path negative guards) across 26 skills.
+- **CLI** `storage journal` — operator view of F4.2 operation journal
+  (`--pending`, `--repair` via `reconcile_pending_evictions`).
+- **Skills**: `.agents/SKILLS.md` inventory; full `skill-rules.json` routing;
+  `ci-poll` skill evals.
+- **Plans**: 2026-07-20 recommendations backlog + ADR-039 consolidation archive.
+- **F4.1** retrieval provenance API: `retrieve_relevant_context_with_provenance`
+  returns redacted `RetrievalProvenance` + latency (no raw query leakage).
+- **F4.2** operation journal for capacity-eviction multi-backend intents with
+  `operation_journal_snapshot` / `operation_journal_pending`.
+- **S1.5b / F4.3** local model integrity pins: `expected_sha256`,
+  `max_artifact_bytes`, `model_revision` on `LocalConfig` +
+  `verify_model_artifact`.
+- **F4.4** skill contract compiler: `scripts/compile-skill-contracts.sh` and
+  generated `.agents/skills/skill-catalog.generated.json`.
 
-- document CLI in skill + fix evals ([fdf7240](https://github.com/d-o-hub/rust-self-learning-memory/commit/fdf72405349447c051edb85db312f82ce2afbe02))
+### Changed
 
-- ignore skill-rules.json in changed skill evals ([c27cae3](https://github.com/d-o-hub/rust-self-learning-memory/commit/c27cae3eb6baa30562ed55ba62461f86d1cf4e82))
+- Split embedding provider configs (`LocalConfig`, Azure/Custom) out of
+  `provider_config.rs` to restore production ≤500 LOC invariant.
+- Workspace version advanced to **0.1.36** after shipping `v0.1.35` so
+  release-drift gates treat new commits as normal development
+  (`version_not_advanced` no longer applies).
+- **CHANGELOG uniqueness** (from PR #858): rename historical duplicate
+  `## [0.1.11]` / `## [0.1.10]` headings so `parse-changelog` / cargo-dist can
+  emit GitHub Release notes. `verify-release-state.sh` rejects duplicate
+  version headings.
+- **S1.1b**: Node code sandbox module gated behind optional `sandbox-dev`
+  feature (default off). Production MCP remains fail-closed for
+  `execute_agent_code`.
 
-- restore pattern_accuracy target and portable ignore count ([20c5b87](https://github.com/d-o-hub/rust-self-learning-memory/commit/20c5b8757e770158f63cc1fa42fff67f0104ba91))
+### Added
 
-- allow must_use_candidate in pattern_accuracy tests ([46cb463](https://github.com/d-o-hub/rust-self-learning-memory/commit/46cb46315bf477df91c69aaf3f9b7944773d1e1f))
+- **S1.2 remainder (ADR-074)**: retrieval `CacheKey` identity now includes
+  retrieval mode, provider/model/dimension identity, ranking config version,
+  and monotonic index generation; redacted `RetrievalProvenance` envelope;
+  generation bumps on cache invalidation.
+- **S1.4b**: typed capacity-eviction partial failures with
+  `pending_eviction_failures` / `reconcile_pending_evictions()`.
+- **K3.2**: positive/negative eval fixtures for high-risk skills
+  (release-guard, pr-readiness, commit, ci-fix, code-quality, test-runner,
+  goap-agent, web-doc-resolver).
+- **W2 tooling**: `scripts/check-source-reachability.sh`,
+  `scripts/test-workflow-guards.sh`, `scripts/test-release-workflow.sh`,
+  `scripts/generate-skill-inventory.sh`, `scripts/test-benchmark-workflow.sh`,
+  `scripts/check-ignored-tests.sh`, `scripts/validate-skill-routes.sh`,
+  `scripts/validate-plans.sh`.
+- **W2.3b**: quality_gates refuse metric parse on failed subprocess; package
+  name guards reject legacy `memory-core`.
+- **W2.5**: benchmarks workflow fails on missing Criterion output (no dummy
+  soft-pass); `fail-on-alert: true` for >10% regression.
+- **K3.3**: expanded `skill-rules.json` routes for high-frequency skills.
+- **S1.7 audit hardening**: recursive nested/array redaction (case-insensitive
+  field match); rotation size initialized from existing file metadata; bounded
+  non-blocking file writer thread with `dropped_writes()` overflow metrics.
+- **K3.1b skill-eval CI**: `.github/workflows/skill-evals.yml` runs schema
+  fixtures always, `run-evals.sh --changed` on PRs, full suite on weekly
+  schedule / workflow_dispatch.
+- **W2.1b gate contract CI parity**: `validate-gate-contract.sh --ci-parity`
+  verifies authoritative workflows (quick-check, ci, release-drift,
+  security/supply-chain, skill-evals); Skill Evals job runs the validator.
 
-- resolve rustdoc link for QueryMemoryRequest ([723b07a](https://github.com/d-o-hub/rust-self-learning-memory/commit/723b07a84e7d660369fa3e9dcfbc13cff1a681f1))
+### Fixed
 
-- parse criterion estimates with jq for benchmarks ([3de713b](https://github.com/d-o-hub/rust-self-learning-memory/commit/3de713b441bba06302661fa241e6f0d6a362f6cd))
-
-- adapt to sha2 0.11, lz4_flex 0.14, cargo_metadata 0.23 ([45da8f0](https://github.com/d-o-hub/rust-self-learning-memory/commit/45da8f0344136d611038c013e3d6c5efe8d9186f))
-
-- unblock release-manager ship with docs integrity gate ([233a18f](https://github.com/d-o-hub/rust-self-learning-memory/commit/233a18f8d112d18747b5d8ce8ed26c7da425b2c5))
-
-
-### Maintenance
-
-- complete routes, ci-poll evals, and SKILLS.md index ([ec61317](https://github.com/d-o-hub/rust-self-learning-memory/commit/ec61317ec531bdf79d36385569a7a76c7b232588))
-
-- bump the rust-major group with 3 updates ([4255e92](https://github.com/d-o-hub/rust-self-learning-memory/commit/4255e92707cda084cd3426d7b1502634998d26a8))
-
+- Audit logger no longer reset in-memory size to `0` after opening an existing
+  log file (oversized logs now rotate on first write when rotation is enabled).
 
 ## [0.1.35] - 2026-07-17
 
-
-
 ### Added
 
-- implement missing plan tasks (S1.2, W2.3, W2.6, #837) ([1ff55cc](https://github.com/d-o-hub/rust-self-learning-memory/commit/1ff55cc23524651072f40ebccb4fe6d381a4625c))
-
-- implement S1.3–S1.6 correctness and W2.2 audit gates ([55ba235](https://github.com/d-o-hub/rust-self-learning-memory/commit/55ba235559cc15cfa281f6b570b3ea642fe27979))
-
-- K3.1 skill-eval contract + W2.1 gate matrix (#851) ([7fe8fce](https://github.com/d-o-hub/rust-self-learning-memory/commit/7fe8fce6c91d8c8d63168bc772aeec459cc44826))
-
-
-### CI/CD
-
-- bump the actions-all group with 2 updates (#819) ([232033c](https://github.com/d-o-hub/rust-self-learning-memory/commit/232033c0f836c41c9ccdf4342246206c6dd05ef2))
-
-
-### Changed
-
-- rustfmt completion durability and import order ([98d88f5](https://github.com/d-o-hub/rust-self-learning-memory/commit/98d88f5100dc7889638e1ea64d51193323fbc19d))
-
-
-### Documentation
-
-- v0.1.34 released via release.yml workflow ([6c962f7](https://github.com/d-o-hub/rust-self-learning-memory/commit/6c962f7b1a392ab98e1d60c0ac21f1747ab7a3a0))
-
-- propose GOAP codebase improvements and ADRs 072-074 (#833) ([b447d04](https://github.com/d-o-hub/rust-self-learning-memory/commit/b447d0416dd45ffc9aebe6bcb02aa057ba68ac2a))
-
-- pr-readiness must fetch and address all PR comments ([7e82968](https://github.com/d-o-hub/rust-self-learning-memory/commit/7e82968a91726f2e0de2da9886f1f67f2159e855))
-
-- fold changelog and status for v0.1.35 tag ([12718d9](https://github.com/d-o-hub/rust-self-learning-memory/commit/12718d959ac15c3802ac0f7cbcaf07c58f543191))
-
-- set Released Version to v0.1.35 (#853) ([6a8e834](https://github.com/d-o-hub/rust-self-learning-memory/commit/6a8e834e2d2e0cb010fb98950a23a26a8c2483c7))
-
+- **K3.1 skill eval contract**: `scripts/run-evals.sh` enforces a strict
+  `tests[]` schema (rejects legacy `evals` key, zero tests, missing `exec`, and
+  noop `true`). Schema fixtures under `scripts/fixtures/skill-evals/`. Skill
+  evals migrated to non-noop contract checks; `pr-readiness` validates
+  merge-state and comment-fetch requirements.
+- **W2.1 gate contract**: `plans/GATE_CONTRACT.md` documents measured / blocking
+  floor / aspirational target / authority for each advertised gate (explicit
+  coverage 70% floor vs 90% target). Validator:
+  `./scripts/validate-gate-contract.sh` (optional `--ci-parity`).
+- **#845 / ADR-076 empty pattern diagnostics**: when `pattern list` / `pattern
+  search` return zero results in **Human** format, print a short diagnostic
+  footer (patterns come from episode complete with ≥1 step for tool sequences;
+  not from `storage sync`; confirm `--db-path` / `config show`). JSON/YAML empty
+  arrays stay machine-stable.
+- **#846 config precedence docs**: document the 5-level precedence table
+  (CLI flags → env → `--config` → auto-discovered CWD config → defaults) in
+  root `README.md` and `memory-cli/CONFIGURATION_GUIDE.md`.
+- **ADR-076 `storage sync` messaging**: when only local redb / missing dual
+  backends, error text states sync is Turso↔redb reconciliation, **not** pattern
+  extraction.
+- **#847 / ADR-075 operator `episode fail`**: force-fail abandoned in-progress
+  episodes with `TaskOutcome::Failure` using the same verify-after-write path as
+  `episode complete`.
 
 ### Fixed
 
-- resolve semver breaking change, bump to v0.2.0 ([9955850](https://github.com/d-o-hub/rust-self-learning-memory/commit/99558504719221ea3d6aed59b25502850b7c1abf))
+- **#847 / ADR-075 durable episode complete**: configured backend `store_episode`
+  failures on complete no longer soft-warn and return success. Any cache/Turso
+  store failure returns `Error::Storage` and skips in-memory finalize / pattern
+  extract. CLI re-fetches and asserts `is_complete()` before printing success
+  (no false-green complete banner).
+- **S1.3 lock-free step persistence**: `log_step` (immediate path) and
+  `flush_steps_internal` no longer hold `episodes_fallback` write locks across
+  backend `store_episode` awaits; concurrent unique steps persist exactly once.
+- **S1.4 durable capacity eviction**: capacity-constrained completion now deletes
+  evicted episodes (and embeddings) from cache and durable backends instead of
+  only removing them from the in-memory map.
+- **S1.5 embedding health**: introduce `EmbeddingHealth` (`Real` /
+  `DegradedMock` / `Unavailable`). Mock fallback is opt-in via
+  `LocalConfig::allow_mock_fallback`; mock providers are never
+  `is_available()` / production-ready.
+- **S1.6 retry queue semantics**: first attempts do not consume concurrency
+  permits; permits are released before backoff; `retry_queue_timeout` returns
+  `RetryError::QueueTimeout` / `Error::RetryQueueTimeout`; zero
+  `max_concurrent_retries` is rejected.
+- **W2.2 advisory gates**: CI/security no longer soft-pass `cargo audit`;
+  `cargo deny check advisories` is the blocking gate.
+- **#837 fuzzy_match rustdoc**: public `///` docs and doctests restored on
+  `pub fn fuzzy_match` (they had been attached to the private lowercased helper
+  after the PR #836 performance split).
+- **S1.2 / ADR-074 (partial) retrieval cache identity**: `CacheKey` now includes
+  language, framework, complexity, and normalized tags from `TaskContext`, so
+  context-distinct queries no longer share incorrect cache entries. Wired in
+  `retrieve_relevant_context` via `with_task_context`.
+- **W2.3 build-rust package names**: `./scripts/build-rust.sh` accepts hyphenated
+  `do-memory-*` crate names (was limited to `[a-z0-9_]+`).
+- **W2.6 source LOC gate**: split production files over 500 LOC (`retry`, CLI
+  embedding commands, `storage` backend trait, local embeddings tests, checkpoint
+  op tests, retrieval context cache helper).
+- **S1.1a / D3.2 docs contract**: document `execute_agent_code` as unavailable /
+  fail-closed; remove false `wasmtime-backend` feature claims; fix README
+  `TaskContext` example fields.
+- **#831 Pattern retrieval across processes**: `Pattern` enum was internally
+  tagged (`#[serde(tag = "type")]`), which Postcard cannot deserialize. Patterns
+  were written to storage but never read back, so `pattern list` / `pattern search`
+  returned 0 after completing episodes in a fresh CLI process. Changed `Pattern`
+  to an externally-tagged (Postcard-compatible) representation and added a
+  `postcard` round-trip regression test. Also added `StorageBackend::get_all_patterns`
+  (redb + Turso) and lazy-loaded `queries::get_all_patterns` so list/search hydrate
+  from durable storage. Bumped redb `SCHEMA_VERSION` to 4 so stale caches are
+  cleared on upgrade; undecodable pattern rows are skipped rather than failing
+  the whole list. **Note:** JSON shape of `Pattern` also changes (externally
+  tagged); Turso stores a separate JSON DTO and is unaffected.
 
-- update yanked spin crate 0.9.8 → 0.9.9 ([7d9eeec](https://github.com/d-o-hub/rust-self-learning-memory/commit/7d9eeec30c6268979ac64339438dc2cb70a44a69))
+- **#830 `--db-path` / `MEMORY_DB_PATH` ignored for redb**: always override
+  `redb_path` (never only-when-None — `Config::default()` pre-fills XDG).
+  Default **redb-only** builds open redb at the exact user path. Builds with
+  the `turso` feature use sibling files (`memory.db` → redb `memory.redb`) so
+  SQLite and redb never share a file. Unset `storage_mode` defaults to
+  `local` when no Turso URL is configured. Unit tests in
+  `config/cli_overrides.rs`.
 
-- resolve 0.1.35 patch issues #828-#832 ([58bed23](https://github.com/d-o-hub/rust-self-learning-memory/commit/58bed23f7e276dd411de2242baf687cef9897ac0))
+- **#829 Undocumented config file format**: added `config init [--path]` and
+  `config show-template` commands that emit a valid, populated `Config` TOML, and
+  fixed documentation of real env vars (`TURSO_URL`/`TURSO_TOKEN`/`REDB_PATH`),
+  the `[database].storage_mode` location, and removed non-existent sections
+  (`[sandbox]`, `[backup]`, `[logging]`) and the unimplemented `import =` syntax.
 
-- harden #830 db-path override via GOAP swarm ([7d4d688](https://github.com/d-o-hub/rust-self-learning-memory/commit/7d4d6884d4e56eb6f4948c3af44c2b1c0e5565af))
+- **#828 Release drift**: relabeled the `0.2.0` bump back to `0.1.35` (patch on the
+  `0.1.x` line) across all workspace manifests and `Cargo.lock`.
 
-- ADR-074 tag case-fold + empty-domain cache tests ([2da8129](https://github.com/d-o-hub/rust-self-learning-memory/commit/2da812957bf4cd4dc0e2c4587fcce43a4f69caea))
-
-- remove unsafe env mutation from embedding provider tests ([7e5a7ab](https://github.com/d-o-hub/rust-self-learning-memory/commit/7e5a7ab008d0aa7ddaf8632675a25508003bd395))
-
-- rustdoc link + keep mock loadable for offline tests ([b8cd95c](https://github.com/d-o-hub/rust-self-learning-memory/commit/b8cd95ce503112293be45d37c982920f40cf5832))
-
-- address release drift issue #843 with idempotent automation ([acf45bb](https://github.com/d-o-hub/rust-self-learning-memory/commit/acf45bbcce2704be8aaaf60f68bda546f35d9933))
-
-- set GH_REPO env in maintain-issue job so gh CLI resolves repo without checkout ([c227a40](https://github.com/d-o-hub/rust-self-learning-memory/commit/c227a40498fdeeb44f87d2da8b319ad5b55f6570))
-
-- durable episode complete and open-issue UX ([dd0cb00](https://github.com/d-o-hub/rust-self-learning-memory/commit/dd0cb00b0cd8511093dd3bc6e57b8c55c8045a60))
-
-
-### Maintenance
-
-- update CHANGELOG.md for v0.1.34 [skip ci] (#817) ([f9fbafe](https://github.com/d-o-hub/rust-self-learning-memory/commit/f9fbafeaa9c8675c0b63110f8027c076c378f955))
-
-- bump the rust-patch-minor group with 3 updates (#820) ([9bf9022](https://github.com/d-o-hub/rust-self-learning-memory/commit/9bf9022fd79f52302171c2f7a045a024215ed917))
-
-- bump sysinfo from 0.38.4 to 0.39.6 in the rust-major group (#821) ([dbf9607](https://github.com/d-o-hub/rust-self-learning-memory/commit/dbf96074e777f630e49d9b3fdf733e7327521a0e))
-
-
-### Performance
-
-- optimize fuzzy matching by avoiding redundant lowercasing ([ea65371](https://github.com/d-o-hub/rust-self-learning-memory/commit/ea653712d6db2747f3d8febf05dcc4bd71ffb706))
-
-
-### Testing
-
-- raise patch coverage for PR #834 feedback ([c86bb55](https://github.com/d-o-hub/rust-self-learning-memory/commit/c86bb55ff4c174d6192fde601977c5a5916a7c72))
-
-- raise Codecov patch coverage for PR #840 files ([ba9d5cf](https://github.com/d-o-hub/rust-self-learning-memory/commit/ba9d5cf7104aaa15844267ac8015f805afcfb210))
-
-- raise patch coverage for S1.5/S1.6 helpers (Codecov) ([c8ac251](https://github.com/d-o-hub/rust-self-learning-memory/commit/c8ac251e7d5714cf38d40db42e7662e8228f2c58))
-
-- align hybrid recovery with ADR-075 hard-fail ([03fbb38](https://github.com/d-o-hub/rust-self-learning-memory/commit/03fbb381e6e5d7e7495b1ce458ab9a8992170e9a))
-
-- raise Codecov patch coverage for PR #850 ([16bf2d1](https://github.com/d-o-hub/rust-self-learning-memory/commit/16bf2d1c77d03e11f724301b179003e923a6c7ab))
-
+- **#832 Config discoverability**: `config init` / `show-template` surface the
+  canonical config shape. `storage_mode` belongs under `[database]`; an alias
+  under `[storage]` is accepted and normalized. Partial TOML files work via
+  `#[serde(default)]` on all config sections. Added
+  `memory-cli/config/do-memory-cli.example.toml`.
 
 ## [0.1.34] - 2026-07-11
 
@@ -2500,7 +2514,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+## [0.1.11-2026-01-04] - 2026-01-04
 
 
 
@@ -2611,7 +2625,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+## [0.1.10-2026-01-02] - 2026-01-02
 
 
 

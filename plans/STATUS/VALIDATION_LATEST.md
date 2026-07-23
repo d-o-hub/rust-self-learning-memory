@@ -1,38 +1,38 @@
-# Validation Latest — 2026-07-22 Missing Tasks (R-E2 + Tracker)
+# Validation Latest — 2026-07-23 Plans Progress Refresh
 
-**Goal**: Close remaining implementable plan gaps (medium-risk skill eval depth, tracker truth).  
-**Workspace**: `0.1.36` unreleased · **Tag**: `v0.1.35`  
-**Release**: ⛔ not performed by this validation (R-A1 remains next after main green)
+**Goal**: Reconcile plans trackers with live post-v0.1.36 state (tag, workspace, open PRs).  
+**Workspace**: `0.1.37` · **Tag**: `v0.1.36` · **HEAD**: `66286948`  
 
 ## Evidence
 
-| Check | Command / observation | Result |
-|-------|----------------------|--------|
-| Active set files present | `./scripts/validate-plans.sh --active-set` | ✅ |
-| Version in CURRENT | workspace `0.1.36` | ✅ |
+| Check | Observation | Result |
+|-------|-------------|--------|
+| Released tag | `v0.1.36` published 2026-07-22 | ✅ |
+| Workspace version | `Cargo.toml` `0.1.37` | ✅ |
 | Open issues | `gh issue list --state open` | empty |
-| Prod LOC >500 (non-test `src`) | production offenders | **0** ✅ |
-| Skill eval files | `find .agents/skills -path '*/evals/evals.json'` | 34 |
-| Skill evals run | `./scripts/run-evals.sh` | All passed |
-| Schema fixtures | `./scripts/run-evals.sh --fixtures` | All passed |
-| Skill routes | `./scripts/validate-skill-routes.sh` | 34 unique skills |
-| `todo!` / `unimplemented!` in prod `src` | `rg` | 0 |
-| MCP provenance | `with_provenance` on `query_memory` | ✅ present |
-| Release readiness | `./scripts/verify-release-state.sh` | ready to release v0.1.36 |
+| Open PRs | #889 plans · #888 perf · #887 changelog | live |
+| R-A1 / R-A2 | ship + post-bump | ✅ closed |
+| R-E2 / docs integrity | #883 / #885 | ✅ merged |
+| Prod `todo!` / unimplemented | prior audits | 0 |
 
-## This change set
+## Closed validation goals
 
-- **ACT-310 / R-E2**: Expanded medium-risk skill `evals.json` fixtures from presence-only checks to behavioral contract tests (frontmatter, domain keywords, negative ship-path guards).
-- **Plans truth**: CURRENT / GOALS / ACTIONS / GOAP_STATE / ROADMAP / GAP / VALIDATION refreshed for post-#877/#880/#881 state.
+| Goal | Result |
+|------|--------|
+| Ship v0.1.36 | ✅ release-manager + release.yml |
+| Post-bump 0.1.37 | ✅ #886 |
+| Skill eval depth (R-E2) | ✅ #883 |
+| Docs integrity ship gate | ✅ #885 |
 
 ## Still open after this validation
 
 | Item | Next step |
 |------|-----------|
-| G-P0-1 / R-A1 | Main green → `./scripts/release-manager.sh ship --execute` |
-| R-A2 | Immediate post-tag bump to 0.1.37 |
-| R-F* | DEFER until individual spikes under `plans/STATUS/spikes/` return GO |
+| #889 | Merge this plans refresh when CI CLEAN |
+| #887 | Changelog hygiene review |
+| #888 | Perf PR review + Criterion evidence if landing |
+| R-F* | DEFER until individual spikes GO |
 
-## Merge / ship note
+## Note
 
-This change set is **skills + plans**. Do not ship a release from this PR alone unless main is green and release-guard path is followed after merge.
+This change set is **plans progress only**. Do not ship a release from this PR.

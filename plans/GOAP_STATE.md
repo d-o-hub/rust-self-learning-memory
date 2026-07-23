@@ -1,30 +1,27 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-22  
-- **Version**: workspace `0.1.36` unreleased (latest tag `v0.1.35`)  
-- **Branch**: `main`  
-- **Open PRs**: none (implementation PR for R-E2 may be open)  
+- **Last Updated**: 2026-07-23  
+- **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
+- **Branch**: `main` @ `66286948`  
+- **Open PRs**: #889 (plans progress), #888 (perf cosine), #887 (changelog)  
 - **Open issues**: none  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: 🟡 ship when main CI green (`verify-release-state` ready)
+- **Release**: ✅ `v0.1.36` published 2026-07-22  
 
 ---
 
-## Phase: Release readiness 🟡
+## Phase: Post-v0.1.36 development ✅
 
 | Package | Status |
 |---------|--------|
-| Recommendations implementation #878 | ✅ Merged |
-| R-B1 LOC split provider configs | ✅ |
-| R-C1–C3 skill routes + ci-poll + SKILLS.md | ✅ |
-| R-B2/C5 `storage journal` CLI | ✅ |
-| R-B3/B5/D docs + ADR aliases | ✅ |
-| R-E2 medium-risk skill evals (second wave) | ✅ |
-| Release docs PR #880 | ✅ Merged |
-| Dependabot rust-major #877 | ✅ Merged |
-| Plans tracker #881 | ✅ Merged |
-| R-A1/A2 release v0.1.36 + post-bump | 🟡 next |
+| R-A1 ship v0.1.36 | ✅ Released |
+| R-A2 post-bump 0.1.37 | ✅ #886 |
+| R-E2 medium-risk skill evals | ✅ #883 |
+| Docs integrity ship unblock | ✅ #885 |
+| Recommendations #878 | ✅ |
+| Plans progress refresh | 🟡 #889 |
+| R-F* product epics | ⏸ DEFER |
 
 ---
 
@@ -32,33 +29,32 @@
 
 | Campaign | Result |
 |----------|--------|
-| 2026-07-20 recommendations #878 | ✅ Merged |
-| 2026-07-18 F4 remainder #874 | ✅ Merged |
-| 2026-07-18 Missing tasks #873 | ✅ Merged |
-| 2026-07-18 Harness #870 | ✅ Merged |
-| 2026-07-18 release-cadence-manager #872 | ✅ Merged |
-| v0.1.35 release | ✅ Shipped |
+| v0.1.36 ship + post-bump | ✅ 2026-07-22…23 |
+| Recommendations #878 | ✅ |
+| F4 remainder / missing tasks / harness | ✅ #873/#874/#870 family |
+| v0.1.35 release | ✅ |
 
 Details: `plans/archive/2026-07-consolidation/completed-sprints/`.
 
 ---
 
-## Goal-state flags (2026-07-22)
+## Goal-state flags (2026-07-23)
 
 ```text
-truth_reconciled                  ≈ true (plans refreshed 2026-07-22; release lag remains)
-sandbox_capability_boundary       = true (fail-closed; S1.1c NO-GO)
+truth_reconciled                  ≈ true (this refresh; open PR list live)
+sandbox_capability_boundary       = true
 retrieval_identity_complete       = true
-storage_awaits_lock_free          = true (step paths)
-durable_eviction                  = true (+ reconciliation)
+storage_awaits_lock_free          = true
+durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                ≈ true (GATE_CONTRACT + ci-parity)
+gates_match_policy                = true
 skill_evals_executable            = true
 skill_routes_complete             = true
-skill_evals_medium_depth          = true (R-E2 second wave)
-docs_match_code                   ≈ true (refresh after release)
+skill_evals_medium_depth          = true
+docs_match_code                   = true
 plan_registry_unique              ≈ true (ADR 025/054 aliased)
-feature_pilots_have_baselines     = true (F4 spikes)
-release_current                   = false (v0.1.36 pending)
+feature_pilots_have_baselines     = true
+release_current                   = true (v0.1.36)
+version_advanced_after_tag        = true (workspace 0.1.37)
 ```

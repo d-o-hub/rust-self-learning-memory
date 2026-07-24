@@ -1,0 +1,35 @@
+{
+  "id": "R-F9",
+  "title": "ANN retrieval hardening",
+  "commit": "8929a5fdb29462444070fd50d228633b22acfd46",
+  "timestamp": "2026-07-24T00:00:00Z",
+  "owner": "maintainer",
+  "commands": [
+    "read memory-core/src/embeddings/hnsw.rs",
+    "read memory-core/src/embeddings/index.rs",
+    "grep hnsw_rs /home/do/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hnsw_rs-0.3.4/src/api.rs",
+    "grep HnswIo /home/do/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hnsw_rs-0.3.4/src/hnswio.rs"
+  ],
+  "metrics": {
+    "hnsw_rs_version": "0.3.4",
+    "save_is_noop": true,
+    "load_method_missing": true,
+    "id_map_not_persisted": true,
+    "capacity_limit_missing": true,
+    "api_available": {
+      "file_dump": "Hnsw::file_dump(path, basename) -> anyhow::Result<String>",
+      "load_hnsw": "HnswIo::new(dir, basename).load_hnsw::<f32, DistCosine>()",
+      "side_channel_format": "serialize id_map + rev_map + next_id as JSON alongside hnsw files"
+    }
+  },
+  "preapproved_thresholds": {
+    "no_new_public_api_on_storage_backend": true,
+    "feature_flagged": true,
+    "hnsw_feature_gated": true,
+    "existing_search_test_must_pass": true
+  },
+  "result": "GO — implement save/load persistence and capacity eviction for HnswVectorIndex",
+  "decision": "GO",
+  "reviewers": ["maintainer"],
+  "rationale": "hnsw_rs provides file_dump/HnswIo::load_hnsw. id_map persisted as sidecar JSON. Capacity eviction via max_elements threshold. All changes under #[cfg(feature = 'hnsw')] guard."
+}

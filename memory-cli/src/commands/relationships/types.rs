@@ -300,39 +300,78 @@ impl Output for InfoResult {
     fn write_human<W: Write>(&self, mut writer: W) -> anyhow::Result<()> {
         writeln!(
             writer,
-            "{} Relationship {}",
-            "→".blue().bold(),
-            self.relationship_id.dimmed()
+            "┌─ Relationship ─────────────────────────────────────────────┐"
         )?;
-        writeln!(writer, "  Type:    {}", self.relationship_type)?;
+        writeln!(writer, "│  ID    {}", self.relationship_id.dimmed())?;
+        writeln!(writer, "│  Type  {}", self.relationship_type.cyan().bold())?;
         writeln!(
             writer,
-            "  Source:  {} ({})",
-            self.source_episode_id, self.source_task
+            "├─ Episodes ─────────────────────────────────────────────────┤"
         )?;
+
+        // Source episode
+        let src_desc = if self.source_task.is_empty() {
+            "(no description)".dimmed().to_string()
+        } else if self.source_task.len() > 48 {
+            format!("{}…", &self.source_task[..47])
+        } else {
+            self.source_task.clone()
+        };
+        writeln!(writer, "│  FROM  {}", self.source_episode_id.dimmed())?;
+        writeln!(writer, "│        {}", src_desc)?;
+
         writeln!(
             writer,
-            "  Target:  {} ({})",
-            self.target_episode_id, self.target_task
+            "│    {}  {}  {}",
+            "│".dimmed(),
+            self.relationship_type.cyan(),
+            "↓".blue()
         )?;
-        if let Some(p) = self.priority {
-            writeln!(writer, "  Priority: {}", p)?;
-        }
-        if let Some(r) = &self.reason {
-            writeln!(writer, "  Reason:   {}", r)?;
-        }
-        if let Some(c) = &self.created_by {
-            writeln!(writer, "  Created by: {}", c)?;
-        }
-        if let Some(t) = &self.created_at {
-            writeln!(writer, "  Created at: {}", t)?;
-        }
-        if !self.custom_fields.is_empty() {
-            writeln!(writer, "  Custom fields:")?;
+
+        // Target episode
+        let tgt_desc = if self.target_task.is_empty() {
+            "(no description)".dimmed().to_string()
+        } else if self.target_task.len() > 48 {
+            format!("{}…", &self.target_task[..47])
+        } else {
+            self.target_task.clone()
+        };
+        writeln!(writer, "│  TO    {}", self.target_episode_id.dimmed())?;
+        writeln!(writer, "│        {}", tgt_desc)?;
+
+        // Metadata section — only when fields are present
+        let has_meta = self.priority.is_some()
+            || self.reason.is_some()
+            || self.created_by.is_some()
+            || self.created_at.is_some()
+            || !self.custom_fields.is_empty();
+
+        if has_meta {
+            writeln!(
+                writer,
+                "├─ Metadata ─────────────────────────────────────────────────┤"
+            )?;
+            if let Some(p) = self.priority {
+                writeln!(writer, "│  Priority   {}", p)?;
+            }
+            if let Some(r) = &self.reason {
+                writeln!(writer, "│  Reason     {}", r)?;
+            }
+            if let Some(c) = &self.created_by {
+                writeln!(writer, "│  Created by {}", c)?;
+            }
+            if let Some(t) = &self.created_at {
+                writeln!(writer, "│  Created at {}", t)?;
+            }
             for (k, v) in &self.custom_fields {
-                writeln!(writer, "    {}: {}", k, v)?;
+                writeln!(writer, "│  {:<11} {}", k, v)?;
             }
         }
+
+        writeln!(
+            writer,
+            "└────────────────────────────────────────────────────────────┘"
+        )?;
         Ok(())
     }
 }

@@ -14,6 +14,7 @@
 | ACT-316 | Optional: land #887 changelog hygiene | docs | 🟡 open |
 | ACT-317 | Optional: review/merge #888 cosine perf | perf | 🟡 open |
 | ACT-312 | Optional product/research spikes R-F* | R-F* | ⏸ DEFER |
+| ACT-318 | Mark ADR-074 as Accepted / Implemented | docs | ✅ Done |
 
 All ACT-300…ACT-314 items (LOC, skills, journal, provenance, plans hygiene, evals, docs integrity, release) are **complete**.
 

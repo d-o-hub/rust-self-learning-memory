@@ -1,0 +1,28 @@
+{
+  "id": "R-F8",
+  "title": "CLI relationship show polish",
+  "commit": "8929a5fdb29462444070fd50d228633b22acfd46",
+  "timestamp": "2026-07-24T00:00:00Z",
+  "owner": "maintainer",
+  "commands": [
+    "read memory-cli/src/commands/relationships/core/mod.rs",
+    "read memory-cli/src/commands/relationships/mod.rs",
+    "read memory-cli/src/commands/relationships/types.rs"
+  ],
+  "metrics": {
+    "existing_command_present": true,
+    "info_alias_show_present": true,
+    "human_output_fields": ["id", "type", "source", "target", "priority", "reason", "created_by", "created_at", "custom_fields"],
+    "gap": "No dedicated 'show' subcommand with rich context display; 'info' already has 'show' alias but human output lacks box-drawing and episode summary inline",
+    "scope": "CLI display polish only — no new MCP endpoints or storage changes required"
+  },
+  "preapproved_thresholds": {
+    "no_new_storage_methods_required": true,
+    "no_breaking_cli_changes": true,
+    "existing_test_suite_must_pass": true
+  },
+  "result": "GO — add dedicated Show subcommand with improved human formatting; no architectural risk",
+  "decision": "GO",
+  "reviewers": ["maintainer"],
+  "rationale": "Low-risk CLI display improvement. Existing get_relationship_info already fetches all required data. Only display layer changes needed."
+}

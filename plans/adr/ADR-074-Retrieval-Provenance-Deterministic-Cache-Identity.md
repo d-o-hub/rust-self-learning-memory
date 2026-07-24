@@ -1,6 +1,6 @@
 # ADR-074: Retrieval Provenance and Deterministic Cache Identity
 
-- **Status**: Accepted (partial implementation 2026-07-16 — S1.2 TaskContext identity in CacheKey; mode/provider/index generation and provenance envelope deferred)
+- **Status**: Accepted / Implemented
 - **Date**: 2026-07-14
 - **Partial implement**: `feat/goap-missing-tasks-swarm-2026-07-16`
 - **Deciders**: Project maintainers

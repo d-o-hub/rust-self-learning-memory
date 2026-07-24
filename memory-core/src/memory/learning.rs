@@ -208,7 +208,7 @@ impl SelfLearningMemory {
     ///
     /// # Returns
     ///
-    /// The number of patterns extracted and stored.
+    /// The total number of patterns now linked to the episode after extraction.
     ///
     /// # Errors
     ///
@@ -231,26 +231,17 @@ impl SelfLearningMemory {
             )));
         }
 
-        // Count patterns before extraction so we can report the delta.
-        let count_before = {
-            let patterns = self.patterns_fallback.read().await;
-            // Count patterns linked to this episode.
-            episode_arc.patterns.len().min(patterns.len())
-        };
-        let linked_before = episode_arc.patterns.len();
-
         self.extract_patterns_sync(episode_id).await?;
 
-        // Report how many pattern IDs are now linked to the episode.
+        // Return total patterns linked after extraction (extract_patterns_sync replaces all).
         let linked_after = {
             let episodes = self.episodes_fallback.read().await;
             episodes
                 .get(&episode_id)
                 .map(|ep| ep.patterns.len())
-                .unwrap_or(linked_before)
+                .unwrap_or(0)
         };
 
-        let _ = count_before; // silence unused warning
         Ok(linked_after)
     }
 

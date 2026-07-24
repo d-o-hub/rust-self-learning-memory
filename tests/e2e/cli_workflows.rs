@@ -680,6 +680,15 @@ async fn test_pattern_discovery() {
     assert!(success, "Pattern recommend should succeed");
     println!("  ✓ Got pattern recommendations");
 
+    // pattern extract --all: all episodes already have patterns, so this should
+    // succeed with 0 candidates (no error). Exercises the dispatch arm.
+    let (_extract_result, success) =
+        run_cli(&cli_path, &config_path, &["pattern", "extract", "--all"])
+            .expect("Failed to run pattern extract");
+
+    assert!(success, "pattern extract --all should succeed");
+    println!("  ✓ pattern extract --all succeeded");
+
     println!("✅ Pattern discovery workflow test passed!");
 }
 

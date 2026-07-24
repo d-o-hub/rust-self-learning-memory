@@ -101,6 +101,17 @@ pub enum PatternCommands {
         min_uses: usize,
     },
 
+    /// Re-run pattern extraction for completed episodes (ADR-076 §5)
+    Extract {
+        /// Re-extract patterns for a specific completed episode
+        #[arg(long, value_name = "UUID")]
+        episode_id: Option<String>,
+
+        /// Re-extract patterns for all completed episodes that have none
+        #[arg(long)]
+        all: bool,
+    },
+
     /// Apply pattern decay
     Decay {
         /// Show what would be done without executing

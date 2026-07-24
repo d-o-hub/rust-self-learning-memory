@@ -66,6 +66,9 @@ pub async fn handle_pattern_command(
         PatternCommands::Effectiveness { top, min_uses } => {
             pattern::pattern_effectiveness(top, min_uses, memory, config, format).await
         }
+        PatternCommands::Extract { episode_id, all } => {
+            pattern::extract_patterns(episode_id, all, memory, config, format).await
+        }
         PatternCommands::Decay {
             dry_run: decay_dry_run,
             force,

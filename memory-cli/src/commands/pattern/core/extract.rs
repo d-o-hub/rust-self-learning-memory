@@ -169,12 +169,15 @@ mod tests {
     use super::*;
     use crate::config::Config;
     use crate::output::OutputFormat;
-    use do_memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+    use do_memory_core::{
+        ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
+        TaskType,
+    };
 
     fn test_memory() -> SelfLearningMemory {
         SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-            pattern_extraction_threshold: 1.0,
+            pattern_extraction_threshold: 0.0,
             enable_summarization: false,
             enable_embeddings: false,
             ..Default::default()
@@ -407,5 +410,57 @@ mod tests {
             err.to_string().contains("--episode-id") || err.to_string().contains("--all"),
             "got: {err}"
         );
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn extract_single_with_steps_extracts_patterns() {
+        // Arrange – create a completed episode with a successful step so
+        // the tool-sequence extractor can produce at least one pattern.
+        let memory = test_memory();
+        let config = Config::default();
+        let episode_id = memory
+            .start_episode(
+                "extract integration test".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+        let mut step = ExecutionStep::new(1, "test_tool".to_string(), "run tests".to_string());
+        step.result = Some(ExecutionResult::Success {
+            output: "all passed".to_string(),
+        });
+        memory.log_step(episode_id, step).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "done".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .expect("complete failed");
+
+        // Act – re-extract patterns from the completed episode.
+        // Use JSON so we can inspect the count precisely.
+        let result = memory.re_extract_patterns(episode_id).await;
+
+        // Assert – at least one pattern must be returned.
+        let count = result.expect("re_extract_patterns should succeed");
+        assert!(
+            count > 0,
+            "expected >0 patterns from episode with a successful step, got {count}"
+        );
+
+        // Also verify the CLI wrapper path succeeds.
+        let cli_result = extract_patterns(
+            Some(episode_id.to_string()),
+            false,
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await;
+        assert!(cli_result.is_ok(), "CLI path failed: {:?}", cli_result);
     }
 }

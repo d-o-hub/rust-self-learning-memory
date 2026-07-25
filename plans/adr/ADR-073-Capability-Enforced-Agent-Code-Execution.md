@@ -1,6 +1,6 @@
 # ADR-073: Capability-Enforced Agent Code Execution
 
-- **Status**: Proposed
+- **Status**: Accepted / Implemented (S1.1c NO-GO — fail-closed; Wasmtime/WASI not adopted)
 - **Date**: 2026-07-14
 - **Deciders**: Project maintainers and security owners
 - **Related**: ADR-024, ADR-072; `memory-mcp/src/sandbox/`

@@ -24,6 +24,7 @@ jobs:
   publish-core:
     name: Publish do-memory-core
     runs-on: ubuntu-latest
+    environment: crates.io
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -83,6 +84,7 @@ jobs:
   publish-redb:
     name: Publish do-memory-storage-redb
     runs-on: ubuntu-latest
+    environment: crates.io
     needs: [publish-core]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') }}
     steps:
@@ -144,6 +146,7 @@ jobs:
   publish-turso:
     name: Publish do-memory-storage-turso
     runs-on: ubuntu-latest
+    environment: crates.io
     needs: [publish-redb]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
     steps:
@@ -205,6 +208,7 @@ jobs:
   publish-mcp:
     name: Publish do-memory-mcp
     runs-on: ubuntu-latest
+    environment: crates.io
     needs: [publish-redb, publish-turso]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') }}
     steps:

@@ -1,20 +1,20 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-24  
+- **Last Updated**: 2026-07-25  
 - **Status**: Quiescent — all sprint goals complete; next action is next release  
 - **Workspace**: `0.1.37` · **Tag**: `v0.1.36`  
 - **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals (2026-07-24)
+## Active goals (2026-07-25)
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Optional research/product spikes | R-F* | P2 | ⏸ DEFER |
+| Optional research/product spikes (R-F1…R-F7, R-F10) | R-F* | P2 | ⏸ DEFER |
 
-No open code goals. Next trigger: decide to cut v0.1.38 or begin a P2 spike.
+No open code goals. Next trigger: decide to cut v0.1.37 or begin a P2 spike.
 
-## Closed this wave (2026-07-20…24)
+## Closed this wave (2026-07-20…25)
 
 | Goal | Status |
 |------|--------|
@@ -27,7 +27,9 @@ No open code goals. Next trigger: decide to cut v0.1.38 or begin a P2 spike.
 | Changelog hygiene | ✅ #887 |
 | Cosine perf (8-way unrolled) | ✅ #888 |
 | Gap tasks (ADR-074 docs, G-P1-12 pattern extract) | ✅ #891 |
-| Full gap audit — 0 P0/P1 code gaps | ✅ 2026-07-24 |
+| R-F8 CLI relationship show polish + R-F9 HNSW persistence | ✅ #893 |
+| 6 new domain skills (40 total, all routed) | ✅ this PR |
+| Full gap audit — 0 P0/P1 code gaps | ✅ 2026-07-25 |
 
 ## Completed goal series (pointer only)
 

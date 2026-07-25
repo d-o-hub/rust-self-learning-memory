@@ -1,16 +1,18 @@
-# Gap Analysis — 2026-07-23
+# Gap Analysis — 2026-07-25
 
-**Generated**: 2026-07-23  
-**Audit commit**: `66286948` (`main`)  
+**Generated**: 2026-07-25  
+**Audit commit**: `5b4b9776` (`main`)  
 **Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 
 ## Method
 
-- Live GitHub: open PRs **#889**, **#888**, **#887**; open issues **none**  
+- Live GitHub: open PRs **none**; open issues **none**  
 - Release: `gh release view v0.1.36` published  
 - Workspace version advanced post-tag (R-A2 / #886)  
 - Prior gap register closed for all P0 ship items  
+- R-F8 and R-F9 GO spikes implemented and merged (#893)  
+- 6 new domain skills added (40 total, all routed)  
 
 ## Closed this wave
 
@@ -21,6 +23,10 @@
 | G-P1-7 medium-risk eval depth | ✅ R-E2 #883 |
 | Docs integrity ship blocker | ✅ #885 |
 | Post-tag version lag | ✅ workspace `0.1.37` #886 |
+| G-P1-10 open hygiene/perf PRs | ✅ #887, #888, #889, #891, #893 all merged |
+| R-F8 relationship show polish (GO spike) | ✅ #893 — box-drawing panel + unit tests |
+| R-F9 HNSW persistence + eviction (GO spike) | ✅ #893 — file_dump/load + capacity eviction |
+| Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (this PR) |
 
 ## Open gaps (current)
 
@@ -34,13 +40,12 @@
 |----|-----|----------|-------|
 | G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | residual docs |
 | G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki) | security hygiene |
-| G-P1-10 | Open hygiene/perf PRs | #887, #888, #889 | land or close with evidence |
 
 ### P2 (product / research)
 
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
-| G-P2-1…6 | R-F* epics | Spike-gated DEFER | R-F* |
+| G-P2-1…7 | R-F1…R-F7, R-F10 epics | Spike-gated DEFER | R-F* |
 
 ## Explicit non-gaps
 
@@ -51,8 +56,10 @@
 | Production LOC >500 | Closed |
 | Medium-risk skill presence-only evals | Closed |
 | Release lag / commit_limit on tag | Closed by v0.1.36 ship |
+| R-F8 relationship show polish | ✅ #893 |
+| R-F9 HNSW persistence | ✅ #893 |
 
 ## Exit criteria for this register
 
-- G-P1-10 closed when open PRs merge or are declined with reason  
+- G-P1-8 and G-P1-9 are monitor-only (no code action required)  
 - P2 rows remain spikes until GO artifacts under `plans/STATUS/spikes/`  

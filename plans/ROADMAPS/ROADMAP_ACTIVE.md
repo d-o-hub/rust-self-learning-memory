@@ -1,17 +1,17 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-24  
-**Released Version**: v0.1.36  
-**Workspace Version**: 0.1.37  
+**Last Updated**: 2026-07-25  
+**Released Version**: v0.1.36 (latest tag)  
+**Workspace Version**: 0.1.37 (next release)  
 **Active Sprint**: Post-v0.1.36 — all sprint items complete  
 **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
-**Branch**: `main` @ `4bb4877f`  
+**Branch**: `main` @ `5b4b9776`  
 **Open PRs**: none  
 **Open issues**: none  
 
 ---
 
-## Completed sprint 2026-07-22…24 — Ship + post-bump + gap analysis
+## Completed sprint 2026-07-22…25 — Ship + post-bump + gap analysis + R-F8/R-F9 + skills
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
@@ -23,6 +23,8 @@
 | 6 | Changelog hygiene (#887) | Update CHANGELOG.md for v0.1.36 | ✅ |
 | 7 | Cosine unrolled (#888) | 8-way accumulator optimization | ✅ |
 | 8 | Gap tasks (#891) | ADR-074 docs, pattern extract command (G-P1-12), coverage | ✅ |
+| 9 | R-F8 + R-F9 (#893) | CLI relationship box-drawing panel + HNSW persistence/eviction | ✅ |
+| 10 | 6 domain skills | checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback (40 total) | ✅ |
 
 ---
 
@@ -35,6 +37,8 @@
 | P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
 | P2 | Security | Transitive Dependabot advisories | Monitor |
 | P2 | CLI | ADR-076 §5 `pattern extract` error-arm coverage | ✅ Done (#891) |
+| P2 | CLI | R-F8 relationship info box-drawing panel | ✅ Done (#893) |
+| P2 | Embeddings | R-F9 HNSW persistence + capacity eviction | ✅ Done (#893) |
 
 ---
 

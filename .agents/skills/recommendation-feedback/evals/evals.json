@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "skill-file-exists",
+      "description": "SKILL.md exists in recommendation-feedback directory",
+      "exec": "test -f .agents/skills/recommendation-feedback/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter",
+      "description": "SKILL.md has valid frontmatter with name and description",
+      "exec": "head -4 .agents/skills/recommendation-feedback/SKILL.md | grep -q 'name: recommendation-feedback'"
+    },
+    {
+      "name": "documents-self-learning-loop",
+      "description": "Explains the self-learning feedback loop",
+      "exec": "grep -q 'Self-Learning Loop' .agents/skills/recommendation-feedback/SKILL.md"
+    },
+    {
+      "name": "documents-mcp-tools",
+      "description": "Documents all three feedback MCP tools",
+      "exec": "grep -q 'record_recommendation_session' .agents/skills/recommendation-feedback/SKILL.md && grep -q 'record_recommendation_feedback' .agents/skills/recommendation-feedback/SKILL.md && grep -q 'get_recommendation_stats' .agents/skills/recommendation-feedback/SKILL.md"
+    },
+    {
+      "name": "documents-outcome-values",
+      "description": "Lists valid outcome values",
+      "exec": "grep -q 'success' .agents/skills/recommendation-feedback/SKILL.md && grep -q 'partial' .agents/skills/recommendation-feedback/SKILL.md && grep -q 'failure' .agents/skills/recommendation-feedback/SKILL.md"
+    }
+  ]
+}

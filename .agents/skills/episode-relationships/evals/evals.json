@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "skill-file-exists",
+      "description": "SKILL.md exists in episode-relationships directory",
+      "exec": "test -f .agents/skills/episode-relationships/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter",
+      "description": "SKILL.md has valid frontmatter with name and description",
+      "exec": "head -4 .agents/skills/episode-relationships/SKILL.md | grep -q 'name: episode-relationships'"
+    },
+    {
+      "name": "documents-relationship-types",
+      "description": "Documents all relationship types",
+      "exec": "grep -q 'parent-child' .agents/skills/episode-relationships/SKILL.md && grep -q 'depends-on' .agents/skills/episode-relationships/SKILL.md && grep -q 'blocks' .agents/skills/episode-relationships/SKILL.md"
+    },
+    {
+      "name": "documents-mcp-tools",
+      "description": "Documents MCP relationship tools",
+      "exec": "grep -q 'add_episode_relationship' .agents/skills/episode-relationships/SKILL.md && grep -q 'validate_no_cycles' .agents/skills/episode-relationships/SKILL.md && grep -q 'get_topological_order' .agents/skills/episode-relationships/SKILL.md"
+    },
+    {
+      "name": "documents-graph-output",
+      "description": "Explains graph visualization formats",
+      "exec": "grep -q 'DOT\\|dot' .agents/skills/episode-relationships/SKILL.md && grep -q 'format' .agents/skills/episode-relationships/SKILL.md"
+    }
+  ]
+}

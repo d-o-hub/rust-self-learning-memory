@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "skill-file-exists",
+      "description": "SKILL.md exists in embedding-ops directory",
+      "exec": "test -f .agents/skills/embedding-ops/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter",
+      "description": "SKILL.md has valid frontmatter with name and description",
+      "exec": "head -4 .agents/skills/embedding-ops/SKILL.md | grep -q 'name: embedding-ops'"
+    },
+    {
+      "name": "documents-cli-commands",
+      "description": "Documents CLI embedding commands",
+      "exec": "grep -q 'do-memory-cli embedding' .agents/skills/embedding-ops/SKILL.md"
+    },
+    {
+      "name": "documents-mcp-tools",
+      "description": "Documents MCP embedding tools",
+      "exec": "grep -q 'configure_embeddings' .agents/skills/embedding-ops/SKILL.md"
+    },
+    {
+      "name": "no-false-persistence-claim",
+      "description": "Does not claim enable/disable persists configuration",
+      "exec": "grep -q 'session only' .agents/skills/embedding-ops/SKILL.md"
+    }
+  ]
+}

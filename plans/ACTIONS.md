@@ -1,10 +1,10 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-24  
+- **Last Updated**: 2026-07-25  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
-## Active actions (2026-07-24)
+## Active actions (2026-07-25)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
@@ -15,9 +15,12 @@
 | ACT-317 | Review/merge #888 cosine perf | perf | ✅ #888 merged |
 | ACT-318 | Mark ADR-074 as Accepted / Implemented | docs | ✅ Done (#891) |
 | ACT-319 | Gap analysis tasks: pattern extract + ADR-074 docs | G-P1-12/ACT-317/318 | ✅ #891 merged |
-| ACT-312 | Optional product/research spikes R-F* | R-F* | ⏸ DEFER |
+| ACT-320 | R-F8 CLI relationship show polish | R-F8 | ✅ #893 merged |
+| ACT-321 | R-F9 HNSW persistence + capacity eviction | R-F9 | ✅ #893 merged |
+| ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ this PR |
+| ACT-312 | Optional product/research spikes R-F1…R-F7, R-F10 | R-F* | ⏸ DEFER |
 
-All ACT-300…ACT-319 items are **complete**. No open code actions remain.
+All ACT-300…ACT-322 items are **complete**. No open code actions remain.
 
 ## Completed actions (summary)
 

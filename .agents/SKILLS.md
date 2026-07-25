@@ -1,7 +1,7 @@
 # Skills Index
 
-> Generated 2026-07-20T10:52:39Z
-**Skills**: 34 · **Routed**: 34
+> Generated 2026-07-25T00:00:00Z
+**Skills**: 40 · **Routed**: 40
 
 | Skill | Evals | Routed |
 |-------|:-----:|:------:|
@@ -10,6 +10,7 @@
 | [analysis-swarm](skills/analysis-swarm/SKILL.md) | yes | yes |
 | [architecture-validation](skills/architecture-validation/SKILL.md) | yes | yes |
 | [build-rust](skills/build-rust/SKILL.md) | yes | yes |
+| [checkpoint-handoff](skills/checkpoint-handoff/SKILL.md) | yes | yes |
 | [ci-fix](skills/ci-fix/SKILL.md) | yes | yes |
 | [ci-poll](skills/ci-poll/SKILL.md) | yes | yes |
 | [code-quality](skills/code-quality/SKILL.md) | yes | yes |
@@ -18,6 +19,9 @@
 | [debug-troubleshoot](skills/debug-troubleshoot/SKILL.md) | yes | yes |
 | [do-memory-cli-ops](skills/do-memory-cli-ops/SKILL.md) | yes | yes |
 | [do-memory-mcp](skills/do-memory-mcp/SKILL.md) | yes | yes |
+| [embedding-ops](skills/embedding-ops/SKILL.md) | yes | yes |
+| [episode-relationships](skills/episode-relationships/SKILL.md) | yes | yes |
+| [episode-tags](skills/episode-tags/SKILL.md) | yes | yes |
 | [external-signal-provider](skills/external-signal-provider/SKILL.md) | yes | yes |
 | [feature-implement](skills/feature-implement/SKILL.md) | yes | yes |
 | [git-worktree-manager](skills/git-worktree-manager/SKILL.md) | yes | yes |
@@ -30,7 +34,9 @@
 | [memory-harness](skills/memory-harness/SKILL.md) | yes | yes |
 | [performance](skills/performance/SKILL.md) | yes | yes |
 | [plan-gap-analysis](skills/plan-gap-analysis/SKILL.md) | yes | yes |
+| [playbook-ops](skills/playbook-ops/SKILL.md) | yes | yes |
 | [pr-readiness](skills/pr-readiness/SKILL.md) | yes | yes |
+| [recommendation-feedback](skills/recommendation-feedback/SKILL.md) | yes | yes |
 | [release-cadence-manager](skills/release-cadence-manager/SKILL.md) | yes | yes |
 | [release-guard](skills/release-guard/SKILL.md) | yes | yes |
 | [skill-creator](skills/skill-creator/SKILL.md) | yes | yes |

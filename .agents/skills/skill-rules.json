@@ -314,6 +314,60 @@
         "files": ["memory-storage-*/**", "memory-cli/src/commands/storage/**"]
       },
       "priority": "medium"
+    },
+    {
+      "skill": "checkpoint-handoff",
+      "triggers": {
+        "keywords": ["checkpoint", "handoff", "handoff pack", "resume from handoff", "session continuity"],
+        "patterns": ["checkpoint_episode", "get_handoff_pack", "resume_from_handoff"],
+        "files": ["memory-cli/src/commands/episode/core/checkpoint.rs", "memory-mcp/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "embedding-ops",
+      "triggers": {
+        "keywords": ["embedding", "embedding provider", "semantic search", "vector", "openai embedding", "cohere", "ollama"],
+        "patterns": ["embedding", "configure_embeddings", "query_semantic_memory"],
+        "files": ["memory-core/src/embeddings/**", "memory-cli/src/commands/embedding/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "episode-relationships",
+      "triggers": {
+        "keywords": ["relationship", "episode relationship", "depends-on", "dependency graph", "related episodes"],
+        "patterns": ["add_episode_relationship", "get_episode_relationships", "find_related_episodes"],
+        "files": ["memory-cli/src/commands/relationships/**", "memory-core/src/storage/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "episode-tags",
+      "triggers": {
+        "keywords": ["episode tag", "tag", "add tag", "remove tag", "search by tag"],
+        "patterns": ["add_episode_tags", "remove_episode_tags", "search_episodes_by_tags"],
+        "files": ["memory-cli/src/commands/episode/**", "memory-core/src/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "playbook-ops",
+      "triggers": {
+        "keywords": ["playbook", "recommend playbook", "explain pattern", "task playbook"],
+        "patterns": ["recommend_playbook", "explain_pattern"],
+        "files": ["memory-mcp/**", "memory-core/src/patterns/**"]
+      },
+      "priority": "medium"
+    },
+    {
+      "skill": "recommendation-feedback",
+      "triggers": {
+        "keywords": ["recommendation feedback", "record feedback", "recommendation session", "self-learning loop"],
+        "patterns": ["record_recommendation_session", "record_recommendation_feedback", "get_recommendation_stats"],
+        "files": ["memory-mcp/**", "memory-core/src/**"]
+      },
+      "priority": "medium"
     }
   ]
 }

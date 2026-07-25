@@ -1,7 +1,7 @@
 # ADR-071: Auto-checkpoint on TaskOutcome::Abstained
 
 ## Status
-Proposed
+Accepted / Implemented
 
 ## Context
 When an agent detects infeasibility and sets `TaskOutcome::Abstained`, the episode should automatically create a `CheckpointMeta` snapshot before terminating. This preserves all partial findings, tool outputs, and the abstention reason so another agent or session can resume from the last valid state rather than restarting from zero.

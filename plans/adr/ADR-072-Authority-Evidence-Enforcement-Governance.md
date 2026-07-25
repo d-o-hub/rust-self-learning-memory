@@ -1,6 +1,6 @@
 # ADR-072: Authority, Evidence, and Enforcement Governance
 
-- **Status**: Proposed
+- **Status**: Accepted / Implemented
 - **Date**: 2026-07-14
 - **Deciders**: Project maintainers
 - **Related**: ADR-022, ADR-034, ADR-039, ADR-042, ADR-045, ADR-058, ADR-059

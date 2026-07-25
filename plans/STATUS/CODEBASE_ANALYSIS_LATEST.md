@@ -1,6 +1,6 @@
-# Codebase Analysis Latest — 2026-07-23
+# Codebase Analysis Latest — 2026-07-25
 
-**Branch**: `main` @ `66286948`  
+**Branch**: `main` @ `5b4b9776`  
 **Workspace**: `0.1.37` · **Released tag**: `v0.1.36`  
 **Companion**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
 
@@ -21,34 +21,37 @@
 
 | Check | Result |
 |-------|--------|
-| Production `todo!` / unimplemented | None found (prior audits) |
+| Production `todo!` / unimplemented | None |
 | Production LOC >500 (non-test `src`) | **0** |
 | Released tag | **v0.1.36** |
 | Workspace advanced post-tag | **0.1.37** |
-| Skills with evals / routes | 34/34 |
-| Fail-closed code execution | Preserved |
+| Skills with evals / routes | 40/40 |
+| Fail-closed code execution | Preserved (ADR-073) |
 | Open issues | **0** |
-| Open PRs | 3 (#887–#889) |
+| Open PRs | **1** (#894 skills+plans, CI green) |
+| ADR-071 | Accepted / Implemented (auto-checkpoint on Abstained) |
+| ADR-072 | Accepted / Implemented (authority + governance) |
+| ADR-073 | Accepted / Implemented (S1.1c NO-GO, fail-closed) |
 
 ## Strengths
 
 1. Correctness campaign (locks, eviction, cache identity, embedding health).  
 2. Gate honesty (deny, benchmarks, cancelled guards, docs integrity ship gate).  
-3. Skill eval schema + high- and medium-risk behavioral fixtures.  
+3. Skill eval schema + high- and medium-risk behavioral fixtures (40 skills, all routed).  
 4. Singular release path (`release-manager` + `release.yml`).  
 5. Rich episodic/pattern/playbook MCP+CLI surface.
+6. R-F8 CLI relationship box-drawing panel + R-F9 HNSW persistence/eviction (#893).
 
 ## Weaknesses / residual
 
-1. Historical ADR filename collisions (aliased only).  
-2. Transitive Dependabot advisories.  
-3. Product/research epics still spike-gated (R-F*).  
-4. Open hygiene/perf PRs not yet landed.
+1. Historical ADR filename collisions (025/054 aliased — docs only, no code action).  
+2. Transitive Dependabot advisories (upstream chains, monitor only).  
+3. Remaining product/research epics spike-gated (R-F1…R-F7, R-F10).  
 
 ## Recommended focus order
 
-1. Land or close open PRs #887–#889 with evidence.  
-2. Optional #888 only with bench comparison.  
-3. Research spikes only after GO artifacts.  
+1. Merge #894 (skills+plans) when CI CLEAN.  
+2. Cut v0.1.37 once sufficient unreleased commits accumulate.  
+3. Research spikes only after individual GO artifacts under `plans/STATUS/spikes/`.
 
 Full prioritized backlog: recommendations plan §3–4.

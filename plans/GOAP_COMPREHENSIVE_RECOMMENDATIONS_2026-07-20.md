@@ -130,7 +130,9 @@ No product/research implementation this sprint.
 
 | ID | Feature | Status |
 |----|---------|--------|
-| **R-F1**…**R-F10** | Distributed sync, OTel, multi-tenancy, SIMD, WG-108/125/135, relationship polish, ANN, OIDC | ⏸ DEFER (spike-gated) |
+| **R-F1**…**R-F7**, **R-F10** | Distributed sync, OTel, multi-tenancy, SIMD, WG-108/125/135, MoE, federated HDC, OIDC | ⏸ DEFER (spike-gated) |
+| **R-F8** | CLI relationship show polish — box-drawing panel + unit tests | ✅ #893 |
+| **R-F9** | ANN retrieval hardening — HNSW persistence + capacity eviction | ✅ #893 |
 
 ### Track G — Plans governance (P1 — this sprint)
 

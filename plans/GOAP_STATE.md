@@ -1,8 +1,8 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-24  
+- **Last Updated**: 2026-07-25  
 - **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
-- **Branch**: `main` @ `4bb4877f`  
+- **Branch**: `main` @ `5b4b9776`  
 - **Open PRs**: none  
 - **Open issues**: none  
 - **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
@@ -21,7 +21,10 @@
 | Docs integrity ship unblock | ✅ #885 |
 | Recommendations #878 | ✅ |
 | Plans progress refresh | ✅ #889 |
-| R-F* product epics | ⏸ DEFER |
+| R-F8 CLI relationship show polish | ✅ #893 |
+| R-F9 HNSW persistence + hardening | ✅ #893 |
+| 6 new domain skills (40 total, all routed) | ✅ this PR |
+| R-F* remaining product epics | ⏸ DEFER |
 
 ---
 
@@ -62,4 +65,7 @@ adr075_durable_complete           = true  (completion.rs hard-errors on backend 
 adr076_pattern_ux                 = true  (empty diagnostics + sync messaging + pattern extract)
 cosine_perf_merged                = true  (#888 merged — 8-way unrolled accumulators)
 pattern_extract_command           = true  (ADR-076 §5 — G-P1-12, #891)
+r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tests)
+r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
+skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
 ```

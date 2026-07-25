@@ -1,17 +1,17 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-23  
+**Last Updated**: 2026-07-25  
 **Released Version**: v0.1.36  
 **Workspace Version**: 0.1.37  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
-**Branch**: `main` @ `66286948`  
+**Branch**: `main` @ `5b4b9776`  
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | **#889** plans progress (this) · **#888** perf cosine unrolled · **#887** changelog v0.1.36 |
+| Open PRs | *(none)* |
 | Open issues | *(none)* |
 
 ## Snapshot
@@ -24,7 +24,10 @@
 | Medium-risk skill evals (R-E2) | ✅ #883 |
 | Docs integrity ship gate | ✅ #885 |
 | Production LOC >500 (non-test `src`) | ✅ Clean |
-| Skill evals / routes | 34/34 |
+| Skill evals / routes | 40/40 |
+| R-F8 relationship info show polish | ✅ #893 |
+| R-F9 HNSW persistence + eviction | ✅ #893 |
+| 6 new domain skills added | ✅ this PR |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
 | P0 plan gaps | **None open** |
@@ -33,12 +36,11 @@
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P1 | Land hygiene PRs (#889 plans, #887 changelog) when CI CLEAN | ops | 🟡 open |
-| P1 | Review #888 cosine-sim unrolled (perf; may need benches) | perf | 🟡 open |
-| P2 | Research/product spikes (R-F*) | R-F* | ⏸ DEFER |
+| P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
+| P2 | Cut v0.1.37 when unreleased commits accumulate | release | future trigger |
 
-## Recent completed (2026-07-20…23)
+## Recent completed (2026-07-20…25)
 
 | Wave | Result |
 |------|--------|
@@ -48,6 +50,8 @@
 | R-E2 medium-risk skill evals #883 | ✅ Merged |
 | Release docs #880 / rust-major #877 / tracker #881 | ✅ Merged |
 | Recommendations #878 | ✅ Merged |
+| R-F8 CLI relationship panel + R-F9 HNSW #893 | ✅ Merged |
+| 6 new domain skills (40 total, all routed) | ✅ Merged |
 
 ## Canonical companions
 

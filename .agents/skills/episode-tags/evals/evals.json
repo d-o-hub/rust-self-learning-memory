@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "skill-file-exists",
+      "description": "SKILL.md exists in episode-tags directory",
+      "exec": "test -f .agents/skills/episode-tags/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter",
+      "description": "SKILL.md has valid frontmatter with name and description",
+      "exec": "head -4 .agents/skills/episode-tags/SKILL.md | grep -q 'name: episode-tags'"
+    },
+    {
+      "name": "documents-cli-commands",
+      "description": "Documents CLI tag commands",
+      "exec": "grep -q 'do-memory-cli tag' .agents/skills/episode-tags/SKILL.md"
+    },
+    {
+      "name": "documents-mcp-tools",
+      "description": "Documents MCP tag tools",
+      "exec": "grep -q 'add_episode_tags' .agents/skills/episode-tags/SKILL.md && grep -q 'search_episodes_by_tags' .agents/skills/episode-tags/SKILL.md"
+    },
+    {
+      "name": "documents-search-options",
+      "description": "Includes search flag documentation",
+      "exec": "grep -q '\\-\\-all' .agents/skills/episode-tags/SKILL.md && grep -q '\\-\\-partial' .agents/skills/episode-tags/SKILL.md"
+    }
+  ]
+}

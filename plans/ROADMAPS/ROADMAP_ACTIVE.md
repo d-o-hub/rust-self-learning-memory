@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-25  
+**Last Updated**: 2026-07-26  
 **Released Version**: v0.1.36 (latest tag)  
 **Workspace Version**: 0.1.37 (next release)  
-**Active Sprint**: Post-v0.1.36 — all sprint items complete  
-**Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
-**Branch**: `main` @ `5b4b9776`  
-**Open PRs**: none  
+**Active Sprint**: ADR-077 runtime embedding activation (A1-A6 complete)  
+**Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
+**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
+**Open PRs**: ADR-077 A6 validate/document  
 **Open issues**: none  
 
 ---
@@ -25,6 +25,8 @@
 | 8 | Gap tasks (#891) | ADR-074 docs, pattern extract command (G-P1-12), coverage | ✅ |
 | 9 | R-F8 + R-F9 (#893) | CLI relationship box-drawing panel + HNSW persistence/eviction | ✅ |
 | 10 | 6 domain skills | checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback (40 total) | ✅ |
+| 11 | ADR-077 A1-A5 | Runtime embedding activation: exact-provider factory, atomic runtime seam, MCP end-to-end (main `9ef4b742`, `e0f7f712`) | ✅ |
+| 12 | ADR-077 A6 | Validate/document/gate: activation docs + concurrency + zero-unsafe credential-redaction regression tests | ✅ this PR |
 
 ---
 

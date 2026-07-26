@@ -1,7 +1,7 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-25  
-- **Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
+- **Last Updated**: 2026-07-26  
+- **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
 ## Active actions (2026-07-25)
@@ -17,10 +17,12 @@
 | ACT-319 | Gap analysis tasks: pattern extract + ADR-074 docs | G-P1-12/ACT-317/318 | ✅ #891 merged |
 | ACT-320 | R-F8 CLI relationship show polish | R-F8 | ✅ #893 merged |
 | ACT-321 | R-F9 HNSW persistence + capacity eviction | R-F9 | ✅ #893 merged |
-| ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ this PR |
+| ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ #894 |
+| ACT-323 | ADR-077 A1-A5 runtime embedding activation | ADR-077 | ✅ main (`9ef4b742`, `e0f7f712`) |
+| ACT-324 | ADR-077 A6 validate/document/gate (docs + concurrency + zero-unsafe redaction tests) | ADR-077 | ✅ this PR |
 | ACT-312 | Optional product/research spikes R-F1…R-F7, R-F10 | R-F* | ⏸ DEFER |
 
-All ACT-300…ACT-322 items are **complete**. No open code actions remain.
+All ACT-300…ACT-324 items are **complete**. No open code actions remain.
 
 ## Completed actions (summary)
 

@@ -142,6 +142,27 @@ The following tool names are the current contract tracked by parity tests.
 - `search_by_embedding`
 - `embedding_provider_status`
 
+#### Runtime activation contract (ADR-077)
+
+- `configure_embeddings` is an **activation** operation, not a declarative config
+  write. A `success: true` response means the requested provider is live in the
+  server process; subsequent `embedding_provider_status`, `generate_embedding`,
+  `search_by_embedding`, and `query_semantic_memory` calls use it immediately.
+- Selectable providers: `local`, `openai`, `mistral`. `azure`, `azure_openai`,
+  `custom`, and `cohere` are rejected with an error naming the provider before any
+  credential or network work (no runtime adapter yet).
+- Cloud providers require a credential environment-variable **name** via
+  `api_key_env` (for example `OPENAI_API_KEY`, `MISTRAL_API_KEY`). Credentials are
+  read at activation time only; they are never stored, persisted, or echoed in
+  responses, warnings, errors, or audit fields.
+- Activation is atomic: a failed request preserves the previously active provider
+  and its revision unchanged.
+- Successful responses add `activation_revision` (strictly increasing per
+  successful activation), `reindex_required`
+  (`true` when the provider/model/dimension identity changed), and
+  `provider_health` (`"active"`). Activation state is runtime-only and is not
+  persisted across process restarts.
+
 ### Unavailable / Fail-Closed Tool
 
 - `execute_agent_code` — **unavailable / fail-closed**. The WASM sandbox was removed; there is no `wasmtime-backend` feature and no working code-execution backend. Calls are rejected (fail closed).

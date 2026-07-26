@@ -326,3 +326,50 @@ async fn build_exact_openai_missing_key_returns_err() {
         "Unexpected error message: {err_msg}"
     );
 }
+
+/// Passing a Mistral config with api_key = None must return Err regardless of
+/// whether the mistral feature is compiled in.
+#[tokio::test]
+async fn build_exact_mistral_missing_key_returns_err() {
+    let provider_config = ProviderConfig::mistral_embed();
+    let storage = Box::new(MockEmbeddingStorage);
+    let embedding_config = EmbeddingConfig::default();
+
+    let result =
+        SemanticService::build_exact(&provider_config, None, storage, embedding_config).await;
+
+    assert!(
+        result.is_err(),
+        "build_exact should fail when api_key is None for Mistral"
+    );
+    let err_msg = result.err().unwrap().to_string();
+    // Either "MISTRAL_API_KEY not set" (feature on) or "Feature 'mistral' not enabled" (feature off)
+    assert!(
+        err_msg.contains("MISTRAL_API_KEY") || err_msg.contains("'mistral' not enabled"),
+        "Unexpected error message: {err_msg}"
+    );
+}
+
+/// `Custom` provider variant must be rejected the same way as `AzureOpenAI`.
+#[tokio::test]
+async fn build_exact_custom_provider_returns_err() {
+    use crate::embeddings::config::CustomConfig;
+
+    let custom_config = CustomConfig::new("my-model", 768, "https://my.endpoint/v1/embed");
+    let provider_config = ProviderConfig::Custom(custom_config);
+    let storage = Box::new(MockEmbeddingStorage);
+    let embedding_config = EmbeddingConfig::default();
+
+    let result =
+        SemanticService::build_exact(&provider_config, None, storage, embedding_config).await;
+
+    assert!(
+        result.is_err(),
+        "build_exact should fail for Custom provider"
+    );
+    let err_msg = result.err().unwrap().to_string();
+    assert!(
+        err_msg.contains("not supported"),
+        "Error message should mention 'not supported', got: {err_msg}"
+    );
+}

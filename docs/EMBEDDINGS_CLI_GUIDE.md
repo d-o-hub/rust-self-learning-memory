@@ -129,6 +129,69 @@ base_url = "https://api.example.com/v1"
 - Use any OpenAI-compatible embedding API
 - Provide base_url and model name
 
+> **Note (ADR-077):** The MCP `configure_embeddings` runtime-activation tool
+> currently selects only `local`, `openai`, and `mistral`. `azure`, `custom`, and
+> `cohere` are rejected by that tool until a future ADR supplies their runtime
+> adapters and credential/endpoint contracts. The CLI `[embeddings]` config file
+> still parses these types, but they cannot be activated at runtime through MCP.
+
+## Runtime Provider Activation (MCP `configure_embeddings`)
+
+Per [ADR-077](../plans/adr/ADR-077-Runtime-Embedding-Provider-Activation.md),
+`configure_embeddings` is an **activation** operation. A successful call installs
+the requested provider into the running server process; a failed call leaves the
+previously active provider unchanged.
+
+### Selectable providers
+
+| Provider | Selectable via MCP | Credential env var | Build feature |
+|----------|--------------------|--------------------|---------------|
+| `local` | Yes | *(none)* | `local-embeddings` |
+| `openai` | Yes | `OPENAI_API_KEY` | `openai` |
+| `mistral` | Yes | `MISTRAL_API_KEY` | `mistral` |
+| `azure` / `azure_openai` | No (rejected) | — | — |
+| `custom` | No (rejected) | — | — |
+| `cohere` | No (rejected) | — | — |
+
+A provider is selectable only when its build feature is compiled in **and** its
+real-model/credential requirements are satisfied. A degraded or mock provider is
+never reported as configured and available.
+
+### Credentials are runtime-only
+
+- Pass the **name** of the environment variable that holds the key via
+  `api_key_env` (for example `"OPENAI_API_KEY"`); the key itself is read at
+  activation time.
+- API keys are **not** stored in config, output, warnings, errors, or audit logs,
+  and they are **not persisted** for restart recovery. Re-activate after each
+  process start.
+
+### Activation response fields
+
+| Field | Meaning |
+|-------|---------|
+| `success` | `true` only when the provider is live and usable |
+| `provider` / `model` / `dimension` | The exact activated identity |
+| `activation_revision` | Monotonic counter; advances on every successful activation |
+| `reindex_required` | `true` when the provider/model/dimension identity changed |
+| `provider_health` | `"active"` after a successful activation |
+| `warnings` | Non-fatal notices (for example an unknown model falling back to a default) |
+
+### Reindex-required behavior
+
+Changing the provider, model, or dimension changes the embedding identity
+(ADR-074). When the new identity differs from the previous one,
+`reindex_required` is `true` and previously stored embeddings/index entries must
+not be mixed with the new provider. Re-embedding is an explicit, separate
+operation; `configure_embeddings` never re-embeds implicitly.
+
+### Failure preserves the prior provider
+
+If validation, credential resolution, the health probe, or the dimension check
+fails, the call returns an error and the previously active provider (and its
+`activation_revision`) remains in effect. There is no cross-provider or mock
+fallback for an explicit MCP activation.
+
 ## CLI Commands
 
 ### Test Embedding Configuration

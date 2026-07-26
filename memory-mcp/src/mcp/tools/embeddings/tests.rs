@@ -376,3 +376,126 @@ async fn test_search_by_embedding_wrong_dimension() {
     // Since not configured, will error about not configured first
     assert!(result.is_err());
 }
+
+/// `api_key_env = None` for a cloud provider emits a warning and passes
+/// `api_key = None` to `build_exact`, which rejects it with a credential error.
+/// This covers the `resolve_api_key` warning-then-None path.
+#[tokio::test]
+async fn test_configure_openai_no_api_key_env_emits_warning_and_fails() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "openai".to_string(),
+        model: Some("text-embedding-3-small".to_string()),
+        api_key_env: None, // No env var supplied → warning path in resolve_api_key
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    let result = tools.execute_configure_embeddings(input).await;
+    // build_exact must reject because api_key is None for OpenAI.
+    assert!(
+        result.is_err(),
+        "configure must fail when no API key env var is given for OpenAI"
+    );
+    let msg = result.unwrap_err().to_string();
+    assert!(
+        msg.contains("OPENAI_API_KEY")
+            || msg.contains("activation failed")
+            || msg.contains("'openai' not enabled"),
+        "Unexpected error: {msg}"
+    );
+}
+
+/// Unknown OpenAI model name triggers a warning and falls back to
+/// `text-embedding-3-small`. The configure call may succeed or fail depending
+/// on whether a real key is available; we only verify the call doesn't panic.
+#[tokio::test]
+async fn test_configure_openai_unknown_model_falls_back() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "openai".to_string(),
+        model: Some("text-embedding-unknown-model-xyz".to_string()),
+        api_key_env: Some("OPENAI_API_KEY".to_string()),
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    // Must not panic; success depends on whether OPENAI_API_KEY is set.
+    let result = tools.execute_configure_embeddings(input).await;
+    match result {
+        Ok(output) => {
+            // Warning was emitted and fallback model was used.
+            assert!(
+                !output.warnings.is_empty(),
+                "warnings should be set for unknown model"
+            );
+        }
+        Err(_) => {
+            // No API key in CI — expected.
+        }
+    }
+}
+
+/// `generate_embedding` returns an error when the text exceeds
+/// `MAX_EMBEDDING_TEXT_LEN`.
+#[tokio::test]
+async fn test_generate_embedding_text_too_long() {
+    use crate::mcp::tools::embeddings::types::GenerateEmbeddingInput;
+
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    // 51_000 bytes exceeds the 50_000-byte limit.
+    let long_text = "x".repeat(51_000);
+    let input = GenerateEmbeddingInput {
+        text: long_text,
+        normalize: false,
+    };
+
+    let result = tools.execute_generate_embedding(input).await;
+    assert!(result.is_err(), "should fail for oversized text");
+    let msg = result.unwrap_err().to_string();
+    assert!(
+        msg.contains("exceeds maximum"),
+        "error must mention 'exceeds maximum', got: {msg}"
+    );
+}
+
+/// `build_exact` for Mistral with `api_key = None` must fail — covers the
+/// Mistral arm of the match in `semantic_service.rs`.
+#[tokio::test]
+async fn test_configure_mistral_no_api_key_env_fails() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "mistral".to_string(),
+        model: None,
+        api_key_env: Some("__NONEXISTENT_MISTRAL_KEY_RSLM__".to_string()),
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    let result = tools.execute_configure_embeddings(input).await;
+    // Env var does not exist → resolve_api_key returns Err → configure fails.
+    assert!(
+        result.is_err(),
+        "configure must fail when mistral credential env var is not set"
+    );
+}

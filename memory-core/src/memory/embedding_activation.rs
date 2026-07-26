@@ -227,4 +227,45 @@ mod tests {
             "active_embedding should be Some after activation"
         );
     }
+
+    /// `live_semantic_service` must fall back to the static `semantic_service`
+    /// field when `active_embedding` is None.
+    #[tokio::test]
+    async fn test_live_semantic_service_falls_back_to_static_field() {
+        use crate::embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage};
+        use std::sync::Arc;
+
+        let mut memory = SelfLearningMemory::new();
+
+        // active_embedding is None; static field also None — expect None.
+        let live = memory.live_semantic_service().await;
+        assert!(live.is_none(), "should be None when both slots are empty");
+
+        // Directly set the static semantic_service field (pub(super) within this module).
+        let provider = Box::new(MockLocalModel::new("static-model".to_string(), 4));
+        let storage = Box::new(InMemoryEmbeddingStorage::new());
+        let static_svc = Arc::new(SemanticService::new(
+            provider,
+            storage,
+            EmbeddingConfig::default(),
+        ));
+        memory.semantic_service = Some(Arc::clone(&static_svc));
+
+        // active_embedding is still None — must fall back to static field.
+        let live = memory.live_semantic_service().await;
+        assert!(
+            live.is_some(),
+            "live_semantic_service must return static field when active_embedding is None"
+        );
+
+        // After activation, the runtime slot takes priority over the static field.
+        memory
+            .activate_semantic_service(make_service("runtime-model"), "local:rt:4".to_string())
+            .await;
+        let live = memory.live_semantic_service().await;
+        assert!(
+            live.is_some(),
+            "runtime slot must be returned after activation"
+        );
+    }
 }

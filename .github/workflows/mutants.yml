@@ -80,6 +80,24 @@ jobs:
       - name: Install cargo-mutants
         run: cargo install --locked cargo-mutants
 
+      - name: Verify mutation target files exist
+        run: |
+          # Guard: fail fast if --file paths resolve to nothing (LESSON-MUT-001)
+          # cargo-mutants --file is workspace-root-relative, not crate-relative.
+          FILE_COUNT=$(find \
+            memory-core/src/reward \
+            memory-core/src/retrieval \
+            memory-core/src/retry \
+            memory-core/src/patterns \
+            -name '*.rs' 2>/dev/null | wc -l)
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "::error::No .rs files found in mutation target directories."
+            echo "Check --file paths in this workflow — must be workspace-root-relative."
+            echo "See .agents/skills/cargo-mutants-workspace/SKILL.md and issue #898."
+            exit 1
+          fi
+          echo "Preflight OK: found $FILE_COUNT .rs files across mutation target modules"
+
       - name: Run mutation testing
         run: |
           TIMEOUT="${{ github.event.inputs.timeout || '300' }}"
@@ -100,14 +118,16 @@ jobs:
             cargo mutants $ARGS --timeout "$TIMEOUT" --output mutants.out -- --lib
           else
             # Default: focused on high-value modules per issue #747
+            # NOTE: --file paths must be relative to workspace root (not crate root).
+            # See LESSON-MUT-001 in .agents/skills/cargo-mutants-workspace/SKILL.md
             echo "Target modules: reward, retrieval, retry, patterns"
             cargo mutants \
               --package do-memory-core \
               --timeout "$TIMEOUT" \
-              --file 'src/reward/**/*.rs' \
-              --file 'src/retrieval/**/*.rs' \
-              --file 'src/retry/**/*.rs' \
-              --file 'src/patterns/**/*.rs' \
+              --file 'memory-core/src/reward/**/*.rs' \
+              --file 'memory-core/src/retrieval/**/*.rs' \
+              --file 'memory-core/src/retry/**/*.rs' \
+              --file 'memory-core/src/patterns/**/*.rs' \
               --output mutants.out \
               -- --lib
           fi

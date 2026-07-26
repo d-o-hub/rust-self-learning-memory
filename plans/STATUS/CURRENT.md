@@ -5,13 +5,13 @@
 **Workspace Version**: 0.1.37  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
-**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
+**Branch**: `main` @ `648e11ad`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | ADR-077 A6 validate/document |
+| Open PRs | *(none)* |
 | Open issues | *(none)* |
 
 ## Snapshot
@@ -29,7 +29,7 @@
 | R-F9 HNSW persistence + eviction | ✅ #893 |
 | 6 new domain skills added | ✅ #894 |
 | ADR-077 runtime embedding activation (A1-A5) | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ADR-077 A6 validate / document / gate | ✅ this PR |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
 | P0 plan gaps | **None open** |
@@ -55,7 +55,7 @@
 | R-F8 CLI relationship panel + R-F9 HNSW #893 | ✅ Merged |
 | 6 new domain skills (40 total, all routed) | ✅ Merged |
 | ADR-077 runtime embedding activation A1-A5 | ✅ Merged (main) |
-| ADR-077 A6 validate / document / gate | ✅ this PR |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged |
 
 ## Canonical companions
 

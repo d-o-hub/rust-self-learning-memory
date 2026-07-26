@@ -5,8 +5,8 @@
 **Workspace Version**: 0.1.37 (next release)  
 **Active Sprint**: ADR-077 runtime embedding activation (A1-A6 complete)  
 **Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
-**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
-**Open PRs**: ADR-077 A6 validate/document  
+**Branch**: `main` @ `648e11ad`  
+**Open PRs**: none  
 **Open issues**: none  
 
 ---
@@ -26,7 +26,7 @@
 | 9 | R-F8 + R-F9 (#893) | CLI relationship box-drawing panel + HNSW persistence/eviction | ✅ |
 | 10 | 6 domain skills | checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback (40 total) | ✅ |
 | 11 | ADR-077 A1-A5 | Runtime embedding activation: exact-provider factory, atomic runtime seam, MCP end-to-end (main `9ef4b742`, `e0f7f712`) | ✅ |
-| 12 | ADR-077 A6 | Validate/document/gate: activation docs + concurrency + zero-unsafe credential-redaction regression tests | ✅ this PR |
+| 12 | ADR-077 A6 | Validate/document/gate: activation docs + concurrency + zero-unsafe credential-redaction regression tests | ✅ #897 merged |
 
 ---
 

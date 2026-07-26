@@ -1,7 +1,7 @@
 # Gap Analysis — 2026-07-26
 
 **Generated**: 2026-07-26  
-**Audit commit**: `e0f7f712` (`main`) + open PR `feat/adr077-a6-validate-document`  
+**Audit commit**: `648e11ad` (`main`; ADR-077 A6 merged #897)  
 **Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 
@@ -28,7 +28,7 @@
 | R-F9 HNSW persistence + eviction (GO spike) | ✅ #893 — file_dump/load + capacity eviction |
 | Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (#894) |
 | ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) — exact-provider factory + atomic runtime seam + MCP end-to-end |
-| ADR-077 A6 validate / document / gate | ✅ this PR — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
 
 ## Open gaps (current)
 

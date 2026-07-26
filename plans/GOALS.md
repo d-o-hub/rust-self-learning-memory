@@ -30,7 +30,7 @@ No open code goals. Next trigger: decide to cut v0.1.37 or begin a P2 spike.
 | R-F8 CLI relationship show polish + R-F9 HNSW persistence | ✅ #893 |
 | 6 new domain skills (40 total, all routed) | ✅ #894 |
 | ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ADR-077 A6 validate / document / gate | ✅ this PR |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Full gap audit — 0 P0/P1 code gaps | ✅ 2026-07-25 |
 
 ## Completed goal series (pointer only)

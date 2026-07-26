@@ -19,7 +19,7 @@
 | ACT-321 | R-F9 HNSW persistence + capacity eviction | R-F9 | ✅ #893 merged |
 | ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ #894 |
 | ACT-323 | ADR-077 A1-A5 runtime embedding activation | ADR-077 | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ACT-324 | ADR-077 A6 validate/document/gate (docs + concurrency + zero-unsafe redaction tests) | ADR-077 | ✅ this PR |
+| ACT-324 | ADR-077 A6 validate/document/gate (docs + concurrency + zero-unsafe redaction tests) | ADR-077 | ✅ #897 merged |
 | ACT-312 | Optional product/research spikes R-F1…R-F7, R-F10 | R-F* | ⏸ DEFER |
 
 All ACT-300…ACT-324 items are **complete**. No open code actions remain.

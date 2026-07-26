@@ -268,4 +268,71 @@ mod tests {
             "runtime slot must be returned after activation"
         );
     }
+
+    /// REA-2026-07-26-A6: reader routine for the concurrency test below.
+    ///
+    /// Repeatedly snapshots the live service and activation.  Extracted into its
+    /// own coroutine so the spawned task stays shallow; must never deadlock or
+    /// panic while a writer replaces the provider concurrently.
+    async fn read_activation_snapshots(memory: Arc<SelfLearningMemory>, reads: usize) {
+        for _ in 0..reads {
+            // Snapshot before any provider/storage await — must never deadlock or
+            // panic while a writer holds the write lock.
+            let _svc = memory.live_semantic_service().await;
+            if let Some(act) = memory.embedding_activation().await {
+                assert!(
+                    !act.provider_identity.is_empty(),
+                    "identity must never be observed empty"
+                );
+                assert!(act.revision >= 1, "revision must be positive once set");
+            }
+            tokio::task::yield_now().await;
+        }
+    }
+
+    /// REA-2026-07-26-A6: reads during a replacement must never deadlock, panic,
+    /// or observe a half-built activation.  Many reader tasks snapshot the live
+    /// service and activation concurrently with a writer that replaces the
+    /// provider repeatedly.  Runs on a multi-thread runtime so the readers and
+    /// writer execute on distinct OS threads (ADR-077 §4).  The final revision
+    /// must equal the number of writes, proving every replacement landed and no
+    /// reader observed a torn slot.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn test_concurrent_reads_during_activation_replacement() {
+        const WRITES: u64 = 25;
+        const READERS: usize = 8;
+        const READS_PER_TASK: usize = 50;
+
+        let memory = Arc::new(SelfLearningMemory::new());
+        let mut reader_handles = Vec::with_capacity(READERS);
+
+        for _ in 0..READERS {
+            let m = Arc::clone(&memory);
+            reader_handles.push(tokio::spawn(read_activation_snapshots(m, READS_PER_TASK)));
+        }
+
+        let writer_memory = Arc::clone(&memory);
+        let writer = tokio::spawn(async move {
+            for i in 0..WRITES {
+                let model = format!("model-{}", i % 3);
+                writer_memory
+                    .activate_semantic_service(make_service(&model), format!("local:{model}:4"))
+                    .await;
+            }
+        });
+
+        writer.await.expect("writer must not panic");
+        for handle in reader_handles {
+            handle.await.expect("reader must not panic");
+        }
+
+        let final_act = memory
+            .embedding_activation()
+            .await
+            .expect("activation must be set after writes");
+        assert_eq!(
+            final_act.revision, WRITES,
+            "every replacement must advance the revision exactly once"
+        );
+    }
 }

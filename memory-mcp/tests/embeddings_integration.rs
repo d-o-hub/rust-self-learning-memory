@@ -3,9 +3,9 @@
 
 use do_memory_core::SelfLearningMemory;
 use do_memory_mcp::mcp::tools::embeddings::{
-    ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, EmbeddingTools,
-    QuerySemanticMemoryInput, configure_embeddings_tool, query_semantic_memory_tool,
-    test_embeddings_tool,
+    ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
+    EmbeddingTools, QuerySemanticMemoryInput, configure_embeddings_tool,
+    query_semantic_memory_tool, test_embeddings_tool,
 };
 use do_memory_mcp::server::MemoryMCPServer;
 use do_memory_mcp::types::SandboxConfig;
@@ -235,15 +235,12 @@ async fn test_configure_embeddings_azure_rejected() {
         let result = tools.execute_configure_embeddings(input).await;
         assert!(
             result.is_err(),
-            "Azure provider '{}' should be rejected",
-            provider_name
+            "Azure provider '{provider_name}' should be rejected"
         );
         let err_msg = result.unwrap_err().to_string();
         assert!(
             err_msg.contains("Azure provider is not supported"),
-            "Expected 'Azure provider is not supported' in error for '{}', got: {}",
-            provider_name,
-            err_msg
+            "Expected 'Azure provider is not supported' in error for '{provider_name}', got: {err_msg}"
         );
     }
 }
@@ -271,8 +268,7 @@ async fn test_configure_embeddings_custom_rejected() {
     let err_msg = result.unwrap_err().to_string();
     assert!(
         err_msg.contains("Custom provider is not supported"),
-        "Expected 'Custom provider is not supported', got: {}",
-        err_msg
+        "Expected 'Custom provider is not supported', got: {err_msg}"
     );
 }
 
@@ -651,4 +647,114 @@ async fn test_tool_definitions_json_rpc_compliant() {
     let schema = test_tool.input_schema.as_object().unwrap();
     let properties = schema.get("properties").unwrap().as_object().unwrap();
     assert!(properties.is_empty());
+}
+
+/// REA-2026-07-26-A6: credential redaction regression (structural).
+///
+/// The activation output type must have **no field capable of carrying a
+/// credential**.  Assert the serialized field set is exactly the known
+/// non-secret contract so that any future field that could hold a key (for
+/// example `api_key`, `resolved_secret`) fails this test.  Per ADR-077 §6 the
+/// resolved key is read at activation time only and is never stored in config,
+/// output, warnings, or audit fields.
+///
+/// This test is deterministic and never mutates the process environment.
+#[tokio::test]
+async fn test_configure_embeddings_output_contract_has_no_credential_field() {
+    let output = ConfigureEmbeddingsOutput {
+        success: true,
+        provider: "openai".to_string(),
+        model: "text-embedding-3-small".to_string(),
+        dimension: 1536,
+        message: "Activated openai provider with model text-embedding-3-small (dimension: 1536, revision: 1)".to_string(),
+        warnings: vec![],
+        activation_revision: Some(1),
+        reindex_required: false,
+        provider_health: "active".to_string(),
+    };
+
+    let json = serde_json::to_value(&output).expect("output must serialize");
+    let obj = json
+        .as_object()
+        .expect("output must serialize to an object");
+
+    // Exactly the public, non-secret contract — nothing else may be exposed.
+    let allowed: std::collections::BTreeSet<&str> = [
+        "success",
+        "provider",
+        "model",
+        "dimension",
+        "message",
+        "warnings",
+        "activation_revision",
+        "reindex_required",
+        "provider_health",
+    ]
+    .into_iter()
+    .collect();
+    let actual: std::collections::BTreeSet<&str> = obj.keys().map(String::as_str).collect();
+    assert_eq!(
+        actual, allowed,
+        "activation output must expose only the known non-secret fields"
+    );
+
+    // No field name may be credential-bearing.
+    for key in obj.keys() {
+        let lower = key.to_lowercase();
+        for needle in ["key", "secret", "token", "credential", "password", "auth"] {
+            assert!(
+                !lower.contains(needle),
+                "field name must not be credential-bearing: {key}"
+            );
+        }
+    }
+}
+
+/// REA-2026-07-26-A6: credential redaction regression (behavioral).
+///
+/// When activation fails for a missing credential, the error must name the
+/// environment variable to set (usability) but must never carry credential
+/// material.  The variable simply does not exist, so this drives the real
+/// `execute_configure_embeddings` error path **without mutating the process
+/// environment** (no `unsafe`).
+///
+/// The structural guarantee that the output type cannot carry a credential is
+/// covered by `test_configure_embeddings_output_contract_has_no_credential_field`;
+/// this test guards the error-message / usability contract.
+#[tokio::test]
+async fn test_configure_embeddings_credential_error_names_var_not_value() {
+    const UNSET_VAR: &str = "__RSLM_UNSET_CREDENTIAL_VAR__";
+
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "openai".to_string(),
+        model: Some("text-embedding-3-small".to_string()),
+        api_key_env: Some(UNSET_VAR.to_string()),
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    let result = tools.execute_configure_embeddings(input).await;
+    let err = result.expect_err("missing credential must fail activation");
+    let msg = err.to_string();
+
+    // The error tells the operator which variable to set...
+    assert!(
+        msg.contains(UNSET_VAR),
+        "error should name the environment variable: {msg}"
+    );
+
+    // ...and contains no credential-value material.
+    for sentinel in ["sk-", "Bearer ", "key=", "token=", "secret="] {
+        assert!(
+            !msg.contains(sentinel),
+            "error must not contain credential material '{sentinel}': {msg}"
+        );
+    }
 }

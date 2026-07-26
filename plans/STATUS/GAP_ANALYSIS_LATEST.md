@@ -1,7 +1,7 @@
-# Gap Analysis — 2026-07-25
+# Gap Analysis — 2026-07-26
 
-**Generated**: 2026-07-25  
-**Audit commit**: `5b4b9776` (`main`)  
+**Generated**: 2026-07-26  
+**Audit commit**: `e0f7f712` (`main`) + open PR `feat/adr077-a6-validate-document`  
 **Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 
@@ -26,7 +26,9 @@
 | G-P1-10 open hygiene/perf PRs | ✅ #887, #888, #889, #891, #893 all merged |
 | R-F8 relationship show polish (GO spike) | ✅ #893 — box-drawing panel + unit tests |
 | R-F9 HNSW persistence + eviction (GO spike) | ✅ #893 — file_dump/load + capacity eviction |
-| Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (this PR) |
+| Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (#894) |
+| ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) — exact-provider factory + atomic runtime seam + MCP end-to-end |
+| ADR-077 A6 validate / document / gate | ✅ this PR — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
 
 ## Open gaps (current)
 

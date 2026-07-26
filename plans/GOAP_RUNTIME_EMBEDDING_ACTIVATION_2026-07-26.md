@@ -1,11 +1,22 @@
 # GOAP: Runtime Embedding Provider Activation
 
-- **Status**: Proposed implementation plan; no production code changed
+- **Status**: Implemented — A1-A6 complete (code `9ef4b742`, coverage `e0f7f712`, A6 validate/document this PR)
 - **Date**: 2026-07-26
 - **Audit checkout**: `main` at `7c854efb`
-- **Decision**: [ADR-077](adr/ADR-077-Runtime-Embedding-Provider-Activation.md)
+- **Decision**: [ADR-077](adr/ADR-077-Runtime-Embedding-Provider-Activation.md) — Accepted / Implemented
 - **Relevant constraints**: ADR-024, ADR-056, ADR-072, ADR-074, Tokio-only async, postcard, zero clippy warnings
 - **Strategy**: Sequential contract and core seam, then parallel provider/test work, followed by converging MCP and end-to-end validation
+
+## Implementation status
+
+| Package | Status | Evidence |
+|---|---|---|
+| REA-2026-07-26-A1 contract baseline | ✅ Done | `9ef4b742` — typed `ActivationError`, Azure/Custom/Cohere rejected, regression tests in `memory-mcp/tests/embeddings_integration.rs` |
+| REA-2026-07-26-A2 core runtime + storage seam | ✅ Done | `9ef4b742` — `activate_semantic_service`, `active_embedding` slot, no lock across `.await` (`memory-core/src/memory/embedding_activation.rs`) |
+| REA-2026-07-26-A3 exact-provider factory | ✅ Done | `9ef4b742` — `SemanticService::build_exact` (no fallback), feature-gated OpenAI/Mistral, dimension validation |
+| REA-2026-07-26-A4 identity / invalidation | ✅ Done | `9ef4b742` — `provider:model:dimension` identity, `reindex_required`, revision participates in ADR-074 identity |
+| REA-2026-07-26-A5 MCP end-to-end | ✅ Done | `9ef4b742` — `configure_embeddings` activates live; status/generate/query/search read `live_semantic_service()` |
+| REA-2026-07-26-A6 validate / document / gate | ✅ Done | coverage `e0f7f712`; concurrency + credential-redaction regression tests and `docs/API_REFERENCE.md` + `docs/EMBEDDINGS_CLI_GUIDE.md` activation docs (this PR) |
 
 ## Analysis
 

@@ -1,7 +1,7 @@
-# Validation Latest — 2026-07-25
+# Validation Latest — 2026-07-26
 
-**Goal**: Reconcile plans trackers with live post-v0.1.36 + post-#893 state.  
-**Workspace**: `0.1.37` · **Tag**: `v0.1.36` · **HEAD**: `5b4b9776`  
+**Goal**: Reconcile plans trackers with live post-v0.1.36 + ADR-077 (A1-A6) state.  
+**Workspace**: `0.1.37` · **Tag**: `v0.1.36` · **HEAD**: `e0f7f712` + open PR `feat/adr077-a6-validate-document`  
 
 ## Evidence
 
@@ -18,6 +18,8 @@
 | ADR-071 | auto-checkpoint on Abstained | ✅ Implemented |
 | ADR-072 | authority + governance | ✅ Implemented |
 | ADR-073 | S1.1c NO-GO, fail-closed | ✅ Implemented |
+| ADR-077 A1-A5 | runtime embedding activation (exact factory, atomic seam, MCP e2e) | ✅ main `9ef4b742`/`e0f7f712` |
+| ADR-077 A6 | activation docs + concurrency + zero-unsafe redaction regression tests | ✅ this PR |
 | Prod `todo!` / unimplemented | live search | 0 |
 
 ## Closed validation goals
@@ -32,11 +34,13 @@
 | R-F9 HNSW persistence | ✅ #893 |
 | 6 new domain skills (40 total) | ✅ #894 |
 | ADR-071/072/073 status updated | ✅ #894 |
+| ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) |
+| ADR-077 A6 validate / document / gate | ✅ this PR |
 
 ## Still open after this validation
 
 | Item | Next step |
 |------|-----------|
-| #894 | Merge when CI CLEAN |
+| ADR-077 A6 PR | Merge when CI CLEAN |
 | R-F* remaining | DEFER until individual GO spikes |
 | v0.1.37 release | Trigger when unreleased commits accumulate |

@@ -1,9 +1,9 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-25  
-- **Status**: Quiescent — all sprint goals complete; next action is next release  
+- **Last Updated**: 2026-07-26  
+- **Status**: ADR-077 runtime embedding activation complete (A1-A6); next action is next release  
 - **Workspace**: `0.1.37` · **Tag**: `v0.1.36`  
-- **Plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
+- **Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## Active goals (2026-07-25)
@@ -28,7 +28,9 @@ No open code goals. Next trigger: decide to cut v0.1.37 or begin a P2 spike.
 | Cosine perf (8-way unrolled) | ✅ #888 |
 | Gap tasks (ADR-074 docs, G-P1-12 pattern extract) | ✅ #891 |
 | R-F8 CLI relationship show polish + R-F9 HNSW persistence | ✅ #893 |
-| 6 new domain skills (40 total, all routed) | ✅ this PR |
+| 6 new domain skills (40 total, all routed) | ✅ #894 |
+| ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) |
+| ADR-077 A6 validate / document / gate | ✅ this PR |
 | Full gap audit — 0 P0/P1 code gaps | ✅ 2026-07-25 |
 
 ## Completed goal series (pointer only)

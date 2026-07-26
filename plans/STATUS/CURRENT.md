@@ -1,17 +1,17 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-25  
+**Last Updated**: 2026-07-26  
 **Released Version**: v0.1.36  
 **Workspace Version**: 0.1.37  
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`  
-**Branch**: `main` @ `5b4b9776`  
+**Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
+**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | *(none)* |
+| Open PRs | ADR-077 A6 validate/document |
 | Open issues | *(none)* |
 
 ## Snapshot
@@ -27,7 +27,9 @@
 | Skill evals / routes | 40/40 |
 | R-F8 relationship info show polish | ✅ #893 |
 | R-F9 HNSW persistence + eviction | ✅ #893 |
-| 6 new domain skills added | ✅ this PR |
+| 6 new domain skills added | ✅ #894 |
+| ADR-077 runtime embedding activation (A1-A5) | ✅ main (`9ef4b742`, `e0f7f712`) |
+| ADR-077 A6 validate / document / gate | ✅ this PR |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
 | P0 plan gaps | **None open** |
@@ -52,6 +54,8 @@
 | Recommendations #878 | ✅ Merged |
 | R-F8 CLI relationship panel + R-F9 HNSW #893 | ✅ Merged |
 | 6 new domain skills (40 total, all routed) | ✅ Merged |
+| ADR-077 runtime embedding activation A1-A5 | ✅ Merged (main) |
+| ADR-077 A6 validate / document / gate | ✅ this PR |
 
 ## Canonical companions
 

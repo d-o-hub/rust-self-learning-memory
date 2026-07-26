@@ -182,3 +182,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Poll `https://crates.io/api/v1/crates/<name>/versions` until the expected version appears (max 20 attempts × 15s = 5min ceiling). Also use `--locked` on all publish commands and declare explicit `needs` for all transitive workspace dependencies.
 - 2026 best practice: Trusted Publishing (OIDC) eliminates API token management entirely. Consider migration for crates.io publishing.
 - Reference: <https://forge.rust-lang.org/infra/docs/trusted-publishing.html>, <https://crates.io/docs/trusted-publishing>
+
+## LESSON-023: Two CI killers on every commit — rustdoc links and commit body line length
+
+- Issue: `cargo doc --no-deps --document-private-items` with `RUSTFLAGS="-D warnings"` treats broken intra-doc links as errors (`rustdoc::broken-intra-doc-links`). A reference like `[activate_semantic_service]` without a qualifying path (`Self::`, `crate::path::`) fails in CI even though it compiles fine. Commitlint also enforces `body-max-line-length ≤ 100`.
+- Root Cause: (1) Rustdoc resolves intra-doc links in the scope of the item, not the module. Methods on `Self` need `Self::method_name`. Free functions need full crate paths. (2) Commit bodies with lines > 100 characters (including bullet points with long Rust type names) fail commitlint.
+- Solution:
+  1. Always use `Self::method_name` for links to other methods on the same type.
+  2. Run `cargo doc --no-deps --document-private-items 2>&1 | grep error` locally before pushing.
+  3. Keep every commit body line ≤ 100 chars. Wrap inline code references to next line if needed.
+  4. The pre-push gate is: `cargo doc --no-deps --document-private-items` (already in AGENTS.md Required Checks).
+- Prevention: This lesson extends the AGENTS.md "Required Checks Before Commit" list — `cargo doc` is listed there; rustdoc link errors are the silent part of it.
+- Reference: PR #896, CI run 30197204039.

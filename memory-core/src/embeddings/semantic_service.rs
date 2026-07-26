@@ -7,8 +7,11 @@ use anyhow::Result;
 
 use super::config::{EmbeddingConfig, ProviderConfig};
 use super::local::LocalEmbeddingProvider;
+#[cfg(feature = "mistral")]
+use super::mistral::MistralEmbeddingProvider;
 #[cfg(feature = "openai")]
 use super::openai::OpenAIEmbeddingProvider;
+use super::provider::EmbeddingHealth;
 use super::similarity::SimilaritySearchResult;
 use super::storage::EmbeddingStorageBackend;
 
@@ -151,6 +154,122 @@ impl SemanticService {
             _ => super::config::OpenAIConfig::default(),
         };
         let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, openai_config)?);
+        Ok(Self::new(provider, storage, config))
+    }
+
+    /// Build an exact-provider service — no cross-provider fallback.
+    ///
+    /// Unlike [`with_fallback`](Self::with_fallback), this factory honours the
+    /// requested [`ProviderConfig`] precisely.  It will return an error rather
+    /// than silently substituting a different provider.
+    ///
+    /// # Arguments
+    /// * `provider_config` - The provider and model to use.  Must be `Local`,
+    ///   `OpenAI` (feature = `"openai"`), or `Mistral` (feature = `"mistral"`).
+    /// * `api_key` - Pre-resolved API key for cloud providers; `None` for local.
+    /// * `storage` - Embedding storage backend.
+    /// * `embedding_config` - General embedding parameters (threshold, batch
+    ///   size, etc.).  Its `provider` field is replaced by `provider_config`.
+    ///
+    /// # Errors
+    /// Returns an error when:
+    /// - A required API key is absent.
+    /// - The provider feature flag is not compiled in.
+    /// - Provider construction fails.
+    /// - The health probe (`provider.embed_text("probe")`) fails.
+    /// - The provider's reported dimension does not match the config dimension.
+    /// - An unsupported provider variant (`AzureOpenAI`, `Custom`) is requested.
+    pub async fn build_exact(
+        provider_config: &ProviderConfig,
+        api_key: Option<String>,
+        storage: Box<dyn EmbeddingStorageBackend>,
+        embedding_config: EmbeddingConfig,
+    ) -> Result<Self> {
+        let expected_dim = provider_config.effective_dimension();
+
+        // Build the provider box — exact match, no fallback.
+        let provider: Box<dyn super::provider::EmbeddingProvider> = match provider_config {
+            ProviderConfig::Local(cfg) => {
+                let p = LocalEmbeddingProvider::new(cfg.clone()).await?;
+                let health = p.health_state().await;
+                if health != EmbeddingHealth::Real {
+                    anyhow::bail!(
+                        "Local embedding provider is not production-ready (health={health:?}). \
+                         Ensure the model is available or set LocalConfig::allow_mock_fallback \
+                         only for tests."
+                    );
+                }
+                Box::new(p)
+            }
+
+            ProviderConfig::OpenAI(cfg) => {
+                #[cfg(feature = "openai")]
+                {
+                    let key = api_key.ok_or_else(|| {
+                        anyhow::anyhow!(
+                            "OPENAI_API_KEY not set — cannot build OpenAI embedding provider"
+                        )
+                    })?;
+                    Box::new(OpenAIEmbeddingProvider::new(key, cfg.clone())?)
+                }
+                #[cfg(not(feature = "openai"))]
+                {
+                    // Suppress unused-variable warning when feature is off.
+                    let _ = (cfg, api_key);
+                    anyhow::bail!(
+                        "Feature 'openai' not enabled — recompile with --features openai to use \
+                         the OpenAI embedding provider"
+                    );
+                }
+            }
+
+            ProviderConfig::Mistral(cfg) => {
+                #[cfg(feature = "mistral")]
+                {
+                    let key = api_key.ok_or_else(|| {
+                        anyhow::anyhow!(
+                            "MISTRAL_API_KEY not set — cannot build Mistral embedding provider"
+                        )
+                    })?;
+                    Box::new(MistralEmbeddingProvider::new(key, cfg.clone())?)
+                }
+                #[cfg(not(feature = "mistral"))]
+                {
+                    let _ = (cfg, api_key);
+                    anyhow::bail!(
+                        "Feature 'mistral' not enabled — recompile with --features mistral to \
+                         use the Mistral embedding provider"
+                    );
+                }
+            }
+
+            ProviderConfig::AzureOpenAI(_) | ProviderConfig::Custom(_) => {
+                anyhow::bail!(
+                    "Provider not supported for MCP activation: use local, openai, or mistral"
+                );
+            }
+        };
+
+        // Health probe — verify the provider can actually embed text.
+        provider
+            .embed_text("probe")
+            .await
+            .map_err(|e| anyhow::anyhow!("Embedding provider health probe failed: {e}"))?;
+
+        // Dimension sanity check.
+        let actual_dim = provider.embedding_dimension();
+        if actual_dim != expected_dim {
+            anyhow::bail!(
+                "Embedding dimension mismatch: provider reports {actual_dim} but config \
+                 expects {expected_dim}"
+            );
+        }
+
+        // Stamp the resolved provider config into the embedding config so the
+        // service and its callers see consistent metadata.
+        let mut config = embedding_config;
+        config.provider = provider_config.clone();
+
         Ok(Self::new(provider, storage, config))
     }
 

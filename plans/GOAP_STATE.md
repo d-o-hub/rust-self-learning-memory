@@ -68,4 +68,5 @@ pattern_extract_command           = true  (ADR-076 §5 — G-P1-12, #891)
 r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tests)
 r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
 skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
+runtime_embedding_activation      = true  (ADR-077 Implemented — configure_embeddings now activates exact provider)
 ```

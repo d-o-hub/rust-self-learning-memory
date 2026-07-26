@@ -66,6 +66,9 @@ fn test_test_embeddings_tool_definition() {
     assert!(properties.is_empty());
 }
 
+/// REA-2026-07-26 A5: local provider activation.  In CI the sentence-transformers
+/// model is not downloaded, so `build_exact` rejects the degraded-mock provider.
+/// When a real model IS available the output must reflect a live activation.
 #[tokio::test]
 async fn test_configure_embeddings_local() {
     let memory = Arc::new(SelfLearningMemory::new());
@@ -84,13 +87,24 @@ async fn test_configure_embeddings_local() {
     };
 
     let result = tools.execute_configure_embeddings(input).await;
-    assert!(result.is_ok());
-
-    let output = result.unwrap();
-    assert!(output.success);
-    assert_eq!(output.provider, "local");
-    assert_eq!(output.dimension, 384);
-    assert!(output.warnings.is_empty());
+    match result {
+        Ok(output) => {
+            assert!(output.success);
+            assert_eq!(output.provider, "local");
+            assert_eq!(output.dimension, 384);
+            assert_eq!(output.provider_health, "active");
+            assert!(output.activation_revision.is_some());
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            assert!(
+                msg.contains("activation failed")
+                    || msg.contains("not production-ready")
+                    || msg.contains("Local embedding model unavailable"),
+                "Unexpected error: {msg}"
+            );
+        }
+    }
 }
 
 #[tokio::test]
@@ -180,30 +194,31 @@ async fn test_test_embeddings() {
     assert!(output.message.contains("not yet configured"));
 }
 
+/// REA-2026-07-26 A1: Azure is no longer selectable — it is rejected at the
+/// provider-parsing stage before field validation.
 #[tokio::test]
-async fn test_configure_embeddings_azure_missing_fields() {
+async fn test_configure_embeddings_azure_rejected() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
 
     let input = ConfigureEmbeddingsInput {
         provider: "azure".to_string(),
         model: None,
-        api_key_env: None, // Don't require API key for this validation test
+        api_key_env: None,
         similarity_threshold: None,
         batch_size: None,
         base_url: None,
         api_version: None,
-        resource_name: None,   // Missing required field
-        deployment_name: None, // Missing required field
+        resource_name: None,
+        deployment_name: None,
     };
 
     let result = tools.execute_configure_embeddings(input).await;
     assert!(result.is_err());
     let error_msg = result.unwrap_err().to_string();
     assert!(
-        error_msg.contains("deployment_name") || error_msg.contains("resource_name"),
-        "Expected error about missing deployment_name or resource_name, got: {}",
-        error_msg
+        error_msg.contains("Azure provider is not supported"),
+        "Expected 'Azure provider is not supported', got: {error_msg}"
     );
 }
 

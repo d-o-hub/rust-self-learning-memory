@@ -3,8 +3,9 @@
 
 use do_memory_core::SelfLearningMemory;
 use do_memory_mcp::mcp::tools::embeddings::{
-    ConfigureEmbeddingsInput, EmbeddingTools, QuerySemanticMemoryInput, configure_embeddings_tool,
-    query_semantic_memory_tool, test_embeddings_tool,
+    ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, EmbeddingTools,
+    QuerySemanticMemoryInput, configure_embeddings_tool, query_semantic_memory_tool,
+    test_embeddings_tool,
 };
 use do_memory_mcp::server::MemoryMCPServer;
 use do_memory_mcp::types::SandboxConfig;
@@ -25,7 +26,6 @@ fn disable_wasm_for_tests() {
 
 /// Create a test MCP server
 async fn create_test_server() -> MemoryMCPServer {
-    // Disable WASM for tests
     disable_wasm_for_tests();
 
     let memory = Arc::new(SelfLearningMemory::new());
@@ -45,7 +45,6 @@ async fn test_embedding_tools_registered() {
 
     let tools = server.list_tools().await;
 
-    // Verify embedding tools are registered
     assert!(
         tools.iter().any(|t| t.name == "configure_embeddings"),
         "configure_embeddings tool should be registered"
@@ -60,6 +59,18 @@ async fn test_embedding_tools_registered() {
     );
 }
 
+/// REA-2026-07-26 A5: Local provider activation attempt.
+///
+/// In CI, `LocalEmbeddingProvider` uses a mock/degraded model because the
+/// sentence-transformers model file is not available.  `build_exact` rejects
+/// degraded-mock providers, so the call returns an error.  This test covers
+/// both possible outcomes:
+///
+/// - **If a real local model IS available** (feature = `local-embeddings` and
+///   model downloaded): `configure_embeddings` succeeds and `activation_revision`
+///   is `Some(1)`, `provider_health` is `"active"`.
+/// - **If no real model is available** (CI default): the call returns an error
+///   because `build_exact` refuses to install a mock provider.
 #[tokio::test]
 async fn test_configure_embeddings_local_provider() {
     let memory = Arc::new(SelfLearningMemory::new());
@@ -78,20 +89,34 @@ async fn test_configure_embeddings_local_provider() {
     };
 
     let result = tools.execute_configure_embeddings(input).await;
-    assert!(
-        result.is_ok(),
-        "Local provider configuration should succeed"
-    );
 
-    let output = result.unwrap();
-    assert!(output.success, "Configuration should be successful");
-    assert_eq!(output.provider, "local");
-    assert_eq!(output.model, "sentence-transformers/all-MiniLM-L6-v2");
-    assert_eq!(output.dimension, 384);
-    assert!(
-        output.warnings.is_empty(),
-        "No warnings for valid local config"
-    );
+    match result {
+        Ok(output) => {
+            // Real model available — activation must be live.
+            assert!(output.success, "success flag must be true");
+            assert_eq!(output.provider, "local");
+            assert_eq!(output.model, "sentence-transformers/all-MiniLM-L6-v2");
+            assert_eq!(output.dimension, 384);
+            assert_eq!(
+                output.provider_health, "active",
+                "provider_health must be 'active' after real activation"
+            );
+            assert!(
+                output.activation_revision.is_some(),
+                "activation_revision must be set after activation"
+            );
+        }
+        Err(e) => {
+            // No real model in this environment — build_exact correctly rejected.
+            let msg = e.to_string();
+            assert!(
+                msg.contains("activation failed")
+                    || msg.contains("not production-ready")
+                    || msg.contains("Local embedding model unavailable"),
+                "Unexpected error for missing local model: {msg}"
+            );
+        }
+    }
 }
 
 #[tokio::test]
@@ -99,7 +124,8 @@ async fn test_configure_embeddings_openai_models() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
 
-    // Test text-embedding-3-small
+    // Test text-embedding-3-small — will fail without a real API key but must
+    // not panic and must fail with a specific error (missing cred or probe fail).
     let input_small = ConfigureEmbeddingsInput {
         provider: "openai".to_string(),
         model: Some("text-embedding-3-small".to_string()),
@@ -113,10 +139,22 @@ async fn test_configure_embeddings_openai_models() {
     };
 
     let result_small = tools.execute_configure_embeddings(input_small).await;
-    // May succeed or fail depending on API key, but shouldn't panic
-    if let Ok(output) = result_small {
-        assert_eq!(output.model, "text-embedding-3-small");
-        assert_eq!(output.dimension, 1536);
+    match result_small {
+        Ok(output) => {
+            assert_eq!(output.model, "text-embedding-3-small");
+            assert_eq!(output.dimension, 1536);
+            assert_eq!(output.provider_health, "active");
+        }
+        Err(e) => {
+            // Expected without a real key set.
+            let msg = e.to_string();
+            assert!(
+                msg.contains("not set")
+                    || msg.contains("activation failed")
+                    || msg.contains("probe failed"),
+                "Unexpected error: {msg}"
+            );
+        }
     }
 
     // Test text-embedding-3-large
@@ -157,55 +195,215 @@ async fn test_configure_embeddings_mistral() {
     };
 
     let result = tools.execute_configure_embeddings(input).await;
-    if let Ok(output) = result {
-        assert_eq!(output.model, "mistral-embed");
-        assert_eq!(output.dimension, 1024);
+    match result {
+        Ok(output) => {
+            assert_eq!(output.model, "mistral-embed");
+            assert_eq!(output.dimension, 1024);
+            assert_eq!(output.provider_health, "active");
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            assert!(
+                msg.contains("not set")
+                    || msg.contains("activation failed")
+                    || msg.contains("not enabled"),
+                "Unexpected error: {msg}"
+            );
+        }
     }
 }
 
 #[tokio::test]
-async fn test_configure_embeddings_azure_validation() {
+async fn test_configure_embeddings_azure_rejected() {
+    // REA-2026-07-26 A1: Azure provider is no longer selectable.
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
 
-    // Missing required fields should fail
-    let input_missing = ConfigureEmbeddingsInput {
-        provider: "azure".to_string(),
-        model: None,
-        api_key_env: None, // Don't check API key, just test required field validation
+    for provider_name in &["azure", "azure_openai"] {
+        let input = ConfigureEmbeddingsInput {
+            provider: (*provider_name).to_string(),
+            model: None,
+            api_key_env: Some("AZURE_OPENAI_API_KEY".to_string()),
+            similarity_threshold: None,
+            batch_size: None,
+            base_url: None,
+            api_version: Some("2023-05-15".to_string()),
+            resource_name: Some("my-resource".to_string()),
+            deployment_name: Some("my-deployment".to_string()),
+        };
+
+        let result = tools.execute_configure_embeddings(input).await;
+        assert!(
+            result.is_err(),
+            "Azure provider '{}' should be rejected",
+            provider_name
+        );
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("Azure provider is not supported"),
+            "Expected 'Azure provider is not supported' in error for '{}', got: {}",
+            provider_name,
+            err_msg
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_configure_embeddings_custom_rejected() {
+    // REA-2026-07-26 A1: Custom provider is no longer selectable.
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "custom".to_string(),
+        model: Some("my-model".to_string()),
+        api_key_env: None,
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: Some("https://my-endpoint.example.com".to_string()),
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    let result = tools.execute_configure_embeddings(input).await;
+    assert!(result.is_err(), "Custom provider should be rejected");
+    let err_msg = result.unwrap_err().to_string();
+    assert!(
+        err_msg.contains("Custom provider is not supported"),
+        "Expected 'Custom provider is not supported', got: {}",
+        err_msg
+    );
+}
+
+// ── REA-2026-07-26 A5: True-activation regression tests ──────────────────────
+//
+// After A5, configure_embeddings either:
+//   a) succeeds and immediately activates the provider (activation_revision=Some,
+//      provider_health="active", and subsequent status/generate reflect it), or
+//   b) fails (no state change to the prior activation).
+//
+// The false-success behavior (configure returns Ok + activation_revision=None)
+// is no longer possible.
+
+/// When `configure_embeddings` returns Ok, the provider must be immediately live:
+/// status must show configured=true and `activation_revision` must be Some.
+///
+/// This test uses a cloud provider without a real key, so it will fail at
+/// `build_exact` and demonstrate failure preservation (status stays unconfigured).
+#[tokio::test]
+async fn test_configure_failure_preserves_unconfigured_status() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(Arc::clone(&memory));
+
+    // Attempt to configure OpenAI without providing a key env var that exists.
+    // This will fail at the credential check or probe stage.
+    let configure_input = ConfigureEmbeddingsInput {
+        provider: "openai".to_string(),
+        model: Some("text-embedding-3-small".to_string()),
+        api_key_env: Some("__NONEXISTENT_KEY_RSLM_TEST__".to_string()),
         similarity_threshold: None,
         batch_size: None,
         base_url: None,
         api_version: None,
-        resource_name: None,   // Missing
-        deployment_name: None, // Missing
+        resource_name: None,
+        deployment_name: None,
     };
 
-    let result = tools.execute_configure_embeddings(input_missing).await;
+    let configure_result = tools.execute_configure_embeddings(configure_input).await;
+    // Must fail — the env var does not exist.
     assert!(
-        result.is_err(),
-        "Azure config should fail without required fields"
+        configure_result.is_err(),
+        "configure must fail when the credential env var is not set"
     );
-    assert!(result.unwrap_err().to_string().contains("required"));
 
-    // Valid Azure configuration
-    let input_valid = ConfigureEmbeddingsInput {
-        provider: "azure".to_string(),
+    // After the failed configure, the status must still report unconfigured —
+    // the failure must not have corrupted the prior (None) activation.
+    let status_result = tools
+        .execute_embedding_provider_status(EmbeddingProviderStatusInput {
+            test_connectivity: false,
+        })
+        .await;
+    assert!(status_result.is_ok());
+    let status_output = status_result.unwrap();
+
+    assert!(
+        !status_output.configured,
+        "status must remain unconfigured after a failed configure attempt"
+    );
+}
+
+/// A successful configure must produce `activation_revision` = `Some` and
+/// `provider_health` = `"active"`.  Because the Local provider requires a real
+/// model that may not be present in CI, we only assert the invariants when
+/// configure returns Ok.
+#[tokio::test]
+async fn test_successful_configure_reports_active_and_revision() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "local".to_string(),
         model: None,
-        api_key_env: Some("AZURE_OPENAI_API_KEY".to_string()),
+        api_key_env: None,
         similarity_threshold: None,
         batch_size: None,
         base_url: None,
-        api_version: Some("2023-05-15".to_string()),
-        resource_name: Some("my-resource".to_string()),
-        deployment_name: Some("my-deployment".to_string()),
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
     };
 
-    let result = tools.execute_configure_embeddings(input_valid).await;
+    let result = tools.execute_configure_embeddings(input).await;
+
     if let Ok(output) = result {
-        assert_eq!(output.provider, "azure");
-        assert_eq!(output.dimension, 1536);
+        // If configure succeeded, these invariants must hold:
+        assert!(output.success, "success flag must be true on Ok result");
+        assert_eq!(
+            output.provider_health, "active",
+            "provider_health must be 'active' after real activation (was '{}')",
+            output.provider_health
+        );
+        assert!(
+            output.activation_revision.is_some(),
+            "activation_revision must be Some after successful activation"
+        );
+        assert_eq!(
+            output.activation_revision,
+            Some(1),
+            "first activation must have revision=1"
+        );
     }
+    // If configure failed (no real model in CI), the test is vacuously passing —
+    // the failure path is covered by test_configure_failure_preserves_unconfigured_status.
+}
+
+/// Cohere provider must still be rejected (regression from before A1).
+#[tokio::test]
+async fn test_configure_embeddings_cohere_rejected() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = ConfigureEmbeddingsInput {
+        provider: "cohere".to_string(),
+        model: None,
+        api_key_env: None,
+        similarity_threshold: None,
+        batch_size: None,
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    let result = tools.execute_configure_embeddings(input).await;
+    assert!(result.is_err(), "Cohere provider should be rejected");
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Cohere provider is not implemented")
+    );
 }
 
 #[tokio::test]
@@ -264,7 +462,6 @@ async fn test_query_semantic_memory_with_filters() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
 
-    // Query with domain filter
     let input_domain = QuerySemanticMemoryInput {
         query: "parse JSON data".to_string(),
         limit: Some(10),
@@ -276,7 +473,6 @@ async fn test_query_semantic_memory_with_filters() {
     let result = tools.execute_query_semantic_memory(input_domain).await;
     assert!(result.is_ok());
 
-    // Query with task type filter
     let input_task = QuerySemanticMemoryInput {
         query: "debug performance issue".to_string(),
         limit: Some(5),
@@ -294,11 +490,10 @@ async fn test_query_semantic_memory_default_params() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
 
-    // Query with minimal parameters (using defaults)
     let input = QuerySemanticMemoryInput {
         query: "test query".to_string(),
-        limit: None,                // Should use default
-        similarity_threshold: None, // Should use default
+        limit: None,
+        similarity_threshold: None,
         domain: None,
         task_type: None,
     };
@@ -307,7 +502,6 @@ async fn test_query_semantic_memory_default_params() {
     assert!(result.is_ok());
 
     let output = result.unwrap();
-    // Default limit is 10
     assert!(output.results_found <= 10);
 }
 
@@ -323,7 +517,6 @@ async fn test_test_embeddings_tool() {
     assert!(!output.available, "Should not be available by default");
     assert_eq!(output.provider, "not-configured");
     assert_eq!(output.dimension, 384);
-    // When no semantic service is configured, sample_embedding is empty
     assert_eq!(output.sample_embedding.len(), 0);
     assert!(!output.message.is_empty());
     assert!(!output.errors.is_empty());
@@ -345,14 +538,11 @@ async fn test_server_execute_configure_embeddings() {
         deployment_name: None,
     };
 
+    // configure_embeddings now either succeeds (real model) or fails (CI).
+    // The server call should never panic regardless.
     let result = server.execute_configure_embeddings(input).await;
-    assert!(result.is_ok(), "Server execution should succeed");
-
-    let output = result.unwrap();
-    assert!(output.is_object(), "Output should be JSON object");
-    assert!(output.get("success").is_some());
-    assert!(output.get("provider").is_some());
-    assert!(output.get("dimension").is_some());
+    // Result may be Ok or Err — we only assert it doesn't panic.
+    drop(result);
 }
 
 #[tokio::test]
@@ -396,7 +586,6 @@ async fn test_server_execute_test_embeddings() {
 async fn test_embeddings_tool_usage_tracking() {
     let server = create_test_server().await;
 
-    // Execute embedding tools
     let _ = server.execute_test_embeddings().await;
 
     let config_input = ConfigureEmbeddingsInput {
@@ -421,7 +610,6 @@ async fn test_embeddings_tool_usage_tracking() {
     };
     let _ = server.execute_query_semantic_memory(query_input).await;
 
-    // Check usage tracking
     let usage = server.get_tool_usage().await;
     assert!(
         usage.contains_key("test_embeddings"),
@@ -439,8 +627,6 @@ async fn test_embeddings_tool_usage_tracking() {
 
 #[tokio::test]
 async fn test_tool_definitions_json_rpc_compliant() {
-    // Verify tool definitions are valid JSON-RPC 2.0 compatible
-
     let configure_tool = configure_embeddings_tool();
     assert_eq!(configure_tool.name, "configure_embeddings");
     assert!(!configure_tool.description.is_empty());
@@ -456,13 +642,11 @@ async fn test_tool_definitions_json_rpc_compliant() {
     let required = obj.get("required").unwrap().as_array().unwrap();
     assert!(required.contains(&serde_json::json!("provider")));
 
-    // Similar checks for query tool
     let query_tool = query_semantic_memory_tool();
     let schema = query_tool.input_schema.as_object().unwrap();
     let required = schema.get("required").unwrap().as_array().unwrap();
     assert!(required.contains(&serde_json::json!("query")));
 
-    // Test tool has no required properties
     let test_tool = test_embeddings_tool();
     let schema = test_tool.input_schema.as_object().unwrap();
     let properties = schema.get("properties").unwrap().as_object().unwrap();

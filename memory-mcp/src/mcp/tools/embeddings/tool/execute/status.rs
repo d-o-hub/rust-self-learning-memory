@@ -16,9 +16,8 @@ impl EmbeddingTools {
 
         info!("Testing embedding provider connectivity");
 
-        // Check if semantic_service is configured
-        if let Some(semantic_service) = self.memory.semantic_service() {
-            // Call provider.embed_text("test") to validate
+        // Use live_semantic_service to pick up dynamically activated providers.
+        if let Some(semantic_service) = self.memory.live_semantic_service().await {
             match semantic_service.provider.embed_text("test").await {
                 Ok(test_embedding) => {
                     let test_time_ms = start_time.elapsed().as_millis() as u64;
@@ -89,8 +88,8 @@ impl EmbeddingTools {
 
         let mut warnings = Vec::new();
 
-        // Check if semantic_service is configured
-        if let Some(semantic_service) = self.memory.semantic_service() {
+        // Use live_semantic_service to pick up dynamically activated providers.
+        if let Some(semantic_service) = self.memory.live_semantic_service().await {
             let config = semantic_service.config();
             let model_name = config.provider.model_name();
             let dimension = config.provider.effective_dimension();
@@ -99,18 +98,14 @@ impl EmbeddingTools {
             let batch_size = config.batch_size;
             let cache_enabled = config.cache_embeddings;
 
-            // Get provider metadata
             let metadata = semantic_service.provider.metadata();
 
-            // Perform connectivity test if requested
             let test_result = if input.test_connectivity {
                 let start_time = std::time::Instant::now();
                 match semantic_service.provider.embed_text("test").await {
                     Ok(embedding) => {
                         let duration_ms = start_time.elapsed().as_millis() as u64;
-                        // Get first 5 values as sample
                         let sample_embedding: Vec<f32> = embedding.into_iter().take(5).collect();
-
                         Some(ProviderTestResult {
                             success: true,
                             duration_ms,
@@ -133,7 +128,6 @@ impl EmbeddingTools {
                 None
             };
 
-            // Check for potential configuration issues
             if similarity_threshold < 0.5 {
                 warnings.push(format!(
                     "Low similarity threshold ({}) may return many irrelevant results",
@@ -153,11 +147,7 @@ impl EmbeddingTools {
                 ));
             }
 
-            // Determine availability based on test result or previous success
-            let available = test_result.as_ref().map(|t| t.success).unwrap_or_else(|| {
-                // If no test was requested, assume available since it was configured
-                true
-            });
+            let available = test_result.as_ref().map(|t| t.success).unwrap_or(true);
 
             return Ok(EmbeddingProviderStatusOutput {
                 configured: true,

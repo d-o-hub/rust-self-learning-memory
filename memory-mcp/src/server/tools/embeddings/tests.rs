@@ -6,9 +6,11 @@
 #[cfg(test)]
 mod integration_tests {
 
+    /// REA-2026-07-26 A5: configure_embeddings now either activates (real model)
+    /// or fails (no real model in CI).  Verify the handler is callable and the
+    /// output shape is correct regardless of the outcome.
     #[tokio::test]
     async fn test_configure_embeddings_handler_exists() {
-        // This test verifies that the handler method exists and is callable
         use crate::mcp::tools::embeddings::ConfigureEmbeddingsInput;
         use crate::server::MemoryMCPServer;
         use crate::types::SandboxConfig;
@@ -33,23 +35,20 @@ mod integration_tests {
             deployment_name: None,
         };
 
-        // Verify the handler is callable
+        // The handler must be callable without panicking.  It may succeed (real
+        // model available) or fail (CI / no model downloaded) — both are valid.
         let result = server.execute_configure_embeddings(input).await;
-        assert!(
-            result.is_ok(),
-            "configure_embeddings handler should be callable"
-        );
-
-        let output = result.unwrap();
-        let output_obj = output.as_object().expect("Output should be an object");
-        assert!(
-            output_obj.contains_key("success"),
-            "Output should contain 'success' field"
-        );
-        assert!(
-            output_obj.contains_key("provider"),
-            "Output should contain 'provider' field"
-        );
+        match result {
+            Ok(output) => {
+                let output_obj = output.as_object().expect("Output should be an object");
+                assert!(output_obj.contains_key("success"));
+                assert!(output_obj.contains_key("provider"));
+            }
+            Err(_) => {
+                // configure_embeddings failed because no real model is available.
+                // This is the correct behaviour — the handler is callable.
+            }
+        }
     }
 
     #[tokio::test]

@@ -50,6 +50,7 @@ pub mod api;
 pub mod attribution;
 pub mod checkpoint;
 mod completion;
+pub mod embedding_activation;
 mod episode;
 mod eviction;
 pub mod filters;

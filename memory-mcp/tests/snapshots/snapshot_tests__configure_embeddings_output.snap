@@ -7,6 +7,9 @@ expression: output
   "provider": "openai",
   "model": "text-embedding-3-small",
   "dimension": 1536,
-  "message": "Successfully configured OpenAI embedding provider",
-  "warnings": []
+  "message": "Activated openai provider with model text-embedding-3-small (dimension: 1536, revision: 1)",
+  "warnings": [],
+  "activation_revision": 1,
+  "reindex_required": false,
+  "provider_health": "active"
 }

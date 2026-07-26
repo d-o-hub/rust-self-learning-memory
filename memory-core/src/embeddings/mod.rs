@@ -37,6 +37,7 @@
 //! # }
 //! ```
 
+pub mod activation;
 mod circuit_breaker;
 pub mod config;
 mod hnsw;
@@ -56,6 +57,7 @@ pub mod simple;
 mod storage;
 mod utils;
 
+pub use activation::EmbeddingActivation;
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState};
 #[cfg(feature = "hnsw")]
 pub use hnsw::HnswVectorIndex;

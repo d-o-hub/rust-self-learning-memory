@@ -20,7 +20,6 @@ impl EmbeddingTools {
 
         info!("Generating embedding for text ({} chars)", input.text.len());
 
-        // Validate text length to prevent resource exhaustion (CWE-770)
         if input.text.len() > crate::constants::MAX_EMBEDDING_TEXT_LEN {
             return Err(anyhow::anyhow!(
                 "Text length {} exceeds maximum {} bytes ({}KB)",
@@ -30,9 +29,8 @@ impl EmbeddingTools {
             ));
         }
 
-        // Check if semantic_service is available
-        if let Some(semantic_service) = self.memory.semantic_service() {
-            // Generate the embedding
+        // Use live_semantic_service to pick up dynamically activated providers.
+        if let Some(semantic_service) = self.memory.live_semantic_service().await {
             let mut embedding = semantic_service
                 .provider
                 .embed_text(&input.text)
@@ -44,7 +42,6 @@ impl EmbeddingTools {
             let dimension = config.provider.effective_dimension();
             let provider = format!("{:?}", config.provider);
 
-            // Normalize if requested
             let normalized = input.normalize;
             if normalized {
                 embedding = do_memory_core::embeddings::normalize_vector(embedding);
@@ -64,11 +61,10 @@ impl EmbeddingTools {
                 provider,
                 generation_time_ms,
                 normalized,
-                token_count: None, // Would need tokenizer integration
+                token_count: None,
             });
         }
 
-        // No semantic service configured
         warn!("Semantic service not available, cannot generate embedding");
         Err(anyhow!(
             "Semantic embeddings not configured. Use configure_embeddings first."
@@ -90,12 +86,13 @@ impl EmbeddingTools {
             input.similarity_threshold
         );
 
-        // Validate embedding dimension
-        let expected_dimension = if let Some(semantic_service) = self.memory.semantic_service() {
-            semantic_service.config().provider.effective_dimension()
-        } else {
-            384 // Default dimension
-        };
+        // Use live_semantic_service to pick up dynamically activated providers.
+        let service_opt = self.memory.live_semantic_service().await;
+
+        let expected_dimension = service_opt
+            .as_ref()
+            .map(|s| s.config().provider.effective_dimension())
+            .unwrap_or(384);
 
         if input.embedding.len() != expected_dimension {
             return Err(anyhow!(
@@ -105,12 +102,10 @@ impl EmbeddingTools {
             ));
         }
 
-        // Check if semantic_service is available
-        if let Some(semantic_service) = self.memory.semantic_service() {
+        if let Some(semantic_service) = service_opt {
             let config = semantic_service.config();
             let provider = format!("{:?}", config.provider);
 
-            // Search for similar episodes using the embedding directly
             let clamped_limit = input.limit.clamp(
                 crate::constants::MIN_QUERY_LIMIT,
                 crate::constants::MAX_QUERY_LIMIT,
@@ -125,7 +120,6 @@ impl EmbeddingTools {
                 .await
                 .map_err(|e| anyhow!("Failed to search by embedding: {}", e))?;
 
-            // Convert to search results
             let results: Vec<EmbeddingSearchResult> = similar_episodes
                 .into_iter()
                 .map(|result| {
@@ -174,7 +168,6 @@ impl EmbeddingTools {
             });
         }
 
-        // No semantic service configured - fallback to standard retrieval with warning
         warn!("Semantic service not available, cannot search by embedding");
         Err(anyhow!(
             "Semantic embeddings not configured. Use configure_embeddings first to enable embedding-based search."

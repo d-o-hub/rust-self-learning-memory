@@ -343,7 +343,7 @@ fn test_configure_embeddings_input() {
     assert_json_snapshot!(input);
 }
 
-/// Test ConfigureEmbeddingsOutput serialization
+/// Test ConfigureEmbeddingsOutput serialization (REA-2026-07-26 A5: active state)
 #[test]
 fn test_configure_embeddings_output() {
     let output = ConfigureEmbeddingsOutput {
@@ -351,8 +351,11 @@ fn test_configure_embeddings_output() {
         provider: "openai".to_string(),
         model: "text-embedding-3-small".to_string(),
         dimension: 1536,
-        message: "Successfully configured OpenAI embedding provider".to_string(),
+        message: "Activated openai provider with model text-embedding-3-small (dimension: 1536, revision: 1)".to_string(),
         warnings: vec![],
+        activation_revision: Some(1),
+        reindex_required: false,
+        provider_health: "active".to_string(),
     };
 
     assert_json_snapshot!(output);

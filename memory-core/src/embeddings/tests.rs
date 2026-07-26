@@ -254,3 +254,75 @@ async fn test_default_creates_valid_service() {
         }
     }
 }
+
+// ── build_exact tests (REA-2026-07-26-A3) ─────────────────────────────────────
+
+/// A LocalConfig with a deliberately bad model name should cause build_exact to
+/// fail because the LocalEmbeddingProvider will be unable to load the model and
+/// health will not be EmbeddingHealth::Real.
+#[tokio::test]
+async fn build_exact_local_unknown_model_returns_err() {
+    use crate::embeddings::config::LocalConfig;
+
+    let bad_config = LocalConfig::new("nonexistent/model-that-does-not-exist", 384);
+    let provider_config = ProviderConfig::Local(bad_config);
+    let storage = Box::new(MockEmbeddingStorage);
+    let embedding_config = EmbeddingConfig::default();
+
+    let result =
+        SemanticService::build_exact(&provider_config, None, storage, embedding_config).await;
+
+    assert!(
+        result.is_err(),
+        "build_exact should fail for an unknown local model but returned Ok"
+    );
+}
+
+/// Passing an AzureOpenAI config must immediately return an Err — that provider
+/// is not supported for MCP activation.
+#[tokio::test]
+async fn build_exact_unsupported_provider_returns_err() {
+    use crate::embeddings::config::AzureOpenAIConfig;
+
+    let azure_config = AzureOpenAIConfig::new("my-deploy", "my-resource", "2024-01-01", 1536);
+    let provider_config = ProviderConfig::AzureOpenAI(azure_config);
+    let storage = Box::new(MockEmbeddingStorage);
+    let embedding_config = EmbeddingConfig::default();
+
+    let result =
+        SemanticService::build_exact(&provider_config, None, storage, embedding_config).await;
+
+    assert!(
+        result.is_err(),
+        "build_exact should fail for AzureOpenAI provider"
+    );
+    let err_msg = result.err().unwrap().to_string();
+    assert!(
+        err_msg.contains("not supported"),
+        "Error message should mention 'not supported', got: {err_msg}"
+    );
+}
+
+/// Passing an OpenAI config with api_key = None must return Err regardless of
+/// whether the openai feature is compiled in.
+#[tokio::test]
+async fn build_exact_openai_missing_key_returns_err() {
+    let provider_config = ProviderConfig::openai_3_small();
+    let storage = Box::new(MockEmbeddingStorage);
+    let embedding_config = EmbeddingConfig::default();
+
+    // api_key = None — must fail
+    let result =
+        SemanticService::build_exact(&provider_config, None, storage, embedding_config).await;
+
+    assert!(
+        result.is_err(),
+        "build_exact should fail when api_key is None for OpenAI"
+    );
+    let err_msg = result.err().unwrap().to_string();
+    // Either "OPENAI_API_KEY not set" (feature on) or "Feature 'openai' not enabled" (feature off)
+    assert!(
+        err_msg.contains("OPENAI_API_KEY") || err_msg.contains("'openai' not enabled"),
+        "Unexpected error message: {err_msg}"
+    );
+}

@@ -25,8 +25,8 @@ impl EmbeddingTools {
             .clone()
             .unwrap_or_else(|| "general".to_string());
 
-        // Check if semantic_service is available
-        if let Some(semantic_service) = self.memory.semantic_service() {
+        // Use live_semantic_service to pick up dynamically activated providers.
+        if let Some(semantic_service) = self.memory.live_semantic_service().await {
             let context = TaskContext {
                 domain: domain.clone(),
                 language: None,

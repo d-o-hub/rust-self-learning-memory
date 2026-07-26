@@ -180,6 +180,23 @@ pub struct ConfigureEmbeddingsOutput {
     pub message: String,
     /// Warnings (if any)
     pub warnings: Vec<String>,
+    /// Monotonically increasing activation revision counter.
+    ///
+    /// `None` when the provider has been *recorded* but not yet activated
+    /// (i.e., the current bug state before REA-2026-07-26 A2 is implemented).
+    /// A `Some(n)` value means the provider was successfully activated and its
+    /// in-memory state revision is `n`.
+    pub activation_revision: Option<u64>,
+    /// Whether the embedding index must be rebuilt because the new provider
+    /// has a different dimension or identity from the previously active one.
+    pub reindex_required: bool,
+    /// Coarse health signal for the provider as seen at configure time.
+    ///
+    /// One of:
+    /// - `"configured"` — recorded but NOT yet probed / activated (current state)
+    /// - `"unavailable"` — provider binary/feature/API is absent at runtime
+    /// - `"error"` — an unexpected error occurred during configuration
+    pub provider_health: String,
 }
 
 /// Input parameters for semantic memory query

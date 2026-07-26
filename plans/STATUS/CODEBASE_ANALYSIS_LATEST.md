@@ -1,6 +1,6 @@
-# Codebase Analysis Latest — 2026-07-25
+# Codebase Analysis Latest — 2026-07-26
 
-**Branch**: `main` @ `5b4b9776`  
+**Branch**: `main` @ `648e11ad`  
 **Workspace**: `0.1.37` · **Released tag**: `v0.1.36`  
 **Companion**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
 
@@ -28,7 +28,7 @@
 | Skills with evals / routes | 40/40 |
 | Fail-closed code execution | Preserved (ADR-073) |
 | Open issues | **0** |
-| Open PRs | **1** (#894 skills+plans, CI green) |
+| Open PRs | **0** (none) |
 | ADR-071 | Accepted / Implemented (auto-checkpoint on Abstained) |
 | ADR-072 | Accepted / Implemented (authority + governance) |
 | ADR-073 | Accepted / Implemented (S1.1c NO-GO, fail-closed) |
@@ -50,7 +50,7 @@
 
 ## Recommended focus order
 
-1. Merge #894 (skills+plans) when CI CLEAN.  
+1. #894 merged; ADR-077 A6 merged #897 — no open PRs.  
 2. Cut v0.1.37 once sufficient unreleased commits accumulate.  
 3. Research spikes only after individual GO artifacts under `plans/STATUS/spikes/`.
 

@@ -1,11 +1,11 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-26  
+**Last Updated**: 2026-07-27  
 **Released Version**: v0.1.36  
 **Workspace Version**: 0.1.37  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
-**Branch**: `main` @ `648e11ad`
+**Branch**: `main` @ `9b14a7a6`
 
 ## Open tracker (live)
 
@@ -42,10 +42,16 @@
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
 | P2 | Cut v0.1.37 when unreleased commits accumulate | release | future trigger |
 
-## Recent completed (2026-07-20…25)
+## Recent completed (2026-07-26…27)
 
 | Wave | Result |
 |------|--------|
+| PR queue cleanup (GOAP swarm orchestration) | ✅ 5 PRs → 0 open |
+| cargo-mutants workspace path fix #901 | ✅ Merged (fixes #898) |
+| Dependabot actions-all #902 | ✅ Merged |
+| Dependabot rust-patch-minor (14 updates) #903 | ✅ Merged |
+| Dependabot rust-major (serial_test, base64, jsonwebtoken) #904 | ✅ Merged |
+| Duplicate PR #899 closed (superseded by #901) | ✅ Closed |
 | Ship v0.1.36 + GitHub Release artifacts | ✅ |
 | Post-bump 0.1.37 #886 | ✅ Merged |
 | Docs integrity unblock #885 | ✅ Merged |

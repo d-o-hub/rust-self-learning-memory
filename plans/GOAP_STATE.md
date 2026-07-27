@@ -1,8 +1,8 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-26  
+- **Last Updated**: 2026-07-27  
 - **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
-- **Branch**: `main` @ `648e11ad`  
+- **Branch**: `main` @ `9b14a7a6`  
 - **Open PRs**: none  
 - **Open issues**: none  
 - **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
@@ -15,6 +15,9 @@
 
 | Package | Status |
 |---------|--------|
+| PR queue cleanup (GOAP swarm) | ✅ 5 PRs → 0 open (2026-07-27) |
+| cargo-mutants workspace fix #901 | ✅ Merged (fixes #898) |
+| Dependabot batch #902/#903/#904 | ✅ Merged |
 | R-A1 ship v0.1.36 | ✅ Released |
 | R-A2 post-bump 0.1.37 | ✅ #886 |
 | R-E2 medium-risk skill evals | ✅ #883 |
@@ -34,6 +37,7 @@
 
 | Campaign | Result |
 |----------|--------|
+| PR queue cleanup (GOAP swarm orchestration) | ✅ 2026-07-27 |
 | v0.1.36 ship + post-bump | ✅ 2026-07-22…23 |
 | Recommendations #878 | ✅ |
 | F4 remainder / missing tasks / harness | ✅ #873/#874/#870 family |

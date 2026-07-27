@@ -2,10 +2,10 @@
 
 **Last Updated**: 2026-07-27  
 **Released Version**: v0.1.36  
-**Workspace Version**: 0.1.37  
+**Workspace Version**: 0.1.37 (release preparation in progress)  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
-**Branch**: `main` @ `9b14a7a6`
+**Branch**: `main` @ `eabbdc63`
 
 ## Open tracker (live)
 
@@ -38,9 +38,9 @@
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
+| P0 | Cut v0.1.37 release (31 commits ready) | release | 🚀 IN PROGRESS |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
-| P2 | Cut v0.1.37 when unreleased commits accumulate | release | future trigger |
 
 ## Recent completed (2026-07-26…27)
 

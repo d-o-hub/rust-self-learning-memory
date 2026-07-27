@@ -18,6 +18,7 @@ module.exports = {
         'ci',       // Changes to CI configuration files and scripts
         'chore',    // Other changes that don't modify src or test files
         'revert',   // Reverts a previous commit
+        'release',  // Release preparation (e.g. "release: prepare vX.Y.Z")
       ],
     ],
     // Subject must not be empty

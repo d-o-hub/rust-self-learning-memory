@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "cargo-mutants-workspace skill exists",
+      "exec": "test -f .agents/skills/cargo-mutants-workspace/SKILL.md"
+    },
+    {
+      "name": "contains-workspace-relative-guideline",
+      "description": "Guidelines mention workspace root or workspace-relative path targeting",
+      "exec": "rg -qi 'workspace root|workspace-relative' .agents/skills/cargo-mutants-workspace/SKILL.md"
+    },
+    {
+      "name": "contains-file-counting-guard-guideline",
+      "description": "Guidelines mention verifying files exist or counting files",
+      "exec": "rg -qi 'verify|counting|exist' .agents/skills/cargo-mutants-workspace/SKILL.md"
+    }
+  ]
+}

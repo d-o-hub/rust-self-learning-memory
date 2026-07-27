@@ -80,6 +80,15 @@ jobs:
       - name: Install cargo-mutants
         run: cargo install --locked cargo-mutants
 
+      - name: Verify mutation target files exist
+        run: |
+          FILE_COUNT=$(find memory-core/src/reward memory-core/src/retrieval memory-core/src/retry memory-core/src/patterns -name '*.rs' 2>/dev/null | wc -l)
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "ERROR: No source files found for mutation targets. Check --file paths."
+            exit 1
+          fi
+          echo "Found $FILE_COUNT source files for mutation testing"
+
       - name: Run mutation testing
         run: |
           TIMEOUT="${{ github.event.inputs.timeout || '300' }}"
@@ -104,10 +113,10 @@ jobs:
             cargo mutants \
               --package do-memory-core \
               --timeout "$TIMEOUT" \
-              --file 'src/reward/**/*.rs' \
-              --file 'src/retrieval/**/*.rs' \
-              --file 'src/retry/**/*.rs' \
-              --file 'src/patterns/**/*.rs' \
+              --file 'memory-core/src/reward/**/*.rs' \
+              --file 'memory-core/src/retrieval/**/*.rs' \
+              --file 'memory-core/src/retry/**/*.rs' \
+              --file 'memory-core/src/patterns/**/*.rs' \
               --output mutants.out \
               -- --lib
           fi

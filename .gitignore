@@ -104,6 +104,7 @@ mcp-config-*.json
 # Claude local configuration files only
 .claude/**/*.local.*
 .claude/**/.local/
+.claude/worktrees/
 .blackboxcli/settings.json
 *.proptest-regressions
 .memory-traces/

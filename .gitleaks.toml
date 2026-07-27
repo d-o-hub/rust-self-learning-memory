@@ -16,6 +16,11 @@ useDefault = true
     '''benches/''',
     '''examples/''',
     '''test-utils/''',
+    # Historical files removed from tree but present in git history
+    '''.env''',
+    '''mcp.json''',
+    '''mcp-config-memory.json''',
+    '''.claude/agents/payments/agentic-payments.md''',
   ]
   # Documentation examples showing API key formats (not real secrets)
   regexes = [
@@ -24,4 +29,11 @@ useDefault = true
     # Placeholder test keys
     '''sk-invalid-key-12345''',
     '''test-key-[a-zA-Z0-9]+''',
+  ]
+  # Historical fingerprints (files removed from tree, secrets rotated)
+  fingerprints = [
+    "c7d5b9b111d3334e17b9dacfeefc80c7bf1d4ff6:.claude/agents/payments/agentic-payments.md:generic-api-key:35",
+    "571e8c0e42d286ba59cd54e133269ef96379630e:mcp.json:generic-api-key:16",
+    "571e8c0e42d286ba59cd54e133269ef96379630e:.env:generic-api-key:41",
+    "571e8c0e42d286ba59cd54e133269ef96379630e:mcp-config-memory.json:generic-api-key:16",
   ]

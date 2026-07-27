@@ -7,10 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.37] - 2026-07-27
+
+### Added
+
+- **ADR-077 runtime embedding activation**: `configure_embeddings` now activates
+  the exact provider specified (OpenAI, Mistral, local) with credential redaction
+  in logs and concurrent activation safety. Includes A6 validation, documentation,
+  and regression tests for concurrency + credential redaction.
+- **6 new domain skills** (40 total, all routed): checkpoint-handoff, embedding-ops,
+  episode-relationships, episode-tags, playbook-ops, recommendation-feedback.
+  Full skill catalog with routing rules and evals.
+- **R-F9 HNSW persistence**: file_dump/load for HNSW index with capacity eviction.
+  Enables persistent vector search across sessions without rebuilding index.
+- **R-F8 relationship info show polish**: box-drawing panel for CLI relationship
+  visualization with unit tests. Improved readability of episode relationship graphs.
+- **`pattern extract` command**: CLI command with `--episode-id` and `--all` flags
+  for manual pattern extraction (G-P1-12, ADR-076 §5).
+
+### Fixed
+
+- **cargo-mutants workspace paths**: correct `--file` paths in mutants.yml to be
+  workspace-root-relative (fixes silent "0 mutants found" failure). Add preflight
+  guard step to verify target files exist. Add cargo-mutants-workspace skill with
+  evals (LESSON-MUT-001). Fixes #898.
+- **pattern count_before lock**: remove dead lock acquisition, return total linked
+  patterns, add integration test for pattern extraction accuracy.
+- **docs integrity gate**: include v0.1.37 marker for docs integrity validation.
+
 ### Changed
 
 - Workspace version advanced to **0.1.37** after shipping `v0.1.36` so release-drift
   gates treat new commits as normal development (`version_not_advanced` no longer applies).
+- **Dependency updates**: tokio 1.53.1, serde 1.0.229, uuid 1.24.0, clap 4.6.4,
+  jsonwebtoken 11.0.0, serial_test 4.0.1, base64 0.23.0, +14 patch/minor updates.
+- **CI actions updates**: actions/checkout 7.0.1, wait-on-check 1.9.0,
+  install-action 2.85.2, actionlint 1.73.0.
+- **Security**: add historical fingerprints to gitleaks allowlist for files removed
+  from tree (.env, mcp.json, mcp-config-memory.json). Prevents false positives in
+  Secret Scanning workflow.
 
 ## [0.1.36] - 2026-07-22
 

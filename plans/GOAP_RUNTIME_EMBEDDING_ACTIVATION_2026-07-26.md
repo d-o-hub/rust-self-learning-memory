@@ -1,6 +1,6 @@
 # GOAP: Runtime Embedding Provider Activation
 
-- **Status**: Implemented — A1-A6 complete (code `9ef4b742`, coverage `e0f7f712`, A6 validate/document this PR)
+- **Status**: Implemented — A1-A6 complete (code `9ef4b742`, coverage `e0f7f712`, A6 validate/document #897 merged)
 - **Date**: 2026-07-26
 - **Audit checkout**: `main` at `7c854efb`
 - **Decision**: [ADR-077](adr/ADR-077-Runtime-Embedding-Provider-Activation.md) — Accepted / Implemented
@@ -16,7 +16,7 @@
 | REA-2026-07-26-A3 exact-provider factory | ✅ Done | `9ef4b742` — `SemanticService::build_exact` (no fallback), feature-gated OpenAI/Mistral, dimension validation |
 | REA-2026-07-26-A4 identity / invalidation | ✅ Done | `9ef4b742` — `provider:model:dimension` identity, `reindex_required`, revision participates in ADR-074 identity |
 | REA-2026-07-26-A5 MCP end-to-end | ✅ Done | `9ef4b742` — `configure_embeddings` activates live; status/generate/query/search read `live_semantic_service()` |
-| REA-2026-07-26-A6 validate / document / gate | ✅ Done | coverage `e0f7f712`; concurrency + credential-redaction regression tests and `docs/API_REFERENCE.md` + `docs/EMBEDDINGS_CLI_GUIDE.md` activation docs (this PR) |
+| REA-2026-07-26-A6 validate / document / gate | ✅ Done | coverage `e0f7f712`; concurrency + credential-redaction regression tests and `docs/API_REFERENCE.md` + `docs/EMBEDDINGS_CLI_GUIDE.md` activation docs (#897 merged) |
 
 ## Analysis
 

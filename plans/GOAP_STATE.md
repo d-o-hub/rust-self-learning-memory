@@ -2,8 +2,8 @@
 
 - **Last Updated**: 2026-07-26  
 - **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
-- **Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`
-- **Open PRs**: ADR-077 A6 validate/document
+- **Branch**: `main` @ `648e11ad`  
+- **Open PRs**: none  
 - **Open issues**: none  
 - **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
 - **Archive**: `plans/archive/2026-07-consolidation/`  
@@ -25,7 +25,7 @@
 | R-F9 HNSW persistence + hardening | ✅ #893 |
 | 6 new domain skills (40 total, all routed) | ✅ #894 |
 | ADR-077 runtime embedding activation (A1-A5) | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ADR-077 A6 validate / document / gate | ✅ this PR |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | R-F* remaining product epics | ⏸ DEFER |
 
 ---
@@ -70,5 +70,5 @@ pattern_extract_command           = true  (ADR-076 §5 — G-P1-12, #891)
 r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tests)
 r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
 skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
-runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configure_embeddings activates exact provider; A6 docs + concurrency/redaction regression tests this PR)
+runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configure_embeddings activates exact provider; A6 docs + concurrency/redaction regression tests #897 merged)
 ```

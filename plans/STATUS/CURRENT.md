@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-07-27  
-**Released Version**: v0.1.36  
+**Released Version**: v0.1.37  
 **Workspace Version**: 0.1.37 (release preparation in progress)  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  

@@ -1,7 +1,7 @@
 # Gap Analysis — 2026-07-26
 
 **Generated**: 2026-07-26  
-**Audit commit**: `e0f7f712` (`main`) + open PR `feat/adr077-a6-validate-document`  
+**Audit commit**: `e0f7f712` (`main`) + open PR `feat/adr077-a6-validate-document`
 **Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 

@@ -5,7 +5,7 @@
 **Workspace Version**: 0.1.37  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
-**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
+**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`
 
 ## Open tracker (live)
 

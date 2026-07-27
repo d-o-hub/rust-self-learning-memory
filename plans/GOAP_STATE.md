@@ -2,8 +2,8 @@
 
 - **Last Updated**: 2026-07-26  
 - **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
-- **Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
-- **Open PRs**: ADR-077 A6 validate/document  
+- **Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`
+- **Open PRs**: ADR-077 A6 validate/document
 - **Open issues**: none  
 - **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
 - **Archive**: `plans/archive/2026-07-consolidation/`  

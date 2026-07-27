@@ -5,8 +5,8 @@
 **Workspace Version**: 0.1.37 (next release)  
 **Active Sprint**: ADR-077 runtime embedding activation (A1-A6 complete)  
 **Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
-**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`  
-**Open PRs**: ADR-077 A6 validate/document  
+**Branch**: `feat/adr077-a6-validate-document` (open PR) · `main` @ `e0f7f712`
+**Open PRs**: ADR-077 A6 validate/document
 **Open issues**: none  
 
 ---

@@ -1,7 +1,7 @@
 # Validation Latest — 2026-07-26
 
 **Goal**: Reconcile plans trackers with live post-v0.1.36 + ADR-077 (A1-A6) state.  
-**Workspace**: `0.1.37` · **Tag**: `v0.1.36` · **HEAD**: `e0f7f712` + open PR `feat/adr077-a6-validate-document`  
+**Workspace**: `0.1.37` · **Tag**: `v0.1.36` · **HEAD**: `e0f7f712` + open PR `feat/adr077-a6-validate-document`
 
 ## Evidence
 

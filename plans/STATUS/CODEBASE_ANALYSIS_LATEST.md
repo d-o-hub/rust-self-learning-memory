@@ -1,6 +1,6 @@
 # Codebase Analysis Latest — 2026-07-25
 
-**Branch**: `main` @ `5b4b9776`  
+**Branch**: `main` @ `5b4b9776`
 **Workspace**: `0.1.37` · **Released tag**: `v0.1.36`  
 **Companion**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
 
@@ -50,7 +50,7 @@
 
 ## Recommended focus order
 
-1. Merge #894 (skills+plans) when CI CLEAN.  
+1. Merge #894 (skills+plans) when CI CLEAN.
 2. Cut v0.1.37 once sufficient unreleased commits accumulate.  
 3. Research spikes only after individual GO artifacts under `plans/STATUS/spikes/`.
 

@@ -1,7 +1,7 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-07-26  
-**Released Version**: v0.1.36 (latest tag)  
+**Released Version**: v0.1.37 (latest tag)  
 **Workspace Version**: 0.1.37 (next release)  
 **Active Sprint**: ADR-077 runtime embedding activation (A1-A6 complete)  
 **Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  

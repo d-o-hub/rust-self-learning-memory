@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@1d57e2c51a58d812d2765e036a028b6bdb5a6154 # v1.8.1
+        uses: lewagon/wait-on-check-action@2271c86c146b96545b4e871b855e10ffa6f50773 # v1.9.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
@@ -86,7 +86,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -147,7 +147,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -200,7 +200,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -256,7 +256,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -337,7 +337,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0  # Required for --baseline-branch
 
@@ -390,7 +390,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust

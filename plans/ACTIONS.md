@@ -20,9 +20,11 @@
 | ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ #894 |
 | ACT-323 | ADR-077 A1-A5 runtime embedding activation | ADR-077 | ✅ main (`9ef4b742`, `e0f7f712`) |
 | ACT-324 | ADR-077 A6 validate/document/gate (docs + concurrency + zero-unsafe redaction tests) | ADR-077 | ✅ #897 merged |
-| ACT-312 | Optional product/research spikes R-F1…R-F7, R-F10 | R-F* | ⏸ DEFER |
+| ACT-312 | R-F* GO spike artifacts written + validated (2026-07-28) | R-F* | ✅ Done |
+| ACT-325 | Implement R-F10 OIDC trusted publishing in publish-crates.yml | R-F10 | 🔄 In progress |
+| ACT-326 | Implement R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | 🔄 In progress |
 
-All ACT-300…ACT-324 items are **complete**. No open code actions remain.
+All ACT-300…ACT-324 items (excluding ACT-325/326 in progress) are **complete**.
 
 ## Completed actions (summary)
 

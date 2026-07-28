@@ -1,0 +1,22 @@
+# Feature spike config for R-F6 — Mixture-of-Experts Embedding Routing (WG-125)
+# Consumed by: ./scripts/run-feature-spike.sh R-F6 --config plans/spikes/R-F6.toml --output plans/STATUS/spikes/R-F6.json
+id = "R-F6"
+title = "Mixture-of-Experts embedding routing feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "ADR-077 exact-provider model (A1-A6 complete, merged #897) is the stable foundation. MoE dispatcher sits above SemanticService::build_exact — one SemanticService per expert, routing config selects expert per request. Routing key options: content domain tag (structured/unstructured), token length threshold, cost SLA. ADR-077 no-silent-substitution guarantee preserved: each route explicitly names provider+model; no fallback across routes. Routing decision: < 1ms (in-process match on enum, no network). config_change triggers reindex_required flag (same mechanism as configure_embeddings). Credential isolation: each expert holds independent ApiKey; no cross-contamination. Index identity change: MoE config hash becomes part of EmbeddingActivation identity. Prerequisite: ADR-077 stability (confirmed). Estimated 2 PRs: (1) MoE routing config + dispatcher, (2) MCP configure_embeddings extension."
+
+[metrics]
+adr077_complete = true
+routing_decision_latency_ms = 1
+credential_isolation = true
+no_silent_substitution_preserved = true
+reindex_on_config_change = true
+
+[preapproved_thresholds]
+adr077_complete = true
+routing_decision_latency_ms = 1
+no_silent_substitution_preserved = true

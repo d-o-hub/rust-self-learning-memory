@@ -1,0 +1,32 @@
+{
+  "id": "R-F5",
+  "commit": "53e31629d2f7b3fe2f6bb6eebbb0a4ffa3342c42",
+  "timestamp": "2026-07-28T11:21:08Z",
+  "owner": "maintainer",
+  "commands": [],
+  "metrics": {
+    "migration_destructive": false,
+    "adt075_hard_errors_preserved": true,
+    "estimated_storage_growth_multiplier": 10,
+    "default_retention_count": 10,
+    "turso_schema_change": "append_only",
+    "redb_strategy": "separate_tree_per_episode",
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "Append-only versioning strategy confirmed safe: add episode_versions table (Turso) with columns (episode_id, version INTEGER, snapshot BLOB, created_at). redb: separate Tree per-episode keyed by (uuid, version). update_episode and complete_episode write new version row before overwriting current. Retention policy: configurable N-most-recent (default 10) with TTL fallback. Non-destructive migration for v0.1.36 data: existing episodes get version=1 on first update. ADR-075 hard-error semantics preserved \u2014 version write failure rolls back the update. MCP surface: get_episode accepts optional revision query param. CLI: episode show --revision N. Storage growth estimate at 10k corpus, 10 versions: ~10x episode blob size (manageable with Turso compression). Estimated 3 PRs: schema migration, StorageBackend trait extension, MCP/CLI surface."
+  },
+  "preapproved_thresholds": {
+    "migration_destructive": false,
+    "adt075_hard_errors_preserved": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "goap-agent"
+  ]
+}

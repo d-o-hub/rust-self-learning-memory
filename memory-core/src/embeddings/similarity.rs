@@ -272,12 +272,18 @@ mod tests {
         let a = vec![1.0f32; 11];
         let b = vec![1.0f32; 11];
         let result = cosine_similarity(&a, &b);
-        assert!((result - 1.0).abs() < 1e-5, "remainder path identical: {result}");
+        assert!(
+            (result - 1.0).abs() < 1e-5,
+            "remainder path identical: {result}"
+        );
 
         // dim=3: no full chunks, only remainder
         let c = vec![1.0f32, 0.0, 0.0];
         let d = vec![0.0f32, 1.0, 0.0];
         let result2 = cosine_similarity(&c, &d);
-        assert!((result2 - 0.5).abs() < 1e-5, "remainder path orthogonal: {result2}");
+        assert!(
+            (result2 - 0.5).abs() < 1e-5,
+            "remainder path orthogonal: {result2}"
+        );
     }
 }

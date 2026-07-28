@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-07-27  
 **Released Version**: v0.1.37  
-**Workspace Version**: 0.1.37 (release preparation in progress)  
+**Workspace Version**: 0.1.38 (next release)  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
 **Branch**: `main` @ `45c6eee8`

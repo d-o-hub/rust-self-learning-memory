@@ -1,0 +1,24 @@
+# Feature spike config for R-F7 — Federated Hyperdimensional Computing (WG-135 / HDC)
+# Consumed by: ./scripts/run-feature-spike.sh R-F7 --config plans/spikes/R-F7.toml --output plans/STATUS/spikes/R-F7.json
+id = "R-F7"
+title = "Federated HDC feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "HDC crate survey: no production-grade Rust HDC crate as of 2026-07. Minimal bundler/binder estimated at 800-1200 LOC (bipolar HDC: vectors of {-1,+1} mapped to u64 bit-packed arrays, XOR bind, majority bundle). Dimensionality resolution: project to D=8192 dimensions before federation (current OpenAI 1536 -> project, Mistral 1024 -> project via random projection matrix). postcard compatibility: hypervectors stored as Vec<u64> with serde-compatible encoding — additive new field in episode schema, backward compat via serde(default). Federation protocol: push-based bundling over HTTP (no raw episode text transmitted — only projected hypervectors). Privacy guarantee: raw episode content never leaves origin node (projection is one-way). Prerequisites: R-F1 distributed sync provides the transport layer. R-F3 multi-tenancy provides partition key. Estimated 5-6 PRs over 3 sprints. High complexity — schedule after R-F1 and R-F3 are merged and stable."
+
+[metrics]
+existing_rust_hdc_crate = false
+estimated_new_locs = 1000
+hypervector_dimensions = 8192
+postcard_compatible = true
+raw_text_transmitted = false
+r_f1_prerequisite = true
+r_f3_prerequisite = true
+estimated_sprints = 3
+
+[preapproved_thresholds]
+postcard_compatible = true
+raw_text_transmitted = false

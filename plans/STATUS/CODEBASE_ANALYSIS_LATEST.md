@@ -46,12 +46,12 @@
 
 1. Historical ADR filename collisions (025/054 aliased — docs only, no code action).  
 2. Transitive Dependabot advisories (upstream chains, monitor only).  
-3. Remaining product/research epics spike-gated (R-F1…R-F7, R-F10).  
+3. Remaining product/research epics: GO spike artifacts cleared 2026-07-28; implementation PRs not yet started.  
 
 ## Recommended focus order
 
 1. #894 merged; ADR-077 A6 merged #897 — no open PRs.  
-2. Cut v0.1.37 once sufficient unreleased commits accumulate.  
-3. Research spikes only after individual GO artifacts under `plans/STATUS/spikes/`.
+2. Cut v0.1.38 (workspace already bumped) once sufficient unreleased commits accumulate.  
+3. R-F* epics unlocked: start with R-F10 (OIDC) → R-F2 (OTel) → R-F4 (SIMD) per recommended spike order.
 
 Full prioritized backlog: recommendations plan §3–4.

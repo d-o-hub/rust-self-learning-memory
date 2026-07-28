@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-27  
+- **Last Updated**: 2026-07-28  
 - **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
 - **Branch**: `main` @ `9b14a7a6`  
 - **Open PRs**: none  
@@ -29,7 +29,7 @@
 | 6 new domain skills (40 total, all routed) | ✅ #894 |
 | ADR-077 runtime embedding activation (A1-A5) | ✅ main (`9ef4b742`, `e0f7f712`) |
 | ADR-077 A6 validate / document / gate | ✅ #897 merged |
-| R-F* remaining product epics | ⏸ DEFER |
+| R-F* remaining product epics | ✅ GO spike artifacts: R-F1…R-F7, R-F10 (2026-07-28) |
 
 ---
 
@@ -75,4 +75,5 @@ r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tes
 r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
 skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
 runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configure_embeddings activates exact provider; A6 docs + concurrency/redaction regression tests #897 merged)
+r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
 ```

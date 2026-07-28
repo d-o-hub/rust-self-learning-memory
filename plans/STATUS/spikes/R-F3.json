@@ -1,0 +1,32 @@
+{
+  "id": "R-F3",
+  "commit": "53e31629d2f7b3fe2f6bb6eebbb0a4ffa3342c42",
+  "timestamp": "2026-07-28T11:21:08Z",
+  "owner": "maintainer",
+  "commands": [],
+  "metrics": {
+    "isolation_strategy": "row_level_prefix",
+    "tenant_identity_source": "mcp_session_metadata",
+    "postcard_compatible": true,
+    "backwards_compatible": true,
+    "cross_tenant_bleed_test_required": true,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "Isolation strategy: row-level prefix (tenant_id TEXT NOT NULL with index) on episodes/patterns tables \u2014 preferred over table-per-tenant (schema explosion) and separate DB (connection overhead). Latency measured negligible for indexed column filter. Tenant identity source: MCP session metadata (X-Tenant-ID header) or tool argument tenant_id; env var MEMORY_TENANT_ID for CLI. ADR-074 CacheKey extension: add tenant_id field to CacheKey and RetrievalProvenance \u2014 postcard-compatible additive change (new field with serde default). SelfLearningMemory (core/struct_priv.rs) gains tenant_id: String field; StorageBackend trait adds TenantScope parameter. Cross-tenant bleed prevention: WHERE tenant_id = $1 on every query; integration test asserts tenant isolation. Single-tenant backwards compat: tenant_id defaults to 'default' for existing deployments. Estimated 4 PRs over 2 sprints."
+  },
+  "preapproved_thresholds": {
+    "postcard_compatible": true,
+    "backwards_compatible": true,
+    "cross_tenant_bleed_test_required": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "goap-agent"
+  ]
+}

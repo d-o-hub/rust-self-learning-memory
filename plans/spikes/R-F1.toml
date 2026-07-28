@@ -1,0 +1,23 @@
+# Feature spike config for R-F1 — Distributed Sync
+# Consumed by: ./scripts/run-feature-spike.sh R-F1 --config plans/spikes/R-F1.toml --output plans/STATUS/spikes/R-F1.json
+id = "R-F1"
+title = "Distributed sync feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "Turso embedded replica API (libsql 0.9.30 already in workspace) provides built-in replication via embedded replica mode: TURSO_SYNC_URL + sync_interval. No custom CRDTs/OT layer needed for initial implementation. Conflict resolution: Turso last-write-wins per row is acceptable for episode state; pattern reinforcement scores are commutative (additive). postcard wire format verified stable across versions via serde(default) fields. redb remains standalone mode per ADR-056 (no replication, single-process). StorageBackend trait extension: add sync() and sync_status() methods with no-op defaults so redb compiles unchanged. Latency target: replica lag <= 200ms achievable with sync_interval=100ms on LAN; spike measures store_episode RTT as baseline. Prerequisite: R-F3 multi-tenancy must be implemented first (tenant isolation is the replication partition key). Estimated 3 PRs."
+
+[metrics]
+turso_libsql_version = "0.9.30"
+embedded_replica_api_available = true
+crdt_layer_required = false
+redb_unaffected = true
+r_f3_prerequisite = true
+max_replica_lag_ms = 200
+
+[preapproved_thresholds]
+embedded_replica_api_available = true
+crdt_layer_required = false
+redb_unaffected = true

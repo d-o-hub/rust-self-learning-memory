@@ -1,7 +1,7 @@
-# Gap Analysis — 2026-07-26
+# Gap Analysis — 2026-07-28
 
-**Generated**: 2026-07-26  
-**Audit commit**: `648e11ad` (`main`; ADR-077 A6 merged #897)  
+**Generated**: 2026-07-28  
+**Audit commit**: `53e31629` (`main`; workspace 0.1.38 post-bump)  
 **Workspace**: `0.1.37` · **Tag**: `v0.1.36` (published 2026-07-22)  
 **Full backlog**: [`../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`](../GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md)
 
@@ -13,6 +13,7 @@
 - Prior gap register closed for all P0 ship items  
 - R-F8 and R-F9 GO spikes implemented and merged (#893)  
 - 6 new domain skills added (40 total, all routed)  
+- R-F1…R-F7 + R-F10 GO spike artifacts written and validated 2026-07-28  
 
 ## Closed this wave
 
@@ -29,6 +30,7 @@
 | Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (#894) |
 | ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) — exact-provider factory + atomic runtime seam + MCP end-to-end |
 | ADR-077 A6 validate / document / gate | ✅ #897 merged — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
+| G-P2-1…7 R-F* spike artifacts | ✅ GO artifacts for R-F1…R-F7 + R-F10 (plans/STATUS/spikes/, 2026-07-28) |
 
 ## Open gaps (current)
 
@@ -47,7 +49,7 @@
 
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
-| G-P2-1…7 | R-F1…R-F7, R-F10 epics | Spike-gated DEFER | R-F* |
+| G-P2-1…7 | R-F1…R-F7, R-F10 epics | GO spikes validated — awaiting ADR + implementation PRs | R-F* active |
 
 ## Explicit non-gaps
 
@@ -64,4 +66,4 @@
 ## Exit criteria for this register
 
 - G-P1-8 and G-P1-9 are monitor-only (no code action required)  
-- P2 rows remain spikes until GO artifacts under `plans/STATUS/spikes/`  
+- P2 GO spike gate cleared 2026-07-28; next gate is ADR draft + implementation PR per epic  

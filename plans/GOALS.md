@@ -10,9 +10,11 @@
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Optional research/product spikes (R-F1…R-F7, R-F10) | R-F* | P2 | ⏸ DEFER |
+| R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | 🔄 In progress |
+| R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | 🔄 In progress |
+| Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
-No open code goals. Next trigger: decide to cut v0.1.37 or begin a P2 spike.
+Active campaign: R-F10 (ACT-325) and R-F4 (ACT-326) in progress.
 
 ## Closed this wave (2026-07-20…25)
 

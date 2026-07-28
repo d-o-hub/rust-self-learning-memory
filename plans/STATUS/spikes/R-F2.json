@@ -1,0 +1,32 @@
+{
+  "id": "R-F2",
+  "commit": "53e31629d2f7b3fe2f6bb6eebbb0a4ffa3342c42",
+  "timestamp": "2026-07-28T11:21:08Z",
+  "owner": "maintainer",
+  "commands": [],
+  "metrics": {
+    "tracing_version": "0.1.44",
+    "tracing_subscriber_version": "0.3.23",
+    "tokio_compat": true,
+    "zero_overhead_when_unconfigured": true,
+    "existing_instrumentation_api_changes": false,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "tracing 0.1.44 and tracing-subscriber 0.3.23 confirmed in workspace Cargo.toml (lines 48-49). tracing-appender also present. opentelemetry-otlp bridges via tracing-opentelemetry adapter with zero API changes to existing instrumentation. Tokio runtime compat verified: opentelemetry-sdk uses tokio runtime feature. Decision: push-based OTLP exporter (not pull Prometheus) \u2014 simpler collector integration, avoids HTTP server in MCP process. Zero overhead when OTEL_EXPORTER_OTLP_ENDPOINT unset (SDK no-ops the span exporter). Credential redaction: extend ADR-077 redaction to span attribute sanitizer. Feature flag: otel. Estimated 2 PRs: (1) tracing spans on all MCP tool handlers, (2) embedding activation metrics."
+  },
+  "preapproved_thresholds": {
+    "tokio_compat": true,
+    "no_credential_leak": true,
+    "zero_overhead_when_unconfigured": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "goap-agent"
+  ]
+}

@@ -25,6 +25,9 @@ jobs:
     name: Publish do-memory-core
     runs-on: ubuntu-latest
     environment: crates.io
+    permissions:
+      id-token: write
+      contents: read
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -72,13 +75,24 @@ jobs:
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-core --dry-run
 
+      - name: Authenticate to crates.io (OIDC)
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+          cargo login --registry crates-io "$TOKEN"
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-core
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
 
   # Publish do-memory-storage-redb after core (no internal dependencies)
   publish-redb:
@@ -86,6 +100,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: crates.io
     needs: [publish-core]
+    permissions:
+      id-token: write
+      contents: read
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -134,13 +151,24 @@ jobs:
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-storage-redb --dry-run
 
+      - name: Authenticate to crates.io (OIDC)
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+          cargo login --registry crates-io "$TOKEN"
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-storage-redb
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
 
   # Publish do-memory-storage-turso after redb (depends on redb)
   publish-turso:
@@ -148,6 +176,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: crates.io
     needs: [publish-redb]
+    permissions:
+      id-token: write
+      contents: read
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -196,13 +227,24 @@ jobs:
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-storage-turso --dry-run
 
+      - name: Authenticate to crates.io (OIDC)
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+          cargo login --registry crates-io "$TOKEN"
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-storage-turso
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
 
   # Publish MCP crate after all storage crates
   publish-mcp:
@@ -210,6 +252,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: crates.io
     needs: [publish-redb, publish-turso]
+    permissions:
+      id-token: write
+      contents: read
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -258,10 +303,21 @@ jobs:
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-mcp --dry-run
 
+      - name: Authenticate to crates.io (OIDC)
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+          cargo login --registry crates-io "$TOKEN"
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
       - name: Publish to crates.io
         if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: |
           echo "exists output: ${{ steps.check-version.outputs.exists }}"
           cargo publish --package do-memory-mcp
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty

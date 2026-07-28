@@ -1,0 +1,31 @@
+{
+  "id": "R-F10",
+  "commit": "53e31629d2f7b3fe2f6bb6eebbb0a4ffa3342c42",
+  "timestamp": "2026-07-28T11:21:08Z",
+  "owner": "maintainer",
+  "commands": [],
+  "metrics": {
+    "static_token_locations": 4,
+    "oidc_compatible_workflows": 2,
+    "rust_code_changes_required": false,
+    "estimated_yaml_lines": 40,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "CI/CD-only change. publish-crates.yml uses CARGO_REGISTRY_TOKEN in 4 places. crates.io OIDC trusted publishing reached GA in 2026 (verified against crates.io/docs/trusted-publishing). GitHub Actions id-token:write permission + OIDC exchange is well-established. release-guard pre-flight is token-agnostic and compatible with an OIDC fetch wrapper. Rollback: keep secret as fallback env var, conditionally used only if OIDC exchange fails. No Rust code touched. Estimated scope: 1 PR, ~40 lines of YAML."
+  },
+  "preapproved_thresholds": {
+    "rust_code_changes_required": false,
+    "rollback_path_exists": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "goap-agent",
+    "cicd-engineer"
+  ]
+}

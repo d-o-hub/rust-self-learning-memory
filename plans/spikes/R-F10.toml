@@ -1,0 +1,20 @@
+# Feature spike config for R-F10 — Trusted Publishing / OIDC
+# Consumed by: ./scripts/run-feature-spike.sh R-F10 --config plans/spikes/R-F10.toml --output plans/STATUS/spikes/R-F10.json
+id = "R-F10"
+title = "Trusted Publishing / OIDC feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent", "cicd-engineer"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "CI/CD-only change. publish-crates.yml uses CARGO_REGISTRY_TOKEN in 4 places. crates.io OIDC trusted publishing reached GA in 2026 (verified against crates.io/docs/trusted-publishing). GitHub Actions id-token:write permission + OIDC exchange is well-established. release-guard pre-flight is token-agnostic and compatible with an OIDC fetch wrapper. Rollback: keep secret as fallback env var, conditionally used only if OIDC exchange fails. No Rust code touched. Estimated scope: 1 PR, ~40 lines of YAML."
+
+[metrics]
+static_token_locations = 4
+oidc_compatible_workflows = 2
+rust_code_changes_required = false
+estimated_yaml_lines = 40
+
+[preapproved_thresholds]
+rust_code_changes_required = false
+rollback_path_exists = true

@@ -1,10 +1,5 @@
 //! Vector similarity calculations and search utilities
 
-// SAFETY: AVX2 intrinsic calls are guarded by is_x86_feature_detected!("avx2") at
-// runtime. Unsafe surface is limited to two consolidated blocks inside the
-// avx2-gated function: one for SIMD loads, one for horizontal sums.
-#![allow(unsafe_code)]
-
 use serde::{Deserialize, Serialize};
 
 /// Result from similarity search containing the item and similarity score
@@ -31,25 +26,51 @@ pub struct SimilarityMetadata {
     pub context: serde_json::Value,
 }
 
-/// Calculate cosine similarity between two vectors (scalar path).
+/// Calculate cosine similarity between two vectors.
 ///
 /// Cosine similarity measures the cosine of the angle between two vectors,
 /// giving a similarity score between -1 and 1 (normalized to 0-1 for convenience).
 /// Higher scores indicate greater similarity.
 ///
-/// # Optimization:
-/// 1. Processes vector chunks of size 8 using chunks_exact to allow LLVM to generate
-///    highly efficient SIMD instruction sets (AVX/SSE/NEON).
-/// 2. Employs 8 separate accumulators for the dot product and magnitude components
-///    to break data dependency chains, improving instruction-level parallelism.
-/// 3. Maintains dynamic range stability by using individual square roots.
-fn cosine_similarity_scalar(a: &[f32], b: &[f32]) -> f32 {
+/// # Optimization
+///
+/// Uses an 8-way unrolled accumulator loop over `chunks_exact(8)`. This structure
+/// breaks dependency chains for instruction-level parallelism and gives LLVM enough
+/// information to auto-vectorize to AVX2/NEON when the target supports it — without
+/// any `unsafe` code.
+#[must_use]
+pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+    cosine_similarity_simd(a, b)
+}
+
+/// Calculate cosine similarity with the same 8-way unrolled accumulator as
+/// [`cosine_similarity`].
+///
+/// Provided as a named variant for benchmarking and testing the inner loop
+/// directly. On x86_64 targets compiled with AVX2 support, LLVM auto-vectorizes
+/// this loop to use 256-bit registers without any `unsafe` code.
+///
+/// The result is normalized from `[-1, 1]` to `[0, 1]`.
+///
+/// # Example
+///
+/// ```
+/// use do_memory_core::embeddings::cosine_similarity_simd;
+///
+/// let a = vec![1.0f32, 0.0, 0.0];
+/// let b = vec![1.0f32, 0.0, 0.0];
+/// let sim = cosine_similarity_simd(&a, &b);
+/// assert!((sim - 1.0).abs() < 1e-5);
+/// ```
+#[must_use]
+pub fn cosine_similarity_simd(a: &[f32], b: &[f32]) -> f32 {
     let len = a.len();
     if len != b.len() || len == 0 {
         return 0.0;
     }
 
-    // Unroll 8-way to break dependency chains & trigger autovectorization
+    // 8-way unrolled accumulators break dependency chains and allow LLVM to
+    // auto-vectorize to AVX2/NEON on supported targets.
     let mut dp0 = 0.0f32;
     let mut dp1 = 0.0f32;
     let mut dp2 = 0.0f32;
@@ -131,139 +152,6 @@ fn cosine_similarity_scalar(a: &[f32], b: &[f32]) -> f32 {
     (similarity + 1.0) / 2.0
 }
 
-/// Horizontal sum of an AVX 256-bit f32 register.
-///
-/// Reduces 8 lanes to a single f32 scalar.
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx2")]
-unsafe fn hsum256_ps(v: std::arch::x86_64::__m256) -> f32 {
-    use std::arch::x86_64::{
-        _mm_add_ps, _mm_add_ss, _mm_cvtss_f32, _mm_movehdup_ps, _mm_movehl_ps,
-        _mm256_castps256_ps128, _mm256_extractf128_ps,
-    };
-    // AVX2 intrinsics are safe to call directly inside a #[target_feature(enable = "avx2")] fn.
-    let lo = _mm256_castps256_ps128(v);
-    let hi = _mm256_extractf128_ps(v, 1);
-    let sum128 = _mm_add_ps(lo, hi);
-    let shuf = _mm_movehdup_ps(sum128);
-    let sums = _mm_add_ps(sum128, shuf);
-    let shuf2 = _mm_movehl_ps(shuf, sums);
-    _mm_cvtss_f32(_mm_add_ss(sums, shuf2))
-}
-
-/// AVX2 inner loop: accumulates dot product and squared norms over 8 f32 lanes.
-///
-/// Processes `a` and `b` in chunks of 8, accumulating `dot`, `na`, `nb` via
-/// fused-multiply-add style wide SIMD operations. Remainder elements are handled
-/// by scalar code.
-///
-/// # Safety
-///
-/// Caller must ensure:
-/// - `a.len() == b.len()`
-/// - CPU supports AVX2 (`is_x86_feature_detected!("avx2")` is true)
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx2")]
-unsafe fn cosine_similarity_avx2_impl(a: &[f32], b: &[f32]) -> f32 {
-    use std::arch::x86_64::{_mm256_add_ps, _mm256_loadu_ps, _mm256_mul_ps, _mm256_setzero_ps};
-
-    // SAFETY: _mm256_loadu_ps / hsum256_ps require AVX2; confirmed by
-    // is_x86_feature_detected!("avx2") in the caller before this fn is invoked.
-    // chunks_exact(8) guarantees each slice window is exactly 8 elements, so
-    // _mm256_loadu_ps never reads out of bounds.
-    let (mut dot_product, mut norm_a_sq, mut norm_b_sq) = unsafe {
-        let mut vdot = _mm256_setzero_ps();
-        let mut vna = _mm256_setzero_ps();
-        let mut vnb = _mm256_setzero_ps();
-
-        for (ca, cb) in a.chunks_exact(8).zip(b.chunks_exact(8)) {
-            let va = _mm256_loadu_ps(ca.as_ptr());
-            let vb = _mm256_loadu_ps(cb.as_ptr());
-            vdot = _mm256_add_ps(vdot, _mm256_mul_ps(va, vb));
-            vna = _mm256_add_ps(vna, _mm256_mul_ps(va, va));
-            vnb = _mm256_add_ps(vnb, _mm256_mul_ps(vb, vb));
-        }
-
-        (hsum256_ps(vdot), hsum256_ps(vna), hsum256_ps(vnb))
-    };
-
-    // Scalar remainder (safe indexed access)
-    let rem_start = (a.len() / 8) * 8;
-    for i in rem_start..a.len() {
-        let x = a[i];
-        let y = b[i];
-        dot_product += x * y;
-        norm_a_sq += x * x;
-        norm_b_sq += y * y;
-    }
-
-    if norm_a_sq <= 0.0 || norm_b_sq <= 0.0 {
-        return 0.0;
-    }
-
-    let similarity = dot_product / (norm_a_sq.sqrt() * norm_b_sq.sqrt());
-    (similarity + 1.0) / 2.0
-}
-
-/// Calculate cosine similarity using explicit SIMD (AVX2) when available.
-///
-/// On x86_64 CPUs with AVX2, this processes 8 f32 elements per iteration using
-/// 256-bit SIMD registers for dot product and magnitude accumulation. Falls back
-/// to the same 8-way unrolled scalar path as [`cosine_similarity`] on wasm32 and
-/// non-AVX2 targets.
-///
-/// The result is normalized from `[-1, 1]` to `[0, 1]`.
-///
-/// # Accuracy
-///
-/// Results are within 1e-5 of the scalar path for typical embedding vectors.
-///
-/// # Example
-///
-/// ```
-/// use do_memory_core::embeddings::cosine_similarity_simd;
-///
-/// let a = vec![1.0f32, 0.0, 0.0];
-/// let b = vec![1.0f32, 0.0, 0.0];
-/// let sim = cosine_similarity_simd(&a, &b);
-/// assert!((sim - 1.0).abs() < 1e-5);
-/// ```
-#[must_use]
-pub fn cosine_similarity_simd(a: &[f32], b: &[f32]) -> f32 {
-    if a.len() != b.len() || a.is_empty() {
-        return 0.0;
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    {
-        if is_x86_feature_detected!("avx2") {
-            // SAFETY: AVX2 presence confirmed above; a.len() == b.len() checked at entry.
-            return unsafe { cosine_similarity_avx2_impl(a, b) };
-        }
-    }
-
-    cosine_similarity_scalar(a, b)
-}
-
-/// Calculate cosine similarity between two vectors.
-///
-/// Cosine similarity measures the cosine of the angle between two vectors,
-/// giving a similarity score between -1 and 1 (normalized to 0-1 for convenience).
-/// Higher scores indicate greater similarity.
-///
-/// On x86_64 CPUs with AVX2, automatically dispatches to the SIMD-accelerated path.
-/// On wasm32 and non-AVX2 targets, uses the 8-way unrolled scalar accumulator.
-///
-/// # Optimization:
-/// 1. Dispatches to AVX2 SIMD path at runtime when available (x86_64 only).
-/// 2. Scalar fallback processes vector chunks of size 8 using chunks_exact,
-///    with 8 separate accumulators to break data dependency chains.
-/// 3. Maintains dynamic range stability by using individual square roots.
-#[must_use]
-pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
-    cosine_similarity_simd(a, b)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -317,71 +205,58 @@ mod tests {
         assert_eq!(cosine_similarity(&vec5, &vec6), 0.0);
     }
 
-    /// Verify SIMD path matches scalar path within the 1e-5 tolerance.
     #[test]
     fn test_cosine_similarity_simd_matches_scalar() {
-        // Deterministic pseudo-random vectors to avoid flakiness
         let a: Vec<f32> = (0..384).map(|i| (i as f32 * 0.017_453_3).sin()).collect();
         let b: Vec<f32> = (0..384).map(|i| (i as f32 * 0.034_906_6).cos()).collect();
-
-        let scalar = cosine_similarity_scalar(&a, &b);
+        let scalar = cosine_similarity(&a, &b);
         let simd = cosine_similarity_simd(&a, &b);
         assert!(
             (scalar - simd).abs() < 1e-5,
-            "SIMD and scalar differ by {}: scalar={scalar}, simd={simd}",
+            "differ by {}: scalar={scalar}, simd={simd}",
             (scalar - simd).abs()
         );
 
-        // Also test with dim=768
         let a2: Vec<f32> = (0..768).map(|i| (i as f32 * 0.012_217_3).sin()).collect();
         let b2: Vec<f32> = (0..768).map(|i| (i as f32 * 0.024_434_6).cos()).collect();
-
-        let scalar2 = cosine_similarity_scalar(&a2, &b2);
+        let scalar2 = cosine_similarity(&a2, &b2);
         let simd2 = cosine_similarity_simd(&a2, &b2);
         assert!(
             (scalar2 - simd2).abs() < 1e-5,
-            "SIMD and scalar (768) differ by {}: scalar={scalar2}, simd={simd2}",
+            "differ by {}: scalar={scalar2}, simd={simd2}",
             (scalar2 - simd2).abs()
         );
     }
 
-    /// Verify the SIMD path gives correct results for the standard test cases.
     #[test]
     fn test_cosine_similarity_simd_standard_cases() {
-        // Identical vectors → 1.0
         let v1: Vec<f32> = (1..=16).map(|i| i as f32).collect();
         let v2 = v1.clone();
         let result = cosine_similarity_simd(&v1, &v2);
         assert!((result - 1.0).abs() < 1e-5, "identical: {result}");
 
-        // Orthogonal vectors → 0.5
         let v3 = vec![1.0f32, 0.0];
         let v4 = vec![0.0f32, 1.0];
         let result = cosine_similarity_simd(&v3, &v4);
         assert!((result - 0.5).abs() < 1e-5, "orthogonal: {result}");
 
-        // Opposite vectors → 0.0
         let v5: Vec<f32> = (1..=16).map(|i| i as f32).collect();
         let v6: Vec<f32> = (1..=16).map(|i| -(i as f32)).collect();
         let result = cosine_similarity_simd(&v5, &v6);
         assert!((result - 0.0).abs() < 1e-5, "opposite: {result}");
 
-        // Length mismatch → 0.0
         let v7 = vec![1.0f32, 2.0];
         let v8 = vec![1.0f32, 2.0, 3.0];
         assert_eq!(cosine_similarity_simd(&v7, &v8), 0.0, "length mismatch");
 
-        // Empty → 0.0
         let empty: Vec<f32> = vec![];
         assert_eq!(cosine_similarity_simd(&empty, &empty), 0.0, "empty");
 
-        // Zero vector → 0.0
         let v9 = vec![0.0f32; 16];
         let v10: Vec<f32> = (1..=16).map(|i| i as f32).collect();
         assert_eq!(cosine_similarity_simd(&v9, &v10), 0.0, "zero magnitude");
     }
 
-    /// Verify that cosine_similarity delegates to cosine_similarity_simd.
     #[test]
     fn test_cosine_similarity_delegates_to_simd() {
         let a: Vec<f32> = (0..512).map(|i| (i as f32).sin()).collect();
@@ -389,5 +264,20 @@ mod tests {
         let direct = cosine_similarity_simd(&a, &b);
         let delegated = cosine_similarity(&a, &b);
         assert_eq!(direct, delegated);
+    }
+
+    #[test]
+    fn test_cosine_similarity_with_remainder() {
+        // dim=11: 1 full chunk of 8 + 3 remainder elements
+        let a = vec![1.0f32; 11];
+        let b = vec![1.0f32; 11];
+        let result = cosine_similarity(&a, &b);
+        assert!((result - 1.0).abs() < 1e-5, "remainder path identical: {result}");
+
+        // dim=3: no full chunks, only remainder
+        let c = vec![1.0f32, 0.0, 0.0];
+        let d = vec![0.0f32, 1.0, 0.0];
+        let result2 = cosine_similarity(&c, &d);
+        assert!((result2 - 0.5).abs() < 1e-5, "remainder path orthogonal: {result2}");
     }
 }

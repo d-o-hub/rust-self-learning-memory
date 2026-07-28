@@ -1,8 +1,8 @@
 //! Vector similarity calculations and search utilities
 
-// SAFETY: This module contains a safe-to-use AVX2 SIMD path for cosine similarity.
-// The unsafe blocks are limited to the #[target_feature(enable = "avx2")] function
-// that uses std::arch intrinsics, guarded by is_x86_feature_detected! at runtime.
+// SAFETY: AVX2 intrinsic calls are guarded by is_x86_feature_detected!("avx2") at
+// runtime. Unsafe surface is limited to two consolidated blocks inside the
+// avx2-gated function: one for SIMD loads, one for horizontal sums.
 #![allow(unsafe_code)]
 
 use serde::{Deserialize, Serialize};
@@ -167,34 +167,28 @@ unsafe fn hsum256_ps(v: std::arch::x86_64::__m256) -> f32 {
 unsafe fn cosine_similarity_avx2_impl(a: &[f32], b: &[f32]) -> f32 {
     use std::arch::x86_64::{_mm256_add_ps, _mm256_loadu_ps, _mm256_mul_ps, _mm256_setzero_ps};
 
-    // AVX2 intrinsics are safe inside a #[target_feature(enable = "avx2")] fn.
-    let mut vdot = _mm256_setzero_ps();
-    let mut vna = _mm256_setzero_ps();
-    let mut vnb = _mm256_setzero_ps();
+    // SAFETY: _mm256_loadu_ps / hsum256_ps require AVX2; confirmed by
+    // is_x86_feature_detected!("avx2") in the caller before this fn is invoked.
+    // chunks_exact(8) guarantees each slice window is exactly 8 elements, so
+    // _mm256_loadu_ps never reads out of bounds.
+    let (mut dot_product, mut norm_a_sq, mut norm_b_sq) = unsafe {
+        let mut vdot = _mm256_setzero_ps();
+        let mut vna = _mm256_setzero_ps();
+        let mut vnb = _mm256_setzero_ps();
 
-    let chunks = a.len() / 8;
-    for i in 0..chunks {
-        let offset = i * 8;
-        // SAFETY: offset + 8 <= a.len() because i < chunks = a.len() / 8.
-        // Raw pointer arithmetic requires an explicit unsafe block even inside unsafe fn (Rust 2024).
-        let (va, vb) = unsafe {
-            (
-                _mm256_loadu_ps(a.as_ptr().add(offset)),
-                _mm256_loadu_ps(b.as_ptr().add(offset)),
-            )
-        };
-        vdot = _mm256_add_ps(vdot, _mm256_mul_ps(va, vb));
-        vna = _mm256_add_ps(vna, _mm256_mul_ps(va, va));
-        vnb = _mm256_add_ps(vnb, _mm256_mul_ps(vb, vb));
-    }
+        for (ca, cb) in a.chunks_exact(8).zip(b.chunks_exact(8)) {
+            let va = _mm256_loadu_ps(ca.as_ptr());
+            let vb = _mm256_loadu_ps(cb.as_ptr());
+            vdot = _mm256_add_ps(vdot, _mm256_mul_ps(va, vb));
+            vna = _mm256_add_ps(vna, _mm256_mul_ps(va, va));
+            vnb = _mm256_add_ps(vnb, _mm256_mul_ps(vb, vb));
+        }
 
-    // SAFETY: hsum256_ps is an unsafe fn; call requires explicit unsafe block (Rust 2024).
-    let mut dot_product = unsafe { hsum256_ps(vdot) };
-    let mut norm_a_sq = unsafe { hsum256_ps(vna) };
-    let mut norm_b_sq = unsafe { hsum256_ps(vnb) };
+        (hsum256_ps(vdot), hsum256_ps(vna), hsum256_ps(vnb))
+    };
 
-    // Scalar remainder: safe indexed access (no unsafe needed here)
-    let rem_start = chunks * 8;
+    // Scalar remainder (safe indexed access)
+    let rem_start = (a.len() / 8) * 8;
     for i in rem_start..a.len() {
         let x = a[i];
         let y = b[i];
@@ -243,8 +237,7 @@ pub fn cosine_similarity_simd(a: &[f32], b: &[f32]) -> f32 {
     #[cfg(target_arch = "x86_64")]
     {
         if is_x86_feature_detected!("avx2") {
-            // SAFETY: is_x86_feature_detected! confirmed AVX2 availability,
-            // and a.len() == b.len() is checked above.
+            // SAFETY: AVX2 presence confirmed above; a.len() == b.len() checked at entry.
             return unsafe { cosine_similarity_avx2_impl(a, b) };
         }
     }

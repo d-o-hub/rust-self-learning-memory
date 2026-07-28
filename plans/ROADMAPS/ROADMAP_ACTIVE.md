@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-07-26  
 **Released Version**: v0.1.37 (latest tag)  
-**Workspace Version**: 0.1.37 (next release)  
+**Workspace Version**: 0.1.38 (next release)  
 **Active Sprint**: ADR-077 runtime embedding activation (A1-A6 complete)  
 **Plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
 **Branch**: `main` @ `648e11ad`  

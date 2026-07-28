@@ -10,7 +10,7 @@
 #![allow(clippy::cast_sign_loss)]
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use do_memory_core::embeddings::cosine_similarity;
+use do_memory_core::embeddings::{cosine_similarity, cosine_similarity_simd};
 use rand::RngExt;
 use rand::rng;
 use std::hint::black_box;
@@ -29,6 +29,10 @@ fn bench_cosine_similarity(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("scalar", dim), &dim, |b, _| {
             b.iter(|| black_box(cosine_similarity(black_box(&v1), black_box(&v2))));
+        });
+
+        group.bench_with_input(BenchmarkId::new("simd", dim), &dim, |b, _| {
+            b.iter(|| black_box(cosine_similarity_simd(black_box(&v1), black_box(&v2))));
         });
     }
     group.finish();

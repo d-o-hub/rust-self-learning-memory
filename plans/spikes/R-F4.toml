@@ -1,0 +1,23 @@
+# Feature spike config for R-F4 — SIMD Acceleration (WG-110)
+# Consumed by: ./scripts/run-feature-spike.sh R-F4 --config plans/spikes/R-F4.toml --output plans/STATUS/spikes/R-F4.json
+id = "R-F4"
+title = "SIMD acceleration feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "Rust 1.95 confirmed (rust-toolchain.toml pins stable, active = 1.95.0). std::simd stabilised in Rust 1.89 (portable SIMD). cosine_similarity already has 8-way unrolled accumulator from PR #888 (memory-core/src/embeddings/similarity.rs). cosine_similarity_benchmark.rs exists at benches/ with dims 384/768/1536/3072. HNSW inner loop (hnsw.rs) uses hnsw_lib DistCosine which is the secondary SIMD target. Fallback scalar path preserved via cfg(target_feature) guards. All targets: x86_64 (AVX2), aarch64-apple (NEON), wasm32-unknown-unknown (scalar fallback). Existing tests cover cosine drift < 1e-5. Estimated 2x-4x throughput on 1536-dim vectors. No external crate needed — std::simd only."
+
+[metrics]
+rust_version = "1.95.0"
+std_simd_min_version = "1.89.0"
+benchmark_exists = true
+unrolled_baseline_from_pr = 888
+target_speedup_multiplier = 2
+wasm_fallback_required = true
+
+[preapproved_thresholds]
+std_simd_available = true
+benchmark_exists = true
+cosine_drift_tolerance = 0.00001

@@ -110,6 +110,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
         with:
@@ -184,7 +190,7 @@ jobs:
              echo ""
              echo "▶️ Running $bench_name benchmark (timeout: ${timeout}s, elapsed: ${ELAPSED}s)..."
 
-             if timeout "$timeout" cargo bench -p do-memory-benches --bench "$bench_name" --quiet 2>/dev/null; then
+             if timeout "$timeout" nix develop --command cargo bench -p do-memory-benches --bench "$bench_name" --quiet 2>/dev/null; then
                echo "✅ $bench_name completed successfully"
                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
              else

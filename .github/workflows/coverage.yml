@@ -90,6 +90,12 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+
       - name: Setup isolated target dir
         run: |
           chmod +x scripts/setup-target-dir.sh
@@ -124,7 +130,7 @@ jobs:
           echo "Generating coverage report for workspace code..."
           # Use --workspace so Codecov patch status can map PR diff lines correctly.
           # Exclude heavy non-gating crates to keep runtime reasonable.
-          timeout 2400s cargo llvm-cov --workspace \
+          timeout 2400s nix develop --command cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \
@@ -147,7 +153,7 @@ jobs:
           echo "Generating full workspace coverage report..."
           # Only run full workspace coverage on main branch
           # Exclude heavy directories (benches/, examples/) to save disk space
-          timeout 3000s cargo llvm-cov --workspace \
+          timeout 3000s nix develop --command cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \

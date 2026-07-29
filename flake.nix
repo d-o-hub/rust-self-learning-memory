@@ -28,11 +28,9 @@
             cargo-nextest
             cargo-tarpaulin
             cargo-deny
-          ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
-            Security
-            SystemConfiguration
-            CoreServices
-          ]);
+            cargo-mutants
+            cargo-dist
+          ];
         };
       });
 }

@@ -56,7 +56,7 @@ impl ConceptGraph {
                     .as_array()
                     .map(|a| {
                         a.iter()
-                            .filter_map(|v| v.as_str().map(String::from))
+                            .filter_map(|v| v.as_str().map(|s| s.to_lowercase()))
                             .collect()
                     })
                     .unwrap_or_default(),
@@ -64,7 +64,7 @@ impl ConceptGraph {
                     .as_array()
                     .map(|a| {
                         a.iter()
-                            .filter_map(|v| v.as_str().map(String::from))
+                            .filter_map(|v| v.as_str().map(|s| s.to_lowercase()))
                             .collect()
                     })
                     .unwrap_or_default(),
@@ -80,10 +80,17 @@ impl ConceptGraph {
     /// all synonyms and related concepts.
     #[must_use]
     pub fn expand_terms(&self, query: &str) -> Vec<String> {
+        if query.is_empty() {
+            return Vec::new();
+        }
+
         let query_lower = query.to_lowercase();
         let query_words: Vec<&str> = query_lower.split_whitespace().collect();
+        if query_words.is_empty() {
+            return Vec::new();
+        }
 
-        let mut expanded: Vec<String> = Vec::new();
+        let mut expanded = Vec::new();
 
         for entry in &self.entries {
             let domain_matched = query_words
@@ -91,13 +98,19 @@ impl ConceptGraph {
                 .any(|w| entry.terms.iter().any(|t| t == w));
 
             if domain_matched {
-                // Add all terms and related concepts from matching domains
+                // Reserve capacity to prevent multiple reallocations during extend
+                expanded.reserve(entry.terms.len() + entry.related_concepts.len());
                 expanded.extend(entry.terms.iter().cloned());
                 expanded.extend(entry.related_concepts.iter().cloned());
             }
         }
 
-        expanded.sort();
+        if expanded.is_empty() {
+            return Vec::new();
+        }
+
+        // Sort unstably to optimize performance over standard sort
+        expanded.sort_unstable();
         expanded.dedup();
         expanded
     }

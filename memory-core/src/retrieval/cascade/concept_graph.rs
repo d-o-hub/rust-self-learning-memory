@@ -190,6 +190,13 @@ mod tests {
     }
 
     #[test]
+    fn test_concept_graph_whitespace_query() {
+        let graph = ConceptGraph::from_embedded();
+        let expanded = graph.expand_terms("   ");
+        assert!(expanded.is_empty());
+    }
+
+    #[test]
     fn test_concept_graph_domain_count() {
         let graph = ConceptGraph::from_embedded();
         // Should have at least the domains defined in ontology.json

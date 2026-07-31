@@ -88,11 +88,8 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -155,11 +152,8 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -214,11 +208,9 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -239,7 +231,7 @@ jobs:
             fi
           else
             if command -v timeout >/dev/null 2>&1; then
-              # Linux/macOS with GNU timeout
+              # Linux with GNU timeout
               timeout 1800s cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             elif command -v gtimeout >/dev/null 2>&1; then
               # macOS with GNU timeout (coreutils)
@@ -284,11 +276,8 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -373,11 +362,8 @@ jobs:
         with:
           fetch-depth: 0  # Required for --baseline-branch
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -410,9 +396,6 @@ jobs:
         continue-on-error: true  # Informational only, not blocking
 
   # WASM compile check - ensures memory-core compiles for wasm32 targets
-  # We compile this without Nix (using standard rustup + cargo check) because WASM targets are not present
-  # in our read-only Nix toolchain environment. Since WASM compilation doesn't require native dependencies
-  # (like OpenSSL or SQLite), running it outside of Nix is perfectly safe and compliant.
   wasm-check:
     name: WASM Compile Check
     runs-on: ubuntu-latest

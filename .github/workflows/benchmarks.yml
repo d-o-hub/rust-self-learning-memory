@@ -110,11 +110,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@ab6bcb2d5af0e904d04aea750e2089e9dc4cbfdd  # v13
-
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738  # v7
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust

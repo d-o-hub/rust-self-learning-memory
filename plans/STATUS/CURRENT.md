@@ -1,25 +1,25 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-27  
+**Last Updated**: 2026-07-30
 **Released Version**: v0.1.37  
 **Workspace Version**: 0.1.38 (next release)  
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
-**Branch**: `main` @ `45c6eee8`
+**Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (proposed)
+**Branch**: `main` @ `e66defdf`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | *(none)* |
-| Open issues | *(none)* |
+| Open PRs | #914 Nix CI evaluation (UNSTABLE), #915 ConceptGraph performance (CLEAN) |
+| Open issues | #913 Nix CI evaluation |
 
 ## Snapshot
 
 | Area | State |
 |------|--------|
-| Release **v0.1.36** | ✅ Shipped 2026-07-22 — [release](https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.36) |
-| Post-release workspace **0.1.37** | ✅ #886 merged |
+| Release **v0.1.37** | ✅ Tagged and shipped |
+| Post-release workspace **0.1.38** | ✅ `e66defdf` |
 | Recommendations + F4 + skill contracts | ✅ #878 |
 | Medium-risk skill evals (R-E2) | ✅ #883 |
 | Docs integrity ship gate | ✅ #885 |
@@ -32,13 +32,23 @@
 | ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
-| P0 plan gaps | **None open** |
+| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only |
+| CI wait semantics | **Not fail-closed** — five waiters accept cancelled/skipped/missing fast check |
+| P0 plan gaps | **1 open** — required CI (PTA-A1/A2/A3 implemented) |
+| ADR-079 CI control plane | Proposed; implementation/ruleset unchanged |
+| ADR-078 automatic attribution | Proposed; implementation not started |
 
 ## Immediate priorities
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Cut v0.1.37 release (31 commits ready) | release | 🚀 IN PROGRESS |
+| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | Proposed |
+| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | Planned |
+| P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
+| P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
+| P1 | Reconcile gate contract; repair release/publish/fuzz truth | CIT-A3…A5 | Planned |
+| P1 | Automatic episode-bound recommendation attribution | ADR-078 / RAT-A1…A7 | Proposed |
+| P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
 

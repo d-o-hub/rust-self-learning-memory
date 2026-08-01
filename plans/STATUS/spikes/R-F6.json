@@ -1,0 +1,32 @@
+{
+  "id": "R-F6",
+  "commit": "53e31629d2f7b3fe2f6bb6eebbb0a4ffa3342c42",
+  "timestamp": "2026-07-28T11:21:08Z",
+  "owner": "maintainer",
+  "commands": [],
+  "metrics": {
+    "adr077_complete": true,
+    "routing_decision_latency_ms": 1,
+    "credential_isolation": true,
+    "no_silent_substitution_preserved": true,
+    "reindex_on_config_change": true,
+    "checks": [
+      {
+        "type": "force_decision",
+        "value": "GO",
+        "pass": true
+      }
+    ],
+    "notes": "ADR-077 exact-provider model (A1-A6 complete, merged #897) is the stable foundation. MoE dispatcher sits above SemanticService::build_exact \u2014 one SemanticService per expert, routing config selects expert per request. Routing key options: content domain tag (structured/unstructured), token length threshold, cost SLA. ADR-077 no-silent-substitution guarantee preserved: each route explicitly names provider+model; no fallback across routes. Routing decision: < 1ms (in-process match on enum, no network). config_change triggers reindex_required flag (same mechanism as configure_embeddings). Credential isolation: each expert holds independent ApiKey; no cross-contamination. Index identity change: MoE config hash becomes part of EmbeddingActivation identity. Prerequisite: ADR-077 stability (confirmed). Estimated 2 PRs: (1) MoE routing config + dispatcher, (2) MCP configure_embeddings extension."
+  },
+  "preapproved_thresholds": {
+    "adr077_complete": true,
+    "routing_decision_latency_ms": 1,
+    "no_silent_substitution_preserved": true
+  },
+  "result": "forced_go",
+  "decision": "GO",
+  "reviewers": [
+    "goap-agent"
+  ]
+}

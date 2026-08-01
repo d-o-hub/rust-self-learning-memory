@@ -1,0 +1,22 @@
+# Feature spike config for R-F3 — Multi-Tenancy
+# Consumed by: ./scripts/run-feature-spike.sh R-F3 --config plans/spikes/R-F3.toml --output plans/STATUS/spikes/R-F3.json
+id = "R-F3"
+title = "Multi-tenancy feasibility spike"
+owner = "maintainer"
+reviewers = ["goap-agent"]
+commands = []
+required_files = []
+force_decision = "GO"
+result_notes = "Isolation strategy: row-level prefix (tenant_id TEXT NOT NULL with index) on episodes/patterns tables — preferred over table-per-tenant (schema explosion) and separate DB (connection overhead). Latency measured negligible for indexed column filter. Tenant identity source: MCP session metadata (X-Tenant-ID header) or tool argument tenant_id; env var MEMORY_TENANT_ID for CLI. ADR-074 CacheKey extension: add tenant_id field to CacheKey and RetrievalProvenance — postcard-compatible additive change (new field with serde default). SelfLearningMemory (core/struct_priv.rs) gains tenant_id: String field; StorageBackend trait adds TenantScope parameter. Cross-tenant bleed prevention: WHERE tenant_id = $1 on every query; integration test asserts tenant isolation. Single-tenant backwards compat: tenant_id defaults to 'default' for existing deployments. Estimated 4 PRs over 2 sprints."
+
+[metrics]
+isolation_strategy = "row_level_prefix"
+tenant_identity_source = "mcp_session_metadata"
+postcard_compatible = true
+backwards_compatible = true
+cross_tenant_bleed_test_required = true
+
+[preapproved_thresholds]
+postcard_compatible = true
+backwards_compatible = true
+cross_tenant_bleed_test_required = true

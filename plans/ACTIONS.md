@@ -15,15 +15,6 @@
 | ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | Planned |
 | ACT-339 | Preserve fuzz/mutation evidence, then measure and remove duplicate CI work | CIT-A5 | Planned |
 | ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | Blocked by ACT-335…337 and maintainer approval |
-| ACT-325 | Make non-`csm` cascade retrieval capability-truthful | PTA-A1 | ✅ Implemented |
-| ACT-326 | Make CLI storage metrics measured/estimated/unavailable explicitly | PTA-A2 | ✅ Implemented |
-| ACT-327 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
-| ACT-328 | Accept ADR-078 and freeze attributed contracts | RAT-A1 | Proposed |
-| ACT-329 | Add capability-aware checked attribution persistence | RAT-A2 | Blocked by ADR acceptance |
-| ACT-330 | Add core attributed pattern/playbook operations | RAT-A3 | Blocked by ACT-329 |
-| ACT-331 | Enforce session and feedback integrity | RAT-A4 | Blocked by ACT-330 |
-| ACT-332 | Wire optional attribution through MCP and CLI | RAT-A5/A6 | Blocked by ACT-331 |
-| ACT-333 | End-to-end validation, docs, and authority update | RAT-A7/PTA-A9 | Blocked by ACT-325…332 |
 | ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | ✅ Done |
 | ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | ✅ #886 |
 | ACT-315 | Plans progress truth (open PRs, post-ship) | R-G* | ✅ #889 |
@@ -36,11 +27,23 @@
 | ACT-322 | Add 6 domain skills (40 total, all routed) | skills | ✅ #894 |
 | ACT-323 | ADR-077 A1-A5 runtime embedding activation | ADR-077 | ✅ main (`9ef4b742`, `e0f7f712`) |
 | ACT-324 | ADR-077 A6 validate/document/gate (docs + concurrency + zero-unsafe redaction tests) | ADR-077 | ✅ #897 merged |
-| ACT-312 | Optional product/research spikes R-F1…R-F7, R-F10 | R-F* | ⏸ DEFER |
+| ACT-312 | R-F* GO spike artifacts written + validated (2026-07-28) | R-F* | ✅ Done |
+| ACT-325 | Implement R-F10 OIDC trusted publishing in publish-crates.yml | R-F10 | 🔄 In progress |
+| ACT-326 | Implement R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | 🔄 In progress |
+| ACT-341 | Make non-`csm` cascade retrieval capability-truthful | PTA-A1 | ✅ Implemented |
+| ACT-342 | Make CLI storage metrics measured/estimated/unavailable explicitly | PTA-A2 | ✅ Implemented |
+| ACT-343 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
+| ACT-328 | Accept ADR-078 and freeze attributed contracts | RAT-A1 | Proposed |
+| ACT-329 | Add capability-aware checked attribution persistence | RAT-A2 | Blocked by ADR acceptance |
+| ACT-330 | Add core attributed pattern/playbook operations | RAT-A3 | Blocked by ACT-329 |
+| ACT-331 | Enforce session and feedback integrity | RAT-A4 | Blocked by ACT-330 |
+| ACT-332 | Wire optional attribution through MCP and CLI | RAT-A5/A6 | Blocked by ACT-331 |
+| ACT-333 | End-to-end validation, docs, and authority update | RAT-A7/PTA-A9 | Blocked by ACT-341…343 + RAT chain |
 
-All ACT-300…ACT-324 items are complete. ACT-325…ACT-340 are open and must not
-be marked complete without code, workflow, live-ruleset, and validation evidence
-as applicable.
+All ACT-300…ACT-324 items are complete. ACT-341…ACT-343 (PTA-A1/A2/A3) are
+implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) are in progress. Remaining open
+items must not be marked complete without code, workflow, live-ruleset, and
+validation evidence as applicable.
 
 ## Completed actions (summary)
 

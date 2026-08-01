@@ -19,12 +19,15 @@
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
 | Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-078 | P1 | Proposed |
 | Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred |
-| Optional research/product spikes (R-F1…R-F7, R-F10) | R-F* | P2 | ⏸ DEFER |
+| R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | 🔄 In progress |
+| R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | 🔄 In progress |
+| Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
 The ranking-learning loop remains open: ADR-078 captures trustworthy evidence but
 does not yet apply feedback to recommendation scores. First-party CI is also not
 currently merge-required; green workflow runs must not be described as branch
-protection until ADR-079's staged ruleset migration completes.
+protection until ADR-079's staged ruleset migration completes. Active campaign:
+R-F10 (ACT-325) and R-F4 (ACT-326) in progress; PTA-A1/A2/A3 implemented.
 
 ## Closed this wave (2026-07-20…25)
 

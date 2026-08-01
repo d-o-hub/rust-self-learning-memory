@@ -60,16 +60,13 @@
 5. Release manual dispatch fails tag preflight by construction. Publish selection
    can be suppressed by skipped dependencies, and fuzz failures can be continued
    without triggering crash-artifact upload.
-6. `CascadeRetriever::retrieve` returns a successful empty result without `csm`,
-   hiding capability absence as “no matches.”
-7. CLI storage output presents fixed-size estimates, completed-count “recent”
-   values, and unavailable cache/connection data as observed telemetry.
-8. `eval set-threshold` is public but has no persistence or reward-consumption
-   path and always errors.
+6. ~~`CascadeRetriever::retrieve` returns a successful empty result without `csm`~~ ✅ PTA-A1 closed — returns `Err(CascadeError::CapabilityUnavailable)`.
+7. ~~CLI storage output presents fixed-size estimates, completed-count "recent" values, and unavailable cache/connection data as observed telemetry~~ ✅ PTA-A2 closed — `MetricValue` provenance.
+8. ~~`eval set-threshold` is public but has no persistence or reward-consumption path and always errors~~ ✅ PTA-A3 closed — command removed.
 9. Pattern recommendation does not create attribution sessions automatically;
    playbook recommendation records `Uuid::nil()` and skips persistence.
 10. Session/feedback persistence is warning-only and trait defaults can report
-   success without writing; feedback integrity is not fully validated.
+    success without writing; feedback integrity is not fully validated.
 
 ## New feature decision
 
@@ -85,9 +82,9 @@ not yet change recommendation ranking.
 2. Restore fail-closed cancellation/commitlint and Dependabot/fork parity, then
    stage the verified aggregate into the live ruleset with approval.
 3. Reconcile gate scope and repair release/publish/fuzz false-success paths.
-4. Fix P0 capability/telemetry truth defects (PTA-A1/A2).
-5. Remove the advertised threshold non-operation (PTA-A3).
-6. Accept and execute ADR-078 RAT-A1…A7.
-7. Design feedback-to-ranking adaptation only after capture integrity is proven.
+4. Accept and execute ADR-078 RAT-A1…A7.
+5. Design feedback-to-ranking adaptation only after capture integrity is proven.
+6. Residual: historical ADR filename collisions (025/054 aliased — docs only),
+   transitive Dependabot advisories (monitor), R-F10 (OIDC) / R-F4 (SIMD) in progress.
 
 Full prioritized plan: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.

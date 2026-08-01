@@ -15,6 +15,8 @@
   active GitHub repository ruleset through `gh`/REST evidence.
 - Kept intentional fail-closed code execution and deferred batch tools as non-gaps.
 - Ranked observable false-success behavior above additive provider work.
+- Prior wave (2026-07-28): all P0 ship items closed; R-F8/R-F9 merged (#893);
+  6 skills added (40 total); R-F1…R-F7 + R-F10 GO spike artifacts validated.
 
 ## Closed this wave
 
@@ -31,6 +33,7 @@
 | Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (#894) |
 | ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) — exact-provider factory + atomic runtime seam + MCP end-to-end |
 | ADR-077 A6 validate / document / gate | ✅ #897 merged — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
+| G-P2-1…7 R-F* spike artifacts | ✅ GO artifacts for R-F1…R-F7 + R-F10 (plans/STATUS/spikes/, 2026-07-28) |
 
 ## Open gaps (current)
 
@@ -60,7 +63,7 @@
 
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
-| G-P2-1…7 | R-F1…R-F7, R-F10 epics | Spike-gated DEFER | R-F* |
+| G-P2-1…7 | R-F1…R-F7, R-F10 epics | GO spikes validated 2026-07-28 — awaiting ADR + implementation PRs (R-F10 ACT-325, R-F4 ACT-326 in progress) | R-F* active |
 | G-P2-8 | Feedback does not idempotently update later recommendation ranking | ADR-078 captures data only | Follow-up ADR |
 | G-P2-9 | Azure/Custom/Cohere runtime embedding adapters absent | Honest rejection required by ADR-077 | Provider-specific ADR if prioritized |
 
@@ -86,3 +89,5 @@
 - PTA-A1…A3 have code and feature-matrix tests. ✅ (2026-08-01)
 - ADR-078 acceptance criteria and RAT-A1…A7 are implemented with evidence.
 - Ranking adaptation remains explicitly open until separately decided and tested.
+- G-P1-8 and G-P1-9 are monitor-only (no code action required).
+- P2 GO spike gate cleared 2026-07-28; next gate is ADR draft + implementation PR per epic.

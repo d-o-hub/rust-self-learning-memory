@@ -26,26 +26,51 @@ pub struct SimilarityMetadata {
     pub context: serde_json::Value,
 }
 
-/// Calculate cosine similarity between two vectors
+/// Calculate cosine similarity between two vectors.
 ///
 /// Cosine similarity measures the cosine of the angle between two vectors,
 /// giving a similarity score between -1 and 1 (normalized to 0-1 for convenience).
 /// Higher scores indicate greater similarity.
 ///
-/// # Optimization:
-/// 1. Processes vector chunks of size 8 using chunks_exact to allow LLVM to generate
-///    highly efficient SIMD instruction sets (AVX/SSE/NEON).
-/// 2. Employs 8 separate accumulators for the dot product and magnitude components
-///    to break data dependency chains, improving instruction-level parallelism.
-/// 3. Maintains dynamic range stability by using individual square roots.
+/// # Optimization
+///
+/// Uses an 8-way unrolled accumulator loop over `chunks_exact(8)`. This structure
+/// breaks dependency chains for instruction-level parallelism and gives LLVM enough
+/// information to auto-vectorize to AVX2/NEON when the target supports it — without
+/// any `unsafe` code.
 #[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+    cosine_similarity_simd(a, b)
+}
+
+/// Calculate cosine similarity with the same 8-way unrolled accumulator as
+/// [`cosine_similarity`].
+///
+/// Provided as a named variant for benchmarking and testing the inner loop
+/// directly. On x86_64 targets compiled with AVX2 support, LLVM auto-vectorizes
+/// this loop to use 256-bit registers without any `unsafe` code.
+///
+/// The result is normalized from `[-1, 1]` to `[0, 1]`.
+///
+/// # Example
+///
+/// ```
+/// use do_memory_core::embeddings::cosine_similarity_simd;
+///
+/// let a = vec![1.0f32, 0.0, 0.0];
+/// let b = vec![1.0f32, 0.0, 0.0];
+/// let sim = cosine_similarity_simd(&a, &b);
+/// assert!((sim - 1.0).abs() < 1e-5);
+/// ```
+#[must_use]
+pub fn cosine_similarity_simd(a: &[f32], b: &[f32]) -> f32 {
     let len = a.len();
     if len != b.len() || len == 0 {
         return 0.0;
     }
 
-    // Unroll 8-way to break dependency chains & trigger autovectorization
+    // 8-way unrolled accumulators break dependency chains and allow LLVM to
+    // auto-vectorize to AVX2/NEON on supported targets.
     let mut dp0 = 0.0f32;
     let mut dp1 = 0.0f32;
     let mut dp2 = 0.0f32;
@@ -126,6 +151,7 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     // Normalize from [-1, 1] to [0, 1] range for semantic scores
     (similarity + 1.0) / 2.0
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,5 +203,87 @@ mod tests {
         let vec5 = vec![0.0, 0.0, 0.0];
         let vec6 = vec![0.0, 0.0, 0.0];
         assert_eq!(cosine_similarity(&vec5, &vec6), 0.0);
+    }
+
+    #[test]
+    fn test_cosine_similarity_simd_matches_scalar() {
+        let a: Vec<f32> = (0..384).map(|i| (i as f32 * 0.017_453_3).sin()).collect();
+        let b: Vec<f32> = (0..384).map(|i| (i as f32 * 0.034_906_6).cos()).collect();
+        let scalar = cosine_similarity(&a, &b);
+        let simd = cosine_similarity_simd(&a, &b);
+        assert!(
+            (scalar - simd).abs() < 1e-5,
+            "differ by {}: scalar={scalar}, simd={simd}",
+            (scalar - simd).abs()
+        );
+
+        let a2: Vec<f32> = (0..768).map(|i| (i as f32 * 0.012_217_3).sin()).collect();
+        let b2: Vec<f32> = (0..768).map(|i| (i as f32 * 0.024_434_6).cos()).collect();
+        let scalar2 = cosine_similarity(&a2, &b2);
+        let simd2 = cosine_similarity_simd(&a2, &b2);
+        assert!(
+            (scalar2 - simd2).abs() < 1e-5,
+            "differ by {}: scalar={scalar2}, simd={simd2}",
+            (scalar2 - simd2).abs()
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_simd_standard_cases() {
+        let v1: Vec<f32> = (1..=16).map(|i| i as f32).collect();
+        let v2 = v1.clone();
+        let result = cosine_similarity_simd(&v1, &v2);
+        assert!((result - 1.0).abs() < 1e-5, "identical: {result}");
+
+        let v3 = vec![1.0f32, 0.0];
+        let v4 = vec![0.0f32, 1.0];
+        let result = cosine_similarity_simd(&v3, &v4);
+        assert!((result - 0.5).abs() < 1e-5, "orthogonal: {result}");
+
+        let v5: Vec<f32> = (1..=16).map(|i| i as f32).collect();
+        let v6: Vec<f32> = (1..=16).map(|i| -(i as f32)).collect();
+        let result = cosine_similarity_simd(&v5, &v6);
+        assert!((result - 0.0).abs() < 1e-5, "opposite: {result}");
+
+        let v7 = vec![1.0f32, 2.0];
+        let v8 = vec![1.0f32, 2.0, 3.0];
+        assert_eq!(cosine_similarity_simd(&v7, &v8), 0.0, "length mismatch");
+
+        let empty: Vec<f32> = vec![];
+        assert_eq!(cosine_similarity_simd(&empty, &empty), 0.0, "empty");
+
+        let v9 = vec![0.0f32; 16];
+        let v10: Vec<f32> = (1..=16).map(|i| i as f32).collect();
+        assert_eq!(cosine_similarity_simd(&v9, &v10), 0.0, "zero magnitude");
+    }
+
+    #[test]
+    fn test_cosine_similarity_delegates_to_simd() {
+        let a: Vec<f32> = (0..512).map(|i| (i as f32).sin()).collect();
+        let b: Vec<f32> = (0..512).map(|i| (i as f32).cos()).collect();
+        let direct = cosine_similarity_simd(&a, &b);
+        let delegated = cosine_similarity(&a, &b);
+        assert_eq!(direct, delegated);
+    }
+
+    #[test]
+    fn test_cosine_similarity_with_remainder() {
+        // dim=11: 1 full chunk of 8 + 3 remainder elements
+        let a = vec![1.0f32; 11];
+        let b = vec![1.0f32; 11];
+        let result = cosine_similarity(&a, &b);
+        assert!(
+            (result - 1.0).abs() < 1e-5,
+            "remainder path identical: {result}"
+        );
+
+        // dim=3: no full chunks, only remainder
+        let c = vec![1.0f32, 0.0, 0.0];
+        let d = vec![0.0f32, 1.0, 0.0];
+        let result2 = cosine_similarity(&c, &d);
+        assert!(
+            (result2 - 0.5).abs() < 1e-5,
+            "remainder path orthogonal: {result2}"
+        );
     }
 }

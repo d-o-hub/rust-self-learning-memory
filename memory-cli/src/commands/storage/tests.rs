@@ -267,6 +267,26 @@ fn storage_stats_human_output_labels_estimates_and_unavailable() {
 }
 
 #[test]
+fn storage_stats_human_output_shows_last_sync_when_available() {
+    // Arrange
+    let stats = StorageStats {
+        last_sync: MetricValue::measured("2026-08-01T12:00:00Z".to_string()),
+        ..sample_stats()
+    };
+
+    // Act
+    let mut buffer = Vec::new();
+    stats.write_human(&mut buffer).unwrap();
+    let output = String::from_utf8(buffer).unwrap();
+
+    // Assert
+    assert!(
+        output.contains("Last Sync: 2026-08-01T12:00:00Z"),
+        "measured last sync must be shown, not omitted"
+    );
+}
+
+#[test]
 fn connection_status_human_output_marks_metrics_unavailable() {
     // Arrange
     let status = unavailable_connections();

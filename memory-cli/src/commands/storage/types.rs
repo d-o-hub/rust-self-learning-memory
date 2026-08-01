@@ -73,45 +73,29 @@ impl Output for StorageStats {
 
         writeln!(writer, "Episodes:")?;
         writeln!(writer, "  Total: {}", self.episodes.total_count)?;
-        writeln!(
-            writer,
-            "  Completed: {}",
-            self.episodes.completed_count.render()
-        )?;
-        writeln!(
-            writer,
-            "  Avg Size: {}",
-            self.episodes
-                .average_size_bytes
-                .render_with_suffix(" bytes")
-        )?;
+        let episodes_completed = self.episodes.completed_count.render();
+        writeln!(writer, "  Completed: {}", episodes_completed)?;
+        let episodes_avg = self
+            .episodes
+            .average_size_bytes
+            .render_with_suffix(" bytes");
+        writeln!(writer, "  Avg Size: {}", episodes_avg)?;
 
         writeln!(writer, "\nPatterns:")?;
         writeln!(writer, "  Total: {}", self.patterns.total_count)?;
-        writeln!(
-            writer,
-            "  Completed: {}",
-            self.patterns.completed_count.render()
-        )?;
-        writeln!(
-            writer,
-            "  Avg Size: {}",
-            self.patterns
-                .average_size_bytes
-                .render_with_suffix(" bytes")
-        )?;
+        let patterns_completed = self.patterns.completed_count.render();
+        writeln!(writer, "  Completed: {}", patterns_completed)?;
+        let patterns_avg = self
+            .patterns
+            .average_size_bytes
+            .render_with_suffix(" bytes");
+        writeln!(writer, "  Avg Size: {}", patterns_avg)?;
 
         writeln!(writer, "\nStorage:")?;
-        writeln!(
-            writer,
-            "  Total Size: {}",
-            self.storage_size_bytes.render_mb()
-        )?;
-        writeln!(
-            writer,
-            "  Cache Hit Rate: {}",
-            self.cache_hit_rate.render_percent()
-        )?;
+        let total_size = self.storage_size_bytes.render_mb();
+        writeln!(writer, "  Total Size: {}", total_size)?;
+        let cache_hit = self.cache_hit_rate.render_percent();
+        writeln!(writer, "  Cache Hit Rate: {}", cache_hit)?;
 
         if !self.last_sync.is_unavailable() {
             writeln!(writer, "  Last Sync: {}", self.last_sync.render())?;
@@ -317,32 +301,20 @@ impl Output for ConnectionStatus {
         writeln!(writer, "{}", "─".repeat(40))?;
 
         writeln!(writer, "Turso:")?;
-        writeln!(
-            writer,
-            "  Active: {}",
-            self.turso.active_connections.render()
-        )?;
+        let turso_active = self.turso.active_connections.render();
+        writeln!(writer, "  Active: {}", turso_active)?;
         writeln!(writer, "  Pool Size: {}", self.turso.pool_size.render())?;
         writeln!(writer, "  Queue Depth: {}", self.turso.queue_depth.render())?;
-        writeln!(
-            writer,
-            "  Last Activity: {}",
-            self.turso.last_activity.render()
-        )?;
+        let turso_activity = self.turso.last_activity.render();
+        writeln!(writer, "  Last Activity: {}", turso_activity)?;
 
         writeln!(writer, "\nredb:")?;
-        writeln!(
-            writer,
-            "  Active: {}",
-            self.redb.active_connections.render()
-        )?;
+        let redb_active = self.redb.active_connections.render();
+        writeln!(writer, "  Active: {}", redb_active)?;
         writeln!(writer, "  Pool Size: {}", self.redb.pool_size.render())?;
         writeln!(writer, "  Queue Depth: {}", self.redb.queue_depth.render())?;
-        writeln!(
-            writer,
-            "  Last Activity: {}",
-            self.redb.last_activity.render()
-        )?;
+        let redb_activity = self.redb.last_activity.render();
+        writeln!(writer, "  Last Activity: {}", redb_activity)?;
 
         Ok(())
     }

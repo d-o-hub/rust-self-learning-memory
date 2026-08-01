@@ -29,21 +29,6 @@ pub enum EvalCommands {
         #[arg(value_name = "DOMAIN")]
         domain: String,
     },
-
-    /// Set custom threshold for a domain (manual override)
-    SetThreshold {
-        /// Domain to configure
-        #[arg(long)]
-        domain: String,
-
-        /// Duration threshold in seconds
-        #[arg(long)]
-        duration: Option<f32>,
-
-        /// Step count threshold
-        #[arg(long)]
-        steps: Option<usize>,
-    },
 }
 
 #[derive(Debug, Serialize)]
@@ -388,32 +373,6 @@ pub async fn domain_stats(
 
     detail.write(&mut std::io::stdout(), &format)?;
     Ok(())
-}
-
-/// Set custom thresholds for a domain.
-///
-/// **WG-152 / ADR-055**: Custom per-domain threshold overrides require a
-/// persistence backend that does not yet exist in `SelfLearningMemory`. Rather
-/// than silently accept arguments and discard them, we return an explicit
-/// error so callers know the request was not honored.
-///
-/// Current adaptive-threshold behavior (no override needed):
-/// - Domains with 5+ completed episodes: adaptive calibration (median baseline)
-/// - Domains with <5 episodes: fixed defaults (60s, 10 steps)
-pub async fn set_threshold(
-    domain: String,
-    duration: Option<f32>,
-    steps: Option<usize>,
-    _memory: &do_memory_core::SelfLearningMemory,
-    _config: &Config,
-    _format: OutputFormat,
-) -> anyhow::Result<()> {
-    anyhow::bail!(
-        "Custom threshold overrides are not supported (no persistence backend).\n\
-         Requested: domain={domain}, duration={duration:?}, steps={steps:?}\n\
-         Adaptive calibration is used automatically once a domain has >=5 completed episodes.\n\
-         To inspect current calibration, run: `do-memory-cli eval show --domain {domain}`."
-    );
 }
 
 fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {

@@ -414,3 +414,32 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 }
+
+#[cfg(test)]
+mod cli_parsing_tests {
+    use super::Cli;
+    use clap::Parser;
+
+    #[test]
+    fn test_eval_stats_parses() {
+        let cli = Cli::try_parse_from(["do-memory-cli", "eval", "stats", "web-development"])
+            .expect("eval stats should parse");
+        assert!(matches!(cli.command, crate::Commands::Eval { .. }));
+    }
+
+    #[test]
+    fn test_eval_set_threshold_rejected() {
+        // The set-threshold subcommand was removed because no override model
+        // is persisted or consumed by reward calculation. Parsing must fail.
+        let result = Cli::try_parse_from([
+            "do-memory-cli",
+            "eval",
+            "set-threshold",
+            "--domain",
+            "web-development",
+            "--duration",
+            "300",
+        ]);
+        assert!(result.is_err());
+    }
+}

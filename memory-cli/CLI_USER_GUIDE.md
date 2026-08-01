@@ -463,27 +463,6 @@ do-memory-cli eval stats web-development
 do-memory-cli eval stats web-development --format json
 ```
 
-#### `do-memory-cli eval set-threshold`
-
-Set custom duration and step count thresholds for a domain.
-
-**Options:**
-- `--domain <DOMAIN>`: Domain to configure (required)
-- `--duration <SECONDS>`: Duration threshold in seconds
-- `--steps <NUM>`: Step count threshold
-
-**Examples:**
-```bash
-# Set duration threshold
-do-memory-cli eval set-threshold --domain web-development --duration 300
-
-# Set step count threshold
-do-memory-cli eval set-threshold --domain web-development --steps 15
-
-# Set both thresholds
-do-memory-cli eval set-threshold --domain web-development --duration 300 --steps 15
-```
-
 ### Meta Commands
 
 #### `do-memory-cli completion`

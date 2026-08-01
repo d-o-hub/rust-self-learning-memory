@@ -206,11 +206,6 @@ pub async fn handle_eval_command(
             min_episodes,
         } => eval::calibration(domain, all, min_episodes, memory, config, format).await,
         EvalCommands::Stats { domain } => eval::domain_stats(domain, memory, config, format).await,
-        EvalCommands::SetThreshold {
-            domain,
-            duration,
-            steps,
-        } => eval::set_threshold(domain, duration, steps, memory, config, format).await,
     }
 }
 

@@ -363,15 +363,6 @@ do-memory-cli eval calibration --min-episodes 10
 do-memory-cli eval stats web-development
 ```
 
-#### Set Threshold
-```bash
-# Set duration threshold
-do-memory-cli eval set-threshold --domain web-development --duration 300
-
-# Set step count threshold
-do-memory-cli eval set-threshold --domain web-development --steps 15
-```
-
 ### Meta Commands
 
 #### Generate Completions (alias: `comp`)

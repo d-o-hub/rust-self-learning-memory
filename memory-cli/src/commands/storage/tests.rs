@@ -132,6 +132,33 @@ fn metric_value_render_labels_estimate_and_unavailable() {
     assert_eq!(unavailable_render, "unavailable");
 }
 
+#[test]
+fn metric_value_render_units_cover_all_provenances() {
+    // Arrange
+    let measured_mb = MetricValue::measured(1_000_000u64);
+    let estimated_mb = MetricValue::estimated(2_000_000u64);
+    let unavailable_mb = MetricValue::<u64>::unavailable();
+    let measured_pct = MetricValue::measured(0.5f32);
+    let estimated_pct = MetricValue::estimated(0.25f32);
+    let unavailable_pct = MetricValue::<f32>::unavailable();
+
+    // Act
+    let mb_measured = measured_mb.render_mb();
+    let mb_estimated = estimated_mb.render_mb();
+    let mb_unavailable = unavailable_mb.render_mb();
+    let pct_measured = measured_pct.render_percent();
+    let pct_estimated = estimated_pct.render_percent();
+    let pct_unavailable = unavailable_pct.render_percent();
+
+    // Assert
+    assert_eq!(mb_measured, "1.00 MB");
+    assert_eq!(mb_estimated, "2.00 MB (estimate)");
+    assert_eq!(mb_unavailable, "unavailable");
+    assert_eq!(pct_measured, "50.0%");
+    assert_eq!(pct_estimated, "25.0% (estimate)");
+    assert_eq!(pct_unavailable, "unavailable");
+}
+
 // ---------------------------------------------------------------------------
 // JSON serialization carries provenance
 // ---------------------------------------------------------------------------

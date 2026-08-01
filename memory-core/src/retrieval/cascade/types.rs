@@ -230,4 +230,15 @@ mod tests {
 
         assert_eq!(error, CascadeError::CapabilityUnavailable);
     }
+
+    #[test]
+    fn cascade_error_display_and_error_impl() {
+        let error = CascadeError::CapabilityUnavailable;
+
+        assert!(
+            error.to_string().contains("unavailable"),
+            "display should describe the unavailable capability"
+        );
+        assert!(std::error::Error::source(&error).is_none());
+    }
 }

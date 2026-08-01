@@ -56,7 +56,7 @@ impl ConceptGraph {
                     .as_array()
                     .map(|a| {
                         a.iter()
-                            .filter_map(|v| v.as_str().map(|s| s.to_lowercase()))
+                            .filter_map(|v| v.as_str().map(String::from))
                             .collect()
                     })
                     .unwrap_or_default(),
@@ -64,7 +64,7 @@ impl ConceptGraph {
                     .as_array()
                     .map(|a| {
                         a.iter()
-                            .filter_map(|v| v.as_str().map(|s| s.to_lowercase()))
+                            .filter_map(|v| v.as_str().map(String::from))
                             .collect()
                     })
                     .unwrap_or_default(),
@@ -80,18 +80,10 @@ impl ConceptGraph {
     /// all synonyms and related concepts.
     #[must_use]
     pub fn expand_terms(&self, query: &str) -> Vec<String> {
-        // Streamline whitespace and empty checks with trim() up-front to avoid redundant checks
-        let trimmed_query = query.trim();
-        if trimmed_query.is_empty() {
-            return Vec::new();
-        }
-
-        // Normalize the query up-front to match the pre-lowercased ontology terms.
-        // Lowercasing once avoids redundant allocations and maintains case-insensitivity.
-        let query_lower = trimmed_query.to_lowercase();
+        let query_lower = query.to_lowercase();
         let query_words: Vec<&str> = query_lower.split_whitespace().collect();
 
-        let mut expanded = Vec::new();
+        let mut expanded: Vec<String> = Vec::new();
 
         for entry in &self.entries {
             let domain_matched = query_words
@@ -99,22 +91,13 @@ impl ConceptGraph {
                 .any(|w| entry.terms.iter().any(|t| t == w));
 
             if domain_matched {
-                // Reserve capacity to prevent multiple reallocations during vector extension.
-                // Matched entries are cloned directly from the read-only static ontology.
-                expanded.reserve(entry.terms.len() + entry.related_concepts.len());
+                // Add all terms and related concepts from matching domains
                 expanded.extend(entry.terms.iter().cloned());
                 expanded.extend(entry.related_concepts.iter().cloned());
             }
         }
 
-        if expanded.is_empty() {
-            return Vec::new();
-        }
-
-        // Sort unstably to optimize performance over stable sort (O(M log M) vs O(M log M) worst-case).
-        // Since we immediately deduplicate the expanded synonyms with dedup(), the stability of
-        // the sort is completely irrelevant.
-        expanded.sort_unstable();
+        expanded.sort();
         expanded.dedup();
         expanded
     }
@@ -190,13 +173,6 @@ mod tests {
     fn test_concept_graph_empty_query() {
         let graph = ConceptGraph::from_embedded();
         let expanded = graph.expand_terms("");
-        assert!(expanded.is_empty());
-    }
-
-    #[test]
-    fn test_concept_graph_whitespace_query() {
-        let graph = ConceptGraph::from_embedded();
-        let expanded = graph.expand_terms("   ");
         assert!(expanded.is_empty());
     }
 

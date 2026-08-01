@@ -3,7 +3,7 @@
 - **Last Updated**: 2026-07-30
 - **Version**: workspace `0.1.38` · latest tag `v0.1.37`
 - **Branch**: `main` @ `f0ffc4a3`
-- **Open PRs**: #916
+- **Open PRs**: #916 (PTA-A1/A2/A3 product truth — all CI green)
 - **Open issues**: #913
 - **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 implemented)
 - **Archive**: `plans/archive/2026-07-consolidation/`  

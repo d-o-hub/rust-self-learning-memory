@@ -36,11 +36,11 @@
 |----------|------|-------------|--------|
 | P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate and staged ruleset migration | Proposed |
 | P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | Planned |
-| P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ Implemented |
-| P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ Implemented |
+| P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ #916 |
+| P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ #916 |
 | P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | Planned |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | Planned |
-| P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ Implemented |
+| P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
 | P1 | ADR-078 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed |
 | P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
 

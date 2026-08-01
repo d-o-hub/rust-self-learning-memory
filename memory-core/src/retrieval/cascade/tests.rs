@@ -51,18 +51,26 @@ fn test_clear_episodes() {
     assert!(retriever.is_empty());
 }
 
+#[cfg(not(feature = "csm"))]
 #[test]
-fn test_placeholder_retrieve_without_csm() {
-    #[cfg(not(feature = "csm"))]
-    {
-        let mut retriever = CascadeRetriever::default_config();
-        retriever.add_episode("ep-1", "Test episode");
-        let result = retriever.retrieve("test query");
-        // Without CSM feature, returns empty results
-        assert!(result.episode_ids.is_empty());
-        assert!(result.scores.is_empty());
-        assert_eq!(result.api_calls, 0);
-    }
+fn test_retrieve_unavailable_without_csm() {
+    let retriever = CascadeRetriever::default_config();
+    // Without CSM feature, cascade retrieval is unavailable
+    assert!(matches!(
+        retriever.retrieve("test query"),
+        Err(CascadeError::CapabilityUnavailable)
+    ));
+}
+
+#[cfg(not(feature = "csm"))]
+#[test]
+fn test_non_csm_retriever_supports_episodes_and_reports_unavailable() {
+    let mut retriever = CascadeRetriever::default_config();
+    retriever.add_episode("ep-1", "Test episode");
+    assert_eq!(retriever.len(), 1);
+
+    let result = retriever.retrieve("test query");
+    assert!(matches!(result, Err(CascadeError::CapabilityUnavailable)));
 }
 
 #[test]
@@ -156,6 +164,21 @@ mod csm_tests {
     use super::*;
 
     #[test]
+    fn test_retrieve_returns_ok_with_csm() {
+        let mut retriever = CascadeRetriever::default_config();
+        retriever.add_episode("ep-1", "authentication JWT token implementation");
+        retriever.add_episode("ep-2", "authentication session management");
+        retriever.add_episode("ep-3", "authentication refresh token handling");
+
+        let result = retriever.retrieve("authentication JWT");
+
+        assert!(result.is_ok());
+        let result = result.expect("csm retrieve should succeed");
+        assert!(!result.episode_ids.is_empty());
+        assert_eq!(result.api_calls, 0);
+    }
+
+    #[test]
     fn test_bm25_exact_match_zero_api_calls() {
         let mut retriever = CascadeRetriever::default_config();
 
@@ -167,7 +190,9 @@ mod csm_tests {
         retriever.add_episode("ep-5", "error handling patterns in async code");
 
         // Query with exact keyword match should return 0 API calls
-        let result = retriever.retrieve("authentication JWT token");
+        let result = retriever
+            .retrieve("authentication JWT token")
+            .expect("csm retrieve should succeed");
 
         // Should find the matching episode
         assert!(!result.episode_ids.is_empty());
@@ -192,7 +217,9 @@ mod csm_tests {
         retriever.add_episode("ep-5", "fix memory leak in cache implementation");
 
         // Semantic-like query (similar words but not exact match)
-        let result = retriever.retrieve("user authentication and login security");
+        let result = retriever
+            .retrieve("user authentication and login security")
+            .expect("csm retrieve should succeed");
 
         // Should find related episodes
         assert!(!result.episode_ids.is_empty());
@@ -210,7 +237,9 @@ mod csm_tests {
         let retriever = CascadeRetriever::default_config();
 
         // Empty index should indicate API call needed
-        let result = retriever.retrieve("any query");
+        let result = retriever
+            .retrieve("any query")
+            .expect("csm retrieve should succeed");
 
         assert!(result.episode_ids.is_empty());
         // Should indicate API fallback needed
@@ -227,11 +256,15 @@ mod csm_tests {
         retriever.add_episode("ep-3", "unique_keyword_gamma optimization");
 
         // Query that matches exactly should hit BM25
-        let result = retriever.retrieve("unique_keyword_alpha");
+        let result = retriever
+            .retrieve("unique_keyword_alpha")
+            .expect("csm retrieve should succeed");
         assert!(result.contributing_tiers.contains(&"bm25".to_string()));
 
         // Query with no exact match but similar content should use HDC
-        let result = retriever.retrieve("implement alpha feature");
+        let result = retriever
+            .retrieve("implement alpha feature")
+            .expect("csm retrieve should succeed");
         // Either BM25 (if partial match) or HDC (if semantic similarity)
         assert!(!result.episode_ids.is_empty() || result.api_calls > 0);
     }
@@ -257,7 +290,9 @@ mod csm_tests {
         retriever.add_episode("ep-5", "async task spawning performance tips");
 
         // Query that matches multiple aspects
-        let result = retriever.retrieve("Rust async programming");
+        let result = retriever
+            .retrieve("Rust async programming")
+            .expect("csm retrieve should succeed");
 
         // Should have results from merging BM25 and HDC
         assert!(!result.episode_ids.is_empty());
@@ -283,7 +318,9 @@ mod csm_tests {
         retriever.add_episode("ep-1", "authentication implementation");
         retriever.add_episode("ep-2", "database connection setup");
 
-        let result = retriever.retrieve("authentication");
+        let result = retriever
+            .retrieve("authentication")
+            .expect("csm retrieve should succeed");
 
         // Without merge, should only use single tier
         assert!(result.contributing_tiers.len() <= 1);
@@ -319,7 +356,9 @@ mod csm_tests {
         retriever.add_episode("ep-2", "database pool connection");
         retriever.add_episode("ep-3", "rate limiting API");
 
-        let result = retriever.retrieve("authentication");
+        let result = retriever
+            .retrieve("authentication")
+            .expect("csm retrieve should succeed");
 
         // All scores should be in 0.0-1.0 range
         for score in &result.scores {
@@ -340,7 +379,9 @@ mod csm_tests {
             retriever.add_episode(&format!("ep-{i}"), &format!("episode {i} content"));
         }
 
-        let result = retriever.retrieve("episode");
+        let result = retriever
+            .retrieve("episode")
+            .expect("csm retrieve should succeed");
 
         // Should not exceed top_k
         assert!(result.episode_ids.len() <= 3);
@@ -395,7 +436,9 @@ mod csm_tests {
         retriever.add_episode("ep-5", "refactor error handling patterns");
 
         // Query with abbreviated terms that need expansion
-        let result = retriever.retrieve("fix auth bug");
+        let result = retriever
+            .retrieve("fix auth bug")
+            .expect("csm retrieve should succeed");
 
         // Should find results via concept graph expansion ("auth" → authentication domain)
         assert!(!result.episode_ids.is_empty());

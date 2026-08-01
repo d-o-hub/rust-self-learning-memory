@@ -13,7 +13,7 @@ mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
 mod types;
-pub use types::{CascadeConfig, CascadeResult, TierResult};
+pub use types::{CascadeConfig, CascadeError, CascadeResult, TierResult};
 
 /// Cascading retrieval orchestrator.
 ///
@@ -115,26 +115,22 @@ impl CascadeRetriever {
     /// 3. ConceptGraph expansion (CPU-local, 0 API calls)
     /// 4. API fallback (requires external embedding call)
     ///
-    /// Without `csm`, returns empty results (placeholder behavior).
-    pub fn retrieve(&self, query: &str) -> CascadeResult {
+    /// Without `csm`, this method returns `Err(CascadeError::CapabilityUnavailable)`
+    /// rather than empty results.
+    pub fn retrieve(&self, query: &str) -> Result<CascadeResult, CascadeError> {
         #[cfg(feature = "csm")]
         {
-            self.retrieve_with_csm(query)
+            Ok(self.retrieve_with_csm(query))
         }
 
         #[cfg(not(feature = "csm"))]
         {
             tracing::warn!(
-                "CSM feature not enabled; cascade retrieval returns empty results. \
+                "CSM feature not enabled; cascade retrieval is unavailable. \
                  Enable the `csm` feature for BM25/HDC/ConceptGraph retrieval."
             );
             let _ = query;
-            CascadeResult {
-                episode_ids: Vec::new(),
-                scores: Vec::new(),
-                contributing_tiers: Vec::new(),
-                api_calls: 0,
-            }
+            Err(CascadeError::CapabilityUnavailable)
         }
     }
 
@@ -163,7 +159,12 @@ impl CascadeRetriever {
         if self.config.merge_results && !bm25_results.is_empty() {
             // Merge BM25 and HDC results with query-length-dependent weights
             let weights = compute_weights(query.len());
-            let merged = merge_results(&bm25_results.results, &hdc_results.results, weights);
+            let merged = merge_results(
+                &bm25_results.results,
+                &hdc_results.results,
+                weights,
+                self.config.top_k,
+            );
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
@@ -201,7 +202,12 @@ impl CascadeRetriever {
         // Return best available results with api_calls = 1 indicator
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
-            merge_results(&bm25_results.results, &hdc_results.results, weights)
+            merge_results(
+                &bm25_results.results,
+                &hdc_results.results,
+                weights,
+                self.config.top_k,
+            )
         } else if !hdc_results.is_empty() {
             hdc_results.results.clone()
         } else {

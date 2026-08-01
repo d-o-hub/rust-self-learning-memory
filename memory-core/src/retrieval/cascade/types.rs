@@ -86,6 +86,26 @@ pub struct CascadeResult {
     pub api_calls: u32,
 }
 
+/// Error type for the cascading retrieval pipeline.
+#[derive(Debug, Clone, PartialEq)]
+pub enum CascadeError {
+    /// The `csm` feature is disabled, so cascade retrieval is unavailable.
+    CapabilityUnavailable,
+}
+
+impl std::fmt::Display for CascadeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CascadeError::CapabilityUnavailable => write!(
+                f,
+                "cascade retrieval is unavailable without the `csm` feature"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for CascadeError {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -202,5 +222,12 @@ mod tests {
         assert!((result.scores[1] - 0.8).abs() < f32::EPSILON);
         assert_eq!(result.contributing_tiers, vec!["bm25", "hdc"]);
         assert_eq!(result.api_calls, 0);
+    }
+
+    #[test]
+    fn cascade_error_capability_unavailable_construct_and_partial_eq() {
+        let error = CascadeError::CapabilityUnavailable;
+
+        assert_eq!(error, CascadeError::CapabilityUnavailable);
     }
 }

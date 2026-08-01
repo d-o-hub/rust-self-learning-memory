@@ -215,3 +215,150 @@ fn test_heuristic_evidence_update() {
     assert_eq!(heuristic.evidence.sample_size, 3);
     assert!((heuristic.evidence.success_rate - 0.666).abs() < 0.01);
 }
+
+fn create_decision_point(
+    condition: &str,
+    action: &str,
+    success_count: usize,
+    failure_count: usize,
+) -> Pattern {
+    Pattern::DecisionPoint {
+        id: Uuid::new_v4(),
+        condition: condition.to_string(),
+        action: action.to_string(),
+        outcome_stats: crate::types::OutcomeStats {
+            success_count,
+            failure_count,
+            total_count: success_count + failure_count,
+            avg_duration_secs: 1.0,
+        },
+        context: TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            tags: vec!["db".to_string()],
+            ..Default::default()
+        },
+        effectiveness: PatternEffectiveness::new(),
+    }
+}
+
+fn create_error_recovery(error_type: &str, steps: Vec<&str>, success_rate: f32) -> Pattern {
+    Pattern::ErrorRecovery {
+        id: Uuid::new_v4(),
+        error_type: error_type.to_string(),
+        recovery_steps: steps.into_iter().map(String::from).collect(),
+        success_rate,
+        context: TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            tags: vec!["db".to_string()],
+            ..Default::default()
+        },
+        effectiveness: PatternEffectiveness::new(),
+    }
+}
+
+fn create_context_pattern(
+    features: Vec<&str>,
+    approach: &str,
+    evidence: Vec<Uuid>,
+    success_rate: f32,
+) -> Pattern {
+    Pattern::ContextPattern {
+        id: Uuid::new_v4(),
+        context_features: features.into_iter().map(String::from).collect(),
+        recommended_approach: approach.to_string(),
+        evidence,
+        success_rate,
+        effectiveness: PatternEffectiveness::new(),
+    }
+}
+
+#[test]
+fn test_similarity_score_decision_point_identical() {
+    let p1 = create_decision_point("cond_a", "act_a", 5, 0);
+    let p2 = create_decision_point("cond_a", "act_a", 5, 0);
+    let score = p1.similarity_score(&p2);
+    // Identical decision points should have exact match score
+    assert_eq!(score, 1.0);
+}
+
+#[test]
+fn test_similarity_score_error_recovery_same_type() {
+    let p1 = create_error_recovery("io_error", vec!["retry", "log"], 0.8);
+    let p2 = create_error_recovery("io_error", vec!["retry", "log"], 0.8);
+    let score = p1.similarity_score(&p2);
+    // Identical error recovery patterns should have high similarity score
+    assert_eq!(score, 1.0);
+}
+
+#[test]
+fn test_similarity_score_context_pattern_identical() {
+    let p1 = create_context_pattern(
+        vec!["feat1", "feat2"],
+        "approach_a",
+        vec![Uuid::new_v4()],
+        0.9,
+    );
+    let p2 = create_context_pattern(
+        vec!["feat1", "feat2"],
+        "approach_a",
+        vec![Uuid::new_v4()],
+        0.9,
+    );
+    let score = p1.similarity_score(&p2);
+    // Identical context patterns should have exact match score
+    assert_eq!(score, 1.0);
+}
+
+#[test]
+fn test_merge_with_decision_point_combines_outcome_stats() {
+    let mut p1 = create_decision_point("cond_a", "act_a", 5, 0);
+    let p2 = create_decision_point("cond_a", "act_a", 5, 0);
+    p1.merge_with(&p2);
+
+    if let Pattern::DecisionPoint { outcome_stats, .. } = p1 {
+        assert_eq!(outcome_stats.success_count, 10);
+        assert_eq!(outcome_stats.total_count, 10);
+    } else {
+        panic!("Expected DecisionPoint");
+    }
+}
+
+#[test]
+fn test_merge_with_error_recovery_updates_success_rate() {
+    let mut p1 = create_error_recovery("io_error", vec!["retry"], 0.6);
+    let p2 = create_error_recovery("io_error", vec!["retry"], 0.8);
+    p1.merge_with(&p2);
+
+    if let Pattern::ErrorRecovery { success_rate, .. } = p1 {
+        // (0.6 + 0.8) / 2 = 0.7
+        assert!((success_rate - 0.7).abs() < 0.01);
+    } else {
+        panic!("Expected ErrorRecovery");
+    }
+}
+
+#[test]
+fn test_merge_with_context_pattern_extends_evidence() {
+    let id1 = Uuid::new_v4();
+    let id2 = Uuid::new_v4();
+    let mut p1 = create_context_pattern(vec!["feat1"], "approach", vec![id1], 0.6);
+    let p2 = create_context_pattern(vec!["feat1"], "approach", vec![id2], 0.8);
+    p1.merge_with(&p2);
+
+    if let Pattern::ContextPattern {
+        evidence,
+        success_rate,
+        ..
+    } = p1
+    {
+        assert_eq!(evidence.len(), 2);
+        assert!(evidence.contains(&id1));
+        assert!(evidence.contains(&id2));
+        // (0.6 * 1 + 0.8 * 1) / 2 = 0.7
+        assert!((success_rate - 0.7).abs() < 0.01);
+    } else {
+        panic!("Expected ContextPattern");
+    }
+}

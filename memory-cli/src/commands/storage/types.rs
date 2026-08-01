@@ -3,6 +3,7 @@
 use clap::Subcommand;
 use serde::Serialize;
 
+use super::provenance::MetricValue;
 use crate::output::Output;
 
 #[derive(Subcommand)]
@@ -40,20 +41,27 @@ pub enum StorageCommands {
     },
 }
 
+/// Storage statistics. Every non-count value carries explicit provenance so
+/// estimates and unavailable telemetry are never presented as measured.
 #[derive(Debug, Serialize)]
 pub struct StorageStats {
     pub episodes: StorageStatsData,
     pub patterns: StorageStatsData,
-    pub storage_size_bytes: u64,
-    pub cache_hit_rate: f32,
-    pub last_sync: Option<String>,
+    pub storage_size_bytes: MetricValue<u64>,
+    pub cache_hit_rate: MetricValue<f32>,
+    pub last_sync: MetricValue<String>,
 }
 
+/// Per-kind storage data. Total counts are measured; other values carry
+/// provenance (PTA-A2).
 #[derive(Debug, Serialize)]
 pub struct StorageStatsData {
+    /// Total stored entries (measured).
     pub total_count: usize,
-    pub recent_count: usize, // Last 24 hours
-    pub average_size_bytes: u64,
+    /// Completed entries (measured for episodes; unavailable for patterns).
+    pub completed_count: MetricValue<usize>,
+    /// Average entry size (heuristic estimate or unavailable).
+    pub average_size_bytes: MetricValue<u64>,
 }
 
 impl Output for StorageStats {
@@ -65,36 +73,48 @@ impl Output for StorageStats {
 
         writeln!(writer, "Episodes:")?;
         writeln!(writer, "  Total: {}", self.episodes.total_count)?;
-        writeln!(writer, "  Recent (24h): {}", self.episodes.recent_count)?;
         writeln!(
             writer,
-            "  Avg Size: {} bytes",
-            self.episodes.average_size_bytes
+            "  Completed: {}",
+            self.episodes.completed_count.render()
+        )?;
+        writeln!(
+            writer,
+            "  Avg Size: {}",
+            self.episodes
+                .average_size_bytes
+                .render_with_suffix(" bytes")
         )?;
 
         writeln!(writer, "\nPatterns:")?;
         writeln!(writer, "  Total: {}", self.patterns.total_count)?;
-        writeln!(writer, "  Recent (24h): {}", self.patterns.recent_count)?;
         writeln!(
             writer,
-            "  Avg Size: {} bytes",
-            self.patterns.average_size_bytes
+            "  Completed: {}",
+            self.patterns.completed_count.render()
+        )?;
+        writeln!(
+            writer,
+            "  Avg Size: {}",
+            self.patterns
+                .average_size_bytes
+                .render_with_suffix(" bytes")
         )?;
 
         writeln!(writer, "\nStorage:")?;
         writeln!(
             writer,
-            "  Total Size: {:.2} MB",
-            self.storage_size_bytes as f32 / 1_000_000.0
+            "  Total Size: {}",
+            self.storage_size_bytes.render_mb()
         )?;
         writeln!(
             writer,
-            "  Cache Hit Rate: {:.1}%",
-            self.cache_hit_rate * 100.0
+            "  Cache Hit Rate: {}",
+            self.cache_hit_rate.render_percent()
         )?;
 
-        if let Some(last_sync) = &self.last_sync {
-            writeln!(writer, "  Last Sync: {}", last_sync)?;
+        if !self.last_sync.is_unavailable() {
+            writeln!(writer, "  Last Sync: {}", self.last_sync.render())?;
         }
 
         Ok(())
@@ -190,18 +210,22 @@ impl Output for StorageHealth {
     }
 }
 
+/// Connection status for both backends (PTA-A2).
 #[derive(Debug, Serialize)]
 pub struct ConnectionStatus {
     pub turso: ConnectionInfo,
     pub redb: ConnectionInfo,
 }
 
+/// Per-backend connection info. Pool statistics are not exposed through the
+/// `StorageBackend` trait, so all metrics are reported as unavailable rather
+/// than fabricated (PTA-A2).
 #[derive(Debug, Serialize)]
 pub struct ConnectionInfo {
-    pub active_connections: usize,
-    pub pool_size: usize,
-    pub queue_depth: usize,
-    pub last_activity: Option<String>,
+    pub active_connections: MetricValue<usize>,
+    pub pool_size: MetricValue<usize>,
+    pub queue_depth: MetricValue<usize>,
+    pub last_activity: MetricValue<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -295,24 +319,30 @@ impl Output for ConnectionStatus {
         writeln!(writer, "Turso:")?;
         writeln!(
             writer,
-            "  Active: {}/{}",
-            self.turso.active_connections, self.turso.pool_size
+            "  Active: {}",
+            self.turso.active_connections.render()
         )?;
-        writeln!(writer, "  Queue: {}", self.turso.queue_depth)?;
-        if let Some(activity) = &self.turso.last_activity {
-            writeln!(writer, "  Last Activity: {}", activity)?;
-        }
+        writeln!(writer, "  Pool Size: {}", self.turso.pool_size.render())?;
+        writeln!(writer, "  Queue Depth: {}", self.turso.queue_depth.render())?;
+        writeln!(
+            writer,
+            "  Last Activity: {}",
+            self.turso.last_activity.render()
+        )?;
 
         writeln!(writer, "\nredb:")?;
         writeln!(
             writer,
-            "  Active: {}/{}",
-            self.redb.active_connections, self.redb.pool_size
+            "  Active: {}",
+            self.redb.active_connections.render()
         )?;
-        writeln!(writer, "  Queue: {}", self.redb.queue_depth)?;
-        if let Some(activity) = &self.redb.last_activity {
-            writeln!(writer, "  Last Activity: {}", activity)?;
-        }
+        writeln!(writer, "  Pool Size: {}", self.redb.pool_size.render())?;
+        writeln!(writer, "  Queue Depth: {}", self.redb.queue_depth.render())?;
+        writeln!(
+            writer,
+            "  Last Activity: {}",
+            self.redb.last_activity.render()
+        )?;
 
         Ok(())
     }

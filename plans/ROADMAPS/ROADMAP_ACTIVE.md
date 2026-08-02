@@ -1,7 +1,7 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-07-30
-**Released Version**: v0.1.37 (latest tag)  
+**Released Version**: v0.1.38 (latest tag)  
 **Workspace Version**: 0.1.38 (next release)  
 **Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (proposed)
 **Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`

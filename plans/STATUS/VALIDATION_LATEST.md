@@ -52,10 +52,10 @@ product-truth and recommendation-attribution plan without changing workflows.
 |----------|------|-----------|
 | P0 | ADR-079 required-check control plane | Maintainer decision; implement/fault-inject aggregate before ruleset change |
 | P0 | Cancelled/missing/commitlint and actor gaps | CIT-A2 after aggregate skeleton |
-| P0 | PTA-A1 cascade capability truth | Implement typed unavailable/compile-time exclusion |
-| P0 | PTA-A2 storage metric truth | Add provenance or omit unavailable fields |
+| P0 | PTA-A1 cascade capability truth | ✅ #916 merged (typed `CapabilityUnavailable`) |
+| P0 | PTA-A2 storage metric truth | ✅ #916 merged (`MetricValue` provenance) |
 | P1 | Gate contract/release/publish/fuzz truth | CIT-A3…A5 |
-| P1 | PTA-A3 unsupported threshold surface | Remove/hide command |
+| P1 | PTA-A3 unsupported threshold surface | ✅ #916 merged (`eval set-threshold` removed) |
 | P1 | ADR-078 attribution capture | Maintainer decision, then RAT-A1…A7 |
 | P2 | Feedback-to-ranking adaptation | Separate ADR after capture integrity |
 
@@ -72,3 +72,25 @@ git diff --check
 The last command validates the current presence-based contract only;
 ADR-079/CIT-A3 records why it is not yet semantic proof. Plan validation reported
 only the known historical ADR-025 and ADR-054 duplicate-number aliases.
+
+## PR merge session — 2026-08-02 (#916 + #917)
+
+GOAP-orchestrated review/merge of the open PR queue (swarm: pr-readiness +
+release-cadence-manager + code review). Result: queue 2 → 0 open.
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| PR #917 ci(mutants) shard | 37 pass / 9 skip, no actionable comments; CLEAN | ✅ merged `b7d67f3e` (squash) |
+| PR #916 PTA-A1/A2/A3 | Release-drift check blocked: `commit_limit` (30 unreleased, critical). Resolved via `release-preparation` label (release PR escape hatch) | ✅ merged `33b9d302` (squash) |
+| PR #916 full CI | 42 checks green: Tests, MCP Build, Multi-Platform ×2, Benchmarks (51m), Quality Gates, Codacy, CodeQL | ✅ |
+| main CI after #917 | Quick Check, CI, Coverage, CodeQL, Storage Matrix, YAML Lint | ✅ |
+| Open PRs | `gh pr list --state open` | none |
+| Release drift | workspace `0.1.38` > tag `v0.1.37` (version advanced); `commit_limit` accumulates until next release | ⚠️ monitored |
+| PR comments | codacy 0 issues ×2, codecov all-covered ×2, benchmark posts (informational) | ✅ no actionable |
+
+**Roast findings (non-blocking, pre-existing)** — logged for follow-up, not
+introduced by #916: `vacuum_storage` reports `storage_optimized` while doing
+no work; `#[expect(clippy::excessive_nesting)]` on `sync_storage` (suppression
+vs "fix, don't suppress"); `HealthStatus` Debug-vs-Display inconsistency;
+redundant `expanded_terms.is_empty()` guard in `retrieve_concept_graph`.
+

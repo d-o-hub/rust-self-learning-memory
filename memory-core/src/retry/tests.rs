@@ -378,3 +378,36 @@ async fn permits_released_during_backoff_allow_other_first_attempts() {
     assert_eq!(a_result.expect("A retry succeeds"), "a");
     assert_eq!(a_calls, 2);
 }
+
+#[test]
+fn test_record_retry_increments_total() {
+    let metrics = super::RetryMetrics::new();
+    assert_eq!(metrics.total(), 0);
+    metrics.record_retry(true);
+    assert_eq!(metrics.total(), 1);
+    metrics.record_retry(false);
+    assert_eq!(metrics.total(), 2);
+}
+
+#[test]
+fn test_total_returns_accumulated_count() {
+    let metrics = super::RetryMetrics::new();
+    metrics.record_retry(true);
+    metrics.record_retry(true);
+    metrics.record_retry(false);
+    assert_eq!(metrics.total(), 3);
+}
+
+#[test]
+fn test_is_recoverable_returns_true_for_storage_error() {
+    use super::Retryable;
+    let err = crate::error::Error::Storage("some database error".to_string());
+    assert!(<crate::error::Error as Retryable>::is_recoverable(&err));
+}
+
+#[test]
+fn test_is_recoverable_returns_false_for_validation_error() {
+    use super::Retryable;
+    let err = crate::error::Error::ValidationFailed("invalid parameter".to_string());
+    assert!(!<crate::error::Error as Retryable>::is_recoverable(&err));
+}

@@ -33,7 +33,7 @@
 | ACT-341 | Make non-`csm` cascade retrieval capability-truthful | PTA-A1 | ✅ Implemented |
 | ACT-342 | Make CLI storage metrics measured/estimated/unavailable explicitly | PTA-A2 | ✅ Implemented |
 | ACT-343 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
-| ACT-328 | Accept ADR-078 and freeze attributed contracts | RAT-A1 | Proposed |
+| ACT-328 | Accept ADR-080 and freeze attributed contracts | RAT-A1 | Proposed |
 | ACT-329 | Add capability-aware checked attribution persistence | RAT-A2 | Blocked by ADR acceptance |
 | ACT-330 | Add core attributed pattern/playbook operations | RAT-A3 | Blocked by ACT-329 |
 | ACT-331 | Enforce session and feedback integrity | RAT-A4 | Blocked by ACT-330 |

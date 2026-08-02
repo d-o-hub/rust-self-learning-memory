@@ -332,11 +332,9 @@ impl CascadeRetriever {
                     .count();
 
                 // Score based on term overlap density
-                let score = if expanded_terms.is_empty() {
-                    0.0
-                } else {
-                    match_count as f32 / expanded_terms.len() as f32
-                };
+                // (`expanded_terms` is non-empty here; an empty expansion is
+                // handled by the early return above)
+                let score = match_count as f32 / expanded_terms.len() as f32;
 
                 (id.clone(), score)
             })

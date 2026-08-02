@@ -19,7 +19,7 @@ product-truth and recommendation-attribution plan without changing workflows.
 | Quality contract | CI duplicates a subset; parity validator checks files/keywords only | ❌ drift |
 | Release dispatch | Run `30301797956`: `main` failed expected-tag preflight, all downstream skipped | ❌ broken trigger |
 | Action pinning | Inspected external `uses:` references are commit-SHA pinned | ✅ |
-| ADR-078 status | Proposed; no implementation claim | ✅ truthful |
+| ADR-080 status | Proposed; no implementation claim | ✅ truthful |
 | ADR-079 status | Proposed; workflow and ruleset implementation unchanged | ✅ truthful |
 | PTA-A1…A3 | ✅ Implemented (2026-08-01): cascade `CapabilityUnavailable`, `MetricValue` storage provenance, `eval set-threshold` removed |
 | Patch whitespace | `git diff --check` | ✅ |
@@ -56,7 +56,7 @@ product-truth and recommendation-attribution plan without changing workflows.
 | P0 | PTA-A2 storage metric truth | ✅ #916 merged (`MetricValue` provenance) |
 | P1 | Gate contract/release/publish/fuzz truth | CIT-A3…A5 |
 | P1 | PTA-A3 unsupported threshold surface | ✅ #916 merged (`eval set-threshold` removed) |
-| P1 | ADR-078 attribution capture | Maintainer decision, then RAT-A1…A7 |
+| P1 | ADR-080 attribution capture | Maintainer decision, then RAT-A1…A7 |
 | P2 | Feedback-to-ranking adaptation | Separate ADR after capture integrity |
 
 ## Planning-document validation
@@ -88,9 +88,13 @@ release-cadence-manager + code review). Result: queue 2 → 0 open.
 | Release drift | workspace `0.1.38` > tag `v0.1.37` (version advanced); `commit_limit` accumulates until next release | ⚠️ monitored |
 | PR comments | codacy 0 issues ×2, codecov all-covered ×2, benchmark posts (informational) | ✅ no actionable |
 
-**Roast findings (non-blocking, pre-existing)** — logged for follow-up, not
-introduced by #916: `vacuum_storage` reports `storage_optimized` while doing
-no work; `#[expect(clippy::excessive_nesting)]` on `sync_storage` (suppression
-vs "fix, don't suppress"); `HealthStatus` Debug-vs-Display inconsistency;
-redundant `expanded_terms.is_empty()` guard in `retrieve_concept_graph`.
+**Roast findings (pre-existing)** — all fixed 2026-08-02 in the warnings-
+remediation PR: `vacuum_storage` now reports honestly (no fabricated
+`storage_optimized`); `#[expect(clippy::excessive_nesting)]` removed via
+`sync_storage` flatten refactor; `HealthStatus` rendering switched Debug→Display;
+redundant `expanded_terms.is_empty()` guard removed from `retrieve_concept_graph`.
+Also fixed pre-existing `clippy::uninlined_format_args` in `tests/arch_fitness.rs`,
+renumbered duplicate ADR-078 (attribution → ADR-080; OIDC keeps 078), and added
+a nextest slow-timeout override for the nested-build `quality_gate_pattern_accuracy`
+test (cold-cache local timeout, passes in CI).
 

@@ -70,7 +70,7 @@
 
 ## New feature decision
 
-ADR-078 proposes optional, episode-bound attributed pattern/playbook operations.
+ADR-080 proposes optional, episode-bound attributed pattern/playbook operations.
 Core derives a session from exact returned IDs and reports `persisted`,
 `partially_persisted`, `memory_only`, or `persistence_failed`. Legacy calls stay
 shape-compatible. The feature improves capture and feedback readiness, but does
@@ -82,7 +82,7 @@ not yet change recommendation ranking.
 2. Restore fail-closed cancellation/commitlint and Dependabot/fork parity, then
    stage the verified aggregate into the live ruleset with approval.
 3. Reconcile gate scope and repair release/publish/fuzz false-success paths.
-4. Accept and execute ADR-078 RAT-A1…A7.
+4. Accept and execute ADR-080 RAT-A1…A7.
 5. Design feedback-to-ranking adaptation only after capture integrity is proven.
 6. Residual: historical ADR filename collisions (025/054 aliased — docs only),
    transitive Dependabot advisories (monitor), R-F10 (OIDC) / R-F4 (SIMD) in progress.

@@ -26,7 +26,7 @@
 | PTA-A2 CLI storage metric truth | ✅ #916 merged (2026-08-02) | PTA-A2 |
 | PTA-A3 threshold command cleanup | ✅ #916 merged (2026-08-02) | PTA-A3 |
 | cargo-mutants CI sharding (reward/retrieval/retry/patterns) | ✅ #917 merged (2026-08-02) | CI |
-| ADR-078 automatic recommendation attribution | Proposed |
+| ADR-080 automatic recommendation attribution | Proposed |
 | RAT-A1 contract tests | Blocked by ADR acceptance |
 | RAT-A2…A7 implementation | Blocked by preceding RAT packages |
 | Feedback-to-ranking adaptation | Deferred to separate ADR |
@@ -98,7 +98,7 @@ runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configu
 cascade_capability_truthful       = true  (PTA-A1 — non-csm `retrieve` returns `Err(CascadeError::CapabilityUnavailable)`)
 storage_metrics_truthful          = true  (PTA-A2 — `MetricValue` provenance: measured/estimated/unavailable)
 unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` removed from Clap + docs)
-automatic_attribution_capture     = false (ADR-078 Proposed)
+automatic_attribution_capture     = false (ADR-080 Proposed)
 feedback_integrity_checked        = false (RAT-A4)
 feedback_updates_ranking          = false (follow-up ADR required)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)

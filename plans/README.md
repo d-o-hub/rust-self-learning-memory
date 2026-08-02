@@ -19,7 +19,7 @@
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
 | [GATE_CONTRACT.md](GATE_CONTRACT.md) | Local/CI quality gate matrix |
-| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Active**: CI trust + product-truth fixes + ADR-078 attribution capture |
+| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Active**: CI trust + product-truth fixes + ADR-080 attribution capture |
 | [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md) | Reference recommendations backlog |
 | [ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md](ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md) | Official `gh` / `gh skill` skills + manual vs repo policy |
 
@@ -36,7 +36,7 @@
 
 See [adr/README.md](adr/README.md) for the ADR index (including number-collision aliases).
 
-Current proposals: [ADR-078 automatic recommendation attribution](adr/ADR-078-Automatic-Recommendation-Attribution.md)
+Current proposals: [ADR-080 automatic recommendation attribution](adr/ADR-080-Automatic-Recommendation-Attribution.md)
 and [ADR-079 fail-closed CI control plane](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md).
 
 ## Spikes

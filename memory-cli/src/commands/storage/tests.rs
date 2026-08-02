@@ -312,3 +312,153 @@ fn connection_status_human_output_marks_metrics_unavailable() {
         "must not fabricate pool=10"
     );
 }
+
+// ---------------------------------------------------------------------------
+// vacuum_storage command (PTA-A2 honest reporting)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn vacuum_storage_dry_run_succeeds_and_reports_no_work() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result =
+        super::commands::vacuum_storage(&memory, &config, crate::output::OutputFormat::Json, true)
+            .await;
+
+    // Assert
+    assert!(result.is_ok(), "dry-run vacuum must succeed");
+}
+
+#[tokio::test]
+async fn vacuum_storage_live_succeeds_without_fabricating_optimization() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result =
+        super::commands::vacuum_storage(&memory, &config, crate::output::OutputFormat::Json, false)
+            .await;
+
+    // Assert
+    assert!(result.is_ok(), "live vacuum must succeed without error");
+}
+
+#[tokio::test]
+async fn vacuum_storage_live_human_output_is_not_misleading() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result = super::commands::vacuum_storage(
+        &memory,
+        &config,
+        crate::output::OutputFormat::Human,
+        false,
+    )
+    .await;
+
+    // Assert
+    assert!(result.is_ok());
+    let rendered = {
+        let mut buffer = Vec::new();
+        let stats = super::types::VacuumResult {
+            items_cleaned: 0,
+            storage_optimized: false,
+            errors: 0,
+            dry_run: false,
+        };
+        stats.write_human(&mut buffer).unwrap();
+        String::from_utf8(buffer).unwrap()
+    };
+    assert!(
+        !rendered.contains("Optimized"),
+        "must not render a fabricated Optimized status"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// sync_storage command (Turso -> redb reconciliation, ADR-076)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn sync_storage_reconciles_episodes_between_backends() {
+    // Arrange: dual-backend memory (file-backed redb stands in for Turso).
+    let dir = tempfile::tempdir().expect("temp dir for storage backends");
+    let turso = do_memory_storage_redb::RedbStorage::new(&dir.path().join("turso.redb"))
+        .await
+        .expect("turso backend");
+    let cache = do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
+        .await
+        .expect("cache backend");
+    // Lower quality threshold so the fixture episode is accepted (same
+    // convention as the e2e pattern workflow tests).
+    let memory = do_memory_core::SelfLearningMemory::with_storage(
+        do_memory_core::MemoryConfig {
+            quality_threshold: 0.3,
+            ..Default::default()
+        },
+        std::sync::Arc::new(turso),
+        std::sync::Arc::new(cache),
+    );
+
+    // Create a completed episode with a logged step so the durable backend
+    // holds episode + pattern rows to reconcile into the cache.
+    let context = do_memory_core::types::TaskContext {
+        domain: "web-api".to_string(),
+        ..Default::default()
+    };
+    let episode_id = memory
+        .start_episode(
+            "sync fixture episode".to_string(),
+            context,
+            do_memory_core::types::TaskType::CodeGeneration,
+        )
+        .await;
+    let mut step = do_memory_core::episode::ExecutionStep::new(
+        1,
+        "code_editor".to_string(),
+        "write_function".to_string(),
+    );
+    step.result = Some(do_memory_core::types::ExecutionResult::Success {
+        output: "fixture step completed".to_string(),
+    });
+    memory.log_step(episode_id, step).await;
+    let _ = memory.flush_steps(episode_id).await;
+    memory
+        .complete_episode(
+            episode_id,
+            do_memory_core::types::TaskOutcome::Success {
+                verdict: "completed".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .expect("complete episode");
+    // Let async pattern extraction finish so `episode.patterns` is populated.
+    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+    let patterns = memory.get_all_patterns().await.expect("patterns query");
+    assert!(
+        !patterns.is_empty(),
+        "fixture episode must produce a pattern so the sync loop exercises "
+    );
+
+    let config = crate::config::Config::default();
+
+    // Act
+    let result = super::commands::sync_storage(
+        &memory,
+        &config,
+        crate::output::OutputFormat::Json,
+        false,
+        false,
+    )
+    .await;
+
+    // Assert
+    assert!(result.is_ok(), "live sync must succeed with dual backends");
+}

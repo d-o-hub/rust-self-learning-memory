@@ -1,8 +1,8 @@
 # Quality Gate Contract (W2.1)
 
-- **Status**: Accepted baseline (W2.1a) + CI parity (W2.1b) + skill-evals CI (K3.1b)
+- **Status**: Accepted baseline; **implementation drift detected 2026-07-30**
 - **Date**: 2026-07-18
-- **Related**: ADR-042, AGENTS.md, `scripts/quality-gates.sh`, Codecov config
+- **Related**: ADR-042, ADR-072, proposed ADR-079, AGENTS.md, `scripts/quality-gates.sh`, Codecov config
 - **Validator**: `./scripts/validate-gate-contract.sh` (+ `--ci-parity`)
 
 ## Purpose
@@ -12,28 +12,43 @@ One matrix that maps every **advertised** quality gate to:
 1. **Measured** value (what we observe when tools run),
 2. **Blocking floor** (what fails CI / local commit gate today),
 3. **Aspirational target** (where we are ratcheting),
-4. **Authoritative command / CI job**.
+4. **Authoritative command / CI job**; and
+5. whether the live merge ruleset actually requires it.
 
 Claims such as “coverage ≥90%” without a matching blocking check are **documentation debt**, not green status.
 
+## Live merge-protection truth (2026-07-30)
+
+Ruleset `9591004` (`main-protection`) is active for `refs/heads/main`. Its only
+required status context is `Codacy Static Code Analysis`; it separately enforces
+CodeQL code scanning at the configured severity. No first-party Quick Check, CI,
+test, coverage, security, storage, skill, release-drift, or anchor job is required.
+The standalone `Required Check Anchor` is also not required and performs no
+validation. Therefore a green workflow job means that workflow ran successfully;
+it does **not** mean the merge ruleset requires the gate.
+
+ADR-079 proposes a staged `CI / Required` aggregate. Until that context is both
+implemented and present in the live ruleset, every first-party row below remains
+**not merge-required**.
+
 ## Gate matrix
 
-| Gate | Measured (how) | Blocking floor (local) | Blocking floor (CI) | Aspirational target | Authoritative surface |
-|------|----------------|------------------------|---------------------|---------------------|------------------------|
-| Format | `cargo fmt --check` | required | Quick PR Check | 100% formatted | `./scripts/code-quality.sh fmt` / Quick Check |
-| Clippy | `cargo clippy -D warnings` | required | Quick PR Check | 0 warnings workspace | `./scripts/code-quality.sh clippy --workspace` |
-| Build check | `cargo check` / `./scripts/build-rust.sh check` | recommended | CI Tests / MCP Build | always clean | `./scripts/build-rust.sh check` |
-| Unit + integration | `cargo nextest run --all` | required before commit (AGENTS) | CI Tests job | all pass | `cargo nextest run --all` |
-| Doctests | `cargo test --doc` | required before commit (AGENTS) | CI / quality-gates path | all pass | `cargo test --doc` |
-| Docs links | `cargo doc --no-deps` | required before commit | CI docs where configured | 0 broken | `cargo doc --no-deps --document-private-items` |
-| LOC ≤500 | quality-gates / file structure | required in quality-gates | File Structure / quality | 0 prod files >500 | `./scripts/quality-gates.sh` LOC check |
-| Coverage | `cargo llvm-cov` | **default floor 70%** via `QUALITY_GATE_COVERAGE_THRESHOLD` (quality-gates.sh); AGENTS text still says 90% | Codecov / Coverage job (project + patch targets) | **90%** (AGENTS + ADR-042 ratchet) | `QUALITY_GATE_COVERAGE_THRESHOLD` + Codecov |
-| Security advisories | `cargo deny check advisories` | blocking (W2.2) | Cargo Deny / Supply Chain | clean advisories | `cargo deny` (not soft-pass audit) |
-| Cargo audit | `cargo audit` | informational if deny is blocking | may still run | no ignored vulns without justification | prefer deny for gating |
-| Semver | cargo-semver-checks | CI Semver Check | Semver Check job | no accidental breaks | CI Semver Check |
-| Skill evals | `./scripts/run-evals.sh` | `./scripts/run-evals.sh --fixtures` recommended before skill PRs | Skill Evals workflow: fixtures always; `--changed` on PR; full suite on schedule / dispatch | all skills strict schema | `.github/workflows/skill-evals.yml` + `./scripts/run-evals.sh --fixtures` |
-| Release cadence | `./scripts/check-release-drift.sh` | warning@20 / critical@30 | Release Drift Check | tag before hard limit | release-drift workflow |
-| Gate contract integrity | `./scripts/validate-gate-contract.sh` | required when editing gates | Skill Evals job runs default + `--ci-parity` | matrix ↔ scripts ↔ workflows aligned | `./scripts/validate-gate-contract.sh --ci-parity` |
+| Gate | Measured (how) | Blocking floor (local) | Workflow enforcement today | Merge-required? | Aspirational target | Authoritative surface |
+|------|----------------|------------------------|----------------------------|-----------------|---------------------|-----------------------|
+| Format | `cargo fmt --check` | required | Quick Check job | No | 100% formatted | `./scripts/code-quality.sh fmt` / Quick Check |
+| Clippy | `cargo clippy -D warnings` | required | Quick Check uses separate lib/tests commands and a broad copied allow-list | No | 0 warnings workspace | Local: `./scripts/code-quality.sh clippy --workspace`; CI drift open |
+| Build check | `cargo check` / `./scripts/build-rust.sh check` | recommended | Builds occur in CI jobs, but no exact canonical check | No | always clean | `./scripts/build-rust.sh check` |
+| Unit + integration | `cargo nextest run --all` | required before commit (AGENTS) | CI excludes benches, examples, and test-utils; MCP and multi-platform duplicate subsets | No | all pass | Local command is authoritative; CI scope drift open |
+| Doctests | `cargo test --doc` | required before commit (AGENTS) | Quick Check invokes `scripts/check-doctests.sh` | No | all pass | `cargo test --doc` / `scripts/check-doctests.sh` |
+| Docs links | `cargo doc --no-deps` | required before commit | Quick Check invokes `scripts/check-doctests.sh` with warnings denied | No | 0 broken | `cargo doc --no-deps --document-private-items` |
+| LOC ≤500 | quality-gates source-size check | required in quality-gates | No equivalent production LOC job; File Structure validates locations | No | 0 prod files >500 | `./scripts/quality-gates.sh` LOC check |
+| Coverage | `cargo llvm-cov` | **default floor 70%** via `QUALITY_GATE_COVERAGE_THRESHOLD`; AGENTS text still says 90% | Coverage and CI quality jobs run overlapping commands; Codecov upload may soft-fail | No | **90%** (AGENTS + ADR-042 ratchet) | `QUALITY_GATE_COVERAGE_THRESHOLD` + Codecov |
+| Security advisories | `cargo deny check advisories` | blocking (W2.2) | Security, Supply Chain, and CI quality jobs overlap | No | clean advisories | `cargo deny` (not soft-pass audit) |
+| Cargo audit | `cargo audit` | informational if deny is blocking | optional structured reporting | No | no ignored vulns without justification | prefer deny for gating |
+| Semver | cargo-semver-checks | CI-only informational | `continue-on-error: true` and Dependabot excluded | No | no accidental breaks | CI Semver Check |
+| Skill evals | `./scripts/run-evals.sh` | fixtures recommended before skill PRs | Skill Evals runs fixtures always, changed on PR, full on schedule/dispatch | No | all skills strict schema | `.github/workflows/skill-evals.yml` + `./scripts/run-evals.sh --fixtures` |
+| Release cadence | `./scripts/check-release-drift.sh` | warning@20 / critical@30 | Release Drift Check | No | tag before hard limit | release-drift workflow |
+| Gate contract integrity | `./scripts/validate-gate-contract.sh` | required when editing gates | Skill Evals runs default + `--ci-parity`, but parity is presence/keyword based | No | semantic matrix ↔ scripts ↔ workflows ↔ ruleset alignment | `./scripts/validate-gate-contract.sh --ci-parity` |
 
 ### Coverage truth (explicit)
 
@@ -51,8 +66,8 @@ Claims such as “coverage ≥90%” without a matching blocking check are **doc
 | Concern | Local entrypoint | CI entrypoint |
 |---------|------------------|---------------|
 | fmt + clippy | `./scripts/code-quality.sh` | Quick PR Check (`quick-check.yml`) |
-| tests | `cargo nextest run --all` | CI Tests (`ci.yml`) |
-| quality bundle | `./scripts/quality-gates.sh` | Quality Gates job (subset may differ) |
+| tests | `cargo nextest run --all` | CI Tests excludes three workspace packages; **not parity** |
+| quality bundle | `./scripts/quality-gates.sh` | Quality Gates job duplicates only a subset; **not parity** |
 | deny advisories | `cargo deny check` | Cargo Deny / Supply Chain (`security.yml` / `supply-chain.yml`) |
 | skill schema | `./scripts/run-evals.sh --fixtures` | Skill Evals workflow (`skill-evals.yml`) always |
 | changed skill evals | `./scripts/run-evals.sh --changed` | Skill Evals on `pull_request` |
@@ -62,7 +77,11 @@ Claims such as “coverage ≥90%” without a matching blocking check are **doc
 
 `./scripts/validate-gate-contract.sh` fails if this matrix file is missing required sections or if default coverage floor in `quality-gates.sh` disagrees with the **Blocking floor (local)** cell above.
 
-`./scripts/validate-gate-contract.sh --ci-parity` additionally requires the authoritative workflow files and scripts listed above (including `skill-evals.yml` wiring for fixtures + gate-contract checks).
+`./scripts/validate-gate-contract.sh --ci-parity` currently verifies authoritative
+files and selected keywords exist (including `skill-evals.yml` wiring). It does
+not parse command arguments, dependency topology, actor exclusions, accepted
+conclusions, or live ruleset configuration. Calling this semantic CI parity is a
+known gap tracked by ADR-079 / CIT-A3.
 
 ## Non-goals (W2.1)
 
@@ -80,6 +99,7 @@ Claims such as “coverage ≥90%” without a matching blocking check are **doc
 - [x] `--ci-parity` verifies quick-check, ci, release-drift, security/supply-chain (deny), skill-evals surfaces
 - [x] CI runs `./scripts/validate-gate-contract.sh` and `--ci-parity` (Skill Evals workflow)
 - [x] Local vs CI parity table lists skill schema + gate contract entrypoints
+- [ ] Exact command scopes, actor conditions, aggregate outcomes, and live ruleset context agree (drift detected; ADR-079)
 
 ## Acceptance (K3.1b)
 

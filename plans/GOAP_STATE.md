@@ -1,20 +1,33 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-28  
-- **Version**: workspace `0.1.37` · latest tag `v0.1.36`  
-- **Branch**: `main` @ `9b14a7a6`  
-- **Open PRs**: none  
-- **Open issues**: none  
-- **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md` (A1-A6 complete)  
+- **Last Updated**: 2026-07-30
+- **Version**: workspace `0.1.38` · latest tag `v0.1.37`
+- **Branch**: `main` @ `f0ffc4a3`
+- **Open PRs**: #916 (PTA-A1/A2/A3 product truth — all CI green)
+- **Open issues**: #913
+- **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 implemented)
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.36` published 2026-07-22  
+- **Release**: ✅ `v0.1.37` tagged and shipped
 
 ---
 
-## Phase: Post-v0.1.36 development ✅
+## Phase: Analyze / decide — CI trust + product truth + attribution
 
 | Package | Status |
 |---------|--------|
+| ADR-079 fail-closed required-check control plane | Proposed (P0) |
+| CIT-A1 required aggregate + staged ruleset migration | Blocked by ADR acceptance |
+| CIT-A2 cancellation/actor fail-closed behavior | Blocked by CIT-A1 |
+| CIT-A3 semantic gate-contract parity | Blocked by CIT-A2 |
+| CIT-A4 release/publish trigger truth | Planned (P1) |
+| CIT-A5 durable informational evidence + deduplication | Planned (P1/P2) |
+| PTA-A1 non-`csm` cascade capability truth | Implemented | PTA-A1 |
+| PTA-A2 CLI storage metric truth | Implemented | PTA-A2 |
+| PTA-A3 threshold command cleanup | Implemented | PTA-A3 |
+| ADR-078 automatic recommendation attribution | Proposed |
+| RAT-A1 contract tests | Blocked by ADR acceptance |
+| RAT-A2…A7 implementation | Blocked by preceding RAT packages |
+| Feedback-to-ranking adaptation | Deferred to separate ADR |
 | PR queue cleanup (GOAP swarm) | ✅ 5 PRs → 0 open (2026-07-27) |
 | cargo-mutants workspace fix #901 | ✅ Merged (fixes #898) |
 | Dependabot batch #902/#903/#904 | ✅ Merged |
@@ -57,15 +70,20 @@ storage_awaits_lock_free          = true
 durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                = true
+gates_match_policy                = false (ADR-079 — no first-party required aggregate; contract scope drift)
+required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only)
+ci_cancellation_fail_closed       = false (five waiters accept cancelled/skipped/missing)
+automation_actor_parity           = false (Dependabot excluded from substantive jobs)
+release_dispatch_truthful         = false (manual Release dispatch fails tag preflight)
+informational_ci_evidence_durable = false (fuzz continue-on-error can suppress crash upload)
 skill_evals_executable            = true
 skill_routes_complete             = true
 skill_evals_medium_depth          = true
 docs_match_code                   = true
 plan_registry_unique              ≈ true  (ADR 025/054 aliased)
 feature_pilots_have_baselines     = true
-release_current                   = true  (v0.1.36)
-version_advanced_after_tag        = true  (workspace 0.1.37)
+release_current                   = true  (v0.1.37)
+version_advanced_after_tag        = true  (workspace 0.1.38)
 adr074_provenance_envelope        = true  (RetrievalProvenance + CacheKey all fields)
 adr075_durable_complete           = true  (completion.rs hard-errors on backend failure)
 adr076_pattern_ux                 = true  (empty diagnostics + sync messaging + pattern extract)
@@ -75,5 +93,13 @@ r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tes
 r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
 skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
 runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configure_embeddings activates exact provider; A6 docs + concurrency/redaction regression tests #897 merged)
+cascade_capability_truthful       = true  (PTA-A1 — non-csm `retrieve` returns `Err(CascadeError::CapabilityUnavailable)`)
+storage_metrics_truthful          = true  (PTA-A2 — `MetricValue` provenance: measured/estimated/unavailable)
+unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` removed from Clap + docs)
+automatic_attribution_capture     = false (ADR-078 Proposed)
+feedback_integrity_checked        = false (RAT-A4)
+feedback_updates_ranking          = false (follow-up ADR required)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
+r_f10_oidc_publishing             = false (in progress — ACT-325)
+r_f4_simd_cosine                  = false (in progress — ACT-326)
 ```

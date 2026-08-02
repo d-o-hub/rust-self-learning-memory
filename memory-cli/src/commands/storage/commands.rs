@@ -8,6 +8,7 @@ use crate::config::Config;
 use crate::errors::helpers;
 use crate::output::OutputFormat;
 
+use super::provenance::MetricValue;
 use super::types::*;
 
 // Command implementations
@@ -18,40 +19,31 @@ pub async fn storage_stats(
 ) -> anyhow::Result<()> {
     let (total_episodes, completed_episodes, total_patterns) = memory.get_stats().await;
 
-    // Get enhanced statistics from storage backends
-    let _storage_size_bytes = 0u64;
-    let cache_hit_rate = 0.0;
-    let last_sync = None;
+    // Heuristic size estimates. These are NOT measured through any backend
+    // interface; they are explicitly labeled `Estimated` in output (PTA-A2).
+    let episode_size_estimate = 2048u64; // ~2KB per episode
+    let pattern_size_estimate = 1024u64; // ~1KB per pattern
+    let storage_size_bytes = (total_episodes as u64) * episode_size_estimate
+        + (total_patterns as u64) * pattern_size_estimate;
 
-    // Estimate storage size based on counts (rough calculation)
-    // Note: We can't get detailed backend statistics through the trait interface
-    // In a full implementation, we'd need to extend the StorageBackend trait
-    let mut storage_size_bytes = 0u64;
-    storage_size_bytes += (total_episodes * 2048) as u64; // ~2KB per episode
-    storage_size_bytes += (total_patterns * 1024) as u64; // ~1KB per pattern
-
-    // Cache hit rate not available through trait interface
-    // Last sync timestamp not available through trait interface
-
-    // Calculate recent counts (last 24 hours) - this is an approximation
-    // In a full implementation, we'd query the storage backends with time filters
-    let recent_episodes = completed_episodes; // Approximation
-    let recent_patterns = 0; // Would need time-based queries
-
+    // Cache hit rate and last sync time are not exposed through the
+    // `StorageBackend` trait. Report them as unavailable rather than
+    // fabricating a zero hit rate or current timestamp.
     let stats = StorageStats {
         episodes: StorageStatsData {
             total_count: total_episodes,
-            recent_count: recent_episodes,
-            average_size_bytes: if total_episodes > 0 { 2048 } else { 0 }, // Estimate
+            completed_count: MetricValue::measured(completed_episodes),
+            average_size_bytes: MetricValue::estimated(episode_size_estimate),
         },
         patterns: StorageStatsData {
             total_count: total_patterns,
-            recent_count: recent_patterns,
-            average_size_bytes: if total_patterns > 0 { 1024 } else { 0 }, // Estimate
+            // Patterns have no completed concept; do not report 0 as measured.
+            completed_count: MetricValue::unavailable(),
+            average_size_bytes: MetricValue::estimated(pattern_size_estimate),
         },
-        storage_size_bytes,
-        cache_hit_rate,
-        last_sync,
+        storage_size_bytes: MetricValue::estimated(storage_size_bytes),
+        cache_hit_rate: MetricValue::unavailable(),
+        last_sync: MetricValue::unavailable(),
     };
 
     format.print_output(&stats)?;
@@ -430,53 +422,28 @@ pub async fn storage_health(
 }
 
 pub async fn connection_status(
-    memory: &do_memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    let mut turso_info = ConnectionInfo {
-        active_connections: 0,
-        pool_size: 0,
-        queue_depth: 0,
-        last_activity: None,
-    };
-
-    let mut redb_info = ConnectionInfo {
-        active_connections: 0,
-        pool_size: 0,
-        queue_depth: 0,
-        last_activity: None,
-    };
-
-    // Get Turso connection info
-    // Note: Detailed pool statistics not available through StorageBackend trait
-    if memory.has_turso_storage() {
-        // Estimate connection info since we can't access pool stats through trait
-        turso_info.active_connections = 1; // At least one connection
-        turso_info.pool_size = 10; // Default pool size
-        turso_info.queue_depth = 0; // Not available through trait
-        turso_info.last_activity = Some(
-            chrono::Utc::now()
-                .format("%Y-%m-%d %H:%M:%S UTC")
-                .to_string(),
-        );
-    }
-
-    // Get redb connection info (simpler, single connection)
-    if memory.has_cache_storage() {
-        redb_info.active_connections = 1; // redb uses a single synchronous connection
-        redb_info.pool_size = 1;
-        redb_info.queue_depth = 0; // No queuing in redb
-        redb_info.last_activity = Some(
-            chrono::Utc::now()
-                .format("%Y-%m-%d %H:%M:%S UTC")
-                .to_string(),
-        );
-    }
+    // Pool telemetry is not exposed through the `StorageBackend` trait, so all
+    // connection metrics are reported as `Unavailable` regardless of
+    // configuration rather than fabricating active/pool/last-activity values
+    // (PTA-A2).
 
     let status = ConnectionStatus {
-        turso: turso_info,
-        redb: redb_info,
+        turso: ConnectionInfo {
+            active_connections: MetricValue::unavailable(),
+            pool_size: MetricValue::unavailable(),
+            queue_depth: MetricValue::unavailable(),
+            last_activity: MetricValue::unavailable(),
+        },
+        redb: ConnectionInfo {
+            active_connections: MetricValue::unavailable(),
+            pool_size: MetricValue::unavailable(),
+            queue_depth: MetricValue::unavailable(),
+            last_activity: MetricValue::unavailable(),
+        },
     };
 
     format.print_output(&status)?;

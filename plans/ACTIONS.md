@@ -1,13 +1,20 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-26  
-- **Active plan**: `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`  
+- **Last Updated**: 2026-07-30
+- **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
-## Active actions (2026-07-25)
+## Active actions (2026-07-30)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
+| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | Proposed |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | Blocked by ADR acceptance |
+| ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | Blocked by ACT-335 |
+| ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | Blocked by ACT-336 |
+| ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | Planned |
+| ACT-339 | Preserve fuzz/mutation evidence, then measure and remove duplicate CI work | CIT-A5 | Planned |
+| ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | Blocked by ACT-335…337 and maintainer approval |
 | ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | ✅ Done |
 | ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | ✅ #886 |
 | ACT-315 | Plans progress truth (open PRs, post-ship) | R-G* | ✅ #889 |
@@ -23,8 +30,20 @@
 | ACT-312 | R-F* GO spike artifacts written + validated (2026-07-28) | R-F* | ✅ Done |
 | ACT-325 | Implement R-F10 OIDC trusted publishing in publish-crates.yml | R-F10 | 🔄 In progress |
 | ACT-326 | Implement R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | 🔄 In progress |
+| ACT-341 | Make non-`csm` cascade retrieval capability-truthful | PTA-A1 | ✅ Implemented |
+| ACT-342 | Make CLI storage metrics measured/estimated/unavailable explicitly | PTA-A2 | ✅ Implemented |
+| ACT-343 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
+| ACT-328 | Accept ADR-078 and freeze attributed contracts | RAT-A1 | Proposed |
+| ACT-329 | Add capability-aware checked attribution persistence | RAT-A2 | Blocked by ADR acceptance |
+| ACT-330 | Add core attributed pattern/playbook operations | RAT-A3 | Blocked by ACT-329 |
+| ACT-331 | Enforce session and feedback integrity | RAT-A4 | Blocked by ACT-330 |
+| ACT-332 | Wire optional attribution through MCP and CLI | RAT-A5/A6 | Blocked by ACT-331 |
+| ACT-333 | End-to-end validation, docs, and authority update | RAT-A7/PTA-A9 | Blocked by ACT-341…343 + RAT chain |
 
-All ACT-300…ACT-324 items (excluding ACT-325/326 in progress) are **complete**.
+All ACT-300…ACT-324 items are complete. ACT-341…ACT-343 (PTA-A1/A2/A3) are
+implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) are in progress. Remaining open
+items must not be marked complete without code, workflow, live-ruleset, and
+validation evidence as applicable.
 
 ## Completed actions (summary)
 
@@ -39,6 +58,8 @@ Full tables: `plans/archive/2026-07-consolidation/completed-sprints/`
 - Cross-process storage features → e2e CLI test  
 - No manual `gh release create`; use release-manager + `release.yml`  
 - No soft-pass on cargo deny / required cancelled checks  
+- Required status must be a causal same-run aggregate; an echo anchor is not a gate
+- Dependabot/fork trust changes permissions and secret access, not test assertions
 - Fail-closed `execute_agent_code` unless approved capability backend  
 - sha2 digests: use portable hex encode (not `format!("{:x}", finalize())` on 0.11+)  
 - Docs integrity: do not re-check `plans/archive/**` link rot as a ship blocker  

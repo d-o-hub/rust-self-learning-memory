@@ -59,6 +59,9 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
       # Tier 2: Aggressive cleanup after checkout
       - name: Free disk space (aggressive)
         run: |
@@ -103,9 +106,9 @@ jobs:
           NEXTEST_EXPERIMENTAL_LIBTEST_JSON: 1
         run: |
           mkdir -p "$CARGO_TARGET_DIR/nextest/nightly"
-          cargo nextest run --profile ci --lib --all --test-threads=4 \
+          nix develop --command cargo nextest run --profile ci --lib --all --test-threads=4 \
             --message-format libtest-json > "$CARGO_TARGET_DIR/nextest/nightly/report.json"
-          cargo nextest run --profile ci --tests --all --test-threads=4 \
+          nix develop --command cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
 
       - name: Cleanup after regular tests
@@ -143,7 +146,7 @@ jobs:
           #
           # Tier 1: Run slow do-memory-core integration tests
           # Exclude test_pattern_accuracy_measurement (non-deterministic in CI)
-          cargo nextest run -p do-memory-core --run-ignored only \
+          nix develop --command cargo nextest run -p do-memory-core --run-ignored only \
             -E 'not test(test_pattern_accuracy_measurement)'
           #
           # Tier 2: Run non-Turso integration tests
@@ -153,7 +156,7 @@ jobs:
           # - test(test_update_command_): CLI subprocess tests timeout in CI
           # - test(test_wasi_): WASI implementation gaps (ADR-041)
           # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
-          cargo nextest run --all --run-ignored only \
+          nix develop --command cargo nextest run --all --run-ignored only \
             -E 'not (package(do-memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
           # yamllint enable rule:line-length
@@ -244,6 +247,10 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup Nix
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./.github/actions/setup-nix
+
       # Tier 2: Aggressive cleanup after checkout (matches full-test-suite)
       - name: Free disk space (aggressive)
         if: runner.os == 'Linux'
@@ -281,7 +288,7 @@ jobs:
         run: |
           # Tier 1: Run slow do-memory-core integration tests
           # Exclude test_pattern_accuracy_measurement (non-deterministic in CI)
-          cargo nextest run -p do-memory-core --run-ignored only \
+          nix develop --command cargo nextest run -p do-memory-core --run-ignored only \
             -E 'not test(test_pattern_accuracy_measurement)'
           #
           # Tier 2: Run non-Turso integration tests
@@ -291,7 +298,7 @@ jobs:
           # - test(test_update_command_): CLI subprocess tests timeout in CI
           # - test(test_wasi_): WASI implementation gaps (ADR-041)
           # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
-          cargo nextest run --all --run-ignored only \
+          nix develop --command cargo nextest run --all --run-ignored only \
             -E 'not (package(do-memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
           # yamllint enable rule:line-length

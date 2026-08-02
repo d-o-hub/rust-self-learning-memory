@@ -90,6 +90,9 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
       - name: Setup isolated target dir
         run: |
           chmod +x scripts/setup-target-dir.sh
@@ -124,7 +127,7 @@ jobs:
           echo "Generating coverage report for workspace code..."
           # Use --workspace so Codecov patch status can map PR diff lines correctly.
           # Exclude heavy non-gating crates to keep runtime reasonable.
-          timeout 2400s cargo llvm-cov --workspace \
+          timeout 2400s nix develop --command cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \
@@ -147,7 +150,7 @@ jobs:
           echo "Generating full workspace coverage report..."
           # Only run full workspace coverage on main branch
           # Exclude heavy directories (benches/, examples/) to save disk space
-          timeout 3000s cargo llvm-cov --workspace \
+          timeout 3000s nix develop --command cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \

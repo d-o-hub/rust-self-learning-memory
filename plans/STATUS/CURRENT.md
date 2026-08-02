@@ -36,7 +36,7 @@
 | CI wait semantics | **Not fail-closed** — five waiters accept cancelled/skipped/missing fast check |
 | P0 plan gaps | **1 open** — required CI (PTA-A1/A2/A3 implemented) |
 | ADR-079 CI control plane | Proposed; implementation/ruleset unchanged |
-| ADR-078 automatic attribution | Proposed; implementation not started |
+| ADR-080 automatic attribution | Proposed; implementation not started |
 
 ## Immediate priorities
 
@@ -47,7 +47,7 @@
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
 | P1 | Reconcile gate contract; repair release/publish/fuzz truth | CIT-A3…A5 | Planned |
-| P1 | Automatic episode-bound recommendation attribution | ADR-078 / RAT-A1…A7 | Proposed |
+| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | Proposed |
 | P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |

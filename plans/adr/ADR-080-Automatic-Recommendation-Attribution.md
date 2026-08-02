@@ -1,4 +1,4 @@
-# ADR-078: Automatic, Episode-Bound Recommendation Attribution
+# ADR-080: Automatic, Episode-Bound Recommendation Attribution
 
 - **Status**: Proposed
 - **Date**: 2026-07-30
@@ -96,7 +96,7 @@ deferred until at-least-once retry behavior demonstrates a need.
 
 ### 5. Defer ranking adaptation to a separate decision
 
-ADR-078 captures trustworthy data but does not mutate pattern effectiveness or
+ADR-080 captures trustworthy data but does not mutate pattern effectiveness or
 recommendation ranking. A follow-up must define idempotent durable updates,
 replacement-feedback semantics, rollback behavior, and how attributed evidence
 changes ranking weights before the project claims the learning loop is closed.

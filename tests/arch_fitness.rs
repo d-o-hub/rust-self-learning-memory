@@ -55,7 +55,7 @@ fn enforce_crate_layering() {
     for &(from, to) in FORBIDDEN_EDGES {
         if let Some(deps) = dep_graph.get(from) {
             if deps.contains(&to.to_string()) {
-                violations.push(format!("  {} → {}", from, to));
+                violations.push(format!("  {from} → {to}"));
             }
         }
     }

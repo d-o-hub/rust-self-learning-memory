@@ -3,7 +3,7 @@
 - **Status**: Proposed
 - **Date**: 2026-07-30
 - **Audit checkout**: `main` at `e66defdf`
-- **Decisions**: [ADR-078](adr/ADR-078-Automatic-Recommendation-Attribution.md) and [ADR-079](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md) — Proposed
+- **Decisions**: [ADR-080](adr/ADR-080-Automatic-Recommendation-Attribution.md) and [ADR-079](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md) — Proposed
 - **Relevant constraints**: ADR-039, ADR-044, ADR-072, ADR-075, Tokio-only async, postcard, zero clippy warnings
 - **Strategy**: Restore a fail-closed merge control plane first, fix product false-success contracts, then implement attribution integrity from storage/core to MCP/CLI, with converging end-to-end validation
 
@@ -24,7 +24,7 @@ the capture half of ADR-044.
 | P1 | Dependabot is excluded from most substantive CI and gate contracts overstate parity | workflow actor conditions; `plans/GATE_CONTRACT.md` | Actor parity plus semantic contract validation |
 | P1 | Release manual dispatch is broken; publish selection and fuzz evidence have false-success paths | release run `30301797956`, workflow conditions | Truthful trigger/planner/evidence remediation |
 | P1 | `eval set-threshold` is advertised but always errors; its help suggests nonexistent `eval show` | `memory-cli/src/commands/eval.rs` | ✅ Implemented — command removed/hidden |
-| P1 | Recommendation generation does not automatically create truthful episode-bound sessions | ADR-078 evidence | Implement this plan's RAT packages |
+| P1 | Recommendation generation does not automatically create truthful episode-bound sessions | ADR-080 evidence | Implement this plan's RAT packages |
 | P2 | Azure/Custom/Cohere embedding adapters are absent | ADR-077, embedding factory | Remain unavailable until a provider-specific ADR and adapter tests exist |
 | Non-gap | `execute_agent_code` and batch MCP tools are unavailable | ADR-073 and standing product decisions | Preserve fail-closed/deferred state |
 
@@ -249,7 +249,7 @@ do not claim the learning loop is closed until that work has its own ADR/tests.
 
 ### PTA-A9: Validate and update authority documents
 
-Run focused crate tests after each package, then workspace gates. Update ADR-078
+Run focused crate tests after each package, then workspace gates. Update ADR-080
 and ADR-079 to Accepted/Implemented only after code, live ruleset state, and
 evidence exist. Record commit, feature set, UTC timestamp, and validation
 artifacts per ADR-072.
@@ -279,7 +279,7 @@ backend, partial failure, total failure, and restart retrieval.
 
 ## Promotion gates
 
-1. Accept ADR-078 before RAT-A2 changes public persistence semantics.
+1. Accept ADR-080 before RAT-A2 changes public persistence semantics.
 2. Accept ADR-079 before replacing required-check topology; obtain explicit
    approval immediately before mutating the repository ruleset.
 3. Review the receipt/capability model before MCP/CLI wire changes.
@@ -292,5 +292,5 @@ backend, partial failure, total failure, and restart retrieval.
 
 - CIT-A1…A5, PTA-A1…A3, and RAT-A1…A7 exits are met.
 - All quality gates pass with evidence recorded.
-- ADR-078, ADR-079, and canonical trackers reflect actual, not intended, implementation.
+- ADR-080, ADR-079, and canonical trackers reflect actual, not intended, implementation.
 - No plan or user documentation claims feedback changes ranking until verified.

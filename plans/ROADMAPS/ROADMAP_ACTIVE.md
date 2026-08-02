@@ -3,7 +3,7 @@
 **Last Updated**: 2026-07-30
 **Released Version**: v0.1.37 (latest tag)  
 **Workspace Version**: 0.1.38 (next release)  
-**Active Sprint**: CI trust + product truth + ADR-078 automatic recommendation attribution (proposed)
+**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (proposed)
 **Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 **Branch**: `main` @ `e66defdf`
 **Open PRs**: #914, #915
@@ -41,7 +41,7 @@
 | P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | Planned |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | Planned |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-078 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed |
+| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed |
 | P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
 
 ---

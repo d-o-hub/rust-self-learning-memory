@@ -151,7 +151,7 @@ impl Output for StorageHealth {
         writeln!(
             writer,
             "Overall: {}",
-            format!("{:?}", self.overall).color(overall_color).bold()
+            self.overall.to_string().color(overall_color).bold()
         )?;
 
         writeln!(writer, "\nTurso:")?;
@@ -163,7 +163,7 @@ impl Output for StorageHealth {
         writeln!(
             writer,
             "  Status: {}",
-            format!("{:?}", self.turso.status).color(turso_color)
+            self.turso.status.to_string().color(turso_color)
         )?;
         if let Some(latency) = self.turso.latency_ms {
             writeln!(writer, "  Latency: {}ms", latency)?;
@@ -181,7 +181,7 @@ impl Output for StorageHealth {
         writeln!(
             writer,
             "  Status: {}",
-            format!("{:?}", self.redb.status).color(redb_color)
+            self.redb.status.to_string().color(redb_color)
         )?;
         if let Some(latency) = self.redb.latency_ms {
             writeln!(writer, "  Latency: {}ms", latency)?;

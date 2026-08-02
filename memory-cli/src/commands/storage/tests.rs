@@ -312,3 +312,71 @@ fn connection_status_human_output_marks_metrics_unavailable() {
         "must not fabricate pool=10"
     );
 }
+
+// ---------------------------------------------------------------------------
+// vacuum_storage command (PTA-A2 honest reporting)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn vacuum_storage_dry_run_succeeds_and_reports_no_work() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result =
+        super::commands::vacuum_storage(&memory, &config, crate::output::OutputFormat::Json, true)
+            .await;
+
+    // Assert
+    assert!(result.is_ok(), "dry-run vacuum must succeed");
+}
+
+#[tokio::test]
+async fn vacuum_storage_live_succeeds_without_fabricating_optimization() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result =
+        super::commands::vacuum_storage(&memory, &config, crate::output::OutputFormat::Json, false)
+            .await;
+
+    // Assert
+    assert!(result.is_ok(), "live vacuum must succeed without error");
+}
+
+#[tokio::test]
+async fn vacuum_storage_live_human_output_is_not_misleading() {
+    // Arrange
+    let memory = do_memory_core::SelfLearningMemory::new();
+    let config = crate::config::Config::default();
+
+    // Act
+    let result = super::commands::vacuum_storage(
+        &memory,
+        &config,
+        crate::output::OutputFormat::Human,
+        false,
+    )
+    .await;
+
+    // Assert
+    assert!(result.is_ok());
+    let rendered = {
+        let mut buffer = Vec::new();
+        let stats = super::types::VacuumResult {
+            items_cleaned: 0,
+            storage_optimized: false,
+            errors: 0,
+            dry_run: false,
+        };
+        stats.write_human(&mut buffer).unwrap();
+        String::from_utf8(buffer).unwrap()
+    };
+    assert!(
+        !rendered.contains("Optimized"),
+        "must not render a fabricated Optimized status"
+    );
+}

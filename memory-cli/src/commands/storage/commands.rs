@@ -51,7 +51,6 @@ pub async fn storage_stats(
     Ok(())
 }
 
-#[expect(clippy::excessive_nesting)]
 pub async fn sync_storage(
     memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
@@ -178,37 +177,36 @@ pub async fn sync_storage(
             &episode.episode_id.to_string()[..8]
         ));
 
-        match redb.store_episode(&episode).await {
-            Ok(_) => {
-                episodes_synced += 1;
-                progress.inc(1);
+        if let Err(e) = redb.store_episode(&episode).await {
+            eprintln!("Failed to sync episode {}: {}", episode.episode_id, e);
+            errors += 1;
+            progress.inc(1);
+            continue;
+        }
+        episodes_synced += 1;
+        progress.inc(1);
 
-                // Also sync patterns and heuristics if they exist
-                for pattern_id in &episode.patterns {
-                    // Try to get pattern from Turso and store in redb
-                    if let Ok(Some(pattern)) = turso.get_pattern(*pattern_id).await {
-                        if let Err(e) = redb.store_pattern(&pattern).await {
-                            eprintln!("Warning: Failed to sync pattern {}: {}", pattern_id, e);
-                        } else {
-                            patterns_synced += 1;
-                        }
-                    }
-                }
-                for heuristic_id in &episode.heuristics {
-                    // Try to get heuristic from Turso and store in redb
-                    if let Ok(Some(heuristic)) = turso.get_heuristic(*heuristic_id).await {
-                        if let Err(e) = redb.store_heuristic(&heuristic).await {
-                            eprintln!("Warning: Failed to sync heuristic {}: {}", heuristic_id, e);
-                        } else {
-                            heuristics_synced += 1;
-                        }
-                    }
-                }
+        // Also sync patterns and heuristics if they exist
+        for pattern_id in &episode.patterns {
+            // Try to get pattern from Turso and store in redb
+            let Ok(Some(pattern)) = turso.get_pattern(*pattern_id).await else {
+                continue;
+            };
+            if let Err(e) = redb.store_pattern(&pattern).await {
+                eprintln!("Warning: Failed to sync pattern {}: {}", pattern_id, e);
+            } else {
+                patterns_synced += 1;
             }
-            Err(e) => {
-                eprintln!("Failed to sync episode {}: {}", episode.episode_id, e);
-                errors += 1;
-                progress.inc(1);
+        }
+        for heuristic_id in &episode.heuristics {
+            // Try to get heuristic from Turso and store in redb
+            let Ok(Some(heuristic)) = turso.get_heuristic(*heuristic_id).await else {
+                continue;
+            };
+            if let Err(e) = redb.store_heuristic(&heuristic).await {
+                eprintln!("Warning: Failed to sync heuristic {}: {}", heuristic_id, e);
+            } else {
+                heuristics_synced += 1;
             }
         }
     }
@@ -244,15 +242,16 @@ pub async fn vacuum_storage(
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    let total_cleaned = 0usize;
-    let errors = 0usize;
-    let _storage_optimized = false;
-
+    // Vacuum is not supported through the generic `StorageBackend` trait, so
+    // there is nothing to execute. Report honestly (PTA-A2) rather than
+    // fabricating an "Optimized" success with zero items cleaned.
     if dry_run {
-        println!("DRY RUN: Would perform storage vacuum operations");
-        println!("- Would clean expired cache entries from redb");
-        println!("- Would optimize Turso database structures");
-        println!("- Would remove orphaned data and compact storage");
+        println!(
+            "DRY RUN: storage vacuum is not supported through the generic StorageBackend trait"
+        );
+        println!(
+            "- Would clean expired cache entries / optimize structures via backend-specific tools only"
+        );
 
         let result = VacuumResult {
             items_cleaned: 0, // Would calculate in real run
@@ -264,64 +263,14 @@ pub async fn vacuum_storage(
         return Ok(());
     }
 
-    // Interactive confirmation for vacuum
-    if format == OutputFormat::Human {
-        use colored::*;
-        use dialoguer::Confirm;
-
-        println!("{}", "Storage Vacuum".bold());
-        println!("{}", "==============".bold());
-        println!("This operation will:");
-        println!("  • Clean expired cache entries from redb");
-        println!("  • Optimize Turso database structures");
-        println!("  • Remove orphaned data and compact storage");
-        println!();
-        println!(
-            "{}",
-            "Note: This operation is generally safe but may take time.".yellow()
-        );
-        println!();
-
-        let confirmed = Confirm::new()
-            .with_prompt("Continue with vacuum operation?")
-            .default(true)
-            .interact()?;
-
-        if !confirmed {
-            println!("{}", "Operation cancelled.".yellow());
-            return Ok(());
-        }
-        println!();
-    }
-
-    println!("Starting storage vacuum operations...");
-
-    // Create progress bar for vacuum operations
-    let progress = ProgressBar::new_spinner();
-    progress.set_style(
-        ProgressStyle::default_spinner()
-            .template("{spinner:.blue} [{elapsed_precise}] {msg}")
-            .expect("ProgressStyle template is valid: uses standard format"),
-    );
-    progress.set_message("Analyzing storage for optimization opportunities...");
-
-    // Note: Vacuum operations are limited by the StorageBackend trait
-    // In a full implementation, we'd need to extend the trait with vacuum methods
-    println!("Note: Vacuum operations are limited through the generic StorageBackend trait");
-    println!("For full vacuum capabilities, backend-specific tools should be used directly");
-
-    // For now, we can only report that vacuum is not fully supported
-    // through the generic interface
-
-    // Mark as optimized if no errors occurred (which is always true for now)
-    let storage_optimized = errors == 0;
-
-    progress.finish_with_message("Storage vacuum completed");
+    println!("Storage vacuum is not supported through the generic StorageBackend trait.");
+    println!("For full vacuum capabilities, backend-specific tools should be used directly.");
+    println!("Nothing was cleaned or modified.");
 
     let result = VacuumResult {
-        items_cleaned: total_cleaned,
-        storage_optimized,
-        errors,
+        items_cleaned: 0,
+        storage_optimized: false,
+        errors: 0,
         dry_run: false,
     };
 

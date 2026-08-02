@@ -1,9 +1,10 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-07-30
+- **Last Updated**: 2026-08-02
 - **Version**: workspace `0.1.38` · latest tag `v0.1.37`
-- **Branch**: `main` @ `f0ffc4a3`
-- **Open PRs**: #916 (PTA-A1/A2/A3 product truth — all CI green)
+- **Branch**: `main` @ `33b9d302`
+- **Open PRs**: none (0 open)
+- **PR merge session**: #916 + #917 merged 2026-08-02 (see `plans/STATUS/VALIDATION_LATEST.md`)
 - **Open issues**: #913
 - **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 implemented)
 - **Archive**: `plans/archive/2026-07-consolidation/`  
@@ -21,9 +22,10 @@
 | CIT-A3 semantic gate-contract parity | Blocked by CIT-A2 |
 | CIT-A4 release/publish trigger truth | Planned (P1) |
 | CIT-A5 durable informational evidence + deduplication | Planned (P1/P2) |
-| PTA-A1 non-`csm` cascade capability truth | Implemented | PTA-A1 |
-| PTA-A2 CLI storage metric truth | Implemented | PTA-A2 |
-| PTA-A3 threshold command cleanup | Implemented | PTA-A3 |
+| PTA-A1 non-`csm` cascade capability truth | ✅ #916 merged (2026-08-02) | PTA-A1 |
+| PTA-A2 CLI storage metric truth | ✅ #916 merged (2026-08-02) | PTA-A2 |
+| PTA-A3 threshold command cleanup | ✅ #916 merged (2026-08-02) | PTA-A3 |
+| cargo-mutants CI sharding (reward/retrieval/retry/patterns) | ✅ #917 merged (2026-08-02) | CI |
 | ADR-078 automatic recommendation attribution | Proposed |
 | RAT-A1 contract tests | Blocked by ADR acceptance |
 | RAT-A2…A7 implementation | Blocked by preceding RAT packages |

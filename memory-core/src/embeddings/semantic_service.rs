@@ -281,7 +281,7 @@ impl SemanticService {
     /// - Key execution steps
     /// - Outcome summary
     pub async fn embed_episode(&self, episode: &Episode) -> Result<Vec<f32>> {
-        let text = self.episode_to_text(episode);
+        let text = super::semantic_text::episode_to_text(episode);
         let embedding = self.provider.embed_text(&text).await?;
 
         // Store the embedding
@@ -299,7 +299,7 @@ impl SemanticService {
     /// - Context where the pattern was extracted
     /// - Pattern metadata and effectiveness metrics
     pub async fn embed_pattern(&self, pattern: &Pattern) -> Result<Vec<f32>> {
-        let text = self.pattern_to_text(pattern);
+        let text = super::semantic_text::pattern_to_text(pattern);
         let embedding = self.provider.embed_text(&text).await?;
 
         // Store the embedding
@@ -321,7 +321,7 @@ impl SemanticService {
         limit: usize,
     ) -> Result<Vec<SimilaritySearchResult<Episode>>> {
         // Create query text combining description and context
-        let query_text = self.create_query_text(query, context);
+        let query_text = super::semantic_text::create_query_text(query, context);
 
         // Generate embedding for query
         let query_embedding = self.provider.embed_text(&query_text).await?;
@@ -343,7 +343,7 @@ impl SemanticService {
         limit: usize,
     ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
         // Create context-based query
-        let query_text = self.context_to_text(context);
+        let query_text = super::semantic_text::context_to_text(context);
 
         // Generate embedding for query
         let query_embedding = self.provider.embed_text(&query_text).await?;
@@ -423,157 +423,5 @@ impl SemanticService {
             results.push(embedding);
         }
         Ok(results)
-    }
-
-    /// Convert episode to searchable text representation
-    fn episode_to_text(&self, episode: &Episode) -> String {
-        use std::collections::HashSet;
-        use std::fmt::Write;
-
-        // Build text directly using format! to avoid intermediate Vec clones
-        let mut text = episode.task_description.clone();
-
-        // Context information
-        let _ = write!(text, ". domain: {}", episode.context.domain);
-        if let Some(lang) = &episode.context.language {
-            let _ = write!(text, ". language: {lang}");
-        }
-        if let Some(framework) = &episode.context.framework {
-            let _ = write!(text, ". framework: {framework}");
-        }
-        if !episode.context.tags.is_empty() {
-            let _ = write!(text, ". tags: {}", episode.context.tags.join(", "));
-        }
-
-        // Execution summary
-        if !episode.steps.is_empty() {
-            // Collect unique tools while preserving order
-            let mut seen_tools = HashSet::new();
-            let mut tools = Vec::new();
-            for step in &episode.steps {
-                if seen_tools.insert(step.tool.clone()) {
-                    tools.push(step.tool.clone());
-                }
-            }
-            let _ = write!(text, ". tools used: {}", tools.join(", "));
-
-            let actions: Vec<String> = episode
-                .steps
-                .iter()
-                .take(3) // Take first few actions
-                .map(|step| step.action.clone())
-                .collect();
-            let _ = write!(text, ". actions: {}", actions.join(", "));
-        }
-
-        // Outcome summary
-        if let Some(outcome) = &episode.outcome {
-            match outcome {
-                crate::types::TaskOutcome::Success { verdict, .. } => {
-                    let _ = write!(text, ". outcome: success - {verdict}");
-                }
-                crate::types::TaskOutcome::PartialSuccess { verdict, .. } => {
-                    let _ = write!(text, ". outcome: partial success - {verdict}");
-                }
-                crate::types::TaskOutcome::Failure { reason, .. } => {
-                    let _ = write!(text, ". outcome: failure - {reason}");
-                }
-                crate::types::TaskOutcome::Abstained { reason, .. } => {
-                    let _ = write!(text, ". outcome: abstained - {reason}");
-                }
-            }
-        }
-
-        text
-    }
-
-    /// Convert pattern to searchable text representation
-    fn pattern_to_text(&self, pattern: &Pattern) -> String {
-        let mut parts = Vec::new();
-
-        // Pattern description based on type
-        let description = match pattern {
-            crate::patterns::Pattern::ToolSequence { tools, .. } => {
-                format!("Tool sequence: {}", tools.join(" -> "))
-            }
-            crate::patterns::Pattern::DecisionPoint {
-                condition, action, ..
-            } => {
-                format!("Decision: if {condition} then {action}")
-            }
-            crate::patterns::Pattern::ErrorRecovery {
-                error_type,
-                recovery_steps,
-                ..
-            } => {
-                format!(
-                    "Error recovery: {} -> {}",
-                    error_type,
-                    recovery_steps.join(" -> ")
-                )
-            }
-            crate::patterns::Pattern::ContextPattern {
-                context_features,
-                recommended_approach,
-                ..
-            } => {
-                format!(
-                    "Context pattern: {} suggests {}",
-                    context_features.join(", "),
-                    recommended_approach
-                )
-            }
-        };
-        parts.push(description);
-
-        // Context information
-        if let Some(pattern_context) = pattern.context() {
-            parts.push(format!("domain: {}", pattern_context.domain));
-            if let Some(lang) = &pattern_context.language {
-                parts.push(format!("language: {lang}"));
-            }
-            if !pattern_context.tags.is_empty() {
-                parts.push(format!("tags: {}", pattern_context.tags.join(", ")));
-            }
-        }
-
-        parts.join(". ")
-    }
-
-    /// Create query text from description and context
-    fn create_query_text(&self, query: &str, context: &TaskContext) -> String {
-        let mut parts = vec![query.to_string()];
-
-        parts.push(format!("domain: {}", context.domain));
-        if let Some(lang) = &context.language {
-            parts.push(format!("language: {lang}"));
-        }
-        if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {framework}"));
-        }
-        if !context.tags.is_empty() {
-            parts.push(format!("tags: {}", context.tags.join(", ")));
-        }
-
-        parts.join(". ")
-    }
-
-    /// Convert context to searchable text
-    fn context_to_text(&self, context: &TaskContext) -> String {
-        let mut parts = Vec::new();
-
-        parts.push(format!("domain: {}", context.domain));
-        if let Some(lang) = &context.language {
-            parts.push(format!("language: {lang}"));
-        }
-        if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {framework}"));
-        }
-        if !context.tags.is_empty() {
-            parts.push(format!("tags: {}", context.tags.join(", ")));
-        }
-        parts.push(format!("complexity: {:?}", context.complexity));
-
-        parts.join(". ")
     }
 }

@@ -7,6 +7,8 @@ pub mod decay;
 pub mod effectiveness;
 pub mod empty_diagnostics;
 pub mod extract;
+#[cfg(test)]
+mod extract_tests;
 pub mod list;
 pub mod output;
 pub mod search;

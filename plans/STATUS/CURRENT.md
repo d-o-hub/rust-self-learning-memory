@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-07-30
-**Released Version**: v0.1.37  
+**Released Version**: v0.1.38  
 **Workspace Version**: 0.1.38 (next release)  
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (proposed)

@@ -5,12 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.38] - 2026-08-02
 
-### Changed
+### Added
 
-- Workspace version advanced to **0.1.38** after shipping `v0.1.37` so release-drift
-  gates treat new commits as normal development (`version_not_advanced` no longer applies).
+- implement PTA-A1/A2/A3 product truth: non-`csm` cascade `CapabilityUnavailable`,
+  `MetricValue` storage telemetry provenance, `eval set-threshold` removal (#916)
+
+- shard mutation testing across reward/retrieval/retry/patterns with aggregated
+  summary job (#917)
+
+- adopt Nix flakes with centralized Setup Nix action and magic-nix-cache for
+  hermetic CI builds
+
+- r-f4 SIMD-accelerated cosine similarity (autovectorized scalar, no unsafe
+  intrinsics)
+
+- r-f10 OIDC trusted publishing for crates.io
+
+### Fixed
+
+- resolve pre-existing quality warnings: honest storage vacuum reporting,
+  `sync_storage` nesting refactor, `HealthStatus` Display consistency,
+  dead-code removal, duplicate ADR-078 renumbered to ADR-080 (#920)
+
+- remove unsafe AVX2 intrinsics in favor of autovectorized scalar cosine
+
+### Performance
+
+- optimize ConceptGraph domain-term expand allocations and sorting
+
+### Chore
+
+- record PR merge session progress in plans trackers (#919)
+
+- bump workspace to 0.1.38 after shipping v0.1.37
 
 ## [0.1.37] - 2026-07-27
 
@@ -2601,7 +2630,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+<!-- merged duplicate 0.1.11 section (2026-01-04) into the 0.1.11 release above -->
 
 
 
@@ -2712,7 +2741,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+<!-- merged duplicate 0.1.10 section (2026-01-02) into the 0.1.10 release above -->
 
 
 

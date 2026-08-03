@@ -13,6 +13,8 @@ use clap::Subcommand;
 
 mod core;
 mod types;
+#[cfg(test)]
+mod types_tests;
 
 pub use core::*;
 pub use types::*;

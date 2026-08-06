@@ -225,34 +225,18 @@ mod tests {
     /// Reference: naive full-matrix Levenshtein over char slices.
     /// Independent of the optimized single-row DP, used for cross-checking.
     fn reference_levenshtein(a: &[char], b: &[char]) -> usize {
-        let (rows, cols) = (a.len() + 1, b.len() + 1);
-        let mut matrix = vec![vec![0usize; cols]; rows];
-        for i in 0..rows {
-            matrix[i][0] = i;
-        }
-        for j in 0..cols {
-            matrix[0][j] = j;
-        }
-        for i in 1..rows {
-            for j in 1..cols {
-                let cost = usize::from(a[i - 1] != b[j - 1]);
-                matrix[i][j] = (matrix[i - 1][j] + 1)
-                    .min(matrix[i][j - 1] + 1)
-                    .min(matrix[i - 1][j - 1] + cost);
-            }
-        }
-        matrix[a.len()][b.len()]
+        reference_levenshtein_slice(a, b)
     }
 
     /// Reference: naive full-matrix Levenshtein over arbitrary element slices.
     fn reference_levenshtein_slice<T: PartialEq>(a: &[T], b: &[T]) -> usize {
         let (rows, cols) = (a.len() + 1, b.len() + 1);
         let mut matrix = vec![vec![0usize; cols]; rows];
-        for i in 0..rows {
-            matrix[i][0] = i;
+        for (i, row) in matrix.iter_mut().enumerate() {
+            row[0] = i;
         }
-        for j in 0..cols {
-            matrix[0][j] = j;
+        for (j, cell) in matrix[0].iter_mut().enumerate() {
+            *cell = j;
         }
         for i in 1..rows {
             for j in 1..cols {

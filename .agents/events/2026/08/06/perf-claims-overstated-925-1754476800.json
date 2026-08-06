@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-08-06T12:00:00Z",
+  "sensor": "perf-claims-overstated",
+  "category": "maintainability",
+  "violation_count": 1,
+  "root_cause": "Auto-generated perf PR claimed asymptotic complexity reductions (O(N*M)->O(min(N,M))) that were already present in the pre-change code; doc comments inflated O(1) mem::swap elimination; byte-length heuristic silently misorders multibyte strings; tests were added for unreachable defensive branches to chase Codecov; 2 of 5 commits exceeded commitlint header-max-length (100)",
+  "guide_updated": "HARNESS.md#feedback-sensors + .agents/skills/perf-pr-guardrails/SKILL.md",
+  "skill_created": true,
+  "resolution": "Closed PR #925 as near-zero impact with full review as closing comment; opened corrected PR with char-count heuristic, differential/unicode/else-branch tests, honest docs, and one squashed <=100-char commit; added perf-pr-guardrails skill + HARNESS.md sensor rows + GOAP plan doc"
+}

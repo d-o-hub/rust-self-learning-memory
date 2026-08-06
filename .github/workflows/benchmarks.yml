@@ -37,7 +37,10 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    # Run on every PR (including Dependabot and forks): Quick Check always runs
+    # on PRs and this waiter is cheap. Fail closed per ADR-079 CIT-A2 - a
+    # cancelled, skipped, or missing fast check must never pass the gate.
+    if: github.event_name == 'pull_request'
     # Must exceed Quick Check (25m) + queue headroom.
     timeout-minutes: 40
     steps:
@@ -49,8 +52,19 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 15
           running-workflow-name: Quick Check
-          fail-on-no-checks: false
-          allowed-conclusions: success,skipped,cancelled
+          fail-on-no-checks: true
+          allowed-conclusions: success
+
+      - name: Wait for Commit Message Lint
+        uses: lewagon/wait-on-check-action@2271c86c146b96545b4e871b855e10ffa6f50773
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'Commit Message Lint'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 15
+          running-workflow-name: Quick Check
+          fail-on-no-checks: true
+          allowed-conclusions: success
 
   benchmark:
     name: Run Benchmarks

@@ -127,7 +127,14 @@ if [[ "$CI_PARITY" == true ]]; then
   # --- ADR-079 semantic checks (CIT-A1/A2/A4; negative fixtures 2026-08-06) ---
 
   # CIT-A1: stable 'CI / Required' aggregate context that evaluates with always()
-  if ! awk '/name: CI \/ Required/{for(i=0;i<12;i++){if((getline l)>0 && l ~ /always\(\)/){ok=1}}} END{exit !ok}' "$WF_DIR/ci.yml"; then
+  # Stateful scan: job headers are 2-space 'name:', 'name: CI / Required' and its
+  # if: always() are 4-space keys inside the same job block.
+  if ! awk '
+    /^  [a-zA-Z0-9_-]+:/ { in_required = 0 }
+    /name: CI \/ Required/ { in_required = 1; found = 1 }
+    in_required && /if: always\(\)/ { ok = 1 }
+    END { exit !(found && ok) }
+  ' "$WF_DIR/ci.yml"; then
     fail "ci.yml must define a 'CI / Required' aggregate job using if: always()"
   fi
 
@@ -135,7 +142,7 @@ if [[ "$CI_PARITY" == true ]]; then
   if grep -rE 'allowed-conclusions:.*cancelled' "$WF_DIR" --include='*.yml' | grep -q .; then
     fail "a workflow still accepts cancelled/skipped conclusions from a gate waiter (fail-closed required)"
   fi
-  if grep -rE 'fail-on-no-checks: (false|no)' "$WF_DIR" --include='*.yml' | grep -q .; then
+  if grep -riE 'fail-on-no-checks: (false|no)' "$WF_DIR" --include='*.yml' | grep -q .; then
     fail "a workflow still sets fail-on-no-checks: false on a gate waiter (missing checks must fail)"
   fi
 

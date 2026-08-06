@@ -466,7 +466,7 @@ jobs:
             local name="$1" result="$2"
             case "$result" in
               success) echo "OK: $name" ;;
-              skipped) echo "OK: $name skipped by in-workflow applicability classifier" ;;
+              skipped) echo "::warning::$name was skipped by its in-workflow applicability classifier - this check did NOT run substantive assertions";;
               failure) echo "::error::$name failed"; return 1 ;;
               cancelled) echo "::error::$name was cancelled"; return 1 ;;
               *) echo "::error::$name has unknown result '$result'"; return 1 ;;

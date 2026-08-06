@@ -1,9 +1,9 @@
 # Plans Directory
 
 **Workspace**: `0.1.38` (post-release) · **Released tag**: `v0.1.37` · **Next**: `v0.1.38`
-**Active plan**: [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
-**Last Updated**: 2026-07-30
-**Open PRs**: #914, #915 · **Open issues**: #913
+**Active plan**: [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) (CIT-A4/A5 done) on top of [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
+**Last Updated**: 2026-08-06
+**Open PRs**: #927 (attribution) + CIT-A4/A5 wave · **Open issues**: #913
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation
@@ -19,7 +19,8 @@
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
 | [GATE_CONTRACT.md](GATE_CONTRACT.md) | Local/CI quality gate matrix |
-| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Active**: CI trust + product-truth fixes + ADR-080 attribution capture |
+| [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) | **Active**: CIT-A4/A5 implementation + plan truth (2026-08-06) |
+| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Active upstream**: CI trust + product-truth fixes + ADR-080 attribution capture |
 | [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md) | Reference recommendations backlog |
 | [ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md](ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md) | Official `gh` / `gh skill` skills + manual vs repo policy |
 

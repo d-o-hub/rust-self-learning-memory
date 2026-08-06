@@ -1,3 +1,34 @@
+# Validation Latest — 2026-08-06 (CIT-A4/A5 wave)
+
+**Goal**: Validate the CIT-A4/CIT-A5 workflow changes and the plan-truth refresh
+without touching the live ruleset (maintainer decision).
+
+**Workspace**: `0.1.38` · **Tag**: `v0.1.37` · **HEAD**: `92db07bf`
+
+## Evidence
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| `yamllint` | `.github/workflows/{release,publish-crates,fuzz}.yml` clean | ✅ |
+| `scripts/test-release-workflow.sh --publish-fixtures` | Asserts `cargo publish --locked` in publish-crates.yml — now passes | ✅ |
+| publish polling jq | `[(.versions // [])[].num] | index($v) != null` — true/false/error-JSON guarded | ✅ tested |
+| publish closure jq | workspace-member names extracted for `path+file://…#name@version`; dev-deps excluded; core→∅, redb→core, turso→core+redb, mcp→core+redb+turso | ✅ matches `needs:` chain |
+| Release trigger | `workflow_dispatch` absent; `push: tags` + `pull_request` retained | ✅ |
+| Fuzz evidence | Upload `if: always()` + `if-no-files-found: ignore`; status report fails job on crash/artifact | ✅ |
+| Plans validation | `validate-plans.sh --active-set --version-state --adrs --identifiers --links` | ✅ (below) |
+| Open PRs | #927 (attribution) + CIT-A4/A5 wave PR | — |
+| Live ruleset | Unchanged — ADR-079 aggregate still requires maintainer acceptance | ⚠️ open |
+
+## Planning-document validation (2026-08-06)
+
+```bash
+git diff --check
+./scripts/validate-plans.sh --active-set --version-state --adrs --identifiers --links
+./scripts/validate-gate-contract.sh --ci-parity
+```
+
+---
+
 # Validation Latest — 2026-07-30
 
 **Goal**: Validate the GitHub Actions/CI audit and synchronize it with the

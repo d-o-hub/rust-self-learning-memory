@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-30
-**Released Version**: v0.1.38 (latest tag)  
-**Workspace Version**: 0.1.38 (next release)  
-**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (proposed)
-**Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
-**Branch**: `main` @ `e66defdf`
-**Open PRs**: #914, #915
+**Last Updated**: 2026-08-06
+**Released Version**: v0.1.37 (latest tag)
+**Workspace Version**: 0.1.38 (next release)
+**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (PR #927) + CIT-A4/A5 (done)
+**Plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Branch**: `main` @ `92db07bf`
+**Open PRs**: #927, + this CIT-A4/A5 wave
 **Open issues**: #913
 
 ---
@@ -34,14 +34,14 @@
 
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
-| P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate and staged ruleset migration | Proposed |
-| P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | Planned |
+| P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate and staged ruleset migration | Proposed (maintainer) |
+| P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | Planned (blocked by CIT-A1) |
 | P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ #916 |
 | P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ #916 |
-| P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | Planned |
-| P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | Planned |
+| P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | Planned (blocked by CIT-A2) |
+| P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | ✅ 2026-08-06 |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed |
+| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | 🔄 PR #927 open |
 | P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
 
 ---
@@ -52,7 +52,7 @@
 |----------|-------|-------|--------|
 | P2 | Research | WG-108 / WG-110 / WG-125 / WG-135 | ⏸ DEFER |
 | P2 | Vision | Distributed sync, multi-tenancy, OTel | Future |
-| P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
+| P2 | Release eng | Trusted Publishing (OIDC) for crates.io | ✅ ACT-325 (2026-08-06 confirmed) |
 | P2 | CI cost | Reusable workflows/artifact handoff after required-gate correctness | Blocked by CIT-A1…A3 |
 | P2 | Security | Transitive Dependabot advisories | Monitor |
 | P2 | CLI | ADR-076 §5 `pattern extract` error-arm coverage | ✅ Done (#891) |

@@ -1,17 +1,17 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-30
-**Released Version**: v0.1.38  
-**Workspace Version**: 0.1.38 (next release)  
+**Last Updated**: 2026-08-06
+**Released Version**: v0.1.37
+**Workspace Version**: 0.1.38 (next release)
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (proposed)
-**Branch**: `main` @ `e66defdf`
+**Active plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Branch**: `main` @ `92db07bf`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | #914 Nix CI evaluation (UNSTABLE), #915 ConceptGraph performance (CLEAN) |
+| Open PRs | #927 ADR-080/081 attribution (BLOCKED on checks), + CIT-A4/A5 wave PR |
 | Open issues | #913 Nix CI evaluation |
 
 ## Snapshot
@@ -19,7 +19,7 @@
 | Area | State |
 |------|--------|
 | Release **v0.1.37** | ✅ Tagged and shipped |
-| Post-release workspace **0.1.38** | ✅ `e66defdf` |
+| Post-release workspace **0.1.38** | ✅ `92db07bf` |
 | Recommendations + F4 + skill contracts | ✅ #878 |
 | Medium-risk skill evals (R-E2) | ✅ #883 |
 | Docs integrity ship gate | ✅ #885 |
@@ -34,23 +34,32 @@
 | MCP provenance (`with_provenance`) | ✅ |
 | First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only |
 | CI wait semantics | **Not fail-closed** — five waiters accept cancelled/skipped/missing fast check |
-| P0 plan gaps | **1 open** — required CI (PTA-A1/A2/A3 implemented) |
-| ADR-079 CI control plane | Proposed; implementation/ruleset unchanged |
-| ADR-080 automatic attribution | Proposed; implementation not started |
+| P0 plan gaps | **1 open** — required CI aggregate (CIT-A1, maintainer); PTA-A1/A2/A3 + CIT-A4/A5 implemented |
+| ADR-079 CI control plane | Proposed; workflow-side §6/§7 implemented 2026-08-06; ruleset unchanged |
+| ADR-080 automatic attribution | 🔄 PR #927 open (implementation landed on branch) |
 
 ## Immediate priorities
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | Proposed |
-| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | Planned |
+| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | Proposed (maintainer) |
+| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | Planned (blocked by CIT-A1) |
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
-| P1 | Reconcile gate contract; repair release/publish/fuzz truth | CIT-A3…A5 | Planned |
-| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | Proposed |
+| P1 | Reconcile gate contract | CIT-A3 | Planned (blocked by CIT-A2) |
+| P1 | Repair release/publish/fuzz truth | CIT-A4/A5 | ✅ Implemented (2026-08-06) |
+| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | 🔄 PR #927 open |
 | P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
+
+## Recent completed (2026-08-06)
+
+| Wave | Result |
+|------|--------|
+| CIT-A4 release/publish trigger truth (ACT-338) | ✅ release `workflow_dispatch` removed; publish `--locked`, bounded polling, dependency closure |
+| CIT-A5 durable fuzz evidence (ACT-339) | ✅ fuzz crash artifacts always uploaded + non-green signal; mutants already durable |
+| R-F10 OIDC / R-F4 SIMD plan truth | ✅ ACT-325/326 confirmed shipped; trackers refreshed |
 
 ## Recent completed (2026-07-26…27)
 

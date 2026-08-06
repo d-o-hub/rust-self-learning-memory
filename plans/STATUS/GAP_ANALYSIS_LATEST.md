@@ -1,9 +1,9 @@
-# Gap Analysis — 2026-07-30
+# Gap Analysis — 2026-08-06
 
-**Generated**: 2026-07-30
-**Audit commit**: `e66defdf` (`main`)
+**Generated**: 2026-08-06
+**Audit commit**: `92db07bf` (`main`)
 **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-**Active plan**: [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
+**Active plan**: [`../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`](../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
 
 ## Method
 
@@ -18,7 +18,16 @@
 - Prior wave (2026-07-28): all P0 ship items closed; R-F8/R-F9 merged (#893);
   6 skills added (40 total); R-F1…R-F7 + R-F10 GO spike artifacts validated.
 
-## Closed this wave
+## Closed this wave (2026-08-06)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P1-15 release manual dispatch broken | ✅ CIT-A4 — `workflow_dispatch` removed from release.yml; publish uses `--locked`, bounded polling, and dependency-closure failure semantics |
+| G-P1-15 fuzz evidence silent green | ✅ CIT-A5 — fuzz artifacts upload with `always()`, status report fails the informational job on crashes/timeouts/startup failures |
+| G-P2-1/7 R-F10 OIDC (ACT-325) | ✅ Already shipped (`id-token: write` + OIDC exchange); trackers refreshed |
+| G-P2-1/7 R-F4 SIMD cosine (ACT-326) | ✅ Already shipped (`cosine_similarity_simd` + simd bench variant); trackers refreshed |
+
+## Closed this wave (prior)
 
 | Gap | Resolution |
 |-----|------------|
@@ -57,13 +66,13 @@
 | G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ADR-080 / RAT-A4 |
 | G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ADR-079 / CIT-A2 |
 | G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | ADR-079 / CIT-A3 |
-| G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ADR-079 / CIT-A4/A5 |
+| G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ✅ CIT-A4/A5 closed 2026-08-06 |
 
 ### P2 (product / research)
 
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
-| G-P2-1…7 | R-F1…R-F7, R-F10 epics | GO spikes validated 2026-07-28 — awaiting ADR + implementation PRs (R-F10 ACT-325, R-F4 ACT-326 in progress) | R-F* active |
+| G-P2-1…7 | R-F1…R-F7, R-F10 epics | R-F4 (ACT-326) and R-F10 (ACT-325) implemented; R-F1…R-F3/R-F5…R-F7 deferred | R-F* |
 | G-P2-8 | Feedback does not idempotently update later recommendation ranking | ADR-080 captures data only | Follow-up ADR |
 | G-P2-9 | Azure/Custom/Cohere runtime embedding adapters absent | Honest rejection required by ADR-077 | Provider-specific ADR if prioritized |
 

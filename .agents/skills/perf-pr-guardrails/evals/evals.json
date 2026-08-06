@@ -1,0 +1,59 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "perf-pr-guardrails skill file exists",
+      "exec": "test -f .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "has-frontmatter-name",
+      "description": "YAML name frontmatter matches skill",
+      "exec": "rg -q '^name:[[:space:]]*perf-pr-guardrails' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-baseline-diff",
+      "description": "Requires verifying perf claims against the pre-change code",
+      "exec": "rg -q 'Baseline diff|OLD code|pre-change' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-claims-audit",
+      "description": "Requires auditing PR body + doc-comment complexity claims",
+      "exec": "rg -q 'Claims audit' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-benchmark-evidence",
+      "description": "Requires benchmark or measurement evidence, or explicit disclaimer",
+      "exec": "rg -qi 'benchmark|not benchmarked|measurement' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-heuristic-branch-coverage",
+      "description": "Requires testing both branches of short/long heuristics incl. unicode",
+      "exec": "rg -q 'first-argument-longer|byte length|char count' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-differential-tests",
+      "description": "Requires differential tests vs a reference implementation for DP rewrites",
+      "exec": "rg -q 'Differential tests|reference implementation|naive' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "rejects-dead-code-tests",
+      "description": "Warns against tests for unreachable defensive branches and dead code",
+      "exec": "rg -qi 'dead code|unreachable|defensive branch' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-commitlint",
+      "description": "Enforces commitlint header-max-length and squashed bot commits",
+      "exec": "rg -qi 'commitlint|header|100 chars' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "documents-close-vs-merge",
+      "description": "Provides explicit close-vs-merge decision guidance",
+      "exec": "rg -q 'Close-vs-Merge' .agents/skills/perf-pr-guardrails/SKILL.md"
+    },
+    {
+      "name": "has-case-study",
+      "description": "Documents the PR #925 case study",
+      "exec": "rg -q '925' .agents/skills/perf-pr-guardrails/SKILL.md"
+    }
+  ]
+}

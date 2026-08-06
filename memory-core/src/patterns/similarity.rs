@@ -17,12 +17,17 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
     1.0 - (distance as f32 / max_len as f32)
 }
 
-/// Calculate edit distance (Levenshtein) between two sequences
+/// Calculate edit distance (Levenshtein) between two sequences.
 ///
-/// Optimization:
-/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
-/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
-/// 3. Ensures the shorter sequence is used for buffer sizing.
+/// # Implementation notes
+/// Uses a single-row DP buffer sized to the shorter sequence. Space is
+/// O(min(N, M)) — the same asymptotic bound as the previous two-row rolling
+/// buffer — but with one fewer `Vec` allocation and no per-row buffer swap,
+/// which improves cache locality.
+///
+/// An empty shorter side needs no special case: with `len1 == 0` the buffer is
+/// `[0]`, `dp[0]` accumulates `len2` across rows, the inner loop is skipped,
+/// and `dp[len1] == len2` falls out of the loop naturally.
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     // Ensure s1 is the shorter sequence for O(min(N, M)) space
     let (s1, s2) = if seq1.len() < seq2.len() {
@@ -34,29 +39,31 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     let len1 = s1.len();
     let len2 = s2.len();
 
-    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
-    if len1 == 0 {
-        return len2;
-    }
-
-    let mut prev_row: Vec<usize> = (0..=len1).collect();
-    let mut curr_row = vec![0; len1 + 1];
+    let mut dp: Vec<usize> = (0..=len1).collect();
 
     for j in 1..=len2 {
-        curr_row[0] = j;
+        // `pre_dp` holds dp[i - 1] from the previous row (the diagonal).
+        let mut pre_dp = dp[0];
+        dp[0] = j;
         for i in 1..=len1 {
+            let temp = dp[i];
             let cost = usize::from(s1[i - 1] != s2[j - 1]);
-            curr_row[i] = (prev_row[i] + 1)
-                .min(curr_row[i - 1] + 1)
-                .min(prev_row[i - 1] + cost);
+            dp[i] = (dp[i] + 1).min(dp[i - 1] + 1).min(pre_dp + cost);
+            pre_dp = temp;
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[len1]
+    dp[len1]
 }
 
-/// Calculate similarity between two strings using normalized edit distance
+/// Calculate similarity between two strings using normalized edit distance.
+///
+/// # Implementation notes
+/// Only the *shorter* string — by character count, not byte length — is
+/// collected into a `Vec<char>`; the longer string is streamed via `.chars()`
+/// and never materialized. This bounds character storage to O(min(N, M)) even
+/// for multibyte UTF-8, where byte length would be a misleading proxy for the
+/// number of characters.
 pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
     if s1.is_empty() && s2.is_empty() {
         return 1.0;
@@ -65,52 +72,52 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
         return 0.0;
     }
 
-    let chars1: Vec<char> = s1.chars().collect();
-    let chars2: Vec<char> = s2.chars().collect();
+    // Compare by char count (`chars().count()` is O(N) with no allocation) so
+    // the collected side is truly the shorter in characters.
+    let (short, long) = if s1.chars().count() <= s2.chars().count() {
+        (s1, s2)
+    } else {
+        (s2, s1)
+    };
 
-    let distance = char_edit_distance(&chars1, &chars2);
-    let max_len = chars1.len().max(chars2.len());
+    let short_chars: Vec<char> = short.chars().collect();
+    let (distance, long_len) = char_edit_distance_streamed(&short_chars, long);
+    let max_len = short_chars.len().max(long_len);
 
     1.0 - (distance as f32 / max_len as f32)
 }
 
-/// Calculate edit distance for character sequences
+/// Calculate edit distance (Levenshtein) of a character slice against a
+/// streamed string, returning `(distance, len2)`.
 ///
-/// Optimization:
-/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
-/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
-/// 3. Ensures the shorter sequence is used for buffer sizing.
-fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
-    // Ensure s1 is the shorter sequence for O(min(N, M)) space
-    let (s1, s2) = if chars1.len() < chars2.len() {
-        (chars1, chars2)
-    } else {
-        (chars2, chars1)
-    };
-
+/// # Implementation notes
+/// - Uses a single-row DP buffer of size `len1 + 1`, so the only allocations
+///   are the `dp` row and the caller-provided `s1` buffer.
+/// - Streams the characters of `s2` via `.chars()` without collecting them,
+///   avoiding an O(M) character allocation.
+/// - The caller should pass the shorter character sequence as `s1` to keep the
+///   DP row at O(min(N, M)). An empty `s1` needs no special case: `dp` is
+///   `[0]`, `dp[0]` tracks `len2`, and the inner loop is skipped.
+fn char_edit_distance_streamed(s1: &[char], s2: &str) -> (usize, usize) {
     let len1 = s1.len();
-    let len2 = s2.len();
+    let mut dp: Vec<usize> = (0..=len1).collect();
+    let mut len2 = 0;
 
-    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
-    if len1 == 0 {
-        return len2;
-    }
+    for c2 in s2.chars() {
+        len2 += 1;
+        // `pre_dp` holds dp[i - 1] from the previous row (the diagonal).
+        let mut pre_dp = dp[0];
+        dp[0] = len2;
 
-    let mut prev_row: Vec<usize> = (0..=len1).collect();
-    let mut curr_row = vec![0; len1 + 1];
-
-    for j in 1..=len2 {
-        curr_row[0] = j;
         for i in 1..=len1 {
-            let cost = usize::from(s1[i - 1] != s2[j - 1]);
-            curr_row[i] = (prev_row[i] + 1)
-                .min(curr_row[i - 1] + 1)
-                .min(prev_row[i - 1] + cost);
+            let temp = dp[i];
+            let cost = usize::from(s1[i - 1] != c2);
+            dp[i] = (dp[i] + 1).min(dp[i - 1] + 1).min(pre_dp + cost);
+            pre_dp = temp;
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[len1]
+    (dp[len1], len2)
 }
 
 /// Calculate similarity between two ToolSequence patterns
@@ -215,6 +222,33 @@ pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 
 mod tests {
     use super::*;
 
+    /// Reference: naive full-matrix Levenshtein over char slices.
+    /// Independent of the optimized single-row DP, used for cross-checking.
+    fn reference_levenshtein(a: &[char], b: &[char]) -> usize {
+        reference_levenshtein_slice(a, b)
+    }
+
+    /// Reference: naive full-matrix Levenshtein over arbitrary element slices.
+    fn reference_levenshtein_slice<T: PartialEq>(a: &[T], b: &[T]) -> usize {
+        let (rows, cols) = (a.len() + 1, b.len() + 1);
+        let mut matrix = vec![vec![0usize; cols]; rows];
+        for (i, row) in matrix.iter_mut().enumerate() {
+            row[0] = i;
+        }
+        for (j, cell) in matrix[0].iter_mut().enumerate() {
+            *cell = j;
+        }
+        for i in 1..rows {
+            for j in 1..cols {
+                let cost = usize::from(a[i - 1] != b[j - 1]);
+                matrix[i][j] = (matrix[i - 1][j] + 1)
+                    .min(matrix[i][j - 1] + 1)
+                    .min(matrix[i - 1][j - 1] + cost);
+            }
+        }
+        matrix[a.len()][b.len()]
+    }
+
     #[test]
     fn test_sequence_similarity() {
         let seq1 = vec!["a".to_string(), "b".to_string(), "c".to_string()];
@@ -259,5 +293,103 @@ mod tests {
 
         // Same domain, same language, some tag overlap
         assert!(similarity > 0.7);
+    }
+
+    #[test]
+    fn test_edit_distance_matches_reference() {
+        // Cases include empty sides, exact matches, substitutions, insertions,
+        // deletions, asymmetry, and multibyte elements.
+        let cases: &[(&[&str], &[&str])] = &[
+            (&[], &[]),
+            (&[], &["a"]),
+            (&["a"], &[]),
+            (&["a"], &["a"]),
+            (&["a", "b", "c"], &["a", "b", "c"]),
+            (&["a", "b", "c"], &["a", "b", "d"]),
+            (&["x", "y"], &["a", "b", "c"]),
+            (&["tool_a", "tool_b", "tool_c"], &["tool_a", "tool_b"]),
+            (&["café"], &["cafe"]), // multibyte elements
+        ];
+
+        for (s1, s2) in cases {
+            let v1: Vec<String> = s1.iter().map(|s| (*s).to_string()).collect();
+            let v2: Vec<String> = s2.iter().map(|s| (*s).to_string()).collect();
+            let expected = reference_levenshtein_slice(s1, s2);
+            assert_eq!(
+                edit_distance(&v1, &v2),
+                expected,
+                "distance({s1:?}, {s2:?})"
+            );
+            // Levenshtein is symmetric; also exercises both arg orderings.
+            assert_eq!(
+                edit_distance(&v2, &v1),
+                expected,
+                "distance({s2:?}, {s1:?})"
+            );
+        }
+    }
+
+    #[test]
+    fn test_char_edit_distance_streamed_matches_reference() {
+        // Includes empty sides, classic cases, and multibyte strings where byte
+        // length and char count disagree.
+        let cases: &[(&str, &str)] = &[
+            ("", ""),
+            ("", "hello"),
+            ("hello", ""),
+            ("hello", "hello"),
+            ("hello", "hallo"),
+            ("kitten", "sitting"),
+            ("goodbye", "hi"),
+            ("héllo", "hello"),
+            ("ééé", "xyzw"),
+            ("x", "yyyy"),
+            ("yyyy", "x"),
+        ];
+
+        for (s1, s2) in cases {
+            let s1_chars: Vec<char> = s1.chars().collect();
+            let s2_chars: Vec<char> = s2.chars().collect();
+            let expected = reference_levenshtein(&s1_chars, &s2_chars);
+            let (distance, len2) = char_edit_distance_streamed(&s1_chars, s2);
+            assert_eq!(distance, expected, "distance({s1:?}, {s2:?})");
+            assert_eq!(len2, s2_chars.len(), "len2({s1:?}, {s2:?})");
+        }
+    }
+
+    #[test]
+    fn test_string_similarity_longer_first_and_unicode() {
+        // First argument strictly longer in characters -> exercises the
+        // short/long selection `else` branch (s1 longer than s2).
+        assert_eq!(string_similarity("goodbye", "hi"), 0.0);
+
+        // One substitution; max length 5 chars.
+        assert_eq!(string_similarity("héllo", "hello"), 0.8);
+
+        // No overlap, multibyte; char-count selection keeps the DP row minimal.
+        assert_eq!(string_similarity("ééé", "xyzw"), 0.0);
+
+        // Symmetry: swapping arguments must not change the result.
+        for (a, b) in [("goodbye", "hi"), ("héllo", "hello"), ("ééé", "xyzw")] {
+            assert_eq!(string_similarity(a, b), string_similarity(b, a));
+        }
+    }
+
+    #[test]
+    fn test_char_edit_distance_streamed_empty() {
+        let s1: Vec<char> = vec![];
+        let (dist, len2) = char_edit_distance_streamed(&s1, "hello");
+        assert_eq!(dist, 5);
+        assert_eq!(len2, 5);
+    }
+
+    #[test]
+    fn test_edit_distance_empty() {
+        let seq1: Vec<String> = vec![];
+        let seq2: Vec<String> = vec![];
+        assert_eq!(edit_distance(&seq1, &seq2), 0);
+
+        let seq3 = vec!["a".to_string()];
+        assert_eq!(edit_distance(&seq1, &seq3), 1);
     }
 }

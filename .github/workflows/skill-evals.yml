@@ -65,6 +65,14 @@ jobs:
       - name: Gate contract (CI parity)
         run: ./scripts/validate-gate-contract.sh --ci-parity
 
+      - name: Release/publish workflow fixtures (W2.4)
+        # cargo-free; asserts tag-only release authority (no workflow_dispatch)
+        # and publish truth: --locked, bounded propagation polling, and
+        # dependency-closure failure semantics for single-crate dispatch.
+        run: |
+          chmod +x scripts/test-release-workflow.sh
+          ./scripts/test-release-workflow.sh --publish-fixtures
+
       - name: Skill-eval schema fixtures
         run: ./scripts/run-evals.sh --fixtures
 
@@ -90,6 +98,7 @@ jobs:
             echo "|-------|------|"
             echo "| validate-gate-contract | always |"
             echo "| validate-gate-contract --ci-parity | always |"
+            echo "| test-release-workflow --publish-fixtures | always |"
             echo "| run-evals --fixtures | always |"
             echo "| run-evals --changed | pull_request |"
             echo "| run-evals (full) | schedule / workflow_dispatch |"

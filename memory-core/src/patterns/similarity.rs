@@ -17,12 +17,12 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
     1.0 - (distance as f32 / max_len as f32)
 }
 
-/// Calculate edit distance (Levenshtein) between two sequences
+/// Calculate edit distance (Levenshtein) between two sequences.
 ///
-/// Optimization:
-/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
-/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
-/// 3. Ensures the shorter sequence is used for buffer sizing.
+/// # Optimization
+/// Uses a single-row DP buffer to reduce space complexity to O(min(N, M)).
+/// This eliminates one entire vector allocation (from 2 * (min(N, M) + 1) to (min(N, M) + 1))
+/// and avoids O(M) std::mem::swap operations, improving CPU cache locality.
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     // Ensure s1 is the shorter sequence for O(min(N, M)) space
     let (s1, s2) = if seq1.len() < seq2.len() {
@@ -39,24 +39,31 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
         return len2;
     }
 
-    let mut prev_row: Vec<usize> = (0..=len1).collect();
-    let mut curr_row = vec![0; len1 + 1];
+    let mut dp: Vec<usize> = (0..=len1).collect();
 
     for j in 1..=len2 {
-        curr_row[0] = j;
+        let mut pre_dp = dp[0];
+        dp[0] = j;
         for i in 1..=len1 {
+            let temp = dp[i];
             let cost = usize::from(s1[i - 1] != s2[j - 1]);
-            curr_row[i] = (prev_row[i] + 1)
-                .min(curr_row[i - 1] + 1)
-                .min(prev_row[i - 1] + cost);
+            dp[i] = (dp[i] + 1).min(dp[i - 1] + 1).min(pre_dp + cost);
+            pre_dp = temp;
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[len1]
+    dp[len1]
 }
 
-/// Calculate similarity between two strings using normalized edit distance
+/// Calculate similarity between two strings using normalized edit distance.
+///
+/// # Optimization
+/// 1. We determine the shorter string by byte length (O(1) heuristic) and only collect
+///    its characters into a `Vec<char>`. The longer string is streamed via `.chars()`.
+///    This cuts the space allocated for character collections from O(N + M) to O(min(N, M)),
+///    and eliminates a `Vec<char>` allocation for the longer string entirely.
+/// 2. We use a single-row DP buffer for Levenshtein distance calculation to keep
+///    space complexity of the algorithm at O(min(N, M)) with a single Vec allocation.
 pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
     if s1.is_empty() && s2.is_empty() {
         return 1.0;
@@ -65,52 +72,52 @@ pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
         return 0.0;
     }
 
-    let chars1: Vec<char> = s1.chars().collect();
-    let chars2: Vec<char> = s2.chars().collect();
+    // Heuristically assume shorter byte-length corresponds to fewer characters to minimize collection size.
+    let (short, long) = if s1.len() <= s2.len() {
+        (s1, s2)
+    } else {
+        (s2, s1)
+    };
 
-    let distance = char_edit_distance(&chars1, &chars2);
-    let max_len = chars1.len().max(chars2.len());
+    let s1_chars: Vec<char> = short.chars().collect();
+    let (distance, len2) = char_edit_distance_streamed(&s1_chars, long);
+    let max_len = s1_chars.len().max(len2);
 
     1.0 - (distance as f32 / max_len as f32)
 }
 
-/// Calculate edit distance for character sequences
+/// Calculate edit distance (Levenshtein) of a character slice against a streamed string.
 ///
-/// Optimization:
-/// 1. Uses a rolling buffer to reduce space complexity from O(N*M) to O(min(N, M)).
-/// 2. Swaps buffers instead of copying each iteration for O(1) row transitions.
-/// 3. Ensures the shorter sequence is used for buffer sizing.
-fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
-    // Ensure s1 is the shorter sequence for O(min(N, M)) space
-    let (s1, s2) = if chars1.len() < chars2.len() {
-        (chars1, chars2)
-    } else {
-        (chars2, chars1)
-    };
-
+/// # Optimization
+/// 1. Uses a single-row DP buffer `dp` of size `len1 + 1` to reduce auxiliary space complexity
+///    to O(min(N, M)), allocating only one `Vec<usize>` instead of two.
+/// 2. Streams the characters of the second string `s2` without collecting them to a Vec,
+///    which reduces the total allocation to a single vector of characters `s1_chars` plus `dp` row,
+///    down from storing M characters.
+fn char_edit_distance_streamed(s1: &[char], s2: &str) -> (usize, usize) {
     let len1 = s1.len();
-    let len2 = s2.len();
-
-    // After swapping, len1 <= len2, so len1 == 0 implies len2 == 0 too.
     if len1 == 0 {
-        return len2;
+        let len2 = s2.chars().count();
+        return (len2, len2);
     }
 
-    let mut prev_row: Vec<usize> = (0..=len1).collect();
-    let mut curr_row = vec![0; len1 + 1];
+    let mut dp: Vec<usize> = (0..=len1).collect();
+    let mut len2 = 0;
 
-    for j in 1..=len2 {
-        curr_row[0] = j;
+    for c2 in s2.chars() {
+        len2 += 1;
+        let mut pre_dp = dp[0];
+        dp[0] = len2;
+
         for i in 1..=len1 {
-            let cost = usize::from(s1[i - 1] != s2[j - 1]);
-            curr_row[i] = (prev_row[i] + 1)
-                .min(curr_row[i - 1] + 1)
-                .min(prev_row[i - 1] + cost);
+            let temp = dp[i];
+            let cost = usize::from(s1[i - 1] != c2);
+            dp[i] = (dp[i] + 1).min(dp[i - 1] + 1).min(pre_dp + cost);
+            pre_dp = temp;
         }
-        std::mem::swap(&mut prev_row, &mut curr_row);
     }
 
-    prev_row[len1]
+    (dp[len1], len2)
 }
 
 /// Calculate similarity between two ToolSequence patterns

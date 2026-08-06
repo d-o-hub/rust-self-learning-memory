@@ -267,4 +267,23 @@ mod tests {
         // Same domain, same language, some tag overlap
         assert!(similarity > 0.7);
     }
+
+    #[test]
+    fn test_char_edit_distance_streamed_empty() {
+        let s1: Vec<char> = vec![];
+        let s2 = "hello";
+        let (dist, len2) = char_edit_distance_streamed(&s1, s2);
+        assert_eq!(dist, 5);
+        assert_eq!(len2, 5);
+    }
+
+    #[test]
+    fn test_edit_distance_empty() {
+        let seq1: Vec<String> = vec![];
+        let seq2: Vec<String> = vec![];
+        assert_eq!(edit_distance(&seq1, &seq2), 0);
+
+        let seq3 = vec!["a".to_string()];
+        assert_eq!(edit_distance(&seq1, &seq3), 1);
+    }
 }

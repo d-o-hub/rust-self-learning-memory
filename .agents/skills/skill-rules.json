@@ -368,6 +368,15 @@
         "files": ["memory-mcp/**", "memory-core/src/**"]
       },
       "priority": "medium"
+    },
+    {
+      "skill": "perf-pr-guardrails",
+      "triggers": {
+        "keywords": ["perf PR", "performance optimization", "complexity claim", "benchmark evidence", "perf review", "optimize edit distance"],
+        "patterns": ["perf\\(.*\\)", "optimize .*(memory|speed|allocation)", "O\\([NM]\\)"],
+        "files": ["memory-core/src/patterns/**", "benches/**"]
+      },
+      "priority": "high"
     }
   ]
 }

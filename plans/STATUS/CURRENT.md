@@ -32,21 +32,21 @@
 | ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
-| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only |
-| CI wait semantics | **Not fail-closed** — five waiters accept cancelled/skipped/missing fast check |
-| P0 plan gaps | **1 open** — required CI aggregate (CIT-A1, maintainer); PTA-A1/A2/A3 + CIT-A4/A5 implemented |
-| ADR-079 CI control plane | Proposed; workflow-side §6/§7 implemented 2026-08-06; ruleset unchanged |
+| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only; `CI / Required` context emitted (2026-08-06) but not yet required |
+| CI wait semantics | ✅ **Fail-closed** — five waiters reject cancelled/skipped/missing; commit lint waited on |
+| P0 plan gaps | **1 open** — live ruleset required aggregate (ADR-079 acceptance); PTA + CIT-A1/A2/A3 workflow side + CIT-A4/A5 done |
+| ADR-079 CI control plane | Proposed; workflow aggregate + fail-closed waiters + semantic validator implemented 2026-08-06; ruleset unchanged |
 | ADR-080 automatic attribution | 🔄 PR #927 open (implementation landed on branch) |
 
 ## Immediate priorities
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | Proposed (maintainer) |
-| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | Planned (blocked by CIT-A1) |
+| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | 🔄 aggregate done; ruleset stage pending (maintainer) |
+| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | 🔄 waiters fail closed; downstream actor parity pending |
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
-| P1 | Reconcile gate contract | CIT-A3 | Planned (blocked by CIT-A2) |
+| P1 | Reconcile gate contract | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |
 | P1 | Repair release/publish/fuzz truth | CIT-A4/A5 | ✅ Implemented (2026-08-06) |
 | P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | 🔄 PR #927 open |
 | P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |

@@ -1,7 +1,7 @@
 # Plans Directory
 
 **Workspace**: `0.1.38` (post-release) · **Released tag**: `v0.1.37` · **Next**: `v0.1.38`
-**Active plan**: [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) (CIT-A4/A5 done) on top of [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
+**Active plan**: [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) + [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
 **Last Updated**: 2026-08-06
 **Open PRs**: #927 (attribution) + CIT-A4/A5 wave · **Open issues**: #913
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
@@ -19,6 +19,7 @@
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
 | [GATE_CONTRACT.md](GATE_CONTRACT.md) | Local/CI quality gate matrix |
+| [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) | **Active**: CIT-A1/A2/A3 workflow-side wave (2026-08-06) |
 | [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) | **Active**: CIT-A4/A5 implementation + plan truth (2026-08-06) |
 | [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Active upstream**: CI trust + product-truth fixes + ADR-080 attribution capture |
 | [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md) | Reference recommendations backlog |

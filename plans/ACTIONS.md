@@ -1,7 +1,7 @@
 # GOAP Actions Backlog
 
 - **Last Updated**: 2026-08-06
-- **Active plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` (CIT-A4/A5 done); upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Active plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` (CIT wave) + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
 ## Active actions (2026-08-06)
@@ -9,9 +9,9 @@
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
 | ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | Proposed (maintainer) |
-| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | Blocked by ADR acceptance |
-| ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | Blocked by ACT-335 |
-| ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | Blocked by ACT-336 |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | 🔄 workflow side done (`CI / Required` job, always()); ruleset stage pending |
+| ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | 🔄 waiters fail closed + commit-lint wait done; downstream actor parity pending |
+| ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |
 | ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | ✅ Done (2026-08-06) |
 | ACT-339 | Preserve fuzz/mutation evidence, then measure and remove duplicate CI work | CIT-A5 | ✅ Done (fuzz half; mutants already durable — 2026-08-06) |
 | ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | Blocked by ACT-335…337 and maintainer approval |

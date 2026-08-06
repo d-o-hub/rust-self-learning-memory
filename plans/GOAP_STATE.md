@@ -6,7 +6,7 @@
 - **Open PRs**: #927 (ADR-080/081 attribution, BLOCKED on checks) + this CIT-A4/A5 wave PR
 - **PR merge session**: #916 + #917 merged 2026-08-02 (see `plans/STATUS/VALIDATION_LATEST.md`)
 - **Open issues**: #913
-- **Active plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 + CIT-A4/A5 implemented)
+- **Active plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 + CIT-A4/A5 + CIT-A1/A2/A3 workflow side implemented)
 - **Archive**: `plans/archive/2026-07-consolidation/`  
 - **Release**: ✅ `v0.1.37` tagged and shipped
 
@@ -16,10 +16,10 @@
 
 | Package | Status |
 |---------|--------|
-| ADR-079 fail-closed required-check control plane | Proposed (P0) — aggregate half awaits maintainer acceptance |
-| CIT-A1 required aggregate + staged ruleset migration | Blocked by ADR acceptance |
-| CIT-A2 cancellation/actor fail-closed behavior | Blocked by CIT-A1 |
-| CIT-A3 semantic gate-contract parity | Blocked by CIT-A2 |
+| ADR-079 fail-closed required-check control plane | Proposed (P0) — workflow half implemented; ruleset half awaits maintainer acceptance |
+| CIT-A1 required aggregate + staged ruleset migration | 🔄 workflow side done (`CI / Required`); ruleset stage pending |
+| CIT-A2 cancellation/actor fail-closed behavior | 🔄 waiters fail closed + commit-lint wait; downstream actor parity pending |
+| CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures (2026-08-06) |
 | CIT-A4 release/publish trigger truth | ✅ Done (2026-08-06) |
 | CIT-A5 durable informational evidence + deduplication | ✅ Done (fuzz evidence; dedup measurement is follow-up) |
 | PTA-A1 non-`csm` cascade capability truth | ✅ #916 merged (2026-08-02) | PTA-A1 |
@@ -72,9 +72,9 @@ storage_awaits_lock_free          = true
 durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                = false (ADR-079 — no first-party required aggregate; contract scope drift)
-required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only)
-ci_cancellation_fail_closed       = false (five waiters accept cancelled/skipped/missing)
+gates_match_policy                = false (ADR-079 — no first-party required aggregate in the live ruleset; workflow aggregate exists)
+required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only; `CI / Required` context emitted but not yet required)
+ci_cancellation_fail_closed       = true  (five waiters fail closed + commit-lint wait; 2026-08-06)
 automation_actor_parity           = false (Dependabot excluded from substantive jobs)
 release_dispatch_truthful         = false (manual Release dispatch fails tag preflight)
 informational_ci_evidence_durable = false (fuzz continue-on-error can suppress crash upload)

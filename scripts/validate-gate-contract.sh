@@ -123,6 +123,34 @@ if [[ "$CI_PARITY" == true ]]; then
   if ! grep -qE 'skill-evals|run-evals\.sh --fixtures' "$CONTRACT"; then
     fail "GATE_CONTRACT.md must document skill-evals / fixtures CI entrypoint"
   fi
+
+  # --- ADR-079 semantic checks (CIT-A1/A2/A4; negative fixtures 2026-08-06) ---
+
+  # CIT-A1: stable 'CI / Required' aggregate context that evaluates with always()
+  if ! awk '/name: CI \/ Required/{for(i=0;i<12;i++){if((getline l)>0 && l ~ /always\(\)/){ok=1}}} END{exit !ok}' "$WF_DIR/ci.yml"; then
+    fail "ci.yml must define a 'CI / Required' aggregate job using if: always()"
+  fi
+
+  # CIT-A2: no gate waiter may accept cancelled/skipped conclusions or a missing check
+  if grep -rE 'allowed-conclusions:.*cancelled' "$WF_DIR" --include='*.yml' | grep -q .; then
+    fail "a workflow still accepts cancelled/skipped conclusions from a gate waiter (fail-closed required)"
+  fi
+  if grep -rE 'fail-on-no-checks: (false|no)' "$WF_DIR" --include='*.yml' | grep -q .; then
+    fail "a workflow still sets fail-on-no-checks: false on a gate waiter (missing checks must fail)"
+  fi
+
+  # CIT-A4: tag-only release authority; publish uses --locked and bounded polling
+  if rg -q 'workflow_dispatch' "$WF_DIR/release.yml"; then
+    fail "release.yml must not expose workflow_dispatch (tag-only release under ADR-072)"
+  fi
+  if [[ -f "$WF_DIR/publish-crates.yml" ]]; then
+    if ! rg -q -- '--locked' "$WF_DIR/publish-crates.yml"; then
+      fail "publish-crates.yml must use cargo publish --locked"
+    fi
+    if rg -q 'run: sleep 30' "$WF_DIR/publish-crates.yml"; then
+      fail "publish-crates.yml must not use fixed 'run: sleep 30' (bounded polling required)"
+    fi
+  fi
 fi
 
 echo -e "${GREEN}PASS${NC}: gate contract consistent (local coverage floor=${floor}%)"

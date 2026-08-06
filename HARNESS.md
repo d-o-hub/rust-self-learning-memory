@@ -25,6 +25,7 @@ Two modes:
 | Clippy intent | `.clippy.toml` | Linting philosophy and allowed exceptions |
 | Dependency rules | `deny.toml` | Crate layering: `memory-types → memory-core → memory-storage-* → memory-mcp/memory-cli` |
 | Architecture | `plans/adr/` | Architecture Decision Records |
+| Perf-PR review gate | `.agents/skills/perf-pr-guardrails/` | Verify perf claims against before-code, demand benchmark evidence, check heuristic branch coverage + commitlint before approving perf PRs |
 
 ### Computational (structural constraints)
 
@@ -58,6 +59,7 @@ Two modes:
 | Codacy quality review | CI | Code quality suggestions |
 | Codecov coverage | `codecov.yml`, CI | Coverage regression detection |
 | AI slop detector | `.github/workflows/ai-slop-detector.yml` | Detect low-quality AI-generated code patterns |
+| Perf-claim accuracy | `.agents/skills/perf-pr-guardrails/` (PR review swarm) | Catch overstated complexity/memory claims, dead-code tests, and commitlint failures on auto-generated perf PRs |
 
 ## Steering Loop
 
@@ -66,6 +68,11 @@ When any sensor fires **repeatedly** (>2 times in one sprint):
 2. Update the corresponding **feedforward guide** to prevent recurrence
 3. If no guide exists, create one in `.agents/skills/`
 4. Document the update in `CHANGELOG.md`
+
+Perf-claim inaccuracy counts as a sensor: a perf PR whose stated complexity/
+memory impact does not hold against the pre-change code (e.g. PR #925, whose
+O(N·M)→O(min(N,M)) claim was already true before) must be routed through
+`.agents/skills/perf-pr-guardrails/` before approve/merge/close.
 
 ## Self-Correction Protocol for Agents
 

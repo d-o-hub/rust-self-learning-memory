@@ -1,7 +1,7 @@
 # Skills Index
 
 > Generated 2026-07-25T00:00:00Z
-**Skills**: 40 · **Routed**: 40
+**Skills**: 41 · **Routed**: 40
 
 | Skill | Evals | Routed |
 |-------|:-----:|:------:|
@@ -33,6 +33,7 @@
 | [memory-context](skills/memory-context/SKILL.md) | yes | yes |
 | [memory-harness](skills/memory-harness/SKILL.md) | yes | yes |
 | [performance](skills/performance/SKILL.md) | yes | yes |
+| [perf-pr-guardrails](skills/perf-pr-guardrails/SKILL.md) | no | no |
 | [plan-gap-analysis](skills/plan-gap-analysis/SKILL.md) | yes | yes |
 | [playbook-ops](skills/playbook-ops/SKILL.md) | yes | yes |
 | [pr-readiness](skills/pr-readiness/SKILL.md) | yes | yes |

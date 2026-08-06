@@ -144,25 +144,47 @@ pub async fn handle_recommend_playbook(
         tags,
     };
 
-    // Retrieve playbooks from memory
-    let playbooks = server
-        .memory()
-        .retrieve_playbooks(
-            &task_description,
-            &domain,
-            task_type,
-            context,
-            1, // max_playbooks
-            max_steps,
-        )
-        .await;
+    let episode_id = args
+        .get("episode_id")
+        .and_then(|v| v.as_str())
+        .and_then(|s| uuid::Uuid::parse_str(s).ok());
 
-    let result = serde_json::to_value(&playbooks)?;
+    // Retrieve playbooks from memory
+    let (result, playbook_count) = if let Some(ep_id) = episode_id {
+        let attr_res = server
+            .memory()
+            .retrieve_playbooks_attributed(
+                ep_id,
+                &task_description,
+                &domain,
+                task_type,
+                context,
+                1, // max_playbooks
+                max_steps,
+            )
+            .await?;
+        let count = attr_res.playbooks.len();
+        (serde_json::to_value(&attr_res)?, count)
+    } else {
+        let playbooks = server
+            .memory()
+            .retrieve_playbooks(
+                &task_description,
+                &domain,
+                task_type,
+                context,
+                1, // max_playbooks
+                max_steps,
+            )
+            .await;
+        let count = playbooks.len();
+        (serde_json::to_value(&playbooks)?, count)
+    };
 
     // Audit log the operation
     server
         .audit_logger()
-        .log_playbook_recommendation(&client_id, &task_description, playbooks.len(), true)
+        .log_playbook_recommendation(&client_id, &task_description, playbook_count, true)
         .await;
 
     let content = vec![Content::Text {

@@ -144,7 +144,12 @@ impl SelfLearningMemory {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(())` on success, or an error if the session doesn't exist.
+    /// Returns `Ok(())` on success. Returns an error if the session cannot be
+    /// resolved from either the in-memory tracker or any configured storage
+    /// backend, or if an applied pattern ID was not recommended in that session.
+    ///
+    /// A session that was durably persisted before a restart is resolvable here,
+    /// so feedback remains accepted across restarts (ADR-081 §1).
     ///
     /// # Example
     ///
@@ -177,6 +182,20 @@ impl SelfLearningMemory {
         &self,
         feedback: RecommendationFeedback,
     ) -> Result<()> {
+        // ADR-081 §1: resolve the session through memory → storage before the
+        // tracker's unknown-session rejection can fire. Without this, feedback for
+        // a durably persisted session fails after a restart, when the in-memory
+        // tracker is cold.
+        if self
+            .recommendation_tracker
+            .get_session(feedback.session_id)
+            .await
+            .is_none()
+        {
+            self.fetch_session_by_id_from_storage(feedback.session_id)
+                .await;
+        }
+
         self.recommendation_tracker
             .record_feedback(feedback.clone())
             .await?;

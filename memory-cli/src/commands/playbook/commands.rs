@@ -16,6 +16,7 @@ pub async fn recommend_playbook(
     language: Option<&str>,
     framework: Option<&str>,
     tags: Vec<String>,
+    episode_id_str: Option<&str>,
     memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
@@ -38,50 +39,147 @@ pub async fn recommend_playbook(
         tags,
     };
 
-    let playbooks = memory
-        .retrieve_playbooks(task, domain, task_type_enum, context, 1, max_steps)
-        .await;
-
-    if playbooks.is_empty() {
-        println!("No playbook could be generated for this task.");
-        println!("\nTip: Complete more episodes with similar tasks to build up pattern data.");
-        return Ok(());
-    }
-
-    let playbook = &playbooks[0];
-
-    let summary = PlaybookSummary {
-        playbook_id: playbook.playbook_id.to_string(),
-        task_match_score: playbook.task_match_score,
-        confidence: playbook.confidence,
-        why_relevant: playbook.why_relevant.clone(),
-        step_count: playbook.ordered_steps.len(),
-        steps: playbook
-            .ordered_steps
-            .iter()
-            .map(|s| PlaybookStepSummary {
-                order: s.order,
-                action: s.action.clone(),
-                tool_hint: s.tool_hint.clone(),
-                expected_result: s.expected_result.clone(),
-            })
-            .collect(),
-        pitfalls: playbook
-            .pitfalls
-            .iter()
-            .map(|p| p.warning.clone())
-            .collect(),
-        when_to_apply: playbook.when_to_apply.clone(),
-        when_not_to_apply: playbook.when_not_to_apply.clone(),
-        expected_outcome: playbook.expected_outcome.clone(),
+    let parsed_ep_id = match episode_id_str {
+        Some(s) => Some(
+            uuid::Uuid::parse_str(s)
+                .map_err(|e| anyhow::anyhow!("Invalid episode UUID '{s}': {e}"))?,
+        ),
+        None => None,
     };
 
-    match format {
-        OutputFormat::Json => {
-            println!("{}", serde_json::to_string_pretty(&summary)?);
+    if let Some(ep_id) = parsed_ep_id {
+        let attr_res = memory
+            .retrieve_playbooks_attributed(
+                ep_id,
+                task,
+                domain,
+                task_type_enum,
+                context,
+                1,
+                max_steps,
+            )
+            .await?;
+
+        if attr_res.playbooks.is_empty() {
+            println!("No playbook could be generated for this task.");
+            println!("\nTip: Complete more episodes with similar tasks to build up pattern data.");
+            return Ok(());
         }
-        OutputFormat::Human | OutputFormat::Yaml => {
-            print_playbook_human(&summary);
+
+        let playbook = &attr_res.playbooks[0];
+
+        let summary = PlaybookSummary {
+            playbook_id: playbook.playbook_id.to_string(),
+            task_match_score: playbook.task_match_score,
+            confidence: playbook.confidence,
+            why_relevant: playbook.why_relevant.clone(),
+            step_count: playbook.ordered_steps.len(),
+            steps: playbook
+                .ordered_steps
+                .iter()
+                .map(|s| PlaybookStepSummary {
+                    order: s.order,
+                    action: s.action.clone(),
+                    tool_hint: s.tool_hint.clone(),
+                    expected_result: s.expected_result.clone(),
+                })
+                .collect(),
+            pitfalls: playbook
+                .pitfalls
+                .iter()
+                .map(|p| p.warning.clone())
+                .collect(),
+            when_to_apply: playbook.when_to_apply.clone(),
+            when_not_to_apply: playbook.when_not_to_apply.clone(),
+            expected_outcome: playbook.expected_outcome.clone(),
+        };
+
+        match format {
+            OutputFormat::Json => {
+                let json = serde_json::to_string_pretty(&attr_res)?;
+                println!("{}", json);
+            }
+            OutputFormat::Human | OutputFormat::Yaml => {
+                print_playbook_human(&summary);
+                println!("\n--- Attribution Tracking (ADR-080) ---");
+                println!("Session ID: {}", attr_res.session.session_id);
+                println!("Episode ID: {}", attr_res.session.episode_id);
+                match &attr_res.receipt {
+                    do_memory_core::PersistenceReceipt::Persisted { .. } => {
+                        println!("Durability: Persisted (durable across restarts)");
+                    }
+                    do_memory_core::PersistenceReceipt::PartiallyPersisted {
+                        failed_backends,
+                        ..
+                    } => {
+                        println!(
+                            "⚠️ Durability: Partially Persisted (failed backends: {})",
+                            failed_backends.join(", ")
+                        );
+                    }
+                    do_memory_core::PersistenceReceipt::MemoryOnly { .. } => {
+                        println!(
+                            "⚠️ Durability: Memory-only (process-local, will be lost on restart)"
+                        );
+                    }
+                    do_memory_core::PersistenceReceipt::PersistenceFailed {
+                        failed_backends,
+                        ..
+                    } => {
+                        println!(
+                            "❌ Durability: Persistence Failed (failed backends: {})",
+                            failed_backends.join(", ")
+                        );
+                    }
+                }
+            }
+        }
+    } else {
+        let playbooks = memory
+            .retrieve_playbooks(task, domain, task_type_enum, context, 1, max_steps)
+            .await;
+
+        if playbooks.is_empty() {
+            println!("No playbook could be generated for this task.");
+            println!("\nTip: Complete more episodes with similar tasks to build up pattern data.");
+            return Ok(());
+        }
+
+        let playbook = &playbooks[0];
+
+        let summary = PlaybookSummary {
+            playbook_id: playbook.playbook_id.to_string(),
+            task_match_score: playbook.task_match_score,
+            confidence: playbook.confidence,
+            why_relevant: playbook.why_relevant.clone(),
+            step_count: playbook.ordered_steps.len(),
+            steps: playbook
+                .ordered_steps
+                .iter()
+                .map(|s| PlaybookStepSummary {
+                    order: s.order,
+                    action: s.action.clone(),
+                    tool_hint: s.tool_hint.clone(),
+                    expected_result: s.expected_result.clone(),
+                })
+                .collect(),
+            pitfalls: playbook
+                .pitfalls
+                .iter()
+                .map(|p| p.warning.clone())
+                .collect(),
+            when_to_apply: playbook.when_to_apply.clone(),
+            when_not_to_apply: playbook.when_not_to_apply.clone(),
+            expected_outcome: playbook.expected_outcome.clone(),
+        };
+
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(&summary)?);
+            }
+            OutputFormat::Human | OutputFormat::Yaml => {
+                print_playbook_human(&summary);
+            }
         }
     }
 

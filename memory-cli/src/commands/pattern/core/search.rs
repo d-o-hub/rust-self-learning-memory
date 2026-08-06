@@ -136,6 +136,7 @@ pub async fn recommend_patterns(
     domain: &str,
     tags: Vec<String>,
     mut limit: usize,
+    episode_id_str: Option<String>,
     format: OutputFormat,
 ) -> Result<()> {
     // Build context
@@ -150,113 +151,245 @@ pub async fn recommend_patterns(
     // Clamp limit to prevent resource exhaustion
     limit = limit.clamp(MIN_SEARCH_LIMIT, 50); // Max 50 recommendations
 
-    // Execute recommendation
-    let results = memory
-        .recommend_patterns_for_task(task_description, context, limit)
-        .await?;
+    let parsed_episode_id = match episode_id_str {
+        Some(s) => Some(
+            uuid::Uuid::parse_str(&s)
+                .map_err(|e| anyhow::anyhow!("Invalid episode UUID '{s}': {e}"))?,
+        ),
+        None => None,
+    };
 
-    // Format output
-    match format {
-        OutputFormat::Json => {
-            let json = serde_json::to_string_pretty(&results)?;
-            println!("{}", json);
-        }
-        OutputFormat::Human => {
-            if results.is_empty() {
-                println!(
-                    "No pattern recommendations found for task: {}",
-                    task_description
-                );
-                return Ok(());
+    if let Some(ep_id) = parsed_episode_id {
+        let attr_res = memory
+            .recommend_patterns_attributed(ep_id, task_description, context, limit)
+            .await?;
+
+        match format {
+            OutputFormat::Json => {
+                let json = serde_json::to_string_pretty(&attr_res)?;
+                println!("{}", json);
             }
+            OutputFormat::Human => {
+                let results = &attr_res.recommendations;
+                if results.is_empty() {
+                    println!(
+                        "No pattern recommendations found for task: {}",
+                        task_description
+                    );
+                } else {
+                    println!("Pattern Recommendations for: \"{}\"", task_description);
+                    println!("Found {} recommendations", results.len());
+                    println!();
 
-            println!("Pattern Recommendations for: \"{}\"", task_description);
-            println!("Found {} recommendations", results.len());
-            println!();
+                    for (i, result) in results.iter().enumerate() {
+                        println!(
+                            "{}. Recommended Pattern (relevance: {:.2})",
+                            i + 1,
+                            result.relevance_score
+                        );
+                        println!("   ID: {}", result.pattern.id());
+                        println!(
+                            "   Success Rate: {:.1}%",
+                            result.pattern.success_rate() * 100.0
+                        );
 
-            for (i, result) in results.iter().enumerate() {
-                println!(
-                    "{}. Recommended Pattern (relevance: {:.2})",
-                    i + 1,
-                    result.relevance_score
-                );
-                println!("   ID: {}", result.pattern.id());
-                println!(
-                    "   Success Rate: {:.1}%",
-                    result.pattern.success_rate() * 100.0
-                );
+                        if let Some(ctx) = result.pattern.context() {
+                            println!("   Domain: {}", ctx.domain);
+                            if let Some(lang) = &ctx.language {
+                                println!("   Language: {}", lang);
+                            }
+                            if let Some(fw) = &ctx.framework {
+                                println!("   Framework: {}", fw);
+                            }
+                        }
 
-                if let Some(ctx) = result.pattern.context() {
-                    println!("   Domain: {}", ctx.domain);
-                    if let Some(lang) = &ctx.language {
-                        println!("   Language: {}", lang);
-                    }
-                    if let Some(fw) = &ctx.framework {
-                        println!("   Framework: {}", fw);
+                        match &result.pattern {
+                            do_memory_core::Pattern::ToolSequence { tools, .. } => {
+                                println!("   Type: Tool Sequence");
+                                println!("   Tools: {}", tools.join(" → "));
+                            }
+                            do_memory_core::Pattern::DecisionPoint {
+                                condition, action, ..
+                            } => {
+                                println!("   Type: Decision Point");
+                                println!("   Condition: {}", condition);
+                                println!("   Action: {}", action);
+                            }
+                            do_memory_core::Pattern::ErrorRecovery {
+                                error_type,
+                                recovery_steps,
+                                ..
+                            } => {
+                                println!("   Type: Error Recovery");
+                                println!("   Error: {}", error_type);
+                                println!("   Recovery: {}", recovery_steps.join(", "));
+                            }
+                            do_memory_core::Pattern::ContextPattern {
+                                recommended_approach,
+                                ..
+                            } => {
+                                println!("   Type: Context Pattern");
+                                println!("   Approach: {}", recommended_approach);
+                            }
+                        }
+
+                        let eff = result.pattern.effectiveness();
+                        println!(
+                            "   Applied {} times with {:.1}% success rate",
+                            eff.times_applied,
+                            eff.application_success_rate() * 100.0
+                        );
+                        println!();
                     }
                 }
 
-                // Show pattern details based on type
-                match &result.pattern {
-                    do_memory_core::Pattern::ToolSequence { tools, .. } => {
-                        println!("   Type: Tool Sequence");
-                        println!("   Tools: {}", tools.join(" → "));
+                println!("--- Attribution Tracking (ADR-080) ---");
+                println!("Session ID: {}", attr_res.session.session_id);
+                println!("Episode ID: {}", attr_res.session.episode_id);
+
+                match &attr_res.receipt {
+                    do_memory_core::PersistenceReceipt::Persisted { .. } => {
+                        println!("Durability: Persisted (durable across restarts)");
                     }
-                    do_memory_core::Pattern::DecisionPoint {
-                        condition, action, ..
-                    } => {
-                        println!("   Type: Decision Point");
-                        println!("   Condition: {}", condition);
-                        println!("   Action: {}", action);
-                    }
-                    do_memory_core::Pattern::ErrorRecovery {
-                        error_type,
-                        recovery_steps,
+                    do_memory_core::PersistenceReceipt::PartiallyPersisted {
+                        failed_backends,
                         ..
                     } => {
-                        println!("   Type: Error Recovery");
-                        println!("   Error: {}", error_type);
-                        println!("   Recovery: {}", recovery_steps.join(", "));
+                        println!(
+                            "⚠️ Durability: Partially Persisted (failed backends: {})",
+                            failed_backends.join(", ")
+                        );
                     }
-                    do_memory_core::Pattern::ContextPattern {
-                        recommended_approach,
+                    do_memory_core::PersistenceReceipt::MemoryOnly { .. } => {
+                        println!(
+                            "⚠️ Durability: Memory-only (process-local, will be lost on restart)"
+                        );
+                    }
+                    do_memory_core::PersistenceReceipt::PersistenceFailed {
+                        failed_backends,
                         ..
                     } => {
-                        println!("   Type: Context Pattern");
-                        println!("   Approach: {}", recommended_approach);
+                        println!(
+                            "❌ Durability: Persistence Failed (failed backends: {})",
+                            failed_backends.join(", ")
+                        );
                     }
                 }
 
-                let eff = result.pattern.effectiveness();
-                println!(
-                    "   Applied {} times with {:.1}% success rate",
-                    eff.times_applied,
-                    eff.application_success_rate() * 100.0
-                );
+                println!("\n💡 Tip: Use these patterns as guidance for your current task!");
+            }
+            OutputFormat::Yaml => {
+                let json_val = serde_json::to_value(&attr_res)?;
+                println!("{}", serde_yaml::to_string(&json_val).unwrap_or_default());
+            }
+        }
+    } else {
+        // Unattributed path (legacy shape)
+        let results = memory
+            .recommend_patterns_for_task(task_description, context, limit)
+            .await?;
+
+        match format {
+            OutputFormat::Json => {
+                let json = serde_json::to_string_pretty(&results)?;
+                println!("{}", json);
+            }
+            OutputFormat::Human => {
+                if results.is_empty() {
+                    println!(
+                        "No pattern recommendations found for task: {}",
+                        task_description
+                    );
+                    return Ok(());
+                }
+
+                println!("Pattern Recommendations for: \"{}\"", task_description);
+                println!("Found {} recommendations", results.len());
                 println!();
-            }
 
-            println!("💡 Tip: Use these patterns as guidance for your current task!");
-        }
-        OutputFormat::Yaml => {
-            let yaml_output: Vec<YamlPatternResult> = results
-                .iter()
-                .map(|r| YamlPatternResult {
-                    id: r.pattern.id().to_string(),
-                    relevance_score: r.relevance_score,
-                    score_breakdown: YamlScoreBreakdown {
-                        semantic_similarity: r.score_breakdown.semantic_similarity,
-                        context_match: r.score_breakdown.context_match,
-                        effectiveness: r.score_breakdown.effectiveness,
-                        recency: r.score_breakdown.recency,
-                        success_rate: r.score_breakdown.success_rate,
-                    },
-                })
-                .collect();
-            println!(
-                "{}",
-                serde_yaml::to_string(&yaml_output).unwrap_or_default()
-            );
+                for (i, result) in results.iter().enumerate() {
+                    println!(
+                        "{}. Recommended Pattern (relevance: {:.2})",
+                        i + 1,
+                        result.relevance_score
+                    );
+                    println!("   ID: {}", result.pattern.id());
+                    println!(
+                        "   Success Rate: {:.1}%",
+                        result.pattern.success_rate() * 100.0
+                    );
+
+                    if let Some(ctx) = result.pattern.context() {
+                        println!("   Domain: {}", ctx.domain);
+                        if let Some(lang) = &ctx.language {
+                            println!("   Language: {}", lang);
+                        }
+                        if let Some(fw) = &ctx.framework {
+                            println!("   Framework: {}", fw);
+                        }
+                    }
+
+                    match &result.pattern {
+                        do_memory_core::Pattern::ToolSequence { tools, .. } => {
+                            println!("   Type: Tool Sequence");
+                            println!("   Tools: {}", tools.join(" → "));
+                        }
+                        do_memory_core::Pattern::DecisionPoint {
+                            condition, action, ..
+                        } => {
+                            println!("   Type: Decision Point");
+                            println!("   Condition: {}", condition);
+                            println!("   Action: {}", action);
+                        }
+                        do_memory_core::Pattern::ErrorRecovery {
+                            error_type,
+                            recovery_steps,
+                            ..
+                        } => {
+                            println!("   Type: Error Recovery");
+                            println!("   Error: {}", error_type);
+                            println!("   Recovery: {}", recovery_steps.join(", "));
+                        }
+                        do_memory_core::Pattern::ContextPattern {
+                            recommended_approach,
+                            ..
+                        } => {
+                            println!("   Type: Context Pattern");
+                            println!("   Approach: {}", recommended_approach);
+                        }
+                    }
+
+                    let eff = result.pattern.effectiveness();
+                    println!(
+                        "   Applied {} times with {:.1}% success rate",
+                        eff.times_applied,
+                        eff.application_success_rate() * 100.0
+                    );
+                    println!();
+                }
+
+                println!("💡 Tip: Use these patterns as guidance for your current task!");
+            }
+            OutputFormat::Yaml => {
+                let yaml_output: Vec<YamlPatternResult> = results
+                    .iter()
+                    .map(|r| YamlPatternResult {
+                        id: r.pattern.id().to_string(),
+                        relevance_score: r.relevance_score,
+                        score_breakdown: YamlScoreBreakdown {
+                            semantic_similarity: r.score_breakdown.semantic_similarity,
+                            context_match: r.score_breakdown.context_match,
+                            effectiveness: r.score_breakdown.effectiveness,
+                            recency: r.score_breakdown.recency,
+                            success_rate: r.score_breakdown.success_rate,
+                        },
+                    })
+                    .collect();
+                println!(
+                    "{}",
+                    serde_yaml::to_string(&yaml_output).unwrap_or_default()
+                );
+            }
         }
     }
 

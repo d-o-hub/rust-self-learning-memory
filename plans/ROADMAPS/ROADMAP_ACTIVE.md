@@ -1,12 +1,13 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-07-30
-**Released Version**: v0.1.38 (latest tag)  
+**Last Updated**: 2026-08-06
+**Released Version**: v0.1.37 (latest tag)  
 **Workspace Version**: 0.1.38 (next release)  
-**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (proposed)
-**Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
-**Branch**: `main` @ `e66defdf`
-**Open PRs**: #914, #915
+**Active Sprint**: CI trust + product truth + ADR-080/ADR-081 attribution completion
+**Plan**: `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
+**Prior plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Branch**: `feat/adr-080-automatic-recommendation-attribution` (uncommitted attribution slice)
+**Open PRs**: none
 **Open issues**: #913
 
 ---
@@ -41,8 +42,12 @@
 | P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | Planned |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | Planned |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed |
-| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
+| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | Proposed — partial slice in working tree (6/12 acceptance criteria) |
+| **P0** | **ADR-081 / RAT-B3** | **Feedback must resolve through storage — current slice breaks feedback after restart (merge blocker)** | **Proposed** |
+| P0 | ADR-081 / RAT-B1/B2 | 500-LOC split of `tracker.rs`; capability advertisement so no-op trait defaults stop yielding `persisted` | Proposed |
+| P0 | ADR-081 / RAT-B4/B5 | Episode-existence validation, MCP/CLI malformed-ID parity, playbook error ≠ empty | Proposed |
+| P1 | ADR-081 / RAT-B6…B10 | Receipts on manual paths, `episode_id` in both MCP registries, CLI dedup, tests ≥90%, docs + hygiene | Proposed |
+| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR — **learning loop not closed** | Deferred |
 
 ---
 
@@ -55,6 +60,9 @@
 | P2 | Release eng | Trusted Publishing (OIDC) for crates.io | Future |
 | P2 | CI cost | Reusable workflows/artifact handoff after required-gate correctness | Blocked by CIT-A1…A3 |
 | P2 | Security | Transitive Dependabot advisories | Monitor |
+| P2 | Storage | Generalize capability advertisement to all 18 `StorageBackend` no-op defaults | Follow-up (X1) |
+| P2 | Harness | `.agents/skills/` guide for `clippy::too_many_arguments` (19 suppressions — steering-loop threshold long exceeded) | Follow-up (X2) |
+| P2 | MCP | Collapse the two overlapping tool registries into one source of truth | Follow-up (G10) |
 | P2 | CLI | ADR-076 §5 `pattern extract` error-arm coverage | ✅ Done (#891) |
 | P2 | CLI | R-F8 relationship info box-drawing panel | ✅ Done (#893) |
 | P2 | Embeddings | R-F9 HNSW persistence + capacity eviction | ✅ Done (#893) |

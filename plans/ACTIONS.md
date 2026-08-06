@@ -1,8 +1,28 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-07-30
-- **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Last Updated**: 2026-08-06
+- **Active plan**: `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
+- **Prior plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Active actions — ADR-081 attribution completion (2026-08-06)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-344 | Accept ADR-081 and freeze the completed attribution contract | RAT-B0 | Proposed |
+| ACT-345 | Split `attribution/tracker.rs` (557 LOC) into mod/integrity/stats/tests | RAT-B1 | Blocked by ACT-344 |
+| ACT-346 | Add `supports_recommendation_attribution` to `StorageBackend`; make `persist_session_checked` capability-aware | RAT-B2 | Blocked by ACT-344 |
+| ACT-347 | **Resolve feedback sessions from storage before rejecting — fixes post-restart feedback regression** | RAT-B3 | Blocked by ACT-345/346 · **merge blocker** |
+| ACT-348 | Validate episode existence; make MCP reject malformed `episode_id` like the CLI | RAT-B4 | Blocked by ACT-346 |
+| ACT-349 | Add `try_retrieve_playbooks`; generation failure must create no session | RAT-B5 | Blocked by ACT-346 |
+| ACT-350 | Add `persist_feedback_checked`; receipts on manual MCP/CLI session + feedback commands | RAT-B6 | Blocked by ACT-346/347 |
+| ACT-351 | Declare `episode_id` in both MCP tool registries + registry-agreement test | RAT-B7 | Blocked by ACT-348 |
+| ACT-352 | Deduplicate CLI rendering; replace `too_many_arguments` suppression with a request struct | RAT-B8 | Blocked by ACT-348/349 |
+| ACT-353 | Restart-safety, receipt matrix, MCP snapshot, CLI e2e tests to ≥90% | RAT-B9 | Blocked by ACT-345…352 |
+| ACT-354 | `API_REFERENCE` attribution docs, ADR-058 duplicate resolution, `.gitignore` hygiene | RAT-B10 | Blocked by ACT-353 |
+
+Detailed per-file code changes for every ACT-344…354 item are in
+`plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md` §4.
 
 ## Active actions (2026-07-30)
 
@@ -64,3 +84,7 @@ Full tables: `plans/archive/2026-07-consolidation/completed-sprints/`
 - sha2 digests: use portable hex encode (not `format!("{:x}", finalize())` on 0.11+)  
 - Docs integrity: do not re-check `plans/archive/**` link rot as a ship blocker  
 - After tag `vX.Y.Z`, immediately bump workspace to next patch before more feat/fix commits  
+- A `StorageBackend` no-op default `Ok(())` is not evidence of a write — gate durability claims on an advertised capability, never on "a backend is configured"
+- Tightening a validation from warn-to-error requires the full resolution chain first; rejecting on the in-memory view alone converts a missing feature into a restart regression
+- An optional identifier parsed with `.ok()` degrades silently — parse absent vs. malformed distinctly, and identically on every surface
+- A new surface parameter is not shipped until it appears in the MCP tool schema (both registries)  

@@ -1,4 +1,5 @@
 use crate::Result;
+use crate::memory::attribution::{AttributedPatternResult, RecommendationSession};
 use crate::types::TaskContext;
 
 use super::pattern_search;
@@ -136,6 +137,52 @@ impl SelfLearningMemory {
             limit,
         )
         .await
+    }
+
+    /// Recommend patterns for a task and create an attributed recommendation session (ADR-080 §1–3).
+    ///
+    /// Requires a valid, non-nil `episode_id`. Returns recommendations together with
+    /// a session and a `PersistenceReceipt` describing durability state.
+    pub async fn recommend_patterns_attributed(
+        &self,
+        episode_id: uuid::Uuid,
+        task_description: &str,
+        context: TaskContext,
+        limit: usize,
+    ) -> Result<AttributedPatternResult<pattern_search::PatternSearchResult>> {
+        if episode_id.is_nil() {
+            return Err(crate::error::Error::InvalidInput(
+                "Attributed pattern recommendations require a non-nil episode ID".to_string(),
+            ));
+        }
+
+        let recommendations = self
+            .recommend_patterns_for_task(task_description, context, limit)
+            .await?;
+
+        let recommended_pattern_ids = recommendations
+            .iter()
+            .map(|r| r.pattern.id().to_string())
+            .collect();
+
+        let session = RecommendationSession {
+            session_id: uuid::Uuid::new_v4(),
+            episode_id,
+            timestamp: chrono::Utc::now(),
+            recommended_pattern_ids,
+            recommended_playbook_ids: vec![],
+        };
+
+        self.recommendation_tracker
+            .record_session(session.clone())
+            .await;
+        let receipt = self.persist_session_checked(&session).await;
+
+        Ok(AttributedPatternResult {
+            recommendations,
+            session,
+            receipt,
+        })
     }
 
     /// Discover patterns from one domain that might apply to another

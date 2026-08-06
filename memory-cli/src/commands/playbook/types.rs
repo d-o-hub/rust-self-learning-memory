@@ -35,6 +35,10 @@ pub enum PlaybookCommands {
         /// Context tags (comma-separated)
         #[arg(long, value_delimiter = ',')]
         tags: Vec<String>,
+
+        /// Episode ID for attribution tracking (ADR-080 §1, RAT-A6)
+        #[arg(long, value_name = "UUID")]
+        episode_id: Option<String>,
     },
 
     /// Explain a pattern in human-readable form

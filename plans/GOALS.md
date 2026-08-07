@@ -1,33 +1,53 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-07-30
-- **Status**: CI trust, product-truth remediation, and ADR-080 attribution capture proposed
+- **Last Updated**: 2026-08-07
+- **Status**: PR review + CI fix wave done (#928/#927 CI green); ADR-080 attribution PR #927 open; live-ruleset change awaits ADR-079 acceptance
 - **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-- **Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals (2026-07-30)
+## Closed this wave (2026-08-07)
+
+| Goal | Status |
+|------|--------|
+| Repair #928 commit messages (commitlint clean, no-op commits dropped) | ✅ pushed |
+| Unblock #927 pre-existing release drift (`release-preparation` deadlock breaker) | ✅ drift check green |
+| Raise #927 Codecov patch coverage (receipt matrix + MCP envelope tests + CLI dedup) | ✅ pushed; re-measuring |
+| Main cancelled CI runs re-run + plans/learnings refreshed | ✅ |
+
+## Active goals (2026-08-06)
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | Proposed |
-| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | Planned |
-| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | Planned |
-| Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | Planned |
+| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | 🔄 workflow side done (stable `CI / Required` aggregate); live-ruleset step awaits ADR acceptance |
+| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | 🔄 waiters fail closed + commit-lint wait done; downstream actor parity pending |
+| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures (2026-08-06); ruleset-context fixture follows |
+| Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | ✅ Implemented (2026-08-06) |
 | Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
-| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | Proposed |
+| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | 🔄 PR #927 open (ADR-080/081 implementation) |
 | Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred |
-| R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | 🔄 In progress |
-| R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | 🔄 In progress |
+| R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
+| R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
 | Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
-The ranking-learning loop remains open: ADR-080 captures trustworthy evidence but
-does not yet apply feedback to recommendation scores. First-party CI is also not
-currently merge-required; green workflow runs must not be described as branch
-protection until ADR-079's staged ruleset migration completes. Active campaign:
-R-F10 (ACT-325) and R-F4 (ACT-326) in progress; PTA-A1/A2/A3 implemented.
+The ranking-learning loop remains open: ADR-080 (PR #927) captures trustworthy
+evidence but does not yet apply feedback to recommendation scores. First-party
+CI is also not currently merge-required; green workflow runs must not be
+described as branch protection until ADR-079's staged ruleset migration
+completes (maintainer decision). R-F10 (ACT-325) and R-F4 (ACT-326) are
+implemented; CIT-A4/A5 (ACT-338/339) implemented 2026-08-06; PTA-A1/A2/A3
+implemented.
+
+## Closed this wave (2026-08-06)
+
+| Goal | Status |
+|------|--------|
+| CIT-A4 release/publish trigger truth | ✅ (2026-08-06) |
+| CIT-A5 durable fuzz evidence + non-green signal | ✅ (2026-08-06) |
+| R-F10 OIDC trusted publishing (ACT-325) | ✅ (already shipped; plans refreshed) |
+| R-F4 SIMD cosine + bench variants (ACT-326) | ✅ (already shipped; plans refreshed) |
 
 ## Closed this wave (2026-07-20…25)
 

@@ -194,3 +194,29 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   4. The pre-push gate is: `cargo doc --no-deps --document-private-items` (already in AGENTS.md Required Checks).
 - Prevention: This lesson extends the AGENTS.md "Required Checks Before Commit" list — `cargo doc` is listed there; rustdoc link errors are the silent part of it.
 - Reference: PR #896, CI run 30197204039.
+
+## LESSON-024: Repairing commitlint failures and pre-existing drift on PR branches (2026-08-07)
+
+- Issue: PR #928 failed Commit Message Lint because 5 of 8 branch commits had
+  body/footer lines > 100 chars; two `chore(ci): re-trigger workflow runs`
+  no-op commits polluted history. PR #927 failed Release Drift
+  (`commit_limit`) — a repo-wide pre-existing condition (workspace 0.1.38 vs
+  tag v0.1.37, 43 unreleased commits), not caused by the PR.
+- Fixes:
+  1. Enumerate failures locally first: `npx commitlint --from <base-sha> --to HEAD --verbose`.
+  2. Drop no-op commits non-interactively:
+     `GIT_SEQUENCE_EDITOR='sed -i "/re-trigger workflow runs/d"' git rebase -i <base>`.
+  3. Rewrap every long line mechanically, no content change:
+     `git filter-branch -f --msg-filter 'fold -s -w 100' -- <base>..HEAD`,
+     then verify `git diff <old-head> HEAD` is empty and commitlint is clean.
+  4. Push with `--force-with-lease`; the fail-closed waiters (CIT-A2) then
+     surface green instead of cascading 5 workflow failures.
+  5. For pre-existing drift: the documented deadlock breaker is
+     `./scripts/release-cadence-manager.sh resolve --pr <n>` (adds the
+     `release-preparation` label); the root-cause fix is shipping the
+     prepared release via release-guard.
+- Key insight: a lint/cadence failure under fail-closed waiters is a feature —
+  it makes the root cause visible in every workflow instead of masked green.
+- Prevention: `.agents/skills/commit/SKILL.md` (repair section), LESSON-023,
+  `release-cadence-manager` skill.
+- References: PR #928, PR #927; `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`.

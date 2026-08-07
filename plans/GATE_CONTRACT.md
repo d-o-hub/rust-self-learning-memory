@@ -27,14 +27,19 @@ The standalone `Required Check Anchor` is also not required and performs no
 validation. Therefore a green workflow job means that workflow ran successfully;
 it does **not** mean the merge ruleset requires the gate.
 
-ADR-079 proposes a staged `CI / Required` aggregate. Until that context is both
-implemented and present in the live ruleset, every first-party row below remains
-**not merge-required**.
+ADR-079 proposes a staged `CI / Required` aggregate. The workflow-side aggregate
+job now exists (2026-08-06, `ci.yml`): it runs with `always()` and fails closed
+on failure/cancellation of the substantive same-run jobs, and all five
+cross-workflow waiters now fail closed (no cancelled/skipped/missing acceptance,
+commit lint included). Until the `CI / Required` context is added to the live
+ruleset with maintainer approval, every first-party row below remains **not
+merge-required**.
 
 ## Gate matrix
 
 | Gate | Measured (how) | Blocking floor (local) | Workflow enforcement today | Merge-required? | Aspirational target | Authoritative surface |
 |------|----------------|------------------------|----------------------------|-----------------|---------------------|-----------------------|
+| CI / Required aggregate | `if: always()` fail-closed eval of test/MCP/multi-platform/quality-gates results | failure/cancelled never accepted | `ci.yml` `CI / Required` job (2026-08-06) | **No** (ruleset migration pending ADR-079 approval) | live ruleset requires this stable context | `ci.yml` aggregate + waiters (fail-closed) |
 | Format | `cargo fmt --check` | required | Quick Check job | No | 100% formatted | `./scripts/code-quality.sh fmt` / Quick Check |
 | Clippy | `cargo clippy -D warnings` | required | Quick Check uses separate lib/tests commands and a broad copied allow-list | No | 0 warnings workspace | Local: `./scripts/code-quality.sh clippy --workspace`; CI drift open |
 | Build check | `cargo check` / `./scripts/build-rust.sh check` | recommended | Builds occur in CI jobs, but no exact canonical check | No | always clean | `./scripts/build-rust.sh check` |
@@ -99,7 +104,8 @@ known gap tracked by ADR-079 / CIT-A3.
 - [x] `--ci-parity` verifies quick-check, ci, release-drift, security/supply-chain (deny), skill-evals surfaces
 - [x] CI runs `./scripts/validate-gate-contract.sh` and `--ci-parity` (Skill Evals workflow)
 - [x] Local vs CI parity table lists skill schema + gate contract entrypoints
-- [ ] Exact command scopes, actor conditions, aggregate outcomes, and live ruleset context agree (drift detected; ADR-079)
+- [x] `--ci-parity` rejects cancelled/skipped waiter acceptance, missing `fail-on-no-checks: true`, absent `CI / Required` aggregate, release `workflow_dispatch`, and `sleep 30` publish waits (semantic negative fixtures, 2026-08-06)
+- [ ] Exact command scopes, actor conditions, aggregate outcomes, and live ruleset context agree (ruleset migration remains; ADR-079)
 
 ## Acceptance (K3.1b)
 

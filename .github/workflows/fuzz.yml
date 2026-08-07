@@ -38,21 +38,75 @@ jobs:
       - name: Fuzz MCP JSON-RPC
         continue-on-error: true
         run: |
+          set +e
           cargo fuzz run fuzz_mcp_jsonrpc -- "-max_total_time=$FUZZ_DURATION"
+          rc=$?
+          set -e
+          echo "fuzz_mcp_jsonrpc=$rc" >> "$RUNNER_TEMP/fuzz-status.txt"
 
       - name: Fuzz Postcard Roundtrip
         continue-on-error: true
         run: |
+          set +e
           cargo fuzz run fuzz_postcard_roundtrip -- "-max_total_time=$FUZZ_DURATION"
+          rc=$?
+          set -e
+          echo "fuzz_postcard_roundtrip=$rc" >> "$RUNNER_TEMP/fuzz-status.txt"
 
       - name: Fuzz Search Matchers
         continue-on-error: true
         run: |
+          set +e
           cargo fuzz run fuzz_search_matchers -- "-max_total_time=$FUZZ_DURATION"
+          rc=$?
+          set -e
+          echo "fuzz_search_matchers=$rc" >> "$RUNNER_TEMP/fuzz-status.txt"
 
       - name: Upload Crash Artifacts
-        if: failure()
+        # Durable evidence (ADR-079/CIT-A5): upload with always() so crashes
+        # survive even when the run ends non-green. if-no-files-found: ignore
+        # keeps a clean run from failing on a missing directory.
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: fuzz-artifacts
           path: fuzz/artifacts/
+          if-no-files-found: ignore
+
+      - name: Report Fuzz Status
+        # Visible non-green signal (ADR-079/CIT-A5): a green conclusion must
+        # never be the only durable signal. Crashes/timeouts/startup failures
+        # annotate the run and fail this informational job so they cannot be
+        # greenwashed, while remaining non-merge-required.
+        if: always()
+        run: |
+          set -euo pipefail
+          FAILED=0
+          EXPECTED="fuzz_mcp_jsonrpc fuzz_postcard_roundtrip fuzz_search_matchers"
+          REPORTED=""
+          if [ -f "$RUNNER_TEMP/fuzz-status.txt" ]; then
+            while IFS='=' read -r target rc; do
+              REPORTED="$REPORTED $target"
+              if [ "$rc" != "0" ]; then
+                echo "::error::Fuzz target $target exited with status $rc (startup failure, timeout, or crash)"
+                FAILED=1
+              else
+                echo "OK: $target completed with exit 0"
+              fi
+            done < "$RUNNER_TEMP/fuzz-status.txt"
+          fi
+          for target in $EXPECTED; do
+            case " $REPORTED " in
+              *" $target "*) : ;;
+              *) echo "::warning::Fuzz target $target never reported a status (cancelled or skipped) - evidence may be missing"; FAILED=1 ;;
+            esac
+          done
+          if find fuzz/artifacts -type f \( -name 'crash-*' -o -name 'timeout-*' -o -name 'oom-*' \) -print -quit 2>/dev/null | grep -q .; then
+            echo "::error::cargo-fuzz produced crash/timeout/oom artifacts; see the 'fuzz-artifacts' upload. Triage required."
+            FAILED=1
+          fi
+          if [ "$FAILED" = "1" ]; then
+            echo "Fuzz run reported failures - see annotations; evidence uploaded under 'fuzz-artifacts'."
+            exit 1
+          fi
+          echo "No fuzz crashes, timeouts, or startup failures detected."

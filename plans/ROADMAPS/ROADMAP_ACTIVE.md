@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-08-06
-**Released Version**: v0.1.37 (latest tag)
+**Released Version**: v0.1.38 (latest tag)
 **Workspace Version**: 0.1.38 (next release)
-**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (PR #927) + CIT-A4/A5 (done) + CIT-A1/A2/A3 workflow wave
+**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (#927) + receipt-matrix test hardening (#930) + CIT-A4/A5 (#928) + CIT-A1/A2/A3 workflow wave
 **Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 **Branch**: `main` @ `92db07bf`
-**Open PRs**: #927, + this CIT-A4/A5 wave
+**Open PRs**: none (v0.1.38 release-docs bump in flight)
 **Open issues**: #913
 
 ---
@@ -41,7 +41,7 @@
 | P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | ✅ semantic validator + negative fixtures (2026-08-06) |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | ✅ 2026-08-06 |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | 🔄 PR #927 open |
+| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ #927 merged + #930 test extension |
 | P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
 
 ---

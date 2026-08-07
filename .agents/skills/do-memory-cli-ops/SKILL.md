@@ -65,6 +65,31 @@ do-memory-cli --storage-mode local --db-path ./data/memory.redb episode list
 MEMORY_DB_PATH=./data/memory.redb MEMORY_STORAGE_MODE=local do-memory-cli episode list
 ```
 
+### Verifying Turso/SQLite entries
+
+With the `turso` feature, `--db-path x.redb` opens **two sibling files**: the
+Turso/SQLite database at `x.db` (durable) and the redb cache at `x.redb`.
+
+Inspect the SQLite side directly (no `sqlite3` CLI needed — python3 ships sqlite3):
+
+```bash
+python3 - <<'PY'
+import sqlite3
+con = sqlite3.connect("data/cache.db")   # sibling of data/cache.redb
+cur = con.cursor()
+print([t[0] for t in cur.execute("SELECT name FROM sqlite_master WHERE type='table'")])
+print("episodes:", cur.execute("SELECT COUNT(*) FROM episodes").fetchone()[0])
+print(cur.execute("SELECT episode_id, substr(task_description,1,40) FROM episodes").fetchall())
+PY
+```
+
+Notes:
+
+- `episodes.outcome` is a **JSON string** (e.g. `{"Success":{"verdict":"..."}}`); there is no `status` column.
+- Steps live inside the `episodes.steps` JSON column, not a separate table.
+- CLI-side verification: `episode list`, `pattern list`, `storage stats`, `health check`.
+- **`storage sync` is Turso → redb only** (ADR-076 reconciliation): it refreshes the cache from durable storage and can never push cache-only episodes into Turso. `backup create` also reads Turso only. Episodes that exist only in the redb cache stay cache-only — recreate them or add a cache→Turso path to make them durable.
+
 ## Config discovery (issue #829)
 
 ```bash

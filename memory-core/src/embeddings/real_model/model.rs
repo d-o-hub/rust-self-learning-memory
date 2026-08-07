@@ -166,16 +166,8 @@ impl RealEmbeddingModel {
 
                 tracing::info!("Model download completed successfully");
             }
-
-            #[cfg(not(feature = "reqwest"))]
-            {
-                return Err(anyhow::anyhow!(
-                    "Model files not found at {} and {}\n\
-                     Enable 'reqwest' feature for automatic download or manually download from https://huggingface.co/{model_name}",
-                    model_path.display(),
-                    tokenizer_path.display()
-                ));
-            }
+            // `local-embeddings` always enables `reqwest` (via `reqwest/stream`),
+            // so the manual-download fallback below is unreachable and removed.
         }
 
         // Load tokenizer

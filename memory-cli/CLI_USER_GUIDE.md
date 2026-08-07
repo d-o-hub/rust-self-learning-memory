@@ -82,7 +82,7 @@ do-memory-cli storage health
 All commands support these global options:
 
 - `--config <FILE>`: Path to configuration file
-- `--format <FORMAT>`: Output format (human/json/yaml)
+- `--format <FORMAT>`: Output format (human/json/yaml) — **top-level flag**, place it *before* the subcommand (e.g. `do-memory-cli --format json episode list`)
 - `--verbose`: Enable verbose logging
 - `--dry-run`: Preview operations without executing
 - `--help`: Show help information
@@ -151,7 +151,7 @@ do-memory-cli episode list --semantic-search "authentication issues" --limit 10
 do-memory-cli episode list --semantic-search "database errors" --enable-embeddings --embedding-provider openai
 
 # JSON output for scripting
-do-memory-cli episode list --format json
+do-memory-cli --format json episode list
 ```
 
 #### `do-memory-cli episode view`
@@ -167,7 +167,7 @@ Display detailed information about a specific episode.
 do-memory-cli episode view 12345678-1234-1234-1234-123456789abc
 
 # JSON output for processing
-do-memory-cli episode view 12345678-1234-1234-1234-123456789abc --format json
+do-memory-cli --format json episode view 12345678-1234-1234-1234-123456789abc
 ```
 
 #### `do-memory-cli episode complete`
@@ -294,7 +294,7 @@ Display detailed information about a specific pattern.
 do-memory-cli pattern view pattern-123
 
 # JSON output
-do-memory-cli pattern view pattern-123 --format json
+do-memory-cli --format json pattern view pattern-123
 ```
 
 #### `do-memory-cli pattern analyze`
@@ -362,7 +362,7 @@ Display storage statistics and usage information.
 do-memory-cli storage stats
 
 # JSON output for monitoring
-do-memory-cli storage stats --format json
+do-memory-cli --format json storage stats
 ```
 
 #### `do-memory-cli storage sync`
@@ -411,7 +411,7 @@ Check storage backend health.
 do-memory-cli storage health
 
 # JSON output for monitoring
-do-memory-cli storage health --format json
+do-memory-cli --format json storage health
 ```
 
 #### `do-memory-cli storage connections`
@@ -460,7 +460,7 @@ View detailed statistics for a specific domain.
 do-memory-cli eval stats web-development
 
 # JSON output for automation
-do-memory-cli eval stats web-development --format json
+do-memory-cli --format json eval stats web-development
 ```
 
 ### Meta Commands
@@ -618,10 +618,10 @@ Solution: Use a valid UUID format
 #!/bin/bash
 # Export recent episodes to JSON files
 
-do-memory-cli episode list --limit 50 --format json | \
+do-memory-cli --format json episode list --limit 50 | \
   jq -r '.episodes[].episode_id' | \
   while read episode_id; do
-    do-memory-cli episode view "$episode_id" --format json > "episode_$episode_id.json"
+    do-memory-cli --format json episode view "$episode_id" > "episode_$episode_id.json"
   done
 ```
 
@@ -631,7 +631,7 @@ do-memory-cli episode list --limit 50 --format json | \
 # Alert on low-effectiveness patterns
 
 threshold=0.7
-do-memory-cli pattern effectiveness --format json | \
+do-memory-cli --format json pattern effectiveness | \
   jq --arg threshold "$threshold" '.rankings[] | select(.effectiveness_score < ($threshold | tonumber))' | \
   while read pattern; do
     echo "Low effectiveness pattern detected:"
@@ -644,7 +644,7 @@ do-memory-cli pattern effectiveness --format json | \
 #!/bin/bash
 # Check system health for monitoring
 
-if ! do-memory-cli storage health --format json | jq -e '.overall == "healthy"' > /dev/null; then
+if ! do-memory-cli --format json storage health | jq -e '.overall == "healthy"' > /dev/null; then
   echo "Storage health check failed!" >&2
   do-memory-cli storage health
   exit 1
@@ -677,10 +677,10 @@ echo "Running memory system health checks..."
 do-memory-cli config || exit 1
 
 # Check storage health
-do-memory-cli storage health --format json | jq -e '.overall == "healthy"' || exit 1
+do-memory-cli --format json storage health | jq -e '.overall == "healthy"' || exit 1
 
 # Check recent episodes
-episode_count=$(do-memory-cli episode list --limit 1 --format json | jq '.total_count')
+episode_count=$(do-memory-cli --format json episode list --limit 1 | jq '.total_count')
 if [ "$episode_count" -lt 0 ]; then
   echo "Episode count check failed"
   exit 1

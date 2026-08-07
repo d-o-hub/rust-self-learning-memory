@@ -16,10 +16,10 @@ Retrieve multiple episodes by their IDs in a single efficient operation.
 do-memory-cli episode bulk abc123...,def456...,ghi789...
 
 # JSON output
-do-memory-cli episode bulk abc123...,def456... --format json
+do-memory-cli --format json episode bulk abc123...,def456...
 
 # YAML output  
-do-memory-cli episode bulk abc123...,def456... --format yaml
+do-memory-cli --format yaml episode bulk abc123...,def456...
 ```
 
 **Features:**
@@ -221,7 +221,7 @@ cargo build --features turso
 ./target/debug/do-memory-cli episode bulk <id1>,invalid-uuid,<id2>
 
 # Test JSON output
-./target/debug/do-memory-cli episode bulk <id1>,<id2> --format json
+./target/release/do-memory-cli --format json episode bulk <id1>,<id2>
 ```
 
 ### Expected Behavior
@@ -240,16 +240,18 @@ cargo build --features turso
 ```bash
 $ do-memory-cli episode bulk --help
 
-Retrieve multiple episodes by their IDs (bulk operation)
+Retrieve multiple episodes by IDs (comma-separated)
 
-Usage: do-memory-cli episode bulk <IDS>
+Usage: do-memory-cli episode bulk <EPISODE_IDS>
 
 Arguments:
-  <IDS>  Comma-separated list of episode UUIDs
+  <EPISODE_IDS>  Comma-separated episode IDs
 
 Options:
-  -f, --format <FORMAT>  Output format [default: human] [possible values: human, json, yaml]
-  -h, --help             Print help
+  -h, --help  Print help
+```
+
+> Note: `--format` is a top-level flag — use `do-memory-cli --format json episode bulk <ids>`.
 ```
 
 ### User Guide Addition

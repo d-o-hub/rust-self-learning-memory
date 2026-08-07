@@ -40,6 +40,12 @@ Options:
   --db-path <PATH>            Project-local DB path (env: MEMORY_DB_PATH)
 ```
 
+**Flag placement & logs** (verified against release v0.1.38):
+- `-f/--format`, `-v/--verbose`, `-c/--config`, `--storage-mode`, `--db-path` are **top-level** flags — place them **before** the subcommand: `do-memory-cli --format json episode list` works, `do-memory-cli episode list --format json` is rejected.
+- **Logs go to stderr**; stdout carries only command output, so `--format json` piped to `jq` stays machine-parseable.
+- `RUST_LOG=off` silences all logs; `RUST_LOG=debug` adds detail (equivalent to `-v`).
+  Note: an *empty* `RUST_LOG` also silences logs — prefer an explicit `RUST_LOG=off`.
+
 ### Storage / DB path notes (issues #830, #832)
 
 | Flag / env | Effect |
@@ -90,8 +96,8 @@ Each CLI invocation is a **separate process**. Patterns must be durable (postcar
 DB=./data/memory.redb
 CLI="do-memory-cli --storage-mode local --db-path $DB"
 
-# 1. Create
-ID=$($CLI episode create -t "Implement auth" --format json | jq -r .episode_id)
+# 1. Create (--format is a top-level flag: place it BEFORE the subcommand)
+ID=$($CLI --format json episode create -t "Implement auth" | jq -r .episode_id)
 
 # 2. Log steps (use --success for tool-sequence patterns)
 $CLI episode log-step "$ID" --tool compiler --action "build" --success
@@ -114,12 +120,25 @@ $CLI pattern search auth
 
 | Command | Alias | Purpose |
 |---------|-------|---------|
-| episode | ep | Episode management |
-| pattern | pat | Pattern analysis |
-| storage | st | Storage operations |
+| episode | ep | Episode management (create, list, view, log-step, complete, bulk, search) |
+| pattern | pat | Pattern analysis (list, view, analyze, effectiveness, extract, decay) |
+| storage | st | Storage operations (stats, sync, vacuum, health, connections) |
 | config | cfg | Configuration (`init`, `show-template`, `show`, `validate`) |
-| health | hp | Health monitoring |
-| backup | bak | Backup/restore |
-| monitor | mon | Metrics |
+| health | hp | Health monitoring (`check`, `status`, `monitor`) |
+| backup | bak | Backup/restore (`create`, `list`, `restore`, `verify`) |
+| monitor | mon | Metrics (`status`, `export`) |
+| logs | log | Log analysis (`analyze`, `search`, `export`, `stats`) |
+| eval | ev | Evaluation & calibration (`stats`, `calibration`) |
+| embedding | emb | Embedding providers (`list`, `test`, `configure`) |
+| tag | tg | Episode tags (`add`, `remove`, `set`, `get`, `search`) |
+| relationship | rel | Episode relationships (DAG + `info`) |
+| playbook | pb | Playbook recommendations & management |
+| feedback | fb | Recommendation feedback tracking |
+| external-signal | sig | External signal provider management |
+| completion | comp | Shell completions (`bash`, `zsh`, `fish`, …) |
+
+Subcommand help is authoritative: `do-memory-cli <cmd> --help`. Some leaf commands
+(`backup create`, `logs export`, `monitor export`) accept a **local** `--format`;
+all others use the top-level flag only.
 
 See **[commands.md](commands.md)** for detailed command documentation and **[examples.md](examples.md)** for common workflows.

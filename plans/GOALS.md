@@ -1,10 +1,19 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-08-06
-- **Status**: CIT-A4/A5 + CIT-A1/A2/A3 workflow side implemented; ADR-080 attribution PR #927 open; live-ruleset change awaits ADR-079 acceptance
+- **Last Updated**: 2026-08-07
+- **Status**: PR review + CI fix wave done (#928/#927 CI green); ADR-080 attribution PR #927 open; live-ruleset change awaits ADR-079 acceptance
 - **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-- **Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` (CIT wave) + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`
+
+## Closed this wave (2026-08-07)
+
+| Goal | Status |
+|------|--------|
+| Repair #928 commit messages (commitlint clean, no-op commits dropped) | ✅ pushed |
+| Unblock #927 pre-existing release drift (`release-preparation` deadlock breaker) | ✅ drift check green |
+| Raise #927 Codecov patch coverage (receipt matrix + MCP envelope tests + CLI dedup) | ✅ pushed; re-measuring |
+| Main cancelled CI runs re-run + plans/learnings refreshed | ✅ |
 
 ## Active goals (2026-08-06)
 

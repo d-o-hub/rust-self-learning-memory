@@ -42,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix `local-embeddings` build/clippy: adopt the ort 2.0.0-rc.13 `ep::CPU`
   provider API and drop unfulfilled lint expectations
 
+- fix `csm` feature build: resolve the stale lock mix (chaotic_semantic_memory
+  0.3.8 with csm-* sub-crates at 0.3.7) by aligning all csm crates at 0.3.8
+
 ### Performance
 
 - optimize ConceptGraph domain-term expand allocations and sorting

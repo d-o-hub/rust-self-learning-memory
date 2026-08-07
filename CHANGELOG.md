@@ -39,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - route CLI tracing to stderr and honor `RUST_LOG` so `--format json`/`yaml`
   output stays machine-parseable for scripts
 
+- fix `local-embeddings` build/clippy: adopt the ort 2.0.0-rc.13 `ep::CPU`
+  provider API and drop unfulfilled lint expectations
+
 ### Performance
 
 - optimize ConceptGraph domain-term expand allocations and sorting

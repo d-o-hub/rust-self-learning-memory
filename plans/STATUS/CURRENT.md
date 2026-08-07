@@ -1,18 +1,28 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-08-06
-**Released Version**: v0.1.37
+**Last Updated**: 2026-08-07
+**Released Version**: v0.1.37 (⚠️ `v0.1.38` prepared in #921 but not yet shipped)
 **Workspace Version**: 0.1.38 (next release)
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 **Branch**: `main` @ `92db07bf`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | #927 ADR-080/081 attribution (BLOCKED on checks), + CIT-A4/A5 wave PR |
+| Open PRs | #928 CIT-A4/A5 wave + plan truth (CI green) · #927 ADR-080/081 attribution (CI green) — both awaiting terminal-state re-run |
 | Open issues | #913 Nix CI evaluation |
+
+## Recent completed (2026-08-07 — PR review & CI fix wave)
+
+| Wave | Result |
+|------|--------|
+| #928 commit messages | ✅ 5 long-body commits rewrapped (≤100 chars), 2 no-op commits dropped, commitlint 6/6 clean |
+| #927 release drift | ✅ `commit_limit` deadlock broken via `release-preparation` label (v0.1.38 ship remains TODO) |
+| #927 Codecov patch | ✅ receipt matrix + MCP envelope tests + CLI render dedup (`attribution_output`) |
+| Main cancelled runs | ✅ Skill Evals + Performance Benchmarks re-run |
+| Memory CLI validation | ✅ 3 episodes learned; `pattern recommend --episode-id` receipt `Persisted` e2e |
 
 ## Snapshot
 

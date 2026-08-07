@@ -1,14 +1,14 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-06
+- **Last Updated**: 2026-08-07
 - **Version**: workspace `0.1.38` · latest tag `v0.1.37`
 - **Branch**: `main` @ `92db07bf`
-- **Open PRs**: #927 (ADR-080/081 attribution, BLOCKED on checks) + this CIT-A4/A5 wave PR
-- **PR merge session**: #916 + #917 merged 2026-08-02 (see `plans/STATUS/VALIDATION_LATEST.md`)
+- **Open PRs**: #928 (this CIT wave + plan truth; CI green after commit-message repair) + #927 (ADR-080/081 attribution; CI green after drift label + Codecov fixes) — both awaiting terminal-state re-run; see `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`
+- **PR merge session**: #929 merged into this wave branch 2026-08-07 (CIT-A1/A2/A3); #916 + #917 merged 2026-08-02
 - **Open issues**: #913
-- **Active plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 + CIT-A4/A5 + CIT-A1/A2/A3 workflow side implemented)
+- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.37` tagged and shipped
+- **Release**: ✅ `v0.1.37` tagged and shipped · ⚠️ `v0.1.38` prepared (#921) but **not yet shipped** — per-PR drift resolved via `release-preparation` label until the release ships (TODO: release-guard ship)
 
 ---
 

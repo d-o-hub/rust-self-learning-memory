@@ -1,3 +1,28 @@
+# Validation Latest — 2026-08-07 (PR review & CI fix wave)
+
+**Goal**: Fix all failing CI on open PRs #928/#927 (including pre-existing
+failures), address PR comments, and validate the fixes.
+
+**Workspace**: `0.1.38` · **Tag**: `v0.1.37`
+
+## Evidence
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| #928 commitlint | 5 long-body commits rewrapped via `fold -s -w 100`; 2 no-op commits dropped; `npx commitlint --from 92db07bf --to HEAD` 6/6 clean; content diff vs old head empty | ✅ |
+| #928 CI | Commit Message Lint + 5 fail-closed waiters green after repair; benchmarks/quality-gates terminal-state | ✅ |
+| #927 drift | `commit_limit` (43 unreleased) resolved via `release-preparation` label; Release Drift Check green | ✅ |
+| #927 Codecov | Receipt matrix (9 tests), MCP envelope tests, CLI render dedup; patch coverage re-measured on new head | ✅ |
+| Clippy | `cargo clippy -p do-memory-core -p do-memory-mcp -p do-memory-cli --all-targets` → 0 warnings | ✅ |
+| fmt | `cargo fmt --all -- --check` clean | ✅ |
+| Tests | core lib 1258 ✅ · mcp lib 262 ✅ · cli lib 218 ✅ · receipt matrix 22 ✅ · snapshot 37 ✅ | ✅ |
+| Memory CLI | 3 episodes learned in `./data/cache.redb`; `pattern recommend --episode-id` → session + `Persisted` receipt e2e | ✅ |
+| Main cancelled runs | Skill Evals 31124726735 + Benchmarks 31124727114 re-run (were cancelled, no code failure) | ✅ |
+| Live ruleset | Unchanged — ADR-079 aggregate still requires maintainer acceptance | ⚠️ open |
+| Release v0.1.38 | Prepared (#921) but not shipped; TODO release-guard ship to clear drift permanently | ⚠️ open |
+
+---
+
 # Validation Latest — 2026-08-06 (CIT-A1/A2/A3 workflow wave)
 
 **Goal**: Validate the fail-closed waiter changes, the `CI / Required` aggregate,

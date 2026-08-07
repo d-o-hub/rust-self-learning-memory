@@ -1,8 +1,18 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-08-06
-- **Active plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` (CIT wave) + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Last Updated**: 2026-08-07
+- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` (PR review + CI fix wave) + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Active actions (2026-08-07 — PR review & CI fix wave)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-355 | Review/roast open PRs #928 + #927; fix all failing CI incl. pre-existing | GOAP | ✅ 2026-08-07 (see wave plan) |
+| ACT-356 | Repair #928 commit messages (rewrap bodies ≤100, drop no-op commits) | commitlint | ✅ pushed; CI green |
+| ACT-357 | Break #927 drift deadlock via `release-preparation` label | drift | ✅ Release Drift Check green |
+| ACT-358 | Raise #927 Codecov patch coverage (receipt matrix + MCP + CLI dedup) | RAT-B8/B9 | ✅ pushed `68457631`→`52276c50` |
+| ACT-359 | Ship v0.1.38 via release-guard to clear repo-wide drift for all PRs | R-A3 | ⏳ TODO (main green; needs maintainer go) |
 
 ## Active actions (2026-08-06)
 
@@ -66,3 +76,7 @@ Full tables: `plans/archive/2026-07-consolidation/completed-sprints/`
 - sha2 digests: use portable hex encode (not `format!("{:x}", finalize())` on 0.11+)  
 - Docs integrity: do not re-check `plans/archive/**` link rot as a ship blocker  
 - After tag `vX.Y.Z`, immediately bump workspace to next patch before more feat/fix commits  
+- Commit bodies must stay ≤ 100 chars; repair long bodies mechanically with `git filter-branch --msg-filter 'fold -s -w 100'` and verify with `npx commitlint --from <base> --to HEAD --verbose`
+- No-op `chore(ci): re-trigger workflow runs` commits are lint-noise — drop them via rebase, never push them
+- Pre-existing repo-wide release drift blocks every PR: fix the root cause (ship the release), use the `release-preparation` label only as a documented deadlock breaker
+- Codecov patch coverage: dedupe duplicated rendering (removes uncovered lines from the denominator) AND add targeted tests for new core paths

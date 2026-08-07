@@ -129,6 +129,86 @@ pub async fn search_patterns(
     Ok(())
 }
 
+/// Render the human recommendation listing shared by the attributed and
+/// unattributed recommendation paths (ADR-080 G13 dedup).
+fn print_pattern_results_human(
+    task_description: &str,
+    results: &[do_memory_core::memory::PatternSearchResult],
+) {
+    if results.is_empty() {
+        println!(
+            "No pattern recommendations found for task: {}",
+            task_description
+        );
+        return;
+    }
+
+    println!("Pattern Recommendations for: \"{}\"", task_description);
+    println!("Found {} recommendations", results.len());
+    println!();
+
+    for (i, result) in results.iter().enumerate() {
+        println!(
+            "{}. Recommended Pattern (relevance: {:.2})",
+            i + 1,
+            result.relevance_score
+        );
+        println!("   ID: {}", result.pattern.id());
+        println!(
+            "   Success Rate: {:.1}%",
+            result.pattern.success_rate() * 100.0
+        );
+
+        if let Some(ctx) = result.pattern.context() {
+            println!("   Domain: {}", ctx.domain);
+            if let Some(lang) = &ctx.language {
+                println!("   Language: {}", lang);
+            }
+            if let Some(fw) = &ctx.framework {
+                println!("   Framework: {}", fw);
+            }
+        }
+
+        match &result.pattern {
+            do_memory_core::Pattern::ToolSequence { tools, .. } => {
+                println!("   Type: Tool Sequence");
+                println!("   Tools: {}", tools.join(" → "));
+            }
+            do_memory_core::Pattern::DecisionPoint {
+                condition, action, ..
+            } => {
+                println!("   Type: Decision Point");
+                println!("   Condition: {}", condition);
+                println!("   Action: {}", action);
+            }
+            do_memory_core::Pattern::ErrorRecovery {
+                error_type,
+                recovery_steps,
+                ..
+            } => {
+                println!("   Type: Error Recovery");
+                println!("   Error: {}", error_type);
+                println!("   Recovery: {}", recovery_steps.join(", "));
+            }
+            do_memory_core::Pattern::ContextPattern {
+                recommended_approach,
+                ..
+            } => {
+                println!("   Type: Context Pattern");
+                println!("   Approach: {}", recommended_approach);
+            }
+        }
+
+        let eff = result.pattern.effectiveness();
+        println!(
+            "   Applied {} times with {:.1}% success rate",
+            eff.times_applied,
+            eff.application_success_rate() * 100.0
+        );
+        println!();
+    }
+}
+
 /// Recommend patterns for a specific task
 pub async fn recommend_patterns(
     memory: &SelfLearningMemory,
@@ -170,112 +250,11 @@ pub async fn recommend_patterns(
                 println!("{}", json);
             }
             OutputFormat::Human => {
-                let results = &attr_res.recommendations;
-                if results.is_empty() {
-                    println!(
-                        "No pattern recommendations found for task: {}",
-                        task_description
-                    );
-                } else {
-                    println!("Pattern Recommendations for: \"{}\"", task_description);
-                    println!("Found {} recommendations", results.len());
-                    println!();
-
-                    for (i, result) in results.iter().enumerate() {
-                        println!(
-                            "{}. Recommended Pattern (relevance: {:.2})",
-                            i + 1,
-                            result.relevance_score
-                        );
-                        println!("   ID: {}", result.pattern.id());
-                        println!(
-                            "   Success Rate: {:.1}%",
-                            result.pattern.success_rate() * 100.0
-                        );
-
-                        if let Some(ctx) = result.pattern.context() {
-                            println!("   Domain: {}", ctx.domain);
-                            if let Some(lang) = &ctx.language {
-                                println!("   Language: {}", lang);
-                            }
-                            if let Some(fw) = &ctx.framework {
-                                println!("   Framework: {}", fw);
-                            }
-                        }
-
-                        match &result.pattern {
-                            do_memory_core::Pattern::ToolSequence { tools, .. } => {
-                                println!("   Type: Tool Sequence");
-                                println!("   Tools: {}", tools.join(" → "));
-                            }
-                            do_memory_core::Pattern::DecisionPoint {
-                                condition, action, ..
-                            } => {
-                                println!("   Type: Decision Point");
-                                println!("   Condition: {}", condition);
-                                println!("   Action: {}", action);
-                            }
-                            do_memory_core::Pattern::ErrorRecovery {
-                                error_type,
-                                recovery_steps,
-                                ..
-                            } => {
-                                println!("   Type: Error Recovery");
-                                println!("   Error: {}", error_type);
-                                println!("   Recovery: {}", recovery_steps.join(", "));
-                            }
-                            do_memory_core::Pattern::ContextPattern {
-                                recommended_approach,
-                                ..
-                            } => {
-                                println!("   Type: Context Pattern");
-                                println!("   Approach: {}", recommended_approach);
-                            }
-                        }
-
-                        let eff = result.pattern.effectiveness();
-                        println!(
-                            "   Applied {} times with {:.1}% success rate",
-                            eff.times_applied,
-                            eff.application_success_rate() * 100.0
-                        );
-                        println!();
-                    }
-                }
-
-                println!("--- Attribution Tracking (ADR-080) ---");
-                println!("Session ID: {}", attr_res.session.session_id);
-                println!("Episode ID: {}", attr_res.session.episode_id);
-
-                match &attr_res.receipt {
-                    do_memory_core::PersistenceReceipt::Persisted { .. } => {
-                        println!("Durability: Persisted (durable across restarts)");
-                    }
-                    do_memory_core::PersistenceReceipt::PartiallyPersisted {
-                        failed_backends,
-                        ..
-                    } => {
-                        println!(
-                            "⚠️ Durability: Partially Persisted (failed backends: {})",
-                            failed_backends.join(", ")
-                        );
-                    }
-                    do_memory_core::PersistenceReceipt::MemoryOnly { .. } => {
-                        println!(
-                            "⚠️ Durability: Memory-only (process-local, will be lost on restart)"
-                        );
-                    }
-                    do_memory_core::PersistenceReceipt::PersistenceFailed {
-                        failed_backends,
-                        ..
-                    } => {
-                        println!(
-                            "❌ Durability: Persistence Failed (failed backends: {})",
-                            failed_backends.join(", ")
-                        );
-                    }
-                }
-
+                print_pattern_results_human(task_description, &attr_res.recommendations);
+                crate::commands::attribution_output::print_attribution_block(
+                    &attr_res.session,
+                    &attr_res.receipt,
+                );
                 println!("\n💡 Tip: Use these patterns as guidance for your current task!");
             }
             OutputFormat::Yaml => {
@@ -295,80 +274,10 @@ pub async fn recommend_patterns(
                 println!("{}", json);
             }
             OutputFormat::Human => {
-                if results.is_empty() {
-                    println!(
-                        "No pattern recommendations found for task: {}",
-                        task_description
-                    );
-                    return Ok(());
+                print_pattern_results_human(task_description, &results);
+                if !results.is_empty() {
+                    println!("💡 Tip: Use these patterns as guidance for your current task!");
                 }
-
-                println!("Pattern Recommendations for: \"{}\"", task_description);
-                println!("Found {} recommendations", results.len());
-                println!();
-
-                for (i, result) in results.iter().enumerate() {
-                    println!(
-                        "{}. Recommended Pattern (relevance: {:.2})",
-                        i + 1,
-                        result.relevance_score
-                    );
-                    println!("   ID: {}", result.pattern.id());
-                    println!(
-                        "   Success Rate: {:.1}%",
-                        result.pattern.success_rate() * 100.0
-                    );
-
-                    if let Some(ctx) = result.pattern.context() {
-                        println!("   Domain: {}", ctx.domain);
-                        if let Some(lang) = &ctx.language {
-                            println!("   Language: {}", lang);
-                        }
-                        if let Some(fw) = &ctx.framework {
-                            println!("   Framework: {}", fw);
-                        }
-                    }
-
-                    match &result.pattern {
-                        do_memory_core::Pattern::ToolSequence { tools, .. } => {
-                            println!("   Type: Tool Sequence");
-                            println!("   Tools: {}", tools.join(" → "));
-                        }
-                        do_memory_core::Pattern::DecisionPoint {
-                            condition, action, ..
-                        } => {
-                            println!("   Type: Decision Point");
-                            println!("   Condition: {}", condition);
-                            println!("   Action: {}", action);
-                        }
-                        do_memory_core::Pattern::ErrorRecovery {
-                            error_type,
-                            recovery_steps,
-                            ..
-                        } => {
-                            println!("   Type: Error Recovery");
-                            println!("   Error: {}", error_type);
-                            println!("   Recovery: {}", recovery_steps.join(", "));
-                        }
-                        do_memory_core::Pattern::ContextPattern {
-                            recommended_approach,
-                            ..
-                        } => {
-                            println!("   Type: Context Pattern");
-                            println!("   Approach: {}", recommended_approach);
-                        }
-                    }
-
-                    let eff = result.pattern.effectiveness();
-                    println!(
-                        "   Applied {} times with {:.1}% success rate",
-                        eff.times_applied,
-                        eff.application_success_rate() * 100.0
-                    );
-                    println!();
-                }
-
-                println!("💡 Tip: Use these patterns as guidance for your current task!");
             }
             OutputFormat::Yaml => {
                 let yaml_output: Vec<YamlPatternResult> = results

@@ -101,37 +101,11 @@ pub async fn recommend_playbook(
             }
             OutputFormat::Human | OutputFormat::Yaml => {
                 print_playbook_human(&summary);
-                println!("\n--- Attribution Tracking (ADR-080) ---");
-                println!("Session ID: {}", attr_res.session.session_id);
-                println!("Episode ID: {}", attr_res.session.episode_id);
-                match &attr_res.receipt {
-                    do_memory_core::PersistenceReceipt::Persisted { .. } => {
-                        println!("Durability: Persisted (durable across restarts)");
-                    }
-                    do_memory_core::PersistenceReceipt::PartiallyPersisted {
-                        failed_backends,
-                        ..
-                    } => {
-                        println!(
-                            "⚠️ Durability: Partially Persisted (failed backends: {})",
-                            failed_backends.join(", ")
-                        );
-                    }
-                    do_memory_core::PersistenceReceipt::MemoryOnly { .. } => {
-                        println!(
-                            "⚠️ Durability: Memory-only (process-local, will be lost on restart)"
-                        );
-                    }
-                    do_memory_core::PersistenceReceipt::PersistenceFailed {
-                        failed_backends,
-                        ..
-                    } => {
-                        println!(
-                            "❌ Durability: Persistence Failed (failed backends: {})",
-                            failed_backends.join(", ")
-                        );
-                    }
-                }
+                println!();
+                crate::commands::attribution_output::print_attribution_block(
+                    &attr_res.session,
+                    &attr_res.receipt,
+                );
             }
         }
     } else {

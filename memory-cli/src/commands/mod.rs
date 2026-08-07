@@ -37,6 +37,7 @@ pub use tag::*;
 use crate::config::Config;
 use crate::output::OutputFormat;
 
+mod attribution_output;
 mod dispatch_episode;
 mod dispatch_misc;
 mod dispatch_pattern;

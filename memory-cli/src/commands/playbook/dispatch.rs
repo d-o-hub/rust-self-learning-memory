@@ -20,6 +20,7 @@ pub async fn handle_playbook_command(
             language,
             framework,
             tags,
+            episode_id,
         } => {
             let task_desc = task.unwrap_or_else(|| "General task".to_string());
             commands::recommend_playbook(
@@ -30,6 +31,7 @@ pub async fn handle_playbook_command(
                 language.as_deref(),
                 framework.as_deref(),
                 tags,
+                episode_id.as_deref(),
                 memory,
                 config,
                 format,

@@ -587,6 +587,7 @@ fn test_search_patterns_output() {
         }],
         total_searched: 1,
         query: "rust authentication".to_string(),
+        attribution: None,
     };
     assert_json_snapshot!(output);
 }

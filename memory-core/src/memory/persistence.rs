@@ -4,9 +4,11 @@
 //! storage (Turso) and cache storage (redb), providing fallback chain logic
 //! for loading sessions, feedback, and statistics.
 
+use crate::memory::attribution::PersistenceReceipt;
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
+
 use tracing::warn;
 
 use super::SelfLearningMemory;
@@ -105,6 +107,55 @@ impl SelfLearningMemory {
         None
     }
 
+    /// Resolve a recommendation session by ID from durable storage (ADR-081 §1).
+    ///
+    /// Checks Turso then redb, hydrating the in-memory tracker on a hit so that
+    /// subsequent lookups in this process are served locally. Returns `None` only
+    /// when no configured backend holds the session.
+    ///
+    /// This is what makes feedback restart-safe: a session persisted before a
+    /// restart is resolvable by a cold tracker.
+    pub(crate) async fn fetch_session_by_id_from_storage(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Option<RecommendationSession> {
+        if let Some(storage) = &self.turso_storage {
+            match storage.get_recommendation_session(session_id).await {
+                Ok(Some(session)) => {
+                    self.recommendation_tracker
+                        .record_session(session.clone())
+                        .await;
+                    return Some(session);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "Failed to load recommendation session from durable storage"
+                ),
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache.get_recommendation_session(session_id).await {
+                Ok(Some(session)) => {
+                    self.recommendation_tracker
+                        .record_session(session.clone())
+                        .await;
+                    return Some(session);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "Failed to load recommendation session from cache storage"
+                ),
+            }
+        }
+
+        None
+    }
+
     pub(crate) async fn fetch_feedback_from_storage(
         &self,
         session_id: uuid::Uuid,
@@ -112,17 +163,9 @@ impl SelfLearningMemory {
         if let Some(storage) = &self.turso_storage {
             match storage.get_recommendation_feedback(session_id).await {
                 Ok(Some(feedback)) => {
-                    if let Err(err) = self
-                        .recommendation_tracker
-                        .record_feedback(feedback.clone())
-                        .await
-                    {
-                        warn!(
-                            session_id = %session_id,
-                            error = %err,
-                            "Failed to cache recommendation feedback after durable load"
-                        );
-                    }
+                    self.recommendation_tracker
+                        .hydrate_feedback(feedback.clone())
+                        .await;
                     return Some(feedback);
                 }
                 Ok(None) => {}
@@ -137,17 +180,9 @@ impl SelfLearningMemory {
         if let Some(cache) = &self.cache_storage {
             match cache.get_recommendation_feedback(session_id).await {
                 Ok(Some(feedback)) => {
-                    if let Err(err) = self
-                        .recommendation_tracker
-                        .record_feedback(feedback.clone())
-                        .await
-                    {
-                        warn!(
-                            session_id = %session_id,
-                            error = %err,
-                            "Failed to cache recommendation feedback after cache load"
-                        );
-                    }
+                    self.recommendation_tracker
+                        .hydrate_feedback(feedback.clone())
+                        .await;
                     return Some(feedback);
                 }
                 Ok(None) => {}
@@ -186,6 +221,82 @@ impl SelfLearningMemory {
         }
 
         None
+    }
+
+    /// Persist a recommendation session and return a truthful `PersistenceReceipt` (ADR-080 §3).
+    ///
+    /// Unlike `persist_recommendation_session`, this method tracks which
+    /// backends are configured, whether each write succeeded, and returns a
+    /// machine-stable state that callers can use to determine whether feedback
+    /// submitted after restart will find the session.
+    pub(crate) async fn persist_session_checked(
+        &self,
+        session: &RecommendationSession,
+    ) -> PersistenceReceipt {
+        let session_id = session.session_id;
+        let episode_id = session.episode_id;
+
+        let turso_configured = self.turso_storage.is_some();
+        let redb_configured = self.cache_storage.is_some();
+
+        if !turso_configured && !redb_configured {
+            return PersistenceReceipt::MemoryOnly {
+                session_id,
+                episode_id,
+            };
+        }
+
+        let mut failed: Vec<String> = Vec::new();
+        let mut succeeded: usize = 0;
+
+        if let Some(storage) = &self.turso_storage {
+            match storage.store_recommendation_session(session).await {
+                Ok(()) => succeeded += 1,
+                Err(err) => {
+                    warn!(
+                        session_id = %session_id,
+                        error = %err,
+                        "Failed to persist session to Turso"
+                    );
+                    failed.push("turso".to_string());
+                }
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache.store_recommendation_session(session).await {
+                Ok(()) => succeeded += 1,
+                Err(err) => {
+                    warn!(
+                        session_id = %session_id,
+                        error = %err,
+                        "Failed to persist session to redb"
+                    );
+                    failed.push("redb".to_string());
+                }
+            }
+        }
+
+        let configured = usize::from(turso_configured) + usize::from(redb_configured);
+
+        if succeeded == 0 {
+            PersistenceReceipt::PersistenceFailed {
+                session_id,
+                episode_id,
+                failed_backends: failed,
+            }
+        } else if succeeded < configured {
+            PersistenceReceipt::PartiallyPersisted {
+                session_id,
+                episode_id,
+                failed_backends: failed,
+            }
+        } else {
+            PersistenceReceipt::Persisted {
+                session_id,
+                episode_id,
+            }
+        }
     }
 }
 

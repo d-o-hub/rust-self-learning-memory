@@ -60,9 +60,11 @@
 //! # }
 //! ```
 
+mod receipt;
 mod tracker;
 mod types;
 
+pub use receipt::{AttributedPatternResult, AttributedPlaybookResult, PersistenceReceipt};
 pub use tracker::RecommendationTracker;
 pub use types::{
     RecommendationFeedback, RecommendationSession, RecommendationStats, SessionWithFeedback,

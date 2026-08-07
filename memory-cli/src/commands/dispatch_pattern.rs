@@ -52,6 +52,7 @@ pub async fn handle_pattern_command(
             domain,
             limit,
             tags,
+            episode_id,
         } => {
             pattern::recommend_patterns(
                 memory,
@@ -59,6 +60,7 @@ pub async fn handle_pattern_command(
                 &domain,
                 tags,
                 limit,
+                episode_id,
                 format,
             )
             .await

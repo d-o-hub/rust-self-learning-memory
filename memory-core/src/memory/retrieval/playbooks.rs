@@ -151,21 +151,6 @@ impl SelfLearningMemory {
         // Step 7: Generate the playbook
         match generator.generate(&request, &patterns, &summaries, &reflections) {
             Ok(playbook) => {
-                // Record this recommendation session for attribution tracking
-                let session = crate::memory::attribution::RecommendationSession {
-                    session_id: Uuid::new_v4(),
-                    episode_id: Uuid::nil(), // No episode yet
-                    timestamp: chrono::Utc::now(),
-                    recommended_pattern_ids: playbook
-                        .supporting_pattern_ids
-                        .iter()
-                        .map(|id| id.to_string())
-                        .collect(),
-                    recommended_playbook_ids: vec![playbook.playbook_id],
-                };
-
-                self.recommendation_tracker.record_session(session).await;
-
                 info!(
                     playbook_id = %playbook.playbook_id,
                     confidence = playbook.confidence,
@@ -181,6 +166,74 @@ impl SelfLearningMemory {
                 vec![]
             }
         }
+    }
+
+    /// Retrieve actionable playbooks and create an attributed recommendation session (ADR-080 §1–3).
+    ///
+    /// Requires a valid, non-nil `episode_id`. Returns playbooks together with
+    /// a session and a `PersistenceReceipt` describing durability state.
+    #[instrument(skip(self, context))]
+    #[expect(clippy::too_many_arguments)]
+    pub async fn retrieve_playbooks_attributed(
+        &self,
+        episode_id: Uuid,
+        task_description: &str,
+        domain: &str,
+        task_type: TaskType,
+        context: TaskContext,
+        max_playbooks: usize,
+        max_steps_per_playbook: usize,
+    ) -> crate::error::Result<
+        crate::memory::attribution::AttributedPlaybookResult<RecommendedPlaybook>,
+    > {
+        if episode_id.is_nil() {
+            return Err(crate::error::Error::InvalidInput(
+                "Attributed playbook retrieval requires a non-nil episode ID".to_string(),
+            ));
+        }
+
+        let playbooks = self
+            .retrieve_playbooks(
+                task_description,
+                domain,
+                task_type,
+                context,
+                max_playbooks,
+                max_steps_per_playbook,
+            )
+            .await;
+
+        let mut recommended_pattern_ids = Vec::new();
+        let mut recommended_playbook_ids = Vec::new();
+
+        for pb in &playbooks {
+            recommended_playbook_ids.push(pb.playbook_id);
+            for pid in &pb.supporting_pattern_ids {
+                let pid_str = pid.to_string();
+                if !recommended_pattern_ids.contains(&pid_str) {
+                    recommended_pattern_ids.push(pid_str);
+                }
+            }
+        }
+
+        let session = crate::memory::attribution::RecommendationSession {
+            session_id: Uuid::new_v4(),
+            episode_id,
+            timestamp: chrono::Utc::now(),
+            recommended_pattern_ids,
+            recommended_playbook_ids,
+        };
+
+        self.recommendation_tracker
+            .record_session(session.clone())
+            .await;
+        let receipt = self.persist_session_checked(&session).await;
+
+        Ok(crate::memory::attribution::AttributedPlaybookResult {
+            playbooks,
+            session,
+            receipt,
+        })
     }
 
     /// Explain a pattern in human-readable form.

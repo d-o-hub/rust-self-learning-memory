@@ -34,6 +34,14 @@ fn default_min_relevance() -> f32 {
     0.3
 }
 
+/// Attribution envelope returned when episode_id is supplied (ADR-080 §1, RAT-A5)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributionEnvelope {
+    pub session_id: uuid::Uuid,
+    pub episode_id: uuid::Uuid,
+    pub receipt: do_memory_core::PersistenceReceipt,
+}
+
 /// Output from search_patterns tool
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchPatternsOutput {
@@ -43,6 +51,9 @@ pub struct SearchPatternsOutput {
     pub total_searched: usize,
     /// Query that was executed
     pub query: String,
+    /// Attribution info if episode_id was provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attribution: Option<AttributionEnvelope>,
 }
 
 /// Individual pattern result
@@ -118,6 +129,7 @@ pub async fn execute(
         results: pattern_results,
         total_searched: results.len(),
         query: input.query.clone(),
+        attribution: None,
     };
 
     Ok(serde_json::to_value(output)?)
@@ -210,6 +222,9 @@ pub struct RecommendPatternsInput {
     /// Maximum number of recommendations (default: 3)
     #[serde(default = "default_recommendation_limit")]
     pub limit: usize,
+    /// Optional episode ID for attribution tracking (ADR-080 §1, RAT-A5)
+    #[serde(default)]
+    pub episode_id: Option<uuid::Uuid>,
 }
 
 fn default_recommendation_limit() -> usize {
@@ -230,10 +245,27 @@ pub async fn execute_recommend(
         tags: input.tags.clone(),
     };
 
-    // Execute recommendation
-    let results = memory
-        .recommend_patterns_for_task(&input.task_description, context, input.limit)
-        .await?;
+    let (results, attribution) = if let Some(episode_id) = input.episode_id {
+        let attr_res = memory
+            .recommend_patterns_attributed(
+                episode_id,
+                &input.task_description,
+                context,
+                input.limit,
+            )
+            .await?;
+        let envelope = AttributionEnvelope {
+            session_id: attr_res.session.session_id,
+            episode_id,
+            receipt: attr_res.receipt,
+        };
+        (attr_res.recommendations, Some(envelope))
+    } else {
+        let res = memory
+            .recommend_patterns_for_task(&input.task_description, context, input.limit)
+            .await?;
+        (res, None)
+    };
 
     // Convert results
     let pattern_results: Vec<PatternResult> = results
@@ -245,6 +277,7 @@ pub async fn execute_recommend(
         results: pattern_results,
         total_searched: results.len(),
         query: input.task_description.clone(),
+        attribution,
     };
 
     Ok(serde_json::to_value(output)?)
@@ -276,9 +309,11 @@ mod tests {
             domain: "test".to_string(),
             tags: vec![],
             limit: default_recommendation_limit(),
+            episode_id: None,
         };
 
         assert_eq!(input.limit, 3);
+        assert!(input.episode_id.is_none());
     }
 
     #[tokio::test]
@@ -293,5 +328,58 @@ mod tests {
             filter_by_domain: false,
         };
         let _ = execute(&memory, input).await;
+    }
+
+    #[tokio::test]
+    async fn test_execute_recommend_with_episode_id_attaches_envelope() {
+        let memory = SelfLearningMemory::new();
+        let episode_id = uuid::Uuid::new_v4();
+        let input = RecommendPatternsInput {
+            task_description: "retry with backoff".to_string(),
+            domain: "error-handling".to_string(),
+            tags: vec![],
+            limit: default_recommendation_limit(),
+            episode_id: Some(episode_id),
+        };
+
+        let value = execute_recommend(&memory, input).await.unwrap();
+        let output: SearchPatternsOutput = serde_json::from_value(value).unwrap();
+
+        let envelope = output
+            .attribution
+            .expect("episode_id must produce an attribution envelope");
+        assert_eq!(envelope.episode_id, episode_id);
+        assert!(
+            matches!(
+                envelope.receipt,
+                do_memory_core::PersistenceReceipt::MemoryOnly { .. }
+            ),
+            "no storage backends configured must yield MemoryOnly"
+        );
+        // The session must be discoverable by episode for later feedback.
+        let session = memory
+            .get_recommendation_session_for_episode(episode_id)
+            .await
+            .expect("attributed recommendation must record a session");
+        assert_eq!(session.session_id, envelope.session_id);
+    }
+
+    #[tokio::test]
+    async fn test_execute_recommend_without_episode_id_has_no_envelope() {
+        let memory = SelfLearningMemory::new();
+        let input = RecommendPatternsInput {
+            task_description: "test task".to_string(),
+            domain: "test".to_string(),
+            tags: vec![],
+            limit: default_recommendation_limit(),
+            episode_id: None,
+        };
+
+        let value = execute_recommend(&memory, input).await.unwrap();
+        let output: SearchPatternsOutput = serde_json::from_value(value).unwrap();
+        assert!(
+            output.attribution.is_none(),
+            "no episode_id must produce no attribution envelope"
+        );
     }
 }

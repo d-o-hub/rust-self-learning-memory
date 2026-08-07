@@ -304,9 +304,10 @@ pub use types::{
     TaskType,
 };
 
-// Re-export attribution types (ADR-044 Feature 2)
+// Re-export attribution types (ADR-044 Feature 2 & ADR-080)
 pub use memory::attribution::{
-    RecommendationFeedback, RecommendationSession, RecommendationStats, RecommendationTracker,
+    AttributedPatternResult, AttributedPlaybookResult, PersistenceReceipt, RecommendationFeedback,
+    RecommendationSession, RecommendationStats, RecommendationTracker,
 };
 
 // Re-export context bundle types (WG-117)

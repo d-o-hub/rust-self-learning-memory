@@ -269,10 +269,14 @@ mod tests {
         let memory = Arc::new(SelfLearningMemory::new());
         let tools = RecommendationFeedbackTools::new(memory);
 
-        // First record a session
+        // First record a session. It must recommend every ID the feedback below
+        // applies, or the ADR-080 §4 subset rule rejects the feedback before the
+        // clamping this test actually exercises can be observed.
         let session_input = RecordRecommendationSessionInput {
             episode_id: Uuid::new_v4().to_string(),
-            recommended_pattern_ids: vec!["p1".to_string()],
+            recommended_pattern_ids: (0..constants::MAX_RECOMMENDED_IDS + 10)
+                .map(|i| format!("p{}", i))
+                .collect(),
             recommended_playbook_ids: vec![],
         };
         let session_output = tools.record_session(session_input).await.unwrap();

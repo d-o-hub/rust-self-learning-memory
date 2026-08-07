@@ -1,18 +1,18 @@
 # GOAP Goals Index
 
 - **Last Updated**: 2026-08-06
-- **Status**: CIT-A4/A5 implemented (workflow half); ADR-080 attribution PR #927 open; ADR-079 aggregate awaits maintainer acceptance
+- **Status**: CIT-A4/A5 + CIT-A1/A2/A3 workflow side implemented; ADR-080 attribution PR #927 open; live-ruleset change awaits ADR-079 acceptance
 - **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-- **Plan**: `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` (this wave) on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` (CIT wave) + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## Active goals (2026-08-06)
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | Proposed (requires ADR acceptance + ruleset approval) |
-| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | Planned (blocked by CIT-A1) |
-| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | Planned (blocked by CIT-A2) |
+| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | 🔄 workflow side done (stable `CI / Required` aggregate); live-ruleset step awaits ADR acceptance |
+| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | 🔄 waiters fail closed + commit-lint wait done; downstream actor parity pending |
+| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures (2026-08-06); ruleset-context fixture follows |
 | Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | ✅ Implemented (2026-08-06) |
 | Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |

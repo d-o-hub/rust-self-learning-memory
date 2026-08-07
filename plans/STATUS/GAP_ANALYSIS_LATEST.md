@@ -3,7 +3,7 @@
 **Generated**: 2026-08-06
 **Audit commit**: `92db07bf` (`main`)
 **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-**Active plan**: [`../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`](../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
+**Active plan**: [`../GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`](../GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) + [`../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`](../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
 
 ## Method
 
@@ -22,8 +22,10 @@
 
 | Gap | Resolution |
 |-----|------------|
+| G-P0-13 five waiters accept cancelled/skipped/missing + ignore commit lint | ✅ CIT-A2 — `allowed-conclusions: success`, `fail-on-no-checks: true`, new `Commit Message Lint` wait in all five waiters |
 | G-P1-15 release manual dispatch broken | ✅ CIT-A4 — `workflow_dispatch` removed from release.yml; publish uses `--locked`, bounded polling, and dependency-closure failure semantics |
 | G-P1-15 fuzz evidence silent green | ✅ CIT-A5 — fuzz artifacts upload with `always()`, status report fails the informational job on crashes/timeouts/startup failures |
+| G-P1-14 gate-contract parity presence-only | ✅ CIT-A3 — semantic validator + negative fixtures for cancelled-acceptance, missing aggregate, release dispatch, and `sleep 30` |
 | G-P2-1/7 R-F10 OIDC (ACT-325) | ✅ Already shipped (`id-token: write` + OIDC exchange); trackers refreshed |
 | G-P2-1/7 R-F4 SIMD cosine (ACT-326) | ✅ Already shipped (`cosine_similarity_simd` + simd bench variant); trackers refreshed |
 
@@ -50,8 +52,8 @@
 
 | ID | Gap | Evidence | Track |
 |----|-----|----------|-------|
-| G-P0-12 | `main-protection` requires no first-party build/test context; the echo anchor is unused and non-substantive | Ruleset `9591004`, `pr-check-anchor.yml` | ADR-079 / CIT-A1 |
-| G-P0-13 | Five waiters permit cancelled/skipped/missing format/Clippy and ignore commit lint | waiter workflows; PR #914 | ADR-079 / CIT-A2 |
+| G-P0-12 | `main-protection` requires no first-party build/test context; the echo anchor is unused and non-substantive | Ruleset `9591004`, `pr-check-anchor.yml` | 🔄 `CI / Required` context emitted (2026-08-06); ruleset stage + anchor removal need ADR-079 acceptance |
+| G-P0-13 | Five waiters permit cancelled/skipped/missing format/Clippy and ignore commit lint | waiter workflows; PR #914 | ✅ CIT-A2 closed 2026-08-06 (waiters fail closed + commit-lint wait) |
 | G-P0-10 | Cascade retrieval without `csm` returns a successful empty result, indistinguishable from no matches | `memory-core/src/retrieval/cascade/mod.rs` | ✅ PTA-A1 closed — typed `CascadeError::CapabilityUnavailable` |
 | G-P0-11 | CLI storage stats and connection status expose estimates/unknowns as measured values | `memory-cli/src/commands/storage/commands.rs`, `types.rs` | ✅ PTA-A2 closed — `MetricValue` provenance |
 
@@ -65,7 +67,7 @@
 | G-P1-11 | Pattern recommendations require manual session creation; playbooks record `Uuid::nil()` in memory only | core/MCP/CLI attribution paths | ADR-080 / RAT-A1…A7 |
 | G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ADR-080 / RAT-A4 |
 | G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ADR-079 / CIT-A2 |
-| G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | ADR-079 / CIT-A3 |
+| G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | 🔄 semantic validator + negative fixtures 2026-08-06; test/Clippy scope + ruleset-context fixtures remain |
 | G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ✅ CIT-A4/A5 closed 2026-08-06 |
 
 ### P2 (product / research)

@@ -34,8 +34,10 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    # Only run on PRs and never for Dependabot to avoid timeout issues
-    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    # Run on every PR (including Dependabot and forks): Quick Check always runs
+    # on PRs and this waiter is cheap. Fail closed per ADR-079 CIT-A2 - a
+    # cancelled, skipped, or missing fast check must never pass the gate.
+    if: github.event_name == 'pull_request'
     # Must exceed Quick Check job timeout (25m) + runner queue/cold-start headroom.
     # Historical failure: timeout-minutes:15 cancelled while Quick Check still ran (~15–20m).
     timeout-minutes: 40
@@ -48,8 +50,19 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 15
           running-workflow-name: Quick Check
-          fail-on-no-checks: false
-          allowed-conclusions: success,skipped,cancelled
+          fail-on-no-checks: true
+          allowed-conclusions: success
+
+      - name: Wait for Commit Message Lint
+        uses: lewagon/wait-on-check-action@2271c86c146b96545b4e871b855e10ffa6f50773 # v1.9.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'Commit Message Lint'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 15
+          running-workflow-name: Quick Check
+          fail-on-no-checks: true
+          allowed-conclusions: success
 
   # Core testing - optimized for speed with proper timeouts
   test:
@@ -431,3 +444,41 @@ jobs:
           # getrandom 0.3.x requires this cfg flag for wasm32-unknown-unknown support
           # getrandom 0.2.x uses the "js" feature (enabled via target dep in Cargo.toml)
           RUSTFLAGS: "-D warnings --cfg getrandom_backend=\"wasm_js\""
+
+  # CI / Required - stable same-run aggregate context (ADR-079 CIT-A1, workflow
+  # side; ruleset migration is a separate staged step needing maintainer
+  # approval). Fails closed: failure or cancellation of any substantive
+  # dependency fails the aggregate. Skipped is accepted only when the dependency
+  # job's own in-workflow 'if' classifier marked it inapplicable (e.g. actor or
+  # event applicability), so a path/event filter can never make this context
+  # disappear while expensive work still ran.
+  required:
+    name: CI / Required
+    runs-on: ubuntu-latest
+    needs: [test, mcp-build, multi-platform, quality-gates]
+    if: always()
+    timeout-minutes: 10
+    steps:
+      - name: Evaluate required aggregate
+        run: |
+          set -euo pipefail
+          eval_result() {
+            local name="$1" result="$2"
+            case "$result" in
+              success) echo "OK: $name" ;;
+              skipped) echo "::warning::$name was skipped by its in-workflow applicability classifier - this check did NOT run substantive assertions";;
+              failure) echo "::error::$name failed"; return 1 ;;
+              cancelled) echo "::error::$name was cancelled"; return 1 ;;
+              *) echo "::error::$name has unknown result '$result'"; return 1 ;;
+            esac
+          }
+          FAILED=0
+          eval_result "Tests" "${{ needs.test.result }}" || FAILED=1
+          eval_result "MCP Build" "${{ needs.mcp-build.result }}" || FAILED=1
+          eval_result "Multi-Platform" "${{ needs.multi-platform.result }}" || FAILED=1
+          eval_result "Quality Gates" "${{ needs.quality-gates.result }}" || FAILED=1
+          if [ "$FAILED" = "1" ]; then
+            echo "::error::CI / Required aggregate failed - see dependency job results"
+            exit 1
+          fi
+          echo "CI / Required aggregate passed"

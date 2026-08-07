@@ -1,3 +1,26 @@
+# Validation Latest — 2026-08-06 (CIT-A1/A2/A3 workflow wave)
+
+**Goal**: Validate the fail-closed waiter changes, the `CI / Required` aggregate,
+and the semantic gate-contract validator. Ruleset state untouched (maintainer).
+
+**Workspace**: `0.1.38` · **Tag**: `v0.1.37` · **HEAD**: `92db07bf`
+
+## Evidence
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| `yamllint` | ci/coverage/security/benchmarks/file-structure clean | ✅ |
+| `bash -n` | `validate-gate-contract.sh` clean | ✅ |
+| `validate-gate-contract.sh --ci-parity` | PASS on this state | ✅ |
+| Negative fixture 1 | reintroduced `allowed-conclusions: success,skipped,cancelled` → FAIL with message | ✅ |
+| Negative fixture 2 | removed `CI / Required` aggregate → FAIL with message | ✅ |
+| Waiters | 5 workflows: `allowed-conclusions: success`, `fail-on-no-checks: true`, commit-lint wait added | ✅ |
+| Aggregate | `ci.yml` job `name: CI / Required`, `if: always()`, needs test/mcp/multi/quality-gates | ✅ |
+| Plans validation | `validate-plans.sh --active-set --version-state --adrs --identifiers --links` | ✅ (pre-existing warnings only) |
+| Live ruleset | Unchanged — adding `CI / Required` to ruleset needs ADR-079 acceptance | ⚠️ open |
+
+---
+
 # Validation Latest — 2026-08-06 (CIT-A4/A5 wave)
 
 **Goal**: Validate the CIT-A4/CIT-A5 workflow changes and the plan-truth refresh

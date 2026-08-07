@@ -179,7 +179,7 @@ fn print_complete_success(
             outcome: outcome_str,
         };
 
-        return format.print_output(&result);
+        format.print_output(&result)
     }
 
     #[cfg(not(feature = "turso"))]

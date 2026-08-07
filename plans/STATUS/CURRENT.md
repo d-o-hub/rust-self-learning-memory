@@ -1,25 +1,35 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-07-30
-**Released Version**: v0.1.38  
-**Workspace Version**: 0.1.38 (next release)  
+**Last Updated**: 2026-08-07
+**Released Version**: v0.1.37 (⚠️ `v0.1.38` prepared in #921 but not yet shipped)
+**Workspace Version**: 0.1.38 (next release)
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (proposed)
-**Branch**: `main` @ `e66defdf`
+**Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Branch**: `main` @ `92db07bf`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | #914 Nix CI evaluation (UNSTABLE), #915 ConceptGraph performance (CLEAN) |
+| Open PRs | #928 CIT-A4/A5 wave + plan truth (CI green) · #927 ADR-080/081 attribution (CI green) — both awaiting terminal-state re-run |
 | Open issues | #913 Nix CI evaluation |
+
+## Recent completed (2026-08-07 — PR review & CI fix wave)
+
+| Wave | Result |
+|------|--------|
+| #928 commit messages | ✅ 5 long-body commits rewrapped (≤100 chars), 2 no-op commits dropped, commitlint 6/6 clean |
+| #927 release drift | ✅ `commit_limit` deadlock broken via `release-preparation` label (v0.1.38 ship remains TODO) |
+| #927 Codecov patch | ✅ receipt matrix + MCP envelope tests + CLI render dedup (`attribution_output`) |
+| Main cancelled runs | ✅ Skill Evals + Performance Benchmarks re-run |
+| Memory CLI validation | ✅ 3 episodes learned; `pattern recommend --episode-id` receipt `Persisted` e2e |
 
 ## Snapshot
 
 | Area | State |
 |------|--------|
 | Release **v0.1.37** | ✅ Tagged and shipped |
-| Post-release workspace **0.1.38** | ✅ `e66defdf` |
+| Post-release workspace **0.1.38** | ✅ `92db07bf` |
 | Recommendations + F4 + skill contracts | ✅ #878 |
 | Medium-risk skill evals (R-E2) | ✅ #883 |
 | Docs integrity ship gate | ✅ #885 |
@@ -32,25 +42,34 @@
 | ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
-| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only |
-| CI wait semantics | **Not fail-closed** — five waiters accept cancelled/skipped/missing fast check |
-| P0 plan gaps | **1 open** — required CI (PTA-A1/A2/A3 implemented) |
-| ADR-079 CI control plane | Proposed; implementation/ruleset unchanged |
-| ADR-080 automatic attribution | Proposed; implementation not started |
+| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only; `CI / Required` context emitted (2026-08-06) but not yet required |
+| CI wait semantics | ✅ **Fail-closed** — five waiters reject cancelled/skipped/missing; commit lint waited on |
+| P0 plan gaps | **1 open** — live ruleset required aggregate (ADR-079 acceptance); PTA + CIT-A1/A2/A3 workflow side + CIT-A4/A5 done |
+| ADR-079 CI control plane | Proposed; workflow aggregate + fail-closed waiters + semantic validator implemented 2026-08-06; ruleset unchanged |
+| ADR-080 automatic attribution | 🔄 PR #927 open (implementation landed on branch) |
 
 ## Immediate priorities
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | Proposed |
-| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | Planned |
+| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | 🔄 aggregate done; ruleset stage pending (maintainer) |
+| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | 🔄 waiters fail closed; downstream actor parity pending |
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
-| P1 | Reconcile gate contract; repair release/publish/fuzz truth | CIT-A3…A5 | Planned |
-| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | Proposed |
+| P1 | Reconcile gate contract | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |
+| P1 | Repair release/publish/fuzz truth | CIT-A4/A5 | ✅ Implemented (2026-08-06) |
+| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | 🔄 PR #927 open |
 | P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |
+
+## Recent completed (2026-08-06)
+
+| Wave | Result |
+|------|--------|
+| CIT-A4 release/publish trigger truth (ACT-338) | ✅ release `workflow_dispatch` removed; publish `--locked`, bounded polling, dependency closure |
+| CIT-A5 durable fuzz evidence (ACT-339) | ✅ fuzz crash artifacts always uploaded + non-green signal; mutants already durable |
+| R-F10 OIDC / R-F4 SIMD plan truth | ✅ ACT-325/326 confirmed shipped; trackers refreshed |
 
 ## Recent completed (2026-07-26…27)
 

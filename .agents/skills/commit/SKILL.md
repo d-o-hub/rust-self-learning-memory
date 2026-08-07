@@ -104,6 +104,39 @@ improved stuff
 - Commit must compile and pass tests
 - Use `git add -p` for partial staging
 
+## Repairing Existing Commits on a PR Branch
+
+CI enforces `commitlint` (`commitlint.config.cjs`): header ≤ 100 chars AND every
+body/footer line ≤ 100 chars. When a PR branch already fails Commit Message
+Lint (LESSON-023/024):
+
+```bash
+# 1. Enumerate failures locally against the PR base
+npx commitlint --from <base-sha> --to HEAD --verbose
+
+# 2. Drop no-op noise commits non-interactively (e.g. re-trigger commits)
+GIT_SEQUENCE_EDITOR='sed -i "/re-trigger workflow runs/d"' git rebase -i <base-sha>
+
+# 3. Rewrap every long line mechanically, without changing content
+#    (fold -s keeps word boundaries; verify the content diff is empty)
+git filter-branch -f --msg-filter 'fold -s -w 100' -- <base-sha>..HEAD
+git diff <old-head-sha> HEAD --stat   # must be empty
+npx commitlint --from <base-sha> --to HEAD --verbose   # 0 problems
+
+# 4. Push the rewritten history
+#    --force-with-lease only; never --force when others may have pulled
+git push --force-with-lease origin <branch>
+```
+
+Also:
+- Run `cargo fmt --all` before pushing — CI Quick Check fails on fmt drift.
+- Never add `chore(ci): re-trigger workflow runs` empty commits; instead fix
+  the underlying failure or re-run the workflow from the Actions UI.
+
+## References
+
+- [AGENTS.md - Required Checks Before Commit](../../../AGENTS.md)
+
 ## Optional Pre-Push Checks
 
 For larger changes:

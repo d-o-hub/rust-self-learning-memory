@@ -1,14 +1,14 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-02
+- **Last Updated**: 2026-08-07
 - **Version**: workspace `0.1.38` · latest tag `v0.1.37`
-- **Branch**: `main` @ `33b9d302`
-- **Open PRs**: none (0 open)
-- **PR merge session**: #916 + #917 merged 2026-08-02 (see `plans/STATUS/VALIDATION_LATEST.md`)
+- **Branch**: `main` @ `92db07bf`
+- **Open PRs**: #928 (this CIT wave + plan truth; CI green after commit-message repair) + #927 (ADR-080/081 attribution; CI green after drift label + Codecov fixes) — both awaiting terminal-state re-run; see `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`
+- **PR merge session**: #929 merged into this wave branch 2026-08-07 (CIT-A1/A2/A3); #916 + #917 merged 2026-08-02
 - **Open issues**: #913
-- **Active plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` (PTA-A1/A2/A3 implemented)
+- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.37` tagged and shipped
+- **Release**: ✅ `v0.1.37` tagged and shipped · ⚠️ `v0.1.38` prepared (#921) but **not yet shipped** — per-PR drift resolved via `release-preparation` label until the release ships (TODO: release-guard ship)
 
 ---
 
@@ -16,12 +16,12 @@
 
 | Package | Status |
 |---------|--------|
-| ADR-079 fail-closed required-check control plane | Proposed (P0) |
-| CIT-A1 required aggregate + staged ruleset migration | Blocked by ADR acceptance |
-| CIT-A2 cancellation/actor fail-closed behavior | Blocked by CIT-A1 |
-| CIT-A3 semantic gate-contract parity | Blocked by CIT-A2 |
-| CIT-A4 release/publish trigger truth | Planned (P1) |
-| CIT-A5 durable informational evidence + deduplication | Planned (P1/P2) |
+| ADR-079 fail-closed required-check control plane | Proposed (P0) — workflow half implemented; ruleset half awaits maintainer acceptance |
+| CIT-A1 required aggregate + staged ruleset migration | 🔄 workflow side done (`CI / Required`); ruleset stage pending |
+| CIT-A2 cancellation/actor fail-closed behavior | 🔄 waiters fail closed + commit-lint wait; downstream actor parity pending |
+| CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures (2026-08-06) |
+| CIT-A4 release/publish trigger truth | ✅ Done (2026-08-06) |
+| CIT-A5 durable informational evidence + deduplication | ✅ Done (fuzz evidence; dedup measurement is follow-up) |
 | PTA-A1 non-`csm` cascade capability truth | ✅ #916 merged (2026-08-02) | PTA-A1 |
 | PTA-A2 CLI storage metric truth | ✅ #916 merged (2026-08-02) | PTA-A2 |
 | PTA-A3 threshold command cleanup | ✅ #916 merged (2026-08-02) | PTA-A3 |
@@ -72,9 +72,9 @@ storage_awaits_lock_free          = true
 durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                = false (ADR-079 — no first-party required aggregate; contract scope drift)
-required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only)
-ci_cancellation_fail_closed       = false (five waiters accept cancelled/skipped/missing)
+gates_match_policy                = false (ADR-079 — no first-party required aggregate in the live ruleset; workflow aggregate exists)
+required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only; `CI / Required` context emitted but not yet required)
+ci_cancellation_fail_closed       = true  (five waiters fail closed + commit-lint wait; 2026-08-06)
 automation_actor_parity           = false (Dependabot excluded from substantive jobs)
 release_dispatch_truthful         = false (manual Release dispatch fails tag preflight)
 informational_ci_evidence_durable = false (fuzz continue-on-error can suppress crash upload)
@@ -102,6 +102,6 @@ automatic_attribution_capture     = false (ADR-080 Proposed)
 feedback_integrity_checked        = false (RAT-A4)
 feedback_updates_ranking          = false (follow-up ADR required)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
-r_f10_oidc_publishing             = false (in progress — ACT-325)
-r_f4_simd_cosine                  = false (in progress — ACT-326)
+r_f10_oidc_publishing             = true  (ACT-325 — publish-crates.yml OIDC id-token + exchange)
+r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)
 ```

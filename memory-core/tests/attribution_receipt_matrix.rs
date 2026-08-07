@@ -312,33 +312,37 @@ async fn attributed_pattern_recommendation_receipt_persisted_with_all_backends()
 }
 
 #[tokio::test]
-async fn attributed_pattern_recommendation_receipt_partially_persisted() {
-    let durable = ok_backend();
-    let cache = failing_backend();
-    let memory = with_backends(
-        Arc::clone(&durable) as Arc<dyn StorageBackend>,
-        Arc::clone(&cache) as Arc<dyn StorageBackend>,
-    );
-    let episode_id =
-        create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
-    let context = test_context();
+async fn attributed_pattern_recommendation_receipt_partially_persisted_reports_in_order() {
+    // Deterministic ordering: backends are tried turso-then-redb, so the
+    // receipt must report exactly the failing backend(s) in try order.
+    for (durable, cache, expected) in [
+        (ok_backend(), failing_backend(), vec!["redb"]),
+        (failing_backend(), ok_backend(), vec!["turso"]),
+    ] {
+        let memory = with_backends(
+            Arc::clone(&durable) as Arc<dyn StorageBackend>,
+            Arc::clone(&cache) as Arc<dyn StorageBackend>,
+        );
+        let episode_id =
+            create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
+        let context = test_context();
 
-    let attr = memory
-        .recommend_patterns_attributed(episode_id, "implement retry with backoff", context, 3)
-        .await
-        .unwrap();
+        let attr = memory
+            .recommend_patterns_attributed(episode_id, "implement retry with backoff", context, 3)
+            .await
+            .unwrap();
 
-    match attr.receipt {
-        PersistenceReceipt::PartiallyPersisted {
-            failed_backends, ..
-        } => {
-            assert!(
-                failed_backends.iter().any(|b| b == "redb"),
-                "the failing cache backend must be reported, got: {:?}",
-                failed_backends
-            );
+        match attr.receipt {
+            PersistenceReceipt::PartiallyPersisted {
+                failed_backends, ..
+            } => {
+                assert_eq!(
+                    failed_backends, expected,
+                    "the failing backend must be reported in try order"
+                );
+            }
+            other => panic!("one failing backend must yield PartiallyPersisted, got: {other:?}"),
         }
-        other => panic!("one failing backend must yield PartiallyPersisted, got: {other:?}"),
     }
 }
 
@@ -363,10 +367,57 @@ async fn attributed_pattern_recommendation_receipt_persistence_failed() {
         PersistenceReceipt::PersistenceFailed {
             failed_backends, ..
         } => {
-            assert_eq!(failed_backends.len(), 2, "both backends must be reported");
+            // Deterministic ordering: turso is tried first, then redb.
+            assert_eq!(
+                failed_backends,
+                vec!["turso", "redb"],
+                "both backends must be reported in try order"
+            );
         }
         other => panic!("two failing backends must yield PersistenceFailed, got: {other:?}"),
     }
+}
+
+#[tokio::test]
+async fn re_persisting_already_durable_session_is_noop() {
+    // Recording the same session twice (e.g. a re-hydration or a caller retry)
+    // must not duplicate storage entries nor grow the episode index, and the
+    // second pass must still land in the durable backend.
+    let durable = ok_backend();
+    let memory = with_backends(
+        Arc::clone(&durable) as Arc<dyn StorageBackend>,
+        Arc::new(InertBackend) as Arc<dyn StorageBackend>,
+    );
+    let episode_id = Uuid::new_v4();
+    let session = RecommendationSession {
+        session_id: Uuid::new_v4(),
+        episode_id,
+        timestamp: chrono::Utc::now(),
+        recommended_pattern_ids: vec!["pattern-a".to_string()],
+        recommended_playbook_ids: vec![],
+    };
+
+    memory.record_recommendation_session(session.clone()).await;
+    memory.record_recommendation_session(session.clone()).await;
+
+    {
+        let stored = durable.sessions.lock().unwrap();
+        assert_eq!(
+            stored.len(),
+            1,
+            "re-persisting the same session must not duplicate storage entries"
+        );
+        assert!(stored.contains_key(&session.session_id));
+    }
+
+    let found = memory
+        .get_recommendation_session_for_episode(episode_id)
+        .await
+        .expect("episode lookup must resolve after duplicate recording");
+    assert_eq!(
+        found.session_id, session.session_id,
+        "the episode index must not grow for duplicate recordings"
+    );
 }
 
 #[tokio::test]

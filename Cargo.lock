@@ -177,7 +177,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -188,7 +188,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -993,7 +993,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1263,18 +1263,18 @@ dependencies = [
 
 [[package]]
 name = "csm-chaos"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc23d1afe59a02336c75587a741e838f9776f6f8e7c9524d9ffe5ddb89858c2e"
+checksum = "f2a0c0c391a00c401b5b230724c4434fe02f5fce261dd75d5d1a0b43fdecef25"
 dependencies = [
  "libm",
 ]
 
 [[package]]
 name = "csm-core-lib"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d617dda8104d82d7ec815025649636bfc42209758d62437b2a5acb24103eada"
+checksum = "4bdb85b891fb15dd9688c9ec99575b83a0b2e43795d358df9ba7d086bd45a8a6"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -1290,9 +1290,9 @@ dependencies = [
 
 [[package]]
 name = "csm-embedding"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93dd81cde13477657c1fa0af9ebce14d7b6a3d27df533889e34900056e6c8f54"
+checksum = "438c157701d37ffceef16e0e2a7e3065a68db9bc97210ac20a0a5eaebee07ee8"
 dependencies = [
  "async-trait",
  "csm-core-lib",
@@ -1306,9 +1306,9 @@ dependencies = [
 
 [[package]]
 name = "csm-memory"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "134b0d8e1740f5a9feac90e81501be9db66b12e95a825ec6031f43fb738dfc70"
+checksum = "f9b841021ce8df7dc14f32d1885537d898ccb6f2f1df30e460d45896a232f5c6"
 dependencies = [
  "csm-core-lib",
  "js-sys",
@@ -1322,9 +1322,9 @@ dependencies = [
 
 [[package]]
 name = "csm-persistence"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6b4a58d2fe18287c78b6e0f53f4908affeb7d604f40bbcb1ce560a8385af96b"
+checksum = "b6af56ac1a9cc4f26a511f3e08df3fd10e1e2f2008139fbe9b73d140bf6e1b90"
 dependencies = [
  "csm-core-lib",
  "csm-memory",
@@ -1339,11 +1339,12 @@ dependencies = [
 
 [[package]]
 name = "csm-retrieval"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f8382c261fdf0763564624dbec72002fbe6ff63ebad4725e4f33cea2cf0bc44"
+checksum = "bd9aaf1ea01a12f3afc624a8566b2f0c6500d42ceb7d3fc8a37253bbe5152bdb"
 dependencies = [
  "async-trait",
+ "chrono",
  "csm-core-lib",
  "csm-memory",
  "serde",
@@ -1355,9 +1356,9 @@ dependencies = [
 
 [[package]]
 name = "csm-traits"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1230a644b82b3c82811dcdba5ec73b266058b4ca99dc96eba2de29ea845ccc27"
+checksum = "980a2037cf025db5caf14d1e9fbddd524ca998977416d26b25708293a092bef0"
 dependencies = [
  "csm-core-lib",
  "js-sys",
@@ -1652,7 +1653,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2085,7 +2086,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -3201,7 +3202,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4041,7 +4042,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5289,7 +5290,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5382,7 +5383,7 @@ dependencies = [
  "security-framework 3.7.0",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5892,7 +5893,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a766e1110788c36f4fa1c2b71b387a7815aa65f88ce0229841826633d93723e"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6145,7 +6146,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6154,7 +6155,7 @@ version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8c27177b12a6399ffc08b98f76f7c9a1f4fe9fc967c784c5a071fa8d93cf7e1"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -7312,7 +7313,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]

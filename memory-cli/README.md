@@ -473,12 +473,12 @@ total_count: 150
 #!/bin/bash
 
 # Get recent episodes as JSON
-episodes=$(do-memory-cli episode list --limit 10 --format json)
+episodes=$(do-memory-cli --format json episode list --limit 10)
 
 # Process each episode
 echo "$episodes" | jq -r '.episodes[].episode_id' | while read episode_id; do
     echo "Processing episode: $episode_id"
-    do-memory-cli episode view "$episode_id" --format json > "episode_$episode_id.json"
+    do-memory-cli --format json episode view "$episode_id" > "episode_$episode_id.json"
 done
 ```
 
@@ -487,7 +487,7 @@ done
 #!/bin/bash
 
 # Get pattern effectiveness as JSON
-effectiveness=$(do-memory-cli pattern effectiveness --top 5 --format json)
+effectiveness=$(do-memory-cli --format json pattern effectiveness --top 5)
 
 # Check for patterns below threshold
 echo "$effectiveness" | jq '.patterns[] | select(.effectiveness < 0.7)' | while read pattern; do
@@ -501,7 +501,7 @@ done
 #!/bin/bash
 
 # Check storage health
-if ! do-memory-cli storage health --format json | jq -e '.overall == "healthy"' > /dev/null; then
+if ! do-memory-cli --format json storage health | jq -e '.overall == "healthy"' > /dev/null; then
     echo "Storage health check failed!"
     do-memory-cli storage health
     exit 1
@@ -572,7 +572,7 @@ sudo journalctl -u do-memory-cli -f
 do-memory-cli health monitor --interval 30 --duration 3600
 
 # Health check in scripts
-if do-memory-cli health check --format json | jq -e '.overall_status == "Healthy"'; then
+if do-memory-cli --format json health check | jq -e '.overall_status == "Healthy"'; then
     echo "System is healthy"
 else
     echo "Health check failed"
@@ -624,17 +624,17 @@ do-memory-cli backup restore ./backups --backup-id daily_20251117_020000 --force
 do-memory-cli logs analyze --since 24h > daily_report.json
 
 # Error trend analysis
-do-memory-cli logs search "error timeout" --since 7d --format json | \
+do-memory-cli --format json logs search "error timeout" --since 7d | \
     jq '.results | group_by(.episode_id) | map({episode: .[0].episode_id, errors: length})'
 ```
 
 #### Performance Monitoring
 ```bash
 # Export performance metrics
-do-memory-cli logs stats --since 1h --format json
+do-memory-cli --format json logs stats --since 1h
 
 # Identify slow operations
-do-memory-cli logs analyze --since 24h --format json | \
+do-memory-cli --format json logs analyze --since 24h | \
     jq '.performance_trends[] | select(.average_latency_ms > 1000)'
 ```
 

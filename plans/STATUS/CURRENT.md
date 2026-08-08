@@ -1,17 +1,17 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-08-07
-**Released Version**: v0.1.37 (⚠️ `v0.1.38` prepared in #921 but not yet shipped)
+**Released Version**: v0.1.38 (latest tag)
 **Workspace Version**: 0.1.38 (next release)
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
-**Branch**: `main` @ `92db07bf`
+**Branch**: `main` @ `fe623250`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | #928 CIT-A4/A5 wave + plan truth (CI green) · #927 ADR-080/081 attribution (CI green) — both awaiting terminal-state re-run |
+| Open PRs | None — #927/#928/#930 merged; v0.1.38 release-docs bump in flight |
 | Open issues | #913 Nix CI evaluation |
 
 ## Recent completed (2026-08-07 — PR review & CI fix wave)
@@ -22,7 +22,8 @@
 | #927 release drift | ✅ `commit_limit` deadlock broken via `release-preparation` label (v0.1.38 ship remains TODO) |
 | #927 Codecov patch | ✅ receipt matrix + MCP envelope tests + CLI render dedup (`attribution_output`) |
 | Main cancelled runs | ✅ Skill Evals + Performance Benchmarks re-run |
-| Memory CLI validation | ✅ 3 episodes learned; `pattern recommend --episode-id` receipt `Persisted` e2e |
+| Memory CLI validation | ✅ 4 episodes learned; `pattern recommend --episode-id` receipt `Persisted` e2e |
+| #930 receipt-matrix extension | ✅ `failed_backends` ordering + no-op re-persist tests merged |
 
 ## Snapshot
 
@@ -46,7 +47,7 @@
 | CI wait semantics | ✅ **Fail-closed** — five waiters reject cancelled/skipped/missing; commit lint waited on |
 | P0 plan gaps | **1 open** — live ruleset required aggregate (ADR-079 acceptance); PTA + CIT-A1/A2/A3 workflow side + CIT-A4/A5 done |
 | ADR-079 CI control plane | Proposed; workflow aggregate + fail-closed waiters + semantic validator implemented 2026-08-06; ruleset unchanged |
-| ADR-080 automatic attribution | 🔄 PR #927 open (implementation landed on branch) |
+| ADR-080 automatic attribution | ✅ #927 merged + #930 test extension |
 
 ## Immediate priorities
 
@@ -58,7 +59,7 @@
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
 | P1 | Reconcile gate contract | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |
 | P1 | Repair release/publish/fuzz truth | CIT-A4/A5 | ✅ Implemented (2026-08-06) |
-| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | 🔄 PR #927 open |
+| P1 | Automatic episode-bound recommendation attribution | ADR-080 / RAT-A1…A7 | ✅ #927 merged + #930 test extension |
 | P1 | Hide unsupported `eval set-threshold` command | PTA-A3 | ✅ Implemented |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 | P2 | Transitive Dependabot advisories | G-P1-9 | Monitor / upstream |

@@ -217,16 +217,16 @@ async fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    // Initialize tracing
-    if cli.verbose {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::DEBUG)
-            .init();
-    } else {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::INFO)
-            .init();
-    }
+    // Initialize tracing. Logs go to stderr so `--format json`/`yaml` output
+    // on stdout stays machine-parseable for scripts; RUST_LOG (when set)
+    // overrides the default level (debug with -v, info otherwise).
+    let default_level = if cli.verbose { "debug" } else { "info" };
+    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default_level));
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_writer(std::io::stderr)
+        .init();
 
     // Load configuration with validation
     let mut config = match &cli.config {

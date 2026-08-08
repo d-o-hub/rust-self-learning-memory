@@ -10,9 +10,7 @@ use anyhow::Result;
 use anyhow::Context;
 
 #[cfg(feature = "local-embeddings")]
-use {
-    ort::execution_providers::CPUExecutionProvider, ort::session::Session, tokenizers::Tokenizer,
-};
+use {ort::ep::CPU, ort::session::Session, tokenizers::Tokenizer};
 
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
 use crate::embeddings::real_model::download::download_model;
@@ -140,7 +138,6 @@ impl RealEmbeddingModel {
     /// Attempts to load the model from cache. If files don't exist and
     /// the `reqwest` feature is enabled, automatically downloads them
     /// from `HuggingFace` Hub.
-    #[expect(clippy::unused_async)] // Required for API compatibility with async trait methods
     pub async fn try_load_from_cache(
         config: &LocalConfig,
         cache_dir: &std::path::Path,
@@ -169,16 +166,8 @@ impl RealEmbeddingModel {
 
                 tracing::info!("Model download completed successfully");
             }
-
-            #[cfg(not(feature = "reqwest"))]
-            {
-                return Err(anyhow::anyhow!(
-                    "Model files not found at {} and {}\n\
-                     Enable 'reqwest' feature for automatic download or manually download from https://huggingface.co/{model_name}",
-                    model_path.display(),
-                    tokenizer_path.display()
-                ));
-            }
+            // `local-embeddings` always enables `reqwest` (via `reqwest/stream`),
+            // so the manual-download fallback below is unreachable and removed.
         }
 
         // Load tokenizer
@@ -188,7 +177,7 @@ impl RealEmbeddingModel {
         // Load ONNX session
         let session = Session::builder()
             .map_err(|e| anyhow::anyhow!("Failed to create session builder: {e}"))?
-            .with_execution_providers([CPUExecutionProvider::default().build()])
+            .with_execution_providers([CPU::default().build()])
             .map_err(|e| anyhow::anyhow!("Failed to configure execution providers: {e}"))?
             .commit_from_file(&model_path)
             .map_err(|e| anyhow::anyhow!("Failed to load ONNX model: {e}"))?;

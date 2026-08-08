@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.38] - 2026-08-02
+## [0.1.38] - 2026-08-07
 
 ### Added
 
@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - r-f10 OIDC trusted publishing for crates.io
 
+- implement ADR-080/081 automatic recommendation attribution, with
+  `failed_backends` ordering and no-op re-persist assertions (#927, #930)
+
 ### Fixed
 
 - resolve pre-existing quality warnings: honest storage vacuum reporting,
@@ -31,13 +34,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - remove unsafe AVX2 intrinsics in favor of autovectorized scalar cosine
 
+- dedupe similarity reference helpers (clippy)
+
+- route CLI tracing to stderr and honor `RUST_LOG` so `--format json`/`yaml`
+  output stays machine-parseable for scripts
+
+- fix `local-embeddings` build/clippy: adopt the ort 2.0.0-rc.13 `ep::CPU`
+  provider API and drop unfulfilled lint expectations
+
+- fix `csm` feature build: resolve the stale lock mix (chaotic_semantic_memory
+  0.3.8 with csm-* sub-crates at 0.3.7) by aligning all csm crates at 0.3.8
+
 ### Performance
 
 - optimize ConceptGraph domain-term expand allocations and sorting
 
+- single-row DP and streamed char similarity for pattern scoring (#925)
+
+### Test
+
+- unit tests for `semantic_text` text builders (#922)
+
+- evals fixtures for the `perf-pr-guardrails` review skill
+
+### CI
+
+- fail-closed waiters, CI / Required aggregate, semantic gate validator
+  (CIT-A1/A2/A3) (#929)
+
+- locked publish with bounded polling and dependency closure; publish/release
+  fixtures wired into skill evals (CIT-A4)
+
+- durable fuzz crash evidence and non-green status (CIT-A5)
+
 ### Chore
 
 - record PR merge session progress in plans trackers (#919)
+
+- record PR #925 review and perf-PR guard rails; route `perf-pr-guardrails`
+  skill and fix skills index
 
 - bump workspace to 0.1.38 after shipping v0.1.37
 

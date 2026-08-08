@@ -5,76 +5,127 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.38] - 2026-08-07
+## [Unreleased]
+
+## [0.1.38] - 2026-08-08
+
+
 
 ### Added
 
-- implement PTA-A1/A2/A3 product truth: non-`csm` cascade `CapabilityUnavailable`,
-  `MetricValue` storage telemetry provenance, `eval set-threshold` removal (#916)
+- r-f10 OIDC trusted publishing for crates.io ([62e4e31](https://github.com/d-o-hub/rust-self-learning-memory/commit/62e4e3148a93adbee25127295a923dd252748167))
 
-- shard mutation testing across reward/retrieval/retry/patterns with aggregated
-  summary job (#917)
+- r-f4 SIMD-accelerated cosine similarity via AVX2 ([4272037](https://github.com/d-o-hub/rust-self-learning-memory/commit/42720371a3596c340b0b739640ad2aad87243bd9))
 
-- adopt Nix flakes with centralized Setup Nix action and magic-nix-cache for
-  hermetic CI builds
+- adopt Nix flakes and magic-nix-cache for hermetic builds ([179c886](https://github.com/d-o-hub/rust-self-learning-memory/commit/179c886d74766bb209ca3b47acb353372d8a4602))
 
-- r-f4 SIMD-accelerated cosine similarity (autovectorized scalar, no unsafe
-  intrinsics)
+- evaluate Nix flake adoption + magic-nix-cache for hermetic CI builds ([cf17efb](https://github.com/d-o-hub/rust-self-learning-memory/commit/cf17efb34abe5e3f3fe92e34673694c1bee41aaf))
 
-- r-f10 OIDC trusted publishing for crates.io
+- evaluate Nix flake adoption + magic-nix-cache for hermetic CI builds ([8a26aa4](https://github.com/d-o-hub/rust-self-learning-memory/commit/8a26aa401a16774c4ff201e6703688c61a9fcfcf))
 
-- implement ADR-080/081 automatic recommendation attribution, with
-  `failed_backends` ordering and no-op re-persist assertions (#927, #930)
+- refactor GHA workflows to use centralized Setup Nix action ([08ede57](https://github.com/d-o-hub/rust-self-learning-memory/commit/08ede5726cc8715e56b5ee7292cb0cb72cf656d8))
+
+- refactor GHA workflows to setup-nix action and fix Gitleaks Scan CI ([92c7482](https://github.com/d-o-hub/rust-self-learning-memory/commit/92c7482a54096791f7f8ea481d88a411ce1b6d4e))
+
+- implement PTA-A1/A2/A3 product truth (#916) ([33b9d30](https://github.com/d-o-hub/rust-self-learning-memory/commit/33b9d302f4a494d47d9f0f4bc148b08e1fd3d7ed))
+
+- implement ADR-080/081 automatic recommendation attribution (#927) ([52415b8](https://github.com/d-o-hub/rust-self-learning-memory/commit/52415b8854d459d969b3431fe5b2a477f497238d))
+
+
+### CI/CD
+
+- shard mutation testing and resolve surviving mutants (#917) ([b7d67f3](https://github.com/d-o-hub/rust-self-learning-memory/commit/b7d67f3ea74931209cdb99313b20e7d01bc261a1))
+
+- bump the actions-all group with 2 updates ([49fdb2c](https://github.com/d-o-hub/rust-self-learning-memory/commit/49fdb2cd2fac35daecb28e17d999b9ce695bc8c0))
+
+- remove broken workflow_dispatch trigger (CIT-A4) ([c5c884a](https://github.com/d-o-hub/rust-self-learning-memory/commit/c5c884ab9f38f9603991080edae4d19b017a83aa))
+
+- locked publish, bounded polling, dependency closure (CIT-A4) ([78b44ec](https://github.com/d-o-hub/rust-self-learning-memory/commit/78b44ecc29c17d1d89590dbcc2f2a186efc3a242))
+
+- durable crash evidence and non-green status (CIT-A5) ([ca7701b](https://github.com/d-o-hub/rust-self-learning-memory/commit/ca7701bb591fae0ae95338995928397a7b0c6185))
+
+- fail-closed waiters, CI / Required aggregate, semantic gate validator (CIT-A1/A2/A3) (#929) ([8351834](https://github.com/d-o-hub/rust-self-learning-memory/commit/83518340af34c201c03845e171cb9be3c7710569))
+
+
+### Changed
+
+- split 3 oversized source files to restore <=500 LOC gate ([c36e57b](https://github.com/d-o-hub/rust-self-learning-memory/commit/c36e57b9a88c1c85359860be86b2d8cb091e13eb))
+
+
+### Documentation
+
+- record PR #925 review and perf-PR guard rails ([15166a4](https://github.com/d-o-hub/rust-self-learning-memory/commit/15166a48d51b482eb16d41cbd6f56f19bc4b57f7))
+
+- mark ACT-325/326 done and record CIT-A4/A5 (2026-08-06) ([813cf7a](https://github.com/d-o-hub/rust-self-learning-memory/commit/813cf7a5e886a6091951f4c63824be6a1183422e))
+
+- record 2026-08-07 PR review + CI fix wave ([8a2e0b9](https://github.com/d-o-hub/rust-self-learning-memory/commit/8a2e0b97f2078c4d5613639cdca4ac60febee06b))
+
+- add 2026-08-07 wave row to GOALS index ([4445f09](https://github.com/d-o-hub/rust-self-learning-memory/commit/4445f09021f0687eb088b3b5be82bb9d6a91cb22))
+
+- set Released Version to v0.1.38 for ship (#931) ([8cfc6a7](https://github.com/d-o-hub/rust-self-learning-memory/commit/8cfc6a7a1906fdd4c44d7d644e3a9117436be613))
+
 
 ### Fixed
 
-- resolve pre-existing quality warnings: honest storage vacuum reporting,
-  `sync_storage` nesting refactor, `HealthStatus` Display consistency,
-  dead-code removal, duplicate ADR-078 renumbered to ADR-080 (#920)
+- consolidate unsafe blocks in avx2 cosine impl ([6f5bc11](https://github.com/d-o-hub/rust-self-learning-memory/commit/6f5bc117cd451821487c34d22c67ca3572e1ddc9))
 
-- remove unsafe AVX2 intrinsics in favor of autovectorized scalar cosine
+- remove unsafe AVX2 intrinsics; use autovectorized scalar ([8de7159](https://github.com/d-o-hub/rust-self-learning-memory/commit/8de715936d7d113b3a73de945ba06a5ff99436f3))
 
-- dedupe similarity reference helpers (clippy)
+- apply rustfmt to remainder-path test assertions ([bbc71a6](https://github.com/d-o-hub/rust-self-learning-memory/commit/bbc71a60bea8578efe8404d8c040870e6220f6a9))
 
-- route CLI tracing to stderr and honor `RUST_LOG` so `--format json`/`yaml`
-  output stays machine-parseable for scripts
+- restore ConceptGraph optimization lost in merge ([07dd6c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/07dd6c108ead0e74a6376e3e27ed5931bfda3627))
 
-- fix `local-embeddings` build/clippy: adopt the ort 2.0.0-rc.13 `ep::CPU`
-  provider API and drop unfulfilled lint expectations
+- restore ConceptGraph optimization (bot revert x2) ([436b157](https://github.com/d-o-hub/rust-self-learning-memory/commit/436b157b8abd06d516701fc746127971c62d4750))
 
-- fix `csm` feature build: resolve the stale lock mix (chaotic_semantic_memory
-  0.3.8 with csm-* sub-crates at 0.3.7) by aligning all csm crates at 0.3.8
+- resolve pre-existing warnings and clippy failures (#920) ([d3b1f4d](https://github.com/d-o-hub/rust-self-learning-memory/commit/d3b1f4d88650672574bbe8221b8e8a939d6d0258))
+
+- dedupe similarity reference helpers ([4e0208d](https://github.com/d-o-hub/rust-self-learning-memory/commit/4e0208d62eacf7246339c74cdc9d5f25d23a5a3b))
+
+- correct ADR-072 link target in CIT-A4/A5 plan (#932) ([75f52a9](https://github.com/d-o-hub/rust-self-learning-memory/commit/75f52a9161dd09d025af146b8155a306a520a26c))
+
+
+### Maintenance
+
+- update CHANGELOG.md for v0.1.37 [skip ci] ([947d3f5](https://github.com/d-o-hub/rust-self-learning-memory/commit/947d3f5dde806cc5eb9dadfb045f3a48d39e0571))
+
+- bump workspace to 0.1.38 after shipping v0.1.37 ([e66defd](https://github.com/d-o-hub/rust-self-learning-memory/commit/e66defdf27cf49fdf4b0bb9efcfed543502c2060))
+
+- r-f* product GO spike artifacts + planning doc updates ([a284732](https://github.com/d-o-hub/rust-self-learning-memory/commit/a284732bb2db1bab68c0074bd833af75d27858ed))
+
+- update Cargo.lock to workspace 0.1.38 ([426f78f](https://github.com/d-o-hub/rust-self-learning-memory/commit/426f78fdbebcfe82ad552cf79e1013e61182b30b))
+
+- record PR #916/#917 merge session progress (#919) ([a53f69f](https://github.com/d-o-hub/rust-self-learning-memory/commit/a53f69fb6e1ca288780ff42e7b415ec9ad516314))
+
+- prepare v0.1.38 changelog and version docs (#921) ([b9077f7](https://github.com/d-o-hub/rust-self-learning-memory/commit/b9077f797a351a79215ca843efce1124ca95d03d))
+
+- bump the rust-patch-minor group with 4 updates ([933de28](https://github.com/d-o-hub/rust-self-learning-memory/commit/933de28a122a187f6c69fd13d7d88b7c9eee209b))
+
+- add perf-pr-guardrails review skill and harness sensor ([497eada](https://github.com/d-o-hub/rust-self-learning-memory/commit/497eadaad63d8482e2cf4461ae45343441daf040))
+
+- route perf-pr-guardrails and fix skills index ([92db07b](https://github.com/d-o-hub/rust-self-learning-memory/commit/92db07bf90c4c6119ab7bc50e6d5e385a1bfff06))
+
 
 ### Performance
 
-- optimize ConceptGraph domain-term expand allocations and sorting
+- optimize ConceptGraph domain-term expand allocations and sorting ([5ce6ab4](https://github.com/d-o-hub/rust-self-learning-memory/commit/5ce6ab45f6240eeb1eed1b363c78f21f06f761e5))
 
-- single-row DP and streamed char similarity for pattern scoring (#925)
+- optimize ConceptGraph domain-term expand allocations and sorting ([d0317f3](https://github.com/d-o-hub/rust-self-learning-memory/commit/d0317f3b370c0b062fc1d337fa4d7d13ab346288))
 
-### Test
+- optimize ConceptGraph domain-term expand allocations and sorting ([f0ffc4a](https://github.com/d-o-hub/rust-self-learning-memory/commit/f0ffc4a38a525c242b62ba90ac508cc85dcdde2e))
 
-- unit tests for `semantic_text` text builders (#922)
+- single-row DP and streamed char similarity ([b51f410](https://github.com/d-o-hub/rust-self-learning-memory/commit/b51f410856b851fc939e9c354215c505dc6fb9db))
 
-- evals fixtures for the `perf-pr-guardrails` review skill
 
-### CI
+### Testing
 
-- fail-closed waiters, CI / Required aggregate, semantic gate validator
-  (CIT-A1/A2/A3) (#929)
+- add unit tests for semantic_text text builders (#922) ([098a57a](https://github.com/d-o-hub/rust-self-learning-memory/commit/098a57a9f8fec453040ecd11742141a958438ee4))
 
-- locked publish with bounded polling and dependency closure; publish/release
-  fixtures wired into skill evals (CIT-A4)
+- add evals fixtures for perf-pr-guardrails ([9afd611](https://github.com/d-o-hub/rust-self-learning-memory/commit/9afd611aa914cd7095f7161eece9652922dc1b07))
 
-- durable fuzz crash evidence and non-green status (CIT-A5)
+- publish/release fixtures wired into skill evals (CIT-A4) ([b4cc6b1](https://github.com/d-o-hub/rust-self-learning-memory/commit/b4cc6b17632e38d245bbce009eccdf4a7545ceb8))
 
-### Chore
+- assert failed_backends ordering and no-op re-persist (#930) ([fe62325](https://github.com/d-o-hub/rust-self-learning-memory/commit/fe623250559a9f2c088758f465f80cdefd0c9ba5))
 
-- record PR merge session progress in plans trackers (#919)
-
-- record PR #925 review and perf-PR guard rails; route `perf-pr-guardrails`
-  skill and fix skills index
-
-- bump workspace to 0.1.38 after shipping v0.1.37
 
 ## [0.1.37] - 2026-07-27
 
@@ -2665,7 +2716,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-<!-- merged duplicate 0.1.11 section (2026-01-04) into the 0.1.11 release above -->
+## [0.1.11] - 2026-01-04
 
 
 
@@ -2776,7 +2827,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-<!-- merged duplicate 0.1.10 section (2026-01-02) into the 0.1.10 release above -->
+## [0.1.10] - 2026-01-02
 
 
 

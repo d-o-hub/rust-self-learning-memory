@@ -4,7 +4,7 @@
 - **Date**: 2026-08-06
 - **Baseline**: `main` at `92db07bf` · workspace `0.1.38` · tag `v0.1.37`
 - **Decisions**: [ADR-079](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md) §6/§7 (Proposed; the workflow-side half implemented here, ruleset half still requires maintainer approval)
-- **Related**: [ADR-072](adr/ADR-072-Release-Authority.md), [ADR-078](adr/ADR-078-Trusted-Publishing-OIDC.md), `agent_docs/LESSONS.md` LESSON-014, `scripts/test-release-workflow.sh`
+- **Related**: [ADR-072](adr/ADR-072-Authority-Evidence-Enforcement-Governance.md), [ADR-078](adr/ADR-078-Trusted-Publishing-OIDC.md), `agent_docs/LESSONS.md` LESSON-014, `scripts/test-release-workflow.sh`
 - **Orchestration**: GOAP agent skill — hybrid strategy: parallel research swarm → parallel workflow implementation → sequential validation → PR
 
 ## Scope and non-scope

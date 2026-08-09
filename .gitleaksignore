@@ -16,3 +16,7 @@ e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:generic-api-key:574
 40fbec6155d3ad005b55cf48301ca2a003447387:README.md:generic-api-key:574
 46c7019d2a48eeea6459d6f3f23160504db249be:README.md:sidekiq-secret:47
 46c7019d2a48eeea6459d6f3f23160504db249be:README.md:generic-api-key:574
+# v0.1.38 re-surfaced: doc 'bad practice' example, moved .claude/ -> .agents/ (fingerprint changed)
+9c31639fee86d0bf7a2042dcbdab4b949bfc6d5d:.agents/skills/code-quality/quality-dimensions.md:generic-api-key:473
+# Historical 'NEVER DO THIS' example; file deleted from HEAD, exists only in commit 3e8fe9b3
+3e8fe9b39ba6120ea35278e54c059e03d8b3e0d9:plans/skills-cli-invocation-best-practices.md:curl-auth-header:899

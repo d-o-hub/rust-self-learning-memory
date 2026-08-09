@@ -34,6 +34,12 @@ pub struct JsonRpcError {
     pub data: Option<Value>,
 }
 
+/// Maximum accepted LSP Content-Length payload size (64 MiB). Prevents a
+/// malicious or corrupt `Content-Length` header from causing an unbounded
+/// `vec![0u8; len]` allocation (OOM / DoS). Found by fuzz_mcp_jsonrpc:
+/// `Content-Length: 6405119470038038754` aborted with an allocation failure.
+const MAX_CONTENT_LENGTH: usize = 64 * 1024 * 1024;
+
 /// Read a message from a reader supporting both line-delimited JSON and LSP Content-Length framing.
 /// Returns (message, is_content_length) where is_content_length indicates whether the message
 /// came in with a Content-Length header (LSP-style)
@@ -73,6 +79,15 @@ pub fn read_next_message<R: BufRead + Read>(reader: &mut R) -> io::Result<Option
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     "Content-Length header value is zero",
+                ));
+            }
+
+            if len > MAX_CONTENT_LENGTH {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Content-Length header value {len} exceeds maximum {MAX_CONTENT_LENGTH}"
+                    ),
                 ));
             }
 

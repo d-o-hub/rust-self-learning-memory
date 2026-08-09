@@ -49,6 +49,21 @@ fn test_read_next_message_zero_content_length() {
 }
 
 #[test]
+fn test_read_next_message_oversized_content_length_rejected() {
+    // Regression test for the OOM/DoS found by fuzz_mcp_jsonrpc:
+    // an absurd Content-Length (here 64 MiB + 1) must be rejected as
+    // InvalidData BEFORE any buffer allocation, never `vec![0u8; len]`.
+    let header = "Content-Length: 67108865\r\n\r\n";
+    let mut cursor = Cursor::new(header.as_bytes().to_vec());
+
+    let res = read_next_message(&mut cursor);
+    assert!(res.is_err());
+    let err = res.unwrap_err();
+    assert_eq!(err.kind(), io::ErrorKind::InvalidData);
+    assert!(err.to_string().contains("exceeds maximum"));
+}
+
+#[test]
 fn test_read_next_message_with_content_type() {
     let payload = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"test\"}";
     let header = format!(

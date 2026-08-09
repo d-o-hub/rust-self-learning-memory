@@ -1,8 +1,8 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-08-07
-- **Status**: PR review + CI fix wave done (#928/#927 CI green); ADR-080 attribution PR #927 open; live-ruleset change awaits ADR-079 acceptance
-- **Workspace**: `0.1.38` · **Tag**: `v0.1.37`
+- **Last Updated**: 2026-08-09
+- **Status**: ADR-080 attribution merged (#927) + receipt-matrix hardening (#930); v0.1.38 shipped; live-ruleset change awaits ADR-079 acceptance
+- **Workspace**: `0.1.39` · **Tag**: `v0.1.38`
 - **Plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
@@ -26,13 +26,13 @@
 | Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
-| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | 🔄 PR #927 open (ADR-080/081 implementation) |
+| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ merged (#927 + #930 receipt-matrix tests) |
 | Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred |
 | R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
 | R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
 | Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
-The ranking-learning loop remains open: ADR-080 (PR #927) captures trustworthy
+The ranking-learning loop remains open: ADR-080 (#927) captures trustworthy
 evidence but does not yet apply feedback to recommendation scores. First-party
 CI is also not currently merge-required; green workflow runs must not be
 described as branch protection until ADR-079's staged ruleset migration

@@ -1,14 +1,14 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-07
-- **Version**: workspace `0.1.38` · latest tag `v0.1.37`
-- **Branch**: `main` @ `92db07bf`
-- **Open PRs**: #928 (this CIT wave + plan truth; CI green after commit-message repair) + #927 (ADR-080/081 attribution; CI green after drift label + Codecov fixes) — both awaiting terminal-state re-run; see `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`
+- **Last Updated**: 2026-08-09
+- **Version**: workspace `0.1.39` · latest tag `v0.1.38`
+- **Branch**: `main` @ `75f52a91`
+- **Open PRs**: none — #927/#928/#930/#931/#932 all merged (v0.1.38 shipped 2026-08-08)
 - **PR merge session**: #929 merged into this wave branch 2026-08-07 (CIT-A1/A2/A3); #916 + #917 merged 2026-08-02
 - **Open issues**: #913
 - **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.37` tagged and shipped · ⚠️ `v0.1.38` prepared (#921) but **not yet shipped** — per-PR drift resolved via `release-preparation` label until the release ships (TODO: release-guard ship)
+- **Release**: ✅ `v0.1.38` tagged and shipped 2026-08-08 (workspace bumped to `0.1.39` post-release)
 
 ---
 
@@ -84,8 +84,8 @@ skill_evals_medium_depth          = true
 docs_match_code                   = true
 plan_registry_unique              ≈ true  (ADR 025/054 aliased)
 feature_pilots_have_baselines     = true
-release_current                   = true  (v0.1.37)
-version_advanced_after_tag        = true  (workspace 0.1.38)
+release_current                   = true  (v0.1.38)
+version_advanced_after_tag        = true  (workspace 0.1.39)
 adr074_provenance_envelope        = true  (RetrievalProvenance + CacheKey all fields)
 adr075_durable_complete           = true  (completion.rs hard-errors on backend failure)
 adr076_pattern_ux                 = true  (empty diagnostics + sync messaging + pattern extract)
@@ -98,8 +98,8 @@ runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configu
 cascade_capability_truthful       = true  (PTA-A1 — non-csm `retrieve` returns `Err(CascadeError::CapabilityUnavailable)`)
 storage_metrics_truthful          = true  (PTA-A2 — `MetricValue` provenance: measured/estimated/unavailable)
 unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` removed from Clap + docs)
-automatic_attribution_capture     = false (ADR-080 Proposed)
-feedback_integrity_checked        = false (RAT-A4)
+automatic_attribution_capture     = true  (ADR-080 merged in #927)
+feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930)
 feedback_updates_ranking          = false (follow-up ADR required)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
 r_f10_oidc_publishing             = true  (ACT-325 — publish-crates.yml OIDC id-token + exchange)

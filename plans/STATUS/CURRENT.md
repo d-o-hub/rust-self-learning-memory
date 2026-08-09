@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-08-07
 **Released Version**: v0.1.38 (latest tag)
-**Workspace Version**: 0.1.38 (next release)
+**Workspace Version**: 0.1.39 (next release)
 **Edition**: Rust 2024  
 **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 **Branch**: `main` @ `fe623250`

@@ -12,7 +12,7 @@
 | ACT-356 | Repair #928 commit messages (rewrap bodies ≤100, drop no-op commits) | commitlint | ✅ pushed; CI green |
 | ACT-357 | Break #927 drift deadlock via `release-preparation` label | drift | ✅ Release Drift Check green |
 | ACT-358 | Raise #927 Codecov patch coverage (receipt matrix + MCP + CLI dedup) | RAT-B8/B9 | ✅ pushed `68457631`→`52276c50` |
-| ACT-359 | Ship v0.1.38 via release-guard to clear repo-wide drift for all PRs | R-A3 | ⏳ TODO (main green; needs maintainer go) |
+| ACT-359 | Ship v0.1.38 via release-guard to clear repo-wide drift for all PRs | R-A3 | ✅ shipped 2026-08-08 (workspace bumped to 0.1.39) |
 
 ## Active actions (2026-08-06)
 
@@ -52,8 +52,8 @@
 
 All ACT-300…ACT-324 items are complete. ACT-341…ACT-343 (PTA-A1/A2/A3) are
 implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) and ACT-338/339 (CIT-A4/A5)
-are implemented 2026-08-06. ADR-080/081 attribution is implemented in open PR
-#927. Remaining open items (ACT-334…337) require maintainer ADR-079 acceptance
+are implemented 2026-08-06. ADR-080/081 attribution merged in #927 (receipt-matrix
+tests #930). Remaining open items (ACT-334…337) require maintainer ADR-079 acceptance
 and live-ruleset approval; they must not be marked complete without workflow,
 live-ruleset, and validation evidence.
 

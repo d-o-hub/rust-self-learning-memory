@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-08-06
 **Released Version**: v0.1.38 (latest tag)
-**Workspace Version**: 0.1.38 (next release)
+**Workspace Version**: 0.1.39 (next release)
 **Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (#927) + receipt-matrix test hardening (#930) + CIT-A4/A5 (#928) + CIT-A1/A2/A3 workflow wave
 **Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 **Branch**: `main` @ `92db07bf`

@@ -17,29 +17,28 @@ One matrix that maps every **advertised** quality gate to:
 
 Claims such as “coverage ≥90%” without a matching blocking check are **documentation debt**, not green status.
 
-## Live merge-protection truth (2026-07-30)
+## Live merge-protection truth (2026-08-10)
 
-Ruleset `9591004` (`main-protection`) is active for `refs/heads/main`. Its only
-required status context is `Codacy Static Code Analysis`; it separately enforces
-CodeQL code scanning at the configured severity. No first-party Quick Check, CI,
-test, coverage, security, storage, skill, release-drift, or anchor job is required.
-The standalone `Required Check Anchor` is also not required and performs no
-validation. Therefore a green workflow job means that workflow ran successfully;
-it does **not** mean the merge ruleset requires the gate.
+Ruleset `9591004` (`main-protection`) is active for `refs/heads/main`. Its required
+status contexts are `Codacy Static Code Analysis` and the first-party `CI / Required`
+aggregate (added 2026-08-10, ADR-079 stage 3); it separately enforces CodeQL code
+scanning at the configured severity. No other first-party Quick Check, test,
+coverage, security, storage, skill, release-drift, or anchor job is individually
+required by the ruleset — only the aggregate is. The standalone `Required Check
+Anchor` remains not required and performs no validation.
 
-ADR-079 proposes a staged `CI / Required` aggregate. The workflow-side aggregate
-job now exists (2026-08-06, `ci.yml`): it runs with `always()` and fails closed
-on failure/cancellation of the substantive same-run jobs, and all five
-cross-workflow waiters now fail closed (no cancelled/skipped/missing acceptance,
-commit lint included). Until the `CI / Required` context is added to the live
-ruleset with maintainer approval, every first-party row below remains **not
-merge-required**.
+The workflow-side aggregate job (`ci.yml`, 2026-08-06) runs with `always()`, fails
+closed on failure/cancellation of the substantive same-run jobs (test/MCP/
+multi-platform/quality-gates), and all five cross-workflow waiters fail closed (no
+cancelled/skipped/missing acceptance, commit lint included). A green `CI / Required`
+check therefore means the substantive same-run assertions passed. Every first-party
+row below except CI / Required is **not individually merge-required** by the ruleset.
 
 ## Gate matrix
 
 | Gate | Measured (how) | Blocking floor (local) | Workflow enforcement today | Merge-required? | Aspirational target | Authoritative surface |
 |------|----------------|------------------------|----------------------------|-----------------|---------------------|-----------------------|
-| CI / Required aggregate | `if: always()` fail-closed eval of test/MCP/multi-platform/quality-gates results | failure/cancelled never accepted | `ci.yml` `CI / Required` job (2026-08-06) | **No** (ruleset migration pending ADR-079 approval) | live ruleset requires this stable context | `ci.yml` aggregate + waiters (fail-closed) |
+| CI / Required aggregate | `if: always()` fail-closed eval of test/MCP/multi-platform/quality-gates results | failure/cancelled never accepted | `ci.yml` `CI / Required` job (2026-08-06) | **Yes** (ruleset requires this context, 2026-08-10) | live ruleset requires this stable context | `ci.yml` aggregate + waiters (fail-closed) |
 | Format | `cargo fmt --check` | required | Quick Check job | No | 100% formatted | `./scripts/code-quality.sh fmt` / Quick Check |
 | Clippy | `cargo clippy -D warnings` | required | Quick Check uses separate lib/tests commands and a broad copied allow-list | No | 0 warnings workspace | Local: `./scripts/code-quality.sh clippy --workspace`; CI drift open |
 | Build check | `cargo check` / `./scripts/build-rust.sh check` | recommended | Builds occur in CI jobs, but no exact canonical check | No | always clean | `./scripts/build-rust.sh check` |
@@ -104,8 +103,9 @@ known gap tracked by ADR-079 / CIT-A3.
 - [x] `--ci-parity` verifies quick-check, ci, release-drift, security/supply-chain (deny), skill-evals surfaces
 - [x] CI runs `./scripts/validate-gate-contract.sh` and `--ci-parity` (Skill Evals workflow)
 - [x] Local vs CI parity table lists skill schema + gate contract entrypoints
-- [x] `--ci-parity` rejects cancelled/skipped waiter acceptance, missing `fail-on-no-checks: true`, absent `CI / Required` aggregate, release `workflow_dispatch`, and `sleep 30` publish waits (semantic negative fixtures, 2026-08-06)
-- [ ] Exact command scopes, actor conditions, aggregate outcomes, and live ruleset context agree (ruleset migration remains; ADR-079)
+- [x] `--ci-parity` rejects cancelled/skipped waiter acceptance, missing `fail-on-no-checks: true`, absent `CI / Required` aggregate, release `workflow_dispatch`, `sleep 30` publish waits, Dependabot actor exclusion, and missing ruleset-context record (semantic negative fixtures)
+- [x] Exact command scopes, actor conditions, and aggregate outcomes agree (CIT-A2 Dependabot/fork actor parity + fixture, 2026-08-10)
+- [x] Live ruleset requires the CI / Required context (ruleset 9591004 updated 2026-08-10; ADR-079 stage 3 complete)
 
 ## Acceptance (K3.1b)
 

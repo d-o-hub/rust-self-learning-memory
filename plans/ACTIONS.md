@@ -63,7 +63,9 @@
 All ACT-300…ACT-324 items are complete. ACT-341…ACT-343 (PTA-A1/A2/A3) are
 implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) and ACT-338/339 (CIT-A4/A5)
 are implemented 2026-08-06. ADR-080/081 attribution merged in #927 (receipt-matrix
-tests #930). Remaining open items (ACT-334…337) require maintainer ADR-079 acceptance
+tests #930); the ADR-081 §2 capability-truth gap (G2) closed 2026-08-10 via
+`supports_recommendation_attribution` + capability-gated `persist_session_checked`.
+Remaining open items (ACT-334…337) require maintainer ADR-079 acceptance
 and live-ruleset approval; they must not be marked complete without workflow,
 live-ruleset, and validation evidence.
 

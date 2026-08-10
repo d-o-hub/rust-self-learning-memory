@@ -368,6 +368,16 @@ pub trait StorageBackend: Send + Sync {
         Ok(Vec::new())
     }
 
+    /// Whether this backend actually persists recommendation attribution (ADR-081 §2).
+    ///
+    /// Defaults to `false` so the no-op default implementations of the
+    /// recommendation methods below are never counted as a durable write.
+    /// Backends that override the recommendation methods to truly persist must
+    /// override this to `true`.
+    fn supports_recommendation_attribution(&self) -> bool {
+        false
+    }
+
     // ========== Recommendation Attribution (ADR-044) ==========
 
     /// Persist a recommendation session for durability and analytics.

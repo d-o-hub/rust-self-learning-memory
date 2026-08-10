@@ -173,6 +173,10 @@ impl StorageBackend for CachedTursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Get recommendation stats error: {}", e)))
     }
+
+    fn supports_recommendation_attribution(&self) -> bool {
+        self.storage.supports_recommendation_attribution()
+    }
 }
 
 #[cfg(test)]

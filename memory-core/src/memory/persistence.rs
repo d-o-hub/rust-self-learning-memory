@@ -226,9 +226,13 @@ impl SelfLearningMemory {
     /// Persist a recommendation session and return a truthful `PersistenceReceipt` (ADR-080 §3).
     ///
     /// Unlike `persist_recommendation_session`, this method tracks which
-    /// backends are configured, whether each write succeeded, and returns a
-    /// machine-stable state that callers can use to determine whether feedback
-    /// submitted after restart will find the session.
+    /// backends advertise recommendation-attribution capability (ADR-081 §2),
+    /// whether each write succeeded, and returns a machine-stable state that
+    /// callers can use to determine whether feedback submitted after restart
+    /// will find the session. Receipts count advertised-capable backends only:
+    /// a configured backend that does not advertise capability is never
+    /// counted as durable, so the receipt can never claim a write the backend
+    /// cannot honor.
     pub(crate) async fn persist_session_checked(
         &self,
         session: &RecommendationSession,
@@ -236,10 +240,16 @@ impl SelfLearningMemory {
         let session_id = session.session_id;
         let episode_id = session.episode_id;
 
-        let turso_configured = self.turso_storage.is_some();
-        let redb_configured = self.cache_storage.is_some();
+        let turso_capable = self
+            .turso_storage
+            .as_ref()
+            .is_some_and(|s| s.supports_recommendation_attribution());
+        let redb_capable = self
+            .cache_storage
+            .as_ref()
+            .is_some_and(|c| c.supports_recommendation_attribution());
 
-        if !turso_configured && !redb_configured {
+        if !turso_capable && !redb_capable {
             return PersistenceReceipt::MemoryOnly {
                 session_id,
                 episode_id,
@@ -249,35 +259,39 @@ impl SelfLearningMemory {
         let mut failed: Vec<String> = Vec::new();
         let mut succeeded: usize = 0;
 
-        if let Some(storage) = &self.turso_storage {
-            match storage.store_recommendation_session(session).await {
-                Ok(()) => succeeded += 1,
-                Err(err) => {
-                    warn!(
-                        session_id = %session_id,
-                        error = %err,
-                        "Failed to persist session to Turso"
-                    );
-                    failed.push("turso".to_string());
+        if turso_capable {
+            if let Some(storage) = &self.turso_storage {
+                match storage.store_recommendation_session(session).await {
+                    Ok(()) => succeeded += 1,
+                    Err(err) => {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to persist session to Turso"
+                        );
+                        failed.push("turso".to_string());
+                    }
                 }
             }
         }
 
-        if let Some(cache) = &self.cache_storage {
-            match cache.store_recommendation_session(session).await {
-                Ok(()) => succeeded += 1,
-                Err(err) => {
-                    warn!(
-                        session_id = %session_id,
-                        error = %err,
-                        "Failed to persist session to redb"
-                    );
-                    failed.push("redb".to_string());
+        if redb_capable {
+            if let Some(cache) = &self.cache_storage {
+                match cache.store_recommendation_session(session).await {
+                    Ok(()) => succeeded += 1,
+                    Err(err) => {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to persist session to redb"
+                        );
+                        failed.push("redb".to_string());
+                    }
                 }
             }
         }
 
-        let configured = usize::from(turso_configured) + usize::from(redb_configured);
+        let capable = usize::from(turso_capable) + usize::from(redb_capable);
 
         if succeeded == 0 {
             PersistenceReceipt::PersistenceFailed {
@@ -285,7 +299,7 @@ impl SelfLearningMemory {
                 episode_id,
                 failed_backends: failed,
             }
-        } else if succeeded < configured {
+        } else if succeeded < capable {
             PersistenceReceipt::PartiallyPersisted {
                 session_id,
                 episode_id,

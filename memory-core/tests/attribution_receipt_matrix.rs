@@ -50,6 +50,10 @@ struct TestBackend {
 
 #[async_trait]
 impl StorageBackend for TestBackend {
+    fn supports_recommendation_attribution(&self) -> bool {
+        true
+    }
+
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         if self.fail_writes {
             return Err(do_memory_core::error::Error::Storage(
@@ -376,6 +380,34 @@ async fn attributed_pattern_recommendation_receipt_persistence_failed() {
         }
         other => panic!("two failing backends must yield PersistenceFailed, got: {other:?}"),
     }
+}
+
+#[tokio::test]
+async fn attributed_pattern_recommendation_non_advertising_backend_yields_memory_only() {
+    // ADR-081 §2 AC-3: a configured backend that does not advertise
+    // recommendation-attribution capability must never count toward a durable
+    // receipt, even when its (no-op) write surface would succeed. Both sides
+    // being InertBackend must therefore yield MemoryOnly, never Persisted,
+    // PartiallyPersisted, or PersistenceFailed.
+    let memory = with_backends(
+        Arc::new(InertBackend) as Arc<dyn StorageBackend>,
+        Arc::new(InertBackend) as Arc<dyn StorageBackend>,
+    );
+    let episode_id =
+        create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
+    let context = test_context();
+
+    let attr = memory
+        .recommend_patterns_attributed(episode_id, "implement retry with backoff", context, 3)
+        .await
+        .expect("attributed recommendation should succeed");
+
+    assert!(
+        matches!(attr.receipt, PersistenceReceipt::MemoryOnly { .. }),
+        "non-advertising backends must yield MemoryOnly, got: {:?}",
+        attr.receipt
+    );
+    assert_eq!(attr.session.episode_id, episode_id);
 }
 
 #[tokio::test]

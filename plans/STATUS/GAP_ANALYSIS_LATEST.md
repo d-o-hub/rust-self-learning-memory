@@ -68,6 +68,7 @@
 | G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ADR-080 / RAT-A4 |
 | G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ADR-079 / CIT-A2 |
 | G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | 🔄 semantic validator + negative fixtures 2026-08-06; test/Clippy scope + ruleset-context fixtures remain |
+| G-P1-16 | Attribution capability asserted, not advertised: default no-op `store_recommendation_session` counted as a durable write, so a non-persisting configured backend yielded `Persisted` | `persistence.rs` `persist_session_checked`, `backend.rs` trait defaults | ✅ ADR-081 §2 — `supports_recommendation_attribution` default `false`, Turso/redb advertise `true`, capability-gated receipts (2026-08-10) |
 | G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ✅ CIT-A4/A5 closed 2026-08-06 |
 
 ### P2 (product / research)

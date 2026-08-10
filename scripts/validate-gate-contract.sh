@@ -160,18 +160,30 @@ if [[ "$CI_PARITY" == true ]]; then
   fi
 
   # CIT-A1/ADR-079 stage 3: enforce the LIVE ruleset actually requires CI / Required.
-  # Enforced when gh + the ruleset API are reachable; soft-note otherwise so local,
-  # offline, or low-permission runs stay reproducible (the doc-record check above
-  # remains the always-on hard gate).
-  if command -v gh >/dev/null 2>&1; then
-    if live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/9591004" \
-        --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null); then
-      if ! printf '%s\n' "$live_ctx" | grep -qx 'CI / Required'; then
-        fail "live ruleset 9591004 does not require the CI / Required context (ADR-079 stage 3 not enforced; gates_match_policy/required_ci_causal claims are untrue)"
-      fi
-    else
-      echo "NOTE: gh ruleset API unreachable; live-ruleset enforcement skipped (docs assert CI / Required is required)"
+  # Uses the gh CLI directly. Authenticated context (CI, GH_TOKEN/GITHUB_TOKEN set):
+  # fail-closed — the check must run, never silently skip. Unauthenticated context
+  # (local, no token): try opportunistically, soft-note if unreachable (doc-record
+  # check above is the always-on hard gate there).
+  if [[ -n "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]]; then
+    if ! command -v gh >/dev/null 2>&1; then
+      fail "GH_TOKEN is set but gh CLI is unavailable; live-ruleset enforcement cannot run"
     fi
+    if ! live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/9591004" \
+        --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null); then
+      fail "gh is authenticated but cannot read ruleset 9591004; fix token permissions (live-ruleset enforcement must not silently skip in CI)"
+    fi
+    if ! printf '%s\n' "$live_ctx" | grep -qx 'CI / Required'; then
+      fail "live ruleset 9591004 does not require the CI / Required context (ADR-079 stage 3 not enforced; gates_match_policy/required_ci_causal claims are untrue)"
+    fi
+    echo "OK: live ruleset 9591004 requires CI / Required (live-enforced)"
+  elif command -v gh >/dev/null 2>&1 && live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/9591004" \
+      --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null); then
+    if ! printf '%s\n' "$live_ctx" | grep -qx 'CI / Required'; then
+      fail "live ruleset 9591004 does not require the CI / Required context (ADR-079 stage 3 not enforced)"
+    fi
+    echo "OK: live ruleset 9591004 requires CI / Required (live-enforced)"
+  else
+    echo "NOTE: gh ruleset API unavailable without token; live-ruleset enforcement skipped (docs assert CI / Required is required)"
   fi
 
   # CIT-A4: tag-only release authority; publish uses --locked and bounded polling

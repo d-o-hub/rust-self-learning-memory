@@ -1,10 +1,17 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-08-09
-- **Status**: ADR-080 attribution merged (#927) + receipt-matrix hardening (#930); v0.1.38 shipped; live-ruleset change awaits ADR-079 acceptance
+- **Last Updated**: 2026-08-10
+- **Status**: ADR-080 attribution merged (#927) + receipt-matrix hardening (#930); v0.1.38 shipped; fuzz/LTO wave merged (#934); CIT-A2 Dependabot/fork actor parity implemented; live-ruleset change awaits ADR-079 acceptance
 - **Workspace**: `0.1.39` · **Tag**: `v0.1.38`
 - **Plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`
+
+## Closed this wave (2026-08-09)
+
+| Goal | Status |
+|------|--------|
+| G1 fuzz_workflow_green (nightly toolchain + LTO-off) | ✅ fuzz workflow `success` on branch dispatch (#934) |
+| G2 pr_934_mergeable | ✅ #934 merged 2026-08-09 |
 
 ## Closed this wave (2026-08-07)
 
@@ -20,8 +27,8 @@
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
 | Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | 🔄 workflow side done (stable `CI / Required` aggregate); live-ruleset step awaits ADR acceptance |
-| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | 🔄 waiters fail closed + commit-lint wait done; downstream actor parity pending |
-| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures (2026-08-06); ruleset-context fixture follows |
+| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
+| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures + ruleset-context/Actor-parity fixtures (2026-08-10) |
 | Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | ✅ Implemented (2026-08-06) |
 | Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |

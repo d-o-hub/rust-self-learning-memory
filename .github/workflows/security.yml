@@ -63,7 +63,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'
@@ -106,7 +105,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'
@@ -182,7 +180,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'

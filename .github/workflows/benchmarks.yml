@@ -73,7 +73,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         !contains(github.event.pull_request.labels.*.name, 'skip-benchmarks') &&
         (
           github.event_name != 'pull_request' ||
@@ -351,7 +350,6 @@ jobs:
     needs: benchmark
     if: >-
       github.event_name == 'pull_request' &&
-      github.actor != 'dependabot[bot]' &&
       needs.benchmark.result == 'success'
     permissions:
       contents: read

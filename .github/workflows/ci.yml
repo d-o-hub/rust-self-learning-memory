@@ -74,7 +74,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'
@@ -135,7 +134,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'
@@ -195,7 +193,6 @@ jobs:
     if: >-
       ${{
         always() &&
-        github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'
@@ -357,7 +354,6 @@ jobs:
     name: Semver Check
     runs-on: ubuntu-latest
     timeout-minutes: 30  # Increased from 15 - workspace rustdoc builds are slow
-    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'
@@ -413,7 +409,6 @@ jobs:
     name: WASM Compile Check
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Maximize build space
         if: runner.os == 'Linux'

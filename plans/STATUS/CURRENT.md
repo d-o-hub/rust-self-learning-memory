@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-08-07
+**Last Updated**: 2026-08-10
 **Released Version**: v0.1.38 (latest tag)
 **Workspace Version**: 0.1.39 (next release)
 **Edition**: Rust 2024  
@@ -11,8 +11,14 @@
 
 | Kind | Items |
 |------|--------|
-| Open PRs | None — #927/#928/#930 merged; v0.1.38 release-docs bump in flight |
-| Open issues | #913 Nix CI evaluation |
+| Open PRs | None — #934 (fuzz/LTO wave) merged 2026-08-09 |
+| Open issues | None — #913 (Nix CI eval) closed 2026-08-02 |
+
+## Recent completed (2026-08-09 — fuzz nightly + LTO-off wave)
+
+| Wave | Result |
+|------|--------|
+| PR #934 fuzz nightly toolchain + gitleaksignore + v0.1.39 bump | ✅ Merged 2026-08-09; fuzz workflow green on branch dispatch (`success`, no `__sancov_gen_` link errors) |
 
 ## Recent completed (2026-08-07 — PR review & CI fix wave)
 
@@ -54,7 +60,7 @@
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
 | P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | 🔄 aggregate done; ruleset stage pending (maintainer) |
-| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | 🔄 waiters fail closed; downstream actor parity pending |
+| P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + downstream actor parity (2026-08-10) |
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |
 | P1 | Reconcile gate contract | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |

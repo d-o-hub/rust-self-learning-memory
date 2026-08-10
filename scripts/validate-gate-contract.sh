@@ -146,15 +146,55 @@ if [[ "$CI_PARITY" == true ]]; then
     fail "a workflow still sets fail-on-no-checks: false on a gate waiter (missing checks must fail)"
   fi
 
+  # CIT-A2: Dependabot/fork parity — no substantive job may exclude dependabot by actor
+  if grep -rE "github\.actor != 'dependabot\[bot\]'" "$WF_DIR" --include='*.yml' | grep -q .; then
+    fail "a workflow still excludes dependabot[bot] via github.actor (CIT-A2 actor parity required)"
+  fi
+
+  # CIT-A1: GATE_CONTRACT must record the CI / Required aggregate row and its ruleset state
+  if ! grep -q 'CI / Required' "$CONTRACT"; then
+    fail "GATE_CONTRACT.md must document the 'CI / Required' aggregate gate row"
+  fi
+  if ! grep -qE 'CI / Required.*ruleset|ruleset.*CI / Required' "$CONTRACT"; then
+    fail "GATE_CONTRACT.md must record the CI / Required ruleset-migration state (ADR-079 stage 3)"
+  fi
+
+  # CIT-A1/ADR-079 stage 3: enforce the LIVE ruleset actually requires CI / Required.
+  # Uses the gh CLI directly. Authenticated context (CI, GH_TOKEN/GITHUB_TOKEN set):
+  # fail-closed — the check must run, never silently skip. Unauthenticated context
+  # (local, no token): try opportunistically, soft-note if unreachable (doc-record
+  # check above is the always-on hard gate there).
+  if [[ -n "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]]; then
+    if ! command -v gh >/dev/null 2>&1; then
+      fail "GH_TOKEN is set but gh CLI is unavailable; live-ruleset enforcement cannot run"
+    fi
+    if ! live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/9591004" \
+        --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null); then
+      fail "gh is authenticated but cannot read ruleset 9591004; fix token permissions (live-ruleset enforcement must not silently skip in CI)"
+    fi
+    if ! printf '%s\n' "$live_ctx" | grep -qx 'CI / Required'; then
+      fail "live ruleset 9591004 does not require the CI / Required context (ADR-079 stage 3 not enforced; gates_match_policy/required_ci_causal claims are untrue)"
+    fi
+    echo "OK: live ruleset 9591004 requires CI / Required (live-enforced)"
+  elif command -v gh >/dev/null 2>&1 && live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/9591004" \
+      --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null); then
+    if ! printf '%s\n' "$live_ctx" | grep -qx 'CI / Required'; then
+      fail "live ruleset 9591004 does not require the CI / Required context (ADR-079 stage 3 not enforced)"
+    fi
+    echo "OK: live ruleset 9591004 requires CI / Required (live-enforced)"
+  else
+    echo "NOTE: gh ruleset API unavailable without token; live-ruleset enforcement skipped (docs assert CI / Required is required)"
+  fi
+
   # CIT-A4: tag-only release authority; publish uses --locked and bounded polling
-  if rg -q 'workflow_dispatch' "$WF_DIR/release.yml"; then
+  if grep -q 'workflow_dispatch' "$WF_DIR/release.yml"; then
     fail "release.yml must not expose workflow_dispatch (tag-only release under ADR-072)"
   fi
   if [[ -f "$WF_DIR/publish-crates.yml" ]]; then
-    if ! rg -q -- '--locked' "$WF_DIR/publish-crates.yml"; then
+    if ! grep -q -- '--locked' "$WF_DIR/publish-crates.yml"; then
       fail "publish-crates.yml must use cargo publish --locked"
     fi
-    if rg -q 'run: sleep 30' "$WF_DIR/publish-crates.yml"; then
+    if grep -q 'run: sleep 30' "$WF_DIR/publish-crates.yml"; then
       fail "publish-crates.yml must not use fixed 'run: sleep 30' (bounded polling required)"
     fi
   fi

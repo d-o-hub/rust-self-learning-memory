@@ -1,8 +1,18 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-08-07
-- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` (PR review + CI fix wave) + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Last Updated**: 2026-08-10
+- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` (PR review + CI fix wave) + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`. Fuzz/LTO wave (`GOAP_FUZZ_NIGHTLY_LTO_FIX_WAVE_2026-08-09.md`) completed via #934 (merged 2026-08-09).
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Completed actions (2026-08-09 — fuzz nightly + LTO-off wave)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| T1 | Build all 3 fuzz targets locally with LTO off (`CARGO_PROFILE_RELEASE_LTO=false`) | G1 | ✅ Finished, no link error |
+| T2 | Independent LTO root-cause review | G1 | ✅ nightly toolchain + `lto="fat"` config vs `-Zsanitizer` |
+| T4 | Add `CARGO_PROFILE_RELEASE_LTO: false` to fuzz.yml job env | G1 | ✅ merged in #934 |
+| T6 | Re-trigger fuzz workflow on branch | G1 | ✅ `success` (2026-08-09 17:20Z) |
+| T9 | Merge #934 | G2 | ✅ merged 2026-08-09 |
 
 ## Active actions (2026-08-07 — PR review & CI fix wave)
 
@@ -20,8 +30,8 @@
 |----|--------|-----|--------|
 | ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | Proposed (maintainer) |
 | ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | 🔄 workflow side done (`CI / Required` job, always()); ruleset stage pending |
-| ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | 🔄 waiters fail closed + commit-lint wait done; downstream actor parity pending |
-| ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | ✅ semantic validator + negative fixtures (2026-08-06) |
+| ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
+| ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | ✅ semantic validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
 | ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | ✅ Done (2026-08-06) |
 | ACT-339 | Preserve fuzz/mutation evidence, then measure and remove duplicate CI work | CIT-A5 | ✅ Done (fuzz half; mutants already durable — 2026-08-06) |
 | ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | Blocked by ACT-335…337 and maintainer approval |

@@ -1,6 +1,6 @@
 # ADR-079: Fail-Closed CI Required-Check Control Plane
 
-- **Status**: Proposed
+- **Status**: Accepted — stage 3 implemented 2026-08-10 (ruleset `9591004` requires `CI / Required`; CIT-A2 actor parity + fail-closed fixtures live); stages 4–5 (fault-inject merge-block proof, echo-anchor/waiter cleanup) pending
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
 - **Related**: ADR-029, ADR-030, ADR-038, ADR-039, ADR-042, ADR-072
@@ -158,7 +158,7 @@ baseline and a separate ratchet change.
 
 ## Acceptance criteria
 
-- The live ruleset requires `CI / Required` after staged verification.
+- The live ruleset requires `CI / Required` after staged verification. ✅ Done 2026-08-10 — ruleset `9591004` `required_status_checks` = `[Codacy Static Code Analysis, CI / Required]` (strict policy); enforced by `validate-gate-contract.sh --ci-parity` live-ruleset fixture.
 - Failed, cancelled, timed-out, or missing applicable jobs fail the aggregate.
 - Commit lint failure fails the aggregate.
 - Explicitly inapplicable path/secret jobs do not block and cannot masquerade as

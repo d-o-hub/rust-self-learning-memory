@@ -1,11 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-09
+- **Last Updated**: 2026-08-10
 - **Version**: workspace `0.1.39` · latest tag `v0.1.38`
 - **Branch**: `main` @ `75f52a91`
-- **Open PRs**: none — #927/#928/#930/#931/#932 all merged (v0.1.38 shipped 2026-08-08)
+- **Open PRs**: none — #927/#928/#930/#931/#932/#934 all merged (#934 fuzz/LTO wave 2026-08-09)
 - **PR merge session**: #929 merged into this wave branch 2026-08-07 (CIT-A1/A2/A3); #916 + #917 merged 2026-08-02
-- **Open issues**: #913
+- **Open issues**: none — #913 closed 2026-08-02
 - **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`
 - **Archive**: `plans/archive/2026-07-consolidation/`  
 - **Release**: ✅ `v0.1.38` tagged and shipped 2026-08-08 (workspace bumped to `0.1.39` post-release)
@@ -18,8 +18,8 @@
 |---------|--------|
 | ADR-079 fail-closed required-check control plane | Proposed (P0) — workflow half implemented; ruleset half awaits maintainer acceptance |
 | CIT-A1 required aggregate + staged ruleset migration | 🔄 workflow side done (`CI / Required`); ruleset stage pending |
-| CIT-A2 cancellation/actor fail-closed behavior | 🔄 waiters fail closed + commit-lint wait; downstream actor parity pending |
-| CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures (2026-08-06) |
+| CIT-A2 cancellation/actor fail-closed behavior | ✅ waiters fail closed + commit-lint wait + downstream Dependabot/fork actor parity (2026-08-10) |
+| CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
 | CIT-A4 release/publish trigger truth | ✅ Done (2026-08-06) |
 | CIT-A5 durable informational evidence + deduplication | ✅ Done (fuzz evidence; dedup measurement is follow-up) |
 | PTA-A1 non-`csm` cascade capability truth | ✅ #916 merged (2026-08-02) | PTA-A1 |
@@ -72,10 +72,11 @@ storage_awaits_lock_free          = true
 durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                = false (ADR-079 — no first-party required aggregate in the live ruleset; workflow aggregate exists)
-required_ci_causal                = false (ruleset 9591004 requires Codacy + CodeQL policy only; `CI / Required` context emitted but not yet required)
+gates_match_policy                = true  (ADR-079 stage 3 — live ruleset now requires the `CI / Required` aggregate, 2026-08-10)
+required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; aggregate is causally enforced, 2026-08-10)
 ci_cancellation_fail_closed       = true  (five waiters fail closed + commit-lint wait; 2026-08-06)
-automation_actor_parity           = false (Dependabot excluded from substantive jobs)
+automation_actor_parity           = true  (CIT-A2 — Dependabot/fork run same substantive assertions; validator fixture 2026-08-10)
+fuzz_nightly_green                = true  (#934 — nightly toolchain + LTO-off; fuzz workflow success 2026-08-09)
 release_dispatch_truthful         = false (manual Release dispatch fails tag preflight)
 informational_ci_evidence_durable = false (fuzz continue-on-error can suppress crash upload)
 skill_evals_executable            = true

@@ -76,12 +76,12 @@ check_active_set() {
 
 check_version_state() {
   local cargo_ver tag_ver
-  cargo_ver=$(rg -n '^version\s*=' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+  cargo_ver=$(grep -nE '^version\s*=' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
   tag_ver=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "")
   [[ -n "$cargo_ver" ]] || fail "could not parse workspace version from Cargo.toml"
 
   # CURRENT.md should mention workspace or released version somewhere
-  if ! rg -q "$cargo_ver|0\.[0-9]+\.[0-9]+" plans/STATUS/CURRENT.md; then
+  if ! grep -qE "$cargo_ver|0\.[0-9]+\.[0-9]+" plans/STATUS/CURRENT.md; then
     fail "plans/STATUS/CURRENT.md does not mention a semver version"
   fi
 
@@ -91,9 +91,9 @@ check_version_state() {
 check_release_policy() {
   # Active skills must not instruct manual gh release create without NEVER
   if [[ -f .agents/skills/release-guard/SKILL.md ]]; then
-    rg -q 'release-manager.sh ship --execute' .agents/skills/release-guard/SKILL.md \
+    grep -q 'release-manager.sh ship --execute' .agents/skills/release-guard/SKILL.md \
       || fail "release-guard missing canonical ship path"
-    rg -q 'NEVER' .agents/skills/release-guard/SKILL.md \
+    grep -q 'NEVER' .agents/skills/release-guard/SKILL.md \
       || fail "release-guard missing NEVER for manual release"
   fi
   echo "OK: release-policy"
@@ -161,12 +161,12 @@ check_package_policy() {
       if [[ ! -f memory-cli/Cargo.toml ]]; then
         fail "package-policy $pkg: memory-cli/Cargo.toml missing"
       fi
-      if ! rg -q 'name\s*=\s*"do-memory-cli"' memory-cli/Cargo.toml; then
+      if ! grep -qE 'name\s*=\s*"do-memory-cli"' memory-cli/Cargo.toml; then
         fail "package-policy $pkg: Cargo.toml package name is not do-memory-cli"
       fi
       # Soft note on publish intent if described in docs/workflows
       local publish_hint=0
-      if rg -q 'do-memory-cli' .github/workflows/publish-crates.yml 2>/dev/null; then
+      if grep -q 'do-memory-cli' .github/workflows/publish-crates.yml 2>/dev/null; then
         publish_hint=1
       fi
       if [[ "$publish_hint" -eq 1 ]]; then
@@ -178,7 +178,7 @@ check_package_policy() {
       ;;
     *)
       # Generic: package must appear in workspace Cargo.toml members or have a matching dir
-      if ! rg -q "$pkg" Cargo.toml 2>/dev/null \
+      if ! grep -q "$pkg" Cargo.toml 2>/dev/null \
         && [[ ! -f "${pkg}/Cargo.toml" ]] \
         && [[ ! -f "memory-${pkg#do-memory-}/Cargo.toml" ]]; then
         fail "package-policy $pkg: no matching Cargo.toml found"
@@ -207,7 +207,7 @@ check_adr_decision() {
   local f
   f=$(echo "$matches" | head -1)
   # Soft: look for Status / Decision markers
-  if rg -qi 'status|decision|accepted|rejected|proposed' "$f"; then
+  if grep -qiE 'status|decision|accepted|rejected|proposed' "$f"; then
     echo "OK: adr-decision ADR-${num} (file present: $(basename "$f"))"
   else
     note "adr-decision ADR-${num}: file present but no status/decision keywords"
@@ -232,7 +232,7 @@ check_supersession() {
     local f
     f=$(find plans/adr -maxdepth 1 -type f -name "${id}*.md" 2>/dev/null | head -1 || true)
     if [[ -n "$f" ]]; then
-      if rg -q 'ADR-072' "$f"; then
+      if grep -q 'ADR-072' "$f"; then
         echo "  OK: $(basename "$f") links ADR-072"
       else
         note "$(basename "$f") does not yet link ADR-072 (soft)"

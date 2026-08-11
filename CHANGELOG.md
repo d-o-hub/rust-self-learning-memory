@@ -9,37 +9,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.39] - 2026-08-11
 
+
+
 ### Added
 
-- advertise and enforce recommendation persistence capability via `StorageBackend::supports_recommendation_attribution` (ADR-081 §2 / AC-3) (#940) ([b58d9e2](https://github.com/d-o-hub/rust-self-learning-memory/commit/b58d9e29ccbfaedbef1fb87e1e1171e64e52bbf0))
+- enforce dependabot parity and CI/Required gate ([4c7dd15](https://github.com/d-o-hub/rust-self-learning-memory/commit/4c7dd150c06381a37b23e4ea87059df90cb056c3))
+
+- advertise and enforce persistence capability (#940) ([b58d9e2](https://github.com/d-o-hub/rust-self-learning-memory/commit/b58d9e29ccbfaedbef1fb87e1e1171e64e52bbf0))
+
 
 ### CI/CD
 
-- enforce dependabot parity and `CI / Required` aggregate gate (CIT-A2) (#938) ([4c7dd15](https://github.com/d-o-hub/rust-self-learning-memory/commit/4c7dd150c06381a37b23e4ea87059df90cb056c3))
+- re-trigger CodeQL analysis (stuck queued job on #934) ([01849bd](https://github.com/d-o-hub/rust-self-learning-memory/commit/01849bd494a1500b608d371ce19a2f97746f1297))
+
 
 ### Documentation
 
+- sync GOAP_STATE/GOALS/ACTIONS/ROADMAP to shipped v0.1.38 ([88ca6d1](https://github.com/d-o-hub/rust-self-learning-memory/commit/88ca6d10cff55729ddd6b2062034d828cba911ed))
+
 - refresh trackers to live PR/issue state ([d9873c3](https://github.com/d-o-hub/rust-self-learning-memory/commit/d9873c3bb8d862a95ba706a2c4c26c53f0e6ec65))
+
+- prepare v0.1.39 changelog + release docs (#941) ([4c5ed18](https://github.com/d-o-hub/rust-self-learning-memory/commit/4c5ed1822fab8ebac6635e96108beff28d5934b1))
+
+- sync plans/README.md tracker to current release state (#942) ([f390f53](https://github.com/d-o-hub/rust-self-learning-memory/commit/f390f53d218d053bdf78eb05d0361d806a429908))
+
 
 ### Fixed
 
-- cap MCP LSP `Content-Length` before allocation to prevent OOM/DoS ([6d117b7](https://github.com/d-o-hub/rust-self-learning-memory/commit/6d117b70c79fdf6b98016d4ea5537d4411bd1f4a))
+- switch fuzz toolchain to nightly + disable LTO for libFuzzer/ASan ([7e1c947](https://github.com/d-o-hub/rust-self-learning-memory/commit/7e1c9471ace1bd946987d7ff32061d30b8092f37))
 
 - repair stale fuzz targets so all 3 build and fuzz clean ([7bc56f2](https://github.com/d-o-hub/rust-self-learning-memory/commit/7bc56f2e35a5f769ac72edf202f40f307eafd1cf))
 
-- switch fuzz toolchain to nightly and disable LTO for libFuzzer/ASan ([7e1c947](https://github.com/d-o-hub/rust-self-learning-memory/commit/7e1c9471ace1bd946987d7ff32061d30b8092f37))
+- cap LSP Content-Length before allocation to prevent OOM/DoS ([6d117b7](https://github.com/d-o-hub/rust-self-learning-memory/commit/6d117b70c79fdf6b98016d4ea5537d4411bd1f4a))
 
-- restore 100644 mode on `fuzz_postcard_roundtrip.rs` ([2e7085c](https://github.com/d-o-hub/rust-self-learning-memory/commit/2e7085cd1755f8c8ec96f74bbd3188efb169eb48))
+- restore 100644 mode on fuzz_postcard_roundtrip.rs ([2e7085c](https://github.com/d-o-hub/rust-self-learning-memory/commit/2e7085cd1755f8c8ec96f74bbd3188efb169eb48))
 
 - fail-close live-ruleset fixture and authenticate skill-evals ([09d2084](https://github.com/d-o-hub/rust-self-learning-memory/commit/09d20840c65ecda57634324fda12e0743202dbff))
 
+
 ### Maintenance
+
+- update CHANGELOG.md for v0.1.38 [skip ci] (#933) ([dadea01](https://github.com/d-o-hub/rust-self-learning-memory/commit/dadea0110ef24bf1ed10f0f0c92ea37e6aab47ea))
+
+- add gitleaksignore fingerprints for 2 doc placeholder strings ([2d3aa36](https://github.com/d-o-hub/rust-self-learning-memory/commit/2d3aa36424ed7e21ea4277da1727dec54324b21a))
+
+- bump workspace to 0.1.39 after shipping v0.1.38 ([3983292](https://github.com/d-o-hub/rust-self-learning-memory/commit/3983292e6b6c2df1599110d2fb1ff55fab81665b))
 
 - bump lru from 0.18.1 to 0.18.2 ([8bf646f](https://github.com/d-o-hub/rust-self-learning-memory/commit/8bf646f9ce7007671285cee3e56a66b4160ed843))
 
-- bump the rust-patch-minor dependency group with 3 updates (#937) ([6ac405a](https://github.com/d-o-hub/rust-self-learning-memory/commit/6ac405a135e07a7102379806727016db7158b841))
+- bump the rust-patch-minor group with 3 updates (#937) ([6ac405a](https://github.com/d-o-hub/rust-self-learning-memory/commit/6ac405a135e07a7102379806727016db7158b841))
 
-- add gitleaksignore fingerprints for 2 doc placeholder strings ([2d3aa36](https://github.com/d-o-hub/rust-self-learning-memory/commit/2d3aa36424ed7e21ea4277da1727dec54324b21a))
 
 ## [0.1.38] - 2026-08-08
 
@@ -2695,253 +2714,487 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.11] - 2026-01-05
 
+
+
 ### Added
 
 - implement contrastive learning with triplet loss for task adapters ([2b8cb92](https://github.com/d-o-hub/rust-self-learning-memory/commit/2b8cb928cbbdf1ef43df05e561161990f7ef8a22))
+
 - implement Completion utility (MCP 2025-11-25) ([ee883d4](https://github.com/d-o-hub/rust-self-learning-memory/commit/ee883d46355cbb909258fcb79c1c7ab8e240384d))
+
 - implement OAuth 2.1 authorization for production deployments ([57d6543](https://github.com/d-o-hub/rust-self-learning-memory/commit/57d6543a065dfc1f225cb2c0b70412245374436b))
+
 - fix completion utility external tagging and add OAuth 2.1 tests ([1c19dde](https://github.com/d-o-hub/rust-self-learning-memory/commit/1c19dde4000b4dc810504f945b61b140779d04fe))
-- add codebase-analyzer and codebase-locator agents ([4cd7897](https://github.com/d-o-hub/rust-self-learning-memory/commit/4cd78974b365396a4fe41cdfdaf21c411b809160))
+
 
 ### Changed
 
 - split retriever.rs into modular structure ([b619770](https://github.com/d-o-hub/rust-self-learning-memory/commit/b6197702eb4f44039293c82738872bc0b2723dd5))
+
 - apply rustfmt formatting ([6bc45ad](https://github.com/d-o-hub/rust-self-learning-memory/commit/6bc45ad6d65f91a4c53100090ae74af9740a6c7f))
+
 - split extractor.rs into modular structure ([95e45d2](https://github.com/d-o-hub/rust-self-learning-memory/commit/95e45d2af714a41e9db7d7c7a756c8719ca74905))
-- split mod.rs into init/monitoring/queries/tests modules ([03cc45d](https://github.com/d-o-hub/rust-self-learning-memory/commit/03cc45d913b85ea02940d05900cafce0fca677ae))
-- split storage.rs into episodes/patterns/heuristics/embeddings modules ([28be5c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/28be5c12cfb01bcc88392bde4a15aa37fb7a4e62))
-- split server.rs into tools/monitoring/tests modules ([b71824e](https://github.com/d-o-hub/rust-self-learning-memory/commit/b71824eab6cd51e270cdb68184cc08ec5924468e))
-- split large modules into submodules ([9dedbd0](https://github.com/d-o-hub/rust-self-learning-memory/commit/9dedbd07ad4b8180168d7c0b12c015e80e2d0b69))
-- split lib.rs tests into separate module ([5c81422](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c8142223acfde1f1c777cf4405e8f4216157cfd))
-- split index.rs into types.rs module ([244377f](https://github.com/d-o-hub/rust-self-learning-memory/commit/244377f313adf41215f6c0a8a60ca45551028ecc))
-- split tests into separate tests.rs module ([8868ef9](https://github.com/d-o-hub/rust-self-learning-memory/commit/8868ef9a96bcf9ab7ac721b5794c51975fd95d4c))
-- run cargo fmt on modified files ([fe13737](https://github.com/d-o-hub/rust-self-learning-memory/commit/fe137379399507ecb5ece0d089fa503715f9fdf8))
+
 
 ### Documentation
 
 - add contrastive learning feature to unreleased section ([e7692a4](https://github.com/d-o-hub/rust-self-learning-memory/commit/e7692a46ee54408c4fdb411aae82d3fe45d61a74))
+
 - mark spatiotemporal retriever refactoring as completed ([c42b732](https://github.com/d-o-hub/rust-self-learning-memory/commit/c42b732fc7ba10f0190e21c9839508ef7619104e))
+
 - add spatiotemporal retriever refactoring entry ([c505558](https://github.com/d-o-hub/rust-self-learning-memory/commit/c505558f41b4338f12833512696e151d75e69001))
+
 - update status and changelog for extractor refactoring ([b1c80a4](https://github.com/d-o-hub/rust-self-learning-memory/commit/b1c80a468bf21ef862a28d739879358625051874))
+
 - add GitHub release workflow documentation ([afb797d](https://github.com/d-o-hub/rust-self-learning-memory/commit/afb797d59a879fa64e443c5b79aa3ab171e5f890))
+
 - enhance pre-push checklist with quality gates ([c6da7ed](https://github.com/d-o-hub/rust-self-learning-memory/commit/c6da7eddb5c54a44513d1ab3acbeb062c00f7e6a))
-- update file splitting progress ([c0fcac4](https://github.com/d-o-hub/rust-self-learning-memory/commit/c0fcac4ffdd836c742417bbf36ab74aad400a229))
-- update implementation status for file splitting progress ([0a58031](https://github.com/d-o-hub/rust-self-learning-memory/commit/0a580311feefc10107a6383ebd715efde0ee294c))
+
 
 ### Fixed
 
 - resolve clippy warnings and update integration tests ([19485c3](https://github.com/d-o-hub/rust-self-learning-memory/commit/19485c3dce5a0c9cd0cd99e0665ba9dd6cebd285))
+
 - rename retriever::ScoredEpisode to HierarchicalScore ([5c34dfb](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c34dfb72751c4ecf657f59d6ce5d1e58eb8548b))
+
 - resolve documentation and must_use warnings in retriever module ([e3a9a74](https://github.com/d-o-hub/rust-self-learning-memory/commit/e3a9a7407a031b04254abce4b3285e00b29282ec))
+
 - resolve test compilation warnings ([672d3bd](https://github.com/d-o-hub/rust-self-learning-memory/commit/672d3bd6a2ba37939d181d204e82f3bcfdeeb8dd))
+
 - resolve warnings in OAuth 2.1 implementation ([91581fb](https://github.com/d-o-hub/rust-self-learning-memory/commit/91581fbd3a7d1af4c92cdc5cc6b2c26ea1ec1520))
-- update MCP tool count assertion from 10 to 9 ([7342b0b](https://github.com/d-o-hub/rust-self-learning-memory/commit/7342b0bc0ba899f2975d5949217529aeeb505a10))
-- resolve all clippy warnings in memory-core ([a4236de](https://github.com/d-o-hub/rust-self-learning-memory/commit/a4236de176a2ed4a8cc9190bd6b49e3f99826cd7))
-- correct test enum variants ([e7b269e](https://github.com/d-o-hub/rust-self-learning-memory/commit/e7b269e9568162b8813c3eaaf0d6a044eb8652e0))
-- correct test assertion for query results ([f77fdcb](https://github.com/d-o-hub/rust-self-learning-memory/commit/f77fdcbf8bda88cd3bcce3fd0bd1ebfbf2c98f39))
-- resolve warnings in spatiotemporal/types.rs ([d2b9f48](https://github.com/d-o-hub/rust-self-learning-memory/commit/d2b9f48887598b9f03ecf74a8f806cd570becbb7))
-- resolve all warnings in spatiotemporal module ([2b59742](https://github.com/d-o-hub/rust-self-learning-memory/commit/2b597428a224b16c4152962c628436afc99bc135))
-- add #[allow(dead_code)] to is_valid_wasm_file function ([cb725e0](https://github.com/d-o-hub/rust-self-learning-memory/commit/cb725e04d5757c343c26bd7d3fdd9a6eb69a2288))
-- suppress unused import warning in spatiotemporal tests ([1a0b9ac](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a0b9ac7fdf7a99333cd905d4354943be5353d8c))
-- resolve CI failures in develop branch ([1febc9c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1febc9ccc1d29d8b02e30568eb01c325268bffb1))
-- suppress unused import warning in spatiotemporal tests ([0373337](https://github.com/d-o-hub/rust-self-learning-memory/commit/0373337af11d2a1c3b3f5050b5be9d42f2beefab))
-- resolve CI failures in develop branch ([1dbd15c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1dbd15c1071e1965c5cb1a7c892976b87217bf96))
+
 
 ### Maintenance
 
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
+
+
+## [0.1.11] - 2026-01-04
+
+
+
+### Added
+
+- add codebase-analyzer and codebase-locator agents ([4cd7897](https://github.com/d-o-hub/rust-self-learning-memory/commit/4cd78974b365396a4fe41cdfdaf21c411b809160))
+
+
+### Changed
+
+- split mod.rs into init/monitoring/queries/tests modules ([03cc45d](https://github.com/d-o-hub/rust-self-learning-memory/commit/03cc45d913b85ea02940d05900cafce0fca677ae))
+
+- split storage.rs into episodes/patterns/heuristics/embeddings modules ([28be5c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/28be5c12cfb01bcc88392bde4a15aa37fb7a4e62))
+
+- split server.rs into tools/monitoring/tests modules ([b71824e](https://github.com/d-o-hub/rust-self-learning-memory/commit/b71824eab6cd51e270cdb68184cc08ec5924468e))
+
+- split large modules into submodules ([9dedbd0](https://github.com/d-o-hub/rust-self-learning-memory/commit/9dedbd07ad4b8180168d7c0b12c015e80e2d0b69))
+
+- split lib.rs tests into separate module ([5c81422](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c8142223acfde1f1c777cf4405e8f4216157cfd))
+
+- split index.rs into types.rs module ([244377f](https://github.com/d-o-hub/rust-self-learning-memory/commit/244377f313adf41215f6c0a8a60ca45551028ecc))
+
+- split tests into separate tests.rs module ([8868ef9](https://github.com/d-o-hub/rust-self-learning-memory/commit/8868ef9a96bcf9ab7ac721b5794c51975fd95d4c))
+
+- run cargo fmt on modified files ([fe13737](https://github.com/d-o-hub/rust-self-learning-memory/commit/fe137379399507ecb5ece0d089fa503715f9fdf8))
+
+
+### Documentation
+
+- update file splitting progress ([c0fcac4](https://github.com/d-o-hub/rust-self-learning-memory/commit/c0fcac4ffdd836c742417bbf36ab74aad400a229))
+
+- update implementation status for file splitting progress ([0a58031](https://github.com/d-o-hub/rust-self-learning-memory/commit/0a580311feefc10107a6383ebd715efde0ee294c))
+
+
+### Fixed
+
+- update MCP tool count assertion from 10 to 9 ([7342b0b](https://github.com/d-o-hub/rust-self-learning-memory/commit/7342b0bc0ba899f2975d5949217529aeeb505a10))
+
+- resolve all clippy warnings in memory-core ([a4236de](https://github.com/d-o-hub/rust-self-learning-memory/commit/a4236de176a2ed4a8cc9190bd6b49e3f99826cd7))
+
+- correct test enum variants ([e7b269e](https://github.com/d-o-hub/rust-self-learning-memory/commit/e7b269e9568162b8813c3eaaf0d6a044eb8652e0))
+
+- correct test assertion for query results ([f77fdcb](https://github.com/d-o-hub/rust-self-learning-memory/commit/f77fdcbf8bda88cd3bcce3fd0bd1ebfbf2c98f39))
+
+- resolve warnings in spatiotemporal/types.rs ([d2b9f48](https://github.com/d-o-hub/rust-self-learning-memory/commit/d2b9f48887598b9f03ecf74a8f806cd570becbb7))
+
+- resolve all warnings in spatiotemporal module ([2b59742](https://github.com/d-o-hub/rust-self-learning-memory/commit/2b597428a224b16c4152962c628436afc99bc135))
+
+- add #[allow(dead_code)] to is_valid_wasm_file function ([cb725e0](https://github.com/d-o-hub/rust-self-learning-memory/commit/cb725e04d5757c343c26bd7d3fdd9a6eb69a2288))
+
+- suppress unused import warning in spatiotemporal tests ([1a0b9ac](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a0b9ac7fdf7a99333cd905d4354943be5353d8c))
+
+- resolve CI failures in develop branch ([1febc9c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1febc9ccc1d29d8b02e30568eb01c325268bffb1))
+
+- suppress unused import warning in spatiotemporal tests ([0373337](https://github.com/d-o-hub/rust-self-learning-memory/commit/0373337af11d2a1c3b3f5050b5be9d42f2beefab))
+
+- resolve CI failures in develop branch ([1dbd15c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1dbd15c1071e1965c5cb1a7c892976b87217bf96))
+
+
+### Maintenance
+
 - remove stale .opencode and plans/GOAP directories ([9250c12](https://github.com/d-o-hub/rust-self-learning-memory/commit/9250c128c7f35d3403f3eb7d06a5a203eb592344))
+
 - update checkout action and add opencode config ([b70c0f6](https://github.com/d-o-hub/rust-self-learning-memory/commit/b70c0f6274b0aac74fe1cc6a8c304159d72d6895))
+
 - update checkout action and add opencode config ([5c39c7d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c39c7db65f3a57fb5b719e11c7dd6efd1f71314))
+
 
 ### merge
 
 - pull latest from main remote ([50e48cd](https://github.com/d-o-hub/rust-self-learning-memory/commit/50e48cd21f726fec10cc6198614f6c0b7b150113))
 
+
 ## [0.1.10] - 2026-01-03
+
+
 
 ### Changed
 
 - Fix conditional imports and improve code style ([06542bb](https://github.com/d-o-hub/rust-self-learning-memory/commit/06542bbf08019c3c67a2852393a7feb6a690876c))
+
 - Fix conditional import handling for javy-backend feature ([64680bd](https://github.com/d-o-hub/rust-self-learning-memory/commit/64680bdd0535267db80bb23398eec235b0f140d5))
-- fix formatting to pass CI checks ([f4eceef](https://github.com/d-o-hub/rust-self-learning-memory/commit/f4eceef964bff1942da186c984837983f3aed39b))
-- Fix rustfmt formatting issues in test files ([298d132](https://github.com/d-o-hub/rust-self-learning-memory/commit/298d132ce21e13f0c1d73e351078e28ca6d693a8))
-- improve error handling in integration tests ([2fa453a](https://github.com/d-o-hub/rust-self-learning-memory/commit/2fa453ac6dea9ed87f792e29064161d5ca427047))
-- Modernize base64 API usage ([11dcb75](https://github.com/d-o-hub/rust-self-learning-memory/commit/11dcb75775eb389fbd2db81d62db115692e2363a))
-- Add namespace support to embedding storage interface ([f1fcd3f](https://github.com/d-o-hub/rust-self-learning-memory/commit/f1fcd3fe707c50746a9b1a3a193a6b44e7c88f0b))
-- fix formatting and clippy warnings ([a12b5cf](https://github.com/d-o-hub/rust-self-learning-memory/commit/a12b5cf88b7a5310e8ad427606fbec3cc36dce3c))
-- fix formatting and clippy warnings for sysinfo update ([6c2499a](https://github.com/d-o-hub/rust-self-learning-memory/commit/6c2499a69af7198164765bb37343d55e81268bc5))
-- fix clippy useless_format warning in tests ([e11087b](https://github.com/d-o-hub/rust-self-learning-memory/commit/e11087b0d7094fb057d51ce53980bda18227a00e))
-- remove unused imports in phase1_validation test ([b12d8c7](https://github.com/d-o-hub/rust-self-learning-memory/commit/b12d8c7310baa9dec12c42c890df56527b6b7d4c))
-- fix clippy useless_vec warning in semantic_retrieval_test ([06223d4](https://github.com/d-o-hub/rust-self-learning-memory/commit/06223d4c1c48e66cf2944d006b5e6e72c41cea9d))
-- update embedding API calls to 2-parameter signature ([2ac2674](https://github.com/d-o-hub/rust-self-learning-memory/commit/2ac2674e61a9a777bc0c0f60f3cffcce6d46e970))
-- fix clippy assertions_on_constants warnings in constants tests ([b4c0cdb](https://github.com/d-o-hub/rust-self-learning-memory/commit/b4c0cdb07272697c4ff43bb588f15b730939b6dd))
-- add #[allow] for assertions_on_constants in constants tests ([896171a](https://github.com/d-o-hub/rust-self-learning-memory/commit/896171a8528a677078dab2f081629e32f3132202))
-- add #[allow] for excessive_nesting in security_tests ([9865786](https://github.com/d-o-hub/rust-self-learning-memory/commit/98657868c172c3c97f6b0599d8231126f9bc9cfe))
-- add #[allow] for excessive_nesting in quality_gates.rs ([6cd5843](https://github.com/d-o-hub/rust-self-learning-memory/commit/6cd58434c25d3f48792e554cf44a1953c338dbf5))
-- fix clippy warnings (unreadable_literal, excessive_nesting) ([3f10f52](https://github.com/d-o-hub/rust-self-learning-memory/commit/3f10f5235cb0d01270636bcb3ed0ac8e651bbc15))
-- fix clippy warnings and clean up test assertions ([f1cb13c](https://github.com/d-o-hub/rust-self-learning-memory/commit/f1cb13c001c89926ff029d490bc17ed6df95ca80))
-- split episode and pattern commands into submodules ([16b4016](https://github.com/d-o-hub/rust-self-learning-memory/commit/16b4016a1261190beb1826758266dfb9e5fa5504))
-- split episode and pattern commands into submodules ([1dbc876](https://github.com/d-o-hub/rust-self-learning-memory/commit/1dbc876b3c61eb7598cc9769e38e277be8c37cbb))
-- run cargo fmt on all files ([1341826](https://github.com/d-o-hub/rust-self-learning-memory/commit/1341826844f4a0d745210d2a1be4e36e7b77718e))
-- run cargo fmt ([91de45c](https://github.com/d-o-hub/rust-self-learning-memory/commit/91de45c4e7260b7ad865a65fc63933196c4408aa))
+
 
 ### Fixed
 
 - update MCP tool count assertions ([3071444](https://github.com/d-o-hub/rust-self-learning-memory/commit/30714449a4ccff458049494b8ce83ca85b776246))
+
 - update MCP tool count assertions ([e71881b](https://github.com/d-o-hub/rust-self-learning-memory/commit/e71881b6223c867f9d15d3a183e98aa9112477df))
+
 - properly serialize episode data for output display ([3c105ea](https://github.com/d-o-hub/rust-self-learning-memory/commit/3c105ea5a65d3a091f403b51165af43e0719535d))
+
 - handle WASM availability in MCP tool tests ([d939060](https://github.com/d-o-hub/rust-self-learning-memory/commit/d939060d2c0c443df66a274f5e5255f3e295e4f1))
+
 - resolve database locking and capacity test issues ([c255183](https://github.com/d-o-hub/rust-self-learning-memory/commit/c255183b6d49a4e1067ea041ec226f85792dc365))
+
 - disable WASM for consistent test tool counts ([cc0072a](https://github.com/d-o-hub/rust-self-learning-memory/commit/cc0072aedc60446a9014e05b74002ce7fa830920))
+
 - remove turso_multi_dimension feature from benches and examples ([e00e8cc](https://github.com/d-o-hub/rust-self-learning-memory/commit/e00e8cc496c32aa2c933a19ac32a4a4bd74f93ea))
+
 - skip cache_stats test on macOS ([3be014b](https://github.com/d-o-hub/rust-self-learning-memory/commit/3be014b995ce31ba647e05705147d1b598dea5de))
+
 - add disk cleanup steps to prevent macOS out-of-space failures ([b2f834c](https://github.com/d-o-hub/rust-self-learning-memory/commit/b2f834c5fb6af37c71b86058f0138553ebcd7d84))
-- Suppress unused_assignments warning for last_input_was_lsp ([a0e3ce7](https://github.com/d-o-hub/rust-self-learning-memory/commit/a0e3ce7e7613ae2a5f3c1c41cfa47053fb2de4b7))
-- Fix inputSchema serialization + project cleanup + GOAP verification ([770289f](https://github.com/d-o-hub/rust-self-learning-memory/commit/770289fb2f9ee4a445a38f719d460f06683ffbfb))
-- Ignore QuickJS tests with GC issues ([ec6a2b8](https://github.com/d-o-hub/rust-self-learning-memory/commit/ec6a2b8527471fe7f38b7706572410dfb1e67ae7))
-- Remove invalid #[ignore] attribute on test module ([ccf12f2](https://github.com/d-o-hub/rust-self-learning-memory/commit/ccf12f29d5d37da82c63b51d4cc4171dc0b2d431))
-- Remove leaked JWT token and update secret scanning ignores ([461d8bc](https://github.com/d-o-hub/rust-self-learning-memory/commit/461d8bc45513b1b6d0065629a6472a7e0e855114))
-- Allow BSL-1.0 license and ignore wasmtime advisories ([675914f](https://github.com/d-o-hub/rust-self-learning-memory/commit/675914f205f042aa1b53b6f5b6e95433bca8a7a4))
-- Upgrade wasmtime to 24.0.5 to resolve security advisories ([e9c9b5e](https://github.com/d-o-hub/rust-self-learning-memory/commit/e9c9b5e487354e585bb81818de98e4c8e22f01bf))
-- Ignore test_correlation_calculation due to rquickjs GC issue ([131d914](https://github.com/d-o-hub/rust-self-learning-memory/commit/131d914d132fed79b03627123b5f08e1917948be))
-- Replace rustsec/audit-check with direct cargo audit ([01e0ea4](https://github.com/d-o-hub/rust-self-learning-memory/commit/01e0ea40cbba231417c59abb15ffc594ccb0e3fd))
-- disable WASM sandbox in all tests to prevent rquickjs GC crashes ([16246f8](https://github.com/d-o-hub/rust-self-learning-memory/commit/16246f84b4d203e055f2f99eef31501708915e25))
-- allow 0ms performance timing for fast operations ([bc11a4d](https://github.com/d-o-hub/rust-self-learning-memory/commit/bc11a4d3c22edb912bf06b02886e1d78fb53bac9))
-- remove absurd extreme comparisons for unsigned integers ([5d907cb](https://github.com/d-o-hub/rust-self-learning-memory/commit/5d907cb6b0263c1b311d12f52760b0549ad79236))
-- add --test-threads=4 to prevent flaky test failures ([1b6edd5](https://github.com/d-o-hub/rust-self-learning-memory/commit/1b6edd5134c10c4625fc6b2d62e3a501e7e6883f))
-- fix --test-threads flag placement in workflow ([69615cd](https://github.com/d-o-hub/rust-self-learning-memory/commit/69615cdca5d17ee6df1041085b95570194234aba))
-- disable WASM sandbox to prevent rquickjs GC crashes ([b28df93](https://github.com/d-o-hub/rust-self-learning-memory/commit/b28df932dbc875e9781e51adefbea90c21cc3400))
-- update test to use wasmtime_pool_stats field ([d6bd181](https://github.com/d-o-hub/rust-self-learning-memory/commit/d6bd1816a90fb1647d69d016ef8f869a599199f7))
-- use struct initialization for WasmtimeConfig ([f9f0587](https://github.com/d-o-hub/rust-self-learning-memory/commit/f9f05874da3029b7c9f7373ac99c9c038e9099bd))
-- Fix all quality gate test failures for v0.1.7 ([b2f6e55](https://github.com/d-o-hub/rust-self-learning-memory/commit/b2f6e55dcea5c703138f0fccb59a33d5ab5ab387))
-- Update test job to use ubuntu-latest and add steps for checkout and Rust toolchain installation ([f2953c7](https://github.com/d-o-hub/rust-self-learning-memory/commit/f2953c7f3553d8e80664bb6e503bcf229a8b2814))
-- Update .gitleaksignore to exclude JWT token from commit 144e3a2 ([a48d6b6](https://github.com/d-o-hub/rust-self-learning-memory/commit/a48d6b64dd9e08fa02c4c8a3d01cccbf0cdf4ce7))
-- Resolve all clippy warnings and errors ([40fbec6](https://github.com/d-o-hub/rust-self-learning-memory/commit/40fbec6155d3ad005b55cf48301ca2a003447387))
-- modernize workflow using 2025 best practices ([e88026c](https://github.com/d-o-hub/rust-self-learning-memory/commit/e88026cb5788d30544ac3382888e8a6ed74aaae1))
-- ignore documentation examples in gitleaks ([ffd5ee4](https://github.com/d-o-hub/rust-self-learning-memory/commit/ffd5ee45823a4048d31650a873c56cf8b1461f1a))
-- update to 2025 best practices and fix issues ([ec364e2](https://github.com/d-o-hub/rust-self-learning-memory/commit/ec364e2b9932f99d36e83137bd5ce4b4f88fc2b4))
-- ignore broken WASM backend tests that fail with String::from_utf8 ([5867021](https://github.com/d-o-hub/rust-self-learning-memory/commit/5867021e279f655ce324660933650852fe2292f0))
-- revert actions/checkout to v4 ([43f4021](https://github.com/d-o-hub/rust-self-learning-memory/commit/43f4021fad7cf21b5c462dea19d249f871ca1de9))
-- add path validation to prevent path traversal and sensitive file access ([274a09d](https://github.com/d-o-hub/rust-self-learning-memory/commit/274a09d2c60f0bd215a63d7e369338ff8882f5e0))
-- apply rustfmt and update documentation ([a39adba](https://github.com/d-o-hub/rust-self-learning-memory/commit/a39adba6b144a481d69b19901da88c99e9df34b3))
-- add path validation to prevent path traversal and sensitive file access ([be1eed2](https://github.com/d-o-hub/rust-self-learning-memory/commit/be1eed2fed4f0939b033bb43d441ece2ae388419))
-- add quality config for async extraction tests ([1a22b36](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a22b36e5b00b5f9f45b518e7f385a0d9c75d75c))
-- fix formatting and clippy configuration ([ac1124b](https://github.com/d-o-hub/rust-self-learning-memory/commit/ac1124b3f98b42860efe6156958242313cf685ef))
-- resolve clippy warnings and formatting issues ([06b3c70](https://github.com/d-o-hub/rust-self-learning-memory/commit/06b3c701fc9473a81c0bd34b7bbbf5ec7a3c5d71))
-- add allow(dead_code) to unused function ([10b777f](https://github.com/d-o-hub/rust-self-learning-memory/commit/10b777f6139074b4cae541f99f4e5dfbe43781a1))
-- remove unused import ([e603603](https://github.com/d-o-hub/rust-self-learning-memory/commit/e603603676bbd6dc8ac32399a91767062443b024))
-- add quality_threshold to performance and step_batching tests ([ed7f6f0](https://github.com/d-o-hub/rust-self-learning-memory/commit/ed7f6f0761232e5dca7c04a26303418ba58f973f))
-- lower quality threshold for test episodes across memory-mcp and memory-core ([f2a197d](https://github.com/d-o-hub/rust-self-learning-memory/commit/f2a197de8b1d6f21e23b600e9e8267068869db62))
-- update doctests to fix CI compilation errors ([27db9c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/27db9c151a29006128082858596fb337b7c8a9f5))
-- use inlined format args and allow MPL-2.0 license ([0746219](https://github.com/d-o-hub/rust-self-learning-memory/commit/074621950e9f6f80074174c04418e705a02ea86d))
-- replace unwrap() with expect() in pool integration tests ([648f3cd](https://github.com/d-o-hub/rust-self-learning-memory/commit/648f3cd529d6f93dcef26464e21d1a1077efda0b))
-- Improve documentation testing and CI reliability ([7f868a8](https://github.com/d-o-hub/rust-self-learning-memory/commit/7f868a8f9ec35da27d7d13a2d668d3f90769f5ca))
-- Prevent lock conflicts in parallel test execution ([f8ccdcc](https://github.com/d-o-hub/rust-self-learning-memory/commit/f8ccdcc074509bf4ba7309cca467cc45d1df657c))
-- Remove invalid remove_artifacts parameter from Release workflow ([9897ff3](https://github.com/d-o-hub/rust-self-learning-memory/commit/9897ff3a9e6a4d27399b9edcc901d45be6dbcd9d))
-- Skip benchmark jobs on Dependabot PRs to prevent timeouts ([a8f2bd3](https://github.com/d-o-hub/rust-self-learning-memory/commit/a8f2bd35f3f07dbd8d0999f6b0f4c546cad06c5f))
-- add excessive_nesting allow attribute ([2a97782](https://github.com/d-o-hub/rust-self-learning-memory/commit/2a97782e65ef4cdb3f9fae5a49be9c385e045b15))
-- update embeddings_end_to_end.rs to match current API ([dcb217c](https://github.com/d-o-hub/rust-self-learning-memory/commit/dcb217cb01d73e75ef8207d1f311bc8ba558f67c))
-- update benchmarks and MCP tools for current API ([62cb983](https://github.com/d-o-hub/rust-self-learning-memory/commit/62cb9830f9a34f53a34e0219de9afda7f0056151))
-- resolve fmt and clippy warnings in benchmarks and examples ([398a2d7](https://github.com/d-o-hub/rust-self-learning-memory/commit/398a2d74a9911b4c928506ae22274451c309c1f4))
-- fix f64 comparison in embeddings_integration test ([4f9e1d8](https://github.com/d-o-hub/rust-self-learning-memory/commit/4f9e1d8bd00ec8c9b9665c1cb5349086d0166984))
-- resolve clippy warnings in benchmarks and tests ([08a7c46](https://github.com/d-o-hub/rust-self-learning-memory/commit/08a7c46a4254dd65ee3a04919afa930cadab2673))
+
 
 ### Maintenance
 
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
-- bump uuid from 1.18.1 to 1.19.0 ([d04a836](https://github.com/d-o-hub/rust-self-learning-memory/commit/d04a836b9866108270290fbf874b35287ce383da))
-- bump reqwest from 0.12.24 to 0.12.25 ([021221e](https://github.com/d-o-hub/rust-self-learning-memory/commit/021221e281760fb7c45abf32c84daf06e9fbe7b4))
-- expand gitignore patterns for database files ([a3ee956](https://github.com/d-o-hub/rust-self-learning-memory/commit/a3ee956b0fefd5014d0d3553a9394b543525a2bd))
-- stop tracking .claude/settings.local.json ([8f451dc](https://github.com/d-o-hub/rust-self-learning-memory/commit/8f451dc2492061c705557972ee11bd9680279eb4))
-- Bump version to 0.1.7 - Phase 2C Complete ([7074c7f](https://github.com/d-o-hub/rust-self-learning-memory/commit/7074c7f806991b6d3188922e30c85fb19556d0d0))
-- Prepare v0.1.6 release ([40a9b88](https://github.com/d-o-hub/rust-self-learning-memory/commit/40a9b88890fd1da325c89e4382f926372b1191bf))
-- prepare 0.1.6.1 ([f610e3c](https://github.com/d-o-hub/rust-self-learning-memory/commit/f610e3c850463b435d4f3ed2b223baa215a77df3))
-- add sccache to release workflow and document loop-agent work ([17eedec](https://github.com/d-o-hub/rust-self-learning-memory/commit/17eedec278b215a57c4791943a799b4270227bd8))
-- bump version to 0.1.7 ([168576b](https://github.com/d-o-hub/rust-self-learning-memory/commit/168576b2d8fe346db6ba8efe28f810f8877785a4))
-- bump reqwest from 0.12.25 to 0.12.26 (#171) ([aaf783b](https://github.com/d-o-hub/rust-self-learning-memory/commit/aaf783b5a397243a219ea7a748e6846c6f07dc80))
-- bump rquickjs from 0.6.2 to 0.10.0 (#168) ([25b1e06](https://github.com/d-o-hub/rust-self-learning-memory/commit/25b1e0667924c599ed9701045e464bb89848a95a))
-- bump deep_causality from 0.11.11 to 0.12.2 ([30d4134](https://github.com/d-o-hub/rust-self-learning-memory/commit/30d4134d68dd6f2c42d3264e177768d64a6c57aa))
-- bump augurs from 0.6.3 to 0.10.1 ([dabc872](https://github.com/d-o-hub/rust-self-learning-memory/commit/dabc872b620ab74c7cf10f319638e6cd91bd76fc))
-- bump tempfile from 3.23.0 to 3.24.0 ([9c79b0f](https://github.com/d-o-hub/rust-self-learning-memory/commit/9c79b0fca1265aa781fd8e4d9969f0266cd29d02))
-- bump tokenizers from 0.20.4 to 0.22.2 ([7172f0e](https://github.com/d-o-hub/rust-self-learning-memory/commit/7172f0e7e9bb1b08db9953462be60eb09043adf1))
-- bump dirs from 5.0.1 to 6.0.0 ([39f2605](https://github.com/d-o-hub/rust-self-learning-memory/commit/39f2605b0e43a604e47025859b9875bb13b72d85))
-- trigger CI ([6612d20](https://github.com/d-o-hub/rust-self-learning-memory/commit/6612d202ca584876429e05bd7886b956cbb4ef44))
-- bump serde_json from 1.0.146 to 1.0.148 ([dfecaf9](https://github.com/d-o-hub/rust-self-learning-memory/commit/dfecaf9ae9ecd7ea1e3347d9e7780d2581a5fcae))
-- bump rquickjs from 0.10.0 to 0.11.0 ([8300743](https://github.com/d-o-hub/rust-self-learning-memory/commit/8300743b6f89fdba461d71ad09511f1a39925db9))
-- bump ndarray from 0.16.1 to 0.17.1 ([92b0bf7](https://github.com/d-o-hub/rust-self-learning-memory/commit/92b0bf7ad8c590e0f4317dab4a42ce5897d91494))
-- bump deep_causality from 0.12.2 to 0.13.0 ([ee01ebe](https://github.com/d-o-hub/rust-self-learning-memory/commit/ee01ebec537339446e328d684628db8bfecdee0a))
-- bump sysinfo from 0.30.13 to 0.37.2 ([a2d6001](https://github.com/d-o-hub/rust-self-learning-memory/commit/a2d6001847b0f609bb2858a82c102caeeb36d18c))
+
+
+## [0.1.10] - 2026-01-02
+
+
 
 ### Added
 
 - Local database setup and MCP server fixes ([e94271e](https://github.com/d-o-hub/rust-self-learning-memory/commit/e94271edd3aa86d5d759d70e479291c1f26ab72b))
+
 - Add LSP-style framing and unified sandbox support ([ac5e5e0](https://github.com/d-o-hub/rust-self-learning-memory/commit/ac5e5e04995ac38d9d67b6a5d22a7aeae1855bb2))
+
 - Update to latest dependencies and enable 50% WASM usage ([f7ac6d1](https://github.com/d-o-hub/rust-self-learning-memory/commit/f7ac6d16c31493c968be71640a6cc73e0776e8a1))
+
 - add wasmtime sandbox POC for GC-free execution ([0f5753a](https://github.com/d-o-hub/rust-self-learning-memory/commit/0f5753a42345b6454640a5a0a90b7ea41b6c3922))
+
 - add WASI support and fuel-based timeout enforcement ([6ae3a2e](https://github.com/d-o-hub/rust-self-learning-memory/commit/6ae3a2e3b6fb27c62cbd3ee57c5b7787000bb08e))
+
 - wire wasmtime into UnifiedSandbox ([d07478d](https://github.com/d-o-hub/rust-self-learning-memory/commit/d07478d8b284179d3863baedac241a6df91f3391))
+
 - Add comprehensive architecture and code quality analysis for rust-self-learning-memory project ([acde00e](https://github.com/d-o-hub/rust-self-learning-memory/commit/acde00ec5445443bff1ac5d99c91846b2e0514e0))
+
 - enhance episode retrieval and caching mechanisms ([4ffb0a4](https://github.com/d-o-hub/rust-self-learning-memory/commit/4ffb0a4c6964ba2d96746164357afeb07c111893))
+
 - add MCP matrix job to CI workflow and improve job strategy ([5a778be](https://github.com/d-o-hub/rust-self-learning-memory/commit/5a778be59dc9594ad3800b6ea0d9f2195850968c))
+
 - Complete Javy JavaScript-to-WASM Integration - 100% Tests Passing ([352b9b1](https://github.com/d-o-hub/rust-self-learning-memory/commit/352b9b14b56580d2c781926cdaa949ffac5df5cb))
+
 - Implement comprehensive GitHub Actions optimization plan ([e315f13](https://github.com/d-o-hub/rust-self-learning-memory/commit/e315f13efb169f35534ad8bba6c9608c9b61a371))
+
 - integrate develop branch updates into main ([a18e572](https://github.com/d-o-hub/rust-self-learning-memory/commit/a18e5726cd08ff63a3442adb7a89bfb7a8e4e761))
+
 - Complete embeddings refactor and configuration optimization (#162) ([35ad97f](https://github.com/d-o-hub/rust-self-learning-memory/commit/35ad97fc199c67958195903a40b4d8a155c33839))
+
 - Add multi-provider support with circuit breaker and config caching ([8438136](https://github.com/d-o-hub/rust-self-learning-memory/commit/8438136dfeb3e35f85547a0ae0bd519e9621e7b6))
+
 - Add doctest validation to prevent CI failures ([94cddda](https://github.com/d-o-hub/rust-self-learning-memory/commit/94cdddaba653edb1d13d1429b557747619217681))
+
 - Complete phase 3 implementation with multi-embedding support ([799d395](https://github.com/d-o-hub/rust-self-learning-memory/commit/799d39576a828af9b92747a1fdd5491d3deb0c3a))
+
 - Add multi-dimension and FTS5 hybrid search ([a926bcc](https://github.com/d-o-hub/rust-self-learning-memory/commit/a926bccbf175a2351f6be4694e348b2e50fada81))
+
 - Add dimension column to embeddings tables for multi-dimension tracking ([9249c00](https://github.com/d-o-hub/rust-self-learning-memory/commit/9249c00ec8b880fdc588f82eb9b0bea9372ef3a7))
+
 - add delete_episode method to TursoStorage ([9f6cf44](https://github.com/d-o-hub/rust-self-learning-memory/commit/9f6cf448ef67b263478ce5775fa11215f355bccf))
+
 - add store_episode_summary and get_episode_summary methods ([3914a3f](https://github.com/d-o-hub/rust-self-learning-memory/commit/3914a3fb0d61980cdf56aae7f782e6f5f9f98fef))
+
 
 ### CI/CD
 
 - bump softprops/action-gh-release from 2.4.2 to 2.5.0 ([0085a73](https://github.com/d-o-hub/rust-self-learning-memory/commit/0085a733d04d14cc3e4af09395e22dbfb311d3f8))
+
 - bump codecov/codecov-action from 5.5.1 to 5.5.2 ([09bede4](https://github.com/d-o-hub/rust-self-learning-memory/commit/09bede4863e63e8cb877203021d4d5e200dbacd7))
+
 - prevent disk exhaustion and loosen flaky tests; fix wasm doctest and tests ([982444a](https://github.com/d-o-hub/rust-self-learning-memory/commit/982444a3e83eb152838bee3d0203ea2cbfb04f71))
+
 - run Security workflow for all branches and add manual dispatch ([227e02d](https://github.com/d-o-hub/rust-self-learning-memory/commit/227e02dd2a01ef0337daae9ce5954a9608f4c3a3))
+
 - update deprecated GitHub Actions versions ([134935b](https://github.com/d-o-hub/rust-self-learning-memory/commit/134935b6b7dedc908da27beda90891533b040b99))
+
 - switch actions/checkout to v4 in both jobs ([4958482](https://github.com/d-o-hub/rust-self-learning-memory/commit/495848286f6e1a537f37c7d22f7fb74944bd4d67))
+
 - update all workflows to 2025 best practices ([cd38473](https://github.com/d-o-hub/rust-self-learning-memory/commit/cd3847374491f9790e77476b5066580fab1b2bc7))
+
 - bump actions/cache from 4.3.0 to 5.0.1 ([3b6619e](https://github.com/d-o-hub/rust-self-learning-memory/commit/3b6619e408f87a4de4bef383bf8aab96b5582cc8))
+
 - bump actions/upload-artifact from 4 to 6 (#163) ([40d1606](https://github.com/d-o-hub/rust-self-learning-memory/commit/40d16061b47944f331a83458e01ce77e86ca561f))
+
 - bump actions/download-artifact from 4 to 7 (#165) ([ad6e9ba](https://github.com/d-o-hub/rust-self-learning-memory/commit/ad6e9ba197430d411bc1e7e6b43e7028e340d27f))
+
 - bump actions/setup-python from 5 to 6 (#164) ([6e50ffc](https://github.com/d-o-hub/rust-self-learning-memory/commit/6e50ffcbab84f670c8ed106627ab816d3a65bb7a))
+
+
+### Changed
+
+- fix formatting to pass CI checks ([f4eceef](https://github.com/d-o-hub/rust-self-learning-memory/commit/f4eceef964bff1942da186c984837983f3aed39b))
+
+- Fix rustfmt formatting issues in test files ([298d132](https://github.com/d-o-hub/rust-self-learning-memory/commit/298d132ce21e13f0c1d73e351078e28ca6d693a8))
+
+- improve error handling in integration tests ([2fa453a](https://github.com/d-o-hub/rust-self-learning-memory/commit/2fa453ac6dea9ed87f792e29064161d5ca427047))
+
+- Modernize base64 API usage ([11dcb75](https://github.com/d-o-hub/rust-self-learning-memory/commit/11dcb75775eb389fbd2db81d62db115692e2363a))
+
+- Add namespace support to embedding storage interface ([f1fcd3f](https://github.com/d-o-hub/rust-self-learning-memory/commit/f1fcd3fe707c50746a9b1a3a193a6b44e7c88f0b))
+
+- fix formatting and clippy warnings ([a12b5cf](https://github.com/d-o-hub/rust-self-learning-memory/commit/a12b5cf88b7a5310e8ad427606fbec3cc36dce3c))
+
+- fix formatting and clippy warnings for sysinfo update ([6c2499a](https://github.com/d-o-hub/rust-self-learning-memory/commit/6c2499a69af7198164765bb37343d55e81268bc5))
+
+- fix clippy useless_format warning in tests ([e11087b](https://github.com/d-o-hub/rust-self-learning-memory/commit/e11087b0d7094fb057d51ce53980bda18227a00e))
+
+- remove unused imports in phase1_validation test ([b12d8c7](https://github.com/d-o-hub/rust-self-learning-memory/commit/b12d8c7310baa9dec12c42c890df56527b6b7d4c))
+
+- fix clippy useless_vec warning in semantic_retrieval_test ([06223d4](https://github.com/d-o-hub/rust-self-learning-memory/commit/06223d4c1c48e66cf2944d006b5e6e72c41cea9d))
+
+- update embedding API calls to 2-parameter signature ([2ac2674](https://github.com/d-o-hub/rust-self-learning-memory/commit/2ac2674e61a9a777bc0c0f60f3cffcce6d46e970))
+
+- fix clippy assertions_on_constants warnings in constants tests ([b4c0cdb](https://github.com/d-o-hub/rust-self-learning-memory/commit/b4c0cdb07272697c4ff43bb588f15b730939b6dd))
+
+- add #[allow] for assertions_on_constants in constants tests ([896171a](https://github.com/d-o-hub/rust-self-learning-memory/commit/896171a8528a677078dab2f081629e32f3132202))
+
+- add #[allow] for excessive_nesting in security_tests ([9865786](https://github.com/d-o-hub/rust-self-learning-memory/commit/98657868c172c3c97f6b0599d8231126f9bc9cfe))
+
+- add #[allow] for excessive_nesting in quality_gates.rs ([6cd5843](https://github.com/d-o-hub/rust-self-learning-memory/commit/6cd58434c25d3f48792e554cf44a1953c338dbf5))
+
+- fix clippy warnings (unreadable_literal, excessive_nesting) ([3f10f52](https://github.com/d-o-hub/rust-self-learning-memory/commit/3f10f5235cb0d01270636bcb3ed0ac8e651bbc15))
+
+- fix clippy warnings and clean up test assertions ([f1cb13c](https://github.com/d-o-hub/rust-self-learning-memory/commit/f1cb13c001c89926ff029d490bc17ed6df95ca80))
+
+- split episode and pattern commands into submodules ([16b4016](https://github.com/d-o-hub/rust-self-learning-memory/commit/16b4016a1261190beb1826758266dfb9e5fa5504))
+
+- split episode and pattern commands into submodules ([1dbc876](https://github.com/d-o-hub/rust-self-learning-memory/commit/1dbc876b3c61eb7598cc9769e38e277be8c37cbb))
+
+- run cargo fmt on all files ([1341826](https://github.com/d-o-hub/rust-self-learning-memory/commit/1341826844f4a0d745210d2a1be4e36e7b77718e))
+
+- run cargo fmt ([91de45c](https://github.com/d-o-hub/rust-self-learning-memory/commit/91de45c4e7260b7ad865a65fc63933196c4408aa))
+
 
 ### Documentation
 
 - Add MCP server validation and finalization documentation ([8019854](https://github.com/d-o-hub/rust-self-learning-memory/commit/8019854a04196de8eb4560d422fb7800bfdc97d1))
+
 - Add final production readiness report ([48fb644](https://github.com/d-o-hub/rust-self-learning-memory/commit/48fb6441d6197a50977ad3ecc4c9da10c54a459e))
+
 - Update release plan with security fixes ([8d6c524](https://github.com/d-o-hub/rust-self-learning-memory/commit/8d6c524d442095397cb8947a7f1e8ab73ff076b3))
+
 - add comprehensive integration documentation ([1bc4db1](https://github.com/d-o-hub/rust-self-learning-memory/commit/1bc4db1d393fdd59ebfd5488cad7e717ff733d0a))
+
 - add Phase 2C Javy integration GOAP plan ([87e5c41](https://github.com/d-o-hub/rust-self-learning-memory/commit/87e5c411c6fe6374ef8df6b39b89c89e133b57a8))
+
 - update documentation and add analysis files ([e1f9a66](https://github.com/d-o-hub/rust-self-learning-memory/commit/e1f9a665c5aa2edc67446c10f3e7f722991a3b79))
+
 - Restructure documentation and update clippy configuration ([98ed40c](https://github.com/d-o-hub/rust-self-learning-memory/commit/98ed40c1cb6789ab0884c319445471a332db1e83))
+
 - Add field renaming guidance to commit messages ([261daa1](https://github.com/d-o-hub/rust-self-learning-memory/commit/261daa1c4a9f54db09af0beb287135c4e27c36dc))
+
 - reorganize documentation and archive v0.1.7-v0.1.9 roadmaps ([63d4437](https://github.com/d-o-hub/rust-self-learning-memory/commit/63d44373aa8f9690e649bd7fff036de032715244))
+
 - Add comprehensive GitHub Actions issues analysis ([7c30894](https://github.com/d-o-hub/rust-self-learning-memory/commit/7c3089431d7869094f38755afc9cd20f66926698))
+
 - update archive index with new folders ([3a2a5d1](https://github.com/d-o-hub/rust-self-learning-memory/commit/3a2a5d183a3ec62cda18713695c48064645a7157))
+
+
+### Fixed
+
+- Suppress unused_assignments warning for last_input_was_lsp ([a0e3ce7](https://github.com/d-o-hub/rust-self-learning-memory/commit/a0e3ce7e7613ae2a5f3c1c41cfa47053fb2de4b7))
+
+- Fix inputSchema serialization + project cleanup + GOAP verification ([770289f](https://github.com/d-o-hub/rust-self-learning-memory/commit/770289fb2f9ee4a445a38f719d460f06683ffbfb))
+
+- Ignore QuickJS tests with GC issues ([ec6a2b8](https://github.com/d-o-hub/rust-self-learning-memory/commit/ec6a2b8527471fe7f38b7706572410dfb1e67ae7))
+
+- Remove invalid #[ignore] attribute on test module ([ccf12f2](https://github.com/d-o-hub/rust-self-learning-memory/commit/ccf12f29d5d37da82c63b51d4cc4171dc0b2d431))
+
+- Remove leaked JWT token and update secret scanning ignores ([461d8bc](https://github.com/d-o-hub/rust-self-learning-memory/commit/461d8bc45513b1b6d0065629a6472a7e0e855114))
+
+- Allow BSL-1.0 license and ignore wasmtime advisories ([675914f](https://github.com/d-o-hub/rust-self-learning-memory/commit/675914f205f042aa1b53b6f5b6e95433bca8a7a4))
+
+- Upgrade wasmtime to 24.0.5 to resolve security advisories ([e9c9b5e](https://github.com/d-o-hub/rust-self-learning-memory/commit/e9c9b5e487354e585bb81818de98e4c8e22f01bf))
+
+- Ignore test_correlation_calculation due to rquickjs GC issue ([131d914](https://github.com/d-o-hub/rust-self-learning-memory/commit/131d914d132fed79b03627123b5f08e1917948be))
+
+- Replace rustsec/audit-check with direct cargo audit ([01e0ea4](https://github.com/d-o-hub/rust-self-learning-memory/commit/01e0ea40cbba231417c59abb15ffc594ccb0e3fd))
+
+- disable WASM sandbox in all tests to prevent rquickjs GC crashes ([16246f8](https://github.com/d-o-hub/rust-self-learning-memory/commit/16246f84b4d203e055f2f99eef31501708915e25))
+
+- allow 0ms performance timing for fast operations ([bc11a4d](https://github.com/d-o-hub/rust-self-learning-memory/commit/bc11a4d3c22edb912bf06b02886e1d78fb53bac9))
+
+- remove absurd extreme comparisons for unsigned integers ([5d907cb](https://github.com/d-o-hub/rust-self-learning-memory/commit/5d907cb6b0263c1b311d12f52760b0549ad79236))
+
+- add --test-threads=4 to prevent flaky test failures ([1b6edd5](https://github.com/d-o-hub/rust-self-learning-memory/commit/1b6edd5134c10c4625fc6b2d62e3a501e7e6883f))
+
+- fix --test-threads flag placement in workflow ([69615cd](https://github.com/d-o-hub/rust-self-learning-memory/commit/69615cdca5d17ee6df1041085b95570194234aba))
+
+- disable WASM sandbox to prevent rquickjs GC crashes ([b28df93](https://github.com/d-o-hub/rust-self-learning-memory/commit/b28df932dbc875e9781e51adefbea90c21cc3400))
+
+- update test to use wasmtime_pool_stats field ([d6bd181](https://github.com/d-o-hub/rust-self-learning-memory/commit/d6bd1816a90fb1647d69d016ef8f869a599199f7))
+
+- use struct initialization for WasmtimeConfig ([f9f0587](https://github.com/d-o-hub/rust-self-learning-memory/commit/f9f05874da3029b7c9f7373ac99c9c038e9099bd))
+
+- Fix all quality gate test failures for v0.1.7 ([b2f6e55](https://github.com/d-o-hub/rust-self-learning-memory/commit/b2f6e55dcea5c703138f0fccb59a33d5ab5ab387))
+
+- Update test job to use ubuntu-latest and add steps for checkout and Rust toolchain installation ([f2953c7](https://github.com/d-o-hub/rust-self-learning-memory/commit/f2953c7f3553d8e80664bb6e503bcf229a8b2814))
+
+- Update .gitleaksignore to exclude JWT token from commit 144e3a2 ([a48d6b6](https://github.com/d-o-hub/rust-self-learning-memory/commit/a48d6b64dd9e08fa02c4c8a3d01cccbf0cdf4ce7))
+
+- Resolve all clippy warnings and errors ([40fbec6](https://github.com/d-o-hub/rust-self-learning-memory/commit/40fbec6155d3ad005b55cf48301ca2a003447387))
+
+- modernize workflow using 2025 best practices ([e88026c](https://github.com/d-o-hub/rust-self-learning-memory/commit/e88026cb5788d30544ac3382888e8a6ed74aaae1))
+
+- ignore documentation examples in gitleaks ([ffd5ee4](https://github.com/d-o-hub/rust-self-learning-memory/commit/ffd5ee45823a4048d31650a873c56cf8b1461f1a))
+
+- update to 2025 best practices and fix issues ([ec364e2](https://github.com/d-o-hub/rust-self-learning-memory/commit/ec364e2b9932f99d36e83137bd5ce4b4f88fc2b4))
+
+- ignore broken WASM backend tests that fail with String::from_utf8 ([5867021](https://github.com/d-o-hub/rust-self-learning-memory/commit/5867021e279f655ce324660933650852fe2292f0))
+
+- revert actions/checkout to v4 ([43f4021](https://github.com/d-o-hub/rust-self-learning-memory/commit/43f4021fad7cf21b5c462dea19d249f871ca1de9))
+
+- add path validation to prevent path traversal and sensitive file access ([274a09d](https://github.com/d-o-hub/rust-self-learning-memory/commit/274a09d2c60f0bd215a63d7e369338ff8882f5e0))
+
+- apply rustfmt and update documentation ([a39adba](https://github.com/d-o-hub/rust-self-learning-memory/commit/a39adba6b144a481d69b19901da88c99e9df34b3))
+
+- add path validation to prevent path traversal and sensitive file access ([be1eed2](https://github.com/d-o-hub/rust-self-learning-memory/commit/be1eed2fed4f0939b033bb43d441ece2ae388419))
+
+- add quality config for async extraction tests ([1a22b36](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a22b36e5b00b5f9f45b518e7f385a0d9c75d75c))
+
+- fix formatting and clippy configuration ([ac1124b](https://github.com/d-o-hub/rust-self-learning-memory/commit/ac1124b3f98b42860efe6156958242313cf685ef))
+
+- resolve clippy warnings and formatting issues ([06b3c70](https://github.com/d-o-hub/rust-self-learning-memory/commit/06b3c701fc9473a81c0bd34b7bbbf5ec7a3c5d71))
+
+- add allow(dead_code) to unused function ([10b777f](https://github.com/d-o-hub/rust-self-learning-memory/commit/10b777f6139074b4cae541f99f4e5dfbe43781a1))
+
+- remove unused import ([e603603](https://github.com/d-o-hub/rust-self-learning-memory/commit/e603603676bbd6dc8ac32399a91767062443b024))
+
+- add quality_threshold to performance and step_batching tests ([ed7f6f0](https://github.com/d-o-hub/rust-self-learning-memory/commit/ed7f6f0761232e5dca7c04a26303418ba58f973f))
+
+- lower quality threshold for test episodes across memory-mcp and memory-core ([f2a197d](https://github.com/d-o-hub/rust-self-learning-memory/commit/f2a197de8b1d6f21e23b600e9e8267068869db62))
+
+- update doctests to fix CI compilation errors ([27db9c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/27db9c151a29006128082858596fb337b7c8a9f5))
+
+- use inlined format args and allow MPL-2.0 license ([0746219](https://github.com/d-o-hub/rust-self-learning-memory/commit/074621950e9f6f80074174c04418e705a02ea86d))
+
+- replace unwrap() with expect() in pool integration tests ([648f3cd](https://github.com/d-o-hub/rust-self-learning-memory/commit/648f3cd529d6f93dcef26464e21d1a1077efda0b))
+
+- Improve documentation testing and CI reliability ([7f868a8](https://github.com/d-o-hub/rust-self-learning-memory/commit/7f868a8f9ec35da27d7d13a2d668d3f90769f5ca))
+
+- Prevent lock conflicts in parallel test execution ([f8ccdcc](https://github.com/d-o-hub/rust-self-learning-memory/commit/f8ccdcc074509bf4ba7309cca467cc45d1df657c))
+
+- Remove invalid remove_artifacts parameter from Release workflow ([9897ff3](https://github.com/d-o-hub/rust-self-learning-memory/commit/9897ff3a9e6a4d27399b9edcc901d45be6dbcd9d))
+
+- Skip benchmark jobs on Dependabot PRs to prevent timeouts ([a8f2bd3](https://github.com/d-o-hub/rust-self-learning-memory/commit/a8f2bd35f3f07dbd8d0999f6b0f4c546cad06c5f))
+
+- add excessive_nesting allow attribute ([2a97782](https://github.com/d-o-hub/rust-self-learning-memory/commit/2a97782e65ef4cdb3f9fae5a49be9c385e045b15))
+
+- update embeddings_end_to_end.rs to match current API ([dcb217c](https://github.com/d-o-hub/rust-self-learning-memory/commit/dcb217cb01d73e75ef8207d1f311bc8ba558f67c))
+
+- update benchmarks and MCP tools for current API ([62cb983](https://github.com/d-o-hub/rust-self-learning-memory/commit/62cb9830f9a34f53a34e0219de9afda7f0056151))
+
+- resolve fmt and clippy warnings in benchmarks and examples ([398a2d7](https://github.com/d-o-hub/rust-self-learning-memory/commit/398a2d74a9911b4c928506ae22274451c309c1f4))
+
+- fix f64 comparison in embeddings_integration test ([4f9e1d8](https://github.com/d-o-hub/rust-self-learning-memory/commit/4f9e1d8bd00ec8c9b9665c1cb5349086d0166984))
+
+- resolve clippy warnings in benchmarks and tests ([08a7c46](https://github.com/d-o-hub/rust-self-learning-memory/commit/08a7c46a4254dd65ee3a04919afa930cadab2673))
+
+
+### Maintenance
+
+- bump uuid from 1.18.1 to 1.19.0 ([d04a836](https://github.com/d-o-hub/rust-self-learning-memory/commit/d04a836b9866108270290fbf874b35287ce383da))
+
+- bump reqwest from 0.12.24 to 0.12.25 ([021221e](https://github.com/d-o-hub/rust-self-learning-memory/commit/021221e281760fb7c45abf32c84daf06e9fbe7b4))
+
+- expand gitignore patterns for database files ([a3ee956](https://github.com/d-o-hub/rust-self-learning-memory/commit/a3ee956b0fefd5014d0d3553a9394b543525a2bd))
+
+- stop tracking .claude/settings.local.json ([8f451dc](https://github.com/d-o-hub/rust-self-learning-memory/commit/8f451dc2492061c705557972ee11bd9680279eb4))
+
+- Bump version to 0.1.7 - Phase 2C Complete ([7074c7f](https://github.com/d-o-hub/rust-self-learning-memory/commit/7074c7f806991b6d3188922e30c85fb19556d0d0))
+
+- Prepare v0.1.6 release ([40a9b88](https://github.com/d-o-hub/rust-self-learning-memory/commit/40a9b88890fd1da325c89e4382f926372b1191bf))
+
+- prepare 0.1.6.1 ([f610e3c](https://github.com/d-o-hub/rust-self-learning-memory/commit/f610e3c850463b435d4f3ed2b223baa215a77df3))
+
+- add sccache to release workflow and document loop-agent work ([17eedec](https://github.com/d-o-hub/rust-self-learning-memory/commit/17eedec278b215a57c4791943a799b4270227bd8))
+
+- bump version to 0.1.7 ([168576b](https://github.com/d-o-hub/rust-self-learning-memory/commit/168576b2d8fe346db6ba8efe28f810f8877785a4))
+
+- bump reqwest from 0.12.25 to 0.12.26 (#171) ([aaf783b](https://github.com/d-o-hub/rust-self-learning-memory/commit/aaf783b5a397243a219ea7a748e6846c6f07dc80))
+
+- bump rquickjs from 0.6.2 to 0.10.0 (#168) ([25b1e06](https://github.com/d-o-hub/rust-self-learning-memory/commit/25b1e0667924c599ed9701045e464bb89848a95a))
+
+- bump deep_causality from 0.11.11 to 0.12.2 ([30d4134](https://github.com/d-o-hub/rust-self-learning-memory/commit/30d4134d68dd6f2c42d3264e177768d64a6c57aa))
+
+- bump augurs from 0.6.3 to 0.10.1 ([dabc872](https://github.com/d-o-hub/rust-self-learning-memory/commit/dabc872b620ab74c7cf10f319638e6cd91bd76fc))
+
+- bump tempfile from 3.23.0 to 3.24.0 ([9c79b0f](https://github.com/d-o-hub/rust-self-learning-memory/commit/9c79b0fca1265aa781fd8e4d9969f0266cd29d02))
+
+- bump tokenizers from 0.20.4 to 0.22.2 ([7172f0e](https://github.com/d-o-hub/rust-self-learning-memory/commit/7172f0e7e9bb1b08db9953462be60eb09043adf1))
+
+- bump dirs from 5.0.1 to 6.0.0 ([39f2605](https://github.com/d-o-hub/rust-self-learning-memory/commit/39f2605b0e43a604e47025859b9875bb13b72d85))
+
+- trigger CI ([6612d20](https://github.com/d-o-hub/rust-self-learning-memory/commit/6612d202ca584876429e05bd7886b956cbb4ef44))
+
+- bump serde_json from 1.0.146 to 1.0.148 ([dfecaf9](https://github.com/d-o-hub/rust-self-learning-memory/commit/dfecaf9ae9ecd7ea1e3347d9e7780d2581a5fcae))
+
+- bump rquickjs from 0.10.0 to 0.11.0 ([8300743](https://github.com/d-o-hub/rust-self-learning-memory/commit/8300743b6f89fdba461d71ad09511f1a39925db9))
+
+- bump ndarray from 0.16.1 to 0.17.1 ([92b0bf7](https://github.com/d-o-hub/rust-self-learning-memory/commit/92b0bf7ad8c590e0f4317dab4a42ce5897d91494))
+
+- bump deep_causality from 0.12.2 to 0.13.0 ([ee01ebe](https://github.com/d-o-hub/rust-self-learning-memory/commit/ee01ebec537339446e328d684628db8bfecdee0a))
+
+- bump sysinfo from 0.30.13 to 0.37.2 ([a2d6001](https://github.com/d-o-hub/rust-self-learning-memory/commit/a2d6001847b0f609bb2858a82c102caeeb36d18c))
+
 
 ### Testing
 
 - Add comprehensive and sequential test scripts ([9c1f3c9](https://github.com/d-o-hub/rust-self-learning-memory/commit/9c1f3c9ecee13534b7b825dc6219278c380e3dc3))
+
 - fix capacity tests to match actual API and add get_episode_by_task_desc ([8af3aa5](https://github.com/d-o-hub/rust-self-learning-memory/commit/8af3aa54d8630e1d9245c80c6fa3831c8aa652da))
+
 
 ### config
 
 - Add MCP server configuration file ([f6ded78](https://github.com/d-o-hub/rust-self-learning-memory/commit/f6ded78cd1a38220615349ab5f617bf444719f35))
 
+
 ### fmt
 
 - Fix formatting in test_utils.rs ([42da13e](https://github.com/d-o-hub/rust-self-learning-memory/commit/42da13e2a6e945b72eb6606a66c61a73bc31ccc2))
+
 - reorder imports in unified_sandbox.rs for rustfmt compliance ([58aadd6](https://github.com/d-o-hub/rust-self-learning-memory/commit/58aadd6579cb7ebb28d822724e6a13887c387f21))
+
 
 ### release
 
 - update workspace version and changelog ([e9c7e1d](https://github.com/d-o-hub/rust-self-learning-memory/commit/e9c7e1d96794384f99d94986d13235e5a52990e5))
+
 - update workspace version and changelog (#190) ([f76a102](https://github.com/d-o-hub/rust-self-learning-memory/commit/f76a1026b7c3b314035de03e56b0691ea4249096))
+
 
 ## [0.1.5] - 2025-12-08
 

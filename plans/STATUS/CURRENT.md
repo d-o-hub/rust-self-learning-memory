@@ -1,18 +1,25 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-08-10
-**Released Version**: v0.1.38 (latest tag)
+**Last Updated**: 2026-08-11
+**Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.39 (next release)
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
-**Branch**: `main` @ `fe623250`
+**Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` + `plans/GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`
+**Branch**: `main` @ `b58d9e29`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | None — #934 (fuzz/LTO wave) merged 2026-08-09 |
+| Open PRs | None |
 | Open issues | None — #913 (Nix CI eval) closed 2026-08-02 |
+
+## Recent completed (2026-08-11 — capability truth + dependabot parity)
+
+| Wave | Result |
+|------|--------|
+| PR #940 ADR-081 capability truth | ✅ Merged 2026-08-11; non-advertising backends now yield `MemoryOnly`, never `Persisted` |
+| PR #938 CIT-A2 dependabot parity | ✅ Dependabot + `CI / Required` gate enforced |
 
 ## Recent completed (2026-08-09 — fuzz nightly + LTO-off wave)
 

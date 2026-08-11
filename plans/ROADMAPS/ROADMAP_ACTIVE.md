@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-08-06
-**Released Version**: v0.1.38 (latest tag)
+**Last Updated**: 2026-08-11
+**Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.39 (next release)
-**Active Sprint**: CI trust + product truth + ADR-080 automatic recommendation attribution (#927) + receipt-matrix test hardening (#930) + CIT-A4/A5 (#928) + CIT-A1/A2/A3 workflow wave
-**Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
-**Branch**: `main` @ `92db07bf`
-**Open PRs**: none (v0.1.38 release-docs bump in flight)
+**Active Sprint**: CI trust + product truth + ADR-080/081 automatic recommendation attribution (#927) + receipt-matrix hardening (#930) + capability truth (#940) + CIT-A4/A5 (#928) + CIT-A1/A2/A3 workflow wave + dependabot parity (#938)
+**Plan**: `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` on top of `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+**Branch**: `main` @ `b58d9e29`
+**Open PRs**: none
 **Open issues**: #913
 
 ---
@@ -35,13 +35,13 @@
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
 | P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate and staged ruleset migration | 🔄 workflow aggregate done; ruleset stage pending (maintainer) |
-| P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | 🔄 waiters fail closed + commit-lint wait; downstream actor parity pending |
+| P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | 🔄 waiter fail-closed + dependabot parity (#938); downstream actor parity pending |
 | P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ #916 |
 | P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ #916 |
 | P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | ✅ semantic validator + negative fixtures (2026-08-06) |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | ✅ 2026-08-06 |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ #927 merged + #930 test extension |
+| P1 | ADR-080 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ #927 merged + #930 test extension + #940 capability truth |
 | P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred |
 
 ---

@@ -195,6 +195,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_recommendation_stats(self).await
     }
 
+    fn supports_recommendation_attribution(&self) -> bool {
+        true
+    }
+
     async fn store_procedural(
         &self,
         procedural: &do_memory_core::procedural::ProceduralMemory,

@@ -54,6 +54,7 @@
 | P0 plan gaps | **1 open** — live ruleset required aggregate (ADR-079 acceptance); PTA + CIT-A1/A2/A3 workflow side + CIT-A4/A5 done |
 | ADR-079 CI control plane | Proposed; workflow aggregate + fail-closed waiters + semantic validator implemented 2026-08-06; ruleset unchanged |
 | ADR-080 automatic attribution | ✅ #927 merged + #930 test extension |
+| ADR-081 §2 capability truth | ✅ capability advertisement + capability-gated receipts (2026-08-10) |
 
 ## Immediate priorities
 

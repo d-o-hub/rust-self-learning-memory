@@ -2,9 +2,7 @@
 //!
 //! Wraps TursoStorage with circuit breaker protection for production resilience.
 //!
-//! This module provides a production-grade storage implementation that:
 //! - Protects against cascading failures with circuit breaker pattern
-//! - Falls back to redb cache when Turso is unavailable
 //! - Tracks failure statistics and recovery
 //!
 //! ## Example
@@ -309,6 +307,9 @@ impl StorageBackend for ResilientStorage {
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         self.circuit_call(move |s| async move { s.get_recommendation_stats().await })
             .await
+    }
+    fn supports_recommendation_attribution(&self) -> bool {
+        self.storage.supports_recommendation_attribution()
     }
 }
 

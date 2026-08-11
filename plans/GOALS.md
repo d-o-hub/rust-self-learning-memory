@@ -34,6 +34,7 @@
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
 | Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ merged (#927 + #930 receipt-matrix tests) |
+| Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) |
 | Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred |
 | R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
 | R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |

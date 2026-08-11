@@ -173,6 +173,10 @@ impl StorageBackend for RedbStorage {
         RedbStorage::get_recommendation_stats(self).await
     }
 
+    fn supports_recommendation_attribution(&self) -> bool {
+        true
+    }
+
     async fn store_procedural(&self, procedural: &ProceduralMemory) -> Result<()> {
         self.store_procedural(procedural).await
     }

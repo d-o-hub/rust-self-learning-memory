@@ -1,9 +1,9 @@
 # Plans Directory
 
-**Workspace**: `0.1.38` (post-release) · **Released tag**: `v0.1.37` · **Next**: `v0.1.38`
-**Active plan**: [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) + [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
-**Last Updated**: 2026-08-06
-**Open PRs**: #927 (attribution) + CIT-A4/A5 wave · **Open issues**: #913
+**Workspace**: `0.1.39` (pre-release) · **Released tag**: `v0.1.38` · **Next**: `v0.1.39`
+**Active plan**: [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) + [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) + [GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md](GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md) on top of [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) (PTA-A1/A2/A3 implemented)
+**Last Updated**: 2026-08-11
+**Open PRs**: none · **Open issues**: none
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

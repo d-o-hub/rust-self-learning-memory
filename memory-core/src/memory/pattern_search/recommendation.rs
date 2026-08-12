@@ -119,17 +119,24 @@ pub async fn search_patterns_semantic(
     Ok(results)
 }
 
-/// Recommend patterns for a specific task
+/// Recommend patterns for a specific task.
+///
+/// When `learned` is `Some`, the candidate pool is overfetched and re-ranked by
+/// base relevance plus a learned Wilson weight derived from attributed feedback
+/// (ADR-082) before truncation to `limit`. When `None`, behavior is identical to
+/// a plain relevance-ranked search.
 pub async fn recommend_patterns_for_task(
     task_description: &str,
     context: TaskContext,
     patterns: Vec<Pattern>,
     semantic_service: Option<&Arc<SemanticService>>,
     limit: usize,
+    learned: Option<&crate::memory::attribution::RankingIndex>,
 ) -> Result<Vec<PatternSearchResult>> {
     debug!(
         task = %task_description,
         domain = %context.domain,
+        learned = learned.is_some(),
         "Recommending patterns for task"
     );
 
@@ -145,15 +152,35 @@ pub async fn recommend_patterns_for_task(
         filter_by_task_type: false, // Allow cross-task-type recommendations
     };
 
-    search_patterns_semantic(
+    // Overfetch when re-ranking so a boosted pattern can enter the top-N:
+    // the learned re-rank runs before truncation.
+    let fetch_limit = if learned.is_some() {
+        limit.saturating_mul(crate::memory::attribution::RECOMMEND_OVERFETCH_FACTOR)
+    } else {
+        limit
+    };
+
+    let mut results = search_patterns_semantic(
         task_description,
         patterns,
         &context,
         semantic_service,
         config,
-        limit,
+        fetch_limit,
     )
-    .await
+    .await?;
+
+    if let Some(index) = learned {
+        // Stable: sort by (base relevance + learned boost) desc.
+        results.sort_by(|a, b| {
+            let ka = a.relevance_score + index.boost(&a.pattern.id().to_string());
+            let kb = b.relevance_score + index.boost(&b.pattern.id().to_string());
+            kb.partial_cmp(&ka).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        results.truncate(limit);
+    }
+
+    Ok(results)
 }
 
 /// Discover analogous patterns from a different domain

@@ -15,8 +15,13 @@
 //! - Success-after-adoption rate tracking
 //! - Recommendation precision metrics
 //! - Attribution statistics capture (recording which recommendations were used
-//!   and their outcomes; this does NOT yet update recommendation ranking —
-//!   feedback-to-ranking adaptation remains deferred to a follow-up ADR)
+//!   and their outcomes)
+//! - Feedback-to-ranking adaptation (ADR-082; lifecycle Proposed): attribution
+//!   feedback now derives a durable per-pattern learned weight (Wilson lower
+//!   bound on success-after-application), and the recommendation path re-ranks
+//!   its candidate pool by base relevance plus that weight. The weight is a pure
+//!   deterministic function of durable history, so it is idempotent,
+//!   replacement-safe, and rollback-safe by rebuild.
 //!
 //! # Example
 //!
@@ -62,10 +67,15 @@
 //! # }
 //! ```
 
+mod ranking;
 mod receipt;
 mod tracker;
 mod types;
 
+pub use ranking::{
+    LEARNED_BOOST_SCALE, PatternRankingState, RANKING_WILSON_Z, RECOMMEND_OVERFETCH_FACTOR,
+    RankingIndex,
+};
 pub use receipt::{AttributedPatternResult, AttributedPlaybookResult, PersistenceReceipt};
 pub use tracker::RecommendationTracker;
 pub use types::{

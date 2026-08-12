@@ -290,4 +290,66 @@ impl TursoStorage {
 
         Ok(stats)
     }
+
+    /// Full scan of `recommendation_sessions`, deserializing each payload (ADR-082).
+    pub async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let mut rows = conn
+            .query("SELECT payload FROM recommendation_sessions", params![])
+            .await
+            .map_err(|e| {
+                Error::Storage(format!("Failed to query recommendation sessions: {}", e))
+            })?;
+
+        let mut sessions = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to read session row: {}", e)))?
+        {
+            let payload: String = row
+                .get(0)
+                .map_err(|e| Error::Storage(format!("Failed to read session payload: {}", e)))?;
+            let session: RecommendationSession = serde_json::from_str(&payload).map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to deserialize recommendation session: {}",
+                    e
+                ))
+            })?;
+            sessions.push(session);
+        }
+
+        Ok(sessions)
+    }
+
+    /// Full scan of `recommendation_feedback`, deserializing each payload (ADR-082).
+    pub async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let mut rows = conn
+            .query("SELECT payload FROM recommendation_feedback", params![])
+            .await
+            .map_err(|e| {
+                Error::Storage(format!("Failed to query recommendation feedback: {}", e))
+            })?;
+
+        let mut feedback = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to read feedback row: {}", e)))?
+        {
+            let payload: String = row
+                .get(0)
+                .map_err(|e| Error::Storage(format!("Failed to read feedback payload: {}", e)))?;
+            let fb: RecommendationFeedback = serde_json::from_str(&payload).map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to deserialize recommendation feedback: {}",
+                    e
+                ))
+            })?;
+            feedback.push(fb);
+        }
+
+        Ok(feedback)
+    }
 }

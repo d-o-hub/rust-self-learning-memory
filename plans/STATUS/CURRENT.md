@@ -4,8 +4,8 @@
 **Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.40 (post-v0.1.39 bump)
 **Edition**: Rust 2024  
-**Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan; remaining ADR-079 stage-4 fault injection and ADR-080/081 lifecycle acceptance are external-maintainer items
-**Branch**: main @ `872949b816e78ce8d81f4f8fe2a6af71f319f27e` (PR #947 merged 2026-08-12)
+**Active plan**: `feat/ranking-adaptation` — feedback-to-ranking adaptation (ADR-082, Proposed) + ADR-025/054 alias canonicalization (G-P1-8)
+**Branch**: `feat/ranking-adaptation`
 
 ## Open tracker (live)
 
@@ -13,6 +13,15 @@
 |------|--------|
 | Open PRs | none (docs-only tracker PR #949 transient) |
 | Open issues | None — #913 (Nix CI eval) closed 2026-08-02 |
+
+## Recent completed (2026-08-12 — feedback-to-ranking adaptation + ADR registry)
+
+| Wave | Result |
+|------|--------|
+| Feedback-to-ranking (ADR-082, Proposed) | ✅ derived per-pattern Wilson weight; capability-gated `list_recommendation_*` (Turso+redb); recommend re-rank (overfetch→boost→truncate); e2e `ranking_adaptation_e2e.rs` 5/5 |
+| Backend contracts | ✅ redb/turso `capability_attribution_test.rs` extended: `supports_ranking_adaptation` true + list round-trip |
+| ADR 025/054 canonicalization (G-P1-8) | ✅ aliases moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now 51 unique, no duplicate warning |
+| Trackers | ✅ GOALS/ACTIONS/GOAP_STATE/ROADMAP_ACTIVE/GAP_ANALYSIS updated; ADR-082 recorded |
 
 ## Recent completed (2026-08-11 — same-run fast gate + attribution truth)
 

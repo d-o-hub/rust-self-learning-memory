@@ -82,7 +82,7 @@ skill_evals_executable            = true
 skill_routes_complete             = true
 skill_evals_medium_depth          = true
 docs_match_code                   = true
-plan_registry_unique              ≈ true  (ADR 025/054 aliased)
+plan_registry_unique              = true  (ADR 025/054 aliases moved to plans/adr/_aliases/ — registry now 50 unique numbers)
 feature_pilots_have_baselines     = true
 release_current                   = true  (v0.1.39)
 version_advanced_after_tag        = true  (workspace 0.1.40)
@@ -101,7 +101,7 @@ unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` remov
 automatic_attribution_capture     = true  (ADR-080 merged in #927 + #947: episode validation, checked manual receipts, fallible playbooks, merged 2026-08-12)
 attribution_capability_truth      = true  (ADR-081 §2 — StorageBackend capability advertisement + capability-gated persist_session_checked, 2026-08-10; concrete-backend capability tests in #947, merged 2026-08-12)
 feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930 + #947 checked manual receipt matrix + cold-restart tests, merged 2026-08-12)
-feedback_updates_ranking          = false (follow-up ADR required; nothing in #947 changes ranking)
+feedback_updates_ranking          = true  (ADR-082 — code-side: derived Wilson weight + capability-gated list methods + recommend re-rank + e2e; lifecycle Proposed noted)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
 r_f10_oidc_publishing             = true  (ACT-325 — publish-crates.yml OIDC id-token + exchange)
 r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)

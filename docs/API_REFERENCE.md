@@ -124,9 +124,16 @@ Receipt states and restart implications:
 | `memory_only` | no configured backend advertises attribution capability (including configured backends that advertise `false`) | no — the record exists only in this process |
 | `persistence_failed` | every configured capable backend failed to write | no |
 
-**Scope:** this captures attribution data (sessions, feedback, statistics) only.
-It does **not** update recommendation ranking — feedback-to-ranking adaptation
-remains deferred to a follow-up ADR.
+**Scope — feedback-to-ranking adaptation (ADR-082):** attribution feedback now
+derives a durable per-pattern learned weight (the Wilson lower-bound success rate
+at `z = 1.96` on success-after-application) and the recommendation path re-ranks
+its candidate pool by base relevance plus that weight. This affects
+`recommend_patterns` only; generic search, discovery, and retrieval are unchanged,
+and `get_recommendation_stats` remains exact attribution capture. The learned weight
+is a pure deterministic function of durable history (idempotent, replacement-safe —
+latest feedback per session wins — and rollback-safe by rebuild). Backends that do
+not advertise `supports_ranking_adaptation` contribute nothing, so the behavior is
+identical to pre-ADR-082 when unconfigured.
 
 ### Playbook / Checkpoint / Handoff
 

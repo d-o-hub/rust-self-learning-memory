@@ -2,17 +2,26 @@
 
 **Last Updated**: 2026-08-11
 **Released Version**: v0.1.39 (latest tag)
-**Workspace Version**: 0.1.39 (next release)
+**Workspace Version**: 0.1.40 (post-v0.1.39 bump)
 **Edition**: Rust 2024  
-**Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md` + `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md` + `plans/GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`
-**Branch**: `main` @ `b58d9e29`
+**Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation) — same-run CI fast gate + ADR-080/081 attribution closure + canonical plan truth
+**Branch**: `fix/ci-attribution-truth-closure` (off `main` @ `5a943c98a98d3807fbcf7d644024c55451c7d702`)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | None |
+| Open PRs | closure PR (branch `fix/ci-attribution-truth-closure`) — created by the controller after this task |
 | Open issues | None — #913 (Nix CI eval) closed 2026-08-02 |
+
+## Recent completed (2026-08-11 — closure PR: same-run fast gate + attribution truth)
+
+| Wave | Result |
+|------|--------|
+| Same-run CI fast gate | ✅ `commitlint` + `fast-gate` run inside `ci.yml`; `test`/`mcp-build`/`multi-platform` depend on them; `ci-required-evaluate.sh` accepts only `success` and rejects `skipped` |
+| Waiter/anchor removal (ADR-079 stage 5) | ✅ `quick-check.yml` + `pr-check-anchor.yml` deleted; cross-workflow waiters removed from coverage/security/benchmarks/file-structure |
+| ADR-080/081 attribution closure | ✅ episode-existence validation, checked manual receipts, fallible playbook retrieval, split tracker modules, cold-restart + capability + postcard-safety tests, MCP/CLI truthful receipts |
+| Docs/plan truth | ✅ `API_REFERENCE`/`PLAYBOOKS_AND_CHECKPOINTS`/`attribution::mod` ranking claims corrected; ADR-079/081 code-evidence + status updated; wave files marked historical |
 
 ## Recent completed (2026-08-11 — capability truth + dependabot parity)
 
@@ -32,7 +41,7 @@
 | Wave | Result |
 |------|--------|
 | #928 commit messages | ✅ 5 long-body commits rewrapped (≤100 chars), 2 no-op commits dropped, commitlint 6/6 clean |
-| #927 release drift | ✅ `commit_limit` deadlock broken via `release-preparation` label (v0.1.38 ship remains TODO) |
+| #927 release drift | ✅ `commit_limit` deadlock broken via `release-preparation` label; v0.1.38 shipped 2026-08-08, v0.1.39 released (current tag) |
 | #927 Codecov patch | ✅ receipt matrix + MCP envelope tests + CLI render dedup (`attribution_output`) |
 | Main cancelled runs | ✅ Skill Evals + Performance Benchmarks re-run |
 | Memory CLI validation | ✅ 4 episodes learned; `pattern recommend --episode-id` receipt `Persisted` e2e |
@@ -56,18 +65,19 @@
 | ADR-077 A6 validate / document / gate | ✅ #897 merged |
 | Code execution | Fail-closed (S1.1c NO-GO) |
 | MCP provenance (`with_provenance`) | ✅ |
-| First-party merge gate | **Absent** — ruleset requires Codacy + CodeQL policy only; `CI / Required` context emitted (2026-08-06) but not yet required |
-| CI wait semantics | ✅ **Fail-closed** — five waiters reject cancelled/skipped/missing; commit lint waited on |
-| P0 plan gaps | **1 open** — live ruleset required aggregate (ADR-079 acceptance); PTA + CIT-A1/A2/A3 workflow side + CIT-A4/A5 done |
-| ADR-079 CI control plane | Proposed; workflow aggregate + fail-closed waiters + semantic validator implemented 2026-08-06; ruleset unchanged |
-| ADR-080 automatic attribution | ✅ #927 merged + #930 test extension |
-| ADR-081 §2 capability truth | ✅ capability advertisement + capability-gated receipts (2026-08-10) |
+| First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict policy); the required aggregate is causally same-run (2026-08-11 closure PR) |
+| CI fast-gate topology | ✅ **Same-run** — `commitlint` + `fast-gate` inside `ci.yml`; `ci-required-evaluate.sh` accepts only `success`, rejects `skipped`/`cancelled`/`timed_out`; waiter/anchor topology deleted (ADR-079 stage 5) |
+| P0 plan gaps | **0 open code-side** — live ruleset required aggregate in place; remaining P0 evidence (ADR-079 stage 4 live fault-inject proof) is maintainer-external |
+| ADR-079 CI control plane | **Accepted** — stage 3 live (ruleset requires `CI / Required`); stage 5 cleanup landed in the closure PR; stage 4 fault-injection merge-block proof remains external maintainer evidence |
+| ADR-080 automatic attribution | ✅ #927 merged + #930 test extension + closure PR evidence (episode validation, checked receipts, cold-restart tests) |
+| ADR-081 §2 capability truth | ✅ capability advertisement + capability-gated receipts (2026-08-10); closure PR adds capability tests for all concrete backends |
 
 ## Immediate priorities
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Add causal same-run aggregate, then stage into ruleset with approval | ADR-079 / CIT-A1 | 🔄 aggregate done; ruleset stage pending (maintainer) |
+| P0 | Same-run required aggregate + skip-hardening (ADR-079 stage 5) | ADR-079 / CIT-A1 | ✅ closure PR — fast gate + commitlint same-run; evaluator rejects skipped; waiter/anchor removed |
+| P0 | Deliver live fault-injection merge-block proof | ADR-079 stage 4 | ⏸ external maintainer evidence — deliberately NOT performed in the closure PR |
 | P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + downstream actor parity (2026-08-10) |
 | P0 | Return typed unavailable/absent API for non-`csm` cascade | PTA-A1 | ✅ Implemented |
 | P0 | Remove or label fabricated CLI storage telemetry | PTA-A2 | ✅ Implemented |

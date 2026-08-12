@@ -3,6 +3,14 @@
 //! These types implement the ADR-080 truthful persistence state:
 //! every attributed operation returns a machine-stable receipt that
 //! distinguishes durable, partial, process-only, and failed persistence.
+//!
+//! # Serialization contract
+//!
+//! `PersistenceReceipt` is a JSON-only (`serde_json`) receipt. It MUST NOT be
+//! embedded in postcard-persisted types: `RecommendationSession` and
+//! `RecommendationFeedback` are postcard-encoded by the redb backend and carry
+//! no receipt field. Adding one would change their wire shape and break
+//! existing persisted data.
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -36,7 +44,13 @@ pub enum PersistenceReceipt {
         /// Stable backend identifiers that failed (no raw errors or credentials).
         failed_backends: Vec<String>,
     },
-    /// No persistence backend is configured; the session exists only in this process.
+    /// No configured backend advertises recommendation-attribution capability;
+    /// the session exists only in this process.
+    ///
+    /// This includes the case where backends are configured but advertise
+    /// capability `false` (ADR-081 §2): non-advertising backends are never
+    /// counted as durable, so no write is attempted and the receipt can never
+    /// claim a write the backend cannot honor.
     MemoryOnly {
         /// The session that is memory-only.
         session_id: Uuid,

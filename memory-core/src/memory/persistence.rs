@@ -14,50 +14,30 @@ use tracing::warn;
 use super::SelfLearningMemory;
 
 impl SelfLearningMemory {
+    /// Legacy warning-only session persistence helper (ADR-080 §3).
+    ///
+    /// Thin delegate to the capability-aware [`persist_session_checked`](Self::persist_session_checked);
+    /// the receipt is discarded. Configured backends that do not advertise
+    /// recommendation-attribution capability (ADR-081 §2) are skipped exactly
+    /// as in the checked path, so the legacy surface and the checked surface
+    /// report the same persistence truth.
     pub(crate) async fn persist_recommendation_session(&self, session: &RecommendationSession) {
-        if let Some(storage) = &self.turso_storage {
-            if let Err(err) = storage.store_recommendation_session(session).await {
-                warn!(
-                    session_id = %session.session_id,
-                    episode_id = %session.episode_id,
-                    error = %err,
-                    "Failed to persist recommendation session to durable storage"
-                );
-            }
-        }
-
-        if let Some(cache) = &self.cache_storage {
-            if let Err(err) = cache.store_recommendation_session(session).await {
-                warn!(
-                    session_id = %session.session_id,
-                    episode_id = %session.episode_id,
-                    error = %err,
-                    "Failed to persist recommendation session to cache storage"
-                );
-            }
-        }
+        let _ = self.persist_session_checked(session).await;
     }
 
+    /// Legacy warning-only feedback persistence helper (ADR-080 §3).
+    ///
+    /// Thin delegate to the capability-aware [`persist_feedback_checked`](Self::persist_feedback_checked);
+    /// the episode ID is resolved from the tracker session when available,
+    /// falling back to `Uuid::nil()`. The receipt is discarded.
     pub(crate) async fn persist_recommendation_feedback(&self, feedback: &RecommendationFeedback) {
-        if let Some(storage) = &self.turso_storage {
-            if let Err(err) = storage.store_recommendation_feedback(feedback).await {
-                warn!(
-                    session_id = %feedback.session_id,
-                    error = %err,
-                    "Failed to persist recommendation feedback to durable storage"
-                );
-            }
-        }
-
-        if let Some(cache) = &self.cache_storage {
-            if let Err(err) = cache.store_recommendation_feedback(feedback).await {
-                warn!(
-                    session_id = %feedback.session_id,
-                    error = %err,
-                    "Failed to persist recommendation feedback to cache storage"
-                );
-            }
-        }
+        let episode_id = self
+            .recommendation_tracker
+            .get_session(feedback.session_id)
+            .await
+            .map(|session| session.episode_id)
+            .unwrap_or_else(uuid::Uuid::nil);
+        let _ = self.persist_feedback_checked(feedback, episode_id).await;
     }
 
     pub(crate) async fn fetch_session_for_episode_from_storage(
@@ -225,7 +205,7 @@ impl SelfLearningMemory {
 
     /// Persist a recommendation session and return a truthful `PersistenceReceipt` (ADR-080 §3).
     ///
-    /// Unlike `persist_recommendation_session`, this method tracks which
+    /// Unlike the legacy `persist_recommendation_session` shim, this method tracks which
     /// backends advertise recommendation-attribution capability (ADR-081 §2),
     /// whether each write succeeded, and returns a machine-stable state that
     /// callers can use to determine whether feedback submitted after restart
@@ -284,6 +264,94 @@ impl SelfLearningMemory {
                             session_id = %session_id,
                             error = %err,
                             "Failed to persist session to redb"
+                        );
+                        failed.push("redb".to_string());
+                    }
+                }
+            }
+        }
+
+        let capable = usize::from(turso_capable) + usize::from(redb_capable);
+
+        if succeeded == 0 {
+            PersistenceReceipt::PersistenceFailed {
+                session_id,
+                episode_id,
+                failed_backends: failed,
+            }
+        } else if succeeded < capable {
+            PersistenceReceipt::PartiallyPersisted {
+                session_id,
+                episode_id,
+                failed_backends: failed,
+            }
+        } else {
+            PersistenceReceipt::Persisted {
+                session_id,
+                episode_id,
+            }
+        }
+    }
+
+    /// Persist a recommendation feedback record and return a truthful `PersistenceReceipt` (ADR-080 §3).
+    ///
+    /// Mirrors [`persist_session_checked`](Self::persist_session_checked): only
+    /// backends advertising recommendation-attribution capability (ADR-081 §2)
+    /// are counted and written (Turso before redb); raw backend errors are
+    /// logged but never leak into the receipt; the receipt distinguishes
+    /// durable, partial, memory-only, and failed persistence using the stable
+    /// backend IDs `turso` and `redb`.
+    pub(crate) async fn persist_feedback_checked(
+        &self,
+        feedback: &RecommendationFeedback,
+        episode_id: uuid::Uuid,
+    ) -> PersistenceReceipt {
+        let session_id = feedback.session_id;
+
+        let turso_capable = self
+            .turso_storage
+            .as_ref()
+            .is_some_and(|s| s.supports_recommendation_attribution());
+        let redb_capable = self
+            .cache_storage
+            .as_ref()
+            .is_some_and(|c| c.supports_recommendation_attribution());
+
+        if !turso_capable && !redb_capable {
+            return PersistenceReceipt::MemoryOnly {
+                session_id,
+                episode_id,
+            };
+        }
+
+        let mut failed: Vec<String> = Vec::new();
+        let mut succeeded: usize = 0;
+
+        if turso_capable {
+            if let Some(storage) = &self.turso_storage {
+                match storage.store_recommendation_feedback(feedback).await {
+                    Ok(()) => succeeded += 1,
+                    Err(err) => {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to persist feedback to Turso"
+                        );
+                        failed.push("turso".to_string());
+                    }
+                }
+            }
+        }
+
+        if redb_capable {
+            if let Some(cache) = &self.cache_storage {
+                match cache.store_recommendation_feedback(feedback).await {
+                    Ok(()) => succeeded += 1,
+                    Err(err) => {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to persist feedback to redb"
                         );
                         failed.push("redb".to_string());
                     }

@@ -1,0 +1,17 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "success": true,
+  "session_id": "990e8400-e29b-41d4-a716-446655440001",
+  "episode_id": "550e8400-e29b-41d4-a716-446655440000",
+  "patterns_recommended": 2,
+  "playbooks_recommended": 1,
+  "message": "Recorded recommendation session with 2 patterns and 1 playbooks (receipt state: persisted)",
+  "receipt": {
+    "state": "persisted",
+    "session_id": "990e8400-e29b-41d4-a716-446655440001",
+    "episode_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}

@@ -101,19 +101,24 @@ feedback_updates_ranking            = false  # X5 — deferred, follow-up ADR re
 Eleven actions, `ACT-344` … `ACT-354`. `ACT-344` is the ADR gate; nothing else
 starts until ADR-081 is accepted. Detailed code changes follow in §4.
 
-| ID | Action | Package | Depends on | Priority |
-|----|--------|---------|------------|----------|
-| ACT-344 | Accept ADR-081 and freeze the completed attribution contract | RAT-B0 | — | **P0** |
-| ACT-345 | Split `tracker.rs` under the 500-LOC gate | RAT-B1 | ACT-344 | **P0** |
-| ACT-346 | Add `StorageBackend` attribution-capability advertisement; make `persist_session_checked` capability-aware | RAT-B2 | ACT-344 | **P0** |
-| ACT-347 | Resolve feedback sessions through memory→storage; remove the restart regression | RAT-B3 | ACT-345, ACT-346 | **P0** |
-| ACT-348 | Validate episode existence; unify malformed-ID rejection across core/MCP/CLI | RAT-B4 | ACT-346 | **P0** |
-| ACT-349 | Add fallible playbook retrieval; no session on generation failure | RAT-B5 | ACT-346 | **P0** |
-| ACT-350 | Add `persist_feedback_checked`; give manual MCP/CLI commands receipt semantics | RAT-B6 | ACT-346, ACT-347 | P1 |
-| ACT-351 | Declare `episode_id` in both MCP registries + registry-agreement test | RAT-B7 | ACT-348 | P1 |
-| ACT-352 | Deduplicate CLI rendering; replace the `too_many_arguments` suppression with a request struct | RAT-B8 | ACT-348, ACT-349 | P1 |
-| ACT-353 | Restart-safety, receipt-matrix, MCP snapshot, and CLI e2e tests to ≥ 90% | RAT-B9 | ACT-345…352 | P1 |
-| ACT-354 | Docs + plans-registry + repo hygiene (`API_REFERENCE`, ADR-058 duplicate, `.gitignore`) | RAT-B10 | ACT-353 | P2 |
+| ID | Action | Package | Depends on | Priority | Status |
+|----|--------|---------|------------|----------|--------|
+| ACT-344 | Accept ADR-081 and freeze the completed attribution contract | RAT-B0 | — | **P0** | Proposed — maintainer decision; ADR-081 stays `Proposed` |
+| ACT-345 | Split `tracker.rs` under the 500-LOC gate | RAT-B1 | ACT-344 | **P0** | ✅ evidence-backed / landed in closure PR (`attribution/tracker/{mod,integrity,stats,tests}.rs`) |
+| ACT-346 | Add `StorageBackend` attribution-capability advertisement; make `persist_session_checked` capability-aware | RAT-B2 | ACT-344 | **P0** | ✅ evidence-backed / landed 2026-08-10 (capability truth wave) |
+| ACT-347 | Resolve feedback sessions through memory→storage; remove the restart regression | RAT-B3 | ACT-345, ACT-346 | **P0** | ✅ evidence-backed / landed in closure PR (cold-restart Turso-only + redb-only tests) |
+| ACT-348 | Validate episode existence; unify malformed-ID rejection across core/MCP/CLI | RAT-B4 | ACT-346 | **P0** | ✅ evidence-backed / landed in closure PR |
+| ACT-349 | Add fallible playbook retrieval; no session on generation failure | RAT-B5 | ACT-346 | **P0** | ✅ evidence-backed / landed in closure PR (`try_retrieve_playbooks` + unit seam test) |
+| ACT-350 | Add `persist_feedback_checked`; give manual MCP/CLI commands receipt semantics | RAT-B6 | ACT-346, ACT-347 | P1 | ✅ evidence-backed / landed in closure PR |
+| ACT-351 | Declare `episode_id` in both MCP registries + registry-agreement test | RAT-B7 | ACT-348 | P1 | ✅ evidence-backed / landed in closure PR |
+| ACT-352 | Deduplicate CLI rendering; replace the `too_many_arguments` suppression with a request struct | RAT-B8 | ACT-348, ACT-349 | P1 | ✅ evidence-backed / landed in closure PR (`AttributedPlaybookRequest`) |
+| ACT-353 | Restart-safety, receipt-matrix, MCP snapshot, and CLI e2e tests to ≥ 90% | RAT-B9 | ACT-345…352 | P1 | ✅ evidence-backed / landed in closure PR; coverage % measured by the controller's final validation |
+| ACT-354 | Docs + plans-registry + repo hygiene (`API_REFERENCE`, ADR-058 duplicate, `.gitignore`) | RAT-B10 | ACT-353 | P2 | ✅ evidence-backed / landed in closure PR |
+
+Closure PR: branch `fix/ci-attribution-truth-closure` (PR number / head SHA
+recorded by the controller after creation). All rows above were "planned" in the
+original wave; they are evidence-backed once the closure PR's tests pass under
+the controller's final validation.
 
 Execution strategy: **sequential** for ACT-344→347 (they share `persistence.rs` and
 `tracker.rs`); **parallel** for {ACT-348, ACT-349} and {ACT-351, ACT-352} once their

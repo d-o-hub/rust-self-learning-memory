@@ -106,6 +106,39 @@ timeout_seconds = 30
     Ok(config_path)
 }
 
+/// Run a CLI command with an explicit output format and return the raw stdout.
+///
+/// TEST ISOLATION: Each call creates a separate subprocess with its own config,
+/// ensuring no shared state between test runs.
+fn run_cli_with_format(
+    cli_path: &std::path::Path,
+    config_path: &std::path::Path,
+    format: &str,
+    args: &[&str],
+) -> Result<(String, String, bool)> {
+    let output = Command::new(cli_path)
+        .arg(format!("--config={}", config_path.display()))
+        .arg(format!("--format={format}"))
+        .args(args)
+        .env("RUST_LOG", "error") // Only show errors to reduce log noise
+        .output()?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let success = output.status.success();
+
+    // Debug output for test failures
+    if !success {
+        eprintln!("CLI command failed:");
+        eprintln!("  Args: {args:?}");
+        eprintln!("  Exit code: {:?}", output.status.code());
+        eprintln!("  Stdout: {stdout}");
+        eprintln!("  Stderr: {stderr}");
+    }
+
+    Ok((stdout, stderr, success))
+}
+
 /// Run a CLI command and return output
 ///
 /// Filters out log messages before parsing JSON.
@@ -118,25 +151,7 @@ fn run_cli(
     config_path: &std::path::Path,
     args: &[&str],
 ) -> Result<(serde_json::Value, bool)> {
-    let output = Command::new(cli_path)
-        .arg(format!("--config={}", config_path.display()))
-        .arg("--format=json")
-        .args(args)
-        .env("RUST_LOG", "error") // Only show errors to reduce log noise
-        .output()?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let success = output.status.success();
-
-    // Debug output for test failures
-    if !success || !stdout.contains('{') {
-        eprintln!("CLI command failed:");
-        eprintln!("  Args: {args:?}");
-        eprintln!("  Exit code: {:?}", output.status.code());
-        eprintln!("  Stdout: {stdout}");
-        eprintln!("  Stderr: {stderr}");
-    }
+    let (stdout, stderr, success) = run_cli_with_format(cli_path, config_path, "json", args)?;
 
     // Filter out log messages and find the JSON response
     // Strategy: Handle multi-line JSON by finding the first complete JSON object
@@ -925,4 +940,291 @@ async fn test_health_and_status() {
     println!("  ✓ Config validated");
 
     println!("✅ Health and status test passed!");
+}
+
+// ============================================================================
+// Test 9: Attributed Recommendation Workflows (ADR-080)
+// ============================================================================
+
+/// Create a completed episode via the CLI and return its ID.
+fn create_completed_episode(cli_path: &std::path::Path, config_path: &std::path::Path) -> String {
+    let (create_result, success) = run_cli(
+        cli_path,
+        config_path,
+        &["episode", "create", "--task", "Attribution e2e episode"],
+    )
+    .expect("Failed to create episode");
+    assert!(success, "Create episode should succeed: {create_result:?}");
+    let episode_id = create_result
+        .get("id")
+        .and_then(|v| v.as_str())
+        .expect("Should have episode id")
+        .to_string();
+
+    let (_, success) = run_cli(
+        cli_path,
+        config_path,
+        &["episode", "complete", &episode_id, "success"],
+    )
+    .expect("Failed to complete episode");
+    assert!(success, "Complete episode should succeed");
+
+    episode_id
+}
+
+/// Assert the JSON attribution envelope (session + receipt) of an attributed
+/// recommendation result against the episode it targets.
+fn assert_json_attribution_envelope(result: &serde_json::Value, episode_id: &str) {
+    let session = result
+        .get("session")
+        .expect("Attributed result should contain a session envelope");
+    let receipt = result
+        .get("receipt")
+        .expect("Attributed result should contain a receipt envelope");
+
+    let session_id = session
+        .get("session_id")
+        .and_then(|v| v.as_str())
+        .expect("session_id should be present");
+    assert!(!session_id.is_empty(), "session_id must not be empty");
+
+    assert_eq!(
+        session.get("episode_id").and_then(|v| v.as_str()),
+        Some(episode_id),
+        "session episode_id must match the attributed episode"
+    );
+    assert_eq!(
+        receipt.get("episode_id").and_then(|v| v.as_str()),
+        Some(episode_id),
+        "receipt episode_id must match the attributed episode"
+    );
+    assert_eq!(
+        receipt.get("session_id").and_then(|v| v.as_str()),
+        Some(session_id),
+        "receipt session_id must match the session"
+    );
+
+    // With the temp redb-only config, redb advertises attribution capability,
+    // so sessions persist (state "persisted").
+    let state = receipt
+        .get("state")
+        .and_then(|v| v.as_str())
+        .expect("receipt state should be present");
+    assert_eq!(
+        state, "persisted",
+        "redb-only CLI config should persist the session (got state {state:?})"
+    );
+}
+
+#[tokio::test]
+#[serial]
+async fn test_attributed_recommendations_json() {
+    let cli_path = find_cli_binary().expect("Failed to find CLI binary");
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let config_path = create_test_config(&temp_dir).expect("Failed to create config");
+
+    let episode_id = create_completed_episode(&cli_path, &config_path);
+    println!("  ✓ Created completed episode {episode_id}");
+
+    // pattern recommend --episode-id in JSON
+    let (rec_result, success) = run_cli(
+        &cli_path,
+        &config_path,
+        &["pattern", "recommend", "--episode-id", &episode_id],
+    )
+    .expect("Failed to run pattern recommend");
+    assert!(
+        success,
+        "pattern recommend --episode-id should succeed: {rec_result:?}"
+    );
+    assert_json_attribution_envelope(&rec_result, &episode_id);
+    println!("  ✓ pattern recommend JSON attribution envelope");
+
+    // playbook recommend --episode-id in JSON
+    let (pb_result, success) = run_cli(
+        &cli_path,
+        &config_path,
+        &[
+            "playbook",
+            "recommend",
+            "--episode-id",
+            &episode_id,
+            "Build an API endpoint",
+        ],
+    )
+    .expect("Failed to run playbook recommend");
+    assert!(
+        success,
+        "playbook recommend --episode-id should succeed: {pb_result:?}"
+    );
+    assert_json_attribution_envelope(&pb_result, &episode_id);
+    println!("  ✓ playbook recommend JSON attribution envelope");
+}
+
+#[tokio::test]
+#[serial]
+async fn test_attributed_recommendations_yaml() {
+    let cli_path = find_cli_binary().expect("Failed to find CLI binary");
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let config_path = create_test_config(&temp_dir).expect("Failed to create config");
+
+    let episode_id = create_completed_episode(&cli_path, &config_path);
+
+    // pattern recommend --episode-id in YAML
+    let (stdout, _, success) = run_cli_with_format(
+        &cli_path,
+        &config_path,
+        "yaml",
+        &["pattern", "recommend", "--episode-id", &episode_id],
+    )
+    .expect("Failed to run pattern recommend (yaml)");
+    assert!(
+        success,
+        "pattern recommend --episode-id (yaml) should succeed"
+    );
+    assert!(
+        stdout.contains("state: persisted"),
+        "YAML output should contain the receipt state, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains(&format!("episode_id: {episode_id}")),
+        "YAML output should contain the attributed episode_id, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains("session_id:"),
+        "YAML output should contain session_id, got:\n{stdout}"
+    );
+    println!("  ✓ pattern recommend YAML attribution fields");
+
+    // playbook recommend --episode-id in YAML
+    let (stdout, _, success) = run_cli_with_format(
+        &cli_path,
+        &config_path,
+        "yaml",
+        &[
+            "playbook",
+            "recommend",
+            "--episode-id",
+            &episode_id,
+            "Build an API endpoint",
+        ],
+    )
+    .expect("Failed to run playbook recommend (yaml)");
+    assert!(
+        success,
+        "playbook recommend --episode-id (yaml) should succeed"
+    );
+    assert!(
+        stdout.contains("state: persisted"),
+        "YAML output should contain the receipt state, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains(&format!("episode_id: {episode_id}")),
+        "YAML output should contain the attributed episode_id, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains("session_id:"),
+        "YAML output should contain session_id, got:\n{stdout}"
+    );
+    println!("  ✓ playbook recommend YAML attribution fields");
+}
+
+#[tokio::test]
+#[serial]
+async fn test_attributed_recommendations_human() {
+    let cli_path = find_cli_binary().expect("Failed to find CLI binary");
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let config_path = create_test_config(&temp_dir).expect("Failed to create config");
+
+    let episode_id = create_completed_episode(&cli_path, &config_path);
+
+    // pattern recommend --episode-id in human format
+    let (stdout, _, success) = run_cli_with_format(
+        &cli_path,
+        &config_path,
+        "human",
+        &["pattern", "recommend", "--episode-id", &episode_id],
+    )
+    .expect("Failed to run pattern recommend (human)");
+    assert!(
+        success,
+        "pattern recommend --episode-id (human) should succeed"
+    );
+    assert!(
+        stdout.contains("--- Attribution Tracking (ADR-080) ---"),
+        "Human output should contain the ADR-080 attribution block, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains("Durability: Persisted (durable across restarts)"),
+        "Human output should contain the persisted durability line, got:\n{stdout}"
+    );
+    println!("  ✓ pattern recommend human attribution block");
+
+    // playbook recommend --episode-id in human format
+    let (stdout, _, success) = run_cli_with_format(
+        &cli_path,
+        &config_path,
+        "human",
+        &[
+            "playbook",
+            "recommend",
+            "--episode-id",
+            &episode_id,
+            "Build an API endpoint",
+        ],
+    )
+    .expect("Failed to run playbook recommend (human)");
+    assert!(
+        success,
+        "playbook recommend --episode-id (human) should succeed"
+    );
+    assert!(
+        stdout.contains("--- Attribution Tracking (ADR-080) ---"),
+        "Human output should contain the ADR-080 attribution block, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains("Durability: Persisted (durable across restarts)"),
+        "Human output should contain the persisted durability line, got:\n{stdout}"
+    );
+    println!("  ✓ playbook recommend human attribution block");
+}
+
+#[tokio::test]
+#[serial]
+async fn test_attributed_recommendations_malformed_episode_id() {
+    let cli_path = find_cli_binary().expect("Failed to find CLI binary");
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let config_path = create_test_config(&temp_dir).expect("Failed to create config");
+
+    // A malformed episode UUID must fail rather than silently degrading to the
+    // unattributed path (which would omit the attribution envelope).
+    let (_result, success) = run_cli(
+        &cli_path,
+        &config_path,
+        &["pattern", "recommend", "--episode-id", "not-a-uuid"],
+    )
+    .expect("Failed to run pattern recommend with malformed id");
+    assert!(
+        !success,
+        "pattern recommend with malformed episode id must fail"
+    );
+    println!("  ✓ pattern recommend rejects malformed episode id");
+
+    let (_result, success) = run_cli(
+        &cli_path,
+        &config_path,
+        &[
+            "playbook",
+            "recommend",
+            "--episode-id",
+            "not-a-uuid",
+            "Build an API endpoint",
+        ],
+    )
+    .expect("Failed to run playbook recommend with malformed id");
+    assert!(
+        !success,
+        "playbook recommend with malformed episode id must fail"
+    );
+    println!("  ✓ playbook recommend rejects malformed episode id");
 }

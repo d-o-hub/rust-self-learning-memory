@@ -1,3 +1,57 @@
+# Validation Latest — 2026-08-11 (closure PR: same-run fast gate + attribution truth)
+
+**Goal**: Close the ADR-079 required-gate false-green path (same-run fast gate,
+fail-closed evaluator, waiter/anchor removal) and the ADR-080/081 attribution
+capture contract (episode validation, checked receipts, cold-restart, capability,
+postcard safety), then refresh canonical plan truth.
+
+**Workspace**: `0.1.40` · **Tag**: `v0.1.39` · **Main baseline**: `5a943c98a98d3807fbcf7d644024c55451c7d702`
+**Branch**: `fix/ci-attribution-truth-closure` · **PR**: #947 (head `f8983eea`)
+
+## Evidence (working tree state)
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| `cargo check --workspace --lib --bins` | ✅ verified by the controller after the previous waves landed | ✅ |
+| Fast-gate regression | `scripts/ci-required-evaluate.sh "Fast Gate=skipped" …` exits nonzero with `::error::`; all-success exits zero (fixture `--required-aggregate`) | ✅ code landed; executed by controller |
+| Same-run topology | `commitlint` + `fast-gate` in `ci.yml`; `test`/`mcp-build`/`multi-platform` depend on them; `quality-gates` on `[fast-gate, commitlint, test, mcp-build, multi-platform]`; `CI / Required` evaluates every dependency via the script | ✅ code landed; `--ci-parity` executed by controller |
+| Waiter/anchor removal | `quick-check.yml`, `pr-check-anchor.yml` deleted; waiters removed from coverage/security/benchmarks/file-structure | ✅ code landed |
+| Core attribution tests | nonexistent-episode rejection (both entry points), checked manual session/feedback receipt matrix, empty-session on valid empty, thin-store playbook session, stable `turso`→`redb` ordering | ✅ code landed; run by controller |
+| Cold-tracker restart | Turso-only + redb-only: session persisted → drop memory → cold tracker → feedback accepted + durable retrieval + `Persisted` receipt | ✅ code landed; run by controller (local libsql/redb, no credentials) |
+| Capability tests | `TursoStorage`, `ResilientStorage`, `CachedTursoStorage`, compiled `RedbStorage` all advertise capability (closes #940 precedent) | ✅ code landed; run by controller |
+| Postcard safety | `RecommendationSession`/`RecommendationFeedback` postcard round-trip; `PersistenceReceipt` JSON round-trip + structural non-embedding + postcard cannot deserialize it (internally-tagged) | ✅ code landed; run by controller |
+| Live ruleset | ruleset `9591004` `required_status_checks` = `[Codacy Static Code Analysis, CI / Required]` (verified live by `--ci-parity`) | ✅ |
+| Changed-crate coverage (`QUALITY_GATE_COVERAGE_THRESHOLD=90`) | `cargo llvm-cov -p do-memory-core --summary-only` (2026-08-12) → **84.14% line** (25,569 lines / 4,056 missed), 84.46% regions, 82.37% functions | ✅ measured (real value). Below 90 → true % recorded, not padded; ADR-042 declared default is 70; Codecov `coverage.yml` is not a required check here — measurement row, not a merge-block |
+| Full controller sequence | `test-workflow-guards.sh --required-aggregate` → OK (exit 0); `validate-gate-contract.sh --ci-parity` → PASS, live ruleset 9591004 requires `CI / Required` (exit 0); `validate-plans.sh --active-set --version-state --adrs --identifiers --links` → OK (exit 0, pre-existing ADR-025/054 alias + dated-files warnings only); fmt clean; clippy `--workspace` 0 warnings; `cargo nextest run` per-crate + `--all` → 3840 passed / 182 skipped; doctests pass; `cargo doc` clean; `quality-gates.sh` → PASS (16 passed / 0 failed / 2 ignored) | ✅ executed 2026-08-12, output recorded below |
+
+## Open after this validation
+
+| Priority | Item | Next step |
+|----------|------|-----------|
+| P0 | ADR-079 stage 4 live fault-injection merge-block proof | **External maintainer evidence** — deliberately not performed in this PR |
+| P0 | ADR-080/081 lifecycle | Stay `Proposed` until maintainers accept the completed evidence |
+| P2 | Feedback-to-ranking adaptation | Separate ADR; deferred |
+
+## Controller final-execution record — 2026-08-12
+
+Run from repo root on `fix/ci-attribution-truth-closure` @ `f8983eea` (PR #947).
+`CARGO_INCREMENTAL=0` for all builds. UTC gates: 2026-08-12T07:09:44Z.
+
+| Gate | Command | Result |
+|------|---------|--------|
+| Fast-gate / fail-closed aggregate | `./scripts/test-workflow-guards.sh --required-aggregate` | exit 0 — `OK: CI / Required aggregate evaluator + same-run fast-gate topology verified` |
+| Gate-contract CI parity | `./scripts/validate-gate-contract.sh --ci-parity` | exit 0 — `OK: live ruleset 9591004 requires CI / Required (live-enforced)`; `PASS: gate contract consistent (local coverage floor=70%)` |
+| Plans validation | `./scripts/validate-plans.sh --active-set --version-state --adrs --identifiers --links` | exit 0 — active-set present, version cargo=0.1.40/tag=0.1.39, adrs=52, identifiers=52, links OK; pre-existing warnings only (dated_root=10>5, duplicate ADR 25/54 historical aliases) |
+| Blocking quality gates | `./scripts/quality-gates.sh` (SKIP_OPTIONAL default true) | exit 0 — doctests + `cargo doc` clean; source-file-size PASS; `quality_gates.rs`: **16 passed / 0 failed / 2 ignored**; fully-run optional coverage gate skipped as designed |
+| Changed-crate coverage | `cargo llvm-cov -p do-memory-core --summary-only` | exit 0 — TOTAL: regions 84.46%, functions 82.37%, **lines 84.14%** (25,569 lines / 4,056 missed). Below 90 → true value recorded; ADR-042 default is 70; `coverage.yml` not a required check (measurement row, not merge-block) |
+| Already-green re-confirmed | per-crate nextest turso 430p/120s, redb 175p/0s, mcp 591p/11s, cli 572p/1s, e2e 64p/2s; `--all` 3840p/182s; doctests; `cargo doc`; `fmt`; `clippy --workspace` 0 warnings | ✅ |
+| Attribution test post-edit re-run | `cargo nextest run -p do-memory-mcp --test recommendation_attribution_tests` | exit 0 — **9/9 PASS** (post-clippy allow-edit, non-behavioral) |
+| YAML syntax pass | PyYAML `yaml.safe_load` over all 20 changed/workflow YAML files | 20/20 parsed clean, no `yaml.YAMLError` (authoritative yamllint stays CI `yaml-lint.yml`) |
+
+PR after push: #947 `MERGEABLE` / `BLOCKED` (required checks pending — never DIRTY/UNSTABLE).
+
+---
+
 # Validation Latest — 2026-08-07 (PR review & CI fix wave)
 
 **Goal**: Fix all failing CI on open PRs #928/#927 (including pre-existing

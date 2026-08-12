@@ -333,7 +333,15 @@ mod tests {
     #[tokio::test]
     async fn test_execute_recommend_with_episode_id_attaches_envelope() {
         let memory = SelfLearningMemory::new();
-        let episode_id = uuid::Uuid::new_v4();
+        // ADR-081 §3: attribution requires an EXISTING episode; a random UUID
+        // would now be rejected before a session is created.
+        let episode_id = memory
+            .start_episode(
+                "retry with backoff".to_string(),
+                do_memory_core::TaskContext::default(),
+                do_memory_core::TaskType::CodeGeneration,
+            )
+            .await;
         let input = RecommendPatternsInput {
             task_description: "retry with backoff".to_string(),
             domain: "error-handling".to_string(),

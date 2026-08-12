@@ -15,6 +15,16 @@ use uuid::Uuid;
 
 use super::super::SelfLearningMemory;
 
+/// Generator fault-injection seam for the attributed-playbook unit test.
+///
+/// Armed by `tests::attributed_generation_error_records_no_session` so the
+/// attributed wrapper's error-before-session behavior is observable. The seam
+/// is compile-time only (`#[cfg(test)]`): it adds zero cost to production
+/// builds and is not part of the public API.
+#[cfg(test)]
+static FORCE_PLAYBOOK_GENERATION_ERROR: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 impl SelfLearningMemory {
     /// Retrieve actionable playbooks for a task.
     ///
@@ -79,6 +89,44 @@ impl SelfLearningMemory {
         max_playbooks: usize,
         max_steps_per_playbook: usize,
     ) -> Vec<RecommendedPlaybook> {
+        match self
+            .try_retrieve_playbooks(
+                task_description,
+                domain,
+                task_type,
+                context,
+                max_playbooks,
+                max_steps_per_playbook,
+            )
+            .await
+        {
+            Ok(playbooks) => playbooks,
+            Err(err) => {
+                // Legacy contract: a generation failure degrades to an empty
+                // vector exactly as callers have always observed.
+                debug!("Failed to generate playbook: {}", err);
+                Vec::new()
+            }
+        }
+    }
+
+    /// Retrieve actionable playbooks, propagating generation failures.
+    ///
+    /// Runs the same retrieval pipeline as [`retrieve_playbooks`](Self::retrieve_playbooks)
+    /// (patterns, episodes, summaries, reflections, template-driven generation),
+    /// but a playbook-generation failure is returned as an `Err` instead of
+    /// being silently mapped to an empty vector. Attributed callers rely on
+    /// this so a generation error can never record a recommendation session.
+    #[instrument(skip(self, context))]
+    pub async fn try_retrieve_playbooks(
+        &self,
+        task_description: &str,
+        domain: &str,
+        task_type: TaskType,
+        context: TaskContext,
+        max_playbooks: usize,
+        max_steps_per_playbook: usize,
+    ) -> crate::error::Result<Vec<RecommendedPlaybook>> {
         debug!(
             task_description = %task_description,
             domain = %domain,
@@ -148,6 +196,16 @@ impl SelfLearningMemory {
             max_steps: max_steps_per_playbook,
         };
 
+        // Generator fault-injection seam (test-only): the unit test arms this
+        // to force a generation failure and observe that the attributed wrapper
+        // returns the error before recording any recommendation session.
+        #[cfg(test)]
+        if FORCE_PLAYBOOK_GENERATION_ERROR.load(std::sync::atomic::Ordering::SeqCst) {
+            return Err(crate::error::Error::Learning(
+                "injected playbook generation failure (test seam)".to_string(),
+            ));
+        }
+
         // Step 7: Generate the playbook
         match generator.generate(&request, &patterns, &summaries, &reflections) {
             Ok(playbook) => {
@@ -159,81 +217,13 @@ impl SelfLearningMemory {
                     "Generated playbook"
                 );
 
-                vec![playbook]
+                Ok(vec![playbook])
             }
             Err(e) => {
                 debug!("Failed to generate playbook: {}", e);
-                vec![]
+                Err(e)
             }
         }
-    }
-
-    /// Retrieve actionable playbooks and create an attributed recommendation session (ADR-080 §1–3).
-    ///
-    /// Requires a valid, non-nil `episode_id`. Returns playbooks together with
-    /// a session and a `PersistenceReceipt` describing durability state.
-    #[instrument(skip(self, context))]
-    #[expect(clippy::too_many_arguments)]
-    pub async fn retrieve_playbooks_attributed(
-        &self,
-        episode_id: Uuid,
-        task_description: &str,
-        domain: &str,
-        task_type: TaskType,
-        context: TaskContext,
-        max_playbooks: usize,
-        max_steps_per_playbook: usize,
-    ) -> crate::error::Result<
-        crate::memory::attribution::AttributedPlaybookResult<RecommendedPlaybook>,
-    > {
-        if episode_id.is_nil() {
-            return Err(crate::error::Error::InvalidInput(
-                "Attributed playbook retrieval requires a non-nil episode ID".to_string(),
-            ));
-        }
-
-        let playbooks = self
-            .retrieve_playbooks(
-                task_description,
-                domain,
-                task_type,
-                context,
-                max_playbooks,
-                max_steps_per_playbook,
-            )
-            .await;
-
-        let mut recommended_pattern_ids = Vec::new();
-        let mut recommended_playbook_ids = Vec::new();
-
-        for pb in &playbooks {
-            recommended_playbook_ids.push(pb.playbook_id);
-            for pid in &pb.supporting_pattern_ids {
-                let pid_str = pid.to_string();
-                if !recommended_pattern_ids.contains(&pid_str) {
-                    recommended_pattern_ids.push(pid_str);
-                }
-            }
-        }
-
-        let session = crate::memory::attribution::RecommendationSession {
-            session_id: Uuid::new_v4(),
-            episode_id,
-            timestamp: chrono::Utc::now(),
-            recommended_pattern_ids,
-            recommended_playbook_ids,
-        };
-
-        self.recommendation_tracker
-            .record_session(session.clone())
-            .await;
-        let receipt = self.persist_session_checked(&session).await;
-
-        Ok(crate::memory::attribution::AttributedPlaybookResult {
-            playbooks,
-            session,
-            receipt,
-        })
     }
 
     /// Explain a pattern in human-readable form.
@@ -376,6 +366,7 @@ impl SelfLearningMemory {
 
 #[cfg(test)]
 mod tests {
+    use super::super::playbooks_attributed::AttributedPlaybookRequest;
     use super::*;
 
     #[tokio::test]
@@ -396,5 +387,46 @@ mod tests {
         // With no patterns/episodes, should still return an empty or minimal playbook
         // depending on implementation
         assert!(playbooks.len() <= 1);
+    }
+
+    #[tokio::test]
+    async fn attributed_generation_error_records_no_session() {
+        let memory = SelfLearningMemory::new();
+        let episode_id = memory
+            .start_episode(
+                "Forced playbook generation failure".to_string(),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+
+        // Arm the seam: the attributed wrapper must surface the generation
+        // error and must NOT record a recommendation session for the episode.
+        FORCE_PLAYBOOK_GENERATION_ERROR.store(true, std::sync::atomic::Ordering::SeqCst);
+        let result = memory
+            .retrieve_playbooks_attributed(AttributedPlaybookRequest {
+                episode_id,
+                task_description: "Forced playbook generation failure".to_string(),
+                domain: "test".to_string(),
+                task_type: TaskType::CodeGeneration,
+                context: TaskContext::default(),
+                max_playbooks: 3,
+                max_steps_per_playbook: 5,
+            })
+            .await;
+        FORCE_PLAYBOOK_GENERATION_ERROR.store(false, std::sync::atomic::Ordering::SeqCst);
+
+        assert!(
+            result.is_err(),
+            "generation failure must propagate as an error"
+        );
+        assert!(
+            memory
+                .recommendation_tracker
+                .get_session_for_episode(episode_id)
+                .await
+                .is_none(),
+            "no session may be recorded when playbook generation fails"
+        );
     }
 }

@@ -1,9 +1,22 @@
-# Gap Analysis — 2026-08-06
+# Gap Analysis — 2026-08-11 (closure PR refresh)
 
-**Generated**: 2026-08-06
-**Audit commit**: `92db07bf` (`main`)
-**Workspace**: `0.1.38` · **Tag**: `v0.1.37`
-**Active plan**: [`../GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`](../GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) + [`../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`](../GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) on top of [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
+**Generated**: 2026-08-11
+**Audit commit**: `5a943c98a98d3807fbcf7d644024c55451c7d702` (`main` baseline) · working tree `fix/ci-attribution-truth-closure`
+**Workspace**: `0.1.40` · **Tag**: `v0.1.39`
+**Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation)
+
+## Closed this wave (2026-08-11 — closure PR)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P0-12 `main-protection` requires no first-party build/test context; echo anchor unused | ✅ Live ruleset `9591004` requires `[Codacy Static Code Analysis, CI / Required]`; `pr-check-anchor.yml` + `quick-check.yml` deleted and cross-workflow waiters removed (ADR-079 stage 5) |
+| G-P0-13 waiters accept cancelled/skipped/missing fast-gate results | ✅ superseded by the same-run `commitlint` + `fast-gate` jobs in `ci.yml`; `scripts/ci-required-evaluate.sh` accepts only `success` and fails closed on `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown |
+| G-P1-11 attribution sessions require manual creation; playbooks record nil/unsafe | ✅ closure PR — `AttributedPlaybookRequest`, fallible `try_retrieve_playbooks`, episode-existence validation on both attributed entry points, checked manual session/feedback receipts |
+| G-P1-12 feedback integrity states | ✅ closure PR — cold-restart Turso-only/redb-only tests, checked manual receipt matrix, generator-error → no session (unit seam), valid-empty → empty session |
+| G-P1-13 Dependabot excluded from substantive assertions | ✅ CIT-A2 (2026-08-10) — actor parity + validator fixtures |
+| G-P1-14 gate-contract parity presence-only | ✅ closure PR — `validate-gate-contract.sh --ci-parity` requires the same-run jobs/commands/dependencies/evaluator and the absence of the waiter/anchor topology; `test-workflow-guards.sh --required-aggregate` fixtures added |
+| G-P1-16 attribution capability asserted, not advertised | ✅ ADR-081 §2 (2026-08-10) + closure PR capability tests for `TursoStorage`, `ResilientStorage`, `CachedTursoStorage`, and compiled `RedbStorage` |
+| G-P2-8 ranking adaptation (capture only) | ✅ explicit non-goal — documented as deferred in code/docs/plans; nothing in the closure PR changes ranking |
 
 ## Method
 
@@ -52,8 +65,8 @@
 
 | ID | Gap | Evidence | Track |
 |----|-----|----------|-------|
-| G-P0-12 | `main-protection` requires no first-party build/test context; the echo anchor is unused and non-substantive | Ruleset `9591004`, `pr-check-anchor.yml` | 🔄 `CI / Required` context emitted (2026-08-06); ruleset stage + anchor removal need ADR-079 acceptance |
-| G-P0-13 | Five waiters permit cancelled/skipped/missing format/Clippy and ignore commit lint | waiter workflows; PR #914 | ✅ CIT-A2 closed 2026-08-06 (waiters fail closed + commit-lint wait) |
+| G-P0-12 | `main-protection` requires no first-party build/test context; the echo anchor is unused and non-substantive | Ruleset `9591004`, `pr-check-anchor.yml` | ✅ closed 2026-08-11 — ruleset requires `[Codacy Static Code Analysis, CI / Required]`; anchor + waiter topology deleted |
+| G-P0-13 | Five waiters permit cancelled/skipped/missing format/Clippy and ignore commit lint | waiter workflows; PR #914 | ✅ closed — same-run `commitlint` + `fast-gate` replace the waiters; evaluator rejects non-success |
 | G-P0-10 | Cascade retrieval without `csm` returns a successful empty result, indistinguishable from no matches | `memory-core/src/retrieval/cascade/mod.rs` | ✅ PTA-A1 closed — typed `CascadeError::CapabilityUnavailable` |
 | G-P0-11 | CLI storage stats and connection status expose estimates/unknowns as measured values | `memory-cli/src/commands/storage/commands.rs`, `types.rs` | ✅ PTA-A2 closed — `MetricValue` provenance |
 
@@ -64,10 +77,10 @@
 | G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | residual docs |
 | G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki) | security hygiene |
 | G-P1-10 | `eval set-threshold` is advertised but always fails; suggested `eval show` command does not exist | `memory-cli/src/commands/eval.rs` | ✅ PTA-A3 closed — command removed |
-| G-P1-11 | Pattern recommendations require manual session creation; playbooks record `Uuid::nil()` in memory only | core/MCP/CLI attribution paths | ADR-080 / RAT-A1…A7 |
-| G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ADR-080 / RAT-A4 |
-| G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ADR-079 / CIT-A2 |
-| G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | 🔄 semantic validator + negative fixtures 2026-08-06; test/Clippy scope + ruleset-context fixtures remain |
+| G-P1-11 | Pattern recommendations require manual session creation; playbooks record `Uuid::nil()` in memory only | core/MCP/CLI attribution paths | ✅ closed 2026-08-11 — attributed pattern + playbook ops with validated episodes and checked receipts |
+| G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ✅ closed 2026-08-11 — integrity + cold-restart + receipt-matrix evidence in closure PR |
+| G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ✅ CIT-A2 (2026-08-10) |
+| G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | ✅ closed 2026-08-11 — same-run topology + `--ci-parity`/`--required-aggregate` semantic fixtures; `GATE_CONTRACT.md` scope recorded by its owner |
 | G-P1-16 | Attribution capability asserted, not advertised: default no-op `store_recommendation_session` counted as a durable write, so a non-persisting configured backend yielded `Persisted` | `persistence.rs` `persist_session_checked`, `backend.rs` trait defaults | ✅ ADR-081 §2 — `supports_recommendation_attribution` default `false`, Turso/redb advertise `true`, capability-gated receipts (2026-08-10) |
 | G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ✅ CIT-A4/A5 closed 2026-08-06 |
 
@@ -97,9 +110,9 @@
 
 ## Exit criteria for this register
 
-- ADR-079 CIT-A1…A5 exits are implemented, including live aggregate protection.
+- ADR-079 CIT-A1…A5 exits are implemented, including live aggregate protection. ✅ code-side — same-run aggregate required live (ruleset `9591004`); the deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence.
 - PTA-A1…A3 have code and feature-matrix tests. ✅ (2026-08-01)
-- ADR-080 acceptance criteria and RAT-A1…A7 are implemented with evidence.
+- ADR-080 acceptance criteria and RAT-A1…A7 are implemented with evidence. ✅ code-side — closure PR evidence landed; ADR-080/081 lifecycle stays `Proposed` until maintainer acceptance.
 - Ranking adaptation remains explicitly open until separately decided and tested.
 - G-P1-8 and G-P1-9 are monitor-only (no code action required).
 - P2 GO spike gate cleared 2026-07-28; next gate is ADR draft + implementation PR per epic.

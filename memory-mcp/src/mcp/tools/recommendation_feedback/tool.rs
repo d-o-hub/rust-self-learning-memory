@@ -67,7 +67,10 @@ impl RecommendationFeedbackTools {
         };
 
         // Record session
-        self.memory.record_recommendation_session(session).await;
+        let receipt = self
+            .memory
+            .record_recommendation_session_checked(session)
+            .await;
 
         let patterns_count = input.recommended_pattern_ids.len();
         let playbooks_count = input.recommended_playbook_ids.len();
@@ -76,19 +79,23 @@ impl RecommendationFeedbackTools {
             session_id = %session_id,
             patterns = patterns_count,
             playbooks = playbooks_count,
+            receipt_state = receipt_state_label(&receipt),
             "Recorded recommendation session"
         );
 
         Ok(RecordRecommendationSessionOutput {
-            success: true,
+            success: receipt.is_durable(),
             session_id: session_id.to_string(),
             episode_id: input.episode_id,
             patterns_recommended: patterns_count,
             playbooks_recommended: playbooks_count,
             message: format!(
-                "Recorded recommendation session with {} patterns and {} playbooks",
-                patterns_count, playbooks_count
+                "Recorded recommendation session with {} patterns and {} playbooks (receipt state: {})",
+                patterns_count,
+                playbooks_count,
+                receipt_state_label(&receipt)
             ),
+            receipt,
         })
     }
 
@@ -138,7 +145,10 @@ impl RecommendationFeedbackTools {
         };
 
         // Record feedback
-        self.memory.record_recommendation_feedback(feedback).await?;
+        let receipt = self
+            .memory
+            .record_recommendation_feedback_checked(feedback)
+            .await?;
 
         let patterns_applied = input.applied_pattern_ids.len();
         let episodes_consulted = input.consulted_episode_ids.len();
@@ -147,18 +157,22 @@ impl RecommendationFeedbackTools {
             session_id = %session_id,
             patterns_applied = patterns_applied,
             episodes_consulted = episodes_consulted,
+            receipt_state = receipt_state_label(&receipt),
             "Recorded recommendation feedback"
         );
 
         Ok(RecordRecommendationFeedbackOutput {
-            success: true,
+            success: receipt.is_durable(),
             session_id: input.session_id,
             patterns_applied,
             episodes_consulted,
             message: format!(
-                "Recorded feedback: {} patterns applied, {} episodes consulted",
-                patterns_applied, episodes_consulted
+                "Recorded feedback: {} patterns applied, {} episodes consulted (receipt state: {})",
+                patterns_applied,
+                episodes_consulted,
+                receipt_state_label(&receipt)
             ),
+            receipt,
         })
     }
 
@@ -187,13 +201,27 @@ impl RecommendationFeedbackTools {
     }
 }
 
+/// Stable receipt state label matching the `PersistenceReceipt` JSON
+/// discriminants (ADR-080 §3).
+fn receipt_state_label(receipt: &do_memory_core::PersistenceReceipt) -> &'static str {
+    match receipt {
+        do_memory_core::PersistenceReceipt::Persisted { .. } => "persisted",
+        do_memory_core::PersistenceReceipt::PartiallyPersisted { .. } => "partially_persisted",
+        do_memory_core::PersistenceReceipt::MemoryOnly { .. } => "memory_only",
+        do_memory_core::PersistenceReceipt::PersistenceFailed { .. } => "persistence_failed",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::mcp::tools::recommendation_feedback::TaskOutcomeJson;
+    use do_memory_core::MemoryConfig;
 
     #[tokio::test]
-    async fn test_record_session() {
+    async fn test_record_session_memory_only_receipt() {
+        // No configured backends: the checked API returns a MemoryOnly receipt,
+        // so success must be false (ADR-080 §3).
         let memory = Arc::new(SelfLearningMemory::new());
         let tools = RecommendationFeedbackTools::new(memory);
 
@@ -204,12 +232,55 @@ mod tests {
         };
 
         let output = tools.record_session(input).await.unwrap();
-        assert!(output.success);
+        assert!(
+            !output.success,
+            "MemoryOnly receipt must not report success"
+        );
+        assert_eq!(output.success, output.receipt.is_durable());
+        assert!(matches!(
+            output.receipt,
+            do_memory_core::PersistenceReceipt::MemoryOnly { .. }
+        ));
+        assert!(output.message.contains("memory_only"));
         assert_eq!(output.patterns_recommended, 1);
     }
 
     #[tokio::test]
-    async fn test_record_feedback() {
+    async fn test_record_session_persisted_with_redb() {
+        // A capable (redb) backend yields a durable Persisted receipt.
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let redb_path = temp_dir.path().join("test_memory.redb");
+        let redb: Arc<dyn do_memory_core::StorageBackend> = Arc::new(
+            do_memory_storage_redb::RedbStorage::new(&redb_path)
+                .await
+                .unwrap(),
+        );
+        let memory = Arc::new(SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            redb.clone(),
+            redb,
+        ));
+        let tools = RecommendationFeedbackTools::new(memory);
+
+        let input = RecordRecommendationSessionInput {
+            episode_id: Uuid::new_v4().to_string(),
+            recommended_pattern_ids: vec!["p1".to_string()],
+            recommended_playbook_ids: vec![],
+        };
+
+        let output = tools.record_session(input).await.unwrap();
+        assert!(output.success, "Persisted receipt must report success");
+        assert_eq!(output.success, output.receipt.is_durable());
+        assert!(matches!(
+            output.receipt,
+            do_memory_core::PersistenceReceipt::Persisted { .. }
+        ));
+        assert!(output.message.contains("persisted"));
+        assert_eq!(output.patterns_recommended, 1);
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_memory_only_receipt() {
         let memory = Arc::new(SelfLearningMemory::new());
         let tools = RecommendationFeedbackTools::new(memory);
 
@@ -234,7 +305,62 @@ mod tests {
         };
 
         let output = tools.record_feedback(feedback_input).await.unwrap();
-        assert!(output.success);
+        assert!(
+            !output.success,
+            "MemoryOnly receipt must not report success"
+        );
+        assert_eq!(output.success, output.receipt.is_durable());
+        assert!(matches!(
+            output.receipt,
+            do_memory_core::PersistenceReceipt::MemoryOnly { .. }
+        ));
+        assert!(output.message.contains("memory_only"));
+        assert_eq!(output.patterns_applied, 1);
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_persisted_with_redb() {
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let redb_path = temp_dir.path().join("test_memory.redb");
+        let redb: Arc<dyn do_memory_core::StorageBackend> = Arc::new(
+            do_memory_storage_redb::RedbStorage::new(&redb_path)
+                .await
+                .unwrap(),
+        );
+        let memory = Arc::new(SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            redb.clone(),
+            redb,
+        ));
+        let tools = RecommendationFeedbackTools::new(memory);
+
+        let session_input = RecordRecommendationSessionInput {
+            episode_id: Uuid::new_v4().to_string(),
+            recommended_pattern_ids: vec!["p1".to_string()],
+            recommended_playbook_ids: vec![],
+        };
+        let session_output = tools.record_session(session_input).await.unwrap();
+        assert!(session_output.success);
+
+        let feedback_input = RecordRecommendationFeedbackInput {
+            session_id: session_output.session_id,
+            applied_pattern_ids: vec!["p1".to_string()],
+            consulted_episode_ids: vec![],
+            outcome: TaskOutcomeJson::Success {
+                verdict: "Done".to_string(),
+                artifacts: vec![],
+            },
+            agent_rating: Some(0.9),
+        };
+
+        let output = tools.record_feedback(feedback_input).await.unwrap();
+        assert!(output.success, "Persisted feedback must report success");
+        assert_eq!(output.success, output.receipt.is_durable());
+        assert!(matches!(
+            output.receipt,
+            do_memory_core::PersistenceReceipt::Persisted { .. }
+        ));
+        assert!(output.message.contains("persisted"));
         assert_eq!(output.patterns_applied, 1);
     }
 
@@ -258,7 +384,8 @@ mod tests {
         };
 
         let output = tools.record_session(input).await.unwrap();
-        assert!(output.success);
+        // MemoryOnly receipt: success must mirror the receipt, not the truncation.
+        assert_eq!(output.success, output.receipt.is_durable());
         // Should have been truncated to MAX_RECOMMENDED_IDS
         assert_eq!(output.patterns_recommended, constants::MAX_RECOMMENDED_IDS);
         assert_eq!(output.playbooks_recommended, constants::MAX_RECOMMENDED_IDS);
@@ -298,7 +425,7 @@ mod tests {
         };
 
         let output = tools.record_feedback(feedback_input).await.unwrap();
-        assert!(output.success);
+        assert_eq!(output.success, output.receipt.is_durable());
         // Arrays should have been truncated
         assert_eq!(output.patterns_applied, constants::MAX_RECOMMENDED_IDS);
         assert_eq!(output.episodes_consulted, constants::MAX_RECOMMENDED_IDS);

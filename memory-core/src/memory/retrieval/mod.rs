@@ -5,6 +5,7 @@ pub mod helpers;
 pub mod heuristics;
 pub mod patterns;
 pub mod playbooks;
+pub mod playbooks_attributed;
 pub mod provenance_api;
 pub mod scoring;
 

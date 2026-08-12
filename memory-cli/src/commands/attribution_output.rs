@@ -20,6 +20,16 @@ pub(crate) fn print_attribution_block(
     let _ = write_attribution_block(&mut out, session, receipt);
 }
 
+/// Print just the durability line for a persistence receipt to stdout.
+///
+/// Shared by the recommendation commands and the manual feedback writers so
+/// the durability wording can never drift between surfaces.
+pub(crate) fn print_durability_line(receipt: &PersistenceReceipt) {
+    let mut out = std::io::stdout();
+    // stdout is line-buffered; a failed write is not actionable at this layer.
+    let _ = write_durability_line(&mut out, receipt);
+}
+
 /// Write the attribution block into any `Write` sink (unit-testable).
 fn write_attribution_block<W: Write>(
     out: &mut W,
@@ -30,6 +40,17 @@ fn write_attribution_block<W: Write>(
     writeln!(out, "Session ID: {}", session.session_id)?;
     writeln!(out, "Episode ID: {}", session.episode_id)?;
 
+    write_durability_line(out, receipt)
+}
+
+/// Write the durability line for a persistence receipt into any `Write` sink.
+///
+/// This is the single source of the four-state durability wording used by the
+/// recommendation commands and the manual feedback writers.
+pub(crate) fn write_durability_line<W: Write>(
+    out: &mut W,
+    receipt: &PersistenceReceipt,
+) -> std::io::Result<()> {
     match receipt {
         PersistenceReceipt::Persisted { .. } => {
             writeln!(out, "Durability: Persisted (durable across restarts)")?;
@@ -126,6 +147,53 @@ mod tests {
             assert!(
                 out.contains(expected),
                 "expected {expected:?} in rendered block, got: {out:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn durability_line_renders_every_receipt_state() {
+        let cases = [
+            (
+                PersistenceReceipt::Persisted {
+                    session_id: Uuid::new_v4(),
+                    episode_id: Uuid::new_v4(),
+                },
+                "Durability: Persisted (durable across restarts)",
+            ),
+            (
+                PersistenceReceipt::PartiallyPersisted {
+                    session_id: Uuid::new_v4(),
+                    episode_id: Uuid::new_v4(),
+                    failed_backends: vec!["turso".to_string()],
+                },
+                "⚠️ Durability: Partially Persisted (failed backends: turso)",
+            ),
+            (
+                PersistenceReceipt::MemoryOnly {
+                    session_id: Uuid::new_v4(),
+                    episode_id: Uuid::new_v4(),
+                },
+                "⚠️ Durability: Memory-only (process-local, will be lost on restart)",
+            ),
+            (
+                PersistenceReceipt::PersistenceFailed {
+                    session_id: Uuid::new_v4(),
+                    episode_id: Uuid::new_v4(),
+                    failed_backends: vec!["redb".to_string()],
+                },
+                "❌ Durability: Persistence Failed (failed backends: redb)",
+            ),
+        ];
+
+        for (receipt, expected) in cases {
+            let mut buf = Vec::new();
+            write_durability_line(&mut buf, &receipt).unwrap();
+            let out = String::from_utf8(buf).unwrap();
+            assert_eq!(
+                out.trim(),
+                expected,
+                "expected {expected:?} from durability line, got: {out:?}"
             );
         }
     }

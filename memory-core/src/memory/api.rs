@@ -6,7 +6,7 @@
 use super::SelfLearningMemory;
 use crate::error::Result;
 use crate::memory::attribution::{
-    RecommendationFeedback, RecommendationSession, RecommendationStats,
+    PersistenceReceipt, RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use crate::monitoring::AgentMetrics;
 use crate::procedural::ProceduralMemory;
@@ -133,6 +133,24 @@ impl SelfLearningMemory {
         self.persist_recommendation_session(&session).await;
     }
 
+    /// Record a recommendation session and return a truthful `PersistenceReceipt` (ADR-080 §3).
+    ///
+    /// Tracks the session in the in-memory tracker and persists it through the
+    /// capability-aware receipt path (ADR-081 §2). The receipt distinguishes
+    /// durable, partial, memory-only, and failed persistence so callers can
+    /// determine whether feedback submitted after restart will find the
+    /// session. Configured backends that do not advertise capability are
+    /// skipped; raw backend errors are logged, never embedded in the receipt.
+    pub async fn record_recommendation_session_checked(
+        &self,
+        session: RecommendationSession,
+    ) -> PersistenceReceipt {
+        self.recommendation_tracker
+            .record_session(session.clone())
+            .await;
+        self.persist_session_checked(&session).await
+    }
+
     /// Record feedback about a recommendation session.
     ///
     /// Call this after an agent completes or abandons a task to indicate
@@ -201,6 +219,67 @@ impl SelfLearningMemory {
             .await?;
         self.persist_recommendation_feedback(&feedback).await;
         Ok(())
+    }
+
+    /// Record feedback and return a truthful `PersistenceReceipt` (ADR-080 §3).
+    ///
+    /// Performs the same memory → Turso → redb session resolution and ADR-080 §4
+    /// integrity validation as the legacy [`record_recommendation_feedback`](Self::record_recommendation_feedback)
+    /// (unknown sessions and non-recommended applied IDs are rejected exactly
+    /// as before), then persists the feedback through the capability-aware
+    /// receipt path. The receipt's episode ID is the resolved session's,
+    /// obtained after hydration and integrity validation.
+    pub async fn record_recommendation_feedback_checked(
+        &self,
+        feedback: RecommendationFeedback,
+    ) -> Result<PersistenceReceipt> {
+        // ADR-081 §1: resolve the session through memory → storage before the
+        // tracker's unknown-session rejection can fire. Without this, feedback
+        // for a durably persisted session fails after a restart, when the
+        // in-memory tracker is cold.
+        let resolved = match self
+            .recommendation_tracker
+            .get_session(feedback.session_id)
+            .await
+        {
+            Some(session) => Some(session),
+            None => {
+                self.fetch_session_by_id_from_storage(feedback.session_id)
+                    .await
+            }
+        };
+
+        // ADR-080 §4: integrity checks (unknown session / non-recommended IDs).
+        self.recommendation_tracker
+            .record_feedback(feedback.clone())
+            .await?;
+
+        let episode_id = resolved
+            .map(|session| session.episode_id)
+            .unwrap_or_else(uuid::Uuid::nil);
+
+        let receipt = self.persist_feedback_checked(&feedback, episode_id).await;
+        Ok(receipt)
+    }
+
+    /// Validate that an episode exists before an attributed recommendation
+    /// creates a session (ADR-080 §1).
+    ///
+    /// A missing episode is mapped to `Error::InvalidInput` naming the
+    /// operation and UUID so callers can distinguish "bad attribution target"
+    /// from storage failures; any non-`NotFound` error is propagated unchanged.
+    pub(crate) async fn validate_attributed_episode(
+        &self,
+        episode_id: uuid::Uuid,
+        operation: &str,
+    ) -> Result<()> {
+        match self.get_episode(episode_id).await {
+            Ok(_) => Ok(()),
+            Err(crate::error::Error::NotFound(_)) => Err(crate::error::Error::InvalidInput(
+                format!("{operation}: episode {episode_id} does not exist"),
+            )),
+            Err(err) => Err(err),
+        }
     }
 
     /// Get the recommendation session for an episode.

@@ -1,9 +1,9 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-08-10
-- **Status**: ADR-080 attribution merged (#927) + receipt-matrix hardening (#930); v0.1.38 shipped; fuzz/LTO wave merged (#934); CIT-A2 Dependabot/fork actor parity implemented; live-ruleset change awaits ADR-079 acceptance
-- **Workspace**: `0.1.39` · **Tag**: `v0.1.38`
-- **Plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` on top of `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`
+- **Last Updated**: 2026-08-11
+- **Status**: closure PR (`fix/ci-attribution-truth-closure`) implements the same-run CI fast gate + ADR-080/081 attribution closure; v0.1.39 shipped; workspace bumped to 0.1.40; ADR-080/081 remain `Proposed` pending maintainer acceptance; ADR-079 stage 4 live fault-inject proof is external maintainer evidence
+- **Workspace**: `0.1.40` · **Tag**: `v0.1.39`
+- **Plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation)
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ## Closed this wave (2026-08-09)
@@ -26,27 +26,28 @@
 
 | Goal | Rec IDs | Priority | Status |
 |------|---------|----------|--------|
-| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | 🔄 workflow side done (stable `CI / Required` aggregate); live-ruleset step awaits ADR acceptance |
+| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | ✅ same-run fast gate + `commitlint` in `ci.yml`; `ci-required-evaluate.sh` accepts only `success`; ruleset `9591004` requires `CI / Required` (closure PR); stage 4 fault-inject proof = external maintainer evidence |
 | Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
-| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures + ruleset-context/Actor-parity fixtures (2026-08-10) |
+| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures + ruleset-context/Actor-parity fixtures (2026-08-10) + `--required-aggregate` fixtures (closure PR) |
 | Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | ✅ Implemented (2026-08-06) |
 | Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
 | Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
-| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ merged (#927 + #930 receipt-matrix tests) |
-| Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) |
-| Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred |
+| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ code-side closed in closure PR (#927 + #930 + episode validation + checked receipts + cold-restart tests); ADR-080 stays Proposed pending maintainer acceptance |
+| Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) + concrete-backend capability tests (closure PR) |
+| Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred — nothing in the closure PR changes ranking |
 | R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
 | R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
 | Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
-The ranking-learning loop remains open: ADR-080 (#927) captures trustworthy
-evidence but does not yet apply feedback to recommendation scores. First-party
-CI is also not currently merge-required; green workflow runs must not be
-described as branch protection until ADR-079's staged ruleset migration
-completes (maintainer decision). R-F10 (ACT-325) and R-F4 (ACT-326) are
-implemented; CIT-A4/A5 (ACT-338/339) implemented 2026-08-06; PTA-A1/A2/A3
-implemented.
+The ranking-learning loop remains open: ADR-080/081 capture trustworthy
+attribution evidence but do not yet apply feedback to recommendation scores —
+feedback-to-ranking adaptation is deferred to a follow-up ADR. First-party CI is
+now causally merge-required (ruleset `9591004` requires `CI / Required`, and the
+aggregate is same-run fail-closed); ADR-079 stage 4 (deliberate live
+fault-injection merge-block proof) remains external maintainer evidence.
+R-F10 (ACT-325) and R-F4 (ACT-326) are implemented; CIT-A4/A5 (ACT-338/339)
+implemented 2026-08-06; PTA-A1/A2/A3 implemented.
 
 ## Closed this wave (2026-08-06)
 

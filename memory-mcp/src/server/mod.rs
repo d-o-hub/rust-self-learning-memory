@@ -35,6 +35,7 @@
 pub mod audit;
 pub mod cache_warming;
 pub mod rate_limiter;
+pub mod recommendation_tool_definitions;
 #[cfg(test)]
 mod tests;
 pub mod tool_definitions;

@@ -1,5 +1,10 @@
 # GOAP: CIT-A1/A2/A3 Workflow-Side Wave (2026-08-06)
 
+> **HISTORICAL — completed slice.** Superseded by the closure PR from branch
+> `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the
+> controller after creation). Retained for history per ADR-039; do not treat as
+> active backlog.
+
 - **Status**: Implemented (workflow/validator side) — PR in review
 - **Date**: 2026-08-06
 - **Baseline**: `main` at `92db07bf` stacked on the CIT-A4/A5 branch (`ci/cit-a4-a5-plan-truth-2026-08-06`)

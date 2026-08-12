@@ -49,58 +49,66 @@ pub async fn recommend_playbook(
 
     if let Some(ep_id) = parsed_ep_id {
         let attr_res = memory
-            .retrieve_playbooks_attributed(
-                ep_id,
-                task,
-                domain,
-                task_type_enum,
+            .retrieve_playbooks_attributed(do_memory_core::AttributedPlaybookRequest {
+                episode_id: ep_id,
+                task_description: task.to_string(),
+                domain: domain.to_string(),
+                task_type: task_type_enum,
                 context,
-                1,
-                max_steps,
-            )
+                max_playbooks: 1,
+                max_steps_per_playbook: max_steps,
+            })
             .await?;
-
-        if attr_res.playbooks.is_empty() {
-            println!("No playbook could be generated for this task.");
-            println!("\nTip: Complete more episodes with similar tasks to build up pattern data.");
-            return Ok(());
-        }
-
-        let playbook = &attr_res.playbooks[0];
-
-        let summary = PlaybookSummary {
-            playbook_id: playbook.playbook_id.to_string(),
-            task_match_score: playbook.task_match_score,
-            confidence: playbook.confidence,
-            why_relevant: playbook.why_relevant.clone(),
-            step_count: playbook.ordered_steps.len(),
-            steps: playbook
-                .ordered_steps
-                .iter()
-                .map(|s| PlaybookStepSummary {
-                    order: s.order,
-                    action: s.action.clone(),
-                    tool_hint: s.tool_hint.clone(),
-                    expected_result: s.expected_result.clone(),
-                })
-                .collect(),
-            pitfalls: playbook
-                .pitfalls
-                .iter()
-                .map(|p| p.warning.clone())
-                .collect(),
-            when_to_apply: playbook.when_to_apply.clone(),
-            when_not_to_apply: playbook.when_not_to_apply.clone(),
-            expected_outcome: playbook.expected_outcome.clone(),
-        };
 
         match format {
             OutputFormat::Json => {
                 let json = serde_json::to_string_pretty(&attr_res)?;
                 println!("{}", json);
             }
-            OutputFormat::Human | OutputFormat::Yaml => {
-                print_playbook_human(&summary);
+            OutputFormat::Yaml => {
+                let json_val = serde_json::to_value(&attr_res)?;
+                println!("{}", serde_yaml::to_string(&json_val).unwrap_or_default());
+            }
+            OutputFormat::Human => {
+                if attr_res.playbooks.is_empty() {
+                    // ADR-080 §3: an empty generation still created an
+                    // attributed session; expose the receipt instead of
+                    // returning early.
+                    println!("No playbook could be generated for this task.");
+                    println!(
+                        "\nTip: Complete more episodes with similar tasks to build up pattern data."
+                    );
+                } else {
+                    let playbook = &attr_res.playbooks[0];
+
+                    let summary = PlaybookSummary {
+                        playbook_id: playbook.playbook_id.to_string(),
+                        task_match_score: playbook.task_match_score,
+                        confidence: playbook.confidence,
+                        why_relevant: playbook.why_relevant.clone(),
+                        step_count: playbook.ordered_steps.len(),
+                        steps: playbook
+                            .ordered_steps
+                            .iter()
+                            .map(|s| PlaybookStepSummary {
+                                order: s.order,
+                                action: s.action.clone(),
+                                tool_hint: s.tool_hint.clone(),
+                                expected_result: s.expected_result.clone(),
+                            })
+                            .collect(),
+                        pitfalls: playbook
+                            .pitfalls
+                            .iter()
+                            .map(|p| p.warning.clone())
+                            .collect(),
+                        when_to_apply: playbook.when_to_apply.clone(),
+                        when_not_to_apply: playbook.when_not_to_apply.clone(),
+                        expected_outcome: playbook.expected_outcome.clone(),
+                    };
+
+                    print_playbook_human(&summary);
+                }
                 println!();
                 crate::commands::attribution_output::print_attribution_block(
                     &attr_res.session,

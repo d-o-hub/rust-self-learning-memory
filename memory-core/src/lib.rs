@@ -310,6 +310,9 @@ pub use memory::attribution::{
     RecommendationSession, RecommendationStats, RecommendationTracker,
 };
 
+// Re-export attributed playbook request type (ADR-080 §3)
+pub use memory::AttributedPlaybookRequest;
+
 // Re-export context bundle types (WG-117)
 pub use context::{
     AddResult, BundleAccumulator, BundleConfig, BundleStats, ContextItem, ContextItemType,

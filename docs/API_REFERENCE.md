@@ -97,6 +97,37 @@ The following tool names are the current contract tracked by parity tests.
 - `record_recommendation_feedback`
 - `get_recommendation_stats`
 
+#### Attributed recommendation contract (ADR-080/081)
+
+`recommend_patterns` and `recommend_playbook` accept an **optional** `episode_id`
+(`type: string`, `format: uuid`). It is never required — omitting it selects the
+legacy unattributed path, whose response shape is unchanged.
+
+When `episode_id` is supplied and valid:
+
+- The episode must already exist; a nil, malformed, or nonexistent episode ID is
+  an error and never creates a session.
+- The response wraps the recommendations in an **attribution envelope**:
+  `attribution` containing `session_id` and a `receipt` with `state`
+  (`persisted` | `partially_persisted` | `memory_only` | `persistence_failed`),
+  the episode ID, and (for partial/failed states) the stable `failed_backends`
+  identifiers (`turso`, `redb`).
+- `success` is `false` when the receipt is `persistence_failed`; manual session
+  and feedback commands report the same receipt truthfully.
+
+Receipt states and restart implications:
+
+| state | meaning | restart-safe feedback |
+|-------|---------|-----------------------|
+| `persisted` | every configured capable backend wrote the record | yes — feedback submitted after a process restart resolves the session from storage |
+| `partially_persisted` | at least one capable backend wrote it, at least one failed (`failed_backends` lists the failures in try order `turso`→`redb`) | only if the surviving backend holds it |
+| `memory_only` | no configured backend advertises attribution capability (including configured backends that advertise `false`) | no — the record exists only in this process |
+| `persistence_failed` | every configured capable backend failed to write | no |
+
+**Scope:** this captures attribution data (sessions, feedback, statistics) only.
+It does **not** update recommendation ranking — feedback-to-ranking adaptation
+remains deferred to a follow-up ADR.
+
 ### Playbook / Checkpoint / Handoff
 
 - `checkpoint_episode`

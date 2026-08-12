@@ -93,4 +93,7 @@ do-memory-cli feedback record-session --episode-id <episode-id> --patterns <patt
 do-memory-cli feedback record-feedback --session <session-id> --outcome success --message "Worked well" --rating 0.9
 ```
 
-The system uses this feedback to boost the ranking of highly-rated patterns and suppress unhelpful ones in future queries.
+The system records this feedback as attribution statistics (adoption rate,
+success-after-adoption rate, and precision metrics). It does not yet use
+feedback to boost or suppress the ranking of future pattern recommendations —
+feedback-to-ranking adaptation remains deferred to a follow-up ADR.

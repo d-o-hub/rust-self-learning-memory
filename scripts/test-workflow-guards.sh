@@ -69,7 +69,7 @@ check_required_aggregate() {
 
   # (2) Each non-success / malformed / unknown / missing result must exit
   #     nonzero and print an ::error:: naming the culprit.
-  local bad arg
+  local arg
   for arg in \
     "Fast Gate=failure" \
     "Fast Gate=cancelled" \

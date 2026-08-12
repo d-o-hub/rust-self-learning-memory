@@ -83,21 +83,7 @@ mod feature_handlers;
 // Test helpers
 // ────────────────────────────────────────────────────────────────────────
 
-/// Disable WASM sandbox and cache warming so tests are deterministic.
-#[allow(unsafe_code)]
-fn disable_env_flags() {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        // SAFETY: test-only env var manipulation
-        unsafe {
-            std::env::set_var("MCP_USE_WASM", "false");
-            std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
-        }
-    });
-}
-
 async fn make_server(memory: Arc<SelfLearningMemory>) -> MemoryMCPServer {
-    disable_env_flags();
     MemoryMCPServer::new(SandboxConfig::restrictive(), memory)
         .await
         .expect("server creation should succeed")

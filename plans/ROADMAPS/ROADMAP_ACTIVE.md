@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-08-11
+**Last Updated**: 2026-08-12
 **Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.40 (post-v0.1.39 bump)
-**Active Sprint**: closure PR (branch `fix/ci-attribution-truth-closure`) — same-run CI fast gate + ADR-080/081 attribution closure + plan truth
-**Plan**: closure PR from `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation); prior waves: `GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` (all historical)
-**Branch**: `fix/ci-attribution-truth-closure` (off `main` @ `5a943c98a98d3807fbcf7d644024c55451c7d702`)
-**Open PRs**: closure PR (created by the controller after this task)
+**Active Sprint**: post-closure main (#947 merged 2026-08-12); awaiting maintainer ADR-079 stage-4 + ADR-080/081 lifecycle
+**Plan**: merged #947 (2026-08-12); prior waves: `GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` (all historical)
+**Branch**: main @ `872949b8` (PR #947 merged 2026-08-12)
+**Open PRs**: none (docs-only tracker PR transient)
 **Open issues**: none
 
 ---
@@ -35,15 +35,15 @@
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
 | P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate, fail-closed evaluator, staged ruleset migration | ✅ same-run fast gate + commitlint; `ci-required-evaluate.sh` rejects `skipped`; ruleset `9591004` requires `CI / Required` (stage 3 live); waiter/anchor removed (stage 5) |
-| P0 | ADR-079 stage 4 | Deliberate live fault-injection merge-block proof | ⏸ external maintainer evidence — not performed in the closure PR |
+| P0 | ADR-079 stage 4 | Deliberate live fault-injection merge-block proof | ⏸ external maintainer evidence — not performed in #947 |
 | P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | ✅ waiters fail closed + actor parity (2026-08-10) |
 | P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ #916 |
 | P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ #916 |
-| P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | ✅ semantic validator + negative fixtures + `--required-aggregate` (closure PR) |
+| P1 | CIT-A3 | Exact local/CI command scope and semantic gate-contract validation | ✅ semantic validator + negative fixtures + `--required-aggregate` (merged in #947, 2026-08-12) |
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | ✅ 2026-08-06 |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
-| P1 | ADR-080/081 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ code-side closed in closure PR (episode validation, checked receipts, cold-restart, capability, postcard safety); ADR lifecycle stays Proposed pending maintainer acceptance |
-| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred — nothing in the closure PR changes ranking |
+| P1 | ADR-080/081 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ code-side closed in #947 (2026-08-12) (episode validation, checked receipts, cold-restart, capability, postcard safety); ADR lifecycle stays Proposed pending maintainer acceptance |
+| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred — nothing in #947 changes ranking |
 
 ---
 

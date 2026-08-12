@@ -1,23 +1,23 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-08-11
-- **Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
+- **Last Updated**: 2026-08-12
+- **Active plan**: merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
-## Completed actions (2026-08-11 — closure PR)
+## Completed actions (2026-08-11 — #947, merged 2026-08-12)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted — ruleset `9591004` requires `[Codacy Static Code Analysis, CI / Required]` (verified live) |
-| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ closure PR — same-run `commitlint` + `fast-gate`; `ci-required-evaluate.sh` accepts only `success`, rejects `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown; `--required-aggregate` fixtures |
-| ACT-340 | Require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | ✅ ruleset already requires `CI / Required` (stage 3); deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence |
-| ACT-348 | Validate episode existence; unify malformed-ID rejection across core/MCP/CLI | RAT-B4 | ✅ evidence-backed / landed in closure PR |
-| ACT-349 | Add fallible playbook retrieval; no session on generation failure | RAT-B5 | ✅ evidence-backed / landed in closure PR |
-| ACT-350 | Add `persist_feedback_checked`; give manual MCP/CLI commands receipt semantics | RAT-B6 | ✅ evidence-backed / landed in closure PR |
-| ACT-351 | Declare `episode_id` in both MCP registries + registry-agreement test | RAT-B7 | ✅ evidence-backed / landed in closure PR |
-| ACT-352 | Deduplicate CLI rendering; replace the `too_many_arguments` suppression with a request struct | RAT-B8 | ✅ evidence-backed / landed in closure PR |
-| ACT-353 | Restart-safety, receipt-matrix, MCP snapshot, and CLI e2e tests to ≥ 90% | RAT-B9 | ✅ evidence-backed / landed in closure PR (coverage % measured by the controller's final validation) |
-| ACT-354 | Docs + plans-registry + repo hygiene (`API_REFERENCE`, ADR-058 duplicate, `.gitignore`) | RAT-B10 | ✅ evidence-backed / landed in closure PR |
+| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted — ruleset `9591004` requires `[Codacy Static Code Analysis, CI / Required]` (verified live) — merged in #947 (2026-08-12) |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ same-run `commitlint` + `fast-gate`; `ci-required-evaluate.sh` accepts only `success`, rejects `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown; `--required-aggregate` fixtures — merged in #947 (2026-08-12) |
+| ACT-340 | Require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | ✅ ruleset already requires `CI / Required` (stage 3); deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence — merged in #947 (2026-08-12) |
+| ACT-348 | Validate episode existence; unify malformed-ID rejection across core/MCP/CLI | RAT-B4 | ✅ evidence-backed — merged in #947 (2026-08-12) |
+| ACT-349 | Add fallible playbook retrieval; no session on generation failure | RAT-B5 | ✅ evidence-backed — merged in #947 (2026-08-12) |
+| ACT-350 | Add `persist_feedback_checked`; give manual MCP/CLI commands receipt semantics | RAT-B6 | ✅ evidence-backed — merged in #947 (2026-08-12) |
+| ACT-351 | Declare `episode_id` in both MCP registries + registry-agreement test | RAT-B7 | ✅ evidence-backed — merged in #947 (2026-08-12) |
+| ACT-352 | Deduplicate CLI rendering; replace the `too_many_arguments` suppression with a request struct | RAT-B8 | ✅ evidence-backed — merged in #947 (2026-08-12) |
+| ACT-353 | Restart-safety, receipt-matrix, MCP snapshot, and CLI e2e tests to ≥ 90% | RAT-B9 | ✅ evidence-backed (coverage % measured by the controller's final validation) — merged in #947 (2026-08-12) |
+| ACT-354 | Docs + plans-registry + repo hygiene (`API_REFERENCE`, ADR-058 duplicate, `.gitignore`) | RAT-B10 | ✅ evidence-backed — merged in #947 (2026-08-12) |
 
 ## Completed actions (2026-08-09 — fuzz nightly + LTO-off wave)
 
@@ -39,12 +39,19 @@
 | ACT-358 | Raise #927 Codecov patch coverage (receipt matrix + MCP + CLI dedup) | RAT-B8/B9 | ✅ pushed `68457631`→`52276c50` |
 | ACT-359 | Ship v0.1.38 via release-guard to clear repo-wide drift for all PRs | R-A3 | ✅ shipped 2026-08-08 (workspace bumped to 0.1.39) |
 
+## Active actions (2026-08-12 — post-closure, maintainer-external)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-360 | Deliver ADR-079 stage-4 live fault-injection merge-block proof | ADR-079 | ⏸ external maintainer evidence |
+| ACT-361 | Accept ADR-080/081 lifecycle (move from Proposed on acceptance) | ADR-080/081 | ⏸ Proposed — maintainer |
+
 ## Active actions (2026-08-06)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted (ruleset `9591004` requires `CI / Required`) — see 2026-08-11 closure table |
-| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ closure PR — same-run gates + fail-closed evaluator — see 2026-08-11 closure table |
+| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted (ruleset `9591004` requires `CI / Required`) — see 2026-08-11 completed table |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ same-run gates + fail-closed evaluator — merged in #947 (2026-08-12) |
 | ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
 | ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | ✅ semantic validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
 | ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | ✅ Done (2026-08-06) |
@@ -80,7 +87,7 @@ implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) and ACT-338/339 (CIT-A4/A5)
 are implemented 2026-08-06. ADR-080/081 attribution merged in #927 (receipt-matrix
 tests #930); the ADR-081 §2 capability-truth gap closed 2026-08-10 via
 `supports_recommendation_attribution` + capability-gated `persist_session_checked`.
-The closure PR from branch `fix/ci-attribution-truth-closure` lands the same-run
+PR #947 (merged 2026-08-12) landed the same-run
 fast gate, the fail-closed evaluator, the waiter/anchor removal (ADR-079 stage 5),
 and the ADR-080/081 acceptance evidence (ACT-348…354, ACT-334/335/340). Remaining
 open items are maintainer-external: ADR-079 stage 4 live fault-injection

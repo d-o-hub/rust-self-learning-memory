@@ -1,11 +1,12 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-11
+- **Last Updated**: 2026-08-12
 - **Version**: workspace `0.1.40` · latest tag `v0.1.39`
-- **Branch**: `fix/ci-attribution-truth-closure` (off `main` @ `5a943c98a98d3807fbcf7d644024c55451c7d702`)
-- **Open PRs**: closure PR (created by the controller after this task)
+- **Branch**: main @ `872949b8` (PR #947 merged 2026-08-12)
+- **Open PRs**: docs-only tracker PR (Step 8); #947 merged
 - **Open issues**: none — #913 closed 2026-08-02
-- **Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (same-run CI fast gate + ADR-080/081 attribution closure + plan truth); prior waves (PR review CI fix, CIT-A1/A2/A3, CIT-A4/A5, ADR-081 capability truth) are historical completed slices
+- **Active plan**: none in flight — #947 merged 2026-08-12; ADR-079 stage 4 + ADR-080/081 lifecycle await maintainer
+- **Note**: #947 merged 2026-08-12; evidence in plans/STATUS/VALIDATION_LATEST.md.
 - **Archive**: `plans/archive/2026-07-consolidation/`  
 - **Release**: ✅ `v0.1.39` tagged and shipped (workspace bumped to `0.1.40` post-release)
 
@@ -15,8 +16,8 @@
 
 | Package | Status |
 |---------|--------|
-| ADR-079 fail-closed required-check control plane | Accepted (P0) — stage 3 live (ruleset `9591004` requires `CI / Required`); stage 5 cleanup landed in the closure PR; stage 4 live fault-inject proof = external maintainer evidence |
-| CIT-A1 required aggregate + staged ruleset migration | ✅ same-run fast gate + commitlint; `ci-required-evaluate.sh` accepts only `success`; ruleset requires the aggregate (closure PR) |
+| ADR-079 fail-closed required-check control plane | Accepted (P0) — stage 3 live (ruleset `9591004` requires `CI / Required`); stage 5 cleanup merged in #947 (2026-08-12); stage 4 live fault-inject proof = external maintainer evidence |
+| CIT-A1 required aggregate + staged ruleset migration | ✅ same-run fast gate + commitlint; `ci-required-evaluate.sh` accepts only `success`; ruleset requires the aggregate (merged in #947, 2026-08-12) |
 | CIT-A2 cancellation/actor fail-closed behavior | ✅ waiters fail closed + commit-lint wait + downstream Dependabot/fork actor parity (2026-08-10) |
 | CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
 | CIT-A4 release/publish trigger truth | ✅ Done (2026-08-06) |
@@ -25,8 +26,8 @@
 | PTA-A2 CLI storage metric truth | ✅ #916 merged (2026-08-02) | PTA-A2 |
 | PTA-A3 threshold command cleanup | ✅ #916 merged (2026-08-02) | PTA-A3 |
 | cargo-mutants CI sharding (reward/retrieval/retry/patterns) | ✅ #917 merged (2026-08-02) | CI |
-| ADR-080 automatic recommendation attribution | Proposed (code evidence landed in closure PR; lifecycle awaits maintainer acceptance) |
-| RAT-A1…A7 contract tests + implementation | ✅ code-side closed in closure PR (episode validation, checked receipts, fallible playbooks, cold-restart/capability/postcard tests) |
+| ADR-080 automatic recommendation attribution | Proposed (code evidence merged in #947, 2026-08-12; lifecycle awaits maintainer acceptance) |
+| RAT-A1…A7 contract tests + implementation | ✅ code-side merged in #947 (2026-08-12) (episode validation, checked receipts, fallible playbooks, cold-restart/capability/postcard tests) |
 | Feedback-to-ranking adaptation | Deferred to separate ADR |
 | PR queue cleanup (GOAP swarm) | ✅ 5 PRs → 0 open (2026-07-27) |
 | cargo-mutants workspace fix #901 | ✅ Merged (fixes #898) |
@@ -70,7 +71,7 @@ storage_awaits_lock_free          = true
 durable_eviction                  = true
 embedding_health_truthful         = true
 retry_backpressure_effective      = true
-gates_match_policy                = true  (ADR-079 stage 3 — live ruleset now requires the `CI / Required` aggregate, 2026-08-10; same-run fast gate + fail-closed evaluator landed in the closure PR, 2026-08-11)
+gates_match_policy                = true  (ADR-079 stage 3 — live ruleset now requires the `CI / Required` aggregate, 2026-08-10; same-run fast gate + fail-closed evaluator landed + merged in #947 2026-08-12)
 required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; aggregate is causally same-run and rejects skipped, 2026-08-11)
 ci_cancellation_fail_closed       = true  (five waiters fail closed + commit-lint wait; 2026-08-06)
 automation_actor_parity           = true  (CIT-A2 — Dependabot/fork run same substantive assertions; validator fixture 2026-08-10)
@@ -97,10 +98,10 @@ runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configu
 cascade_capability_truthful       = true  (PTA-A1 — non-csm `retrieve` returns `Err(CascadeError::CapabilityUnavailable)`)
 storage_metrics_truthful          = true  (PTA-A2 — `MetricValue` provenance: measured/estimated/unavailable)
 unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` removed from Clap + docs)
-automatic_attribution_capture     = true  (ADR-080 merged in #927 + closure PR: episode validation, checked manual receipts, fallible playbooks)
-attribution_capability_truth      = true  (ADR-081 §2 — StorageBackend capability advertisement + capability-gated persist_session_checked, 2026-08-10; concrete-backend capability tests in the closure PR)
-feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930 + closure PR checked manual receipt matrix + cold-restart tests)
-feedback_updates_ranking          = false (follow-up ADR required; nothing in the closure PR changes ranking)
+automatic_attribution_capture     = true  (ADR-080 merged in #927 + #947: episode validation, checked manual receipts, fallible playbooks, merged 2026-08-12)
+attribution_capability_truth      = true  (ADR-081 §2 — StorageBackend capability advertisement + capability-gated persist_session_checked, 2026-08-10; concrete-backend capability tests in #947, merged 2026-08-12)
+feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930 + #947 checked manual receipt matrix + cold-restart tests, merged 2026-08-12)
+feedback_updates_ranking          = false (follow-up ADR required; nothing in #947 changes ranking)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
 r_f10_oidc_publishing             = true  (ACT-325 — publish-crates.yml OIDC id-token + exchange)
 r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)

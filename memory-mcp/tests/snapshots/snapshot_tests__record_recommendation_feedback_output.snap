@@ -1,0 +1,16 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "success": false,
+  "session_id": "990e8400-e29b-41d4-a716-446655440001",
+  "patterns_applied": 1,
+  "episodes_consulted": 0,
+  "message": "Recorded feedback: 1 patterns applied, 0 episodes consulted (receipt state: memory_only)",
+  "receipt": {
+    "state": "memory_only",
+    "session_id": "990e8400-e29b-41d4-a716-446655440001",
+    "episode_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}

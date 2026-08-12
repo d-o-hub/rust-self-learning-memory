@@ -59,6 +59,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends jq ripgrep
 
+      - name: Required aggregate fixtures
+        # Regression for the false-green CI / Required aggregate: evaluator
+        # accepts ONLY success; waiter/anchor topology fails the guard.
+        run: |
+          chmod +x scripts/test-workflow-guards.sh
+          ./scripts/test-workflow-guards.sh --required-aggregate
+
       - name: Gate contract (default)
         run: |
           chmod +x scripts/validate-gate-contract.sh scripts/run-evals.sh
@@ -98,6 +105,7 @@ jobs:
             echo ""
             echo "| Check | When |"
             echo "|-------|------|"
+            echo "| test-workflow-guards --required-aggregate | always |"
             echo "| validate-gate-contract | always |"
             echo "| validate-gate-contract --ci-parity | always |"
             echo "| test-release-workflow --publish-fixtures | always |"

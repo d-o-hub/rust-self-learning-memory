@@ -72,7 +72,6 @@ if [[ "$CI_PARITY" == true ]]; then
     [[ -f "$path" ]] || fail "CI parity missing $why: $path"
   }
 
-  require_file "$WF_DIR/quick-check.yml" "fmt/clippy Quick PR Check"
   require_file "$WF_DIR/ci.yml" "tests / quality-gates CI"
   require_file "$WF_DIR/release-drift.yml" "release cadence"
   require_file "$PROJECT_ROOT/scripts/run-evals.sh" "skill evals runner"
@@ -109,10 +108,59 @@ if [[ "$CI_PARITY" == true ]]; then
     fail "no workflow runs cargo deny / cargo-deny"
   fi
 
-  # Quick check must mention fmt and clippy
-  if ! grep -qE 'fmt|clippy' "$WF_DIR/quick-check.yml"; then
-    fail "quick-check.yml does not mention fmt/clippy"
+  # Same-run fast gate (ADR-079 CIT-A1): commitlint + fast-gate are jobs inside
+  # ci.yml using the canonical local commands, so the CI / Required aggregate
+  # observes their true results (no cross-workflow waiter).
+  if ! grep -qE '^  commitlint:' "$WF_DIR/ci.yml"; then
+    fail "ci.yml missing same-run 'commitlint' job"
   fi
+  if ! grep -qE '^  fast-gate:' "$WF_DIR/ci.yml"; then
+    fail "ci.yml missing same-run 'fast-gate' job"
+  fi
+  for cmd in \
+    'code-quality.sh fmt --workspace' \
+    'code-quality.sh clippy --workspace' \
+    'check-yaml-frontmatter.sh' \
+    'check-doctests.sh' \
+    'check-ignored-tests.sh'
+  do
+    grep -qF "$cmd" "$WF_DIR/ci.yml" || fail "ci.yml fast-gate missing canonical command: $cmd"
+  done
+
+  # CI / Required aggregate must depend on exactly the same-run jobs.
+  if ! awk '
+    /^  [a-zA-Z0-9_-]+:/ { in_required = 0 }
+    /name: CI \/ Required/ { in_required = 1; found = 1 }
+    in_required && /needs: \[fast-gate, commitlint, test, mcp-build, multi-platform, quality-gates\]/ { ok = 1 }
+    END { exit !(found && ok) }
+  ' "$WF_DIR/ci.yml"; then
+    fail "CI / Required aggregate needs must be exactly [fast-gate, commitlint, test, mcp-build, multi-platform, quality-gates]"
+  fi
+
+  # ci-required-evaluate.sh is the single result-mapping authority (accepts
+  # only success; emits ::error:: and fails on skipped/failure/cancelled/
+  # timed_out/malformed/missing).
+  if [[ ! -f "$PROJECT_ROOT/scripts/ci-required-evaluate.sh" ]]; then
+    fail "missing scripts/ci-required-evaluate.sh"
+  fi
+  if [[ ! -x "$PROJECT_ROOT/scripts/ci-required-evaluate.sh" ]]; then
+    fail "scripts/ci-required-evaluate.sh is not executable"
+  fi
+  if ! grep -q '::error::' "$PROJECT_ROOT/scripts/ci-required-evaluate.sh"; then
+    fail "ci-required-evaluate.sh must emit ::error:: on non-success results"
+  fi
+
+  # No cross-workflow waiter may remain (lewagon/wait-on-check-action).
+  if grep -rE 'wait-on-check-action' "$WF_DIR" --include='*.yml' | grep -q .; then
+    fail "a workflow still uses lewagon/wait-on-check-action (same-run fast gate required)"
+  fi
+
+  # Obsolete waiter/anchor topology files must be gone.
+  for obsolete in quick-check.yml pr-check-anchor.yml; do
+    if [[ -f "$WF_DIR/$obsolete" ]]; then
+      fail "obsolete $obsolete still present (must be deleted with the cross-workflow waiter)"
+    fi
+  done
 
   # CI must mention tests (nextest or cargo test)
   if ! grep -qE 'nextest|cargo test' "$WF_DIR/ci.yml"; then

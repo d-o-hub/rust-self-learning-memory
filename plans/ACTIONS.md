@@ -1,8 +1,23 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-08-10
-- **Active plan**: `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md` (PR review + CI fix wave) + `plans/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md` + `plans/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`; upstream `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`. Fuzz/LTO wave (`GOAP_FUZZ_NIGHTLY_LTO_FIX_WAVE_2026-08-09.md`) completed via #934 (merged 2026-08-09).
+- **Last Updated**: 2026-08-11
+- **Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Completed actions (2026-08-11 — closure PR)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted — ruleset `9591004` requires `[Codacy Static Code Analysis, CI / Required]` (verified live) |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ closure PR — same-run `commitlint` + `fast-gate`; `ci-required-evaluate.sh` accepts only `success`, rejects `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown; `--required-aggregate` fixtures |
+| ACT-340 | Require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | ✅ ruleset already requires `CI / Required` (stage 3); deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence |
+| ACT-348 | Validate episode existence; unify malformed-ID rejection across core/MCP/CLI | RAT-B4 | ✅ evidence-backed / landed in closure PR |
+| ACT-349 | Add fallible playbook retrieval; no session on generation failure | RAT-B5 | ✅ evidence-backed / landed in closure PR |
+| ACT-350 | Add `persist_feedback_checked`; give manual MCP/CLI commands receipt semantics | RAT-B6 | ✅ evidence-backed / landed in closure PR |
+| ACT-351 | Declare `episode_id` in both MCP registries + registry-agreement test | RAT-B7 | ✅ evidence-backed / landed in closure PR |
+| ACT-352 | Deduplicate CLI rendering; replace the `too_many_arguments` suppression with a request struct | RAT-B8 | ✅ evidence-backed / landed in closure PR |
+| ACT-353 | Restart-safety, receipt-matrix, MCP snapshot, and CLI e2e tests to ≥ 90% | RAT-B9 | ✅ evidence-backed / landed in closure PR (coverage % measured by the controller's final validation) |
+| ACT-354 | Docs + plans-registry + repo hygiene (`API_REFERENCE`, ADR-058 duplicate, `.gitignore`) | RAT-B10 | ✅ evidence-backed / landed in closure PR |
 
 ## Completed actions (2026-08-09 — fuzz nightly + LTO-off wave)
 
@@ -28,13 +43,13 @@
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | Proposed (maintainer) |
-| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | 🔄 workflow side done (`CI / Required` job, always()); ruleset stage pending |
+| ACT-334 | Accept ADR-079 and freeze the `CI / Required` aggregate contract | CIT-A1 | ✅ Accepted (ruleset `9591004` requires `CI / Required`) — see 2026-08-11 closure table |
+| ACT-335 | Implement and fault-inject same-run required aggregation | CIT-A1 | ✅ closure PR — same-run gates + fail-closed evaluator — see 2026-08-11 closure table |
 | ACT-336 | Fail closed on cancellation/missing/commitlint and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
 | ACT-337 | Reconcile test/Clippy/quality scopes and add semantic gate-contract fixtures | CIT-A3 | ✅ semantic validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
 | ACT-338 | Remove broken release dispatch and make publish selection/dependency planning truthful | CIT-A4 | ✅ Done (2026-08-06) |
 | ACT-339 | Preserve fuzz/mutation evidence, then measure and remove duplicate CI work | CIT-A5 | ✅ Done (fuzz half; mutants already durable — 2026-08-06) |
-| ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | Blocked by ACT-335…337 and maintainer approval |
+| ACT-340 | With approval, require the verified aggregate in ruleset `9591004` and validate blocking | CIT-A1/PTA-A9 | ✅ ruleset already requires `CI / Required` (stage 3); stage 4 live fault-inject proof = external maintainer evidence |
 | ACT-302 | `./scripts/release-manager.sh ship --execute` for `v0.1.36` | R-A1 | ✅ Done |
 | ACT-303 | Post-release workspace bump to 0.1.37 | R-A2 | ✅ #886 |
 | ACT-315 | Plans progress truth (open PRs, post-ship) | R-G* | ✅ #889 |
@@ -63,11 +78,13 @@
 All ACT-300…ACT-324 items are complete. ACT-341…ACT-343 (PTA-A1/A2/A3) are
 implemented 2026-08-01. ACT-325/326 (R-F10/R-F4) and ACT-338/339 (CIT-A4/A5)
 are implemented 2026-08-06. ADR-080/081 attribution merged in #927 (receipt-matrix
-tests #930); the ADR-081 §2 capability-truth gap (G2) closed 2026-08-10 via
+tests #930); the ADR-081 §2 capability-truth gap closed 2026-08-10 via
 `supports_recommendation_attribution` + capability-gated `persist_session_checked`.
-Remaining open items (ACT-334…337) require maintainer ADR-079 acceptance
-and live-ruleset approval; they must not be marked complete without workflow,
-live-ruleset, and validation evidence.
+The closure PR from branch `fix/ci-attribution-truth-closure` lands the same-run
+fast gate, the fail-closed evaluator, the waiter/anchor removal (ADR-079 stage 5),
+and the ADR-080/081 acceptance evidence (ACT-348…354, ACT-334/335/340). Remaining
+open items are maintainer-external: ADR-079 stage 4 live fault-injection
+merge-block proof, and ADR-080/081 lifecycle acceptance (both stay `Proposed`).
 
 ## Completed actions (summary)
 

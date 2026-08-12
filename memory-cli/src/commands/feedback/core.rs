@@ -4,6 +4,7 @@ use super::types::FeedbackCommands;
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 use anyhow::{Result, anyhow};
+use do_memory_core::PersistenceReceipt;
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use do_memory_core::types::TaskOutcome;
@@ -19,6 +20,7 @@ pub struct RecordSessionResult {
     pub episode_id: String,
     pub patterns_recommended: usize,
     pub playbooks_recommended: usize,
+    pub receipt: PersistenceReceipt,
 }
 
 impl Output for RecordSessionResult {
@@ -39,6 +41,7 @@ impl Output for RecordSessionResult {
             "  Playbooks recommended: {}",
             self.playbooks_recommended
         )?;
+        crate::commands::attribution_output::write_durability_line(&mut writer, &self.receipt)?;
         Ok(())
     }
 }
@@ -50,6 +53,7 @@ pub struct RecordFeedbackResult {
     pub session_id: String,
     pub patterns_applied: usize,
     pub episodes_consulted: usize,
+    pub receipt: PersistenceReceipt,
 }
 
 impl Output for RecordFeedbackResult {
@@ -57,6 +61,7 @@ impl Output for RecordFeedbackResult {
         writeln!(writer, "Recorded feedback for session: {}", self.session_id)?;
         writeln!(writer, "  Patterns applied: {}", self.patterns_applied)?;
         writeln!(writer, "  Episodes consulted: {}", self.episodes_consulted)?;
+        crate::commands::attribution_output::write_durability_line(&mut writer, &self.receipt)?;
         Ok(())
     }
 }
@@ -167,15 +172,16 @@ async fn record_session(
         recommended_playbook_ids: playbook_uuids,
     };
 
-    // Record session
-    memory.record_recommendation_session(session).await;
+    // Record session (checked: returns a truthful persistence receipt)
+    let receipt = memory.record_recommendation_session_checked(session).await;
 
     let result = RecordSessionResult {
-        success: true,
+        success: receipt.is_durable(),
         session_id: session_id.to_string(),
         episode_id,
         patterns_recommended: patterns.len(),
         playbooks_recommended: playbooks.len(),
+        receipt,
     };
 
     format.print_output(&result)
@@ -244,14 +250,18 @@ async fn record_feedback(
         agent_rating: rating,
     };
 
-    // Record feedback
-    memory.record_recommendation_feedback(feedback).await?;
+    // Record feedback (checked: preserves all rejection errors and returns a
+    // truthful persistence receipt)
+    let receipt = memory
+        .record_recommendation_feedback_checked(feedback)
+        .await?;
 
     let result = RecordFeedbackResult {
-        success: true,
+        success: receipt.is_durable(),
         session_id,
         patterns_applied: applied_patterns.len(),
         episodes_consulted: consulted_episodes.len(),
+        receipt,
     };
 
     format.print_output(&result)
@@ -281,4 +291,148 @@ async fn show_stats(
     };
 
     format.print_output(&result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn memory_only_receipt() -> PersistenceReceipt {
+        PersistenceReceipt::MemoryOnly {
+            session_id: Uuid::new_v4(),
+            episode_id: Uuid::new_v4(),
+        }
+    }
+
+    fn persistence_failed_receipt() -> PersistenceReceipt {
+        PersistenceReceipt::PersistenceFailed {
+            session_id: Uuid::new_v4(),
+            episode_id: Uuid::new_v4(),
+            failed_backends: vec!["turso".to_string(), "redb".to_string()],
+        }
+    }
+
+    #[test]
+    fn record_session_result_success_maps_to_receipt_durability() {
+        for receipt in [memory_only_receipt(), persistence_failed_receipt()] {
+            let result = RecordSessionResult {
+                success: receipt.is_durable(),
+                session_id: receipt.session_id().to_string(),
+                episode_id: receipt.episode_id().to_string(),
+                patterns_recommended: 2,
+                playbooks_recommended: 1,
+                receipt: receipt.clone(),
+            };
+            assert_eq!(result.success, result.receipt.is_durable());
+            assert!(
+                !result.success,
+                "non-durable receipt must yield success=false"
+            );
+        }
+    }
+
+    #[test]
+    fn record_feedback_result_success_maps_to_receipt_durability() {
+        for receipt in [memory_only_receipt(), persistence_failed_receipt()] {
+            let result = RecordFeedbackResult {
+                success: receipt.is_durable(),
+                session_id: receipt.session_id().to_string(),
+                patterns_applied: 1,
+                episodes_consulted: 0,
+                receipt: receipt.clone(),
+            };
+            assert_eq!(result.success, result.receipt.is_durable());
+            assert!(
+                !result.success,
+                "non-durable receipt must yield success=false"
+            );
+        }
+    }
+
+    #[test]
+    fn record_session_human_output_renders_memory_only_durability_line() {
+        let receipt = memory_only_receipt();
+        let result = RecordSessionResult {
+            success: receipt.is_durable(),
+            session_id: receipt.session_id().to_string(),
+            episode_id: receipt.episode_id().to_string(),
+            patterns_recommended: 2,
+            playbooks_recommended: 1,
+            receipt: receipt.clone(),
+        };
+        let mut buf = Vec::new();
+        result.write_human(&mut buf).unwrap();
+        let out = String::from_utf8(buf).unwrap();
+        assert!(out.contains(&format!(
+            "Recorded recommendation session: {}",
+            result.session_id
+        )));
+        assert!(
+            out.contains("⚠️ Durability: Memory-only (process-local, will be lost on restart)")
+        );
+    }
+
+    #[test]
+    fn record_feedback_human_output_renders_persistence_failed_durability_line() {
+        let receipt = persistence_failed_receipt();
+        let result = RecordFeedbackResult {
+            success: receipt.is_durable(),
+            session_id: receipt.session_id().to_string(),
+            patterns_applied: 1,
+            episodes_consulted: 0,
+            receipt: receipt.clone(),
+        };
+        let mut buf = Vec::new();
+        result.write_human(&mut buf).unwrap();
+        let out = String::from_utf8(buf).unwrap();
+        assert!(out.contains(&format!(
+            "Recorded feedback for session: {}",
+            result.session_id
+        )));
+        assert!(out.contains("❌ Durability: Persistence Failed (failed backends: turso, redb)"));
+    }
+
+    #[test]
+    fn record_session_result_serializes_receipt_field() {
+        let receipt = memory_only_receipt();
+        let result = RecordSessionResult {
+            success: receipt.is_durable(),
+            session_id: receipt.session_id().to_string(),
+            episode_id: receipt.episode_id().to_string(),
+            patterns_recommended: 0,
+            playbooks_recommended: 0,
+            receipt: receipt.clone(),
+        };
+        let json = serde_json::to_value(&result).unwrap();
+        assert_eq!(json["success"], serde_json::Value::Bool(false));
+        assert_eq!(json["receipt"]["state"], "memory_only");
+        assert_eq!(
+            json["receipt"]["session_id"],
+            serde_json::Value::String(receipt.session_id().to_string())
+        );
+        assert_eq!(
+            json["receipt"]["episode_id"],
+            serde_json::Value::String(receipt.episode_id().to_string())
+        );
+    }
+
+    #[test]
+    fn record_feedback_result_serializes_receipt_field() {
+        let receipt = persistence_failed_receipt();
+        let result = RecordFeedbackResult {
+            success: receipt.is_durable(),
+            session_id: receipt.session_id().to_string(),
+            patterns_applied: 1,
+            episodes_consulted: 0,
+            receipt: receipt.clone(),
+        };
+        let json = serde_json::to_value(&result).unwrap();
+        assert_eq!(json["success"], serde_json::Value::Bool(false));
+        assert_eq!(json["receipt"]["state"], "persistence_failed");
+        let failed_backends = json["receipt"]["failed_backends"]
+            .as_array()
+            .map(|v| v.iter().filter_map(|b| b.as_str()).collect::<Vec<_>>())
+            .unwrap_or_default();
+        assert_eq!(failed_backends, vec!["turso", "redb"]);
+    }
 }

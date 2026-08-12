@@ -8,6 +8,7 @@
 #![allow(clippy::doc_markdown)]
 #![allow(missing_docs)]
 
+use do_memory_core::PersistenceReceipt;
 use do_memory_mcp::mcp::tools::checkpoint::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
 };
@@ -22,8 +23,9 @@ use do_memory_mcp::mcp::tools::pattern_search::{
     PatternResult, ScoreBreakdownResult, SearchPatternsInput, SearchPatternsOutput,
 };
 use do_memory_mcp::mcp::tools::recommendation_feedback::{
-    RecommendationStatsOutput, RecordRecommendationFeedbackInput, RecordRecommendationSessionInput,
-    TaskOutcomeJson,
+    RecommendationStatsOutput, RecordRecommendationFeedbackInput,
+    RecordRecommendationFeedbackOutput, RecordRecommendationSessionInput,
+    RecordRecommendationSessionOutput, TaskOutcomeJson,
 };
 use do_memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
@@ -547,6 +549,125 @@ fn test_recommendation_stats_output() {
         message: "Stats retrieved".to_string(),
     };
     assert_json_snapshot!(output);
+}
+
+/// Output snapshots carry the truthful persistence receipt (ADR-080 §3).
+#[test]
+fn test_record_recommendation_session_output() {
+    let session_id: uuid::Uuid = "990e8400-e29b-41d4-a716-446655440001".parse().unwrap();
+    let episode_id: uuid::Uuid = "550e8400-e29b-41d4-a716-446655440000".parse().unwrap();
+    let output = RecordRecommendationSessionOutput {
+        success: true,
+        session_id: session_id.to_string(),
+        episode_id: episode_id.to_string(),
+        patterns_recommended: 2,
+        playbooks_recommended: 1,
+        message: "Recorded recommendation session with 2 patterns and 1 playbooks (receipt state: persisted)"
+            .to_string(),
+        receipt: PersistenceReceipt::Persisted {
+            session_id,
+            episode_id,
+        },
+    };
+    assert_json_snapshot!(output);
+}
+
+/// Output snapshots carry the truthful persistence receipt (ADR-080 §3).
+#[test]
+fn test_record_recommendation_feedback_output() {
+    let session_id: uuid::Uuid = "990e8400-e29b-41d4-a716-446655440001".parse().unwrap();
+    let episode_id: uuid::Uuid = "550e8400-e29b-41d4-a716-446655440000".parse().unwrap();
+    let output = RecordRecommendationFeedbackOutput {
+        success: false,
+        session_id: session_id.to_string(),
+        patterns_applied: 1,
+        episodes_consulted: 0,
+        message: "Recorded feedback: 1 patterns applied, 0 episodes consulted (receipt state: memory_only)"
+            .to_string(),
+        receipt: PersistenceReceipt::MemoryOnly {
+            session_id,
+            episode_id,
+        },
+    };
+    assert_json_snapshot!(output);
+}
+
+/// All four receipt discriminants serialize with the exact JSON shape and
+/// `success` mirrors `is_durable()` — a `PersistenceFailed` receipt must never
+/// surface as a success.
+#[test]
+fn test_receipt_states_json_contract() {
+    let session_id: uuid::Uuid = "990e8400-e29b-41d4-a716-446655440001".parse().unwrap();
+    let episode_id: uuid::Uuid = "550e8400-e29b-41d4-a716-446655440000".parse().unwrap();
+
+    let cases = [
+        (
+            PersistenceReceipt::Persisted {
+                session_id,
+                episode_id,
+            },
+            "persisted",
+        ),
+        (
+            PersistenceReceipt::PartiallyPersisted {
+                session_id,
+                episode_id,
+                failed_backends: vec!["redb".to_string()],
+            },
+            "partially_persisted",
+        ),
+        (
+            PersistenceReceipt::MemoryOnly {
+                session_id,
+                episode_id,
+            },
+            "memory_only",
+        ),
+        (
+            PersistenceReceipt::PersistenceFailed {
+                session_id,
+                episode_id,
+                failed_backends: vec!["turso".to_string(), "redb".to_string()],
+            },
+            "persistence_failed",
+        ),
+    ];
+
+    for (receipt, expected_state) in cases {
+        let output = RecordRecommendationSessionOutput {
+            success: receipt.is_durable(),
+            session_id: session_id.to_string(),
+            episode_id: episode_id.to_string(),
+            patterns_recommended: 0,
+            playbooks_recommended: 0,
+            message: format!("session (receipt state: {expected_state})"),
+            receipt: receipt.clone(),
+        };
+        let value = serde_json::to_value(&output).unwrap();
+        assert_eq!(value["receipt"]["state"], expected_state);
+        assert_eq!(value["receipt"]["session_id"], session_id.to_string());
+        assert_eq!(value["receipt"]["episode_id"], episode_id.to_string());
+        assert_eq!(value["success"], receipt.is_durable());
+        assert_eq!(output.success, receipt.is_durable());
+    }
+
+    // A persistence-failed session must never report success: true.
+    let failed = RecordRecommendationSessionOutput {
+        success: false,
+        session_id: session_id.to_string(),
+        episode_id: episode_id.to_string(),
+        patterns_recommended: 0,
+        playbooks_recommended: 0,
+        message: "session (receipt state: persistence_failed)".to_string(),
+        receipt: PersistenceReceipt::PersistenceFailed {
+            session_id,
+            episode_id,
+            failed_backends: vec!["turso".to_string(), "redb".to_string()],
+        },
+    };
+    let value = serde_json::to_value(&failed).unwrap();
+    assert_eq!(value["success"], false);
+    assert_eq!(value["receipt"]["state"], "persistence_failed");
 }
 
 // =============================================================================

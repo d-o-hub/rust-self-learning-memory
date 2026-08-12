@@ -97,6 +97,8 @@ pub struct RecordRecommendationFeedbackOutput {
     pub episodes_consulted: usize,
     /// Message describing the result
     pub message: String,
+    /// Truthful persistence receipt (ADR-080 §3)
+    pub receipt: do_memory_core::PersistenceReceipt,
 }
 
 /// Input for recording a recommendation session.
@@ -127,6 +129,8 @@ pub struct RecordRecommendationSessionOutput {
     pub playbooks_recommended: usize,
     /// Message describing the result
     pub message: String,
+    /// Truthful persistence receipt (ADR-080 §3)
+    pub receipt: do_memory_core::PersistenceReceipt,
 }
 
 /// Output for recommendation statistics.

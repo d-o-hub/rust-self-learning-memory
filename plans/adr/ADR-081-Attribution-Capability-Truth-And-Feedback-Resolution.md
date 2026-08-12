@@ -1,12 +1,26 @@
 # ADR-081: Attribution Capability Truth, Feedback Resolution, and Tool-Schema Single Source
 
-- **Status**: Proposed
+- **Status**: Proposed — capability slice (§2) landed 2026-08-10 and the residual acceptance evidence is covered by the closure PR from branch `fix/ci-attribution-truth-closure` (see "Status update" below); lifecycle stays `Proposed` until maintainer acceptance
 - **Date**: 2026-08-06
 - **Deciders**: Project maintainers
 - **Plan**: [`../GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`](../GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md)
 - **Supersedes nothing**; **completes** [ADR-080](ADR-080-Automatic-Recommendation-Attribution.md)
 - **Related**: ADR-044 (recommendation attribution), ADR-072 (authority/evidence), ADR-074 (retrieval provenance), ADR-075 (durability truth), ADR-076 (discoverability + empty-result semantics), ADR-079 (fail-closed CI control plane)
-- **Code evidence**: `memory-core/src/memory/attribution/tracker.rs`, `memory-core/src/memory/attribution/receipt.rs`, `memory-core/src/memory/persistence.rs`, `memory-core/src/memory/api.rs`, `memory-core/src/memory/pattern_api.rs`, `memory-core/src/memory/retrieval/playbooks.rs`, `memory-core/src/storage/backend.rs`, `memory-mcp/src/bin/server_impl/tools/feature_handlers.rs`, `memory-mcp/src/server/tool_definitions.rs`, `memory-mcp/src/server/tools/registry/builder.rs`, `memory-cli/src/commands/pattern/core/search.rs`
+- **Code evidence**: `memory-core/src/memory/attribution/tracker/mod.rs`, `memory-core/src/memory/attribution/tracker/integrity.rs`, `memory-core/src/memory/attribution/tracker/stats.rs`, `memory-core/src/memory/attribution/tracker/tests.rs` (split from the former single `tracker.rs`), `memory-core/src/memory/attribution/receipt.rs`, `memory-core/src/memory/attribution/types.rs`, `memory-core/src/memory/persistence.rs`, `memory-core/src/memory/api.rs`, `memory-core/src/memory/pattern_api.rs`, `memory-core/src/memory/retrieval/playbooks.rs`, `memory-core/src/memory/retrieval/playbooks_attributed.rs`, `memory-core/src/storage/backend.rs`, `memory-mcp/src/bin/server_impl/tools/feature_handlers.rs`, `memory-mcp/src/server/tool_definitions.rs`, `memory-mcp/src/server/recommendation_tool_definitions.rs`, `memory-mcp/src/server/tools/registry/builder.rs`, `memory-cli/src/commands/pattern/core/search.rs`, `memory-cli/src/commands/feedback/core.rs`
+
+## Status update (2026-08-11)
+
+- §2 capability advertisement and capability-gated receipts landed 2026-08-10
+  (`supports_recommendation_attribution` default `false`; Turso and redb
+  advertise `true`; resilient/cached wrappers delegate).
+- The closure PR from branch `fix/ci-attribution-truth-closure` now covers the
+  residual acceptance evidence: episode-existence validation on both attributed
+  entry points, checked manual session/feedback receipt semantics, fallible
+  playbook retrieval (no session on generation failure), split tracker modules,
+  Turso-only/redb-only cold-restart tests, capability tests for the concrete
+  backends, the postcard-safety guard, and the MCP/CLI truth surfaces.
+- Ranking adaptation (§8) remains deferred; nothing in the closure PR changes
+  recommendation ranking.
 
 ---
 

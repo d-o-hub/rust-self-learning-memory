@@ -1,5 +1,10 @@
 # GOAP: CIT-A4/A5 Implementation and Plan-Truth Refresh (2026-08-06)
 
+> **HISTORICAL — completed slice.** Superseded by the closure PR from branch
+> `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the
+> controller after creation). Retained for history per ADR-039; do not treat as
+> active backlog.
+
 - **Status**: Implemented (PR in review)
 - **Date**: 2026-08-06
 - **Baseline**: `main` at `92db07bf` · workspace `0.1.38` · tag `v0.1.37`

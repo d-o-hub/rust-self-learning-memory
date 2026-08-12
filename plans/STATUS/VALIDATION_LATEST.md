@@ -1,3 +1,39 @@
+# Validation Latest — 2026-08-11 (closure PR: same-run fast gate + attribution truth)
+
+**Goal**: Close the ADR-079 required-gate false-green path (same-run fast gate,
+fail-closed evaluator, waiter/anchor removal) and the ADR-080/081 attribution
+capture contract (episode validation, checked receipts, cold-restart, capability,
+postcard safety), then refresh canonical plan truth.
+
+**Workspace**: `0.1.40` · **Tag**: `v0.1.39` · **Main baseline**: `5a943c98a98d3807fbcf7d644024c55451c7d702`
+**Branch**: `fix/ci-attribution-truth-closure` · **PR**: created by the controller after this task (number/head SHA recorded there)
+
+## Evidence (working tree state)
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| `cargo check --workspace --lib --bins` | ✅ verified by the controller after the previous waves landed | ✅ |
+| Fast-gate regression | `scripts/ci-required-evaluate.sh "Fast Gate=skipped" …` exits nonzero with `::error::`; all-success exits zero (fixture `--required-aggregate`) | ✅ code landed; executed by controller |
+| Same-run topology | `commitlint` + `fast-gate` in `ci.yml`; `test`/`mcp-build`/`multi-platform` depend on them; `quality-gates` on `[fast-gate, commitlint, test, mcp-build, multi-platform]`; `CI / Required` evaluates every dependency via the script | ✅ code landed; `--ci-parity` executed by controller |
+| Waiter/anchor removal | `quick-check.yml`, `pr-check-anchor.yml` deleted; waiters removed from coverage/security/benchmarks/file-structure | ✅ code landed |
+| Core attribution tests | nonexistent-episode rejection (both entry points), checked manual session/feedback receipt matrix, empty-session on valid empty, thin-store playbook session, stable `turso`→`redb` ordering | ✅ code landed; run by controller |
+| Cold-tracker restart | Turso-only + redb-only: session persisted → drop memory → cold tracker → feedback accepted + durable retrieval + `Persisted` receipt | ✅ code landed; run by controller (local libsql/redb, no credentials) |
+| Capability tests | `TursoStorage`, `ResilientStorage`, `CachedTursoStorage`, compiled `RedbStorage` all advertise capability (closes #940 precedent) | ✅ code landed; run by controller |
+| Postcard safety | `RecommendationSession`/`RecommendationFeedback` postcard round-trip; `PersistenceReceipt` JSON round-trip + structural non-embedding + postcard cannot deserialize it (internally-tagged) | ✅ code landed; run by controller |
+| Live ruleset | ruleset `9591004` `required_status_checks` = `[Codacy Static Code Analysis, CI / Required]` (verified live by `--ci-parity`) | ✅ |
+| Changed-crate coverage (`QUALITY_GATE_COVERAGE_THRESHOLD=90`) | `cargo llvm-cov -p do-memory-core --summary-only` (2026-08-12) → **84.14% line** (25,569 lines / 4,056 missed), 84.46% regions, 82.37% functions | ✅ measured (real value). Below 90 → true % recorded, not padded; ADR-042 declared default is 70; Codecov `coverage.yml` is not a required check here — measurement row, not a merge-block |
+| Full controller sequence | `test-workflow-guards.sh --required-aggregate` → OK (exit 0); `validate-gate-contract.sh --ci-parity` → PASS, live ruleset 9591004 requires `CI / Required` (exit 0); `validate-plans.sh --active-set --version-state --adrs --identifiers --links` → OK (exit 0, pre-existing ADR-025/054 alias + dated-files warnings only); fmt clean; clippy `--workspace` 0 warnings; `cargo nextest run` per-crate + `--all` → 3840 passed / 182 skipped; doctests pass; `cargo doc` clean; `quality-gates.sh` → PASS (16 passed / 0 failed / 2 ignored) | ✅ executed 2026-08-12, output recorded below |
+
+## Open after this validation
+
+| Priority | Item | Next step |
+|----------|------|-----------|
+| P0 | ADR-079 stage 4 live fault-injection merge-block proof | **External maintainer evidence** — deliberately not performed in this PR |
+| P0 | ADR-080/081 lifecycle | Stay `Proposed` until maintainers accept the completed evidence |
+| P2 | Feedback-to-ranking adaptation | Separate ADR; deferred |
+
+---
+
 # Validation Latest — 2026-08-07 (PR review & CI fix wave)
 
 **Goal**: Fix all failing CI on open PRs #928/#927 (including pre-existing

@@ -3,6 +3,7 @@
 //! This module contains the `create_default_tools()` function that defines
 //! the core MCP tools for the memory system (querying, patterns, monitoring, embeddings).
 
+use crate::server::recommendation_tool_definitions;
 use crate::types::Tool;
 use serde_json::json;
 
@@ -167,38 +168,10 @@ pub fn create_default_tools() -> Vec<Tool> {
         }),
     ));
 
-    // Pattern recommendation tool
-    tools.push(Tool::new(
-        "recommend_patterns".to_string(),
-        "Get pattern recommendations for a specific task with high-quality filtering".to_string(),
-        json!({
-            "type": "object",
-            "properties": {
-                "task_description": {
-                    "type": "string",
-                    "description": "Description of the task you're working on"
-                },
-                "domain": {
-                    "type": "string",
-                    "description": "Domain of the task (e.g., 'web-api', 'cli')"
-                },                    "tags": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "maxItems": 100,
-                    "description": "Optional context tags (max 100)",
-                    "default": []
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of recommendations (default: 3)",
-                    "default": 3,
-                    "minimum": 1,
-                    "maximum": 50
-                }
-            },
-            "required": ["task_description", "domain"]
-        }),
-    ));
+    // Pattern recommendation tools (shared constructors so both registries
+    // expose textually identical schemas, ADR-080 attribution surface)
+    tools.push(recommendation_tool_definitions::recommend_patterns_tool());
+    tools.push(recommendation_tool_definitions::recommend_playbook_tool());
 
     // Recommendation feedback tools (ADR-044 Feature 2)
     tools.push(Tool::new(

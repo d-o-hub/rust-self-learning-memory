@@ -74,4 +74,46 @@ mod tests {
         assert!(registry.tool_exists("recommend_patterns"));
         assert!(registry.total_tool_count() > registry.get_core_tools().len());
     }
+
+    /// Every tool advertised by both registries must be textually identical
+    /// (name, description, and input_schema). ADR-080 adds `episode_id` to the
+    /// recommendation tools, so they are built from shared constructors to
+    /// guarantee the overlap cannot drift.
+    #[test]
+    fn overlapping_tools_are_identical_across_registries() {
+        let default_tools = crate::server::tool_definitions::create_default_tools();
+        let extended_tools = super::builder::create_additional_extended_tools();
+
+        for default in &default_tools {
+            if let Some(extended) = extended_tools.iter().find(|t| t.name == default.name) {
+                assert_eq!(
+                    extended.name, default.name,
+                    "overlapping tool name mismatch"
+                );
+                assert_eq!(
+                    extended.description, default.description,
+                    "overlapping tool '{}' description diverged between registries",
+                    default.name
+                );
+                assert_eq!(
+                    extended.input_schema, default.input_schema,
+                    "overlapping tool '{}' input_schema diverged between registries",
+                    default.name
+                );
+            }
+        }
+
+        // The recommendation tools must be present in BOTH registries so the
+        // attribution surface is exposed uniformly (ADR-080 §1, RAT-A5).
+        for name in ["recommend_patterns", "recommend_playbook"] {
+            assert!(
+                default_tools.iter().any(|t| t.name == name),
+                "'{name}' missing from create_default_tools()"
+            );
+            assert!(
+                extended_tools.iter().any(|t| t.name == name),
+                "'{name}' missing from create_additional_extended_tools()"
+            );
+        }
+    }
 }

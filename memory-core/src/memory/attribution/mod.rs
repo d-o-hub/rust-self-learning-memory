@@ -14,7 +14,9 @@
 //! - Pattern adoption rate tracking (recommended vs. applied)
 //! - Success-after-adoption rate tracking
 //! - Recommendation precision metrics
-//! - Improved pattern ranking based on actual effectiveness
+//! - Attribution statistics capture (recording which recommendations were used
+//!   and their outcomes; this does NOT yet update recommendation ranking —
+//!   feedback-to-ranking adaptation remains deferred to a follow-up ADR)
 //!
 //! # Example
 //!

@@ -144,24 +144,36 @@ pub async fn handle_recommend_playbook(
         tags,
     };
 
-    let episode_id = args
-        .get("episode_id")
-        .and_then(|v| v.as_str())
-        .and_then(|s| uuid::Uuid::parse_str(s).ok());
+    // ADR-080 §1: a requested attribution must never silently degrade into the
+    // legacy unattributed path. Absent `episode_id` selects the legacy path;
+    // present-but-invalid values are hard tool errors.
+    let episode_id = match args.get("episode_id") {
+        None => None,
+        Some(value) => {
+            let raw = value.as_str().ok_or_else(|| {
+                anyhow::anyhow!("Invalid episode_id: expected a string UUID, got non-string value")
+            })?;
+            Some(
+                uuid::Uuid::parse_str(raw)
+                    .map_err(|e| anyhow::anyhow!("Invalid episode UUID '{raw}': {e}"))?,
+            )
+        }
+    };
 
     // Retrieve playbooks from memory
     let (result, playbook_count) = if let Some(ep_id) = episode_id {
+        let request = do_memory_core::AttributedPlaybookRequest {
+            episode_id: ep_id,
+            task_description: task_description.clone(),
+            domain: domain.clone(),
+            task_type,
+            context: context.clone(),
+            max_playbooks: 1,
+            max_steps_per_playbook: max_steps,
+        };
         let attr_res = server
             .memory()
-            .retrieve_playbooks_attributed(
-                ep_id,
-                &task_description,
-                &domain,
-                task_type,
-                context,
-                1, // max_playbooks
-                max_steps,
-            )
+            .retrieve_playbooks_attributed(request)
             .await?;
         let count = attr_res.playbooks.len();
         (serde_json::to_value(&attr_res)?, count)

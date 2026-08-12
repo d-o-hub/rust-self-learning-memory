@@ -22,57 +22,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Wait for quick-check to pass before running expensive coverage analysis
-  # This implements the "fast checks first" pattern for 2026 best practices
-  check-quick-check:
-    name: Check Quick Check Status
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    # Run on every PR (including Dependabot and forks): Quick Check always runs
-    # on PRs and this waiter is cheap. Fail closed per ADR-079 CIT-A2 - a
-    # cancelled, skipped, or missing fast check must never pass the gate.
-    if: github.event_name == 'pull_request'
-    # Must exceed Quick Check (25m) + queue headroom; 15m historically cancelled mid-wait.
-    timeout-minutes: 40
-    steps:
-      - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@2271c86c146b96545b4e871b855e10ffa6f50773
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'Quick PR Check (Format + Clippy)'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 15
-          running-workflow-name: Quick Check
-          fail-on-no-checks: true
-          allowed-conclusions: success
-
-      - name: Wait for Commit Message Lint
-        uses: lewagon/wait-on-check-action@2271c86c146b96545b4e871b855e10ffa6f50773
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'Commit Message Lint'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 15
-          running-workflow-name: Quick Check
-          fail-on-no-checks: true
-          allowed-conclusions: success
-
   # Comprehensive coverage analysis - runs independently
   # This job does NOT block the main CI workflow
   coverage:
     name: Code Coverage Analysis
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
-    if: >-
-      ${{
-        always() &&
-        (
-          github.event_name != 'pull_request' ||
-          needs.check-quick-check.result == 'success'
-        )
-      }}
     permissions:
       id-token: write      # Required for Codecov OIDC authentication
       contents: read

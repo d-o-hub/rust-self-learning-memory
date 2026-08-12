@@ -1,5 +1,10 @@
 # GOAP: PR Review & CI Fix Wave (2026-08-07)
 
+> **HISTORICAL — completed slice.** Superseded by the closure PR from branch
+> `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the
+> controller after creation). Retained for history per ADR-039; do not treat as
+> active backlog.
+
 - **Status**: ✅ Fixes landed on both open PRs; CI re-running to terminal state
 - **Date**: 2026-08-07
 - **Orchestration**: GOAP skill — analysis swarm → targeted fixes → validation swarm → plan refresh

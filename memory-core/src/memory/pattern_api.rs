@@ -156,6 +156,11 @@ impl SelfLearningMemory {
             ));
         }
 
+        // ADR-080 §1: a nonexistent episode must never create a session, so the
+        // episode is validated before any recommendation generation.
+        self.validate_attributed_episode(episode_id, "recommend_patterns_attributed")
+            .await?;
+
         let recommendations = self
             .recommend_patterns_for_task(task_description, context, limit)
             .await?;
@@ -173,10 +178,9 @@ impl SelfLearningMemory {
             recommended_playbook_ids: vec![],
         };
 
-        self.recommendation_tracker
-            .record_session(session.clone())
+        let receipt = self
+            .record_recommendation_session_checked(session.clone())
             .await;
-        let receipt = self.persist_session_checked(&session).await;
 
         Ok(AttributedPatternResult {
             recommendations,

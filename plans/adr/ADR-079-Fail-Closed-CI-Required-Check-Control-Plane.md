@@ -1,6 +1,6 @@
 # ADR-079: Fail-Closed CI Required-Check Control Plane
 
-- **Status**: Accepted — stage 3 implemented 2026-08-10 (ruleset `9591004` requires `CI / Required`; CIT-A2 actor parity + fail-closed fixtures live); stages 4–5 (fault-inject merge-block proof, echo-anchor/waiter cleanup) pending
+- **Status**: Accepted — stage 3 implemented 2026-08-10 (ruleset `9591004` requires `CI / Required`; CIT-A2 actor parity + fail-closed fixtures live); stage 5 cleanup (echo-anchor/waiter removal) landed in the closure PR from branch `fix/ci-attribution-truth-closure` (same-run fast gate + `ci-required-evaluate.sh` rejects `skipped`); stage 4 (deliberate live fault-injection merge-block proof) remains **external maintainer evidence — not performed here**
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
 - **Related**: ADR-029, ADR-030, ADR-038, ADR-039, ADR-042, ADR-072
@@ -159,6 +159,8 @@ baseline and a separate ratchet change.
 ## Acceptance criteria
 
 - The live ruleset requires `CI / Required` after staged verification. ✅ Done 2026-08-10 — ruleset `9591004` `required_status_checks` = `[Codacy Static Code Analysis, CI / Required]` (strict policy); enforced by `validate-gate-contract.sh --ci-parity` live-ruleset fixture.
+- Same-run skip hardening (stage 5). ✅ Landed in the closure PR (`fix/ci-attribution-truth-closure`): `commitlint` + `fast-gate` run inside `ci.yml`; `scripts/ci-required-evaluate.sh` accepts only `success` and rejects `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown; `quick-check.yml` and `pr-check-anchor.yml` are deleted and the cross-workflow waiters removed (`test`/`mcp-build`/`multi-platform` depend on the same-run gates). `validate-gate-contract.sh --ci-parity` and `test-workflow-guards.sh --required-aggregate` enforce this topology.
+- Stage 4 (deliberate live fault-injection merge-block proof) remains **external maintainer evidence**. It was NOT performed in this PR; the checked-in fail-closed evaluator and its fixtures are the merge-block regression proof here.
 - Failed, cancelled, timed-out, or missing applicable jobs fail the aggregate.
 - Commit lint failure fails the aggregate.
 - Explicitly inapplicable path/secret jobs do not block and cannot masquerade as

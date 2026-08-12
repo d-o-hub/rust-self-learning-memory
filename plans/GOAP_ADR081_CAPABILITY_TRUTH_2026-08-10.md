@@ -1,5 +1,10 @@
 # GOAP: ADR-081 §2 Attribution Capability Truth (2026-08-10)
 
+> **HISTORICAL — completed slice.** Superseded by the closure PR from branch
+> `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the
+> controller after creation). Retained for history per ADR-039; do not treat as
+> active backlog.
+
 - **Date**: 2026-08-10
 - **Branch**: `feat/adr081-capability-truth`
 - **Goal**: Implement ADR-081 §2 / acceptance criterion 3 — attribution capability

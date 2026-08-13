@@ -1,3 +1,39 @@
+# Validation Latest — 2026-08-12 (rank/adaptation PR: ADR-082 + ADR-025/054 aliases)
+
+**Goal**: Close the self-learning loop for recommendation ranking (ADR-082,
+Proposed) — derived per-pattern Wilson weight from attributed feedback,
+capability-gated `list_recommendation_*` read surface (Turso+redb), and re-rank
+on the recommend path — plus canonicalize the ADR-025/054 alias filenames
+(G-P1-8) out of the `validate-plans.sh` identifier scan.
+
+**Workspace**: `0.1.40` · **Branch**: `feat/ranking-adaptation`
+
+## Evidence (working tree state)
+
+| Check | Observation | Result |
+|-------|-------------|--------|
+| `./scripts/code-quality.sh fmt` | import-order drift in the two backend `capability_attribution_test.rs` fixtures corrected via `cargo fmt --all`; re-check clean | ✅ exit 0 |
+| `./scripts/code-quality.sh clippy --workspace` | 0 warnings after fixing `excessive_nesting` (`memory/ranking.rs` flattened via a `merge_backend_ranking_history` helper), 4× `doc_markdown` (e2e backticks), `cloned_ref_to_slice_refs` (`std::slice::from_ref`) | ✅ exit 0, no `#[allow]` |
+| `./scripts/build-rust.sh check` | workspace check compiles | ✅ exit 0 |
+| New-behavior e2e | `cargo nextest run -p do-memory-core --test ranking_adaptation_e2e` → 5/5 (default_order_unchanged_without_feedback, success_feedback_lifts_rank, replacement_feedback_swings_rank, cold_restart_rebuilds_from_storage, non_capable_backend_ignored_after_cold_restart) | ✅ 5 passed / 0 skipped |
+| Regression guards | `--test attribution_receipt_matrix` 30 passed; `--test attribution_feedback_restart` 5 passed | ✅ green |
+| `cargo nextest run --all` | full workspace suite | ✅ **3862 passed / 182 skipped** |
+| Ranking hardening (post-review) | merge order made tracker-authoritative (stale durable rows can no longer shadow a fresh in-process replacement); learned keys precomputed once per candidate (O(N) allocations, allocation-free comparator); dead `recommended`/`adoption_rate` surface removed; `PartialSuccess`-as-success unit test; e2e grows to 7/7 (`stale_durable_feedback_does_not_shadow_tracker_replacement` proven to fail under the old order, `in_process_feedback_lifts_live_but_durable_rows_ignored_after_restart`); `RankingIndex`/`PatternRankingState` re-exported from `lib.rs` | ✅ |
+| `cargo test --doc` | core 164 (+4 ignored), cli 11, mcp 7, redb 10, turso 37 | ✅ pass |
+| `cargo doc --no-deps --document-private-items` | rustdoc gate (bare-URL/re-export) | ✅ clean, exit 0 |
+| `./scripts/quality-gates.sh` | `quality_gates.rs` 16 passed / 0 failed / 2 ignored; source-file-size PASS (the two new `ranking.rs` files are 80 and 323 LOC; `storage/backend.rs` 480, turso `resilient.rs` 498 after trimming the pre-existing-at-cap files pushed over by ADR-082 surface) | ✅ PASS |
+| `./scripts/validate-plans.sh --active-set --version-state --adrs --identifiers --links` | exit 0; **no duplicate-ADR warning** (aliases now under `plans/adr/_aliases/`, outside `-maxdepth 1`); `adrs count=51`, `identifiers count=51` (52 − 2 aliases + 1 new ADR-082) | ✅ |
+
+## Open after this validation
+
+| Priority | Item | Next step |
+|----------|------|-----------|
+| P0 | ADR-079 stage 4 live fault-injection merge-block proof | External maintainer evidence (unchanged) |
+| P0 | ADR-080/081 lifecycle | Stay `Proposed` until maintainers accept evidence |
+| P0 | ADR-082 lifecycle | Stay `Proposed` until maintainers accept this PR |
+
+---
+
 # Validation Latest — 2026-08-11 (closure PR: same-run fast gate + attribution truth)
 
 **Goal**: Close the ADR-079 required-gate false-green path (same-run fast gate,

@@ -65,6 +65,7 @@ mod persistence;
 pub mod playbook;
 mod queries;
 pub mod query_api;
+mod ranking;
 pub mod relationship_query;
 mod relationships;
 mod retrieval;

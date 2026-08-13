@@ -8,10 +8,12 @@ Two numbers were reused early in the project. Prefer the **canonical** filename 
 
 | Number | Canonical (prefer) | Alias (historical) |
 |--------|--------------------|--------------------|
-| **025** | `ADR-025-Project-Health-Remediation.md` | `ADR-025-Non-Deterministic-BOCPD-Tests.md` (treat as BOCPD side-note under health remediation era) |
-| **054** | `ADR-054-DAG-State-Management-WG134.md` | `ADR-054-CloudEvents-EventEmitter.md` (CloudEvents decision; link explicitly by full filename) |
+| **025** | `ADR-025-Project-Health-Remediation.md` | `_aliases/ADR-025-Non-Deterministic-BOCPD-Tests.md` (treat as BOCPD side-note under health remediation era) |
+| **054** | `ADR-054-DAG-State-Management-WG134.md` | `_aliases/ADR-054-CloudEvents-EventEmitter.md` (CloudEvents decision; link explicitly by full filename) |
 
 When citing duplicates in new docs, use the **full filename**, not `ADR-025` alone.
+Alias (duplicate-number) files live in `_aliases/` and are excluded from the ADR
+identifier scan (`validate-plans.sh --identifiers` scans `plans/adr/*` only).
 
 ## Validation
 

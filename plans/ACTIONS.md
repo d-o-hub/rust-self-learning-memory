@@ -1,8 +1,15 @@
 # GOAP Actions Backlog
 
 - **Last Updated**: 2026-08-12
-- **Active plan**: merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
+- **Active plan**: this PR (`feat/ranking-adaptation`, ADR-082 + ADR-025/054 canonicalization) and merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Completed actions (2026-08-12 — ranking adaptation + registry canonicalization)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-362 | Implement feedback-to-ranking adaptation (ADR-082) — derived Wilson weight, capability-gated `list_recommendation_*` methods on Turso/redb, recommend re-rank, e2e tests | ADR-082 §5 exit | ✅ evidence-backed (e2e + backend contract + unit tests in this PR) |
+| ACT-363 | Canonicalize ADR-025/054 aliases (move to `plans/adr/_aliases/`) to make the ADR registry unique | G-P1-8 | ✅ `validate-plans.sh --identifiers` now sees 51 unique ADR numbers |
 
 ## Completed actions (2026-08-11 — #947, merged 2026-08-12)
 
@@ -89,7 +96,9 @@ tests #930); the ADR-081 §2 capability-truth gap closed 2026-08-10 via
 `supports_recommendation_attribution` + capability-gated `persist_session_checked`.
 PR #947 (merged 2026-08-12) landed the same-run
 fast gate, the fail-closed evaluator, the waiter/anchor removal (ADR-079 stage 5),
-and the ADR-080/081 acceptance evidence (ACT-348…354, ACT-334/335/340). Remaining
+and the ADR-080/081 acceptance evidence (ACT-348…354, ACT-334/335/340). The
+rank/adaptation PR landed ACT-362 (ADR-082 feedback-to-ranking adaptation) and
+ACT-363 (ADR-025/054 alias canonicalization). Remaining
 open items are maintainer-external: ADR-079 stage 4 live fault-injection
 merge-block proof, and ADR-080/081 lifecycle acceptance (both stay `Proposed`).
 

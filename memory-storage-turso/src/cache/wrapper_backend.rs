@@ -174,6 +174,24 @@ impl StorageBackend for CachedTursoStorage {
             .map_err(|e| Error::Storage(format!("Get recommendation stats error: {}", e)))
     }
 
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        self.storage
+            .list_recommendation_sessions()
+            .await
+            .map_err(|e| Error::Storage(format!("List recommendation sessions error: {}", e)))
+    }
+
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        self.storage
+            .list_recommendation_feedback()
+            .await
+            .map_err(|e| Error::Storage(format!("List recommendation feedback error: {}", e)))
+    }
+
+    fn supports_ranking_adaptation(&self) -> bool {
+        self.storage.supports_ranking_adaptation()
+    }
+
     fn supports_recommendation_attribution(&self) -> bool {
         self.storage.supports_recommendation_attribution()
     }

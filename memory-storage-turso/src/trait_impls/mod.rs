@@ -195,6 +195,18 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_recommendation_stats(self).await
     }
 
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        super::TursoStorage::list_recommendation_sessions(self).await
+    }
+
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        super::TursoStorage::list_recommendation_feedback(self).await
+    }
+
+    fn supports_ranking_adaptation(&self) -> bool {
+        true
+    }
+
     fn supports_recommendation_attribution(&self) -> bool {
         true
     }

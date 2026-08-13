@@ -18,6 +18,13 @@
 | G-P1-16 attribution capability asserted, not advertised | ✅ ADR-081 §2 (2026-08-10) + closure PR capability tests for `TursoStorage`, `ResilientStorage`, `CachedTursoStorage`, and compiled `RedbStorage` |
 | G-P2-8 ranking adaptation (capture only) | ✅ explicit non-goal — documented as deferred in code/docs/plans; nothing in the closure PR changes ranking |
 
+## Closed this wave (2026-08-12 — ranking adaptation PR)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P2-8 feedback does not idempotently update later recommendation ranking | ✅ code-side — ADR-082: derived per-pattern Wilson weight from attributed feedback; capability-gated `list_recommendation_*` read surface (Turso + redb); recommendation path re-ranks (overfetch → boost → truncate); e2e tests (`ranking_adaptation_e2e.rs`) + backend contract tests |
+| G-P1-8 historical ADR number reuse on disk | ✅ registry unique — ADR-025/054 alias files moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now sees 51 unique ADR numbers |
+
 ## Method
 
 - Read active planning authority and ADR-039/044/077 constraints.
@@ -74,7 +81,7 @@
 
 | ID | Gap | Evidence | Track |
 |----|-----|----------|-------|
-| G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | residual docs |
+| G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | ✅ closed 2026-08-12 — aliases moved to `plans/adr/_aliases/`; registry unique |
 | G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki) | security hygiene |
 | G-P1-10 | `eval set-threshold` is advertised but always fails; suggested `eval show` command does not exist | `memory-cli/src/commands/eval.rs` | ✅ PTA-A3 closed — command removed |
 | G-P1-11 | Pattern recommendations require manual session creation; playbooks record `Uuid::nil()` in memory only | core/MCP/CLI attribution paths | ✅ closed 2026-08-11 — attributed pattern + playbook ops with validated episodes and checked receipts |
@@ -89,7 +96,7 @@
 | ID | Gap | Notes | Track |
 |----|-----|-------|--------|
 | G-P2-1…7 | R-F1…R-F7, R-F10 epics | R-F4 (ACT-326) and R-F10 (ACT-325) implemented; R-F1…R-F3/R-F5…R-F7 deferred | R-F* |
-| G-P2-8 | Feedback does not idempotently update later recommendation ranking | ADR-080 captures data only | Follow-up ADR |
+| G-P2-8 | Feedback does not idempotently update later recommendation ranking | ADR-080 captures data only | ✅ closed code-side 2026-08-12 — ADR-082 (Proposed): derived Wilson weight + recommend re-rank + e2e |
 | G-P2-9 | Azure/Custom/Cohere runtime embedding adapters absent | Honest rejection required by ADR-077 | Provider-specific ADR if prioritized |
 
 ## Explicit non-gaps
@@ -104,7 +111,7 @@
 | R-F8 relationship show polish | ✅ #893 |
 | R-F9 HNSW persistence | ✅ #893 |
 | Unsupported embedding adapters | Honest ADR-077 rejection; additive P2 work |
-| Automatic attribution changes ranking | **False** until a separate idempotent update design is implemented |
+| Automatic attribution changes ranking | ✅ now true code-side (ADR-082, Proposed) — attributed feedback derives the learned weight and re-ranks `recommend_patterns_for_task`; lifecycle = maintainer |
 | `Required Check Anchor` protects merges | **False** — not in the live ruleset and only echoes |
 | Green first-party workflow means merge-required | **False** — live ruleset does not require those contexts |
 
@@ -113,6 +120,6 @@
 - ADR-079 CIT-A1…A5 exits are implemented, including live aggregate protection. ✅ code-side — same-run aggregate required live (ruleset `9591004`); the deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence.
 - PTA-A1…A3 have code and feature-matrix tests. ✅ (2026-08-01)
 - ADR-080 acceptance criteria and RAT-A1…A7 are implemented with evidence. ✅ code-side — closure PR evidence landed; ADR-080/081 lifecycle stays `Proposed` until maintainer acceptance.
-- Ranking adaptation remains explicitly open until separately decided and tested.
-- G-P1-8 and G-P1-9 are monitor-only (no code action required).
+- Ranking adaptation is closed code-side (ADR-082, Proposed): attributed feedback derives a durable per-pattern Wilson weight and re-ranks recommendations; lifecycle stays `Proposed` until maintainer acceptance.
+- G-P1-8 closed 2026-08-12 (registry unique); G-P1-9 remains monitor-only (no code action required).
 - P2 GO spike gate cleared 2026-07-28; next gate is ADR draft + implementation PR per epic.

@@ -170,6 +170,18 @@ impl RedbStorage {
             .await
     }
 
+    /// List every persisted recommendation session (ADR-082).
+    pub async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        self.collect_postcard_entries::<RecommendationSession>(RECOMMENDATION_SESSIONS_TABLE)
+            .await
+    }
+
+    /// List every persisted recommendation feedback (ADR-082).
+    pub async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        self.collect_postcard_entries::<RecommendationFeedback>(RECOMMENDATION_FEEDBACK_TABLE)
+            .await
+    }
+
     pub async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         let sessions = self
             .collect_postcard_entries::<RecommendationSession>(RECOMMENDATION_SESSIONS_TABLE)

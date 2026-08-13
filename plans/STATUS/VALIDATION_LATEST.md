@@ -23,6 +23,7 @@ on the recommend path — plus canonicalize the ADR-025/054 alias filenames
 | `cargo doc --no-deps --document-private-items` | rustdoc gate (bare-URL/re-export) | ✅ clean, exit 0 |
 | `./scripts/quality-gates.sh` | `quality_gates.rs` 16 passed / 0 failed / 2 ignored; source-file-size PASS (the two new `ranking.rs` files are 80 and 323 LOC; `storage/backend.rs` 480, turso `resilient.rs` 498 after trimming the pre-existing-at-cap files pushed over by ADR-082 surface) | ✅ PASS |
 | `./scripts/validate-plans.sh --active-set --version-state --adrs --identifiers --links` | exit 0; **no duplicate-ADR warning** (aliases now under `plans/adr/_aliases/`, outside `-maxdepth 1`); `adrs count=51`, `identifiers count=51` (52 − 2 aliases + 1 new ADR-082) | ✅ |
+| 2026-08-13 merge | PR #952 squash-merged (`9c8bfa79`) onto main by the controller; trackers re-pointed; ADR-082 stays `Proposed` pending maintainer acceptance | ✅ |
 
 ## Open after this validation
 

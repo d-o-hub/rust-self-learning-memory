@@ -23,7 +23,7 @@
 | Gap | Resolution |
 |-----|------------|
 | G-P2-8 feedback does not idempotently update later recommendation ranking | ✅ code-side — ADR-082: derived per-pattern Wilson weight from attributed feedback; capability-gated `list_recommendation_*` read surface (Turso + redb); recommendation path re-ranks (overfetch → boost → truncate); e2e tests (`ranking_adaptation_e2e.rs`) + backend contract tests |
-| G-P1-8 historical ADR number reuse on disk | ✅ registry unique — ADR-025/054 alias files moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now sees 50 unique ADR numbers |
+| G-P1-8 historical ADR number reuse on disk | ✅ registry unique — ADR-025/054 alias files moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now sees 51 unique ADR numbers |
 
 ## Method
 

@@ -4,8 +4,8 @@
 **Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.40 (post-v0.1.39 bump)
 **Edition**: Rust 2024  
-**Active plan**: `feat/ranking-adaptation` — feedback-to-ranking adaptation (ADR-082, Proposed) + ADR-025/054 alias canonicalization (G-P1-8)
-**Branch**: `feat/ranking-adaptation`
+**Active plan**: merged #952 (2026-08-13) — ADR-082 + ADR-025/054 canonicalization landed; no in-flight code plan; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `9c8bfa79` (PR #952 merged 2026-08-13)
 
 ## Open tracker (live)
 
@@ -18,6 +18,7 @@
 
 | Wave | Result |
 |------|--------|
+| 2026-08-13 merge (#952) | ✅ squash-merged `9c8bfa79` by the controller; trackers re-pointed; ADR-082 stays `Proposed` pending maintainer acceptance |
 | Feedback-to-ranking (ADR-082, Proposed) | ✅ derived per-pattern Wilson weight; capability-gated `list_recommendation_*` (Turso+redb); recommend re-rank (overfetch→boost→truncate); tracker-authoritative merge (stale durable rows don't shadow fresh feedback); e2e `ranking_adaptation_e2e.rs` 7/7 |
 | Backend contracts | ✅ redb/turso `capability_attribution_test.rs` extended: `supports_ranking_adaptation` true + list round-trip |
 | ADR 025/054 canonicalization (G-P1-8) | ✅ aliases moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now 51 unique, no duplicate warning |

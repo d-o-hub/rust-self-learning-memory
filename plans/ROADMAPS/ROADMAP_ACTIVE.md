@@ -43,7 +43,7 @@
 | P1 | CIT-A4/A5 | Truthful release/publish triggers and durable fuzz/mutation evidence | ✅ 2026-08-06 |
 | P1 | PTA-A3 threshold CLI truth | Hide advertised `eval set-threshold` non-operation | ✅ #916 |
 | P1 | ADR-080/081 / RAT-A1…A7 | Episode-bound automatic attribution with truthful persistence receipts | ✅ code-side closed in #947 (2026-08-12) (episode validation, checked receipts, cold-restart, capability, postcard safety); ADR lifecycle stays Proposed pending maintainer acceptance |
-| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; requires separate ADR | Deferred — nothing in #947 changes ranking |
+| P2 | Ranking adaptation | Idempotent feedback-to-ranking update; separate ADR | ✅ code-side in this PR — ADR-082: derived Wilson weight, capability-gated `list_recommendation_*`, recommend re-rank, e2e; lifecycle Proposed |
 
 ---
 

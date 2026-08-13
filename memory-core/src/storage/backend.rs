@@ -31,19 +31,9 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn store_episode(&self, episode: &Episode) -> Result<()>;
 
-    /// Retrieve an episode by ID
+    /// Retrieve an episode by ID.
     ///
-    /// # Arguments
-    ///
-    /// * `id` - Episode UUID
-    ///
-    /// # Returns
-    ///
-    /// `Some(Episode)` if found, `None` if not found
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Returns `Some(Episode)` if found, `None` if not found.
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
 
     /// Delete an episode by ID
@@ -68,19 +58,9 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()>;
 
-    /// Retrieve a pattern by ID
+    /// Retrieve a pattern by ID.
     ///
-    /// # Arguments
-    ///
-    /// * `id` - Pattern ID
-    ///
-    /// # Returns
-    ///
-    /// `Some(Pattern)` if found, `None` if not found
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Returns `Some(Pattern)` if found, `None` if not found.
     async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>>;
 
     /// Retrieve all stored patterns.
@@ -105,19 +85,9 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()>;
 
-    /// Retrieve a heuristic by ID
+    /// Retrieve a heuristic by ID.
     ///
-    /// # Arguments
-    ///
-    /// * `id` - Heuristic UUID
-    ///
-    /// # Returns
-    ///
-    /// `Some(Heuristic)` if found, `None` if not found
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Returns `Some(Heuristic)` if found, `None` if not found.
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>>;
 
     /// Query episodes modified since a given timestamp
@@ -369,11 +339,7 @@ pub trait StorageBackend: Send + Sync {
     }
 
     /// Whether this backend actually persists recommendation attribution (ADR-081 §2).
-    ///
-    /// Defaults to `false` so the no-op default implementations of the
-    /// recommendation methods below are never counted as a durable write.
-    /// Backends that override the recommendation methods to truly persist must
-    /// override this to `true`.
+    /// Default `false`; override to `true` when the recommendation methods truly persist.
     fn supports_recommendation_attribution(&self) -> bool {
         false
     }
@@ -422,6 +388,25 @@ pub trait StorageBackend: Send + Sync {
     /// Compute global recommendation statistics.
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         Ok(RecommendationStats::default())
+    }
+
+    /// Whether this backend can serve durable recommendation history for the
+    /// feedback-to-ranking adaptation (ADR-082). Default `false`; override with
+    /// the `list_recommendation_*` methods that truly persist and return history.
+    fn supports_ranking_adaptation(&self) -> bool {
+        false
+    }
+
+    /// List persisted `RecommendationSession` (ADR-082); empty by default so
+    /// non-capable backends contribute nothing.
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        Ok(Vec::new())
+    }
+
+    /// List persisted `RecommendationFeedback` (ADR-082); empty by default so
+    /// non-capable backends contribute nothing.
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        Ok(Vec::new())
     }
 
     // ========== Episode GC/TTL (WG-075) ==========

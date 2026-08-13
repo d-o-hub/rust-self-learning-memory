@@ -128,6 +128,10 @@ impl SelfLearningMemory {
         context: TaskContext,
         limit: usize,
     ) -> Result<Vec<pattern_search::PatternSearchResult>> {
+        // ADR-082: recommendations are re-ranked by base relevance plus a learned
+        // Wilson weight derived from attributed feedback.
+        self.ensure_ranking_index_loaded().await;
+        let index = self.ranking_index.read().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::recommend_patterns_for_task(
             task_description,
@@ -135,6 +139,7 @@ impl SelfLearningMemory {
             patterns,
             self.semantic_service.as_ref(),
             limit,
+            Some(&index),
         )
         .await
     }

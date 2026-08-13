@@ -6,6 +6,7 @@
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
+use crate::memory::attribution::RankingIndex;
 use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
@@ -165,6 +166,8 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         playbook_generator: super::playbook::PlaybookGenerator::new(),
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
+        ranking_index: Arc::new(tokio::sync::RwLock::new(RankingIndex::default())),
+        ranking_loaded: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         event_sender,
         event_emitter,
         pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
@@ -327,6 +330,8 @@ pub fn with_storage(
         playbook_generator: super::playbook::PlaybookGenerator::new(),
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
+        ranking_index: Arc::new(tokio::sync::RwLock::new(RankingIndex::default())),
+        ranking_loaded: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         event_sender,
         event_emitter,
         pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),

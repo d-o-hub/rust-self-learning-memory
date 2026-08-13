@@ -4,23 +4,6 @@
 //!
 //! - Protects against cascading failures with circuit breaker pattern
 //! - Tracks failure statistics and recovery
-//!
-//! ## Example
-//!
-//! ```no_run
-//! use do_memory_storage_turso::{TursoStorage, ResilientStorage};
-//! use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
-//!
-//! # async fn example() -> anyhow::Result<()> {
-//! let turso = TursoStorage::new("libsql://localhost:8080", "token").await?;
-//!
-//! // Wrap with circuit breaker
-//! let resilient = ResilientStorage::new(turso, CircuitBreakerConfig::default());
-//!
-//! // All operations are now protected by circuit breaker
-//! # Ok(())
-//! # }
-//! ```
 
 use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
@@ -308,6 +291,21 @@ impl StorageBackend for ResilientStorage {
         self.circuit_call(move |s| async move { s.get_recommendation_stats().await })
             .await
     }
+
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        self.circuit_call(move |s| async move { s.list_recommendation_sessions().await })
+            .await
+    }
+
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        self.circuit_call(move |s| async move { s.list_recommendation_feedback().await })
+            .await
+    }
+
+    fn supports_ranking_adaptation(&self) -> bool {
+        self.storage.supports_ranking_adaptation()
+    }
+
     fn supports_recommendation_attribution(&self) -> bool {
         self.storage.supports_recommendation_attribution()
     }

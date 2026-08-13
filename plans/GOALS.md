@@ -35,15 +35,16 @@
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
 | Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ code-side closed in closure PR (#927 + #930 + episode validation + checked receipts + cold-restart tests); ADR-080 stays Proposed pending maintainer acceptance |
 | Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) + concrete-backend capability tests (closure PR) |
-| Design idempotent feedback-to-ranking updates | Follow-up ADR | P2 | Deferred — nothing in the closure PR changes ranking |
+| Design idempotent feedback-to-ranking updates | ADR-082 | P2 | ✅ code-side in this PR — derived Wilson weight, capability-gated `list_recommendation_*` read surface, recommend re-rank, e2e tests (ADR-082 Proposed; lifecycle = maintainer) |
 | R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
 | R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
 | Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
 
-The ranking-learning loop remains open: ADR-080/081 capture trustworthy
-attribution evidence but do not yet apply feedback to recommendation scores —
-feedback-to-ranking adaptation is deferred to a follow-up ADR. First-party CI is
-now causally merge-required (ruleset `9591004` requires `CI / Required`, and the
+The ranking-learning loop is now closed code-side (ADR-082, life cycle Proposed):
+attribution feedback derives a durable per-pattern learned weight (Wilson lower
+bound) and the recommendation path re-ranks its candidate pool by base relevance
+plus that weight; generic search/discovery/retrieval are unchanged. First-party CI
+is now causally merge-required (ruleset `9591004` requires `CI / Required`, and the
 aggregate is same-run fail-closed); ADR-079 stage 4 (deliberate live
 fault-injection merge-block proof) remains external maintainer evidence.
 R-F10 (ACT-325) and R-F4 (ACT-326) are implemented; CIT-A4/A5 (ACT-338/339)

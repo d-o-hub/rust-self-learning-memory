@@ -173,6 +173,18 @@ impl StorageBackend for RedbStorage {
         RedbStorage::get_recommendation_stats(self).await
     }
 
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        RedbStorage::list_recommendation_sessions(self).await
+    }
+
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        RedbStorage::list_recommendation_feedback(self).await
+    }
+
+    fn supports_ranking_adaptation(&self) -> bool {
+        true
+    }
+
     fn supports_recommendation_attribution(&self) -> bool {
         true
     }

@@ -119,17 +119,24 @@ pub async fn search_patterns_semantic(
     Ok(results)
 }
 
-/// Recommend patterns for a specific task
+/// Recommend patterns for a specific task.
+///
+/// When `learned` is `Some`, the candidate pool is overfetched and re-ranked by
+/// base relevance plus a learned Wilson weight derived from attributed feedback
+/// (ADR-082) before truncation to `limit`. When `None`, behavior is identical to
+/// a plain relevance-ranked search.
 pub async fn recommend_patterns_for_task(
     task_description: &str,
     context: TaskContext,
     patterns: Vec<Pattern>,
     semantic_service: Option<&Arc<SemanticService>>,
     limit: usize,
+    learned: Option<&crate::memory::attribution::RankingIndex>,
 ) -> Result<Vec<PatternSearchResult>> {
     debug!(
         task = %task_description,
         domain = %context.domain,
+        learned = learned.is_some(),
         "Recommending patterns for task"
     );
 
@@ -145,15 +152,44 @@ pub async fn recommend_patterns_for_task(
         filter_by_task_type: false, // Allow cross-task-type recommendations
     };
 
-    search_patterns_semantic(
+    // Overfetch when re-ranking so a boosted pattern can enter the top-N:
+    // the learned re-rank runs before truncation.
+    let fetch_limit = if learned.is_some() {
+        limit.saturating_mul(crate::memory::attribution::RECOMMEND_OVERFETCH_FACTOR)
+    } else {
+        limit
+    };
+
+    let mut results = search_patterns_semantic(
         task_description,
         patterns,
         &context,
         semantic_service,
         config,
-        limit,
+        fetch_limit,
     )
-    .await
+    .await?;
+
+    if let Some(index) = learned {
+        // Compute each candidate's learned key once (one `String` key + one
+        // lookup per candidate), then stable-sort the precomputed scores so the
+        // comparator is allocation-free — deriving the key inside `sort_by`
+        // would allocate a `String` and look it up ~N log N times.
+        let mut scored: Vec<(f32, PatternSearchResult)> = results
+            .into_iter()
+            .map(|r| {
+                (
+                    r.relevance_score + index.boost(&r.pattern.id().to_string()),
+                    r,
+                )
+            })
+            .collect();
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        results = scored.into_iter().map(|(_, r)| r).collect();
+        results.truncate(limit);
+    }
+
+    Ok(results)
 }
 
 /// Discover analogous patterns from a different domain

@@ -2,7 +2,7 @@ use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::PatternExtractionQueue;
-use crate::memory::attribution::RecommendationTracker;
+use crate::memory::attribution::{RankingIndex, RecommendationTracker};
 use crate::memory::playbook::PlaybookGenerator;
 use crate::monitoring::AgentMonitor;
 use crate::patterns::extractors::HeuristicExtractor;
@@ -156,6 +156,13 @@ pub struct SelfLearningMemory {
     // ADR-044 Feature 2 - Recommendation Attribution
     /// Tracker for recommendation sessions and feedback
     pub(super) recommendation_tracker: RecommendationTracker,
+
+    // ADR-082 - Feedback-to-ranking adaptation
+    /// Derived per-pattern learned weights re-ranking pattern recommendations.
+    /// Pure deterministic function of durable history; rebuilt on demand.
+    pub(super) ranking_index: Arc<tokio::sync::RwLock<RankingIndex>>,
+    /// Whether `ranking_index` has been loaded from durable history once.
+    pub(super) ranking_loaded: Arc<std::sync::atomic::AtomicBool>,
 
     // Event Broadcasting (WG-103)
     /// Event broadcast channel sender for lifecycle notifications

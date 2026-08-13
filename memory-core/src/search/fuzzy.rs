@@ -4,7 +4,18 @@
 //! algorithm. It allows finding text that is similar but not exactly matching,
 //! which is useful for handling typos, spelling variations, and approximate searches.
 
+use std::borrow::Cow;
 use strsim::normalized_levenshtein;
+
+/// Avoid memory allocation if the string is already lowercase.
+#[inline]
+fn to_lowercase_cow(s: &str) -> Cow<'_, str> {
+    if s.chars().any(|c| c.is_uppercase()) {
+        Cow::Owned(s.to_lowercase())
+    } else {
+        Cow::Borrowed(s)
+    }
+}
 
 /// Internal helper for fuzzy matching with pre-lowercased strings.
 fn fuzzy_match_lowercased(text_lower: &str, query_lower: &str, threshold: f64) -> Option<f64> {
@@ -55,8 +66,8 @@ fn fuzzy_match_lowercased(text_lower: &str, query_lower: &str, threshold: f64) -
 /// ```
 #[must_use]
 pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
-    let text_lower = text.to_lowercase();
-    let query_lower = query.to_lowercase();
+    let text_lower = to_lowercase_cow(text);
+    let query_lower = to_lowercase_cow(query);
 
     fuzzy_match_lowercased(&text_lower, &query_lower, threshold)
 }
@@ -90,25 +101,25 @@ pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
 #[must_use]
 pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usize, f64)> {
     let mut matches = Vec::new();
-    let text_lower = text.to_lowercase();
-    let query_lower = query.to_lowercase();
+    let text_lower = to_lowercase_cow(text);
+    let query_lower = to_lowercase_cow(query);
     let query_words: Vec<&str> = query_lower.split_whitespace().collect();
     let text_words: Vec<&str> = text_lower.split_whitespace().collect();
 
     // Fast path: check if query is a substring
-    if let Some(pos) = text_lower.find(&query_lower) {
+    if let Some(pos) = text_lower.find(query_lower.as_ref()) {
         matches.push((pos, 1.0));
         return matches;
     }
 
+    // Cache the base pointer to avoid pointer arithmetic overhead in the loop
+    let base_ptr = text_lower.as_ptr() as usize;
+
     // Try single-word matches
-    for (word_idx, word) in text_words.iter().enumerate() {
+    for word in &text_words {
         if let Some(score) = fuzzy_match_lowercased(word, &query_lower, threshold) {
-            // Calculate approximate position in original text
-            let position = text_words[..word_idx]
-                .iter()
-                .map(|w| w.len() + 1)
-                .sum::<usize>();
+            // Calculate exact position in the lowercased string in O(1)
+            let position = word.as_ptr() as usize - base_ptr;
             matches.push((position, score));
         }
     }
@@ -117,16 +128,14 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
     if query_words.len() > 1 {
         for window_size in 2..=query_words.len().min(5) {
             for window in text_words.windows(window_size) {
-                let window_text = window.join(" ");
-                // window_text is already lowercase because it's joined from text_words
-                if let Some(score) = fuzzy_match_lowercased(&window_text, &query_lower, threshold) {
-                    // Calculate approximate position
-                    let word_idx = text_words.iter().position(|&w| w == window[0]).unwrap_or(0);
-                    let position = text_words[..word_idx]
-                        .iter()
-                        .map(|w| w.len() + 1)
-                        .sum::<usize>();
-                    matches.push((position, score));
+                // Determine start and end byte bounds for the contiguous slice in text_lower
+                let start = window[0].as_ptr() as usize - base_ptr;
+                let end = window[window_size - 1].as_ptr() as usize - base_ptr
+                    + window[window_size - 1].len();
+                let window_text = &text_lower[start..end];
+
+                if let Some(score) = fuzzy_match_lowercased(window_text, &query_lower, threshold) {
+                    matches.push((start, score));
                 }
             }
         }
@@ -174,11 +183,11 @@ pub fn best_fuzzy_match<'a, I>(texts: I, query: &str, threshold: f64) -> Option<
 where
     I: IntoIterator<Item = &'a str>,
 {
-    let query_lower = query.to_lowercase();
+    let query_lower = to_lowercase_cow(query);
     texts
         .into_iter()
         .filter_map(|text| {
-            let text_lower = text.to_lowercase();
+            let text_lower = to_lowercase_cow(text);
             fuzzy_match_lowercased(&text_lower, &query_lower, threshold)
         })
         .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
@@ -286,5 +295,15 @@ mod tests {
 
         // Should find exact substring match
         assert!(!matches.is_empty());
+    }
+
+    #[test]
+    fn test_fuzzy_search_exact_position_preservation() {
+        // Verify that exact position matching works with multi-space text.
+        let text = "this    is  a   database  connection";
+        let matches = fuzzy_search_in_text(text, "database", 0.8);
+        assert_eq!(matches.len(), 1);
+        // "database" starts exactly at index 16 in the original string
+        assert_eq!(matches[0].0, 16);
     }
 }

@@ -1,11 +1,13 @@
 //! Feedback-to-ranking adaptation (ADR-082).
 //!
-//! Attribution feedback is reduced to a durable per-pattern learned weight that
-//! re-ranks pattern recommendations. The weight is a pure deterministic function
-//! of durable history — the Wilson lower-bound success rate — so the index is
-//! idempotent (rebuildable), replacement-safe (latest feedback per session wins,
-//! mirroring the storage upsert), and rollback-safe (drop-and-rebuild, no
-//! destructive journal).
+//! Attribution feedback is reduced to a per-pattern learned weight that re-ranks
+//! pattern recommendations. The weight is a deterministic reduction of the
+//! in-process tracker plus capability-gated durable history — the Wilson
+//! lower-bound success rate — so the index is idempotent (rebuildable),
+//! replacement-safe (the tracker, merged last, is authoritative for
+//! latest-feedback-per-session), and rollback-safe (drop-and-rebuild, no
+//! destructive journal). After a cold restart the index is a pure function of
+//! durable history.
 
 use std::collections::HashMap;
 
@@ -22,11 +24,12 @@ pub const LEARNED_BOOST_SCALE: f32 = 0.25;
 pub const RECOMMEND_OVERFETCH_FACTOR: usize = 3;
 
 /// Durable per-pattern ranking evidence derived from feedback.
+///
+/// Evidence is `(applied, succeeded)`: a pattern with no applied feedback
+/// carries no learned weight, so exposure alone never boosts ranking.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct PatternRankingState {
-    /// Exposures across sessions that received feedback.
-    pub recommended: u64,
-    /// Times the pattern was applied per feedback.
+    /// Times the pattern was applied per feedback (the Wilson sample size).
     pub applied: u64,
     /// Applied with outcome `Success | PartialSuccess`.
     pub succeeded: u64,
@@ -37,16 +40,6 @@ impl PatternRankingState {
     #[must_use]
     pub fn weight(&self, z: f64) -> f64 {
         wilson_lower_bound(self.succeeded, self.applied, z)
-    }
-
-    /// applied / recommended; 0.0 when recommended == 0.
-    #[must_use]
-    pub fn adoption_rate(&self) -> f64 {
-        if self.recommended == 0 {
-            0.0
-        } else {
-            self.applied as f64 / self.recommended as f64
-        }
     }
 }
 
@@ -81,16 +74,13 @@ impl RankingIndex {
 
         let mut inner: HashMap<String, PatternRankingState> = HashMap::new();
         for f in fb_by_session.values() {
-            let Some(session) = sessions_by_id.get(&f.session_id) else {
-                continue;
-            };
+            if !sessions_by_id.contains_key(&f.session_id) {
+                continue; // orphan feedback contributes nothing
+            }
             let positive = matches!(
                 f.outcome,
                 TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. }
             );
-            for pid in &session.recommended_pattern_ids {
-                inner.entry(pid.clone()).or_default().recommended += 1;
-            }
             for pid in &f.applied_pattern_ids {
                 let st = inner.entry(pid.clone()).or_default();
                 st.applied += 1;
@@ -159,19 +149,16 @@ mod tests {
     fn zero_trials_weight_is_zero() {
         let st = PatternRankingState::default();
         assert_eq!(st.weight(RANKING_WILSON_Z), 0.0);
-        assert_eq!(st.adoption_rate(), 0.0);
     }
 
     #[test]
     fn wilson_is_conservative_at_low_trials() {
         // 1/1 has a wide interval; 10/10 is tighter and bounds upward.
         let one = PatternRankingState {
-            recommended: 1,
             applied: 1,
             succeeded: 1,
         };
         let ten = PatternRankingState {
-            recommended: 10,
             applied: 10,
             succeeded: 10,
         };
@@ -188,12 +175,10 @@ mod tests {
     #[test]
     fn more_successes_raise_weight() {
         let mixed = PatternRankingState {
-            recommended: 3,
             applied: 3,
             succeeded: 2,
         };
         let none = PatternRankingState {
-            recommended: 3,
             applied: 3,
             succeeded: 0,
         };
@@ -204,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn from_history_counts_recommended_applied_succeeded() {
+    fn from_history_counts_applied_and_succeeded_only() {
         let s = session(&["p1", "p2"]);
         let f = feedback(
             s.session_id,
@@ -216,22 +201,17 @@ mod tests {
         );
         let idx = RankingIndex::from_history(&[s], &[f]);
         let p1 = idx.inner.get("p1").copied().unwrap();
-        let p2 = idx.inner.get("p2").copied().unwrap();
         assert_eq!(
             p1,
             PatternRankingState {
-                recommended: 1,
                 applied: 1,
                 succeeded: 1
             }
         );
         assert_eq!(
-            p2,
-            PatternRankingState {
-                recommended: 1,
-                applied: 0,
-                succeeded: 0
-            }
+            idx.inner.get("p2").copied(),
+            None,
+            "recommended-but-not-applied must carry no learned evidence"
         );
     }
 
@@ -277,7 +257,6 @@ mod tests {
         assert_eq!(
             p1,
             PatternRankingState {
-                recommended: 1,
                 applied: 1,
                 succeeded: 0
             },
@@ -319,5 +298,30 @@ mod tests {
         assert_eq!(extra.applied, 1);
         assert_eq!(extra.succeeded, 1);
         assert!(idx.boost("extra") > 0.0);
+    }
+
+    #[test]
+    fn partial_success_counts_as_success() {
+        let s = session(&["p1"]);
+        let f = feedback(
+            s.session_id,
+            &["p1"],
+            TaskOutcome::PartialSuccess {
+                verdict: "partially done".to_string(),
+                completed: vec!["core".to_string()],
+                failed: vec![],
+            },
+        );
+        let idx = RankingIndex::from_history(&[s], &[f]);
+        let p1 = idx.inner.get("p1").copied().unwrap();
+        assert_eq!(
+            p1,
+            PatternRankingState {
+                applied: 1,
+                succeeded: 1
+            },
+            "PartialSuccess must count toward the success evidence"
+        );
+        assert!(idx.boost("p1") > 0.0);
     }
 }

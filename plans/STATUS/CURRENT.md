@@ -18,7 +18,7 @@
 
 | Wave | Result |
 |------|--------|
-| Feedback-to-ranking (ADR-082, Proposed) | ✅ derived per-pattern Wilson weight; capability-gated `list_recommendation_*` (Turso+redb); recommend re-rank (overfetch→boost→truncate); e2e `ranking_adaptation_e2e.rs` 5/5 |
+| Feedback-to-ranking (ADR-082, Proposed) | ✅ derived per-pattern Wilson weight; capability-gated `list_recommendation_*` (Turso+redb); recommend re-rank (overfetch→boost→truncate); tracker-authoritative merge (stale durable rows don't shadow fresh feedback); e2e `ranking_adaptation_e2e.rs` 7/7 |
 | Backend contracts | ✅ redb/turso `capability_attribution_test.rs` extended: `supports_ranking_adaptation` true + list round-trip |
 | ADR 025/054 canonicalization (G-P1-8) | ✅ aliases moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now 51 unique, no duplicate warning |
 | Trackers | ✅ GOALS/ACTIONS/GOAP_STATE/ROADMAP_ACTIVE/GAP_ANALYSIS updated; ADR-082 recorded |

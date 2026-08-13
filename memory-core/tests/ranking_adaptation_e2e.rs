@@ -14,13 +14,14 @@ use do_memory_core::episode::PatternId;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use do_memory_core::storage::StorageBackend;
 use do_memory_core::{
-    ComplexityLevel, Episode, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory,
+    ComplexityLevel, Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory,
     TaskContext, TaskOutcome, TaskType,
 };
 use do_memory_storage_redb::RedbStorage;
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use uuid::Uuid;
 
 fn create_test_pattern(id: Uuid, success_rate: f32) -> Pattern {
@@ -82,13 +83,19 @@ fn feedback_for(
     }
 }
 
-/// Non-capable backend that still stores attribution rows (legacy shape). It
-/// advertises neither recommendation-attribution nor ranking-adaptation, so the
-/// derived index must never consult its durable rows.
+/// Backend that stores attribution rows in-memory, with capability flags
+/// defaulting to the pre-ADR-082 "legacy" shape (no ranking adaptation), plus
+/// an injectable feedback-write failure for the stale-durable conflict test.
 #[derive(Default)]
 struct LegacyOnlyBackend {
     sessions: Mutex<HashMap<Uuid, RecommendationSession>>,
     feedback: Mutex<HashMap<Uuid, RecommendationFeedback>>,
+    /// When set, `store_recommendation_feedback` returns a storage error.
+    fail_feedback_writes: AtomicBool,
+    /// Whether `supports_recommendation_attribution` reports true.
+    advertise_attribution: bool,
+    /// Whether `supports_ranking_adaptation` reports true.
+    advertise_ranking: bool,
 }
 
 #[async_trait]
@@ -106,6 +113,11 @@ impl StorageBackend for LegacyOnlyBackend {
         Ok(self.sessions.lock().get(&session_id).cloned())
     }
     async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        if self.fail_feedback_writes.load(Ordering::Acquire) {
+            return Err(Error::Storage(
+                "injected feedback write failure".to_string(),
+            ));
+        }
         self.feedback
             .lock()
             .insert(feedback.session_id, feedback.clone());
@@ -116,6 +128,21 @@ impl StorageBackend for LegacyOnlyBackend {
         session_id: Uuid,
     ) -> Result<Option<RecommendationFeedback>> {
         Ok(self.feedback.lock().get(&session_id).cloned())
+    }
+
+    // ADR-082 ranking surface: list history when the backend advertises
+    // ranking adaptation, and report capability from the flags.
+    async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        Ok(self.sessions.lock().values().cloned().collect())
+    }
+    async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        Ok(self.feedback.lock().values().cloned().collect())
+    }
+    fn supports_recommendation_attribution(&self) -> bool {
+        self.advertise_attribution
+    }
+    fn supports_ranking_adaptation(&self) -> bool {
+        self.advertise_ranking
     }
 
     async fn store_episode(&self, _episode: &Episode) -> Result<()> {
@@ -438,5 +465,179 @@ async fn non_capable_backend_ignored_after_cold_restart() {
         results[0].pattern.id(),
         p_high.id(),
         "non-capable backend data must not lift p_low after a cold restart"
+    );
+}
+
+/// ADR-082 stale-durable regression: a replacement feedback whose persistence
+/// silently fails (the durable row stays stale) must still win in the derived
+/// index. The in-process tracker is authoritative — it is updated before
+/// persistence — so the stale durable Success must not shadow the fresh
+/// tracker Failure.
+#[tokio::test]
+async fn stale_durable_feedback_does_not_shadow_tracker_replacement() {
+    let backend = Arc::new(LegacyOnlyBackend {
+        advertise_attribution: true,
+        advertise_ranking: true,
+        ..Default::default()
+    });
+    let p_high = create_test_pattern(Uuid::new_v4(), 0.9);
+    let p_low = create_test_pattern(Uuid::new_v4(), 0.1);
+
+    let memory = SelfLearningMemory::with_storage(
+        MemoryConfig::default(),
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+    );
+    seed_patterns(&memory, &[p_high.clone(), p_low.clone()]).await;
+
+    let episode_id = memory
+        .start_episode(
+            "Build an async REST API".to_string(),
+            recommend_context(),
+            TaskType::CodeGeneration,
+        )
+        .await;
+    let session = session_for(episode_id, &p_low);
+    let session_id = session.session_id;
+    memory
+        .record_recommendation_session_checked(session.clone())
+        .await;
+    memory
+        .record_recommendation_feedback(feedback_for(
+            session_id,
+            &p_low,
+            TaskOutcome::Success {
+                verdict: "REST API built".to_string(),
+                artifacts: vec![],
+            },
+        ))
+        .await
+        .unwrap();
+
+    let before = memory
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+        .await
+        .unwrap();
+    assert_eq!(
+        before[0].pattern.id(),
+        p_low.id(),
+        "precondition: success feedback must lift p_low"
+    );
+
+    // Persistence now fails, so the durable row stays the stale Success while
+    // the tracker advances to the replacement Failure.
+    backend.fail_feedback_writes.store(true, Ordering::Release);
+
+    memory
+        .record_recommendation_feedback(feedback_for(
+            session_id,
+            &p_low,
+            TaskOutcome::Failure {
+                reason: "regressed".to_string(),
+                error_details: None,
+            },
+        ))
+        .await
+        .unwrap();
+
+    let after = memory
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+        .await
+        .unwrap();
+    assert_eq!(
+        after[0].pattern.id(),
+        p_high.id(),
+        "stale durable Success must NOT shadow the tracker's fresh Failure"
+    );
+}
+
+/// Live vs cold-restart semantics on a non-ranking-capable backend: feedback
+/// recorded through the in-process tracker drives ranking live, while the same
+/// durable rows are ignored after a cold restart (ranking capability gates the
+/// durable read surface only).
+#[tokio::test]
+async fn in_process_feedback_lifts_live_but_durable_rows_ignored_after_restart() {
+    let legacy = Arc::new(LegacyOnlyBackend::default());
+    let p_high = create_test_pattern(Uuid::new_v4(), 0.9);
+    let p_low = create_test_pattern(Uuid::new_v4(), 0.1);
+
+    // Live process: record session + success feedback through the standard API
+    // (tracker-backed), and mirror the same rows into the legacy durable store
+    // directly, as a pre-ADR-082 process would have persisted them.
+    {
+        let memory = SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            Arc::clone(&legacy) as Arc<dyn StorageBackend>,
+            Arc::clone(&legacy) as Arc<dyn StorageBackend>,
+        );
+        seed_patterns(&memory, &[p_high.clone(), p_low.clone()]).await;
+        let episode_id = memory
+            .start_episode(
+                "Build an async REST API".to_string(),
+                recommend_context(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+        let session = session_for(episode_id, &p_low);
+        let session_id = session.session_id;
+        memory
+            .record_recommendation_session_checked(session.clone())
+            .await;
+        memory
+            .record_recommendation_feedback(feedback_for(
+                session_id,
+                &p_low,
+                TaskOutcome::Success {
+                    verdict: "REST API built".to_string(),
+                    artifacts: vec![],
+                },
+            ))
+            .await
+            .unwrap();
+        StorageBackend::store_recommendation_session(&*legacy, &session)
+            .await
+            .unwrap();
+        StorageBackend::store_recommendation_feedback(
+            &*legacy,
+            &feedback_for(
+                session_id,
+                &p_low,
+                TaskOutcome::Success {
+                    verdict: "REST API built".to_string(),
+                    artifacts: vec![],
+                },
+            ),
+        )
+        .await
+        .unwrap();
+
+        let live = memory
+            .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+            .await
+            .unwrap();
+        assert_eq!(
+            live[0].pattern.id(),
+            p_low.id(),
+            "live: in-process feedback must drive ranking even on a non-ranking-capable backend"
+        );
+    }
+
+    // Cold restart on the same backend: the durable rows exist but the
+    // capability gate must keep them out of the learned index.
+    let restarted = SelfLearningMemory::with_storage(
+        MemoryConfig::default(),
+        Arc::clone(&legacy) as Arc<dyn StorageBackend>,
+        Arc::clone(&legacy) as Arc<dyn StorageBackend>,
+    );
+    seed_patterns(&restarted, &[p_high.clone(), p_low.clone()]).await;
+
+    let restarted_results = restarted
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+        .await
+        .unwrap();
+    assert_eq!(
+        restarted_results[0].pattern.id(),
+        p_high.id(),
+        "restart: non-ranking-capable durable rows must be ignored"
     );
 }

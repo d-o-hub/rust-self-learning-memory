@@ -17,7 +17,8 @@ on the recommend path — plus canonicalize the ADR-025/054 alias filenames
 | `./scripts/build-rust.sh check` | workspace check compiles | ✅ exit 0 |
 | New-behavior e2e | `cargo nextest run -p do-memory-core --test ranking_adaptation_e2e` → 5/5 (default_order_unchanged_without_feedback, success_feedback_lifts_rank, replacement_feedback_swings_rank, cold_restart_rebuilds_from_storage, non_capable_backend_ignored_after_cold_restart) | ✅ 5 passed / 0 skipped |
 | Regression guards | `--test attribution_receipt_matrix` 30 passed; `--test attribution_feedback_restart` 5 passed | ✅ green |
-| `cargo nextest run --all` | full workspace suite | ✅ **3859 passed / 182 skipped** |
+| `cargo nextest run --all` | full workspace suite | ✅ **3862 passed / 182 skipped** |
+| Ranking hardening (post-review) | merge order made tracker-authoritative (stale durable rows can no longer shadow a fresh in-process replacement); learned keys precomputed once per candidate (O(N) allocations, allocation-free comparator); dead `recommended`/`adoption_rate` surface removed; `PartialSuccess`-as-success unit test; e2e grows to 7/7 (`stale_durable_feedback_does_not_shadow_tracker_replacement` proven to fail under the old order, `in_process_feedback_lifts_live_but_durable_rows_ignored_after_restart`); `RankingIndex`/`PatternRankingState` re-exported from `lib.rs` | ✅ |
 | `cargo test --doc` | core 164 (+4 ignored), cli 11, mcp 7, redb 10, turso 37 | ✅ pass |
 | `cargo doc --no-deps --document-private-items` | rustdoc gate (bare-URL/re-export) | ✅ clean, exit 0 |
 | `./scripts/quality-gates.sh` | `quality_gates.rs` 16 passed / 0 failed / 2 ignored; source-file-size PASS (the two new `ranking.rs` files are 80 and 323 LOC; `storage/backend.rs` 480, turso `resilient.rs` 498 after trimming the pre-existing-at-cap files pushed over by ADR-082 surface) | ✅ PASS |

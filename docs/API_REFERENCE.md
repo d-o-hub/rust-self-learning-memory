@@ -125,15 +125,18 @@ Receipt states and restart implications:
 | `persistence_failed` | every configured capable backend failed to write | no |
 
 **Scope — feedback-to-ranking adaptation (ADR-082):** attribution feedback now
-derives a durable per-pattern learned weight (the Wilson lower-bound success rate
-at `z = 1.96` on success-after-application) and the recommendation path re-ranks
-its candidate pool by base relevance plus that weight. This affects
-`recommend_patterns` only; generic search, discovery, and retrieval are unchanged,
-and `get_recommendation_stats` remains exact attribution capture. The learned weight
-is a pure deterministic function of durable history (idempotent, replacement-safe —
-latest feedback per session wins — and rollback-safe by rebuild). Backends that do
-not advertise `supports_ranking_adaptation` contribute nothing, so the behavior is
-identical to pre-ADR-082 when unconfigured.
+derives a per-pattern learned weight (the Wilson lower-bound success rate at
+`z = 1.96` on success-after-application, over `(applied, succeeded)` evidence) and
+the recommendation path re-ranks its candidate pool by base relevance plus that
+weight. This affects `recommend_patterns` only; generic search, discovery, and
+retrieval are unchanged, and `get_recommendation_stats` remains exact attribution
+capture. The learned weight is a deterministic reduction of the in-process tracker
+plus capability-gated durable history — the tracker is authoritative for
+"latest feedback wins", and after a cold restart the index is a pure function of
+durable history (idempotent, replacement-safe, rollback-safe by rebuild). Backends
+that do not advertise `supports_ranking_adaptation` contribute nothing to the
+durable read, so behavior is identical to pre-ADR-082 when unconfigured
+(in-process feedback still tracks within a run).
 
 ### Playbook / Checkpoint / Handoff
 

@@ -17,11 +17,13 @@
 //! - Attribution statistics capture (recording which recommendations were used
 //!   and their outcomes)
 //! - Feedback-to-ranking adaptation (ADR-082; lifecycle Proposed): attribution
-//!   feedback now derives a durable per-pattern learned weight (Wilson lower
-//!   bound on success-after-application), and the recommendation path re-ranks
-//!   its candidate pool by base relevance plus that weight. The weight is a pure
-//!   deterministic function of durable history, so it is idempotent,
-//!   replacement-safe, and rollback-safe by rebuild.
+//!   feedback now derives a per-pattern learned weight (Wilson lower bound on
+//!   success-after-application) and the recommendation path re-ranks its
+//!   candidate pool by base relevance plus that weight. The weight is a
+//!   deterministic reduction of the in-process tracker plus capability-gated
+//!   durable history (the tracker is authoritative for latest-feedback-wins;
+//!   after a cold restart the index is a pure function of durable history), so
+//!   it is idempotent, replacement-safe, and rollback-safe by rebuild.
 //!
 //! # Example
 //!

@@ -304,10 +304,12 @@ pub use types::{
     TaskType,
 };
 
-// Re-export attribution types (ADR-044 Feature 2 & ADR-080)
+// Re-export attribution types (ADR-044 Feature 2 & ADR-080); ADR-082 ranking
+// types are part of the same public surface.
 pub use memory::attribution::{
-    AttributedPatternResult, AttributedPlaybookResult, PersistenceReceipt, RecommendationFeedback,
-    RecommendationSession, RecommendationStats, RecommendationTracker,
+    AttributedPatternResult, AttributedPlaybookResult, PatternRankingState, PersistenceReceipt,
+    RankingIndex, RecommendationFeedback, RecommendationSession, RecommendationStats,
+    RecommendationTracker,
 };
 
 // Re-export attributed playbook request type (ADR-080 §3)

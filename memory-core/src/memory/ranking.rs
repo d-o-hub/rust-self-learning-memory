@@ -2,9 +2,11 @@
 //!
 //! Lazy-loads the derived `RankingIndex` from in-process tracker data plus the
 //! durable history of capable storage backends, and refreshes it when feedback
-//! is recorded. The index is a pure deterministic function of durable history,
-//! so a failed or partial refresh degrades safely: errors are logged and the
-//! derived state is rebuilt (rollback-safe) on the next refresh.
+//! is recorded. The index is a deterministic reduction of (in-process tracker ∪
+//! capability-gated durable history), converging to a pure function of durable
+//! history after a cold restart; a failed or partial refresh degrades safely:
+//! errors are logged and the derived state is rebuilt (rollback-safe) on the
+//! next refresh.
 
 use std::collections::HashMap;
 use std::sync::atomic::Ordering;
@@ -27,16 +29,17 @@ impl SelfLearningMemory {
 
     /// Rebuild `ranking_index` from the in-process tracker and every capable
     /// durable backend's recommendation history.
+    ///
+    /// Merge order: capable durable backends are loaded first, then the
+    /// in-process tracker overwrites them (a `HashMap` insert is last-write-
+    /// wins). The tracker is updated *before* persistence, so it is never older
+    /// than a durable row for the same session; preferring it guarantees
+    /// "latest feedback wins" even when persisting the newest record fails and
+    /// a stale durable row remains. After a cold restart the tracker is empty,
+    /// so the index is a pure function of capability-gated durable history.
     pub(crate) async fn refresh_ranking_index(&self) {
         let mut sessions: HashMap<uuid::Uuid, RecommendationSession> = HashMap::new();
-        for s in self.recommendation_tracker.get_all_sessions().await {
-            sessions.insert(s.session_id, s);
-        }
-
         let mut feedback: HashMap<uuid::Uuid, RecommendationFeedback> = HashMap::new();
-        for f in self.recommendation_tracker.get_all_feedback().await {
-            feedback.insert(f.session_id, f);
-        }
 
         // Durable capable backends (Turso then cache/redb); errors → warn! and
         // continue (derived state is rollback-safe and rebuilt on refresh).
@@ -45,6 +48,14 @@ impl SelfLearningMemory {
         }
         if let Some(c) = &self.cache_storage {
             merge_backend_ranking_history(c.as_ref(), &mut sessions, &mut feedback).await;
+        }
+
+        // In-process tracker last (authoritative — see doc comment).
+        for s in self.recommendation_tracker.get_all_sessions().await {
+            sessions.insert(s.session_id, s);
+        }
+        for f in self.recommendation_tracker.get_all_feedback().await {
+            feedback.insert(f.session_id, f);
         }
 
         let sess: Vec<_> = sessions.into_values().collect();

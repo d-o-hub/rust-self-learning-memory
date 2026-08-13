@@ -171,12 +171,21 @@ pub async fn recommend_patterns_for_task(
     .await?;
 
     if let Some(index) = learned {
-        // Stable: sort by (base relevance + learned boost) desc.
-        results.sort_by(|a, b| {
-            let ka = a.relevance_score + index.boost(&a.pattern.id().to_string());
-            let kb = b.relevance_score + index.boost(&b.pattern.id().to_string());
-            kb.partial_cmp(&ka).unwrap_or(std::cmp::Ordering::Equal)
-        });
+        // Compute each candidate's learned key once (one `String` key + one
+        // lookup per candidate), then stable-sort the precomputed scores so the
+        // comparator is allocation-free — deriving the key inside `sort_by`
+        // would allocate a `String` and look it up ~N log N times.
+        let mut scored: Vec<(f32, PatternSearchResult)> = results
+            .into_iter()
+            .map(|r| {
+                (
+                    r.relevance_score + index.boost(&r.pattern.id().to_string()),
+                    r,
+                )
+            })
+            .collect();
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        results = scored.into_iter().map(|(_, r)| r).collect();
         results.truncate(limit);
     }
 

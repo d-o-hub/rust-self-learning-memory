@@ -35,7 +35,7 @@
 | Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
 | Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ code-side closed in closure PR (#927 + #930 + episode validation + checked receipts + cold-restart tests); ADR-080 stays Proposed pending maintainer acceptance |
 | Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) + concrete-backend capability tests (closure PR) |
-| Design idempotent feedback-to-ranking updates | ADR-082 | P2 | ✅ code-side in this PR — derived Wilson weight, capability-gated `list_recommendation_*` read surface, recommend re-rank, e2e tests (ADR-082 Proposed; lifecycle = maintainer) |
+| Design idempotent feedback-to-ranking updates | ADR-082 | P2 | ✅ merged in PR #952 (2026-08-13) — derived Wilson weight, capability-gated `list_recommendation_*` read surface, recommend re-rank, e2e tests (ADR-082 Proposed; lifecycle = maintainer) |
 | R-F10 OIDC trusted publishing (publish-crates.yml) | R-F10 | P2 | ✅ Implemented (ACT-325) |
 | R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
 | Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |

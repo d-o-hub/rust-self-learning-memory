@@ -8,8 +8,8 @@
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-362 | Implement feedback-to-ranking adaptation (ADR-082) — derived Wilson weight, capability-gated `list_recommendation_*` methods on Turso/redb, recommend re-rank, e2e tests | ADR-082 §5 exit | ✅ evidence-backed (e2e + backend contract + unit tests in this PR) |
-| ACT-363 | Canonicalize ADR-025/054 aliases (move to `plans/adr/_aliases/`) to make the ADR registry unique | G-P1-8 | ✅ `validate-plans.sh --identifiers` now sees 51 unique ADR numbers |
+| ACT-362 | Implement feedback-to-ranking adaptation (ADR-082) — derived Wilson weight, capability-gated `list_recommendation_*` methods on Turso/redb, recommend re-rank, e2e tests | ADR-082 §5 exit | ✅ merged in PR #952 (2026-08-13) — evidence-backed (e2e + backend contract + unit tests) |
+| ACT-363 | Canonicalize ADR-025/054 aliases (move to `plans/adr/_aliases/`) to make the ADR registry unique | G-P1-8 | ✅ merged in PR #952 (2026-08-13) — `validate-plans.sh --identifiers` sees 51 unique ADR numbers |
 
 ## Completed actions (2026-08-11 — #947, merged 2026-08-12)
 

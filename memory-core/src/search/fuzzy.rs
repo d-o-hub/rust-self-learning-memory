@@ -324,11 +324,14 @@ mod tests {
     #[test]
     fn test_fuzzy_search_multi_word_window_position() {
         // Verify that multi-word window matching reports correct byte positions.
-        let text = "alpha beta gamma delta epsilon";
+        // Irregular spacing forces the exact-substring fast path to miss, so the
+        // sliding-window code path (with pointer-subtraction positions) runs.
+        let text = "alpha beta  gamma   delta epsilon";
         let matches = fuzzy_search_in_text(text, "gamma delta", 0.8);
         assert!(!matches.is_empty());
-        // "gamma" starts at byte 11 in "alpha beta gamma delta epsilon" (6+5)
-        assert_eq!(matches[0].0, 11);
+        // "gamma" starts at byte 12 in "alpha beta  gamma   delta epsilon"
+        // (alpha=5 + ' '=1 + beta=4 + "  "=2 = 12)
+        assert_eq!(matches[0].0, 12);
     }
 
     #[test]

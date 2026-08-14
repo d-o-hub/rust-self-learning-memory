@@ -133,12 +133,17 @@ carry the learned re-rank automatically because they call the same
 - The recommend path pays one extra lock read, one `String` key, and one `HashMap`
   lookup per candidate (O(N) allocations, recomputed per recommend); overfetching
   3× costs at most 2N extra scored candidates on the recommendation path only.
-- Wilson lower bound is conservative at low evidence, but `LEARNED_BOOST_SCALE`
-  (0.25) is **uncalibrated** against the actual `relevance_score` distribution:
-  a single success adds ≈ +0.052 to a candidate whose base score may sit within
-  hundredths of a rival, so one application can reorder the top pair. The e2e
-  proves the flip, not proportionality; magnitude should be validated against real
-  score distributions before tuning.
+- Wilson lower bound is conservative at low evidence. `LEARNED_BOOST_SCALE` (0.25)
+  was **calibrated 2026-08-13** against the realistic keyword-scoring base
+  distribution (8 patterns, scores 1.02→0.40, min_relevance 0.4): a single
+  success (wilson 1/1 = 0.2065) adds ≈ **+0.052**. At the shipped scale this
+  overturns only a near-tie runner-up (gap < 0.052 ≈ typical top-2 gap 0.048) and
+  **cannot** leapfrog a clearly-worse candidate (gap ≥ 0.06 stays immovable) —
+  proportionality is defensible. Sweep measured scale 0.50 reshuffles the whole
+  top-5 on one success (too hot) and scale ≤ 0.15 leaves even a 0.048-gap
+  near-tie unflippable (too weak). Re-calibrate against a real embedding-service
+  distribution before changing the constant; a proportionality guard test pins
+  the envelope (`attribution::ranking::tests`).
 
 ## Alternatives considered
 

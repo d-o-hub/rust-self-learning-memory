@@ -134,8 +134,7 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
                 // O(1) position via pointer subtraction into the lowercased string
                 let start = window[0].as_ptr() as usize - base_ptr;
 
-                if let Some(score) = fuzzy_match_lowercased(&window_text, &query_lower, threshold)
-                {
+                if let Some(score) = fuzzy_match_lowercased(&window_text, &query_lower, threshold) {
                     matches.push((start, score));
                 }
             }

@@ -128,13 +128,14 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
     if query_words.len() > 1 {
         for window_size in 2..=query_words.len().min(5) {
             for window in text_words.windows(window_size) {
-                // Determine start and end byte bounds for the contiguous slice in text_lower
+                // Normalize whitespace: split_whitespace collapses irregular spacing,
+                // so join with single spaces to match query normalization.
+                let window_text = window.join(" ");
+                // O(1) position via pointer subtraction into the lowercased string
                 let start = window[0].as_ptr() as usize - base_ptr;
-                let end = window[window_size - 1].as_ptr() as usize - base_ptr
-                    + window[window_size - 1].len();
-                let window_text = &text_lower[start..end];
 
-                if let Some(score) = fuzzy_match_lowercased(window_text, &query_lower, threshold) {
+                if let Some(score) = fuzzy_match_lowercased(&window_text, &query_lower, threshold)
+                {
                     matches.push((start, score));
                 }
             }
@@ -305,5 +306,75 @@ mod tests {
         assert_eq!(matches.len(), 1);
         // "database" starts exactly at index 16 in the original string
         assert_eq!(matches[0].0, 16);
+    }
+
+    #[test]
+    fn test_fuzzy_search_multi_word_irregular_whitespace() {
+        // Multi-word query against text with irregular spacing.
+        // The window join must normalize whitespace so the fuzzy match sees
+        // "database connection" (single spaces) regardless of original spacing.
+        let text = "this    is  a   database  connection  example";
+        let matches = fuzzy_search_in_text(text, "database connection", 0.7);
+        assert!(
+            !matches.is_empty(),
+            "multi-word query must match across irregular whitespace"
+        );
+        assert!(matches[0].1 > 0.7);
+    }
+
+    #[test]
+    fn test_fuzzy_search_multi_word_window_position() {
+        // Verify that multi-word window matching reports correct byte positions.
+        let text = "alpha beta gamma delta epsilon";
+        let matches = fuzzy_search_in_text(text, "gamma delta", 0.8);
+        assert!(!matches.is_empty());
+        // "gamma" starts at byte 11 in "alpha beta gamma delta epsilon" (6+5)
+        assert_eq!(matches[0].0, 11);
+    }
+
+    #[test]
+    fn test_fuzzy_search_single_word_text() {
+        let matches = fuzzy_search_in_text("database", "database", 0.8);
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].0, 0);
+        assert_eq!(matches[0].1, 1.0);
+    }
+
+    #[test]
+    fn test_fuzzy_search_empty_text() {
+        let matches = fuzzy_search_in_text("", "query", 0.8);
+        assert!(matches.is_empty());
+    }
+
+    #[test]
+    fn test_fuzzy_search_empty_query() {
+        // Empty query is a substring of any text
+        let matches = fuzzy_search_in_text("hello world", "", 0.8);
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].0, 0);
+        assert_eq!(matches[0].1, 1.0);
+    }
+
+    #[test]
+    fn test_fuzzy_search_case_insensitive_positions() {
+        // Cow lowercasing should not affect position accuracy
+        let text = "Hello World Database Connection";
+        let matches = fuzzy_search_in_text(text, "database", 0.8);
+        assert_eq!(matches.len(), 1);
+        // "database" starts at byte 12 in the lowercased string
+        assert_eq!(matches[0].0, 12);
+    }
+
+    #[test]
+    fn test_fuzzy_search_multi_word_high_threshold() {
+        // At high thresholds, normalized whitespace is critical for matching.
+        // Without whitespace normalization, "database  connection" vs
+        // "database connection" would score lower due to extra space chars.
+        let text = "found  database  connection  here";
+        let matches = fuzzy_search_in_text(text, "database connection", 0.9);
+        assert!(
+            !matches.is_empty(),
+            "must match at high threshold with normalized whitespace"
+        );
     }
 }

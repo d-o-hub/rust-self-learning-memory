@@ -324,4 +324,26 @@ mod tests {
         );
         assert!(idx.boost("p1") > 0.0);
     }
+
+    /// Proportionality guard (calibration 2026-08-13): a single success must
+    /// overturn only a near-tie and never leapfrog a clearly-worse candidate.
+    /// The realistic base distribution (keyword scoring, 8 patterns) had a
+    /// top-2 gap ≈ 0.048 and non-tie gaps ≥ 0.059; at scale=0.25 the boost
+    /// (≈ 0.0516) flips the former but not the latter. Pins the envelope so a
+    /// change to `LEARNED_BOOST_SCALE` / `RANKING_WILSON_Z` is deliberate.
+    #[test]
+    fn single_success_boost_stays_in_calibrated_window() {
+        let single = PatternRankingState {
+            applied: 1,
+            succeeded: 1,
+        }
+        .weight(RANKING_WILSON_Z) as f32;
+        let boost = single * LEARNED_BOOST_SCALE;
+        // Too weak (<0.04) can't flip a 0.048 near-tie; too hot (>=0.06)
+        // leapfrogs a clearly-worse candidate (measured #3 gap ~0.059).
+        assert!(
+            (0.04..0.06).contains(&boost),
+            "single-success boost {boost} outside calibrated envelope"
+        );
+    }
 }

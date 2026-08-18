@@ -1,8 +1,8 @@
 //! Evaluation and calibration commands
 
-use std::path::PathBuf;
 use clap::Subcommand;
 use serde::Serialize;
+use std::path::PathBuf;
 
 use do_memory_core::retrieval::{
     BenchmarkReport, FixtureCorpus, RegressionChecker, RegressionThresholds, RetrievalEvaluator,

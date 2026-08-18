@@ -179,10 +179,7 @@ pub fn format_markdown_report(
         out,
         "| Strategy | Recall@1 | Recall@5 | Recall@10 | MRR | NDCG@5 | Rec Acceptance |"
     );
-    let _ = writeln!(
-        out,
-        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|"
-    );
+    let _ = writeln!(out, "|:---|:---:|:---:|:---:|:---:|:---:|:---:|");
 
     for (name, m) in &report.strategies {
         let _ = writeln!(
@@ -205,10 +202,7 @@ pub fn format_markdown_report(
         out,
         "| Strategy | Tier 1 (BM25) | Tier 2 (HDC) | Tier 3 (Concept) | Tier 4 (API) | API Calls/Query |"
     );
-    let _ = writeln!(
-        out,
-        "|:---|:---:|:---:|:---:|:---:|:---:|"
-    );
+    let _ = writeln!(out, "|:---|:---:|:---:|:---:|:---:|:---:|");
 
     for (name, m) in &report.strategies {
         let _ = writeln!(
@@ -234,10 +228,7 @@ pub fn format_markdown_report(
         out,
         "| Strategy | Local P50/P95 (μs) | E2E P50/P95 (μs) | Candidates (Pre/Post) | Cost / Query | Cost / Rec |"
     );
-    let _ = writeln!(
-        out,
-        "|:---|:---:|:---:|:---:|:---:|:---:|"
-    );
+    let _ = writeln!(out, "|:---|:---:|:---:|:---:|:---:|:---:|");
 
     for (name, m) in &report.strategies {
         let _ = writeln!(

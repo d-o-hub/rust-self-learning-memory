@@ -207,6 +207,37 @@ pub async fn handle_eval_command(
             min_episodes,
         } => eval::calibration(domain, all, min_episodes, memory, config, format).await,
         EvalCommands::Stats { domain } => eval::domain_stats(domain, memory, config, format).await,
+        EvalCommands::Benchmark {
+            fixture,
+            strategy,
+            baseline,
+            fail_on_regression,
+            max_recall_drop,
+            max_mrr_drop,
+            max_ndcg_drop,
+            max_latency_increase,
+            max_cost_increase,
+            output_json,
+            output_markdown,
+            remote,
+        } => {
+            eval::benchmark(
+                fixture,
+                strategy,
+                baseline,
+                fail_on_regression,
+                max_recall_drop,
+                max_mrr_drop,
+                max_ndcg_drop,
+                max_latency_increase,
+                max_cost_increase,
+                output_json,
+                output_markdown,
+                remote,
+                format,
+            )
+            .await
+        }
     }
 }
 

@@ -1,0 +1,428 @@
+{
+  "version": "1.0.0",
+  "description": "Reproducible retrieval quality-and-cost benchmark fixture corpus",
+  "corpus": [
+    {
+      "id": "item-auth-01",
+      "text": "Implement OAuth2 authentication flow with JWT token validation and middleware in Rust tokio web-api",
+      "context": {
+        "domain": "security",
+        "language": "rust",
+        "framework": "tokio",
+        "complexity": "Moderate",
+        "tags": ["auth", "jwt"]
+      },
+      "tags": ["auth", "jwt", "oauth2", "middleware"],
+      "is_successful": true,
+      "reward_score": 0.95
+    },
+    {
+      "id": "item-auth-02",
+      "text": "User password hashing with Argon2id and rate limiting against brute force attacks",
+      "context": {
+        "domain": "security",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["security"]
+      },
+      "tags": ["security", "argon2", "rate-limiting"],
+      "is_successful": true,
+      "reward_score": 0.90
+    },
+    {
+      "id": "item-db-01",
+      "text": "Optimizing SQLite / libSQL indexing with WAL mode and parameterized queries for high concurrency",
+      "context": {
+        "domain": "database",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["database"]
+      },
+      "tags": ["database", "sqlite", "libsql", "indexing"],
+      "is_successful": true,
+      "reward_score": 0.92
+    },
+    {
+      "id": "item-db-02",
+      "text": "Redb key-value embedded database transactions and table compaction strategies",
+      "context": {
+        "domain": "database",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["database"]
+      },
+      "tags": ["database", "redb", "embedded", "transactions"],
+      "is_successful": true,
+      "reward_score": 0.88
+    },
+    {
+      "id": "item-async-01",
+      "text": "Managing tokio async task join handles, select! macro cancellations, and bounded channels",
+      "context": {
+        "domain": "async-rust",
+        "language": "rust",
+        "framework": "tokio",
+        "complexity": "Moderate",
+        "tags": ["async"]
+      },
+      "tags": ["async", "tokio", "channels", "select"],
+      "is_successful": true,
+      "reward_score": 0.91
+    },
+    {
+      "id": "item-async-02",
+      "text": "Lock-free queue structures and Mutex contention reduction in async background workers",
+      "context": {
+        "domain": "async-rust",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["async"]
+      },
+      "tags": ["async", "concurrency", "lock-free", "queue"],
+      "is_successful": true,
+      "reward_score": 0.89
+    },
+    {
+      "id": "item-api-01",
+      "text": "Building REST API endpoint handlers with JSON serialization and Axum routing",
+      "context": {
+        "domain": "web-api",
+        "language": "rust",
+        "framework": "axum",
+        "complexity": "Moderate",
+        "tags": ["web-api"]
+      },
+      "tags": ["web-api", "axum", "serde", "json"],
+      "is_successful": true,
+      "reward_score": 0.94
+    },
+    {
+      "id": "item-api-02",
+      "text": "Handling OpenAPI specification generation and error response schemas in Rust microservices",
+      "context": {
+        "domain": "web-api",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["web-api"]
+      },
+      "tags": ["web-api", "openapi", "errors", "schema"],
+      "is_successful": true,
+      "reward_score": 0.87
+    },
+    {
+      "id": "item-devops-01",
+      "text": "Configuring GitHub Actions CI workflow matrices with cargo test, clippy, and caching",
+      "context": {
+        "domain": "devops",
+        "language": "yaml",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["ci"]
+      },
+      "tags": ["ci", "github-actions", "cargo", "testing"],
+      "is_successful": true,
+      "reward_score": 0.93
+    },
+    {
+      "id": "item-devops-02",
+      "text": "Docker multi-stage builds for Rust binaries with slim alpine/debian base images",
+      "context": {
+        "domain": "devops",
+        "language": null,
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["docker"]
+      },
+      "tags": ["devops", "docker", "containers", "deployment"],
+      "is_successful": true,
+      "reward_score": 0.90
+    },
+    {
+      "id": "item-search-01",
+      "text": "BM25 keyword search index scoring and TF-IDF term frequency normalization",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "tags": ["search", "bm25", "tfidf", "retrieval"],
+      "is_successful": true,
+      "reward_score": 0.96
+    },
+    {
+      "id": "item-search-02",
+      "text": "Hyperdimensional computing (HDC) vector encoding for fast binary similarity match",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "tags": ["search", "hdc", "vectors", "retrieval"],
+      "is_successful": true,
+      "reward_score": 0.92
+    },
+    {
+      "id": "item-search-03",
+      "text": "Cosine similarity calculation and AVX2 / SIMD autovectorization for dense embeddings",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "tags": ["search", "embeddings", "simd", "cosine"],
+      "is_successful": true,
+      "reward_score": 0.95
+    },
+    {
+      "id": "item-test-01",
+      "text": "Writing unit and integration tests with tempfile and mock storage fixtures in Rust",
+      "context": {
+        "domain": "testing",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["testing"]
+      },
+      "tags": ["testing", "fixtures", "mock", "cargo-test"],
+      "is_successful": true,
+      "reward_score": 0.91
+    },
+    {
+      "id": "item-test-02",
+      "text": "Property-based testing with proptest for arbitrary struct generators and invariants",
+      "context": {
+        "domain": "testing",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["testing"]
+      },
+      "tags": ["testing", "proptest", "property-testing"],
+      "is_successful": true,
+      "reward_score": 0.89
+    }
+  ],
+  "queries": [
+    {
+      "id": "q-01",
+      "query": "OAuth2 JWT token authentication middleware in Rust tokio",
+      "context": {
+        "domain": "security",
+        "language": "rust",
+        "framework": "tokio",
+        "complexity": "Moderate",
+        "tags": ["auth"]
+      },
+      "expected_ids": ["item-auth-01"],
+      "tags": ["auth"],
+      "expected_accepted_id": "item-auth-01"
+    },
+    {
+      "id": "q-02",
+      "query": "Password hashing with Argon2id and rate limiting",
+      "context": {
+        "domain": "security",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["security"]
+      },
+      "expected_ids": ["item-auth-02"],
+      "tags": ["security"],
+      "expected_accepted_id": "item-auth-02"
+    },
+    {
+      "id": "q-03",
+      "query": "SQLite libSQL index optimization with WAL mode",
+      "context": {
+        "domain": "database",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["database"]
+      },
+      "expected_ids": ["item-db-01"],
+      "tags": ["database"],
+      "expected_accepted_id": "item-db-01"
+    },
+    {
+      "id": "q-04",
+      "query": "Redb transactions and table compaction in embedded storage",
+      "context": {
+        "domain": "database",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["database"]
+      },
+      "expected_ids": ["item-db-02"],
+      "tags": ["database"],
+      "expected_accepted_id": "item-db-02"
+    },
+    {
+      "id": "q-05",
+      "query": "Tokio join handles and select macro channels",
+      "context": {
+        "domain": "async-rust",
+        "language": "rust",
+        "framework": "tokio",
+        "complexity": "Moderate",
+        "tags": ["async"]
+      },
+      "expected_ids": ["item-async-01"],
+      "tags": ["async"],
+      "expected_accepted_id": "item-async-01"
+    },
+    {
+      "id": "q-06",
+      "query": "Lock free queues and reducing Mutex lock contention",
+      "context": {
+        "domain": "async-rust",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["async"]
+      },
+      "expected_ids": ["item-async-02"],
+      "tags": ["async"],
+      "expected_accepted_id": "item-async-02"
+    },
+    {
+      "id": "q-07",
+      "query": "REST API endpoint handlers with Axum and Serde JSON",
+      "context": {
+        "domain": "web-api",
+        "language": "rust",
+        "framework": "axum",
+        "complexity": "Moderate",
+        "tags": ["web-api"]
+      },
+      "expected_ids": ["item-api-01"],
+      "tags": ["web-api"],
+      "expected_accepted_id": "item-api-01"
+    },
+    {
+      "id": "q-08",
+      "query": "OpenAPI specification error response schemas",
+      "context": {
+        "domain": "web-api",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["web-api"]
+      },
+      "expected_ids": ["item-api-02"],
+      "tags": ["web-api"],
+      "expected_accepted_id": "item-api-02"
+    },
+    {
+      "id": "q-09",
+      "query": "GitHub Actions CI matrix cargo test clippy workflow",
+      "context": {
+        "domain": "devops",
+        "language": "yaml",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["devops"]
+      },
+      "expected_ids": ["item-devops-01"],
+      "tags": ["devops"],
+      "expected_accepted_id": "item-devops-01"
+    },
+    {
+      "id": "q-10",
+      "query": "Docker multi stage builds for Rust base containers",
+      "context": {
+        "domain": "devops",
+        "language": null,
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["devops"]
+      },
+      "expected_ids": ["item-devops-02"],
+      "tags": ["devops"],
+      "expected_accepted_id": "item-devops-02"
+    },
+    {
+      "id": "q-11",
+      "query": "BM25 keyword search index term frequency",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "expected_ids": ["item-search-01"],
+      "tags": ["search"],
+      "expected_accepted_id": "item-search-01"
+    },
+    {
+      "id": "q-12",
+      "query": "Hyperdimensional computing HDC vector encoding match",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "expected_ids": ["item-search-02"],
+      "tags": ["search"],
+      "expected_accepted_id": "item-search-02"
+    },
+    {
+      "id": "q-13",
+      "query": "Cosine similarity SIMD AVX2 dense embedding calculation",
+      "context": {
+        "domain": "search",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["search"]
+      },
+      "expected_ids": ["item-search-03"],
+      "tags": ["search"],
+      "expected_accepted_id": "item-search-03"
+    },
+    {
+      "id": "q-14",
+      "query": "Integration testing with tempfile mock fixtures",
+      "context": {
+        "domain": "testing",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["testing"]
+      },
+      "expected_ids": ["item-test-01"],
+      "tags": ["testing"],
+      "expected_accepted_id": "item-test-01"
+    },
+    {
+      "id": "q-15",
+      "query": "Proptest property based testing generators in Rust",
+      "context": {
+        "domain": "testing",
+        "language": "rust",
+        "framework": null,
+        "complexity": "Moderate",
+        "tags": ["testing"]
+      },
+      "expected_ids": ["item-test-02"],
+      "tags": ["testing"],
+      "expected_accepted_id": "item-test-02"
+    }
+  ]
+}

@@ -357,3 +357,46 @@ jobs:
                 repo: context.repo.repo,
                 body: body
               });
+
+  retrieval-eval-benchmark:
+    name: Retrieval Quality & Cost Benchmark
+    runs-on: ubuntu-latest
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'skip-benchmarks')
+    permissions:
+      contents: read
+      actions: write
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: retrieval-eval-benchmark
+          save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+          components: rustfmt, clippy
+
+      - name: Run retrieval evaluation harness
+        run: |
+          mkdir -p benchmark_results
+          cargo run -p do-memory-cli -- eval benchmark \
+            --fixture benches/fixtures/retrieval_benchmark_corpus.json \
+            --baseline benches/fixtures/retrieval_baseline.json \
+            --fail-on-regression \
+            --output-json benchmark_results/retrieval_eval.json \
+            --output-markdown benchmark_results/retrieval_eval.md
+
+      - name: Archive retrieval evaluation benchmark results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: retrieval-eval-results-${{ github.sha }}
+          path: benchmark_results/
+          if-no-files-found: error
+          retention-days: 90

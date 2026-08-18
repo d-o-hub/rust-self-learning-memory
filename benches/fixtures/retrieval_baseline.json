@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-03-30T00:00:00Z",
+  "corpus_version": "1.0.0",
+  "corpus_size": 15,
+  "query_count": 15,
+  "strategies": {
+    "adaptive": {
+      "strategy": "adaptive",
+      "total_queries": 15,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_1": 1.0,
+      "ndcg_at_3": 1.0,
+      "ndcg_at_5": 1.0,
+      "ndcg_at_10": 1.0,
+      "recommendation_success_rate": 1.0,
+      "tier_distribution": {
+        "tier1_bm25_count": 15,
+        "tier2_hdc_count": 0,
+        "tier3_concept_graph_count": 0,
+        "tier4_api_count": 0,
+        "tier1_percentage": 100.0,
+        "tier2_percentage": 0.0,
+        "tier3_percentage": 0.0,
+        "tier4_percentage": 0.0
+      },
+      "embedding_calls_per_query": 0.0,
+      "local_latency": {
+        "p50_us": 50,
+        "p95_us": 200,
+        "p99_us": 500,
+        "avg_us": 80
+      },
+      "end_to_end_latency": {
+        "p50_us": 60,
+        "p95_us": 210,
+        "p99_us": 520,
+        "avg_us": 90
+      },
+      "cache_hit_rate": 0.0,
+      "avg_candidate_set_before_ranking": 15.0,
+      "avg_candidate_set_after_ranking": 1.0,
+      "estimated_cost_per_query": 0.0,
+      "estimated_cost_per_successful_rec": 0.0
+    },
+    "local_only": {
+      "strategy": "local_only",
+      "total_queries": 15,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_1": 1.0,
+      "ndcg_at_3": 1.0,
+      "ndcg_at_5": 1.0,
+      "ndcg_at_10": 1.0,
+      "recommendation_success_rate": 1.0,
+      "tier_distribution": {
+        "tier1_bm25_count": 15,
+        "tier2_hdc_count": 0,
+        "tier3_concept_graph_count": 0,
+        "tier4_api_count": 0,
+        "tier1_percentage": 100.0,
+        "tier2_percentage": 0.0,
+        "tier3_percentage": 0.0,
+        "tier4_percentage": 0.0
+      },
+      "embedding_calls_per_query": 0.0,
+      "local_latency": {
+        "p50_us": 50,
+        "p95_us": 200,
+        "p99_us": 500,
+        "avg_us": 80
+      },
+      "end_to_end_latency": {
+        "p50_us": 60,
+        "p95_us": 210,
+        "p99_us": 520,
+        "avg_us": 90
+      },
+      "cache_hit_rate": 0.0,
+      "avg_candidate_set_before_ranking": 15.0,
+      "avg_candidate_set_after_ranking": 1.0,
+      "estimated_cost_per_query": 0.0,
+      "estimated_cost_per_successful_rec": 0.0
+    },
+    "always_embed": {
+      "strategy": "always_embed",
+      "total_queries": 15,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_1": 1.0,
+      "ndcg_at_3": 1.0,
+      "ndcg_at_5": 1.0,
+      "ndcg_at_10": 1.0,
+      "recommendation_success_rate": 1.0,
+      "tier_distribution": {
+        "tier1_bm25_count": 0,
+        "tier2_hdc_count": 0,
+        "tier3_concept_graph_count": 0,
+        "tier4_api_count": 15,
+        "tier1_percentage": 0.0,
+        "tier2_percentage": 0.0,
+        "tier3_percentage": 0.0,
+        "tier4_percentage": 100.0
+      },
+      "embedding_calls_per_query": 1.0,
+      "local_latency": {
+        "p50_us": 50,
+        "p95_us": 200,
+        "p99_us": 500,
+        "avg_us": 80
+      },
+      "end_to_end_latency": {
+        "p50_us": 60,
+        "p95_us": 210,
+        "p99_us": 520,
+        "avg_us": 90
+      },
+      "cache_hit_rate": 0.0,
+      "avg_candidate_set_before_ranking": 15.0,
+      "avg_candidate_set_after_ranking": 1.0,
+      "estimated_cost_per_query": 0.00005256,
+      "estimated_cost_per_successful_rec": 0.00005256
+    }
+  }
+}

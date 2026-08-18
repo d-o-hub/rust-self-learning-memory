@@ -13,6 +13,7 @@
 
 pub mod cache;
 pub mod cascade;
+pub mod eval;
 pub mod gist;
 pub mod semantic_retriever;
 pub mod shard;
@@ -36,6 +37,11 @@ pub use cache::{
     RANKING_CONFIG_VERSION, RetrievalProvenance, provider_cache_identity,
 };
 pub use cascade::{CascadeConfig, CascadeError, CascadeResult, CascadeRetriever};
+pub use eval::{
+    BenchmarkMetrics, BenchmarkQuery, BenchmarkReport, CostModel, FixtureCorpus, FixtureItem,
+    RegressionCheckResult, RegressionChecker, RegressionThresholds, RetrievalEvaluator,
+    RetrievalStrategy, format_markdown_report,
+};
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
 pub use semantic_retriever::{HybridHit, ScoreComponents, SemanticRetriever};
 pub use shard::{EpisodeMetadata, RoutingResult, ScopeFilter, ShardConfig, ShardRouter, TimeRange};

@@ -72,4 +72,10 @@ ignore = [
     # Mitigation: do-memory-mcp uses HMAC (HS256) exclusively, not RSA.
     # rsa is a transitive dependency of jsonwebtoken we don't directly use.
     "RUSTSEC-2023-0071",
+
+    # RUSTSEC-2026-0258: h2 unbounded empty DATA frames
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> hyper 0.14 -> h2 0.3.27
+    # Fix: Patched in h2 >=0.4.16 (h2 0.3.27 in hyper 0.14 is unpatched)
+    # Mitigation: Transitive dependency via hyper 0.14, awaiting libsql upstream update to hyper 1.x
+    "RUSTSEC-2026-0258",
 ]

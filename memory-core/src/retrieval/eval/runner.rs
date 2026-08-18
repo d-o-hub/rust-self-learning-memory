@@ -137,12 +137,8 @@ impl RetrievalEvaluator {
 
             let (retrieved_ids, api_calls, contributing_tiers) = match cascade_res {
                 Ok(r) => match strategy {
-                    RetrievalStrategy::AlwaysEmbed => {
-                        (r.episode_ids, 1, vec!["api".to_string()])
-                    }
-                    RetrievalStrategy::LocalOnly => {
-                        (r.episode_ids, 0, r.contributing_tiers)
-                    }
+                    RetrievalStrategy::AlwaysEmbed => (r.episode_ids, 1, vec!["api".to_string()]),
+                    RetrievalStrategy::LocalOnly => (r.episode_ids, 0, r.contributing_tiers),
                     RetrievalStrategy::Adaptive => {
                         (r.episode_ids, r.api_calls, r.contributing_tiers)
                     }
@@ -156,9 +152,7 @@ impl RetrievalEvaluator {
                         RetrievalStrategy::AlwaysEmbed => {
                             (fallback_ids, 1, vec!["api".to_string()])
                         }
-                        RetrievalStrategy::LocalOnly => {
-                            (fallback_ids, 0, vec!["bm25".to_string()])
-                        }
+                        RetrievalStrategy::LocalOnly => (fallback_ids, 0, vec!["bm25".to_string()]),
                         RetrievalStrategy::Adaptive => {
                             if has_good_match {
                                 (fallback_ids, 0, vec!["bm25".to_string()])
@@ -233,8 +227,9 @@ impl RetrievalEvaluator {
         let mut retrieved_idx_lists: Vec<Vec<usize>> = Vec::with_capacity(total_q);
         let mut expected_idx_sets: Vec<HashSet<usize>> = Vec::with_capacity(total_q);
 
-        for (retrieved_strings, expected_strings) in
-            retrieved_string_lists.iter().zip(expected_string_sets.iter())
+        for (retrieved_strings, expected_strings) in retrieved_string_lists
+            .iter()
+            .zip(expected_string_sets.iter())
         {
             let mut r_idxs = Vec::new();
             for s in retrieved_strings {

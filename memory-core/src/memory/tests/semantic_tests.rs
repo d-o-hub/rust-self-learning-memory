@@ -30,6 +30,7 @@ pub async fn test_with_semantic_config() {
         batch_size: 16,
         cache_embeddings: false,
         timeout_seconds: 60,
+        ..Default::default()
     };
 
     let memory = SelfLearningMemory::with_semantic_config(

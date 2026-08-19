@@ -39,6 +39,7 @@
 
 pub mod activation;
 mod circuit_breaker;
+pub mod coalescing;
 pub mod config;
 mod hnsw;
 mod index;
@@ -60,13 +61,14 @@ mod utils;
 
 pub use activation::EmbeddingActivation;
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState};
+pub use coalescing::CoalescedEmbeddingProvider;
 #[cfg(feature = "hnsw")]
 pub use hnsw::HnswVectorIndex;
 pub use index::{SimpleVectorIndex, VectorHit, VectorIndex};
 // New configuration types
 pub use config::{
-    AzureOpenAIConfig, CustomConfig, EmbeddingConfig, LocalConfig, MistralConfig, OpenAIConfig,
-    OptimizationConfig, ProviderConfig,
+    AzureOpenAIConfig, BatchingConfig, CustomConfig, EmbeddingConfig, LocalConfig, MistralConfig,
+    OpenAIConfig, OptimizationConfig, ProviderConfig,
 };
 pub use local::{
     LocalEmbeddingProvider, LocalModelUseCase, get_recommended_model, list_available_models,
@@ -87,5 +89,7 @@ pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingSt
 
 #[cfg(all(test, feature = "mistral"))]
 mod mistral_tests;
+#[cfg(test)]
+mod coalescing_tests;
 #[cfg(test)]
 pub mod tests;

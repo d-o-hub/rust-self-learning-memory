@@ -218,6 +218,7 @@ fn main() {
         cache_embeddings: true,
         batch_size: 100,
         timeout_seconds: 30,
+        batch: Default::default(),
     };
 
     println!("Complete EmbeddingConfig:");

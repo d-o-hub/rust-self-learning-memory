@@ -61,8 +61,8 @@ impl CoalescedEmbeddingProvider {
         config: BatchingConfig,
         cache_enabled: bool,
     ) -> Self {
-        let cache_capacity = NonZeroUsize::new(DEFAULT_CACHE_CAPACITY)
-            .expect("DEFAULT_CACHE_CAPACITY is non-zero");
+        let cache_capacity =
+            NonZeroUsize::new(DEFAULT_CACHE_CAPACITY).expect("DEFAULT_CACHE_CAPACITY is non-zero");
         let cache = Arc::new(Mutex::new(LruCache::new(cache_capacity)));
         let in_flight = Arc::new(Mutex::new(HashMap::new()));
 
@@ -273,7 +273,9 @@ impl EmbeddingProvider for CoalescedEmbeddingProvider {
         if is_first {
             struct SendGuard<'a> {
                 key: &'a str,
-                map: &'a Arc<Mutex<HashMap<String, watch::Sender<Option<Result<Vec<f32>, String>>>>>>,
+                map: &'a Arc<
+                    Mutex<HashMap<String, watch::Sender<Option<Result<Vec<f32>, String>>>>>,
+                >,
                 sent: bool,
             }
 

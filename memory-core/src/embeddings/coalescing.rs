@@ -133,9 +133,8 @@ impl CoalescedEmbeddingProvider {
                 }
             }
 
-            let permit = match semaphore.clone().acquire_owned().await {
-                Ok(permit) => permit,
-                Err(_) => break,
+            let Ok(permit) = semaphore.clone().acquire_owned().await else {
+                break;
             };
 
             let inner = inner.clone();
@@ -184,39 +183,44 @@ impl CoalescedEmbeddingProvider {
 
         let result = inner.embed_batch(&unique_texts).await;
 
+        let result_to_fanout = match result {
+            Ok(embeddings) if embeddings.len() == unique_keys.len() => {
+                if cache_enabled {
+                    let mut c = cache.lock();
+                    for (key, vec) in cache_keys.iter().zip(embeddings.iter()) {
+                        c.put(key.clone(), vec.clone());
+                    }
+                }
+                Ok(embeddings)
+            }
+            Ok(embeddings) => Err(format!(
+                "Provider embed_batch returned {} embeddings for {} texts",
+                embeddings.len(),
+                unique_keys.len()
+            )),
+            Err(err) => Err(err.to_string()),
+        };
+
+        Self::fanout_batch_result(in_flight, unique_keys, result_to_fanout);
+
+        guard.completed = true;
+    }
+
+    fn fanout_batch_result(
+        in_flight: Arc<Mutex<HashMap<String, watch::Sender<Option<Result<Vec<f32>, String>>>>>>,
+        unique_keys: Vec<String>,
+        result: Result<Vec<Vec<f32>>, String>,
+    ) {
+        let mut map = in_flight.lock();
         match result {
             Ok(embeddings) => {
-                if embeddings.len() == unique_keys.len() {
-                    if cache_enabled {
-                        let mut c = cache.lock();
-                        for (key, vec) in cache_keys.iter().zip(embeddings.iter()) {
-                            c.put(key.clone(), vec.clone());
-                        }
-                    }
-
-                    let mut map = in_flight.lock();
-                    for (key, vec) in unique_keys.into_iter().zip(embeddings) {
-                        if let Some(tx) = map.remove(&key) {
-                            let _ = tx.send(Some(Ok(vec)));
-                        }
-                    }
-                } else {
-                    let err_msg = format!(
-                        "Provider embed_batch returned {} embeddings for {} texts",
-                        embeddings.len(),
-                        unique_keys.len()
-                    );
-                    let mut map = in_flight.lock();
-                    for key in unique_keys {
-                        if let Some(tx) = map.remove(&key) {
-                            let _ = tx.send(Some(Err(err_msg.clone())));
-                        }
+                for (key, vec) in unique_keys.into_iter().zip(embeddings) {
+                    if let Some(tx) = map.remove(&key) {
+                        let _ = tx.send(Some(Ok(vec)));
                     }
                 }
             }
-            Err(err) => {
-                let err_msg = err.to_string();
-                let mut map = in_flight.lock();
+            Err(err_msg) => {
                 for key in unique_keys {
                     if let Some(tx) = map.remove(&key) {
                         let _ = tx.send(Some(Err(err_msg.clone())));
@@ -224,8 +228,6 @@ impl CoalescedEmbeddingProvider {
                 }
             }
         }
-
-        guard.completed = true;
     }
 }
 
@@ -279,7 +281,7 @@ impl EmbeddingProvider for CoalescedEmbeddingProvider {
                 sent: bool,
             }
 
-            impl<'a> Drop for SendGuard<'a> {
+            impl Drop for SendGuard<'_> {
                 fn drop(&mut self) {
                     if !self.sent {
                         self.map.lock().remove(self.key);

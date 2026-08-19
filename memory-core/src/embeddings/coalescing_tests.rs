@@ -78,8 +78,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_request_coalescing_and_batching() {
-        let (inner, _call_cnt, batch_cnt) =
-            TrackingProvider::new(Duration::from_millis(50), false);
+        let (inner, _call_cnt, batch_cnt) = TrackingProvider::new(Duration::from_millis(50), false);
         let config = BatchingConfig {
             enabled: true,
             max_batch_size: 10,
@@ -117,8 +116,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_cache_hits_bypass_provider() {
-        let (inner, _call_cnt, batch_cnt) =
-            TrackingProvider::new(Duration::from_millis(10), false);
+        let (inner, _call_cnt, batch_cnt) = TrackingProvider::new(Duration::from_millis(10), false);
         let config = BatchingConfig {
             enabled: true,
             max_batch_size: 10,
@@ -146,8 +144,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_error_fanout_no_cache_poisoning() {
-        let (inner, _call_cnt, batch_cnt) =
-            TrackingProvider::new(Duration::from_millis(10), true);
+        let (inner, _call_cnt, batch_cnt) = TrackingProvider::new(Duration::from_millis(10), true);
         let config = BatchingConfig {
             enabled: true,
             max_batch_size: 10,
@@ -194,8 +191,8 @@ mod tests {
         let p2 = provider.clone();
 
         let h1 = tokio::spawn(async move {
-            let _ = tokio::time::timeout(Duration::from_millis(30), p1.embed_text("slow_text"))
-                .await;
+            let _ =
+                tokio::time::timeout(Duration::from_millis(30), p1.embed_text("slow_text")).await;
         });
 
         let h2 = tokio::spawn(async move { p2.embed_text("slow_text").await });

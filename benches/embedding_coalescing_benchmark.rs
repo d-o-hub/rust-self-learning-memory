@@ -7,9 +7,7 @@ use std::time::Duration;
 use anyhow::Result;
 use async_trait::async_trait;
 use criterion::{Criterion, criterion_group, criterion_main};
-use do_memory_core::embeddings::{
-    BatchingConfig, CoalescedEmbeddingProvider, EmbeddingProvider,
-};
+use do_memory_core::embeddings::{BatchingConfig, CoalescedEmbeddingProvider, EmbeddingProvider};
 use tokio::runtime::Runtime;
 
 struct BenchProvider {

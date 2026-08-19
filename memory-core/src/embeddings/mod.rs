@@ -87,9 +87,9 @@ pub use similarity::{
 };
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
 
-#[cfg(all(test, feature = "mistral"))]
-mod mistral_tests;
 #[cfg(test)]
 mod coalescing_tests;
+#[cfg(all(test, feature = "mistral"))]
+mod mistral_tests;
 #[cfg(test)]
 pub mod tests;

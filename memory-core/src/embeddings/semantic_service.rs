@@ -39,16 +39,16 @@ impl SemanticService {
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
     ) -> Self {
-        let wrapped_provider: Box<dyn super::provider::EmbeddingProvider> =
-            if config.batch.enabled {
-                Box::new(super::coalescing::CoalescedEmbeddingProvider::new(
-                    std::sync::Arc::from(provider),
-                    config.batch.clone(),
-                    config.cache_embeddings,
-                ))
-            } else {
-                provider
-            };
+        let wrapped_provider: Box<dyn super::provider::EmbeddingProvider> = if config.batch.enabled
+        {
+            Box::new(super::coalescing::CoalescedEmbeddingProvider::new(
+                std::sync::Arc::from(provider),
+                config.batch.clone(),
+                config.cache_embeddings,
+            ))
+        } else {
+            provider
+        };
 
         Self {
             provider: wrapped_provider,

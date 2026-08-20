@@ -44,9 +44,12 @@ where
     // Elements 0..k will be the "top k" (according to compare)
     slice.select_nth_unstable_by(k - 1, &mut compare);
 
-    // Extract and sort just the top k elements
+    // Extract and sort just the top k elements in-place using PDQSort (pattern-defeating quicksort).
+    // Using `sort_unstable_by` eliminates O(k) temporary heap allocations incurred by stable sort
+    // (`sort_by`). Since `select_nth_unstable_by` above is already an unstable partitioning phase,
+    // equal elements among 0..k had non-deterministic ordering before this step, making stable sort redundant.
     let mut top_k: Vec<T> = slice[..k].to_vec();
-    top_k.sort_by(&mut compare);
+    top_k.sort_unstable_by(&mut compare);
     top_k
 }
 
@@ -72,8 +75,9 @@ where
 
     slice.select_nth_unstable_by(k - 1, |a, b| compare(&a.1, &b.1));
 
+    // Sort in-place using PDQSort to avoid O(k) temporary merge-sort allocations.
     let mut top_k: Vec<(usize, T)> = slice[..k].to_vec();
-    top_k.sort_by(|a, b| compare(&a.1, &b.1));
+    top_k.sort_unstable_by(|a, b| compare(&a.1, &b.1));
     top_k
 }
 

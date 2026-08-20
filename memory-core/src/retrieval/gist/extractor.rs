@@ -185,12 +185,12 @@ impl GistExtractor {
         score.min(1.0)
     }
 
-    /// Select top-k sentences by score.
-    fn select_top_k(&self, scored: Vec<(String, f32)>, k: usize) -> Vec<String> {
-        let mut sorted = scored;
-        sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-
-        sorted.into_iter().take(k).map(|(s, _)| s).collect()
+    /// Select top-k sentences by score using O(N + k log k) partial sorting.
+    fn select_top_k(&self, mut scored: Vec<(String, f32)>, k: usize) -> Vec<String> {
+        let top = crate::search::select_top_k(&mut scored, k, |a, b| {
+            b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        top.into_iter().map(|(s, _)| s).collect()
     }
 
     /// Compute gist density score.

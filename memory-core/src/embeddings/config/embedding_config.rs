@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use super::batching_config::BatchingConfig;
 use super::provider_config::ProviderConfig;
 
 /// Configuration for the embedding system
@@ -17,6 +18,9 @@ pub struct EmbeddingConfig {
     pub cache_embeddings: bool,
     /// Timeout for embedding requests (seconds)
     pub timeout_seconds: u64,
+    /// Configuration for request batching and coalescing
+    #[serde(default)]
+    pub batch: BatchingConfig,
 }
 
 impl Default for EmbeddingConfig {
@@ -27,6 +31,7 @@ impl Default for EmbeddingConfig {
             batch_size: 32,
             cache_embeddings: true,
             timeout_seconds: 30,
+            batch: BatchingConfig::default(),
         }
     }
 }
@@ -68,6 +73,7 @@ mod tests {
             batch_size: 64,
             cache_embeddings: false,
             timeout_seconds: 60,
+            batch: BatchingConfig::default(),
         };
 
         assert_eq!(config.similarity_threshold, 0.8);

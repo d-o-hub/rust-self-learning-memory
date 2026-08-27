@@ -113,6 +113,8 @@ nursery = { level = "allow", priority = -1 }
 allow_attributes = "deny"
 # unnecessary_wraps: CI allows this; functions return Result for API consistency
 unnecessary_wraps = "allow"
+unused_async = "allow"
+unused_async_trait_impl = "allow"
 
 # Async/Tokio-specific lints (critical for async safety)
 await_holding_lock = "deny"

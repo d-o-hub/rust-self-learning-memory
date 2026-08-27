@@ -139,8 +139,23 @@ impl CascadeRetriever {
     fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
         use super::{compute_weights, merge_results};
 
+        // Helper to apply candidate budget bounding & deduplication
+        let bound_results = |mut results: Vec<(String, f32)>| -> Vec<(String, f32)> {
+            // Deduplicate preserving highest score
+            let mut seen = std::collections::HashSet::new();
+            results.retain(|(id, _)| seen.insert(id.clone()));
+
+            if !self.config.compatibility_mode {
+                if let Some(budget) = self.config.candidate_budget {
+                    results.truncate(budget);
+                }
+            }
+            results
+        };
+
         // Tier 1: BM25 keyword search
-        let bm25_results = self.retrieve_bm25(query);
+        let mut bm25_results = self.retrieve_bm25(query);
+        bm25_results.results = bound_results(bm25_results.results);
 
         // Check if BM25 produced sufficient results
         if bm25_results.sufficient {
@@ -153,18 +168,19 @@ impl CascadeRetriever {
         }
 
         // Tier 2: HDC similarity search
-        let hdc_results = self.retrieve_hdc(query);
+        let mut hdc_results = self.retrieve_hdc(query);
+        hdc_results.results = bound_results(hdc_results.results);
 
         // Check if HDC produced sufficient results (or merge with BM25)
         if self.config.merge_results && !bm25_results.is_empty() {
             // Merge BM25 and HDC results with query-length-dependent weights
             let weights = compute_weights(query.len());
-            let merged = merge_results(
+            let merged = bound_results(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            );
+            ));
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
@@ -186,7 +202,8 @@ impl CascadeRetriever {
 
         // Tier 3: ConceptGraph expansion (optional)
         if self.config.enable_concept_expansion {
-            let concept_results = self.retrieve_concept_graph(query);
+            let mut concept_results = self.retrieve_concept_graph(query);
+            concept_results.results = bound_results(concept_results.results);
 
             if concept_results.sufficient {
                 return CascadeResult {
@@ -202,12 +219,12 @@ impl CascadeRetriever {
         // Return best available results with api_calls = 1 indicator
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
-            merge_results(
+            bound_results(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            )
+            ))
         } else if !hdc_results.is_empty() {
             hdc_results.results.clone()
         } else {

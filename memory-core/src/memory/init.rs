@@ -75,9 +75,11 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     };
 
     let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
-        Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+        Some(crate::spatiotemporal::HierarchicalRetriever::with_options(
             config.temporal_bias_weight,
             config.max_clusters_to_search,
+            config.candidate_budget,
+            config.compatibility_mode,
         ))
     } else {
         None

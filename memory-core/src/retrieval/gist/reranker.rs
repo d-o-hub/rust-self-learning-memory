@@ -108,6 +108,7 @@ impl HierarchicalReranker {
         query: &str,
         top_k: usize,
     ) -> Vec<GistScoredItem> {
+        let top_k = top_k.min(crate::storage::MAX_QUERY_LIMIT);
         if episodes.is_empty() || top_k == 0 {
             return Vec::new();
         }
@@ -293,5 +294,26 @@ impl HierarchicalReranker {
             .map(|s| s.trim())
             .filter(|s| s.len() >= 3)
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{TaskContext, TaskType};
+
+    #[test]
+    fn test_top_k_bounded_to_max_query_limit() {
+        let reranker = HierarchicalReranker::default();
+        let ep = Arc::new(Episode::new(
+            "Test episode description with multiple sentences for testing.".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        ));
+        let episodes = vec![(ep, 0.9)];
+
+        // Requesting usize::MAX should not panic and should be capped safely.
+        let results = reranker.rerank(episodes, usize::MAX);
+        assert_eq!(results.len(), 1);
     }
 }

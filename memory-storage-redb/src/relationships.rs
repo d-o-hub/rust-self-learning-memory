@@ -10,6 +10,10 @@ use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use tracing::debug;
 use uuid::Uuid;
 
+// The async methods below mirror the async `StorageBackend` trait facade but
+// are plain redb calls with no `.await`; `unused_async_trait_impl` fires on
+// each. Kept `async` for signature symmetry with the trait-facing wrappers.
+#[expect(clippy::unused_async_trait_impl)]
 impl RedbStorage {
     // StorageBackend trait implementations
 

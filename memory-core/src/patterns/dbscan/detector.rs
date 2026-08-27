@@ -49,7 +49,7 @@ impl DBSCANAnomalyDetector {
     /// # Errors
     ///
     /// Returns error if feature extraction fails
-    #[expect(clippy::unused_async)]
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn detect_anomalies(
         &self,
         episodes: &[Episode],

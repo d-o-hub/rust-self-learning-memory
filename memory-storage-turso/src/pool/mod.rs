@@ -129,6 +129,7 @@ impl ConnectionPool {
     }
 
     /// Create a new database connection
+    #[expect(clippy::unused_async_trait_impl)]
     async fn create_connection(&self) -> Result<Connection> {
         let conn = self
             .db
@@ -227,11 +228,13 @@ impl ConnectionPool {
     }
 
     /// Get current pool statistics
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn statistics(&self) -> PoolStatistics {
         self.stats.read().clone()
     }
 
     /// Get current pool utilization (0.0 to 1.0)
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn utilization(&self) -> f32 {
         let stats = self.stats.read();
         if self.config.max_connections == 0 {
@@ -241,6 +244,7 @@ impl ConnectionPool {
     }
 
     /// Get number of available connection slots
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn available_connections(&self) -> usize {
         let stats = self.stats.read();
         self.config

@@ -371,6 +371,7 @@ where
     }
 
     /// Evict the oldest entry (LRU eviction)
+    #[expect(clippy::unused_async_trait_impl)]
     async fn evict_oldest(&self, entries: &mut HashMap<K, CacheEntry<V>>) {
         if let Some(oldest_key) = entries
             .iter()

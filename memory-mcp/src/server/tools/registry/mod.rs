@@ -129,6 +129,7 @@ impl ToolRegistry {
     /// # Returns
     ///
     /// Returns `Some(Tool)` if found, `None` if tool doesn't exist
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn load_tool(&self, name: &str) -> Option<Tool> {
         // Check if already in core tools
         if let Some(tool) = self.core_tools.iter().find(|t| t.name == name) {

@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 impl TursoStorage {
     /// Convert a database row to an Episode
+    #[expect(clippy::unused_async_trait_impl)]
     pub async fn row_to_episode(&self, row: &libsql::Row) -> Result<Episode> {
         row_to_episode(row)
     }

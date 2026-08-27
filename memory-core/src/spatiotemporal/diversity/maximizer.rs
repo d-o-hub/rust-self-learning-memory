@@ -250,32 +250,12 @@ impl DiversityMaximizer {
         let emb1 = episode1.embedding();
         let emb2 = episode2.embedding();
 
-        // Handle dimension mismatch
-        if emb1.len() != emb2.len() {
-            return 0.0;
-        }
-
-        if emb1.is_empty() {
-            return 0.0;
-        }
-
-        // Calculate dot product
-        let dot_product: f32 = emb1.iter().zip(emb2.iter()).map(|(a, b)| a * b).sum();
-
-        // Calculate magnitudes
-        let magnitude1: f32 = emb1.iter().map(|x| x * x).sum::<f32>().sqrt();
-        let magnitude2: f32 = emb2.iter().map(|x| x * x).sum::<f32>().sqrt();
-
-        // Avoid division by zero
-        if magnitude1 == 0.0 || magnitude2 == 0.0 {
-            return 0.0;
-        }
-
-        // Cosine similarity
-        let similarity = dot_product / (magnitude1 * magnitude2);
-
-        // Clamp to [0, 1] (cosine can be negative for opposite vectors)
-        similarity.clamp(0.0, 1.0)
+        // Leverage 8-way unrolled accumulator loops from crate::embeddings::cosine_similarity_simd
+        // to break instruction dependency chains and enable SIMD auto-vectorization.
+        // Convert from normalized score range [0.0, 1.0] (where 0.5 is orthogonal) back to
+        // un-normalized non-negative cosine range [0.0, 1.0] (where 0.0 is orthogonal or opposite).
+        let raw_simd = crate::embeddings::cosine_similarity(emb1, emb2);
+        (raw_simd * 2.0 - 1.0).max(0.0)
     }
 
     /// Calculate diversity score for a set of episodes

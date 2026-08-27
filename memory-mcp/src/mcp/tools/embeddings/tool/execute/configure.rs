@@ -51,6 +51,7 @@ impl EmbeddingTools {
             batch_size: input.batch_size.unwrap_or(32),
             cache_embeddings: true,
             timeout_seconds: 30,
+            ..Default::default()
         };
 
         let service = match SemanticService::build_exact(

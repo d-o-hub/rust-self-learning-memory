@@ -16,6 +16,7 @@
 #![allow(clippy::redundant_closure_for_method_calls)]
 #![allow(clippy::unused_self)]
 #![allow(clippy::unused_async)]
+#![allow(clippy::unused_async_trait_impl)]
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::useless_vec)]
 // Format args: inlining not required for error message clarity

@@ -51,6 +51,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::panic)]
+#![allow(clippy::unused_async_trait_impl)]
 #![allow(missing_docs)]
 
 //! # Memory Core

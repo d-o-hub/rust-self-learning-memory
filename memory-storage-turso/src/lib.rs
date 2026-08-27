@@ -33,6 +33,7 @@
 #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::unused_self)]
 #![allow(clippy::unused_async)]
+#![allow(clippy::unused_async_trait_impl)]
 #![allow(clippy::format_in_format_args)]
 #![allow(clippy::to_string_in_format_args)]
 #![allow(clippy::unreadable_literal)]

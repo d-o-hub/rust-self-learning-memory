@@ -11,11 +11,8 @@ pub use provider_enum::EmbeddingProvider;
 // Optimization config (unchanged)
 pub use optimization_config::OptimizationConfig;
 
-pub use batching_config::BatchingConfig;
 // Top-level embedding config
 pub use embedding_config::EmbeddingConfig;
-
-mod batching_config;
 
 // Provider-specific modules
 pub mod mistral;

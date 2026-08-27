@@ -115,11 +115,6 @@ name = "cosine_similarity_benchmark"
 path = "cosine_similarity_benchmark.rs"
 harness = false
 
-[[bench]]
-name = "embedding_coalescing_benchmark"
-path = "embedding_coalescing_benchmark.rs"
-harness = false
-
 # Retrieval quality benchmarks using MTEB/BEIR metrics
 [[bench]]
 name = "retrieval_quality_benchmark"

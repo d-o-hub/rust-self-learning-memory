@@ -73,6 +73,7 @@ impl MonitoringEndpoints {
     }
 
     /// Handle episode metrics endpoint
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn episode_metrics(&self) -> Result<serde_json::Value> {
         debug!("Handling episode metrics request");
 
@@ -88,6 +89,7 @@ impl MonitoringEndpoints {
     }
 
     /// Handle performance metrics endpoint
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn performance_metrics(&self) -> Result<serde_json::Value> {
         debug!("Handling performance metrics request");
 
@@ -103,6 +105,7 @@ impl MonitoringEndpoints {
     }
 
     /// Handle system info endpoint
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn system_info(&self) -> Result<serde_json::Value> {
         debug!("Handling system info request");
 

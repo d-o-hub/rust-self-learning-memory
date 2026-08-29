@@ -47,6 +47,7 @@ impl crate::server::MemoryMCPServer {
     ///
     /// With lazy loading, this initially returns only core tools to significantly
     /// reduce input token usage. Extended tools are loaded on-demand.
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn list_tools(&self) -> Vec<Tool> {
         // Get currently loaded tools (core + session-loaded extended)
         let loaded_tools = self.tool_registry.get_loaded_tools();

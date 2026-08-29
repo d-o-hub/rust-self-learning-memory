@@ -54,6 +54,7 @@ impl KeepAlivePool {
     }
 
     /// Proactively ping active connections
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn proactive_ping(&self) {
         if !self.config().enable_proactive_ping {
             return;

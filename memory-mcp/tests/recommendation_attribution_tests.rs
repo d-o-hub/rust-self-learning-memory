@@ -82,7 +82,7 @@ mod feature_handlers;
 // ────────────────────────────────────────────────────────────────────────
 // Test helpers
 // ────────────────────────────────────────────────────────────────────────
-
+#[expect(clippy::expect_used)]
 async fn make_server(memory: Arc<SelfLearningMemory>) -> MemoryMCPServer {
     MemoryMCPServer::new(SandboxConfig::restrictive(), memory)
         .await

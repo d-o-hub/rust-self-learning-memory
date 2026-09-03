@@ -3,7 +3,7 @@
 # everything CI needs (clippy, rustfmt, llvm-tools, nextest, mold) so that
 # `scripts/bns-cargo.sh` can run `cargo build --workspace` via `bns exec`
 # without paying the apt/cargo-install cost on every environment recreate.
-FROM rust:stable-slim-bookworm
+FROM rust:1-slim-bookworm
 
 ENV CARGO_TERM_COLOR=always \
   RUST_BACKTRACE=1 \

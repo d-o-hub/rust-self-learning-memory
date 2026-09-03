@@ -107,8 +107,9 @@ resolve_component() {
 remote_exec() {
   # Always pass -c: multi-container pods hang on an interactive picker without it.
   # Run inside the repo checkout; exit 3 signals a missing checkout (see ensure_repo).
+  # Note: dir goes in $1 (shifted away) since $0 is not part of "$@" and cannot be shifted.
   bns exec "$BNS_COMPONENT_ID" -c "$BNS_CONTAINER" -- \
-    sh -c 'cd "$0" || exit 3; shift; exec "$@"' "$REPO_DIR" "$@"
+    sh -c 'cd "$1" || exit 3; shift; exec "$@"' sh "$REPO_DIR" "$@"
 }
 
 ensure_repo() {

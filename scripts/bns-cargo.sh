@@ -39,6 +39,13 @@ BNS_COMPONENT_ID="${BNS_COMPONENT_ID:-}"
 BNS_CONTAINER="${BNS_CONTAINER:-rust-builder}"
 BNS_BRANCH="${BNS_BRANCH:-main}"
 
+# Bunnyshell clones gitRepo only as the Docker build context; the running
+# container holds no checkout. The repo lives at REPO_DIR on the container's
+# (ephemeral) root FS and is (re-)cloned on demand by ensure_repo. Cargo
+# caches stay warm on persistent volumes regardless.
+REPO_DIR="${BNS_REPO_DIR:-/app/repo}"
+REPO_URL="${BNS_REPO_URL:-https://github.com/d-o-hub/rust-self-learning-memory.git}"
+
 log_info() { echo -e "${GREEN}[bns-cargo]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[bns-cargo]${NC} $*" >&2; }
 log_error() { echo -e "${RED}[bns-cargo]${NC} $*" >&2; }
@@ -99,7 +106,18 @@ resolve_component() {
 
 remote_exec() {
   # Always pass -c: multi-container pods hang on an interactive picker without it.
-  bns exec "$BNS_COMPONENT_ID" -c "$BNS_CONTAINER" -- "$@"
+  # Run inside the repo checkout; exit 3 signals a missing checkout (see ensure_repo).
+  bns exec "$BNS_COMPONENT_ID" -c "$BNS_CONTAINER" -- \
+    sh -c 'cd "$0" || exit 3; shift; exec "$@"' "$REPO_DIR" "$@"
+}
+
+ensure_repo() {
+  if remote_exec test -d .git 2>/dev/null; then
+    return 0
+  fi
+  log_info "Cloning $REPO_URL (branch $BNS_BRANCH) to $REPO_DIR..."
+  bns exec "$BNS_COMPONENT_ID" -c "$BNS_CONTAINER" -- \
+    git clone --branch "$BNS_BRANCH" "$REPO_URL" "$REPO_DIR"
 }
 
 validate_crate() {
@@ -153,6 +171,7 @@ case "$MODE" in
     ;;
   sync)
     resolve_component || exit 1
+    ensure_repo || exit 1
     log_info "Syncing builder to branch $BNS_BRANCH..."
     remote_exec git fetch origin
     remote_exec git checkout "$BNS_BRANCH"
@@ -160,31 +179,37 @@ case "$MODE" in
     ;;
   dev|release|check|clean|clippy|nextest)
     resolve_component || exit 1
+    ensure_repo || exit 1
     if [[ -n "$CRATE" ]]; then
       validate_crate "$CRATE" || exit 1
     fi
+    cmd=()
     case "$MODE" in
       dev)
-        if [[ -n "$CRATE" ]]; then remote_exec cargo build --package "$CRATE" "${EXTRA_ARGS[@]:-}";
-        else remote_exec cargo build --workspace "${EXTRA_ARGS[@]:-}"; fi ;;
+        cmd=(cargo build)
+        if [[ -n "$CRATE" ]]; then cmd+=(--package "$CRATE"); else cmd+=(--workspace); fi ;;
       release)
-        if [[ -n "$CRATE" ]]; then remote_exec cargo build --release --package "$CRATE" "${EXTRA_ARGS[@]:-}";
-        else remote_exec cargo build --release --workspace "${EXTRA_ARGS[@]:-}"; fi ;;
+        cmd=(cargo build --release)
+        if [[ -n "$CRATE" ]]; then cmd+=(--package "$CRATE"); else cmd+=(--workspace); fi ;;
       check)
-        if [[ -n "$CRATE" ]]; then remote_exec cargo check --package "$CRATE" "${EXTRA_ARGS[@]:-}";
-        else remote_exec cargo check --workspace "${EXTRA_ARGS[@]:-}"; fi ;;
+        cmd=(cargo check)
+        if [[ -n "$CRATE" ]]; then cmd+=(--package "$CRATE"); else cmd+=(--workspace); fi ;;
       clean)
-        if [[ -n "$CRATE" ]]; then remote_exec cargo clean --package "$CRATE" "${EXTRA_ARGS[@]:-}";
-        else
+        cmd=(cargo clean)
+        if [[ -n "$CRATE" ]]; then cmd+=(--package "$CRATE"); fi
+        if [[ -z "$CRATE" ]]; then
           log_warn "cargo clean wipes the warm remote cache; next build will be cold."
-          remote_exec cargo clean "${EXTRA_ARGS[@]:-}"
         fi ;;
       clippy)
-        remote_exec cargo clippy --workspace --all-targets -- "${EXTRA_ARGS[@]:--D warnings}" ;;
+        cmd=(cargo clippy --workspace --all-targets --)
+        if [[ ${#EXTRA_ARGS[@]} -eq 0 ]]; then cmd+=(-D warnings); fi ;;
       nextest)
-        if [[ ${#EXTRA_ARGS[@]} -eq 0 ]]; then remote_exec cargo nextest run --workspace;
-        else remote_exec cargo nextest run --workspace "${EXTRA_ARGS[@]}"; fi ;;
+        cmd=(cargo nextest run --workspace) ;;
     esac
+    if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+      cmd+=("${EXTRA_ARGS[@]}")
+    fi
+    remote_exec "${cmd[@]}"
     log_info "Remote $MODE build finished."
     ;;
   *)

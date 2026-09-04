@@ -100,6 +100,27 @@ async fn test_build_relationship_graph_single_node() {
 }
 
 #[tokio::test]
+async fn test_build_relationship_graph_bounds_max_depth() {
+    let memory = SelfLearningMemory::new();
+
+    let episode_id = memory
+        .start_episode(
+            "Test task".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+        .await;
+
+    // Passing excessive depth should be safely clamped to MAX_RELATIONSHIP_DEPTH without failing
+    let graph = memory
+        .build_relationship_graph(episode_id, 999_999)
+        .await
+        .unwrap();
+
+    assert_eq!(graph.root, episode_id);
+}
+
+#[tokio::test]
 async fn test_get_episode_with_relationships() {
     let memory = SelfLearningMemory::new();
 

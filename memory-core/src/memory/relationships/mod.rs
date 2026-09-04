@@ -284,6 +284,7 @@ impl SelfLearningMemory {
         root_episode_id: Uuid,
         max_depth: usize,
     ) -> Result<RelationshipGraph> {
+        let max_depth = max_depth.min(crate::constants::defaults::MAX_RELATIONSHIP_DEPTH);
         let mut graph = RelationshipGraph::new(root_episode_id);
         let mut visited = std::collections::HashSet::new();
         let mut queue = std::collections::VecDeque::new();

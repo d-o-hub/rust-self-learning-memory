@@ -195,17 +195,10 @@ pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 
 
     // Tags overlap (weight: 0.3)
     if !ctx1.tags.is_empty() || !ctx2.tags.is_empty() {
-        let common_tags: Vec<_> = ctx1.tags.iter().filter(|t| ctx2.tags.contains(t)).collect();
-
-        let total_unique_tags = ctx1
-            .tags
-            .iter()
-            .chain(ctx2.tags.iter())
-            .collect::<std::collections::HashSet<_>>()
-            .len();
-
-        if total_unique_tags > 0 {
-            let jaccard = common_tags.len() as f32 / total_unique_tags as f32;
+        let (intersection_count, union_count) =
+            calculate_tag_jaccard_counts(&ctx1.tags, &ctx2.tags);
+        if union_count > 0 {
+            let jaccard = intersection_count as f32 / union_count as f32;
             score += jaccard * 0.3;
         }
     }
@@ -215,6 +208,47 @@ pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 
         score / weight_sum
     } else {
         0.0
+    }
+}
+
+/// Calculate set intersection and set union sizes for tag lists.
+///
+/// # Optimization
+/// Eliminates intermediate `Vec` allocations (`Vec::collect()`) and avoids `HashSet`
+/// heap allocations for typical small tag sets ($N, M \le 16$) using linear scans.
+/// Falls back to `HashSet<&str>` lookup for larger sets to maintain $O(N+M)$ complexity.
+fn calculate_tag_jaccard_counts(tags1: &[String], tags2: &[String]) -> (usize, usize) {
+    if tags1.len() <= 16 && tags2.len() <= 16 {
+        let mut common = 0;
+        let mut unique1 = 0;
+
+        for (idx, t1) in tags1.iter().enumerate() {
+            if tags1[..idx].iter().any(|prev| prev == t1) {
+                continue;
+            }
+            unique1 += 1;
+            if tags2.iter().any(|t2| t2 == t1) {
+                common += 1;
+            }
+        }
+
+        let mut unique2_only = 0;
+        for (idx, t2) in tags2.iter().enumerate() {
+            if tags2[..idx].iter().any(|prev| prev == t2) {
+                continue;
+            }
+            if !tags1.iter().any(|t1| t1 == t2) {
+                unique2_only += 1;
+            }
+        }
+
+        (common, unique1 + unique2_only)
+    } else {
+        let set1: std::collections::HashSet<&str> = tags1.iter().map(String::as_str).collect();
+        let set2: std::collections::HashSet<&str> = tags2.iter().map(String::as_str).collect();
+        let common = set1.intersection(&set2).count();
+        let union_size = set1.union(&set2).count();
+        (common, union_size)
     }
 }
 

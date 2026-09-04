@@ -193,14 +193,13 @@ pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 
     }
     weight_sum += 0.3;
 
-    // Tags overlap (weight: 0.3)
+    // Tags overlap (weight: 0.3). At least one side is non-empty here, so the
+    // union is non-empty and the Jaccard ratio is well-defined.
     if !ctx1.tags.is_empty() || !ctx2.tags.is_empty() {
         let (intersection_count, union_count) =
             calculate_tag_jaccard_counts(&ctx1.tags, &ctx2.tags);
-        if union_count > 0 {
-            let jaccard = intersection_count as f32 / union_count as f32;
-            score += jaccard * 0.3;
-        }
+        let jaccard = intersection_count as f32 / union_count as f32;
+        score += jaccard * 0.3;
     }
     weight_sum += 0.3;
 
@@ -214,9 +213,16 @@ pub(super) fn context_similarity(ctx1: &TaskContext, ctx2: &TaskContext) -> f32 
 /// Calculate set intersection and set union sizes for tag lists.
 ///
 /// # Optimization
-/// Eliminates intermediate `Vec` allocations (`Vec::collect()`) and avoids `HashSet`
-/// heap allocations for typical small tag sets ($N, M \le 16$) using linear scans.
-/// Falls back to `HashSet<&str>` lookup for larger sets to maintain $O(N+M)$ complexity.
+/// Avoids the intermediate `Vec` and `HashSet` heap allocations of the
+/// previous implementation for typical small tag sets (N, M <= 16) using
+/// allocation-free linear scans: O(N*M) time with O(1) extra space (at most
+/// 256 string comparisons at the threshold). Larger sets fall back to
+/// `HashSet<&str>` lookup at O(N+M) time, matching the previous
+/// implementation's asymptotics.
+///
+/// Duplicate tags are counted once on each side (true Jaccard semantics);
+/// the previous implementation counted duplicate occurrences in the first
+/// list against a deduplicated union, which could yield ratios above 1.0.
 fn calculate_tag_jaccard_counts(tags1: &[String], tags2: &[String]) -> (usize, usize) {
     if tags1.len() <= 16 && tags2.len() <= 16 {
         let mut common = 0;
@@ -327,6 +333,74 @@ mod tests {
 
         // Same domain, same language, some tag overlap
         assert!(similarity > 0.7);
+    }
+
+    /// Reference: true Jaccard counts via deduplicated sets.
+    /// Independent of the linear-scan fast path, used for cross-checking.
+    fn reference_jaccard_counts(tags1: &[String], tags2: &[String]) -> (usize, usize) {
+        let set1: std::collections::HashSet<&str> = tags1.iter().map(String::as_str).collect();
+        let set2: std::collections::HashSet<&str> = tags2.iter().map(String::as_str).collect();
+        let common = set1.intersection(&set2).count();
+        let union_size = set1.union(&set2).count();
+        (common, union_size)
+    }
+
+    fn str_vec(items: &[&str]) -> Vec<String> {
+        items.iter().map(|s| (*s).to_string()).collect()
+    }
+
+    #[test]
+    fn test_tag_jaccard_counts_match_reference() {
+        // Cases include empty sides, exact matches, disjoint sets, duplicates
+        // (both sides), asymmetric sizes in both directions, inputs straddling
+        // the 16-element fast-path threshold, and multibyte tags.
+        let big: Vec<String> = (0..20).map(|i| format!("tag{i:02}")).collect();
+        let big_overlap: Vec<String> = (10..30).map(|i| format!("tag{i:02}")).collect();
+        let cases: Vec<(Vec<String>, Vec<String>)> = vec![
+            (vec![], vec![]),
+            (vec![], str_vec(&["a"])),
+            (str_vec(&["a"]), vec![]),
+            (str_vec(&["a"]), str_vec(&["a"])),
+            (str_vec(&["a", "b"]), str_vec(&["b", "c"])),
+            (str_vec(&["x", "y"]), str_vec(&["a", "b", "c"])),
+            // Duplicates collapse to one vote per side (true Jaccard).
+            (str_vec(&["a", "a", "b"]), str_vec(&["a", "c"])),
+            (str_vec(&["a"]), str_vec(&["a", "a", "a"])),
+            (str_vec(&["a", "a"]), str_vec(&["a", "a"])),
+            // Asymmetric: small vs large in both directions.
+            (str_vec(&["tag05"]), big.clone()),
+            (big.clone(), str_vec(&["tag25"])),
+            (big.clone(), big_overlap.clone()),
+            // Multibyte tags compare by value, not by byte length.
+            (str_vec(&["café", "naïve"]), str_vec(&["café", "plain"])),
+        ];
+
+        for (t1, t2) in &cases {
+            assert_eq!(
+                calculate_tag_jaccard_counts(t1, t2),
+                reference_jaccard_counts(t1, t2),
+                "mismatch for {t1:?} vs {t2:?}"
+            );
+            // Both paths must agree with each other via the reference;
+            // also assert symmetry explicitly.
+            assert_eq!(
+                calculate_tag_jaccard_counts(t2, t1),
+                reference_jaccard_counts(t1, t2),
+                "asymmetric result for {t1:?} vs {t2:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_tag_jaccard_duplicate_tags_stay_within_unit_range() {
+        // Regression pin: the previous implementation counted duplicate
+        // occurrences against a deduplicated union and could exceed 1.0.
+        let dupes = str_vec(&["a", "a", "a"]);
+        let single = str_vec(&["a"]);
+        let (common, union_size) = calculate_tag_jaccard_counts(&dupes, &single);
+
+        assert_eq!((common, union_size), (1, 1));
+        assert!(common <= union_size);
     }
 
     #[test]

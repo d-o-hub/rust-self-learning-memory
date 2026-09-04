@@ -30,12 +30,13 @@ RUN rustup toolchain install stable \
 
 RUN cargo install --locked cargo-nextest
 
-# TEMPORARY-ROOT-FIXUP (reverted in next commit): run as root once so we can
-# chown the cargo volumes (populated by root during initial verification) to
-# the builder user. Restored to USER builder immediately after.
-# RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
-#   && chown -R builder:builder /app /usr/local/cargo
-# USER builder
+# Run as non-root: required by Codacy container security gate. Cargo caches
+# live on Bunnyshell volumes (/app/target, /usr/local/cargo/registry) whose
+# contents are chowned to the builder uid (see commit history for the
+# one-time migration); volume roots are world-writable so caches stay warm.
+RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
+  && chown -R builder:builder /app /usr/local/cargo
+USER builder
 
 WORKDIR /app
 

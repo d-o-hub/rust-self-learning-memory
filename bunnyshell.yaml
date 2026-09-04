@@ -32,7 +32,7 @@ components:
   - kind: Application
     name: rust-builder
     gitRepo: 'https://github.com/d-o-hub/rust-self-learning-memory.git'
-    gitBranch: main
+    gitBranch: infra/bunnyshell-remote-builder
     gitApplicationPath: /
     dockerCompose:
       build:

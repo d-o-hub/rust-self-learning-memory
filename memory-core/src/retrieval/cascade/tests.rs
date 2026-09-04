@@ -137,11 +137,18 @@ fn test_config_custom_values() {
         merge_results: false,
         min_results: 2,
         enable_concept_expansion: false,
+        fallback_policy: FallbackPolicy::LocalOnly,
+        local_confidence_threshold: 0.9,
+        minimum_score_margin: 0.1,
     };
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 5);
     assert!(!retriever.config().merge_results);
     assert!(!retriever.config().enable_concept_expansion);
+    assert_eq!(
+        retriever.config().fallback_policy,
+        FallbackPolicy::LocalOnly
+    );
 }
 
 #[test]
@@ -279,6 +286,9 @@ mod csm_tests {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            fallback_policy: FallbackPolicy::Adaptive,
+            local_confidence_threshold: 0.78,
+            minimum_score_margin: 0.08,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -312,6 +322,9 @@ mod csm_tests {
             merge_results: false,
             min_results: 1,
             enable_concept_expansion: false,
+            fallback_policy: FallbackPolicy::Adaptive,
+            local_confidence_threshold: 0.78,
+            minimum_score_margin: 0.08,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -425,6 +438,9 @@ mod csm_tests {
             merge_results: true,
             min_results: 1,
             enable_concept_expansion: true,
+            fallback_policy: FallbackPolicy::Adaptive,
+            local_confidence_threshold: 0.78,
+            minimum_score_margin: 0.08,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -446,5 +462,74 @@ mod csm_tests {
         assert!(!result.contributing_tiers.is_empty());
         // Should have 0 API calls (CPU-local tier satisfied the query)
         assert_eq!(result.api_calls, 0);
+    }
+
+    #[test]
+    fn test_adaptive_rescues_confident_but_few_local_results() {
+        // One strong match with default min_results=3: the count-based tier
+        // rules cannot suffice, so the pre-policy code always reported a
+        // Tier 4 call here. Adaptive confidence must rescue it.
+        let mut retriever = CascadeRetriever::default_config();
+        retriever.add_episode("ep-1", "authentication JWT token implementation");
+
+        let result = retriever
+            .retrieve("authentication JWT token")
+            .expect("csm retrieve should succeed");
+
+        assert!(!result.episode_ids.is_empty());
+        assert_eq!(result.api_calls, 0);
+        assert_eq!(result.fallback_reason, FallbackReason::LocalConfident);
+        assert!(result.top_score >= 0.78);
+    }
+
+    #[test]
+    fn test_adaptive_empty_index_reports_no_local_results() {
+        let retriever = CascadeRetriever::default_config();
+
+        let result = retriever
+            .retrieve("any query")
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(result.api_calls, 1);
+        assert_eq!(result.fallback_reason, FallbackReason::NoLocalResults);
+        assert_eq!(result.contributing_tiers, vec!["none".to_string()]);
+    }
+
+    #[test]
+    fn test_always_embed_counts_call_on_local_hit() {
+        let config = CascadeConfig {
+            fallback_policy: FallbackPolicy::AlwaysEmbed,
+            ..CascadeConfig::default()
+        };
+        let mut retriever = CascadeRetriever::new(config);
+        retriever.add_episode("ep-1", "authentication JWT token implementation");
+        retriever.add_episode("ep-2", "authentication session management");
+        retriever.add_episode("ep-3", "authentication refresh token handling");
+
+        let result = retriever
+            .retrieve("authentication JWT")
+            .expect("csm retrieve should succeed");
+
+        // Local hit is still returned, but the baseline policy counts Tier 4.
+        assert!(!result.episode_ids.is_empty());
+        assert_eq!(result.api_calls, 1);
+        assert_eq!(result.fallback_reason, FallbackReason::AlwaysEmbedPolicy);
+    }
+
+    #[test]
+    fn test_local_only_suppresses_call_on_empty_index() {
+        let config = CascadeConfig {
+            fallback_policy: FallbackPolicy::LocalOnly,
+            ..CascadeConfig::default()
+        };
+        let retriever = CascadeRetriever::new(config);
+
+        let result = retriever
+            .retrieve("any query")
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(result.api_calls, 0);
+        assert_eq!(result.fallback_reason, FallbackReason::LocalOnlyPolicy);
+        assert_eq!(result.contributing_tiers, vec!["none".to_string()]);
     }
 }

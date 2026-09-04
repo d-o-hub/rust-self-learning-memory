@@ -103,4 +103,33 @@ mod tests {
         assert!(!res2.violations.is_empty());
         assert!(res2.violations[0].contains("Recall@5 dropped"));
     }
+
+    /// Issue #968 acceptance: on a corpus where every query has an exact
+    /// local match, `Adaptive` must eliminate Tier 4 calls (>=50% reduction
+    /// vs `AlwaysEmbed`) with no recall regression.
+    #[cfg(feature = "csm")]
+    #[test]
+    fn test_adaptive_halves_tier4_calls_without_quality_loss() {
+        let evaluator = RetrievalEvaluator::new(create_test_corpus());
+
+        let adaptive = evaluator
+            .evaluate_strategy(RetrievalStrategy::Adaptive)
+            .expect("adaptive evaluation should succeed");
+        let always = evaluator
+            .evaluate_strategy(RetrievalStrategy::AlwaysEmbed)
+            .expect("always-embed evaluation should succeed");
+
+        assert!(
+            adaptive.embedding_calls_per_query * 2.0 <= always.embedding_calls_per_query,
+            "adaptive ({} calls/query) must at least halve always-embed ({} calls/query)",
+            adaptive.embedding_calls_per_query,
+            always.embedding_calls_per_query
+        );
+        assert!(
+            adaptive.recall_at_5 + f64::EPSILON >= always.recall_at_5,
+            "adaptive recall ({}) must not regress vs always-embed ({})",
+            adaptive.recall_at_5,
+            always.recall_at_5
+        );
+    }
 }

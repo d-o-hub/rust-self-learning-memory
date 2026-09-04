@@ -12,8 +12,13 @@
 mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
+mod fallback;
+pub use fallback::{FallbackDecision, decide_fallback, local_confidence};
+
 mod types;
-pub use types::{CascadeConfig, CascadeError, CascadeResult, TierResult};
+pub use types::{
+    CascadeConfig, CascadeError, CascadeResult, FallbackPolicy, FallbackReason, TierResult,
+};
 
 /// Cascading retrieval orchestrator.
 ///
@@ -144,6 +149,12 @@ impl CascadeRetriever {
     }
 
     /// Full cascade implementation using CSM components.
+    ///
+    /// Tiers 1-3 return their local results once the count-based sufficiency
+    /// rules hold. When no tier suffices, the Tier 4 fallback decision is
+    /// governed by [`CascadeConfig::fallback_policy`]: `Adaptive` (default)
+    /// returns confident local results without counting an API call and only
+    /// escalates genuinely uncertain queries (see [`decide_fallback`]).
     #[cfg(feature = "csm")]
     fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
         use super::{compute_weights, merge_results};
@@ -153,12 +164,7 @@ impl CascadeRetriever {
 
         // Check if BM25 produced sufficient results
         if bm25_results.sufficient {
-            return CascadeResult {
-                episode_ids: bm25_results.ids(),
-                scores: bm25_results.scores(),
-                contributing_tiers: vec!["bm25".to_string()],
-                api_calls: 0,
-            };
+            return self.finish_local(&bm25_results.results, vec!["bm25".to_string()]);
         }
 
         // Tier 2: HDC similarity search
@@ -177,20 +183,10 @@ impl CascadeRetriever {
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
-                return CascadeResult {
-                    episode_ids: merged.iter().map(|(id, _)| id.clone()).collect(),
-                    scores: merged.iter().map(|(_, s)| *s).collect(),
-                    contributing_tiers: vec!["bm25".to_string(), "hdc".to_string()],
-                    api_calls: 0,
-                };
+                return self.finish_local(&merged, vec!["bm25".to_string(), "hdc".to_string()]);
             }
         } else if hdc_results.sufficient {
-            return CascadeResult {
-                episode_ids: hdc_results.ids(),
-                scores: hdc_results.scores(),
-                contributing_tiers: vec!["hdc".to_string()],
-                api_calls: 0,
-            };
+            return self.finish_local(&hdc_results.results, vec!["hdc".to_string()]);
         }
 
         // Tier 3: ConceptGraph expansion (optional)
@@ -198,17 +194,14 @@ impl CascadeRetriever {
             let concept_results = self.retrieve_concept_graph(query);
 
             if concept_results.sufficient {
-                return CascadeResult {
-                    episode_ids: concept_results.ids(),
-                    scores: concept_results.scores(),
-                    contributing_tiers: vec!["concept_graph".to_string()],
-                    api_calls: 0,
-                };
+                return self
+                    .finish_local(&concept_results.results, vec!["concept_graph".to_string()]);
             }
         }
 
-        // Tier 4: API fallback - mark that we need an API call
-        // Return best available results with api_calls = 1 indicator
+        // Tier 4: confidence-gated API fallback (issue #968).
+        // Return best available results; whether they count as an API call
+        // is decided by the fallback policy, not by result counts alone.
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
             merge_results(
@@ -223,24 +216,82 @@ impl CascadeRetriever {
             bm25_results.results.clone()
         };
 
+        let decision = decide_fallback(
+            self.config.fallback_policy,
+            self.config.local_confidence_threshold,
+            self.config.minimum_score_margin,
+            &best_results,
+        );
+        // No query text, IDs, or scores-as-labels: bounded enums plus
+        // numerics only (telemetry contract in
+        // `plans/GOAP_FEATURE_WAVE_2026-09-04.md`).
+        tracing::info!(
+            policy = %self.config.fallback_policy,
+            reason = %decision.reason,
+            top_score = decision.top_score,
+            score_margin = decision.score_margin,
+            candidates = best_results.len(),
+            api_calls = decision.api_calls,
+            "cascade Tier 4 fallback decision"
+        );
+
+        let mut tiers = Vec::new();
+        if !bm25_results.is_empty() {
+            tiers.push("bm25".to_string());
+        }
+        if !hdc_results.is_empty() {
+            tiers.push("hdc".to_string());
+        }
+        if decision.api_calls == 1 {
+            if best_results.is_empty() {
+                tiers = vec!["none".to_string()];
+            } else {
+                tiers.push("api_fallback_needed".to_string());
+            }
+        } else if tiers.is_empty() {
+            tiers = vec!["none".to_string()];
+        }
+
         CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if best_results.is_empty() {
-                vec!["none".to_string()]
+            contributing_tiers: tiers,
+            api_calls: decision.api_calls,
+            fallback_reason: decision.reason,
+            top_score: decision.top_score,
+            score_margin: decision.score_margin,
+        }
+    }
+
+    /// Package sufficient local-tier results as the final [`CascadeResult`].
+    ///
+    /// Records confidence telemetry for the returned list. The only policy
+    /// with an effect here is [`FallbackPolicy::AlwaysEmbed`], which counts
+    /// a Tier 4 call on top of the local hit for baseline comparisons.
+    #[cfg(feature = "csm")]
+    fn finish_local(&self, results: &[(String, f32)], tiers: Vec<String>) -> CascadeResult {
+        let (top_score, score_margin, _) = local_confidence(
+            results,
+            self.config.local_confidence_threshold,
+            self.config.minimum_score_margin,
+        );
+        let forced = self.config.fallback_policy == FallbackPolicy::AlwaysEmbed;
+        let mut contributing_tiers = tiers;
+        if forced {
+            contributing_tiers.push("api".to_string());
+        }
+        CascadeResult {
+            episode_ids: results.iter().map(|(id, _)| id.clone()).collect(),
+            scores: results.iter().map(|(_, s)| *s).collect(),
+            contributing_tiers,
+            api_calls: u32::from(forced),
+            fallback_reason: if forced {
+                FallbackReason::AlwaysEmbedPolicy
             } else {
-                // Preserve original tier attributions + note that API fallback was needed
-                let mut tiers = Vec::new();
-                if !bm25_results.is_empty() {
-                    tiers.push("bm25".to_string());
-                }
-                if !hdc_results.is_empty() {
-                    tiers.push("hdc".to_string());
-                }
-                tiers.push("api_fallback_needed".to_string());
-                tiers
+                FallbackReason::LocalTierSufficient
             },
-            api_calls: 1, // Indicates API call would be needed
+            top_score,
+            score_margin,
         }
     }
 

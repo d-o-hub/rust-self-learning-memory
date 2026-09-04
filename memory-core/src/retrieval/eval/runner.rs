@@ -3,7 +3,7 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
-use crate::retrieval::cascade::{CascadeConfig, CascadeRetriever};
+use crate::retrieval::cascade::{CascadeConfig, CascadeRetriever, FallbackPolicy};
 use crate::search::metrics::{mrr, ndcg_at_k, recall_at_k};
 
 use super::types::{
@@ -82,9 +82,18 @@ impl RetrievalEvaluator {
     ) -> anyhow::Result<BenchmarkMetrics> {
         let (id_to_index, successful_item_ids) = self.build_item_indexes();
 
+        // Each strategy drives the cascade's Tier 4 fallback policy directly
+        // (issue #968), so `Adaptive` numbers reflect confidence gating while
+        // `AlwaysEmbed` / `LocalOnly` provide the cost/quality baselines.
+        let fallback_policy = match strategy {
+            RetrievalStrategy::AlwaysEmbed => FallbackPolicy::AlwaysEmbed,
+            RetrievalStrategy::LocalOnly => FallbackPolicy::LocalOnly,
+            RetrievalStrategy::Adaptive => FallbackPolicy::Adaptive,
+        };
         let config = CascadeConfig {
             top_k: 10,
             min_results: 1,
+            fallback_policy,
             ..CascadeConfig::default()
         };
 
@@ -276,6 +285,8 @@ impl RetrievalEvaluator {
                 }
                 RetrievalStrategy::Adaptive => (
                     r.episode_ids.clone(),
+                    // Policy-enforced inside the cascade (see evaluate_strategy):
+                    // confident local results report 0, the rest report 1.
                     r.api_calls,
                     r.contributing_tiers.clone(),
                 ),

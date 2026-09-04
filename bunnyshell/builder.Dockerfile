@@ -27,6 +27,13 @@ RUN rustup component add rustfmt clippy llvm-tools-preview
 
 RUN cargo install --locked cargo-nextest
 
+# Run as non-root: required by Codacy container security gate. Cargo caches
+# live on world-writable Bunnyshell volumes (/app/target,
+# /usr/local/cargo/registry), verified writable by uid 1000 on the live env.
+RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
+  && chown -R builder:builder /app /usr/local/cargo
+USER builder
+
 WORKDIR /app
 
 CMD ["sleep", "infinity"]

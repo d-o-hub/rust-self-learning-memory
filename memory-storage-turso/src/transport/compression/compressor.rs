@@ -38,6 +38,7 @@ impl AsyncCompressor {
     ///
     /// Automatically selects the best algorithm based on payload size
     /// and compression ratio.
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn compress(&self, data: &[u8]) -> Result<CompressedPayload> {
         let start = std::time::Instant::now();
 
@@ -122,6 +123,7 @@ impl AsyncCompressor {
     }
 
     /// Decompress data asynchronously
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn decompress(&self, payload: &CompressedPayload) -> Result<Vec<u8>> {
         let start = std::time::Instant::now();
 

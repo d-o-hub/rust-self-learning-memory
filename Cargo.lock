@@ -1678,6 +1678,7 @@ name = "do-memory-benches"
 version = "0.1.40"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "criterion",
  "do-memory-core",

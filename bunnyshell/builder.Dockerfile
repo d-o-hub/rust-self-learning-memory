@@ -23,16 +23,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-RUN rustup component add rustfmt clippy llvm-tools-preview
+RUN rustup toolchain install stable \
+    --component rustfmt,clippy,llvm-tools-preview \
+    --target x86_64-unknown-linux-gnu \
+  && rustup default stable
 
 RUN cargo install --locked cargo-nextest
 
-# Run as non-root: required by Codacy container security gate. Cargo caches
-# live on world-writable Bunnyshell volumes (/app/target,
-# /usr/local/cargo/registry), verified writable by uid 1000 on the live env.
-RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
-  && chown -R builder:builder /app /usr/local/cargo
-USER builder
+# TEMPORARY-ROOT-FIXUP (reverted in next commit): run as root once so we can
+# chown the cargo volumes (populated by root during initial verification) to
+# the builder user. Restored to USER builder immediately after.
+# RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
+#   && chown -R builder:builder /app /usr/local/cargo
+# USER builder
 
 WORKDIR /app
 

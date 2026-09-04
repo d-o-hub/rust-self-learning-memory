@@ -5,7 +5,7 @@ MCP (Model Context Protocol) server integration for the self-learning memory sys
 ## Features
 
 - **MCP Server**: Standard MCP protocol implementation with 19 tools
-- **Episode Lifecycle Management**: Programmatic episode creation, tracking, and completion (NEW in v0.1.13)
+- **Episode Lifecycle Management**: Programmatic episode creation, tracking, and completion
 - **Secure Code Sandbox**: WASM-based code execution with comprehensive security
 - **Memory Integration**: Query episodic memory and analyze learned patterns
 - **Pattern Analysis**: Advanced pattern extraction and recommendations
@@ -165,7 +165,7 @@ let config = SandboxConfig {
 
 The MCP server provides **22 tools** organized into categories:
 
-### Episode Lifecycle Management (NEW in v0.1.13)
+### Episode Lifecycle Management
 
 Programmatically manage episodes through the MCP interface:
 

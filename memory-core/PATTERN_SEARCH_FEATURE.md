@@ -144,7 +144,7 @@ pub struct ScoreBreakdown {
 
 ## MCP Tools
 
-Two new MCP tools are available:
+Two MCP tools are available:
 
 ### `search_patterns`
 ```json
@@ -265,7 +265,7 @@ cargo run --example pattern_search_demo
 
 ## Backward Compatibility
 
-✅ **Fully backward compatible** - All new APIs, no breaking changes.
+✅ **Fully backward compatible** - No breaking changes.
 
 ## Performance Impact
 
@@ -279,7 +279,7 @@ No additional configuration required. Works with existing memory system setup.
 
 ## Migration Guide
 
-No migration needed. Simply upgrade to v0.1.13+ and start using the new APIs.
+No migration needed. Simply upgrade to v0.1.13+ and start using the APIs.
 
 ## Related Documentation
 

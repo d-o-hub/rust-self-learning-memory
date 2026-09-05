@@ -8,8 +8,24 @@ use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
+use crate::Episode;
 
 impl SelfLearningMemory {
+    /// Persist one episode to the Turso backend.
+    ///
+    /// Routes through the bounded background queue when it is enabled
+    /// (#967, returning after the enqueue rather than the remote commit)
+    /// and stores synchronously otherwise. Resolves to `Ok(())` when no
+    /// Turso backend is configured. Queue backpressure surfaces as an
+    /// explicit error, never a silent drop.
+    pub(super) async fn store_episode_durable(&self, episode: &Episode) -> Result<()> {
+        match (&self.turso_storage, &self.durable_write_queue) {
+            (Some(_), Some(write_queue)) => write_queue.enqueue_episode(episode.clone()).await,
+            (Some(turso), None) => turso.store_episode(episode).await,
+            (None, _) => Ok(()),
+        }
+    }
+
     /// Complete an episode and trigger learning analysis.
     ///
     /// Finalizes the episode by recording the outcome, then performs the learning
@@ -303,9 +319,12 @@ impl SelfLearningMemory {
         // Use the episode for storage operations
         let episode_ref = &episode;
 
-        // ADR-075: durable complete is all-or-nothing for configured backends.
-        // Collect every store failure, then hard-fail before claiming success
-        // (skip in-memory map update and pattern extraction on failure).
+        // ADR-075 as amended by the D1 split
+        // (`plans/GOAP_FEATURE_WAVE_2026-09-04.md`, issue #967): the local
+        // cache write stays synchronous and hard-errors, while the Turso
+        // write moves through the bounded background queue when enabled
+        // (`MemoryConfig::durable_write_queue`). Queue backpressure surfaces
+        // as an explicit error, never a silent drop.
         let mut store_failures: Vec<String> = Vec::new();
 
         if let Some(cache) = &self.cache_storage {
@@ -319,12 +338,12 @@ impl SelfLearningMemory {
             }
         }
 
-        if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(episode_ref).await {
+        if self.turso_storage.is_some() {
+            if let Err(e) = self.store_episode_durable(episode_ref).await {
                 warn!(
                     episode_id = %episode_id,
                     error = %e,
-                    "Failed to store completed episode in Turso"
+                    "Failed to persist completed episode to Turso"
                 );
                 store_failures.push(format!("turso: {e}"));
             }

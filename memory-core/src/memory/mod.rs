@@ -50,6 +50,7 @@ pub mod api;
 pub mod attribution;
 pub mod checkpoint;
 mod completion;
+pub mod durable_write_queue;
 pub mod embedding_activation;
 mod episode;
 mod eviction;
@@ -82,6 +83,7 @@ use crate::types::MemoryConfig;
 use std::sync::Arc;
 
 // Re-export pattern search types for public API
+pub use durable_write_queue::{DurableWriteQueue, WriteQueueConfig, WriteQueueStats};
 pub use eviction::{EvictionBackend, EvictionBackendFailure, EvictionOutcome};
 pub use op_journal::{
     JournalEntry, JournalOpKind, JournalOutcome, OperationJournal, SharedJournal,
@@ -142,13 +144,55 @@ impl SelfLearningMemory {
         init::start_workers(self).await;
     }
 
-    /// Stop async pattern extraction workers gracefully.
+    /// Stop async workers gracefully.
     ///
-    /// Signals workers to shut down and waits for the queue to drain
-    /// up to the given timeout. Returns `true` if the queue emptied
-    /// within the timeout, `false` otherwise.
+    /// Drains the durable write queue first (remote durability), then the
+    /// pattern extraction queue. Signals workers to shut down and waits for
+    /// the queues to drain up to the given timeout. Returns `true` if both
+    /// queues emptied within the timeout, `false` otherwise.
     pub async fn stop_workers(&self, timeout: std::time::Duration) -> bool {
         init::stop_workers(self, timeout).await
+    }
+
+    /// Enable the background durable write queue (#967).
+    ///
+    /// When enabled, `complete_episode` commits local state synchronously
+    /// and persists to Turso through the bounded queue instead of blocking
+    /// on the remote write. Has no effect without a Turso backend.
+    #[must_use]
+    pub fn enable_durable_writes(self, queue_config: WriteQueueConfig) -> Self {
+        init::enable_durable_writes(self, queue_config)
+    }
+
+    /// Start the durable write worker (no-op unless the queue is enabled).
+    pub fn start_durable_workers(&self) {
+        init::start_durable_workers(self);
+    }
+
+    /// Snapshot of durable write queue statistics, if the queue is enabled.
+    pub async fn durable_write_stats(&self) -> Option<WriteQueueStats> {
+        match &self.durable_write_queue {
+            Some(queue) => Some(queue.get_stats().await),
+            None => None,
+        }
+    }
+
+    /// Drain the durable write queue and surface permanent failures (#967).
+    ///
+    /// No-op success when the queue is not enabled. Used by CLI shutdown,
+    /// tests, and operators that need the remote durability guarantee.
+    ///
+    /// # Errors
+    ///
+    /// Returns error on drain timeout or permanent write failures.
+    pub async fn flush_durable_writes(
+        &self,
+        timeout: std::time::Duration,
+    ) -> crate::error::Result<()> {
+        match &self.durable_write_queue {
+            Some(queue) => queue.flush(timeout).await,
+            None => Ok(()),
+        }
     }
 
     /// Get a reference to semantic service (if configured)

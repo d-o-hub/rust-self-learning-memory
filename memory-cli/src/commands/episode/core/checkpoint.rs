@@ -1,11 +1,13 @@
 //! Episode checkpoint CLI commands (ADR-044 Feature 3)
 
+use super::compact_handoff::CompactHandoffResult;
 use crate::config::Config;
 use crate::output::OutputFormat;
 use anyhow::{Result, anyhow};
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::memory::checkpoint::{
-    checkpoint_episode, checkpoint_episode_with_note, get_handoff_pack, resume_from_handoff,
+    HandoffBudget, checkpoint_episode, checkpoint_episode_with_note, get_compact_handoff_pack,
+    get_handoff_pack, resume_from_compact, resume_from_handoff,
 };
 use serde::Serialize;
 use uuid::Uuid;
@@ -107,9 +109,14 @@ pub async fn list_checkpoints(
     Ok(())
 }
 
-/// Get a handoff pack from a checkpoint
+/// Get a handoff pack from a checkpoint.
+///
+/// Compact byte-budgeted profile by default; `--full` returns the unbounded
+/// pack for audit/debug use.
 pub async fn handoff(
     checkpoint_id: String,
+    full: bool,
+    max_bytes: Option<usize>,
     memory: &SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
@@ -119,6 +126,34 @@ pub async fn handoff(
     let checkpoint_uuid =
         Uuid::parse_str(&checkpoint_id).map_err(|e| anyhow!("Invalid checkpoint ID: {}", e))?;
 
+    if full {
+        return handoff_full(checkpoint_uuid, memory, format).await;
+    }
+
+    let mut budget = HandoffBudget::default();
+    if let Some(max_bytes) = max_bytes {
+        if max_bytes < 1024 {
+            return Err(anyhow!("max_bytes {max_bytes} below minimum 1024"));
+        }
+        budget.max_bytes = max_bytes;
+    }
+
+    // Get compact handoff pack
+    let pack = get_compact_handoff_pack(memory, checkpoint_uuid, budget)
+        .await
+        .map_err(|e| anyhow!("Failed to get handoff pack: {}", e))?;
+
+    let result = CompactHandoffResult::from(pack);
+    result.write(format)?;
+    Ok(())
+}
+
+/// Get the full unbounded handoff pack (audit/debug).
+async fn handoff_full(
+    checkpoint_uuid: Uuid,
+    memory: &SelfLearningMemory,
+    format: OutputFormat,
+) -> Result<()> {
     // Get handoff pack
     let handoff = get_handoff_pack(memory, checkpoint_uuid)
         .await
@@ -142,9 +177,13 @@ pub async fn handoff(
     Ok(())
 }
 
-/// Resume work from a handoff pack
+/// Resume work from a handoff pack.
+///
+/// Resumes from the default compact profile; `--full` resumes from the
+/// unbounded pack instead.
 pub async fn resume(
     checkpoint_id: String,
+    full: bool,
     memory: &SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
@@ -155,14 +194,25 @@ pub async fn resume(
         Uuid::parse_str(&checkpoint_id).map_err(|e| anyhow!("Invalid checkpoint ID: {}", e))?;
 
     // Get handoff pack first
-    let handoff = get_handoff_pack(memory, checkpoint_uuid)
-        .await
-        .map_err(|e| anyhow!("Failed to get handoff pack: {}", e))?;
+    let new_episode_id = if full {
+        let handoff = get_handoff_pack(memory, checkpoint_uuid)
+            .await
+            .map_err(|e| anyhow!("Failed to get handoff pack: {}", e))?;
 
-    // Resume from handoff
-    let new_episode_id = resume_from_handoff(memory, handoff)
-        .await
-        .map_err(|e| anyhow!("Failed to resume from handoff: {}", e))?;
+        // Resume from handoff
+        resume_from_handoff(memory, handoff)
+            .await
+            .map_err(|e| anyhow!("Failed to resume from handoff: {}", e))?
+    } else {
+        let pack = get_compact_handoff_pack(memory, checkpoint_uuid, HandoffBudget::default())
+            .await
+            .map_err(|e| anyhow!("Failed to get handoff pack: {}", e))?;
+
+        // Resume from compact handoff
+        resume_from_compact(memory, pack)
+            .await
+            .map_err(|e| anyhow!("Failed to resume from handoff: {}", e))?
+    };
 
     let result = ResumeResult {
         new_episode_id: new_episode_id.to_string(),
@@ -226,7 +276,7 @@ pub struct ResumeResult {
     pub checkpoint_id: String,
 }
 
-trait Output: Serialize {
+pub(super) trait Output: Serialize {
     fn write(&self, format: OutputFormat) -> Result<()>;
 }
 

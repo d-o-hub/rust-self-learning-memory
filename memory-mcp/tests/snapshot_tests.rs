@@ -492,6 +492,18 @@ fn test_checkpoint_episode_output() {
 fn test_get_handoff_pack_input() {
     let input = GetHandoffPackInput {
         checkpoint_id: "770e8400-e29b-41d4-a716-446655440000".to_string(),
+        mode: None,
+        max_bytes: None,
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_get_handoff_pack_input_compact_options() {
+    let input = GetHandoffPackInput {
+        checkpoint_id: "770e8400-e29b-41d4-a716-446655440000".to_string(),
+        mode: Some("compact".to_string()),
+        max_bytes: Some(4096),
     };
     assert_json_snapshot!(input);
 }
@@ -501,6 +513,7 @@ fn test_get_handoff_pack_output() {
     let output = GetHandoffPackOutput {
         success: true,
         handoff_pack: None,
+        compact_handoff: None,
         message: "Handoff pack retrieved".to_string(),
     };
     assert_json_snapshot!(output);

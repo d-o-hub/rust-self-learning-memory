@@ -11,7 +11,8 @@ use chrono::Utc;
 use tracing::{info, instrument, warn};
 use uuid::Uuid;
 
-use super::{CheckpointMeta, HandoffPack};
+use super::compact::assemble_compact;
+use super::{CheckpointMeta, CompactHandoff, CompactInputs, HandoffBudget, HandoffPack};
 use crate::episode::Episode;
 use crate::types::TaskOutcome;
 
@@ -224,6 +225,89 @@ pub async fn resume_from_handoff(
     info!(new_episode_id = %new_episode_id, "Created new episode for resumption");
 
     Ok(new_episode_id)
+}
+
+/// Generate a budget-compliant compact handoff pack (issue #965).
+///
+/// Default handoff profile: bounded context (objective, status, findings,
+/// decisions, pending actions, ID references, recent evidence excerpts)
+/// with exact omission receipts. The full-fidelity [`get_handoff_pack`]
+/// remains available for audit/debug use.
+#[instrument(skip(memory), fields(checkpoint_id = %checkpoint_id))]
+pub async fn get_compact_handoff_pack(
+    memory: &SelfLearningMemory,
+    checkpoint_id: Uuid,
+    budget: HandoffBudget,
+) -> Result<CompactHandoff> {
+    info!("Generating compact handoff pack for checkpoint: {checkpoint_id}");
+
+    let (episode, checkpoint) = find_checkpoint(memory, checkpoint_id).await?;
+
+    let steps_completed: Vec<ExecutionStep> = episode
+        .steps
+        .iter()
+        .take(checkpoint.step_number)
+        .cloned()
+        .collect();
+
+    let (what_worked, what_failed, salient_facts) =
+        extract_lessons(memory, &episode, checkpoint.step_number);
+
+    // Decisions stay separate from the merged lesson facts: re-extract the
+    // critical decisions from the same partial-episode view.
+    let mut partial_episode = episode.clone();
+    partial_episode.steps.truncate(checkpoint.step_number);
+    let decisions = memory
+        .salient_extractor
+        .extract(&partial_episode)
+        .critical_decisions;
+
+    let pending_actions = generate_suggested_next_steps(memory, &episode).await;
+    let pattern_ids = get_relevant_patterns(memory, &episode)
+        .await
+        .iter()
+        .map(|r| r.pattern.id().to_string())
+        .collect();
+    let heuristic_ids = get_relevant_heuristics(memory, &episode)
+        .await
+        .iter()
+        .map(|h| h.heuristic_id.to_string())
+        .collect();
+
+    let status = if episode.is_complete() {
+        "completed".to_string()
+    } else {
+        "in_progress".to_string()
+    };
+
+    let pack = assemble_compact(
+        CompactInputs {
+            checkpoint_id: checkpoint.checkpoint_id,
+            episode_id: episode.episode_id,
+            timestamp: Utc::now(),
+            current_goal: episode.task_description.clone(),
+            status,
+            steps_done: checkpoint.step_number,
+            steps_total: episode.steps.len(),
+            steps: steps_completed,
+            worked: what_worked,
+            failed: what_failed,
+            salient_facts,
+            decisions,
+            pending_actions,
+            pattern_ids,
+            heuristic_ids,
+        },
+        &budget,
+    );
+
+    info!(
+        payload_bytes = pack.payload_bytes(),
+        omitted_steps = pack.omitted.omitted_steps,
+        "Generated compact handoff pack"
+    );
+
+    Ok(pack)
 }
 
 /// Find an episode and checkpoint by checkpoint ID.

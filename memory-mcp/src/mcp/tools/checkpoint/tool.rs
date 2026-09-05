@@ -2,14 +2,15 @@
 
 use super::types::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
-    HandoffPackResponse, ResumeFromHandoffInput, ResumeFromHandoffOutput,
+    HandoffPackResponse, ResumeFromCompactInput, ResumeFromHandoffInput, ResumeFromHandoffOutput,
 };
 use crate::constants;
 use crate::types::Tool;
 use anyhow::{Result, anyhow};
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::memory::checkpoint::{
-    checkpoint_episode, checkpoint_episode_with_note, get_handoff_pack, resume_from_handoff,
+    checkpoint_episode, checkpoint_episode_with_note, get_compact_handoff_pack, get_handoff_pack,
+    resume_from_compact, resume_from_handoff,
 };
 use serde_json::json;
 use std::sync::Arc;
@@ -60,16 +61,42 @@ impl CheckpointTools {
     pub fn get_handoff_pack_tool() -> Tool {
         Tool::new(
             "get_handoff_pack".to_string(),
-            "Generate a handoff pack from a checkpoint. Contains lessons learned, relevant patterns, and suggested next steps for transferring work to another agent.".to_string(),
+            "Generate a handoff pack from a checkpoint. Compact mode (default) returns a byte-budgeted profile with findings, decisions, pending actions, and omission receipts; full mode returns the unbounded pack for audit/debug.".to_string(),
             json!({
                 "type": "object",
                 "properties": {
                     "checkpoint_id": {
                         "type": "string",
                         "description": "Checkpoint ID to generate handoff pack from (UUID format)"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "Pack mode: 'compact' (default, byte-budgeted) or 'full' (unbounded, for audit/debug)"
+                    },
+                    "max_bytes": {
+                        "type": "integer",
+                        "description": "Compact payload ceiling in bytes, minimum 1024 (default 8192, compact mode only)"
                     }
                 },
                 "required": ["checkpoint_id"]
+            }),
+        )
+    }
+
+    /// Get the tool definition for resume_from_compact
+    pub fn resume_from_compact_tool() -> Tool {
+        Tool::new(
+            "resume_from_compact".to_string(),
+            "Resume work from a compact handoff pack. Creates a new episode initialized with the compact goal, findings, decisions, and pending actions.".to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "compact_handoff": {
+                        "type": "object",
+                        "description": "The compact handoff pack to resume from (obtained from get_handoff_pack in compact mode)"
+                    }
+                },
+                "required": ["compact_handoff"]
             }),
         )
     }
@@ -195,9 +222,12 @@ impl CheckpointTools {
 
     /// Get a handoff pack from a checkpoint
     ///
+    /// Compact mode (default) returns a byte-budgeted profile;
+    /// `"full"` returns the unbounded pack for audit/debug.
+    ///
     /// # Arguments
     ///
-    /// * `input` - Input containing checkpoint ID
+    /// * `input` - Input containing checkpoint ID, mode, and budget
     ///
     /// # Returns
     ///
@@ -222,6 +252,67 @@ impl CheckpointTools {
         let checkpoint_id = Uuid::parse_str(&input.checkpoint_id)
             .map_err(|e| anyhow!("Invalid checkpoint ID: {}", e))?;
 
+        if input.effective_mode() != "compact" && input.effective_mode() != "full" {
+            return Ok(GetHandoffPackOutput {
+                success: false,
+                handoff_pack: None,
+                compact_handoff: None,
+                message: format!(
+                    "Invalid mode '{}': expected 'compact' or 'full'",
+                    input.effective_mode()
+                ),
+            });
+        }
+
+        if input.effective_mode() == "full" {
+            return self.get_full_handoff_pack(checkpoint_id).await;
+        }
+
+        let budget = input.effective_budget();
+        if budget.max_bytes < GetHandoffPackInput::MIN_HANDOFF_BYTES {
+            return Ok(GetHandoffPackOutput {
+                success: false,
+                handoff_pack: None,
+                compact_handoff: None,
+                message: format!(
+                    "max_bytes {} below minimum {}",
+                    budget.max_bytes,
+                    GetHandoffPackInput::MIN_HANDOFF_BYTES
+                ),
+            });
+        }
+
+        // Get compact handoff pack
+        match get_compact_handoff_pack(&self.memory, checkpoint_id, budget).await {
+            Ok(compact) => {
+                info!(
+                    "Generated compact handoff pack ({} bytes, ~{} tokens, {} omitted steps)",
+                    compact.payload_bytes(),
+                    compact.approx_tokens,
+                    compact.omitted.omitted_steps
+                );
+
+                Ok(GetHandoffPackOutput {
+                    success: true,
+                    handoff_pack: None,
+                    compact_handoff: Some(compact),
+                    message: "Successfully generated compact handoff pack".to_string(),
+                })
+            }
+            Err(e) => {
+                info!("Failed to get compact handoff pack: {}", e);
+                Ok(GetHandoffPackOutput {
+                    success: false,
+                    handoff_pack: None,
+                    compact_handoff: None,
+                    message: format!("Failed to get handoff pack: {}", e),
+                })
+            }
+        }
+    }
+
+    /// Get the full (unbounded) handoff pack for audit/debug use.
+    async fn get_full_handoff_pack(&self, checkpoint_id: Uuid) -> Result<GetHandoffPackOutput> {
         // Get handoff pack
         match get_handoff_pack(&self.memory, checkpoint_id).await {
             Ok(handoff) => {
@@ -235,6 +326,7 @@ impl CheckpointTools {
                 Ok(GetHandoffPackOutput {
                     success: true,
                     handoff_pack: Some(HandoffPackResponse::from(handoff)),
+                    compact_handoff: None,
                     message: "Successfully generated handoff pack".to_string(),
                 })
             }
@@ -243,7 +335,56 @@ impl CheckpointTools {
                 Ok(GetHandoffPackOutput {
                     success: false,
                     handoff_pack: None,
+                    compact_handoff: None,
                     message: format!("Failed to get handoff pack: {}", e),
+                })
+            }
+        }
+    }
+
+    /// Resume work from a compact handoff pack
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Input containing the compact handoff pack
+    ///
+    /// # Returns
+    ///
+    /// Returns the new episode ID for resumption.
+    #[instrument(skip(self, input))]
+    pub async fn resume_from_compact(
+        &self,
+        input: ResumeFromCompactInput,
+    ) -> Result<ResumeFromHandoffOutput> {
+        info!(
+            "Resuming from compact handoff: checkpoint_id={}",
+            input.compact_handoff.checkpoint_id
+        );
+
+        let checkpoint_id = input.compact_handoff.checkpoint_id;
+        let episode_id = input.compact_handoff.episode_id;
+
+        // Resume from compact handoff
+        match resume_from_compact(&self.memory, input.compact_handoff).await {
+            Ok(new_episode_id) => {
+                info!("Created new episode {} for resumption", new_episode_id);
+
+                Ok(ResumeFromHandoffOutput {
+                    success: true,
+                    new_episode_id: Some(new_episode_id.to_string()),
+                    checkpoint_id: checkpoint_id.to_string(),
+                    original_episode_id: episode_id.to_string(),
+                    message: format!("Successfully resumed work in new episode {new_episode_id}"),
+                })
+            }
+            Err(e) => {
+                info!("Failed to resume from compact handoff: {}", e);
+                Ok(ResumeFromHandoffOutput {
+                    success: false,
+                    new_episode_id: None,
+                    checkpoint_id: checkpoint_id.to_string(),
+                    original_episode_id: episode_id.to_string(),
+                    message: format!("Failed to resume from handoff: {e}"),
                 })
             }
         }
@@ -327,6 +468,8 @@ mod tests {
 
         let input = GetHandoffPackInput {
             checkpoint_id: "not-a-uuid".to_string(),
+            mode: None,
+            max_bytes: None,
         };
 
         let result = tools.get_handoff_pack(input).await;
@@ -411,5 +554,140 @@ mod tests {
         let result = tools.checkpoint_episode(input).await;
         // Should not panic from length
         assert!(result.is_err() || !result.as_ref().unwrap().success);
+    }
+
+    async fn checkpoint_fixture() -> (Arc<SelfLearningMemory>, String) {
+        use do_memory_core::memory::checkpoint::checkpoint_episode as core_checkpoint;
+        use do_memory_core::{MemoryConfig, TaskContext, TaskType};
+
+        // Step buffering would hide steps from the checkpoint; disable it.
+        let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            batch_config: None,
+            ..MemoryConfig::default()
+        }));
+        let episode_id = memory
+            .start_episode(
+                "MCP handoff task".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+        for i in 1..=3 {
+            let step = do_memory_core::episode::ExecutionStep::new(
+                i,
+                "tool".to_string(),
+                format!("action {i}"),
+            );
+            memory.log_step(episode_id, step).await;
+        }
+        let checkpoint_id = core_checkpoint(&memory, episode_id, "test".to_string())
+            .await
+            .expect("checkpoint must succeed")
+            .checkpoint_id
+            .to_string();
+        (memory, checkpoint_id)
+    }
+
+    #[tokio::test]
+    async fn test_get_handoff_pack_defaults_to_compact() {
+        let (memory, checkpoint_id) = checkpoint_fixture().await;
+        let tools = CheckpointTools::new(memory);
+
+        let input = GetHandoffPackInput {
+            checkpoint_id,
+            mode: None,
+            max_bytes: None,
+        };
+        let output = tools.get_handoff_pack(input).await.unwrap();
+
+        assert!(output.success);
+        assert!(output.handoff_pack.is_none());
+        let compact = output.compact_handoff.expect("compact pack expected");
+        assert!(compact.payload_bytes() <= 8192);
+        assert_eq!(compact.evidence_excerpts.len(), 3);
+    }
+
+    #[tokio::test]
+    async fn test_get_handoff_pack_full_mode() {
+        let (memory, checkpoint_id) = checkpoint_fixture().await;
+        let tools = CheckpointTools::new(memory);
+
+        let input = GetHandoffPackInput {
+            checkpoint_id,
+            mode: Some("full".to_string()),
+            max_bytes: None,
+        };
+        let output = tools.get_handoff_pack(input).await.unwrap();
+
+        assert!(output.success);
+        assert!(output.compact_handoff.is_none());
+        assert!(output.handoff_pack.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_get_handoff_pack_invalid_mode_rejected() {
+        let (memory, checkpoint_id) = checkpoint_fixture().await;
+        let tools = CheckpointTools::new(memory);
+
+        let input = GetHandoffPackInput {
+            checkpoint_id,
+            mode: Some("bogus".to_string()),
+            max_bytes: None,
+        };
+        let output = tools.get_handoff_pack(input).await.unwrap();
+
+        assert!(!output.success);
+        assert!(output.message.contains("Invalid mode"));
+    }
+
+    #[tokio::test]
+    async fn test_get_handoff_pack_max_bytes_floor_rejected() {
+        let (memory, checkpoint_id) = checkpoint_fixture().await;
+        let tools = CheckpointTools::new(memory);
+
+        let input = GetHandoffPackInput {
+            checkpoint_id,
+            mode: None,
+            max_bytes: Some(100),
+        };
+        let output = tools.get_handoff_pack(input).await.unwrap();
+
+        assert!(!output.success);
+        assert!(output.message.contains("minimum"));
+    }
+
+    #[tokio::test]
+    async fn test_resume_from_compact_round_trip() {
+        let (memory, checkpoint_id) = checkpoint_fixture().await;
+        let tools = CheckpointTools::new(Arc::clone(&memory));
+
+        let input = GetHandoffPackInput {
+            checkpoint_id,
+            mode: None,
+            max_bytes: None,
+        };
+        let pack = tools.get_handoff_pack(input).await.unwrap();
+        let compact = pack.compact_handoff.expect("compact pack expected");
+
+        let resume = tools
+            .resume_from_compact(ResumeFromCompactInput {
+                compact_handoff: compact,
+            })
+            .await
+            .unwrap();
+
+        assert!(resume.success);
+        let new_id: Uuid = resume
+            .new_episode_id
+            .expect("new episode expected")
+            .parse()
+            .expect("valid UUID");
+        let resumed = memory.get_episode(new_id).await.unwrap();
+        assert_eq!(resumed.task_description, "MCP handoff task");
+        assert_eq!(
+            resumed.metadata.get("handoff_format").map(String::as_str),
+            Some("compact")
+        );
     }
 }

@@ -128,7 +128,7 @@ Receipt states and restart implications:
 derives a per-pattern learned weight (the Wilson lower-bound success rate at
 `z = 1.96` on success-after-application, over `(applied, succeeded)` evidence) and
 the recommendation path re-ranks its candidate pool by base relevance plus that
-weight. Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces complexity from O(N log N) to O(N) scoring calls. This affects `recommend_patterns` only; generic search, discovery, and
+weight. This affects `recommend_patterns` only; generic search, discovery, and
 retrieval are unchanged, and `get_recommendation_stats` remains exact attribution
 capture. The learned weight is a deterministic reduction of the in-process tracker
 plus capability-gated durable history — the tracker is authoritative for

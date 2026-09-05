@@ -272,8 +272,9 @@ pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
 pub use memory::{
-    EvictionBackend, EvictionBackendFailure, EvictionOutcome, JournalEntry, JournalOpKind,
-    JournalOutcome, OperationJournal, ProvenancedRetrieval, SelfLearningMemory,
+    DurableWriteQueue, EvictionBackend, EvictionBackendFailure, EvictionOutcome, JournalEntry,
+    JournalOpKind, JournalOutcome, OperationJournal, ProvenancedRetrieval, SelfLearningMemory,
+    WriteQueueConfig, WriteQueueStats,
 };
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use patterns::{

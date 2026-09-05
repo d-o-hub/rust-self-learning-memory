@@ -107,8 +107,12 @@ impl SelfLearningMemory {
             }
         }
 
-        if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(&episode).await {
+        // Re-persist the episode with pattern and heuristic IDs. Routed like
+        // the completion write itself (#967): queued when the background
+        // durable writer is enabled, synchronous otherwise. Best-effort here
+        // (warn-only), matching the pre-existing behavior of this path.
+        if self.turso_storage.is_some() {
+            if let Err(e) = self.store_episode_durable(&episode).await {
                 warn!(
                     "Failed to update episode with patterns and heuristics in Turso: {}",
                     e

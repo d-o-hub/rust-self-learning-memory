@@ -90,6 +90,8 @@ pub struct SelfLearningMemory {
     pub(super) relationships_fallback: Arc<RwLock<HashMap<Uuid, EpisodeRelationship>>>,
     /// Async pattern extraction queue (optional)
     pub(super) pattern_queue: Option<Arc<PatternExtractionQueue>>,
+    /// Background durable write queue for Turso (optional, #967)
+    pub(super) durable_write_queue: Option<Arc<super::durable_write_queue::DurableWriteQueue>>,
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking

@@ -20,6 +20,8 @@ pub enum JournalOpKind {
     EpisodeDelete,
     /// Embedding-only cleanup
     EmbeddingDelete,
+    /// Completed-episode durable write via the background write queue (#967)
+    EpisodeComplete,
 }
 
 /// Outcome recorded for a single backend attempt.
@@ -123,6 +125,54 @@ impl OperationJournal {
                 })
                 .await;
             }
+        }
+    }
+
+    /// Record a completed-episode durable write queued for the background
+    /// worker as a pending intent (#967).
+    pub async fn record_durable_write_pending(&self, op_id: Uuid, episode_id: Uuid) {
+        self.record(JournalEntry {
+            op_id,
+            episode_id,
+            kind: JournalOpKind::EpisodeComplete,
+            backend: EvictionBackend::Durable,
+            outcome: JournalOutcome::Pending,
+            recorded_at_ms: chrono_now_ms(),
+        })
+        .await;
+    }
+
+    /// Record completed-episode durable writes the worker acknowledged.
+    pub async fn record_durable_write_successes(&self, op_id: Uuid, episode_ids: &[Uuid]) {
+        let now = chrono_now_ms();
+        for &episode_id in episode_ids {
+            self.record(JournalEntry {
+                op_id,
+                episode_id,
+                kind: JournalOpKind::EpisodeComplete,
+                backend: EvictionBackend::Durable,
+                outcome: JournalOutcome::Success,
+                recorded_at_ms: now,
+            })
+            .await;
+        }
+    }
+
+    /// Record completed-episode durable writes that exhausted retries (#967).
+    pub async fn record_durable_write_failures(&self, op_id: Uuid, failures: &[(Uuid, String)]) {
+        let now = chrono_now_ms();
+        for (episode_id, error) in failures {
+            self.record(JournalEntry {
+                op_id,
+                episode_id: *episode_id,
+                kind: JournalOpKind::EpisodeComplete,
+                backend: EvictionBackend::Durable,
+                outcome: JournalOutcome::Failed {
+                    error: error.clone(),
+                },
+                recorded_at_ms: now,
+            })
+            .await;
         }
     }
 

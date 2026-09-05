@@ -336,6 +336,7 @@ pub(super) fn create_memory_config(config: &Config) -> MemoryConfig {
         reward_weight: 0.15,
         context_overlap_weight: 0.10,
         ann_index_path: None,
+        durable_write_queue: None,
         // Audit configuration
         audit_config: do_memory_core::AuditConfig::default(),
         // CloudEvents EventEmitter (WG-149)

@@ -137,11 +137,15 @@ fn test_config_custom_values() {
         merge_results: false,
         min_results: 2,
         enable_concept_expansion: false,
+        candidate_budget: Some(50),
+        compatibility_mode: true,
     };
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 5);
     assert!(!retriever.config().merge_results);
     assert!(!retriever.config().enable_concept_expansion);
+    assert_eq!(retriever.config().candidate_budget, Some(50));
+    assert!(retriever.config().compatibility_mode);
 }
 
 #[test]
@@ -279,6 +283,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -312,6 +318,8 @@ mod csm_tests {
             merge_results: false,
             min_results: 1,
             enable_concept_expansion: false,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -425,6 +433,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 1,
             enable_concept_expansion: true,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 

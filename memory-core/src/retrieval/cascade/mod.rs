@@ -139,6 +139,24 @@ impl CascadeRetriever {
     fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
         use super::{compute_weights, merge_results};
 
+        // Bound merged candidate pools: single-tier outputs are already
+        // per-ID unique and capped at `top_k` (which the default budget of
+        // 100 cannot bind), so only cross-tier merges can contain duplicates
+        // or exceed the budget. Bounding here keeps the per-tier sufficiency
+        // rules exactly as before.
+        let bound_merged = |mut results: Vec<(String, f32)>| -> Vec<(String, f32)> {
+            // Deduplicate, keeping the first occurrence of each ID.
+            let mut seen = std::collections::HashSet::new();
+            results.retain(|(id, _)| seen.insert(id.clone()));
+
+            if !self.config.compatibility_mode {
+                if let Some(budget) = self.config.candidate_budget {
+                    results.truncate(budget);
+                }
+            }
+            results
+        };
+
         // Tier 1: BM25 keyword search
         let bm25_results = self.retrieve_bm25(query);
 
@@ -159,12 +177,12 @@ impl CascadeRetriever {
         if self.config.merge_results && !bm25_results.is_empty() {
             // Merge BM25 and HDC results with query-length-dependent weights
             let weights = compute_weights(query.len());
-            let merged = merge_results(
+            let merged = bound_merged(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            );
+            ));
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
@@ -202,12 +220,12 @@ impl CascadeRetriever {
         // Return best available results with api_calls = 1 indicator
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
-            merge_results(
+            bound_merged(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            )
+            ))
         } else if !hdc_results.is_empty() {
             hdc_results.results.clone()
         } else {

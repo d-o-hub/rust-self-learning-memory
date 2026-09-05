@@ -44,6 +44,29 @@ fn test_retriever_creation() {
 }
 
 #[test]
+fn test_retriever_budget_option_defaults() {
+    let default_retriever = HierarchicalRetriever::new();
+    assert_eq!(default_retriever.candidate_budget, Some(100));
+    assert!(!default_retriever.compatibility_mode);
+
+    let via_default_trait = HierarchicalRetriever::default();
+    assert_eq!(via_default_trait.candidate_budget, Some(100));
+    assert!(!via_default_trait.compatibility_mode);
+
+    let custom = HierarchicalRetriever::with_config(0.5, 10);
+    assert_eq!(custom.candidate_budget, Some(100));
+    assert!(!custom.compatibility_mode);
+
+    let options = HierarchicalRetriever::with_options(0.3, 5, Some(25), true);
+    assert_eq!(options.candidate_budget, Some(25));
+    assert!(options.compatibility_mode);
+
+    let unbounded = HierarchicalRetriever::with_options(0.3, 5, None, false);
+    assert_eq!(unbounded.candidate_budget, None);
+    assert!(!unbounded.compatibility_mode);
+}
+
+#[test]
 fn test_domain_filtering() {
     let retriever = HierarchicalRetriever::new();
 
@@ -458,4 +481,39 @@ async fn test_retrieval_with_no_filters() {
 
     // No filters, should consider all episodes
     assert_eq!(results.len(), 3);
+}
+
+#[tokio::test]
+async fn test_synthetic_large_corpus_bounded_retrieval() {
+    // Generate 500 synthetic episodes
+    let mut episodes = Vec::with_capacity(500);
+    for i in 0..500 {
+        let domain = if i % 2 == 0 { "web-api" } else { "backend" };
+        episodes.push(create_test_episode(
+            domain,
+            TaskType::CodeGeneration,
+            &format!("synthetic task content {i}"),
+            i64::from(i % 30),
+        ));
+    }
+
+    // Standard retriever with budget = 25
+    let retriever = HierarchicalRetriever::with_options(0.3, 5, Some(25), false);
+
+    let query = RetrievalQuery {
+        query_text: "synthetic task".to_string(),
+        query_embedding: None,
+        domain: Some("web-api".to_string()),
+        task_type: None,
+        limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
+    };
+
+    let results = retriever.retrieve(&query, &episodes).await.unwrap();
+    assert_eq!(results.len(), 5);
+
+    // Compatibility mode retriever with budget unconstrained
+    let compat_retriever = HierarchicalRetriever::with_options(0.3, 5, Some(25), true);
+    let compat_results = compat_retriever.retrieve(&query, &episodes).await.unwrap();
+    assert_eq!(compat_results.len(), 5);
 }

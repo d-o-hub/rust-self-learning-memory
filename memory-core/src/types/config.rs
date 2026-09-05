@@ -120,6 +120,8 @@ impl Default for ConcurrencyConfig {
 ///     enable_spatiotemporal_indexing: true,
 ///     temporal_bias_weight: 0.3,
 ///     max_clusters_to_search: 5,
+///     candidate_budget: Some(100),
+///     compatibility_mode: false,
 ///     retrieval_mode: RetrievalMode::Keyword,
 ///     semantic_search_mode: "hybrid".to_string(),
 ///     enable_query_embedding_cache: true,
@@ -177,6 +179,10 @@ pub struct MemoryConfig {
     pub temporal_bias_weight: f32,
     /// Maximum temporal clusters to search (default: 5)
     pub max_clusters_to_search: usize,
+    /// Bounded candidate budget for retrieval candidate selection (default: Some(100))
+    pub candidate_budget: Option<usize>,
+    /// Compatibility mode: when true, candidate bounding is bypassed to preserve unconstrained retrieval behavior
+    pub compatibility_mode: bool,
 
     // Phase 3 (Enhanced) - Semantic Search Configuration
     /// Retrieval mode for episodic memory (keyword, semantic, hybrid)
@@ -239,6 +245,8 @@ impl Default for MemoryConfig {
             diversity_lambda: 0.7,
             temporal_bias_weight: 0.3,
             max_clusters_to_search: 5,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
 
             // Phase 3 (Enhanced) - Semantic search defaults
             retrieval_mode: crate::types::RetrievalMode::Keyword,
@@ -364,6 +372,19 @@ impl MemoryConfig {
             if let Ok(value) = clusters.parse::<usize>() {
                 config.max_clusters_to_search = value;
             }
+        }
+
+        if let Ok(budget) = std::env::var("MEMORY_CANDIDATE_BUDGET") {
+            if budget.to_lowercase() == "none" || budget == "0" {
+                config.candidate_budget = None;
+            } else if let Ok(value) = budget.parse::<usize>() {
+                config.candidate_budget = Some(value);
+            }
+        }
+
+        if let Ok(compat) = std::env::var("MEMORY_COMPATIBILITY_MODE") {
+            config.compatibility_mode =
+                matches!(compat.to_lowercase().as_str(), "true" | "1" | "yes" | "on");
         }
 
         // Phase 3 (Enhanced) - Semantic search configuration

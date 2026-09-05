@@ -1,10 +1,11 @@
 ---
 source: memory-mcp/tests/snapshot_tests.rs
-assertion_line: 498
+assertion_line: 519
 expression: output
 ---
 {
   "success": true,
   "handoff_pack": null,
+  "compact_handoff": null,
   "message": "Handoff pack retrieved"
 }

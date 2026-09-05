@@ -261,6 +261,15 @@ pub enum EpisodeCommands {
         /// Checkpoint ID to generate handoff pack from
         #[arg(value_name = "CHECKPOINT_ID")]
         checkpoint_id: String,
+
+        /// Return the full unbounded pack (audit/debug) instead of the
+        /// default byte-budgeted compact profile
+        #[arg(long)]
+        full: bool,
+
+        /// Compact payload ceiling in bytes (default 8192, minimum 1024)
+        #[arg(long, value_name = "BYTES")]
+        max_bytes: Option<usize>,
     },
 
     /// Resume work from a checkpoint in a new episode (ADR-044 Feature 3)
@@ -268,6 +277,10 @@ pub enum EpisodeCommands {
         /// Checkpoint ID to resume from
         #[arg(value_name = "CHECKPOINT_ID")]
         checkpoint_id: String,
+
+        /// Resume from the full pack instead of the default compact profile
+        #[arg(long)]
+        full: bool,
     },
 
     /// List checkpoints for an episode (ADR-044 Feature 3)

@@ -31,6 +31,28 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn store_episode(&self, episode: &Episode) -> Result<()>;
 
+    /// Store a batch of episodes in one call.
+    ///
+    /// Backends with transactional batching (Turso) override this with a
+    /// single-transaction implementation. The default loops over
+    /// [`store_episode`](Self::store_episode), so existing implementors keep
+    /// compiling and behaving identically. Episodes use `INSERT OR REPLACE`
+    /// semantics wherever supported, making retried batches idempotent.
+    ///
+    /// # Arguments
+    ///
+    /// * `episodes` - Episodes to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if any storage operation fails
+    async fn store_episodes_batch(&self, episodes: &[Episode]) -> Result<()> {
+        for episode in episodes {
+            self.store_episode(episode).await?;
+        }
+        Ok(())
+    }
+
     /// Retrieve an episode by ID.
     ///
     /// Returns `Some(Episode)` if found, `None` if not found.

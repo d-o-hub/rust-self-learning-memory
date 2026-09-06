@@ -8,7 +8,7 @@ use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
 use std::sync::Arc;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, info, instrument};
 
 use super::super::SelfLearningMemory;
 use super::helpers::{cache_episodes_if_eligible, generate_simple_embedding};
@@ -106,6 +106,7 @@ impl SelfLearningMemory {
             .with_provider_identity(self.semantic_config.provider.cache_identity())
             .with_ranking_config_version(crate::retrieval::RANKING_CONFIG_VERSION)
             .with_index_generation(self.query_cache.index_generation());
+        let query_start = std::time::Instant::now();
 
         if let Some(cached_episodes) = self.query_cache.get(&cache_key) {
             debug!(
@@ -127,6 +128,12 @@ impl SelfLearningMemory {
             }
 
             // Return Arc-clones (cheap reference count increment)
+            Self::record_query_outcome(
+                &query_start,
+                crate::monitoring::metrics::RetrievalTier::Cache,
+                cached_episodes.len(),
+                None,
+            );
             return cached_episodes.clone();
         }
 
@@ -205,98 +212,44 @@ impl SelfLearningMemory {
 
         if completed_episodes.is_empty() {
             info!("No completed episodes found for retrieval");
+            Self::record_query_outcome(
+                &query_start,
+                crate::monitoring::metrics::RetrievalTier::None,
+                0,
+                None,
+            );
             return vec![];
         }
 
-        // ============================================================================
-        // ============================================================================
         // Hybrid Search (v0.1.34) - Improved ANN-backed retrieval
-        // ============================================================================
-        if self.config.retrieval_mode == crate::types::RetrievalMode::Hybrid {
-            if let (Some(retriever), Some(semantic)) =
-                (&self.semantic_retriever, &self.semantic_service)
-            {
-                // Generate query embedding
-                match semantic.provider.embed_text(&task_description).await {
-                    Ok(query_embedding) => {
-                        let episodes_map: std::collections::HashMap<uuid::Uuid, Arc<Episode>> =
-                            completed_episodes
-                                .iter()
-                                .map(|e| (e.episode_id, e.clone()))
-                                .collect();
-                        match retriever.retrieve(
-                            &task_description,
-                            &query_embedding,
-                            &context,
-                            episodes_map,
-                            limit,
-                        ) {
-                            Ok(hits) => {
-                                if !hits.is_empty() {
-                                    let hybrid_episodes: Vec<Arc<Episode>> =
-                                        hits.into_iter().map(|h| h.episode).collect();
-                                    cache_episodes_if_eligible(
-                                        &self.query_cache,
-                                        cache_key.clone(),
-                                        &hybrid_episodes,
-                                    );
-                                    info!(
-                                        retrieved_count = hybrid_episodes.len(),
-                                        "Retrieved episodes using hybrid search"
-                                    );
-                                    return hybrid_episodes;
-                                }
-                            }
-                            Err(e) => warn!(error = %e, "Hybrid retrieval failed, falling back"),
-                        }
-                    }
-                    Err(e) => {
-                        warn!(error = %e, "Query embedding failed for hybrid search, falling back");
-                    }
-                }
-            }
+        if let Some(hybrid_episodes) = self
+            .try_hybrid_retrieval(
+                &task_description,
+                &context,
+                limit,
+                &cache_key,
+                &completed_episodes,
+                query_start,
+            )
+            .await
+        {
+            return hybrid_episodes;
         }
 
         // Semantic Search - Try semantic similarity first
-        // ============================================================================
-
         if let Some(ref semantic) = self.semantic_service {
-            match semantic
-                .find_similar_episodes(&task_description, &context, limit)
+            if let Some(semantic_episodes) = self
+                .try_semantic_retrieval(
+                    semantic,
+                    &task_description,
+                    &context,
+                    limit,
+                    &cache_key,
+                    query_start,
+                )
                 .await
             {
-                Ok(mut results) => {
-                    if !results.is_empty() {
-                        info!(
-                            semantic_results = results.len(),
-                            "Found episodes via semantic search"
-                        );
-
-                        // Limit results and extract episodes
-                        results.truncate(limit);
-
-                        // Convert to Arc<Episode> for cheap cloning
-                        let semantic_episodes: Vec<Arc<Episode>> = results
-                            .into_iter()
-                            .map(|result| Arc::new(result.item))
-                            .collect();
-
-                        cache_episodes_if_eligible(
-                            &self.query_cache,
-                            cache_key.clone(),
-                            &semantic_episodes,
-                        );
-
-                        return semantic_episodes;
-                    }
-                }
-                Err(e) => {
-                    warn!(
-                        error = %e,
-                        "Semantic search failed: {}. Falling back to keyword search.",
-                        e
-                    );
-                }
+                return semantic_episodes;
             }
         }
 
@@ -308,7 +261,7 @@ impl SelfLearningMemory {
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
             // Generate query embedding if semantic service is available
             let query_embedding = if let Some(ref semantic) = self.semantic_service {
-                match semantic.provider.embed_text(&task_description).await {
+                match semantic.embed_query_text(&task_description).await {
                     Ok(embedding) => {
                         debug!(
                             embedding_dim = embedding.len(),
@@ -408,6 +361,12 @@ impl SelfLearningMemory {
             );
 
             cache_episodes_if_eligible(&self.query_cache, cache_key.clone(), &relevant);
+            Self::record_query_outcome(
+                &query_start,
+                crate::monitoring::metrics::RetrievalTier::Keyword,
+                relevant.len(),
+                None,
+            );
             return relevant;
         }
 
@@ -466,6 +425,12 @@ impl SelfLearningMemory {
             );
 
             cache_episodes_if_eligible(&self.query_cache, cache_key.clone(), &result_arc_episodes);
+            Self::record_query_outcome(
+                &query_start,
+                crate::monitoring::metrics::RetrievalTier::Hierarchical,
+                result_arc_episodes.len(),
+                Some(scored_episodes.len()),
+            );
             return result_arc_episodes;
         }
 
@@ -487,6 +452,12 @@ impl SelfLearningMemory {
         );
 
         cache_episodes_if_eligible(&self.query_cache, cache_key, &result_arc_episodes);
+        Self::record_query_outcome(
+            &query_start,
+            crate::monitoring::metrics::RetrievalTier::Hierarchical,
+            result_arc_episodes.len(),
+            Some(scored_episodes.len()),
+        );
         result_arc_episodes
     }
 }

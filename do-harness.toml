@@ -1,0 +1,34 @@
+# do-harness.toml — sensor pack for this workspace.
+#
+# Sensors mirror the repo's own quality gates (AGENTS.md "Required Checks
+# Before Commit") without duplicating their configuration: CI still runs
+# the same commands; do-harness adds local beats, strikes, and task gating.
+language = "rust"
+
+[hooks]
+pre-commit = ["fmt", "loc"]
+pre-push = []
+
+[[sensors]]
+name = "fmt"
+argv = ["cargo", "fmt", "--all", "--", "--check"]
+
+[[sensors]]
+name = "check"
+argv = ["cargo", "check", "--workspace"]
+
+[[sensors]]
+name = "clippy"
+argv = ["cargo", "clippy", "--workspace", "--", "-D", "warnings"]
+
+[[sensors]]
+name = "test"
+argv = ["cargo", "nextest", "run", "--all"]
+
+[[sensors]]
+name = "deny"
+argv = ["cargo", "deny", "check"]
+
+[[sensors]]
+name = "loc"
+argv = ["bash", "scripts/check-loc.sh"]

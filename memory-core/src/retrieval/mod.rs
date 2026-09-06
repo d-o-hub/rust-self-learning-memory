@@ -36,7 +36,10 @@ pub use cache::{
     CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache,
     RANKING_CONFIG_VERSION, RetrievalProvenance, provider_cache_identity,
 };
-pub use cascade::{CascadeConfig, CascadeError, CascadeResult, CascadeRetriever};
+pub use cascade::{
+    CascadeConfig, CascadeError, CascadeResult, CascadeRetriever, FallbackDecision, FallbackPolicy,
+    FallbackReason,
+};
 pub use eval::{
     BenchmarkMetrics, BenchmarkQuery, BenchmarkReport, CostModel, FixtureCorpus, FixtureItem,
     RegressionCheckResult, RegressionChecker, RegressionThresholds, RetrievalEvaluator,

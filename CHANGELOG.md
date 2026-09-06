@@ -9,45 +9,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.40] - 2026-09-06
 
+
+
 ### Added
 
-- Retrieval-plane telemetry with bounded labels (#962): enum vocabularies
-  with compile-time cardinality, recording on the real query/cascade/cache/
-  embedding paths, MCP `get_metrics(metric_type="retrieval")`, Prometheus
-  exposition, and `do-memory-cli monitor retrieval`
-- Retrieval quality and cost benchmark (`eval benchmark`) with regression
-  thresholds and machine-readable artifacts
-- Feedback-to-ranking adaptation (ADR-082) with ADR 025/054 alias
-  canonicalization
-- Persistent remote cargo builder (Bunnyshell)
+- feedback-to-ranking adaptation (ADR-082) + ADR 025/054 alias canonicalization (#952) ([9c8bfa7](https://github.com/d-o-hub/rust-self-learning-memory/commit/9c8bfa79d4ae1723c499647d6aab365a624f72b2))
+
+- add retrieval quality and cost benchmark ([110b66a](https://github.com/d-o-hub/rust-self-learning-memory/commit/110b66ac5e772fb76b327a790d3f333c701e2a3c))
+
+- add retrieval quality and cost benchmark ([dca174c](https://github.com/d-o-hub/rust-self-learning-memory/commit/dca174cabf369993b2e261a254d58c016cfd9b9a))
+
+- add retrieval quality and cost benchmark ([24f5c25](https://github.com/d-o-hub/rust-self-learning-memory/commit/24f5c2539fe2078f77428f069ebcaab585dfcdec))
+
+- add persistent remote cargo builder (#990) ([34d039c](https://github.com/d-o-hub/rust-self-learning-memory/commit/34d039c9207845ed2ffcbaefcdabf71521b3c8e4))
+
+- add retrieval-plane telemetry with bounded labels ([b672c6c](https://github.com/d-o-hub/rust-self-learning-memory/commit/b672c6cad5cb480bce6d68afd8cc7787636dbe8b))
+
+- record embedding telemetry at direct call sites ([9ccc725](https://github.com/d-o-hub/rust-self-learning-memory/commit/9ccc72550aec8dfa74ded77bfc4e282ea380cf39))
+
+- add monitor retrieval metrics view ([9ae4f8a](https://github.com/d-o-hub/rust-self-learning-memory/commit/9ae4f8aa8a24b348509103d13610e4d0f7ef64e8))
+
+
+### CI/CD
+
+- bump the actions-all group with 3 updates (#943) ([6e93469](https://github.com/d-o-hub/rust-self-learning-memory/commit/6e934693ff4855c879388ccea243ecc4fb773778))
+
+- same-run fast gate + attribution capture truth (#947) ([872949b](https://github.com/d-o-hub/rust-self-learning-memory/commit/872949b816e78ce8d81f4f8fe2a6af71f319f27e))
+
+- bump the actions-all group with 2 updates (#959) ([6835c7d](https://github.com/d-o-hub/rust-self-learning-memory/commit/6835c7d16213e03adcb86e8b0ea5278e07054508))
+
+- add retention-days: 7 to ci junit and fuzz artifact uploads ([00aa3ba](https://github.com/d-o-hub/rust-self-learning-memory/commit/00aa3ba5e07775860bcbf49fabf701c342fcbb10))
+
+- add retention-days: 7 to release workflow artifact uploads ([da80860](https://github.com/d-o-hub/rust-self-learning-memory/commit/da808602c16021d1dd95d0f4977c2b8085880576))
+
+- retrigger checks with release-preparation label ([828f1ab](https://github.com/d-o-hub/rust-self-learning-memory/commit/828f1ab758107b656221c3df5cfba718c5911090))
+
 
 ### Changed
 
-- Coalesce concurrent embedding cache misses and batch provider requests
-- Optimize fuzzy search string allocation and position math
-- Pin single-success boost calibration (ADR-082)
+- split eval benchmark command into its own module ([6851d6b](https://github.com/d-o-hub/rust-self-learning-memory/commit/6851d6b12ef69e59d889005e223ad001eb16bbb5))
 
-### Fixed
-
-- OperationLatency percentile ordering (p50 could exceed p95 on ascending
-  samples; invariant now enforced after each EMA update)
-- Clippy 1.98 compliance across the workspace
-- Replace yanked chacha20 0.10.2 and der 0.8.0 (0.8.2) dependencies
-- Release/CI/fuzz artifact retention capped at 7 days
-- Bunnyshell builder branch tracking after the builder PR merge
 
 ### Documentation
 
-- Retrieval observability dashboard guide (PromQL panels, MCP and CLI
-  usage, cardinality and redaction contract)
-- Synchronize README and docs with the current implementation state
+- point trackers to post-#947 main state ([63a4305](https://github.com/d-o-hub/rust-self-learning-memory/commit/63a430579e2a80f94536ca10373058716faa9526))
 
-### CI
+- re-point trackers after PR 952 merge (#954) ([6bce81e](https://github.com/d-o-hub/rust-self-learning-memory/commit/6bce81ee37200587762ec5e6af6cd059d5eacaf4))
 
-- Same-run fast gate and attribution capture truth (#947)
-- Dev-harness sensor suite adopted (do-harness) with loc/fmt wired through
-  pre-commit
-- actions-all dependency bumps and coverage badge refresh automation
+- update documentation to accurately reflect system state (#988) ([e419a3a](https://github.com/d-o-hub/rust-self-learning-memory/commit/e419a3ae8a828d61da292f92a43f36f53a372948))
+
+- add retrieval metrics dashboard guide ([1a544f5](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a544f5af25fe17e94bc806b8595391cacaebed4))
+
+- record observability sprint status ([ea39c25](https://github.com/d-o-hub/rust-self-learning-memory/commit/ea39c2591d66a65d389ed65c28dd853d83c4b5ca))
+
+
+### Fixed
+
+- retarget unfulfilled unused_async expects to unused_async_trait_impl ([2ad80f3](https://github.com/d-o-hub/rust-self-learning-memory/commit/2ad80f35d02e9f4110dfba18d0f6f217a8aacbd5))
+
+- expect both unused_async and unused_async_trait_impl on async trait impls ([c28201d](https://github.com/d-o-hub/rust-self-learning-memory/commit/c28201d7b6a654a0a3893051076ce36442f23a9a))
+
+- restore clippy 1.98 compliance across workspace ([7e9b850](https://github.com/d-o-hub/rust-self-learning-memory/commit/7e9b850b543e6588cb96aa42872bf3410309dc16))
+
+- update yanked chacha20 to 0.10.2 ([dc6f3ed](https://github.com/d-o-hub/rust-self-learning-memory/commit/dc6f3edffa94e94992ccde6882cea0984bc3837e))
+
+- track main branch now that builder PR is merged (#991) ([5f2c215](https://github.com/d-o-hub/rust-self-learning-memory/commit/5f2c215b63231bd00969bac2a09c4a6b8fd35c7c))
+
+- rewrite harness skill evals to repository schema ([943462a](https://github.com/d-o-hub/rust-self-learning-memory/commit/943462ad35c66ad08f45d04547c313facfdd91ee))
+
+- replace yanked der 0.8.0 with 0.8.2 ([c6de12b](https://github.com/d-o-hub/rust-self-learning-memory/commit/c6de12bf1240c0b9ce57a66f52e2e989c65d9ae1))
+
+- make embed telemetry assertion race-tolerant ([0eaddfe](https://github.com/d-o-hub/rust-self-learning-memory/commit/0eaddfee363586a9b349d11759840dc26f03dfbe))
+
+
+### Maintenance
+
+- bump workspace to 0.1.40 after shipping v0.1.39 (#945) ([872eeef](https://github.com/d-o-hub/rust-self-learning-memory/commit/872eeefb6c04f97f40ce807fa2b13f22b3b0f9de))
+
+- update CHANGELOG.md for v0.1.39 [skip ci] (#944) ([5a943c9](https://github.com/d-o-hub/rust-self-learning-memory/commit/5a943c98a98d3807fbcf7d644024c55451c7d702))
+
+- update coverage badge [skip ci] (#948) ([13734c1](https://github.com/d-o-hub/rust-self-learning-memory/commit/13734c1206391d2b97e3584d4defcca33d3d0a61))
+
+- update coverage badge [skip ci] (#958) ([b062d63](https://github.com/d-o-hub/rust-self-learning-memory/commit/b062d638141ef97b7a1f22936f7670a2eb81e36e))
+
+- adopt do-harness dev harness sensor suite ([a9599f4](https://github.com/d-o-hub/rust-self-learning-memory/commit/a9599f48e5afca095f36112fa9332e2d3970d305))
+
+- run loc sensor in pre-commit framework ([5dfcc65](https://github.com/d-o-hub/rust-self-learning-memory/commit/5dfcc656418b6f1cfdde7bb37e290489e89f3cff))
+
+- prepare v0.1.40 changelog and version docs ([81fa6a8](https://github.com/d-o-hub/rust-self-learning-memory/commit/81fa6a80b50a719f1cc9143c3278e9cb4de2f53a))
+
+
+### Performance
+
+- optimize fuzzy search string allocation and position math (#953) ([622da79](https://github.com/d-o-hub/rust-self-learning-memory/commit/622da79e69851b01bfdec03fd3a1643467fc46ae))
+
+- coalesce concurrent cache misses and batch provider requests ([d3d9240](https://github.com/d-o-hub/rust-self-learning-memory/commit/d3d9240134603e811c298b88840ce176f466d9c6))
+
+- coalesce concurrent cache misses and batch provider requests ([2d1eef0](https://github.com/d-o-hub/rust-self-learning-memory/commit/2d1eef0a1fc72a2e10af815478f01fc6c8b86dbe))
+
+- coalesce concurrent cache misses and batch provider requests ([35084f3](https://github.com/d-o-hub/rust-self-learning-memory/commit/35084f30470763230d3cf37c1066568dcc64be49))
+
+
+### Testing
+
+- pin single-success boost calibration (ADR-082) ([e4ae061](https://github.com/d-o-hub/rust-self-learning-memory/commit/e4ae061ed5618a1f7de0962769c294141e372eaf))
+
 
 ## [0.1.39] - 2026-08-11
 
@@ -2795,6 +2861,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- suppress unused import warning in spatiotemporal tests ([1a0b9ac](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a0b9ac7fdf7a99333cd905d4354943be5353d8c))
+
+- resolve CI failures in develop branch ([1febc9c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1febc9ccc1d29d8b02e30568eb01c325268bffb1))
+
 - resolve clippy warnings and update integration tests ([19485c3](https://github.com/d-o-hub/rust-self-learning-memory/commit/19485c3dce5a0c9cd0cd99e0665ba9dd6cebd285))
 
 - rename retriever::ScoredEpisode to HierarchicalScore ([5c34dfb](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c34dfb72751c4ecf657f59d6ce5d1e58eb8548b))
@@ -2808,10 +2878,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Maintenance
 
+- update checkout action and add opencode config ([b70c0f6](https://github.com/d-o-hub/rust-self-learning-memory/commit/b70c0f6274b0aac74fe1cc6a8c304159d72d6895))
+
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-### 0.1.11 — continued (shipped 2026-01-04)
+## [0.1.11] - 2026-01-04
 
 
 
@@ -2848,6 +2920,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- update MCP tool count assertions ([3071444](https://github.com/d-o-hub/rust-self-learning-memory/commit/30714449a4ccff458049494b8ce83ca85b776246))
+
 - update MCP tool count assertion from 10 to 9 ([7342b0b](https://github.com/d-o-hub/rust-self-learning-memory/commit/7342b0bc0ba899f2975d5949217529aeeb505a10))
 
 - resolve all clippy warnings in memory-core ([a4236de](https://github.com/d-o-hub/rust-self-learning-memory/commit/a4236de176a2ed4a8cc9190bd6b49e3f99826cd7))
@@ -2862,10 +2936,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add #[allow(dead_code)] to is_valid_wasm_file function ([cb725e0](https://github.com/d-o-hub/rust-self-learning-memory/commit/cb725e04d5757c343c26bd7d3fdd9a6eb69a2288))
 
-- suppress unused import warning in spatiotemporal tests ([1a0b9ac](https://github.com/d-o-hub/rust-self-learning-memory/commit/1a0b9ac7fdf7a99333cd905d4354943be5353d8c))
-
-- resolve CI failures in develop branch ([1febc9c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1febc9ccc1d29d8b02e30568eb01c325268bffb1))
-
 - suppress unused import warning in spatiotemporal tests ([0373337](https://github.com/d-o-hub/rust-self-learning-memory/commit/0373337af11d2a1c3b3f5050b5be9d42f2beefab))
 
 - resolve CI failures in develop branch ([1dbd15c](https://github.com/d-o-hub/rust-self-learning-memory/commit/1dbd15c1071e1965c5cb1a7c892976b87217bf96))
@@ -2874,8 +2944,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Maintenance
 
 - remove stale .opencode and plans/GOAP directories ([9250c12](https://github.com/d-o-hub/rust-self-learning-memory/commit/9250c128c7f35d3403f3eb7d06a5a203eb592344))
-
-- update checkout action and add opencode config ([b70c0f6](https://github.com/d-o-hub/rust-self-learning-memory/commit/b70c0f6274b0aac74fe1cc6a8c304159d72d6895))
 
 - update checkout action and add opencode config ([5c39c7d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5c39c7db65f3a57fb5b719e11c7dd6efd1f71314))
 
@@ -2897,8 +2965,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Fixed
-
-- update MCP tool count assertions ([3071444](https://github.com/d-o-hub/rust-self-learning-memory/commit/30714449a4ccff458049494b8ce83ca85b776246))
 
 - update MCP tool count assertions ([e71881b](https://github.com/d-o-hub/rust-self-learning-memory/commit/e71881b6223c867f9d15d3a183e98aa9112477df))
 
@@ -2922,7 +2988,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-### 0.1.10 — continued (shipped 2026-01-02)
+## [0.1.10] - 2026-01-02
 
 
 

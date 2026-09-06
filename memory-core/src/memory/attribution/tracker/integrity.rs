@@ -65,10 +65,16 @@ impl RecommendationTracker {
         }
 
         // ADR-080 §4: Replacement feedback is idempotent (overwrite).
+        // Clone the outcome first: the map insert moves `feedback`.
+        let signal = crate::monitoring::metrics::FeedbackSignal::from_outcome(&feedback.outcome);
         {
             let mut feedback_map = self.feedback.write().await;
             feedback_map.insert(session_id, feedback);
         }
+
+        // Accepted caller feedback only: hydration replays bypass this
+        // function deliberately, so restarts never double-count (#962).
+        crate::monitoring::metrics::global_retrieval_metrics().record_feedback(signal);
 
         info!(
             session_id = %session_id,

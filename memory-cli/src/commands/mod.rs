@@ -152,6 +152,9 @@ pub async fn handle_monitor_command(
         MonitorCommands::Export {
             format: export_format,
         } => monitor::export_metrics(memory, config, format, export_format).await,
+        MonitorCommands::Retrieval {
+            format: metrics_format,
+        } => monitor::retrieval_metrics(format, metrics_format).await,
     }
 }
 

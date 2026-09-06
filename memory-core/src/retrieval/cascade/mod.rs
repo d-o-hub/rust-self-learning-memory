@@ -120,7 +120,16 @@ impl CascadeRetriever {
     pub fn retrieve(&self, query: &str) -> Result<CascadeResult, CascadeError> {
         #[cfg(feature = "csm")]
         {
-            Ok(self.retrieve_with_csm(query))
+            let start = std::time::Instant::now();
+            let result = self.retrieve_with_csm(query);
+            // No query text, IDs, or scores cross into telemetry: the record
+            // call reads only tier attributions, counts, and the fallback
+            // marker (redaction contract, issue #962).
+            crate::monitoring::metrics::global_retrieval_metrics().record_cascade(
+                start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64,
+                &result,
+            );
+            Ok(result)
         }
 
         #[cfg(not(feature = "csm"))]

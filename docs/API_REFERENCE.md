@@ -82,6 +82,15 @@ The following tool names are the current contract tracked by parity tests.
 - `health_check`
 - `get_metrics`
 
+#### Retrieval telemetry (`get_metrics` with `metric_type: "retrieval"`)
+
+`get_metrics` accepts `metric_type: "retrieval"` to return the retrieval-plane
+telemetry snapshot (request counts and latency percentiles by operation/tier,
+cache hit/miss, embedding calls by provider, fallback reasons, feedback
+signals, candidate-set sizes). Metric family reference, PromQL dashboard
+examples, and the cardinality/redaction contract are documented in
+[Retrieval Observability](./RETRIEVAL_OBSERVABILITY.md).
+
 ### Pattern / Recommendation / Explainability
 
 - `advanced_pattern_analysis`
@@ -238,6 +247,7 @@ Status: **Deferred / absent from active MCP tool contract** (R-C7) until handler
 
 ## See Also
 
+- [Retrieval Observability](./RETRIEVAL_OBSERVABILITY.md)
 - [Playbooks and Checkpoints](./PLAYBOOKS_AND_CHECKPOINTS.md)
 - [do-memory-mcp README](../memory-mcp/README.md)
 - [Current project status](../plans/STATUS/CURRENT.md)

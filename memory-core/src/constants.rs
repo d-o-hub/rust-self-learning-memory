@@ -52,6 +52,9 @@ pub mod defaults {
     pub const DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS: u64 = 30;
     pub const DEFAULT_METRICS_COLLECTION_INTERVAL_SECONDS: u64 = 60;
 
+    // Relationship limits
+    pub const MAX_RELATIONSHIP_DEPTH: usize = 10;
+
     // Memory management
     pub const DEFAULT_MAX_MEMORY_MB: usize = 512;
     pub const WARNING_MEMORY_THRESHOLD: f32 = 0.8; // 80%

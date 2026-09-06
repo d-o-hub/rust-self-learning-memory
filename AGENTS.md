@@ -82,7 +82,8 @@ gates above); `HARNESS.md` maps them to feedforward guides.
 - `do-harness doctor` — after upgrading the binary (checks hook/DB migration skew)
 - Sensor fired? Fix the firing sensor first (`verify --only <name>`), then commit. Same
   self-correction protocol as HARNESS.md; beats recorded by `--record` feed `do-harness metrics`.
-- Do NOT run `do-harness hook install` — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit`.
+- Do NOT run `do-harness hook install` — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit`
+  and runs the cheap sensor subset for you (fmt via cargo, loc via `scripts/check-loc.sh`).
 - `do-harness init` re-scaffolds skills; never let it inject `.agents/skills/skill-creator/scripts/`
   or ignore `.agents/events/` (this repo commits those).
 

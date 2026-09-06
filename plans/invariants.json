@@ -1,0 +1,20 @@
+[
+  {
+    "invariant": "Computational sensors strictly supersede LLM self-assessment",
+    "rationale": "Automated exit codes are the only proof a subtask is complete",
+    "sensor": "do-harness verify",
+    "category": "verification"
+  },
+  {
+    "invariant": "Maximum 500 LOC per source file; decompose when nearing 450",
+    "rationale": "Bounds per-file complexity so any slice stays reviewable and token-efficient",
+    "sensor": "scripts/check-loc.sh",
+    "category": "architecture"
+  },
+  {
+    "invariant": "Conventional commits with lowercase subject lines",
+    "rationale": "Machine-parseable history for the distillation loop",
+    "sensor": "CI Commit Message Lint (commitlint.config.cjs)",
+    "category": "workflow"
+  }
+]

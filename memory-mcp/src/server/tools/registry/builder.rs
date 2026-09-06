@@ -187,5 +187,6 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
         crate::mcp::tools::checkpoint::CheckpointTools::checkpoint_episode_tool(),
         crate::mcp::tools::checkpoint::CheckpointTools::get_handoff_pack_tool(),
         crate::mcp::tools::checkpoint::CheckpointTools::resume_from_handoff_tool(),
+        crate::mcp::tools::checkpoint::CheckpointTools::resume_from_compact_tool(),
     ]
 }

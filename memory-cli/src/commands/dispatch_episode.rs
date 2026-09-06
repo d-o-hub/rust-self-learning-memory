@@ -163,12 +163,26 @@ pub async fn handle_episode_command(
             reason,
             note,
         } => checkpoint(episode_id, reason, note, memory, config, format, dry_run).await,
-        EpisodeCommands::Handoff { checkpoint_id } => {
-            handoff(checkpoint_id, memory, config, format, dry_run).await
+        EpisodeCommands::Handoff {
+            checkpoint_id,
+            full,
+            max_bytes,
+        } => {
+            handoff(
+                checkpoint_id,
+                full,
+                max_bytes,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
         }
-        EpisodeCommands::Resume { checkpoint_id } => {
-            resume(checkpoint_id, memory, config, format, dry_run).await
-        }
+        EpisodeCommands::Resume {
+            checkpoint_id,
+            full,
+        } => resume(checkpoint_id, full, memory, config, format, dry_run).await,
         EpisodeCommands::Checkpoints { episode_id } => {
             crate::commands::episode::list_checkpoints(episode_id, memory, config, format).await
         }

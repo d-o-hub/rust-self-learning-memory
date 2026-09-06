@@ -464,8 +464,6 @@ Publish improvements (PR #789):
 
 ## MCP Server Interaction Patterns
 - The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
-- The MCP server exposes episodic memory functionality through the Model Context Protocol, including querying past experiences, analyzing patterns, statistical analysis, and monitoring metrics.
-- Note: `execute_agent_code` is unavailable / fail-closed (WASM sandbox removed; no working execution backend).
 - The server exposes a suite of tools defined in `docs/API_REFERENCE.md`, including:
   - **Core and Monitoring**: `query_memory`, `analyze_patterns`, `health_check`, `get_metrics`
   - **Pattern / Recommendation / Explainability**: `advanced_pattern_analysis`, `quality_metrics`, `search_patterns`, `recommend_patterns`, `recommend_playbook`, `explain_pattern`

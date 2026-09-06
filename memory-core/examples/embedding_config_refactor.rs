@@ -22,7 +22,6 @@
 
 use do_memory_core::embeddings::{
     EmbeddingConfig, ProviderConfig,
-    config::BatchingConfig,
     config::mistral::{MistralConfig, OutputDtype},
     config::openai::OpenAIConfig,
 };
@@ -219,7 +218,7 @@ fn main() {
         cache_embeddings: true,
         batch_size: 100,
         timeout_seconds: 30,
-        batch: BatchingConfig::default(),
+        batch: Default::default(),
     };
 
     println!("Complete EmbeddingConfig:");

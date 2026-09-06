@@ -108,7 +108,6 @@ impl SimpleSetup {
     }
 
     /// Build the configuration.
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn build(self) -> Result<Config> {
         if self.show_guidance {
             info!("🎯 Building configuration with preset: {:?}", self.preset);

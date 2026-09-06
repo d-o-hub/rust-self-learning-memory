@@ -1,0 +1,30 @@
+{
+  "skill_name": "harness",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Adopt the harness in an empty greenfield repository. What must be proven before any work starts?",
+      "expected_output": "do-harness init scaffolds the workspace plus a minimal rust crate, then do-harness verify must actually execute every sensor and exit 0 — the green path is computed, never assumed. A subsequently failing sensor records its error signature for the fail-fast lifecycle.",
+      "files": [],
+      "assertions": [
+        "walk:",
+        "exists:Cargo.toml",
+        "exists:src/lib.rs",
+        "exists:do-harness.toml",
+        "exists:AGENTS.md",
+        "exists:.agents/skills/harness/SKILL.md",
+        "db:error_signatures:signature=sensor:test:min=1",
+        "cli:errors list:contains:sensor:test"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The same test has failed 3 consecutive times for the same subtask. What now?",
+      "expected_output": "Apply the fail-fast policy: halt, record the error signature, and surface a diagnostic to the developer.",
+      "files": [],
+      "assertions": [
+        "The fail-fast policy halts rather than retrying indefinitely"
+      ]
+    }
+  ]
+}

@@ -26,6 +26,7 @@ Always use Skill + CLI first for high-frequency ops:
 | Wait for CI | `ci-poll` | `gh pr checks` / Actions |
 | Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
 | Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
+| Agent Harness | `harness` | `do-harness verify --record` / `do-harness doctor` |
 | Complex multi-step | `goap-agent` | - |
 
 Full skill inventory: [`.agents/SKILLS.md`](.agents/SKILLS.md).  
@@ -57,7 +58,8 @@ Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship 
 7. `cargo nextest run --all`
 8. `cargo test --doc`
 9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
-10. `git status` - verify all changes staged
+10. `do-harness verify --record`
+11. `git status` - verify all changes staged
 
 ## Core Invariants (Never Break)
 - **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)
@@ -67,6 +69,22 @@ Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship 
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 - **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
+
+## Dev Harness (do-harness)
+
+Computational sensor runner + local agent state DB (`.do-harness/agent_state.db`, gitignored).
+Sensors are defined in `do-harness.toml` (fmt, check, clippy, test, deny, loc — mirroring the
+gates above); `HARNESS.md` maps them to feedforward guides.
+
+- `do-harness verify --record` — run the sensor suite and persist beats (Change Workflow step 10)
+- `do-harness verify --only <sensor>` — targeted re-run after a failure
+- `do-harness task done <id>` — task gate; refuses until its sensor passed via `verify --record`
+- `do-harness doctor` — after upgrading the binary (checks hook/DB migration skew)
+- Sensor fired? Fix the firing sensor first (`verify --only <name>`), then commit. Same
+  self-correction protocol as HARNESS.md; beats recorded by `--record` feed `do-harness metrics`.
+- Do NOT run `do-harness hook install` — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit`.
+- `do-harness init` re-scaffolds skills; never let it inject `.agents/skills/skill-creator/scripts/`
+  or ignore `.agents/events/` (this repo commits those).
 
 ## Steering Loop
 

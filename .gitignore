@@ -136,6 +136,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+# do-harness local state DB (sensors read do-harness.toml, not these files)
+.do-harness/
 # NOTE: .agents/events/ is deliberately NOT ignored — this repo commits
 # Steering Loop metrics events (see AGENTS.md "Steering Loop").
 

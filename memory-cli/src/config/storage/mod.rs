@@ -327,6 +327,8 @@ pub(super) fn create_memory_config(config: &Config) -> MemoryConfig {
         diversity_lambda: 0.7,
         temporal_bias_weight: 0.3,
         max_clusters_to_search: 5,
+        candidate_budget: Some(100),
+        compatibility_mode: false,
         retrieval_mode: do_memory_core::types::RetrievalMode::Keyword,
         semantic_search_mode: "hybrid".to_string(),
         enable_query_embedding_cache: true,

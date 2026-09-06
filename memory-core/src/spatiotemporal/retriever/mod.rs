@@ -51,6 +51,10 @@ pub struct HierarchicalRetriever {
     temporal_bias_weight: f32,
     /// Maximum number of temporal clusters to search
     max_clusters_to_search: usize,
+    /// Maximum candidate budget before fine-grained similarity scoring
+    candidate_budget: Option<usize>,
+    /// Compatibility mode: when true, candidate bounding is bypassed
+    compatibility_mode: bool,
 }
 
 impl Default for HierarchicalRetriever {
@@ -65,11 +69,15 @@ impl HierarchicalRetriever {
     /// Default values:
     /// - `temporal_bias_weight`: 0.3 (30% weight to recency)
     /// - `max_clusters_to_search`: 5 clusters
+    /// - `candidate_budget`: Some(100)
+    /// - `compatibility_mode`: false
     #[must_use]
     pub fn new() -> Self {
         Self {
             temporal_bias_weight: 0.3,
             max_clusters_to_search: 5,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         }
     }
 
@@ -96,6 +104,24 @@ impl HierarchicalRetriever {
         Self {
             temporal_bias_weight,
             max_clusters_to_search,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
+        }
+    }
+
+    /// Create a hierarchical retriever with full options including budget and compatibility mode.
+    #[must_use]
+    pub fn with_options(
+        temporal_bias_weight: f32,
+        max_clusters_to_search: usize,
+        candidate_budget: Option<usize>,
+        compatibility_mode: bool,
+    ) -> Self {
+        Self {
+            temporal_bias_weight,
+            max_clusters_to_search,
+            candidate_budget,
+            compatibility_mode,
         }
     }
 

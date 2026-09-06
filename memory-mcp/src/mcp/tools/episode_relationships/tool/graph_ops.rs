@@ -229,7 +229,6 @@ impl EpisodeRelationshipTools {
         })
     }
 
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
         Ok(Vec::new())
     }

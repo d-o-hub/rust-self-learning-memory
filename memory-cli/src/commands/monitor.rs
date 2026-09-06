@@ -16,6 +16,12 @@ pub enum MonitorCommands {
         #[arg(short, long, default_value = "prometheus")]
         format: ExportFormat,
     },
+    /// Show retrieval telemetry snapshot (issue #962)
+    Retrieval {
+        /// Snapshot format (json, prometheus)
+        #[arg(short, long, default_value = "json")]
+        format: RetrievalMetricsFormat,
+    },
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -23,6 +29,15 @@ pub enum ExportFormat {
     Prometheus,
     Json,
     Influx,
+}
+
+/// Output format for the retrieval telemetry view.
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum RetrievalMetricsFormat {
+    /// JSON snapshot (same shape as the MCP `get_metrics` retrieval view)
+    Json,
+    /// Prometheus text exposition
+    Prometheus,
 }
 
 #[derive(Debug, Serialize)]
@@ -155,6 +170,41 @@ impl Output for MetricsExport {
         writeln!(writer, "Timestamp: {}", self.timestamp)?;
         writeln!(writer, "Content:")?;
         writeln!(writer, "{}", self.content)?;
+
+        Ok(())
+    }
+}
+
+/// Retrieval telemetry export (issue #962).
+#[derive(Debug, Serialize)]
+pub struct RetrievalMetricsExport {
+    pub format: String,
+    pub timestamp: String,
+    /// JSON snapshot; present when `format` is `json`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub snapshot: Option<serde_json::Value>,
+    /// Prometheus text exposition; present when `format` is `prometheus`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prometheus: Option<String>,
+}
+
+impl Output for RetrievalMetricsExport {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(
+            writer,
+            "{}",
+            format!("Retrieval Metrics ({})", self.format).bold()
+        )?;
+        writeln!(writer, "{}", "─".repeat(40))?;
+        writeln!(writer, "Timestamp: {}", self.timestamp)?;
+        if let Some(snapshot) = &self.snapshot {
+            writeln!(writer, "{}", serde_json::to_string_pretty(snapshot)?)?;
+        }
+        if let Some(prometheus) = &self.prometheus {
+            writeln!(writer, "{}", prometheus)?;
+        }
 
         Ok(())
     }
@@ -331,4 +381,83 @@ pub async fn export_metrics(
 
     format.print_output(&export)?;
     Ok(())
+}
+
+/// Print the process-global retrieval telemetry snapshot (issue #962).
+///
+/// Reads `do_memory_core::monitoring::metrics::global_retrieval_metrics()`
+/// directly: the same registry the MCP `get_metrics` retrieval view and the
+/// unified Prometheus exposition serve. No network or storage access.
+pub async fn retrieval_metrics(
+    format: OutputFormat,
+    metrics_format: RetrievalMetricsFormat,
+) -> anyhow::Result<()> {
+    let registry = do_memory_core::monitoring::metrics::global_retrieval_metrics();
+    let timestamp = chrono::Utc::now()
+        .format("%Y-%m-%d %H:%M:%S UTC")
+        .to_string();
+
+    let export = match metrics_format {
+        RetrievalMetricsFormat::Json => RetrievalMetricsExport {
+            format: "json".to_string(),
+            timestamp,
+            snapshot: Some(registry.snapshot()),
+            prometheus: None,
+        },
+        RetrievalMetricsFormat::Prometheus => RetrievalMetricsExport {
+            format: "prometheus".to_string(),
+            timestamp,
+            snapshot: None,
+            prometheus: Some(registry.export_prometheus()),
+        },
+    };
+
+    format.print_output(&export)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn human_output_renders_prometheus_content() {
+        let export = RetrievalMetricsExport {
+            format: "prometheus".to_string(),
+            timestamp: "2026-09-05 00:00:00 UTC".to_string(),
+            snapshot: None,
+            prometheus: Some(
+                "memory_retrieval_requests_total{operation=\"query\",tier=\"cache\",outcome=\"hit\"} 1\n"
+                    .to_string(),
+            ),
+        };
+
+        let mut buffer = Vec::new();
+        export.write_human(&mut buffer).unwrap();
+
+        let text = String::from_utf8(buffer).unwrap();
+        assert!(text.contains("Retrieval Metrics (prometheus)"));
+        assert!(text.contains("memory_retrieval_requests_total"));
+    }
+
+    #[test]
+    fn json_output_embeds_snapshot_and_omits_empty_axis() {
+        let export = RetrievalMetricsExport {
+            format: "json".to_string(),
+            timestamp: "2026-09-05 00:00:00 UTC".to_string(),
+            snapshot: Some(serde_json::json!({"requests": [], "cache": {}})),
+            prometheus: None,
+        };
+
+        let mut buffer = Vec::new();
+        export.write_json(&mut buffer).unwrap();
+
+        let parsed: serde_json::Value = serde_json::from_slice(&buffer).unwrap();
+        assert_eq!(parsed["format"], "json");
+        assert!(parsed["snapshot"].is_object());
+        assert!(
+            parsed.get("prometheus").is_none(),
+            "absent axis must be skipped, not serialized as null"
+        );
+    }
 }

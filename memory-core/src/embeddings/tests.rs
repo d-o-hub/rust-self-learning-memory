@@ -3,6 +3,7 @@
 use super::*;
 use crate::embeddings::storage::MockEmbeddingStorage;
 use crate::{Episode, Pattern, TaskContext};
+use serial_test::serial;
 
 fn create_test_episode() -> Episode {
     let context = TaskContext {
@@ -372,4 +373,32 @@ async fn build_exact_custom_provider_returns_err() {
         err_msg.contains("not supported"),
         "Error message should mention 'not supported', got: {err_msg}"
     );
+}
+
+#[tokio::test]
+#[serial]
+async fn test_embed_records_provider_telemetry() {
+    use crate::monitoring::metrics::global_retrieval_metrics;
+
+    let storage = Box::new(MockEmbeddingStorage);
+    let config = EmbeddingConfig::default();
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
+
+    let meter = global_retrieval_metrics();
+    let before = meter.snapshot()["embeddings"]["local"]["ok"]
+        .as_u64()
+        .unwrap_or(0);
+    let episode = create_test_episode();
+    service.embed_episode(&episode).await.unwrap();
+    let pattern = create_test_pattern();
+    service.embed_pattern(&pattern).await.unwrap();
+    let after = meter.snapshot()["embeddings"]["local"]["ok"]
+        .as_u64()
+        .unwrap_or(0);
+
+    assert_eq!(after - before, 2, "episode + pattern embeds recorded");
 }

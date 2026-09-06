@@ -111,7 +111,9 @@ mcp-config-*.json
 audit-report.json
 insights-report/
 benchmark_results/
-metrics/
+# Root-level artifact dir only — must NOT swallow source modules like
+# memory-core/src/monitoring/metrics/ (a bare `metrics/` matches at any depth).
+/metrics/
 bench_results.txt
 
 # Split file artifacts (from split command)
@@ -134,3 +136,6 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+# NOTE: .agents/events/ is deliberately NOT ignored — this repo commits
+# Steering Loop metrics events (see AGENTS.md "Steering Loop").
+

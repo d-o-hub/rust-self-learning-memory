@@ -17,8 +17,9 @@ impl EmbeddingTools {
         info!("Testing embedding provider connectivity");
 
         // Use live_semantic_service to pick up dynamically activated providers.
+        // embed_query_text records provider telemetry (issue #962).
         if let Some(semantic_service) = self.memory.live_semantic_service().await {
-            match semantic_service.provider.embed_text("test").await {
+            match semantic_service.embed_query_text("test").await {
                 Ok(test_embedding) => {
                     let test_time_ms = start_time.elapsed().as_millis() as u64;
 
@@ -102,7 +103,7 @@ impl EmbeddingTools {
 
             let test_result = if input.test_connectivity {
                 let start_time = std::time::Instant::now();
-                match semantic_service.provider.embed_text("test").await {
+                match semantic_service.embed_query_text("test").await {
                     Ok(embedding) => {
                         let duration_ms = start_time.elapsed().as_millis() as u64;
                         let sample_embedding: Vec<f32> = embedding.into_iter().take(5).collect();

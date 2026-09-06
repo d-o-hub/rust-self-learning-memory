@@ -61,6 +61,7 @@ impl crate::server::MemoryMCPServer {
             Some("performance") => self.monitoring_endpoints.performance_metrics().await,
             Some("episodes") => self.monitoring_endpoints.episode_metrics().await,
             Some("system") => self.monitoring_endpoints.system_info().await,
+            Some("retrieval") => self.monitoring_endpoints.retrieval_metrics().await,
             _ => self.monitoring_endpoints.metrics().await,
         };
 

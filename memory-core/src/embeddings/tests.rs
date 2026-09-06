@@ -400,5 +400,12 @@ async fn test_embed_records_provider_telemetry() {
         .as_u64()
         .unwrap_or(0);
 
-    assert_eq!(after - before, 2, "episode + pattern embeds recorded");
+    // Lower bound, not equality: the registry is process-global and cargo
+    // test runs lib tests on shared threads, so concurrent tests may record
+    // additional embeds between the snapshots. Counters only grow.
+    assert!(
+        after - before >= 2,
+        "episode + pattern embeds recorded (delta {})",
+        after - before
+    );
 }

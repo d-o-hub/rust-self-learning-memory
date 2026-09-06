@@ -17,7 +17,6 @@ struct BenchProvider {
 
 #[async_trait]
 impl EmbeddingProvider for BenchProvider {
-    #[expect(clippy::cast_precision_loss)]
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
         if self.latency > Duration::ZERO {
             tokio::time::sleep(self.latency).await;
@@ -26,7 +25,6 @@ impl EmbeddingProvider for BenchProvider {
         Ok(vec![val, val])
     }
 
-    #[expect(clippy::cast_precision_loss)]
     async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
         self.batch_calls.fetch_add(1, Ordering::SeqCst);
         if self.latency > Duration::ZERO {
@@ -49,9 +47,8 @@ impl EmbeddingProvider for BenchProvider {
     }
 }
 
-#[expect(clippy::panic)]
 fn bench_coalescing(c: &mut Criterion) {
-    let rt = Runtime::new().unwrap_or_else(|e| panic!("failed to create tokio runtime: {e}"));
+    let rt = Runtime::new().unwrap();
 
     c.bench_function("concurrent_coalesced_embeddings", |b| {
         b.to_async(&rt).iter(|| async {

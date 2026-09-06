@@ -283,8 +283,6 @@ mod csm_tests {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
-            candidate_budget: Some(100),
-            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -318,8 +316,6 @@ mod csm_tests {
             merge_results: false,
             min_results: 1,
             enable_concept_expansion: false,
-            candidate_budget: Some(100),
-            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 

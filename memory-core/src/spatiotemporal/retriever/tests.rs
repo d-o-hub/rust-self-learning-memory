@@ -44,29 +44,6 @@ fn test_retriever_creation() {
 }
 
 #[test]
-fn test_retriever_budget_option_defaults() {
-    let default_retriever = HierarchicalRetriever::new();
-    assert_eq!(default_retriever.candidate_budget, Some(100));
-    assert!(!default_retriever.compatibility_mode);
-
-    let via_default_trait = HierarchicalRetriever::default();
-    assert_eq!(via_default_trait.candidate_budget, Some(100));
-    assert!(!via_default_trait.compatibility_mode);
-
-    let custom = HierarchicalRetriever::with_config(0.5, 10);
-    assert_eq!(custom.candidate_budget, Some(100));
-    assert!(!custom.compatibility_mode);
-
-    let options = HierarchicalRetriever::with_options(0.3, 5, Some(25), true);
-    assert_eq!(options.candidate_budget, Some(25));
-    assert!(options.compatibility_mode);
-
-    let unbounded = HierarchicalRetriever::with_options(0.3, 5, None, false);
-    assert_eq!(unbounded.candidate_budget, None);
-    assert!(!unbounded.compatibility_mode);
-}
-
-#[test]
 fn test_domain_filtering() {
     let retriever = HierarchicalRetriever::new();
 
@@ -493,7 +470,7 @@ async fn test_synthetic_large_corpus_bounded_retrieval() {
             domain,
             TaskType::CodeGeneration,
             &format!("synthetic task content {i}"),
-            i64::from(i % 30),
+            (i % 30) as i64,
         ));
     }
 

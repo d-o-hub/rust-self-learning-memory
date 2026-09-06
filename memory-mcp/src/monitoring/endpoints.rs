@@ -87,6 +87,28 @@ impl MonitoringEndpoints {
         }))
     }
 
+    /// Handle retrieval-plane metrics endpoint (issue #962)
+    ///
+    /// Reads the process-global retrieval telemetry registry: request
+    /// counts and durations by operation/tier/outcome, candidate-set sizes,
+    /// cache results, embedding calls by provider, fallback reasons, and
+    /// feedback signals. All labels are bounded enums; raw queries, IDs,
+    /// tags, and error strings can never appear.
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    pub async fn retrieval_metrics(&self) -> Result<serde_json::Value> {
+        debug!("Handling retrieval metrics request");
+
+        let snapshot = do_memory_core::monitoring::metrics::global_retrieval_metrics().snapshot();
+
+        Ok(json!({
+            "retrieval_metrics": snapshot,
+            "timestamp": std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs()
+        }))
+    }
+
     /// Handle performance metrics endpoint
     pub async fn performance_metrics(&self) -> Result<serde_json::Value> {
         debug!("Handling performance metrics request");

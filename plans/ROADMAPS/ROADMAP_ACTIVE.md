@@ -1,15 +1,28 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-08-12
+**Last Updated**: 2026-09-05
 **Released Version**: v0.1.39 (latest tag)
 **Workspace Version**: 0.1.40 (post-v0.1.39 bump)
-**Active Sprint**: post-closure main (#947 merged 2026-08-12); awaiting maintainer ADR-079 stage-4 + ADR-080/081 lifecycle
+**Active Sprint**: observability wave — #962 retrieval telemetry in review; perf PRs #992-994/#978 in CI; release drift #976 pending ship
 **Plan**: merged #947 (2026-08-12); prior waves: `GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` (all historical)
-**Branch**: main @ `872949b8` (PR #947 merged 2026-08-12)
-**Open PRs**: none (docs-only tracker PR transient)
-**Open issues**: none
+**Branch**: feat/retrieval-observability-962 (WIP) off main @ `5f2c215b`
+**Open PRs**: 13 (see #976 drift context)
+**Open issues**: 6 (#976 critical: release due)
+
+## Sprint 2026-09-05 — Observability + dev-harness adoption
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | Observability | #962 retrieval telemetry: bounded labels, MCP `get_metrics(retrieval)`, redaction tests | ✅ Implemented (branch feat/retrieval-observability-962) |
+| P1 | Build | Fix `.gitignore` swallowing `metrics/` sources; tokio `net` feature; wasm gate | ✅ Done |
+| P1 | Observability | Prometheus exposition validity (single TYPE per family, per-(op,tier) quantiles) | ✅ Done |
+| P2 | Observability | Module split ≤500 LOC (labels/registry/exposition) | ✅ Done |
+| P2 | Observability | CLI retrieval-metrics surface + docs dashboard example (#962 acceptance) | 🔄 In progress |
+| P2 | Workflow | do-harness dev harness adopted (sensors fmt/check/clippy/test/deny/loc) | ✅ Done |
+| P1 | Release | #976 drift (30 commits / 24 d): ship via release-guard once #962 lands | ⏳ Pending |
 
 ---
+
 
 ## Completed sprint 2026-07-22…25 — Ship + post-bump + gap analysis + R-F8/R-F9 + skills
 

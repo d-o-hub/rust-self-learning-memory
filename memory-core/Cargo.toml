@@ -115,9 +115,10 @@ hnsw_rs = { version = "0.3.0", optional = true }
 # CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
 chaotic_semantic_memory = { version = "0.3.6", optional = true }
 
-# Native-only: tokio::fs feature (not available on wasm32)
+# Native-only: tokio::fs and tokio::net (metrics HTTP server) are not
+# available on wasm32
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { workspace = true, features = ["fs"] }
+tokio = { workspace = true, features = ["fs", "net"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["sync", "macros", "rt", "time", "io-util", "rt-multi-thread", "test-util"] }

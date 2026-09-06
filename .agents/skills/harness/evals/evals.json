@@ -1,0 +1,49 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "harness skill exists",
+      "exec": "test -f .agents/skills/harness/SKILL.md"
+    },
+    {
+      "name": "sensor-config-present",
+      "description": "do-harness.toml defines the workspace sensor pack",
+      "exec": "test -f do-harness.toml && rg -q '\\[\\[sensors\\]\\]' do-harness.toml"
+    },
+    {
+      "name": "six-core-sensors",
+      "description": "fmt, check, clippy, test, deny, loc sensors are configured",
+      "exec": "for s in fmt check clippy test deny loc; do rg -q \"name = \\\"$s\\\"\" do-harness.toml || exit 1; done"
+    },
+    {
+      "name": "loc-sensor-script",
+      "description": "check-loc.sh sensor script exists and is executable",
+      "exec": "test -x scripts/check-loc.sh"
+    },
+    {
+      "name": "workflow-step-ten",
+      "description": "Change Workflow step 10 runs do-harness verify --record",
+      "exec": "rg -q 'do-harness verify --record' AGENTS.md"
+    },
+    {
+      "name": "dev-harness-section",
+      "description": "AGENTS.md documents the Dev Harness (do-harness) section",
+      "exec": "rg -q '## Dev Harness \\(do-harness\\)' AGENTS.md"
+    },
+    {
+      "name": "hook-ownership-guard",
+      "description": "Documents that pre-commit framework owns .git/hooks (no do-harness hook install)",
+      "exec": "rg -q 'Do NOT run \\`?do-harness hook install' AGENTS.md"
+    },
+    {
+      "name": "events-not-ignored",
+      "description": ".agents/events/ stays tracked (Steering Loop audit trail)",
+      "exec": "! git check-ignore -q .agents/events/ 2>/dev/null"
+    },
+    {
+      "name": "state-db-ignored",
+      "description": ".do-harness/ local state DB is gitignored",
+      "exec": "rg -q '^\\.do-harness/$' .gitignore"
+    }
+  ]
+}

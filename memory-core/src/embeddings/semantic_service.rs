@@ -293,7 +293,18 @@ impl SemanticService {
     /// - Outcome summary
     pub async fn embed_episode(&self, episode: &Episode) -> Result<Vec<f32>> {
         let text = super::semantic_text::episode_to_text(episode);
-        let embedding = self.provider.embed_text(&text).await?;
+        let start = std::time::Instant::now();
+        let outcome = self.provider.embed_text(&text).await;
+        let duration_ms = start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+        crate::monitoring::metrics::global_retrieval_metrics().record_embedding(
+            self.provider_label(),
+            match &outcome {
+                Ok(_) => crate::monitoring::metrics::EmbeddingOutcome::Ok,
+                Err(_) => crate::monitoring::metrics::EmbeddingOutcome::Error,
+            },
+            duration_ms,
+        );
+        let embedding = outcome?;
 
         // Store the embedding
         self.storage
@@ -311,7 +322,18 @@ impl SemanticService {
     /// - Pattern metadata and effectiveness metrics
     pub async fn embed_pattern(&self, pattern: &Pattern) -> Result<Vec<f32>> {
         let text = super::semantic_text::pattern_to_text(pattern);
-        let embedding = self.provider.embed_text(&text).await?;
+        let start = std::time::Instant::now();
+        let outcome = self.provider.embed_text(&text).await;
+        let duration_ms = start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+        crate::monitoring::metrics::global_retrieval_metrics().record_embedding(
+            self.provider_label(),
+            match &outcome {
+                Ok(_) => crate::monitoring::metrics::EmbeddingOutcome::Ok,
+                Err(_) => crate::monitoring::metrics::EmbeddingOutcome::Error,
+            },
+            duration_ms,
+        );
+        let embedding = outcome?;
 
         // Store the embedding
         self.storage
@@ -319,6 +341,38 @@ impl SemanticService {
             .await?;
 
         Ok(embedding)
+    }
+
+    /// Generate a query embedding with telemetry.
+    ///
+    /// Single choke point for query-time provider calls so per-query
+    /// embedding rates are observable (issue #962). Never records the
+    /// query text itself.
+    pub async fn embed_query_text(&self, text: &str) -> Result<Vec<f32>> {
+        let start = std::time::Instant::now();
+        let outcome = self.provider.embed_text(text).await;
+        let duration_ms = start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+        crate::monitoring::metrics::global_retrieval_metrics().record_embedding(
+            self.provider_label(),
+            match &outcome {
+                Ok(_) => crate::monitoring::metrics::EmbeddingOutcome::Ok,
+                Err(_) => crate::monitoring::metrics::EmbeddingOutcome::Error,
+            },
+            duration_ms,
+        );
+        outcome
+    }
+
+    /// Bounded provider label for telemetry from the configured provider.
+    fn provider_label(&self) -> crate::monitoring::metrics::EmbeddingProviderLabel {
+        use crate::monitoring::metrics::EmbeddingProviderLabel;
+        match &self.config.provider {
+            ProviderConfig::Local(_) => EmbeddingProviderLabel::Local,
+            ProviderConfig::OpenAI(_) => EmbeddingProviderLabel::OpenAI,
+            ProviderConfig::Mistral(_) => EmbeddingProviderLabel::Mistral,
+            ProviderConfig::AzureOpenAI(_) => EmbeddingProviderLabel::AzureOpenAI,
+            ProviderConfig::Custom(_) => EmbeddingProviderLabel::Custom,
+        }
     }
 
     /// Find semantically similar episodes for a query

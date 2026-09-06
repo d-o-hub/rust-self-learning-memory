@@ -50,7 +50,7 @@ impl AnalysisConfigBuilder {
 
 impl AdvancedPatternAnalysisTool {
     /// Perform statistical analysis on time series data
-    #[expect(clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub(super) async fn perform_statistical_analysis(
         &self,
         data: &HashMap<String, Vec<f64>>,
@@ -75,7 +75,7 @@ impl AdvancedPatternAnalysisTool {
     }
 
     /// Perform predictive analysis on time series data
-    #[expect(clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub(super) async fn perform_predictive_analysis(
         &self,
         data: &HashMap<String, Vec<f64>>,

@@ -7,7 +7,6 @@ publish = false
 
 [dependencies]
 criterion = { version = "0.8", features = ["async_tokio", "async_futures"] }
-async-trait = { workspace = true }
 do-memory-core = { path = "../memory-core" }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
 do-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool", "compression"] }
@@ -16,6 +15,7 @@ tempfile = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
+async-trait = { workspace = true }
 anyhow = { workspace = true }
 futures = { workspace = true }
 serde_json = { workspace = true }

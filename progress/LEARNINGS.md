@@ -8,3 +8,8 @@
 **Vulnerability:** Public MCP tools accepted unbounded arrays of field names for JSON projection, leading to potential CWE-770 (Resource Exhaustion).
 **Learning:** Security bounds must be applied not just to scalar 'limit' parameters, but also to collection sizes (vectors/arrays) provided by users.
 **Prevention:** Use `.truncate(MAX_CONSTANT)` for user-provided lists and ensure all numeric/floating-point inputs are clamped to safe ranges.
+
+## 2026-07-18 — Unbounded top_k in Hierarchical Reranker
+**Vulnerability:** `HierarchicalReranker::rerank_with_query` accepted an unguarded `top_k: usize` parameter, causing unbounded allocation in `Vec::with_capacity(k)`.
+**Learning:** High-level reranking / retrieval APIs that take `top_k` must clamp values against system max bounds even if callers are expected to pass reasonable limits.
+**Prevention:** Always clamp `top_k` using `top_k.min(MAX_QUERY_LIMIT)` at the entry point of public retrieval APIs.

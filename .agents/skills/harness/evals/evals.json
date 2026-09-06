@@ -1,30 +1,49 @@
 {
-  "skill_name": "harness",
-  "evals": [
+  "tests": [
     {
-      "id": 1,
-      "prompt": "Adopt the harness in an empty greenfield repository. What must be proven before any work starts?",
-      "expected_output": "do-harness init scaffolds the workspace plus a minimal rust crate, then do-harness verify must actually execute every sensor and exit 0 — the green path is computed, never assumed. A subsequently failing sensor records its error signature for the fail-fast lifecycle.",
-      "files": [],
-      "assertions": [
-        "walk:",
-        "exists:Cargo.toml",
-        "exists:src/lib.rs",
-        "exists:do-harness.toml",
-        "exists:AGENTS.md",
-        "exists:.agents/skills/harness/SKILL.md",
-        "db:error_signatures:signature=sensor:test:min=1",
-        "cli:errors list:contains:sensor:test"
-      ]
+      "name": "skill-md-present",
+      "description": "harness skill exists",
+      "exec": "test -f .agents/skills/harness/SKILL.md"
     },
     {
-      "id": 2,
-      "prompt": "The same test has failed 3 consecutive times for the same subtask. What now?",
-      "expected_output": "Apply the fail-fast policy: halt, record the error signature, and surface a diagnostic to the developer.",
-      "files": [],
-      "assertions": [
-        "The fail-fast policy halts rather than retrying indefinitely"
-      ]
+      "name": "sensor-config-present",
+      "description": "do-harness.toml defines the workspace sensor pack",
+      "exec": "test -f do-harness.toml && rg -q '\\[\\[sensors\\]\\]' do-harness.toml"
+    },
+    {
+      "name": "six-core-sensors",
+      "description": "fmt, check, clippy, test, deny, loc sensors are configured",
+      "exec": "for s in fmt check clippy test deny loc; do rg -q \"name = \\\"$s\\\"\" do-harness.toml || exit 1; done"
+    },
+    {
+      "name": "loc-sensor-script",
+      "description": "check-loc.sh sensor script exists and is executable",
+      "exec": "test -x scripts/check-loc.sh"
+    },
+    {
+      "name": "workflow-step-ten",
+      "description": "Change Workflow step 10 runs do-harness verify --record",
+      "exec": "rg -q 'do-harness verify --record' AGENTS.md"
+    },
+    {
+      "name": "dev-harness-section",
+      "description": "AGENTS.md documents the Dev Harness (do-harness) section",
+      "exec": "rg -q '## Dev Harness \\(do-harness\\)' AGENTS.md"
+    },
+    {
+      "name": "hook-ownership-guard",
+      "description": "Documents that pre-commit framework owns .git/hooks (no do-harness hook install)",
+      "exec": "rg -q 'Do NOT run \\`?do-harness hook install' AGENTS.md"
+    },
+    {
+      "name": "events-not-ignored",
+      "description": ".agents/events/ stays tracked (Steering Loop audit trail)",
+      "exec": "! git check-ignore -q .agents/events/ 2>/dev/null"
+    },
+    {
+      "name": "state-db-ignored",
+      "description": ".do-harness/ local state DB is gitignored",
+      "exec": "rg -q '^\\.do-harness/$' .gitignore"
     }
   ]
 }

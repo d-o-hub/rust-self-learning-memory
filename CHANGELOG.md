@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.40] - 2026-09-06
+
+### Added
+
+- Retrieval-plane telemetry with bounded labels (#962): enum vocabularies
+  with compile-time cardinality, recording on the real query/cascade/cache/
+  embedding paths, MCP `get_metrics(metric_type="retrieval")`, Prometheus
+  exposition, and `do-memory-cli monitor retrieval`
+- Retrieval quality and cost benchmark (`eval benchmark`) with regression
+  thresholds and machine-readable artifacts
+- Feedback-to-ranking adaptation (ADR-082) with ADR 025/054 alias
+  canonicalization
+- Persistent remote cargo builder (Bunnyshell)
+
+### Changed
+
+- Coalesce concurrent embedding cache misses and batch provider requests
+- Optimize fuzzy search string allocation and position math
+- Pin single-success boost calibration (ADR-082)
+
+### Fixed
+
+- OperationLatency percentile ordering (p50 could exceed p95 on ascending
+  samples; invariant now enforced after each EMA update)
+- Clippy 1.98 compliance across the workspace
+- Replace yanked chacha20 0.10.2 and der 0.8.0 (0.8.2) dependencies
+- Release/CI/fuzz artifact retention capped at 7 days
+- Bunnyshell builder branch tracking after the builder PR merge
+
+### Documentation
+
+- Retrieval observability dashboard guide (PromQL panels, MCP and CLI
+  usage, cardinality and redaction contract)
+- Synchronize README and docs with the current implementation state
+
+### CI
+
+- Same-run fast gate and attribution capture truth (#947)
+- Dev-harness sensor suite adopted (do-harness) with loc/fmt wired through
+  pre-commit
+- actions-all dependency bumps and coverage badge refresh automation
+
 ## [0.1.39] - 2026-08-11
 
 
@@ -2769,7 +2811,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+### 0.1.11 — continued (shipped 2026-01-04)
 
 
 
@@ -2880,7 +2922,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+### 0.1.10 — continued (shipped 2026-01-02)
 
 
 

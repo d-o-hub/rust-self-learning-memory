@@ -13,3 +13,9 @@
 **Vulnerability:** `HierarchicalReranker::rerank_with_query` accepted an unbounded `top_k: usize` parameter which was passed directly to `Vec::with_capacity(top_k)` in `select_diverse`, leading to potential out-of-memory panics (DoS) when called with large `top_k` values like `usize::MAX`.
 **Learning:** Public retrieval APIs accepting limits/top_k parameters must bound user-provided values prior to vector allocations.
 **Prevention:** Clamp caller-provided `top_k` / `limit` parameters with existing constants like `crate::storage::MAX_QUERY_LIMIT` before allocation.
+
+## 2026-07-18 — Unbounded Graph Traversal via max_depth
+**Vulnerability:** `SelfLearningMemory::build_relationship_graph` accepted an unbounded `max_depth` parameter, enabling potential denial-of-service or high resource consumption via deep graph traversal.
+**Learning:** Public API parameters specifying recursion or graph traversal depth must be bounded at entry.
+**Prevention:** Always clamp graph/tree traversal depths using named constants (e.g. `max_depth.min(MAX_RELATIONSHIP_DEPTH)`).
+

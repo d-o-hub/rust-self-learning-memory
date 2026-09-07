@@ -105,4 +105,10 @@ feedback_updates_ranking          = true  (ADR-082 — code-side: derived Wilson
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
 r_f10_oidc_publishing             = true  (ACT-325 — publish-crates.yml OIDC id-token + exchange)
 r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)
+pr_triage_2026_09_07_closed       = true  (#987 empty, #1000 lcov artifact, #972 dup of #980 — all CLOSED with comments)
+pr_triage_2026_09_07_merged       = true  (#1001 actions-all squash-merged 2026-09-07T15:41:11Z; repo rejects merge commits, squash only)
+pr_triage_2026_09_07_fixed        = true  (#992 LocalOnly coverage + plans-doc removal 01e2e300; #980 2-file strip 56df9b27; #999 changelog rebase d991bd4e — all pushed, CI pending)
+pr_triage_2026_09_07_rebase_1002  = true  (@dependabot rebase triggered, CI pending)
+pr_triage_2026_09_07_needs_fix    = true  (#993 clippy+matrix, #994 macOS+coverage, #989/#986 lint+churn, #978 clippy-cast+churn — roast reviews posted, authors action)
+pr_triage_2026_09_07_lintfix       = true  (#992 amend 8118beae + #980 squash 669ade07 fix body-max-line-length:100; transparency comments posted, CI rerunning)
 ```

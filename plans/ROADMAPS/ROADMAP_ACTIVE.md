@@ -92,3 +92,12 @@
 
 Completed sprint tables live under `plans/archive/2026-07-consolidation/` and older archives.  
 Do not re-expand completed WG tables (ADR-039).
+
+## PR triage 2026-09-07 (GOAP swarm outcome)
+
+- Closed: #987 (empty), #1000 (lcov artifact), #972 (dup of #980).
+- Merged: #1001 (actions-all, squash — merge commits rejected by repo).
+- Fixed + pushed, CI pending: #992 (LocalOnly coverage), #980 (2-file strip), #999 (changelog rebase), #1002 (`@dependabot rebase`).
+- Needs author fixes (roast reviews posted): #993 (clippy+matrix), #994 (macOS+coverage), #989/#986 (lint+churn), #978 (clippy-cast+churn, merges after #992/#993).
+- Learnings: `progress/LEARNINGS.md` 2026-09-07 entries (Jules-bundling, duplicate-PR, merge-commit-lint, force-push verify, match-arm coverage).
+- Lint follow-up: #992 HEAD amended (179-char body line wrapped, `8118beae`), #980 squashed 6→1 commit (`669ade07`, also drops a 101-char line); both pushed, CI rerunning. Root cause: `body-max-line-length:100` from `@commitlint/config-conventional` — wrap bodies at ~80 cols.

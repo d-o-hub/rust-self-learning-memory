@@ -106,7 +106,9 @@ mod tests {
 
     /// Issue #968 acceptance: on a corpus where every query has an exact
     /// local match, `Adaptive` must eliminate Tier 4 calls (>=50% reduction
-    /// vs `AlwaysEmbed`) with no recall regression.
+    /// vs `AlwaysEmbed`) with no recall regression. `LocalOnly` pins the
+    /// third policy arm (`FallbackPolicy::LocalOnly`) and must report zero
+    /// embedding calls.
     #[cfg(feature = "csm")]
     #[test]
     fn test_adaptive_halves_tier4_calls_without_quality_loss() {
@@ -118,6 +120,9 @@ mod tests {
         let always = evaluator
             .evaluate_strategy(RetrievalStrategy::AlwaysEmbed)
             .expect("always-embed evaluation should succeed");
+        let local = evaluator
+            .evaluate_strategy(RetrievalStrategy::LocalOnly)
+            .expect("local-only evaluation should succeed");
 
         assert!(
             adaptive.embedding_calls_per_query * 2.0 <= always.embedding_calls_per_query,
@@ -130,6 +135,11 @@ mod tests {
             "adaptive recall ({}) must not regress vs always-embed ({})",
             adaptive.recall_at_5,
             always.recall_at_5
+        );
+        assert!(
+            local.embedding_calls_per_query == 0.0,
+            "local-only ({} calls/query) must never call Tier 4",
+            local.embedding_calls_per_query
         );
     }
 }

@@ -137,6 +137,8 @@ fn test_config_custom_values() {
         merge_results: false,
         min_results: 2,
         enable_concept_expansion: false,
+        candidate_budget: Some(50),
+        compatibility_mode: true,
         fallback_policy: FallbackPolicy::LocalOnly,
         local_confidence_threshold: 0.9,
         minimum_score_margin: 0.1,
@@ -145,6 +147,8 @@ fn test_config_custom_values() {
     assert_eq!(retriever.config().top_k, 5);
     assert!(!retriever.config().merge_results);
     assert!(!retriever.config().enable_concept_expansion);
+    assert_eq!(retriever.config().candidate_budget, Some(50));
+    assert!(retriever.config().compatibility_mode);
     assert_eq!(
         retriever.config().fallback_policy,
         FallbackPolicy::LocalOnly
@@ -286,6 +290,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
@@ -322,6 +328,8 @@ mod csm_tests {
             merge_results: false,
             min_results: 1,
             enable_concept_expansion: false,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
@@ -438,6 +446,8 @@ mod csm_tests {
             merge_results: true,
             min_results: 1,
             enable_concept_expansion: true,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,

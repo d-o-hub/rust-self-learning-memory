@@ -67,10 +67,24 @@ impl super::HierarchicalRetriever {
         let mut sorted: Vec<_> = candidates.to_vec();
         sorted.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
-        // For now, take top-k most recent episodes
-        // Future: implement proper temporal clustering (weekly/monthly buckets)
-        let cluster_size = candidates.len() / self.max_clusters_to_search.max(1);
-        let take_count = cluster_size.max(10).min(candidates.len());
+        // Deduplicate candidates by episode_id while maintaining recency order
+        let mut seen = std::collections::HashSet::new();
+        sorted.retain(|ep| seen.insert(ep.episode_id));
+
+        // Apply candidate budget bounding if configured and not in compatibility mode
+        let budget_limit = if self.compatibility_mode {
+            None
+        } else {
+            self.candidate_budget
+        };
+
+        // For now, take top-k most recent episodes within budget limit
+        let cluster_size = sorted.len() / self.max_clusters_to_search.max(1);
+        let mut take_count = cluster_size.max(10).min(sorted.len());
+
+        if let Some(budget) = budget_limit {
+            take_count = take_count.min(budget);
+        }
 
         sorted.into_iter().take(take_count).collect()
     }

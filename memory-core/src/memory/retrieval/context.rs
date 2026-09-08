@@ -375,9 +375,14 @@ impl SelfLearningMemory {
 
         // Phase 3: Apply MMR diversity maximization (if enabled)
         if let Some(ref maximizer) = self.diversity_maximizer {
-            // Convert scored episodes to diversity format with embeddings
+            // Performance optimization: Select a small top-N pool (e.g. limit * 2) after ranking,
+            // and only calculate embeddings & apply MMR diversification on this top-N candidate pool.
+            let top_n_pool_size = (limit * 2).min(scored_episodes.len());
+            let top_n_scored = &scored_episodes[..top_n_pool_size];
+
+            // Convert top-N scored episodes to diversity format with embeddings
             let diversity_candidates: Vec<crate::spatiotemporal::diversity::ScoredEpisode> =
-                scored_episodes
+                top_n_scored
                     .iter()
                     .filter_map(|scored| {
                         completed_episodes
@@ -394,8 +399,18 @@ impl SelfLearningMemory {
                     })
                     .collect();
 
+            let candidate_count_before_mmr = diversity_candidates.len();
+
             // Apply MMR diversity maximization
             let diverse_scored = maximizer.maximize_diversity(diversity_candidates, limit);
+
+            debug!(
+                initial_episodes = completed_episodes.len(),
+                scored_episodes = scored_episodes.len(),
+                top_n_pool = candidate_count_before_mmr,
+                mmr_selected = diverse_scored.len(),
+                "Candidate pruning and MMR diversification complete"
+            );
 
             // Calculate and log diversity score
             let diversity_score = maximizer.calculate_diversity_score(&diverse_scored);

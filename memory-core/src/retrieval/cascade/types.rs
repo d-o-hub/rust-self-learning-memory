@@ -20,6 +20,10 @@ pub struct CascadeConfig {
     pub min_results: usize,
     /// Enable/disable ConceptGraph expansion.
     pub enable_concept_expansion: bool,
+    /// Maximum candidate budget per tier or merged candidate pool (default: Some(100)).
+    pub candidate_budget: Option<usize>,
+    /// Compatibility mode: when true, candidate bounding is bypassed.
+    pub compatibility_mode: bool,
     /// Tier 4 fallback policy (issue #968).
     ///
     /// Governs the fallback decision when CPU-local tiers do not already
@@ -48,6 +52,8 @@ impl Default for CascadeConfig {
             merge_results: true,
             min_results: 3,
             enable_concept_expansion: true,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,

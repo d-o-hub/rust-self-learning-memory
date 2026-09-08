@@ -159,6 +159,19 @@ impl CascadeRetriever {
     fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
         use super::{compute_weights, merge_results};
 
+        // Bound merged candidate pools: single-tier outputs are unique and capped
+        // at top_k; only cross-tier merges need deduplication and bounding.
+        let bound_merged = |mut results: Vec<(String, f32)>| -> Vec<(String, f32)> {
+            let mut seen = std::collections::HashSet::new();
+            results.retain(|(id, _)| seen.insert(id.clone()));
+            if !self.config.compatibility_mode {
+                if let Some(budget) = self.config.candidate_budget {
+                    results.truncate(budget);
+                }
+            }
+            results
+        };
+
         // Tier 1: BM25 keyword search
         let bm25_results = self.retrieve_bm25(query);
 
@@ -174,12 +187,12 @@ impl CascadeRetriever {
         if self.config.merge_results && !bm25_results.is_empty() {
             // Merge BM25 and HDC results with query-length-dependent weights
             let weights = compute_weights(query.len());
-            let merged = merge_results(
+            let merged = bound_merged(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            );
+            ));
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
@@ -204,12 +217,12 @@ impl CascadeRetriever {
         // is decided by the fallback policy, not by result counts alone.
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
-            merge_results(
+            bound_merged(merge_results(
                 &bm25_results.results,
                 &hdc_results.results,
                 weights,
                 self.config.top_k,
-            )
+            ))
         } else if !hdc_results.is_empty() {
             hdc_results.results.clone()
         } else {

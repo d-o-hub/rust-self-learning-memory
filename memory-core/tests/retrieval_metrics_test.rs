@@ -1,6 +1,6 @@
-//! Issue #962 acceptance test: all eight metric families specified in the
-//! issue exist in both JSON snapshot and Prometheus exposition, labels are
-//! bounded, and raw query text never leaks.
+//! Retrieval metrics acceptance tests (issue #962): all eight metric families
+//! specified in the observability contract exist in both JSON snapshot and
+//! Prometheus exposition, labels are bounded, and raw query text never leaks.
 //!
 //! This test validates the complete observability contract end-to-end.
 
@@ -12,7 +12,7 @@ use do_memory_core::monitoring::metrics::{
 /// Record at least one sample in every metric family, then assert the
 /// JSON snapshot and Prometheus exposition contain all eight families.
 #[test]
-fn all_eight_issue_families_present() {
+fn all_eight_retrieval_metric_families_present() {
     let m = RetrievalMetrics::new();
 
     // 1. memory_retrieval_requests_total{operation,tier,outcome}

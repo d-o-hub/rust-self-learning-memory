@@ -57,7 +57,7 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
         ),
         Tool::new(
             "get_metrics".to_string(),
-            "Get comprehensive monitoring metrics and statistics".to_string(),
+            "Get monitoring metrics and statistics. Use metric_type 'retrieval' for CSM tier distribution, cache hit rates, embedding-call rates, fallback reasons, and P95 latencies.".to_string(),
             json!({
                 "type": "object",
                 "properties": {
@@ -65,7 +65,7 @@ pub(super) fn create_core_tools() -> Vec<Tool> {
                         "type": "string",
                         "enum": ["all", "performance", "episodes", "system", "retrieval"],
                         "default": "all",
-                        "description": "Type of metrics to retrieve"
+                        "description": "Type of metrics: 'all' (general), 'performance' (tool latencies), 'episodes' (creation rates), 'system' (uptime/resource), 'retrieval' (CSM tier/cache/embedding/fallback counters with P50/P95/P99 latencies)"
                     }
                 }
             }),

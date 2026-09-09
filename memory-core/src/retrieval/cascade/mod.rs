@@ -160,29 +160,30 @@ impl CascadeRetriever {
         use super::{compute_weights, merge_results};
 
         // Helper to apply candidate budget bounding & deduplication
-        let bound_results = |mut results: Vec<(String, f32)>, tier_name: &str| -> Vec<(String, f32)> {
-            let initial_count = results.len();
-            // Deduplicate preserving highest score
-            let mut seen = std::collections::HashSet::new();
-            results.retain(|(id, _)| seen.insert(id.clone()));
-            let dedup_count = results.len();
+        let bound_results =
+            |mut results: Vec<(String, f32)>, tier_name: &str| -> Vec<(String, f32)> {
+                let initial_count = results.len();
+                // Deduplicate preserving highest score
+                let mut seen = std::collections::HashSet::new();
+                results.retain(|(id, _)| seen.insert(id.clone()));
+                let dedup_count = results.len();
 
-            if !self.config.compatibility_mode {
-                if let Some(budget) = self.config.candidate_budget {
-                    results.truncate(budget);
+                if !self.config.compatibility_mode {
+                    if let Some(budget) = self.config.candidate_budget {
+                        results.truncate(budget);
+                    }
                 }
-            }
-            let final_count = results.len();
-            tracing::debug!(
-                tier = tier_name,
-                initial_candidates = initial_count,
-                dedup_candidates = dedup_count,
-                bounded_candidates = final_count,
-                pruned = initial_count - final_count,
-                "Cascade tier candidate bounding"
-            );
-            results
-        };
+                let final_count = results.len();
+                tracing::debug!(
+                    tier = tier_name,
+                    initial_candidates = initial_count,
+                    dedup_candidates = dedup_count,
+                    bounded_candidates = final_count,
+                    pruned = initial_count - final_count,
+                    "Cascade tier candidate bounding"
+                );
+                results
+            };
 
         // Tier 1: BM25 keyword search
         let mut bm25_results = self.retrieve_bm25(query);

@@ -128,6 +128,21 @@ fn sample_procedural() -> ProceduralMemory {
 }
 
 #[tokio::test]
+async fn storage_backend_default_episode_batch_loops_singles() {
+    let backend = StubBackend;
+
+    // Empty batch is a no-op success.
+    backend.store_episodes_batch(&[]).await.unwrap();
+
+    // Default body delegates to store_episode per item.
+    let episodes = vec![
+        Episode::new("one".into(), TaskContext::default(), TaskType::Testing),
+        Episode::new("two".into(), TaskContext::default(), TaskType::Testing),
+    ];
+    backend.store_episodes_batch(&episodes).await.unwrap();
+}
+
+#[tokio::test]
 async fn storage_backend_default_methods_return_empty_success() {
     let backend = StubBackend;
     let id = Uuid::new_v4();

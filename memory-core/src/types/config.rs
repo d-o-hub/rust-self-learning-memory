@@ -2,6 +2,7 @@
 // Configuration
 // ============================================================================
 
+use crate::memory::durable_write_queue::WriteQueueConfig;
 use crate::memory::step_buffer::BatchConfig;
 use crate::security::audit::AuditConfig;
 
@@ -129,6 +130,7 @@ impl Default for ConcurrencyConfig {
 ///     reward_weight: 0.15,
 ///     context_overlap_weight: 0.10,
 ///     ann_index_path: None,
+///     durable_write_queue: None,
 ///     audit_config: AuditConfig::default(),
 ///     event_emitter_mode: EventEmitterMode::NoOp,
 /// };
@@ -204,6 +206,12 @@ pub struct MemoryConfig {
     pub context_overlap_weight: f32,
     /// Path to the ANN index snapshot
     pub ann_index_path: Option<std::path::PathBuf>,
+    /// Background durable write queue for Turso (issue #967).
+    ///
+    /// When `Some`, `complete_episode` commits local state synchronously and
+    /// persists to Turso through the bounded queue instead of blocking on the
+    /// remote write. `None` (default) keeps all-synchronous completion.
+    pub durable_write_queue: Option<WriteQueueConfig>,
 
     // Security - Audit logging
     /// Audit logging configuration
@@ -250,6 +258,7 @@ impl Default for MemoryConfig {
             reward_weight: 0.15,
             context_overlap_weight: 0.10,
             ann_index_path: None,
+            durable_write_queue: None,
 
             // Security - Audit logging (disabled by default for development)
             audit_config: AuditConfig::default(),

@@ -24,6 +24,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::store_episode(self, episode).await
     }
 
+    async fn store_episodes_batch(&self, episodes: &[do_memory_core::Episode]) -> Result<()> {
+        super::TursoStorage::store_episodes_batch(self, episodes.to_vec()).await
+    }
+
     async fn get_episode(&self, id: uuid::Uuid) -> Result<Option<do_memory_core::Episode>> {
         super::TursoStorage::get_episode(self, id).await
     }

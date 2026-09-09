@@ -161,6 +161,7 @@ mod tests {
             assert!(defaults::DEFAULT_BATCH_SIZE > 0);
             assert!(defaults::MAX_BATCH_SIZE >= defaults::DEFAULT_BATCH_SIZE);
             assert!(defaults::MIN_BATCH_SIZE <= defaults::DEFAULT_BATCH_SIZE);
+            assert!(defaults::MAX_RELATIONSHIP_DEPTH > 0);
         }
     }
 

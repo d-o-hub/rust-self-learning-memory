@@ -55,8 +55,10 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y mold
+        for i in {1..3}; do
+          sudo apt-get update && break || sleep 5
+        done || true
+        sudo apt-get install -y mold || true
 
     - name: Configure rust-cache
       uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc

@@ -42,7 +42,6 @@ pub async fn journal_status(
                 JournalOpKind::CapacityEviction => "capacity_eviction",
                 JournalOpKind::EpisodeDelete => "episode_delete",
                 JournalOpKind::EmbeddingDelete => "embedding_delete",
-                JournalOpKind::EpisodeComplete => "episode_complete",
             };
             JournalEntryView {
                 op_id: e.op_id.to_string(),

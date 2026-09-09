@@ -212,7 +212,6 @@ impl MonitoringSystem {
     }
 
     /// Perform health check
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn health_check(&self) -> HealthCheck {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)

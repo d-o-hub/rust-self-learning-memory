@@ -52,7 +52,6 @@ impl ConfigWizard {
     }
 
     /// Run the interactive configuration wizard
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn run(&self) -> Result<Config> {
         println!("\n🚀 Memory CLI Configuration Wizard");
         println!("===================================");
@@ -95,7 +94,6 @@ impl ConfigWizard {
     }
 
     /// Run wizard with custom starting configuration
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn run_with_config(&self, initial_config: Config) -> Result<Config> {
         println!("\n🚀 Memory CLI Configuration Wizard (Update Mode)");
         println!("═════════════════════════════════════════════════");

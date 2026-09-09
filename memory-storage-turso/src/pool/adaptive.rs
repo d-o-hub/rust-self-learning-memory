@@ -146,7 +146,6 @@ impl AdaptiveConnectionPool {
         Ok(pool)
     }
 
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn new_sync(db: Arc<Database>, config: AdaptivePoolConfig) -> Result<Self> {
         let config = Arc::new(config);
         let initial_max = config.min_connections as usize;

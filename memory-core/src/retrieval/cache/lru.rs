@@ -93,6 +93,8 @@ impl QueryCache {
     /// Get a cached query result
     #[must_use]
     pub fn get(&self, key: &CacheKey) -> Option<Vec<Arc<Episode>>> {
+        use crate::monitoring::metrics::{CacheLayer, RetrievalOutcome, global_retrieval_metrics};
+
         let key_hash = key.compute_hash();
 
         // Fast path: Check if this entry is marked for lazy invalidation
@@ -102,6 +104,7 @@ impl QueryCache {
                 // Entry is invalidated - count as miss and return None
                 let mut metrics = self.metrics.write();
                 metrics.misses += 1;
+                global_retrieval_metrics().record_cache(CacheLayer::Query, RetrievalOutcome::Miss);
                 return None;
             }
         }
@@ -118,17 +121,20 @@ impl QueryCache {
                 metrics.misses += 1;
                 metrics.evictions += 1;
                 metrics.size = cache.len();
+                global_retrieval_metrics().record_cache(CacheLayer::Query, RetrievalOutcome::Miss);
                 return None;
             }
 
             // Cache hit - clone the Arc pointers from the slice
             metrics.hits += 1;
+            global_retrieval_metrics().record_cache(CacheLayer::Query, RetrievalOutcome::Hit);
             let episodes: Vec<Arc<Episode>> = result.episodes.to_vec();
             Some(episodes)
         } else {
             // Cache miss
             metrics.misses += 1;
             metrics.size = cache.len();
+            global_retrieval_metrics().record_cache(CacheLayer::Query, RetrievalOutcome::Miss);
             None
         }
     }

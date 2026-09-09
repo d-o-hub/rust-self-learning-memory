@@ -30,10 +30,10 @@ impl EmbeddingTools {
         }
 
         // Use live_semantic_service to pick up dynamically activated providers.
+        // embed_query_text records provider telemetry (issue #962).
         if let Some(semantic_service) = self.memory.live_semantic_service().await {
             let mut embedding = semantic_service
-                .provider
-                .embed_text(&input.text)
+                .embed_query_text(&input.text)
                 .await
                 .map_err(|e| anyhow!("Failed to generate embedding: {}", e))?;
 

@@ -1,0 +1,72 @@
+# Bunnyshell persistent builder for remote cargo compilation.
+# Deploys ONE always-on component (rust-builder) that holds warm cargo caches,
+# so `scripts/bns-cargo.sh` can run `cargo build/check/clippy/nextest --workspace`
+# via `bns exec` instead of compiling locally.
+#
+# Usage (requires BUNNYSHELL_TOKEN, see scripts/bns-cargo.sh):
+#   bns environments create --from-path bunnyshell.yaml \
+#     --name rust-memory-builder --project <PROJECT_ID> --k8s <CLUSTER_ID>
+#   bns environments deploy --id <ENV_ID> --no-wait
+#   bns pipeline monitor --id <PIPELINE_ID>
+#   BNS_ENV_ID=<ENV_ID> ./scripts/bns-cargo.sh check
+#
+# Cost control when idle:
+#   bns environments stop --id <ENV_ID> --wait
+#   bns environments start --id <ENV_ID> --wait
+kind: Environment
+name: rust-memory-builder
+type: primary
+
+environmentVariables:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: '1'
+
+environmentVariablesGroups:
+  rust-build:
+    CARGO_TARGET_DIR: /app/target
+    CARGO_INCREMENTAL: '1'
+    CARGO_NET_RETRIES: '5'
+    RUSTFLAGS: '-D warnings'
+
+components:
+  - kind: Application
+    name: rust-builder
+    gitRepo: 'https://github.com/d-o-hub/rust-self-learning-memory.git'
+    gitBranch: main
+    gitApplicationPath: /
+    dockerCompose:
+      build:
+        context: .
+        dockerfile: bunnyshell/builder.Dockerfile
+      command: sleep infinity
+      working_dir: /app
+      tty: true
+      stdin_open: true
+      environment:
+        CARGO_TARGET_DIR: /app/target
+        CARGO_INCREMENTAL: '1'
+        CARGO_NET_RETRIES: '5'
+      deploy:
+        replicas: 1
+        resources:
+          limits:
+            cpus: '1'
+            memory: 3072M
+          reservations:
+            cpus: '0.5'
+            memory: 1024M
+    volumes:
+      - name: cargo-registry
+        mount: /usr/local/cargo/registry
+        subPath: ''
+      - name: cargo-target
+        mount: /app/target
+        subPath: ''
+
+volumes:
+  - name: cargo-registry
+    size: 2Gi
+    type: network
+  - name: cargo-target
+    size: 5Gi
+    type: network

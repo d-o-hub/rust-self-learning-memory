@@ -20,14 +20,23 @@ impl super::HierarchicalRetriever {
         episodes: &'a [Arc<Episode>],
         query: &RetrievalQuery,
     ) -> Vec<&'a Arc<Episode>> {
-        if let Some(ref domain) = query.domain {
+        let initial_count = episodes.len();
+        let filtered: Vec<&'a Arc<Episode>> = if let Some(ref domain) = query.domain {
             episodes
                 .iter()
                 .filter(|ep| ep.context.domain == *domain)
                 .collect()
         } else {
             episodes.iter().collect()
-        }
+        };
+        tracing::debug!(
+            level = "Level 1: Domain Filtering",
+            initial = initial_count,
+            passed = filtered.len(),
+            pruned = initial_count - filtered.len(),
+            "Candidate filtering"
+        );
+        filtered
     }
 
     /// Level 2: Filter episodes by task type.
@@ -39,7 +48,8 @@ impl super::HierarchicalRetriever {
         candidates: &[&'a Arc<Episode>],
         query: &RetrievalQuery,
     ) -> Vec<&'a Arc<Episode>> {
-        if let Some(task_type) = query.task_type {
+        let initial_count = candidates.len();
+        let filtered: Vec<&'a Arc<Episode>> = if let Some(task_type) = query.task_type {
             candidates
                 .iter()
                 .filter(|ep| ep.task_type == task_type)
@@ -47,7 +57,15 @@ impl super::HierarchicalRetriever {
                 .collect()
         } else {
             candidates.to_vec()
-        }
+        };
+        tracing::debug!(
+            level = "Level 2: Task Type Filtering",
+            initial = initial_count,
+            passed = filtered.len(),
+            pruned = initial_count - filtered.len(),
+            "Candidate filtering"
+        );
+        filtered
     }
 
     /// Level 3: Select temporal clusters with recency bias.
@@ -59,7 +77,15 @@ impl super::HierarchicalRetriever {
         candidates: &[&'a Arc<Episode>],
         _query: &RetrievalQuery,
     ) -> Vec<&'a Arc<Episode>> {
+        let initial_count = candidates.len();
         if candidates.is_empty() {
+            tracing::debug!(
+                level = "Level 3: Temporal Cluster Bounding",
+                initial = initial_count,
+                passed = 0,
+                pruned = 0,
+                "Candidate filtering"
+            );
             return vec![];
         }
 
@@ -70,6 +96,7 @@ impl super::HierarchicalRetriever {
         // Deduplicate candidates by episode_id while maintaining recency order
         let mut seen = std::collections::HashSet::new();
         sorted.retain(|ep| seen.insert(ep.episode_id));
+        let dedup_count = sorted.len();
 
         // Apply candidate budget bounding if configured and not in compatibility mode
         let budget_limit = if self.compatibility_mode {
@@ -86,7 +113,17 @@ impl super::HierarchicalRetriever {
             take_count = take_count.min(budget);
         }
 
-        sorted.into_iter().take(take_count).collect()
+        let selected: Vec<&'a Arc<Episode>> = sorted.into_iter().take(take_count).collect();
+        tracing::debug!(
+            level = "Level 3: Temporal Cluster Bounding",
+            initial = initial_count,
+            after_dedup = dedup_count,
+            passed = selected.len(),
+            pruned = initial_count - selected.len(),
+            "Candidate filtering & bounding"
+        );
+
+        selected
     }
 
     /// Level 4: Score episodes by similarity.

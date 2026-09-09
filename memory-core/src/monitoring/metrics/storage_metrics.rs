@@ -148,6 +148,10 @@ impl OperationLatency {
             self.p50 = self.p50 * 7 / 10 + latency_ms * 3 / 10;
             self.p95 = self.p95 * 9 / 10 + latency_ms / 10;
             self.p99 = self.p99.max(latency_ms);
+            // The EMAs move at different rates and can transiently invert;
+            // percentiles must stay ordered or dashboards and tests lie.
+            self.p95 = self.p95.max(self.p50);
+            self.p99 = self.p99.max(self.p95);
         }
     }
 
@@ -158,11 +162,7 @@ impl OperationLatency {
 
     /// Get average latency in ms
     pub fn avg_ms(&self) -> u64 {
-        if self.count == 0 {
-            0
-        } else {
-            self.total_ms / self.count
-        }
+        self.total_ms.checked_div(self.count).unwrap_or(0)
     }
 
     /// Get percentiles (p50, p95, p99) in ms

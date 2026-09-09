@@ -75,6 +75,7 @@ jobs:
           name: fuzz-artifacts
           path: fuzz/artifacts/
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Report Fuzz Status
         # Visible non-green signal (ADR-079/CIT-A5): a green conclusion must

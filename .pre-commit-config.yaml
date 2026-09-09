@@ -12,6 +12,14 @@ repos:
         language: system
         pass_filenames: false
 
+      # LOC invariant - do-harness 'loc' sensor (scripts/check-loc.sh)
+      # Also available standalone: do-harness verify --only loc
+      - id: loc
+        name: LOC (<=500 per source file)
+        entry: bash scripts/check-loc.sh
+        language: system
+        pass_filenames: false
+
       # Clippy on lib + tests - matches CI quick-check.yml
       - id: clippy-lib
         name: Clippy (lib)

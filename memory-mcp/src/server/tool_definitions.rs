@@ -102,7 +102,7 @@ pub fn create_default_tools() -> Vec<Tool> {
             "properties": {
                 "metric_type": {
                     "type": "string",
-                    "enum": ["all", "performance", "episodes", "system"],
+                    "enum": ["all", "performance", "episodes", "system", "retrieval"],
                     "default": "all",
                     "description": "Type of metrics to retrieve"
                 }

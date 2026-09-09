@@ -379,6 +379,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
+| [Retrieval Observability](docs/RETRIEVAL_OBSERVABILITY.md) | Retrieval metrics, dashboards, and telemetry surfaces |
 | [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |

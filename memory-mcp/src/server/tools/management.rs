@@ -11,11 +11,13 @@ use std::sync::Arc;
 
 impl crate::server::MemoryMCPServer {
     /// Get execution statistics
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn get_stats(&self) -> ExecutionStats {
         self.stats.read().clone()
     }
 
     /// Get tool usage statistics
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn get_tool_usage(&self) -> HashMap<String, usize> {
         self.tool_usage.read().clone()
     }
@@ -27,11 +29,13 @@ impl crate::server::MemoryMCPServer {
     }
 
     /// Add a custom tool to the server
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn add_tool(&self, tool: Tool) -> Result<()> {
         self.tool_registry.add_tool(tool)
     }
 
     /// Remove a tool from the server
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn remove_tool(&self, tool_name: &str) -> Result<()> {
         self.tool_registry.remove_tool(tool_name)
     }

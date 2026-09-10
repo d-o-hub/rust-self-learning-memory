@@ -96,7 +96,7 @@ Uses `tokio::sync::broadcast` channel for efficient fan-out. See `DEFAULT_EVENT_
 ### O(n) Top-k Selection
 
 **Source**: CSM `singularity_retrieval.rs`
-**Location**: `memory-core/src/search/top_k.rs`
+**Location**: `memory-core/src/retrieval/top_k.rs`
 
 ```rust
 pub fn select_top_k<T, F>(slice: &mut [T], k: usize, compare: F) -> Vec<T>
@@ -324,7 +324,7 @@ CSM_CONCEPT_GRAPH_PATH=/path/to/ontology.json
 | `plans/STATUS/COMPREHENSIVE_ANALYSIS_2026-04-21.md` | Section 5 - Full CSM assessment |
 | `plans/ROADMAPS/ROADMAP_ACTIVE.md` | WG-128 through WG-131 tasks |
 | `memory-core/src/types/event.rs` | WG-103 broadcast channel (adopted) |
-| `memory-core/src/search/top_k.rs` | WG-104 top-k selection (adopted) |
+| `memory-core/src/retrieval/top_k.rs` | WG-104 top-k selection (adopted) |
 | `memory-core/src/embeddings/local.rs` | Local HDC text encoder implementation |
 | CSM Repository | <https://github.com/d-o-hub/chaotic_semantic_memory> |
 

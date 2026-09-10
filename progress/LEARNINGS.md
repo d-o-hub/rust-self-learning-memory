@@ -9,6 +9,11 @@
 **Learning:** Security bounds must be applied not just to scalar 'limit' parameters, but also to collection sizes (vectors/arrays) provided by users.
 **Prevention:** Use `.truncate(MAX_CONSTANT)` for user-provided lists and ensure all numeric/floating-point inputs are clamped to safe ranges.
 
+## 2026-03-06 — Unbounded limit in DomainIndex::get_recent_episodes
+**Vulnerability:** `DomainIndex::get_recent_episodes` accepted an unbounded `limit: usize` parameter which could lead to resource exhaustion when called with extreme values like `usize::MAX`.
+**Learning:** Index query routines returning collections must bound user-supplied limits against domain constants.
+**Prevention:** Clamp caller-provided `limit` parameters with `crate::storage::MAX_QUERY_LIMIT` at function entry.
+
 ## 2026-03-06 — Unbounded top_k in HierarchicalReranker::rerank_with_query
 **Vulnerability:** `HierarchicalReranker::rerank_with_query` accepted an unbounded `top_k: usize` parameter which was passed directly to `Vec::with_capacity(top_k)` in `select_diverse`, leading to potential out-of-memory panics (DoS) when called with large `top_k` values like `usize::MAX`.
 **Learning:** Public retrieval APIs accepting limits/top_k parameters must bound user-provided values prior to vector allocations.

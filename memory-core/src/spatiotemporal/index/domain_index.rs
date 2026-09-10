@@ -138,6 +138,7 @@ impl DomainIndex {
     /// Vector of recent episode IDs.
     #[must_use]
     pub fn get_recent_episodes(&self, limit: usize) -> Vec<Uuid> {
+        let limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         let mut all_episodes: Vec<Uuid> = self.uncategorized_episodes.clone();
 
         for task_type_index in self.task_type_indices.values() {
@@ -235,6 +236,17 @@ mod tests {
 
         let recent = index.get_recent_episodes(3);
         assert_eq!(recent.len(), 3);
+    }
+
+    #[test]
+    fn test_get_recent_episodes_unbounded_limit() {
+        let mut index = DomainIndex::new("test-domain".to_string());
+        let episode = create_test_episode("test-domain", TaskType::CodeGeneration);
+        index.insert_episode(&episode);
+
+        let recent = index.get_recent_episodes(usize::MAX);
+        assert_eq!(recent.len(), 2);
+        assert!(recent.len() <= crate::storage::MAX_QUERY_LIMIT);
     }
 
     #[test]

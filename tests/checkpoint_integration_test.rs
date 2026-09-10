@@ -169,9 +169,9 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     };
     let memory = SelfLearningMemory::with_config(config);
 
-    // 1. Episode A: Multi-step realistic engineering task
+    // 1. Initial Episode: Multi-step realistic engineering task
     let task_goal = "Refactor authentication module and write unit tests".to_string();
-    let episode_a_id = memory
+    let source_episode_id = memory
         .start_episode(
             task_goal.clone(),
             TaskContext::default(),
@@ -184,7 +184,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     step1.result = Some(ExecutionResult::Success {
         output: "src/auth.rs content loaded".to_string(),
     });
-    memory.log_step(episode_a_id, step1).await;
+    memory.log_step(source_episode_id, step1).await;
 
     // Step 2: Edit auth file
     let mut step2 = ExecutionStep::new(
@@ -195,7 +195,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     step2.result = Some(ExecutionResult::Success {
         output: "Updated src/auth.rs with JWT validation logic".to_string(),
     });
-    memory.log_step(episode_a_id, step2).await;
+    memory.log_step(source_episode_id, step2).await;
 
     // Step 3: Test attempt 1 (fails)
     let mut step3 = ExecutionStep::new(
@@ -206,7 +206,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     step3.result = Some(ExecutionResult::Error {
         message: "compilation failed in src/auth_test.rs: missing import".to_string(),
     });
-    memory.log_step(episode_a_id, step3).await;
+    memory.log_step(source_episode_id, step3).await;
 
     // Step 4: Fix test file
     let mut step4 = ExecutionStep::new(
@@ -217,7 +217,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     step4.result = Some(ExecutionResult::Success {
         output: "Fixed imports in src/auth_test.rs".to_string(),
     });
-    memory.log_step(episode_a_id, step4).await;
+    memory.log_step(source_episode_id, step4).await;
 
     // Step 5: Test attempt 2 (passes)
     let mut step5 = ExecutionStep::new(
@@ -228,12 +228,12 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     step5.result = Some(ExecutionResult::Success {
         output: "All 12 tests passed in src/auth_test.rs".to_string(),
     });
-    memory.log_step(episode_a_id, step5).await;
+    memory.log_step(source_episode_id, step5).await;
 
     // 2. Take checkpoint at step 5 before switching agents/tasks
     let checkpoint = checkpoint_episode(
         &memory,
-        episode_a_id,
+        source_episode_id,
         "Completed auth refactor, pausing before docs".to_string(),
     )
     .await
@@ -246,7 +246,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
             .expect("get compact handoff pack");
 
     // Assert compact handoff context quality & artifacts
-    assert_eq!(compact_pack.episode_id, episode_a_id);
+    assert_eq!(compact_pack.episode_id, source_episode_id);
     assert_eq!(compact_pack.current_goal, task_goal);
     assert_eq!(compact_pack.steps_done, 5);
     assert_eq!(compact_pack.steps_total, 5);
@@ -264,44 +264,44 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
             .contains(&"src/auth_test.rs".to_string())
     );
 
-    // 4. Resume in Episode B using compact pack
-    let episode_b_id = resume_from_compact(&memory, compact_pack)
+    // 4. Resume in new episode using compact pack
+    let resumed_episode_id = resume_from_compact(&memory, compact_pack)
         .await
         .expect("resume from compact pack");
 
-    assert_ne!(episode_b_id, episode_a_id);
+    assert_ne!(resumed_episode_id, source_episode_id);
 
-    let episode_b = memory
-        .get_episode(episode_b_id)
+    let resumed_episode = memory
+        .get_episode(resumed_episode_id)
         .await
-        .expect("get episode b");
-    assert_eq!(episode_b.task_description, task_goal);
+        .expect("get resumed episode");
+    assert_eq!(resumed_episode.task_description, task_goal);
     assert_eq!(
-        episode_b
+        resumed_episode
             .metadata
             .get("resumed_from_checkpoint")
             .map(String::as_str),
         Some(checkpoint.checkpoint_id.to_string()).as_deref()
     );
     assert_eq!(
-        episode_b
+        resumed_episode
             .metadata
             .get("resumed_from_episode")
             .map(String::as_str),
-        Some(episode_a_id.to_string()).as_deref()
+        Some(source_episode_id.to_string()).as_deref()
     );
 
-    // 5. Agent B continues work in Episode B based on resumed handoff guidance
+    // 5. Continued execution in resumed episode based on handoff guidance
     let mut step_b1 =
         ExecutionStep::new(1, "write_file".to_string(), "Add docs/auth.md".to_string());
     step_b1.result = Some(ExecutionResult::Success {
         output: "Created docs/auth.md".to_string(),
     });
-    memory.log_step(episode_b_id, step_b1).await;
+    memory.log_step(resumed_episode_id, step_b1).await;
 
     memory
         .complete_episode(
-            episode_b_id,
+            resumed_episode_id,
             do_memory_core::types::TaskOutcome::Success {
                 verdict: "Auth refactoring and documentation completed".to_string(),
                 artifacts: vec![
@@ -312,11 +312,11 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
             },
         )
         .await
-        .expect("complete episode b");
+        .expect("complete resumed episode");
 
-    let final_episode_b = memory
-        .get_episode(episode_b_id)
+    let final_resumed_episode = memory
+        .get_episode(resumed_episode_id)
         .await
-        .expect("get final episode b");
-    assert!(final_episode_b.is_complete());
+        .expect("get final resumed episode");
+    assert!(final_resumed_episode.is_complete());
 }

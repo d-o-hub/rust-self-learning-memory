@@ -108,6 +108,7 @@ impl SimpleSetup {
     }
 
     /// Build the configuration.
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn build(self) -> Result<Config> {
         if self.show_guidance {

@@ -1,8 +1,8 @@
 # Chaotic Semantic Memory (CSM) Integration Guide
 
-**Status**: Planned (WG-128 through WG-131)
+**Status**: Implemented
 **Reference**: <https://github.com/d-o-hub/chaotic_semantic_memory>
-**Version**: CSM v0.3.2
+**Version**: CSM v0.3.6
 **Last Updated**: 2026-04-22
 
 ---
@@ -69,7 +69,7 @@ Query -> BM25 Check (CPU, free)
 | 1 | BM25 exact/keyword match | O(n) Rayon scan | 0 | Short, keyword-heavy queries |
 | 2 | HDC similarity | 10,240-bit SIMD | 0 | Medium-length queries, semantic fallback |
 | 3 | ConceptGraph expansion | Graph BFS | 0 | Domain-specific synonym matching |
-| 4 | API embedding | Network call | 1 | Final fallback for complex semantic queries |
+| 4 | API embedding | Network call | 1 | Final fallback for complex semantic queries. `CascadeRetriever` makes the confidence/fallback decision but delegates to the embedding provider to execute the network call. |
 
 ---
 
@@ -77,7 +77,7 @@ Query -> BM25 Check (CPU, free)
 
 The following CSM patterns have already been integrated into this project:
 
-### WG-103: MemoryEvent Broadcast Channel
+### MemoryEvent Broadcast Channel
 
 **Source**: CSM event patterns
 **Location**: `memory-core/src/types/event.rs`
@@ -93,7 +93,7 @@ pub enum MemoryEvent {
 
 Uses `tokio::sync::broadcast` channel for efficient fan-out. See `DEFAULT_EVENT_CHANNEL_CAPACITY = 1024`.
 
-### WG-104: O(n) Top-k Selection
+### O(n) Top-k Selection
 
 **Source**: CSM `singularity_retrieval.rs`
 **Location**: `memory-core/src/search/top_k.rs`
@@ -112,13 +112,13 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 ---
 
-## Planned Integration (WG-128 through WG-131)
+## Implemented CSM Cascade
 
-### WG-128: BM25 as First Retrieval Tier
+### BM25 as First Retrieval Tier
 
 **Goal**: Add BM25 keyword index from CSM as first retrieval tier
 
-**Implementation Location**: `memory-core/src/search/bm25.rs`
+**Implementation Location**: `memory-core/src/retrieval/cascade/bm25.rs`
 
 **Key Files from CSM**:
 - `retrieval/bm25.rs` - Full Okapi BM25 with TF-IDF scoring
@@ -131,11 +131,11 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 **API Savings**: 50-70% of queries avoid embedding calls entirely
 
-### WG-129: HDC as Local Embedding Fallback
+### HDC as Local Embedding Fallback
 
 **Goal**: Wire HDC text encoder as CPU-local embedding fallback
 
-**Implementation Location**: Replaces placeholder in `memory-core/src/embeddings/local.rs`
+**Implementation Location**: Implemented in `memory-core/src/embeddings/local.rs`
 
 **Key Files from CSM**:
 - `encoder.rs` - Text to HDC vector encoding
@@ -145,7 +145,6 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 **Integration Pattern**:
 
 ```rust
-// Replace mock embeddings with HDC encoder
 #[cfg(feature = "csm")]
 {
     let hdc_encoder = HdcEncoder::new();
@@ -155,17 +154,16 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 #[cfg(not(feature = "csm"))]
 {
-    // Fall back to existing mock/ONNX path
 }
 ```
 
 **Key Limitation**: HDC is lexical, not semantic. "cat" and "kitten" have different HDC vectors. This is acceptable because the cascade falls through to API embeddings for truly semantic queries.
 
-### WG-130: ConceptGraph for Synonym Expansion
+### ConceptGraph for Synonym Expansion
 
 **Goal**: Add ConceptGraph ontology expansion for synonym retrieval without LLM
 
-**Implementation Location**: `memory-core/src/search/concept_graph.rs`
+**Implementation Location**: `memory-core/src/retrieval/cascade/concept_graph.rs`
 
 **Key Files from CSM**:
 - `semantic_bridge.rs` - Concept graph traversal
@@ -178,11 +176,11 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 **API Savings**: Reduces need for semantic embeddings on known-domain queries
 
-### WG-131: CascadeRetriever Orchestration
+### CascadeRetriever Orchestration
 
 **Goal**: Implement cascading retrieval pipeline with tier escalation
 
-**Implementation Location**: `memory-core/src/search/cascade.rs`
+**Implementation Location**: `memory-core/src/retrieval/cascade/mod.rs`
 
 **Proposed API**:
 
@@ -219,7 +217,7 @@ pub struct CascadeRetriever {
 ```toml
 # Cargo.toml (workspace root)
 [workspace.dependencies]
-chaotic_semantic_memory = { version = "0.3", optional = true }
+chaotic_semantic_memory = { version = "0.3.6", optional = true }
 ```
 
 ### memory-core Cargo.toml
@@ -227,10 +225,12 @@ chaotic_semantic_memory = { version = "0.3", optional = true }
 ```toml
 # memory-core/Cargo.toml
 [features]
-default = ["redb"]
+default = []
 csm = ["dep:chaotic_semantic_memory"]
-local-embeddings = []  # Existing ONNX-based local embeddings
-embeddings-full = ["openai", "local-embeddings", "csm"]  # All embedding options
+local-embeddings = []
+embeddings-full = ["openai", "mistral", "local-embeddings", "csm"]
+
+# All embedding options
 
 [dependencies]
 chaotic_semantic_memory = { workspace = true, optional = true }
@@ -276,42 +276,6 @@ cargo build --features "turso,csm,openai"
 - **50-70% of queries** avoid API calls entirely
 - **100% offline capability** for non-semantic queries
 - **Cost reduction**: $0.0001/embedding * 1000 queries/day * 0.5 savings = $0.05/day saved
-
----
-
-## Implementation Phases
-
-### Phase 1: BM25 Integration (WG-128)
-
-1. Add `chaotic_semantic_memory` dependency behind `csm` feature flag
-2. Port BM25 index structure from CSM
-3. Implement episode tokenization and indexing
-4. Add BM25 retrieval to search module
-5. Integration tests for exact match queries
-
-### Phase 2: HDC Embedding (WG-129)
-
-1. Port HDC encoder from CSM
-2. Replace `local.rs` placeholder with HDC encoder
-3. Implement SIMD similarity calculations
-4. Add HDC similarity threshold configuration
-5. Benchmark HDC vs mock embeddings
-
-### Phase 3: ConceptGraph (WG-130)
-
-1. Port concept graph structure from CSM
-2. Add curated ontology for domain-specific terms
-3. Implement graph BFS expansion
-4. Add expansion-to-HDC integration
-5. Test synonym resolution paths
-
-### Phase 4: CascadeRetriever (WG-131)
-
-1. Implement tier escalation logic
-2. Add configurable thresholds
-3. Wire to existing retrieval paths
-4. Add metrics collection (tier usage, latency)
-5. Full integration tests for cascade
 
 ---
 
@@ -361,7 +325,7 @@ CSM_CONCEPT_GRAPH_PATH=/path/to/ontology.json
 | `plans/ROADMAPS/ROADMAP_ACTIVE.md` | WG-128 through WG-131 tasks |
 | `memory-core/src/types/event.rs` | WG-103 broadcast channel (adopted) |
 | `memory-core/src/search/top_k.rs` | WG-104 top-k selection (adopted) |
-| `memory-core/src/embeddings/local.rs` | Local embedding placeholder (to be replaced) |
+| `memory-core/src/embeddings/local.rs` | Local HDC text encoder implementation |
 | CSM Repository | <https://github.com/d-o-hub/chaotic_semantic_memory> |
 
 ---

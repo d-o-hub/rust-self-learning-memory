@@ -94,6 +94,6 @@ do-memory-cli feedback record-feedback --session <session-id> --outcome success 
 ```
 
 The system records this feedback as attribution statistics (adoption rate,
-success-after-adoption rate, and precision metrics). It does not yet use
-feedback to boost or suppress the ranking of future pattern recommendations —
-feedback-to-ranking adaptation remains deferred to a follow-up ADR.
+success-after-adoption rate, and precision metrics). Current recommendation ranking uses the
+learned ADR-082 Wilson weight derived from this attributed feedback to boost or suppress the
+ranking of future pattern recommendations.

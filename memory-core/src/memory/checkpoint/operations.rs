@@ -285,7 +285,9 @@ pub async fn get_compact_handoff_pack(
                     && word.len() > 3
                     && word.len() < 100
                 {
-                    let clean = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '.' && c != '_' && c != '-' && c != '/');
+                    let clean = word.trim_matches(|c: char| {
+                        !c.is_alphanumeric() && c != '.' && c != '_' && c != '-' && c != '/'
+                    });
                     if !clean.is_empty() && !artifact_ids.contains(&clean.to_string()) {
                         artifact_ids.push(clean.to_string());
                     }

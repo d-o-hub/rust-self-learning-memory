@@ -313,9 +313,7 @@ pub fn assemble_compact(inputs: CompactInputs, budget: &HandoffBudget) -> Compac
     heuristic_refs.truncate(budget.max_heuristic_refs);
 
     let mut artifact_refs = inputs.artifact_ids;
-    let omitted_artifacts = artifact_refs
-        .len()
-        .saturating_sub(budget.max_artifact_refs);
+    let omitted_artifacts = artifact_refs.len().saturating_sub(budget.max_artifact_refs);
     artifact_refs.truncate(budget.max_artifact_refs);
 
     // Most recent steps win; excerpts stay chronological.

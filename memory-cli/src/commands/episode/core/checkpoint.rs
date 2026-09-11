@@ -327,11 +327,8 @@ mod tests {
             )
             .await;
         for i in 1..=3 {
-            let step = do_memory_core::ExecutionStep::new(
-                i,
-                "tool".to_string(),
-                format!("action {i}"),
-            );
+            let step =
+                do_memory_core::ExecutionStep::new(i, "tool".to_string(), format!("action {i}"));
             memory.log_step(episode_id, step).await;
         }
         (memory, config, episode_id)
@@ -362,22 +359,12 @@ mod tests {
         .await;
         assert!(list_res.is_ok());
 
-        let list_json = list_checkpoints(
-            episode_id.to_string(),
-            &memory,
-            &config,
-            OutputFormat::Json,
-        )
-        .await;
+        let list_json =
+            list_checkpoints(episode_id.to_string(), &memory, &config, OutputFormat::Json).await;
         assert!(list_json.is_ok());
 
-        let list_yaml = list_checkpoints(
-            episode_id.to_string(),
-            &memory,
-            &config,
-            OutputFormat::Yaml,
-        )
-        .await;
+        let list_yaml =
+            list_checkpoints(episode_id.to_string(), &memory, &config, OutputFormat::Yaml).await;
         assert!(list_yaml.is_ok());
     }
 

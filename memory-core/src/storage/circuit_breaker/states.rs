@@ -231,6 +231,7 @@ impl CircuitBreaker {
     }
 
     /// Handle successful operation
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn on_success(&self, state: &mut CircuitBreakerState) {
         match state.state {
@@ -260,6 +261,7 @@ impl CircuitBreaker {
     }
 
     /// Handle failed operation
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn on_failure(&self, state: &mut CircuitBreakerState) {
         state.stats.consecutive_failures += 1;

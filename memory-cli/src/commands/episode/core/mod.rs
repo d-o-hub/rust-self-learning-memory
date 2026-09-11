@@ -5,6 +5,7 @@
 
 pub mod bulk;
 pub mod checkpoint;
+pub mod compact_handoff;
 pub mod complete;
 pub mod create;
 pub mod delete;

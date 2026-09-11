@@ -140,6 +140,7 @@ impl SemanticSummarizer {
     /// # Ok(())
     /// # }
     /// ```
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn summarize_episode(&self, episode: &Episode) -> Result<EpisodeSummary> {
         let key_concepts = extract_key_concepts(episode);

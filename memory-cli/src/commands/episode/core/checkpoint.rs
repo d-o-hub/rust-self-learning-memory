@@ -306,6 +306,79 @@ impl Output for CheckpointResult {
     }
 }
 
+impl Output for HandoffResult {
+    fn write(&self, format: OutputFormat) -> Result<()> {
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(self)?);
+            }
+            OutputFormat::Human => {
+                println!("Handoff Pack for Checkpoint: {}", self.checkpoint_id);
+                println!("  Episode ID:      {}", self.episode_id);
+                println!("  Goal:            {}", self.current_goal);
+                println!("  Steps Completed: {}", self.steps_completed_count);
+                println!("  Patterns:        {}", self.pattern_count);
+                println!("  Heuristics:      {}", self.heuristic_count);
+                println!();
+
+                if !self.what_worked.is_empty() {
+                    println!("What Worked:");
+                    for item in &self.what_worked {
+                        println!("  + {}", item);
+                    }
+                    println!();
+                }
+
+                if !self.what_failed.is_empty() {
+                    println!("What Failed:");
+                    for item in &self.what_failed {
+                        println!("  - {}", item);
+                    }
+                    println!();
+                }
+
+                if !self.suggested_next_steps.is_empty() {
+                    println!("Suggested Next Steps:");
+                    for (i, step) in self.suggested_next_steps.iter().enumerate() {
+                        println!("  {}. {}", i + 1, step);
+                    }
+                    println!();
+                }
+
+                if !self.salient_facts.is_empty() {
+                    println!("Salient Facts:");
+                    for fact in &self.salient_facts {
+                        println!("  * {}", fact);
+                    }
+                }
+            }
+            OutputFormat::Yaml => {
+                println!("{}", serde_yaml::to_string(self)?);
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Output for ResumeResult {
+    fn write(&self, format: OutputFormat) -> Result<()> {
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(self)?);
+            }
+            OutputFormat::Human => {
+                println!("Resumed work successfully!");
+                println!("  New Episode ID:    {}", self.new_episode_id);
+                println!("  From Checkpoint:   {}", self.checkpoint_id);
+            }
+            OutputFormat::Yaml => {
+                println!("{}", serde_yaml::to_string(self)?);
+            }
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -477,78 +550,5 @@ mod tests {
         assert!(r_res.write(OutputFormat::Human).is_ok());
         assert!(r_res.write(OutputFormat::Json).is_ok());
         assert!(r_res.write(OutputFormat::Yaml).is_ok());
-    }
-}
-
-impl Output for HandoffResult {
-    fn write(&self, format: OutputFormat) -> Result<()> {
-        match format {
-            OutputFormat::Json => {
-                println!("{}", serde_json::to_string_pretty(self)?);
-            }
-            OutputFormat::Human => {
-                println!("Handoff Pack for Checkpoint: {}", self.checkpoint_id);
-                println!("  Episode ID:      {}", self.episode_id);
-                println!("  Goal:            {}", self.current_goal);
-                println!("  Steps Completed: {}", self.steps_completed_count);
-                println!("  Patterns:        {}", self.pattern_count);
-                println!("  Heuristics:      {}", self.heuristic_count);
-                println!();
-
-                if !self.what_worked.is_empty() {
-                    println!("What Worked:");
-                    for item in &self.what_worked {
-                        println!("  + {}", item);
-                    }
-                    println!();
-                }
-
-                if !self.what_failed.is_empty() {
-                    println!("What Failed:");
-                    for item in &self.what_failed {
-                        println!("  - {}", item);
-                    }
-                    println!();
-                }
-
-                if !self.suggested_next_steps.is_empty() {
-                    println!("Suggested Next Steps:");
-                    for (i, step) in self.suggested_next_steps.iter().enumerate() {
-                        println!("  {}. {}", i + 1, step);
-                    }
-                    println!();
-                }
-
-                if !self.salient_facts.is_empty() {
-                    println!("Salient Facts:");
-                    for fact in &self.salient_facts {
-                        println!("  * {}", fact);
-                    }
-                }
-            }
-            OutputFormat::Yaml => {
-                println!("{}", serde_yaml::to_string(self)?);
-            }
-        }
-        Ok(())
-    }
-}
-
-impl Output for ResumeResult {
-    fn write(&self, format: OutputFormat) -> Result<()> {
-        match format {
-            OutputFormat::Json => {
-                println!("{}", serde_json::to_string_pretty(self)?);
-            }
-            OutputFormat::Human => {
-                println!("Resumed work successfully!");
-                println!("  New Episode ID:    {}", self.new_episode_id);
-                println!("  From Checkpoint:   {}", self.checkpoint_id);
-            }
-            OutputFormat::Yaml => {
-                println!("{}", serde_yaml::to_string(self)?);
-            }
-        }
-        Ok(())
     }
 }

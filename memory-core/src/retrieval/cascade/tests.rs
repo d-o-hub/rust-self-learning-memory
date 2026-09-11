@@ -140,6 +140,8 @@ fn test_config_custom_values() {
         fallback_policy: FallbackPolicy::LocalOnly,
         local_confidence_threshold: 0.9,
         minimum_score_margin: 0.1,
+        candidate_budget: Some(50),
+        compatibility_mode: true,
     };
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 5);
@@ -149,6 +151,8 @@ fn test_config_custom_values() {
         retriever.config().fallback_policy,
         FallbackPolicy::LocalOnly
     );
+    assert_eq!(retriever.config().candidate_budget, Some(50));
+    assert!(retriever.config().compatibility_mode);
 }
 
 #[test]
@@ -289,6 +293,8 @@ mod csm_tests {
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -325,6 +331,8 @@ mod csm_tests {
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 
@@ -441,6 +449,8 @@ mod csm_tests {
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         };
         let mut retriever = CascadeRetriever::new(config);
 

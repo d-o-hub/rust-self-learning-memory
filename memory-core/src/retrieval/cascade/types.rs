@@ -36,6 +36,10 @@ pub struct CascadeConfig {
     /// margin is treated as ambiguous and escalates to Tier 4. With fewer
     /// than two results the absent score counts as `0.0`. Default `0.08`.
     pub minimum_score_margin: f32,
+    /// Maximum candidate budget per tier or merged candidate pool (default: Some(100)).
+    pub candidate_budget: Option<usize>,
+    /// Compatibility mode: when true, candidate bounding is bypassed.
+    pub compatibility_mode: bool,
 }
 
 impl Default for CascadeConfig {
@@ -51,6 +55,8 @@ impl Default for CascadeConfig {
             fallback_policy: FallbackPolicy::Adaptive,
             local_confidence_threshold: 0.78,
             minimum_score_margin: 0.08,
+            candidate_budget: Some(100),
+            compatibility_mode: false,
         }
     }
 }

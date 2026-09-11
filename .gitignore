@@ -140,4 +140,3 @@ __pycache__/
 .do-harness/
 # NOTE: .agents/events/ is deliberately NOT ignored — this repo commits
 # Steering Loop metrics events (see AGENTS.md "Steering Loop").
-

@@ -7,7 +7,6 @@ use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::memory::attribution::RankingIndex;
-use crate::memory::durable_write_queue::{DurableWriteQueue, WriteQueueConfig};
 use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
@@ -76,9 +75,11 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     };
 
     let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
-        Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+        Some(crate::spatiotemporal::HierarchicalRetriever::with_options(
             config.temporal_bias_weight,
             config.max_clusters_to_search,
+            config.candidate_budget,
+            config.compatibility_mode,
         ))
     } else {
         None
@@ -148,7 +149,6 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         procedural_fallback: Arc::new(RwLock::new(HashMap::new())),
         relationships_fallback: Arc::new(RwLock::new(HashMap::new())),
         pattern_queue: None,
-        durable_write_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),
         cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
         event_emitter_semaphore: Arc::new(Semaphore::new(10)),
@@ -177,12 +177,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     }
 }
 
-/// Create a memory system with storage backends.
-///
-/// When `config.durable_write_queue` is `Some`, the background durable write
-/// queue is wired automatically (#967) — `complete_episode` then commits
-/// local state synchronously and persists to Turso in the background once
-/// [`start_durable_workers`] runs. `None` keeps fully synchronous completion.
+/// Create a memory system with storage backends
 pub fn with_storage(
     config: MemoryConfig,
     turso: Arc<dyn crate::storage::StorageBackend>,
@@ -301,7 +296,7 @@ pub fn with_storage(
     let event_emitter: Arc<dyn crate::types::emitter::EventEmitter> =
         config.event_emitter_mode.build();
 
-    let memory = super::SelfLearningMemory {
+    super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
         salient_extractor,
@@ -318,7 +313,6 @@ pub fn with_storage(
         procedural_fallback: Arc::new(RwLock::new(HashMap::new())),
         relationships_fallback: Arc::new(RwLock::new(HashMap::new())),
         pattern_queue: None,
-        durable_write_queue: None,
         step_buffers: Arc::new(RwLock::new(HashMap::new())),
         cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
         event_emitter_semaphore: Arc::new(Semaphore::new(10)),
@@ -344,10 +338,6 @@ pub fn with_storage(
         event_emitter,
         pending_eviction_failures: Arc::new(RwLock::new(Vec::new())),
         op_journal: Arc::new(super::op_journal::OperationJournal::default()),
-    };
-    match config.durable_write_queue.clone() {
-        Some(queue_config) => enable_durable_writes(memory, queue_config),
-        None => memory,
     }
 }
 pub fn with_semantic_config(
@@ -377,54 +367,19 @@ pub async fn start_workers(memory: &super::SelfLearningMemory) {
     }
 }
 
-/// Stop async workers gracefully.
+/// Stop async pattern extraction workers gracefully.
 ///
-/// Drains the durable write queue first (remote durability), then the
-/// pattern extraction queue. Returns `true` if both queues emptied within
-/// the timeout, `false` otherwise.
+/// Waits for the queue to drain (workers finish processing current items),
+/// then signals workers to shut down. Returns `true` if the queue emptied
+/// within the timeout, `false` otherwise.
 pub async fn stop_workers(memory: &super::SelfLearningMemory, timeout: Duration) -> bool {
-    let mut drained = true;
-    if let Some(queue) = &memory.durable_write_queue {
-        drained &= queue.flush(timeout).await.is_ok();
-        queue.shutdown().await;
-    }
     if let Some(queue) = &memory.pattern_queue {
         // Drain first: workers check the shutdown flag between items,
         // so we must let the queue empty before signaling shutdown.
-        drained &= queue.wait_until_empty(timeout).await;
+        let drained = queue.wait_until_empty(timeout).await;
         queue.shutdown().await;
-    }
-    drained
-}
-
-/// Enable the background durable write queue (#967).
-///
-/// Without a Turso backend the queue has nothing to drain to, so the
-/// memory system is returned unchanged (with a warning).
-#[must_use]
-pub fn enable_durable_writes(
-    memory: super::SelfLearningMemory,
-    queue_config: WriteQueueConfig,
-) -> super::SelfLearningMemory {
-    let Some(turso) = memory.turso_storage.clone() else {
-        tracing::warn!(
-            "Durable write queue enabled without a Turso backend; completion stays synchronous"
-        );
-        return memory;
-    };
-    let queue = Arc::new(DurableWriteQueue::new(
-        queue_config,
-        turso,
-        Arc::clone(&memory.op_journal),
-    ));
-    let mut memory = memory;
-    memory.durable_write_queue = Some(queue);
-    memory
-}
-
-/// Start the durable write worker (no-op unless the queue is enabled).
-pub fn start_durable_workers(memory: &super::SelfLearningMemory) {
-    if let Some(queue) = &memory.durable_write_queue {
-        queue.start_workers();
+        drained
+    } else {
+        true
     }
 }

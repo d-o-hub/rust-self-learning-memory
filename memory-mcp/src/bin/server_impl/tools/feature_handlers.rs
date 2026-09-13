@@ -362,3 +362,22 @@ pub async fn handle_resume_from_handoff(
     }];
     Ok(content)
 }
+
+/// Handle resume_from_compact tool (issue #965)
+pub async fn handle_resume_from_compact(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let _client_id = get_client_id(&args);
+    let input: do_memory_mcp::mcp::tools::checkpoint::ResumeFromCompactInput =
+        serde_json::from_value(args)?;
+
+    let tools = do_memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
+    let result = tools.resume_from_compact(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}

@@ -31,11 +31,16 @@
 //! # }
 //! ```
 
+mod compact;
 mod operations;
 mod types;
 
+pub use compact::{
+    CompactHandoff, CompactInputs, EvidenceExcerpt, HandoffBudget, OmissionMetadata,
+    assemble_compact, resume_from_compact,
+};
 pub use operations::{
-    checkpoint_episode, checkpoint_episode_with_note, get_handoff_pack,
+    checkpoint_episode, checkpoint_episode_with_note, get_compact_handoff_pack, get_handoff_pack,
     list_abstention_checkpoints, maybe_create_abstention_checkpoint, resume_from_handoff,
 };
 pub use types::{CheckpointMeta, HandoffPack};

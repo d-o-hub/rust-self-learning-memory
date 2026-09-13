@@ -49,6 +49,7 @@ impl DBSCANAnomalyDetector {
     /// # Errors
     ///
     /// Returns error if feature extraction fails
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn detect_anomalies(
         &self,

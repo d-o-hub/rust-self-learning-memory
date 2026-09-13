@@ -60,13 +60,37 @@ do-memory-cli episode checkpoint <episode-id> --reason "Long-running task pause"
 ```
 
 ### Performing a Handoff
-When you need to pass a task to another agent, generate a "Handoff Pack":
+When you need to pass a task to another agent, generate a "Handoff Pack".
 
+**Via CLI (compact by default, max 8 KB / ~2k tokens):**
 ```bash
 do-memory-cli episode handoff <checkpoint-id>
+do-memory-cli episode handoff <checkpoint-id> --max-bytes 4096
+do-memory-cli episode handoff <checkpoint-id> --full   # unbounded, audit/debug
+do-memory-cli episode resume <checkpoint-id>           # resumes the compact pack
 ```
 
-The handoff pack includes the most recent checkpoint, the episode history, and relevant patterns to help the new agent start with full context.
+**Via MCP (`get_handoff_pack`, compact by default):**
+```json
+{
+  "checkpoint_id": "checkpoint-id-from-checkpoint_episode",
+  "mode": "compact",
+  "max_bytes": 4096
+}
+```
+```json
+{
+  "checkpoint_id": "checkpoint-id-from-checkpoint_episode",
+  "mode": "full"
+}
+```
+Resume a compact pack with `resume_from_compact` (takes `compact_handoff`);
+resume a full pack with `resume_from_handoff` (takes `handoff_pack`).
+
+The compact pack carries the objective, status/progress, verified findings,
+decisions, pending actions, ID-only pattern/heuristic references, and the most
+recent step excerpts — plus an `omitted` receipt with exact counts of everything
+left out and a pointer to the full pack (`get_handoff_pack` in `full` mode).
 
 ---
 

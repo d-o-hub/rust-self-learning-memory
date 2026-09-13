@@ -9,5 +9,5 @@ mod types;
 pub use tool::CheckpointTools;
 pub use types::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
-    ResumeFromHandoffInput, ResumeFromHandoffOutput,
+    ResumeFromCompactInput, ResumeFromHandoffInput, ResumeFromHandoffOutput,
 };

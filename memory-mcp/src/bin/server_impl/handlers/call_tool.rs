@@ -13,10 +13,10 @@ use super::super::tools::{
     handle_get_topological_order, handle_health_check, handle_quality_metrics, handle_query_memory,
     handle_query_semantic_memory, handle_recommend_patterns, handle_recommend_playbook,
     handle_record_recommendation_feedback, handle_record_recommendation_session,
-    handle_remove_episode_relationship, handle_remove_episode_tags, handle_resume_from_handoff,
-    handle_search_by_embedding, handle_search_episodes_by_tags, handle_search_patterns,
-    handle_set_episode_tags, handle_test_agentfs_connection, handle_test_embeddings,
-    handle_update_episode, handle_validate_no_cycles,
+    handle_remove_episode_relationship, handle_remove_episode_tags, handle_resume_from_compact,
+    handle_resume_from_handoff, handle_search_by_embedding, handle_search_episodes_by_tags,
+    handle_search_patterns, handle_set_episode_tags, handle_test_agentfs_connection,
+    handle_test_embeddings, handle_update_episode, handle_validate_no_cycles,
 };
 use super::super::types::{CallToolParams, CallToolResult, Content};
 use do_memory_mcp::MemoryMCPServer;
@@ -159,6 +159,7 @@ pub async fn handle_call_tool(
         "checkpoint_episode" => handle_checkpoint_episode(&mut server, params.arguments).await,
         "get_handoff_pack" => handle_get_handoff_pack(&mut server, params.arguments).await,
         "resume_from_handoff" => handle_resume_from_handoff(&mut server, params.arguments).await,
+        "resume_from_compact" => handle_resume_from_compact(&mut server, params.arguments).await,
         // External signal provider tools
         "configure_agentfs" => handle_configure_agentfs(&mut server, params.arguments).await,
         "external_signal_status" => {

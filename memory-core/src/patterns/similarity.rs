@@ -28,8 +28,14 @@ pub(super) fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 /// An empty shorter side needs no special case: with `len1 == 0` the buffer is
 /// `[0]`, `dp[0]` accumulates `len2` across rows, the inner loop is skipped,
 /// and `dp[len1] == len2` falls out of the loop naturally.
-fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
-    // Ensure s1 is the shorter sequence for O(min(N, M)) space
+/// Calculate edit distance (Levenshtein) between two slices of equal element types.
+///
+/// # Implementation notes
+/// Uses a single-row DP buffer sized to the shorter sequence ($O(\min(N, M))$ space).
+/// Employs a stack-allocated buffer (`[usize; 129]`) for lengths up to 128 elements,
+/// eliminating heap allocations completely for typical short inputs (e.g. byte slices
+/// or string sequence slices).
+fn slice_edit_distance<T: PartialEq>(seq1: &[T], seq2: &[T]) -> usize {
     let (s1, s2) = if seq1.len() < seq2.len() {
         (seq1, seq2)
     } else {
@@ -39,15 +45,25 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     let len1 = s1.len();
     let len2 = s2.len();
 
-    let mut dp: Vec<usize> = (0..=len1).collect();
+    let mut stack_dp = [0usize; 129];
+    let mut heap_dp;
+    let dp: &mut [usize] = if len1 < 129 {
+        for (i, elem) in stack_dp[..=len1].iter_mut().enumerate() {
+            *elem = i;
+        }
+        &mut stack_dp[..=len1]
+    } else {
+        heap_dp = (0..=len1).collect::<Vec<_>>();
+        &mut heap_dp
+    };
 
     for j in 1..=len2 {
-        // `pre_dp` holds dp[i - 1] from the previous row (the diagonal).
         let mut pre_dp = dp[0];
         dp[0] = j;
+        let c2 = &s2[j - 1];
         for i in 1..=len1 {
             let temp = dp[i];
-            let cost = usize::from(s1[i - 1] != s2[j - 1]);
+            let cost = usize::from(&s1[i - 1] != c2);
             dp[i] = (dp[i] + 1).min(dp[i - 1] + 1).min(pre_dp + cost);
             pre_dp = temp;
         }
@@ -56,20 +72,34 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     dp[len1]
 }
 
+fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
+    slice_edit_distance(seq1, seq2)
+}
+
 /// Calculate similarity between two strings using normalized edit distance.
 ///
 /// # Implementation notes
-/// Only the *shorter* string — by character count, not byte length — is
-/// collected into a `Vec<char>`; the longer string is streamed via `.chars()`
-/// and never materialized. This bounds character storage to O(min(N, M)) even
-/// for multibyte UTF-8, where byte length would be a misleading proxy for the
-/// number of characters.
+/// For ASCII inputs (the common case for system actions, tools, and tags),
+/// an ASCII fast path processes raw byte slices via `slice_edit_distance`,
+/// bypassing `Vec<char>` allocations and using stack buffers.
+///
+/// For multibyte UTF-8 inputs, only the *shorter* string — by character count — is
+/// collected into a `Vec<char>`; the longer string is streamed via `.chars()`.
 pub(super) fn string_similarity(s1: &str, s2: &str) -> f32 {
     if s1.is_empty() && s2.is_empty() {
         return 1.0;
     }
     if s1.is_empty() || s2.is_empty() {
         return 0.0;
+    }
+
+    // ASCII fast path: avoids `Vec<char>` collection and uses stack-buffered slice edit distance.
+    if s1.is_ascii() && s2.is_ascii() {
+        let b1 = s1.as_bytes();
+        let b2 = s2.as_bytes();
+        let distance = slice_edit_distance(b1, b2);
+        let max_len = b1.len().max(b2.len());
+        return 1.0 - (distance as f32 / max_len as f32);
     }
 
     // Compare by char count (`chars().count()` is O(N) with no allocation) so

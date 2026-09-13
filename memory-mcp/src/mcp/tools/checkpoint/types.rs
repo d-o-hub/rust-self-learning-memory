@@ -1,6 +1,6 @@
 //! Checkpoint tool types and input/output structures.
 
-use do_memory_core::HandoffPack;
+use do_memory_core::{CompactHandoff, HandoffBudget, HandoffPack};
 use serde::{Deserialize, Serialize};
 
 /// Input parameters for creating a checkpoint
@@ -35,6 +35,34 @@ pub struct CheckpointEpisodeOutput {
 pub struct GetHandoffPackInput {
     /// Checkpoint ID to generate handoff pack from
     pub checkpoint_id: String,
+    /// Pack mode: `"compact"` (default, byte-budgeted) or `"full"`
+    /// (unbounded, for audit/debug).
+    #[serde(default)]
+    pub mode: Option<String>,
+    /// Compact payload ceiling in bytes (default 8192, compact mode only).
+    #[serde(default)]
+    pub max_bytes: Option<usize>,
+}
+
+impl GetHandoffPackInput {
+    /// Resolve the effective mode, defaulting to compact.
+    #[must_use]
+    pub fn effective_mode(&self) -> &str {
+        self.mode.as_deref().unwrap_or("compact")
+    }
+
+    /// Minimum viable payload in bytes (skeleton + a few findings).
+    pub const MIN_HANDOFF_BYTES: usize = 1024;
+
+    /// Resolve the effective budget for compact mode.
+    #[must_use]
+    pub fn effective_budget(&self) -> HandoffBudget {
+        let mut budget = HandoffBudget::default();
+        if let Some(max_bytes) = self.max_bytes {
+            budget.max_bytes = max_bytes;
+        }
+        budget
+    }
 }
 
 /// Output from getting a handoff pack
@@ -42,8 +70,10 @@ pub struct GetHandoffPackInput {
 pub struct GetHandoffPackOutput {
     /// Whether operation was successful
     pub success: bool,
-    /// The handoff pack (null if not found)
+    /// The full handoff pack (full mode only, null otherwise)
     pub handoff_pack: Option<HandoffPackResponse>,
+    /// The compact handoff pack (compact mode only, null otherwise)
+    pub compact_handoff: Option<CompactHandoff>,
     /// Message describing the result
     pub message: String,
 }
@@ -98,6 +128,13 @@ impl From<HandoffPack> for HandoffPackResponse {
 pub struct ResumeFromHandoffInput {
     /// The handoff pack to resume from
     pub handoff_pack: HandoffPack,
+}
+
+/// Input parameters for resuming from a compact handoff pack
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeFromCompactInput {
+    /// The compact handoff pack to resume from
+    pub compact_handoff: CompactHandoff,
 }
 
 /// Output from resuming from a handoff pack

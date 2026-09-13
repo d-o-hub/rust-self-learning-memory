@@ -44,6 +44,7 @@ impl Config {
     /// - Configuration validation fails
     /// - Required settings are missing or invalid
     /// - Environment detection fails
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn simple() -> Result<Self, anyhow::Error> {
         use crate::config::validator::{format_validation_result, validate_config};
@@ -175,6 +176,7 @@ impl Config {
     ///     Ok(())
     /// }
     /// ```
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn simple_with_storage(database: DatabaseType) -> Result<Self, anyhow::Error> {
         use crate::config::validator::validate_config;
@@ -235,6 +237,7 @@ impl Config {
     ///     Ok(())
     /// }
     /// ```
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn simple_with_performance(
         performance: PerformanceLevel,
@@ -333,6 +336,7 @@ impl Config {
     ///     Ok(())
     /// }
     /// ```
+    #[allow(unknown_lints)]
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn simple_full(
         database: DatabaseType,

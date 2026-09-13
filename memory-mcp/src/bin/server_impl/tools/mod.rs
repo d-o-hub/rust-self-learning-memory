@@ -36,7 +36,7 @@ pub use feature_handlers::{
     handle_checkpoint_episode, handle_explain_pattern, handle_get_handoff_pack,
     handle_get_recommendation_stats, handle_recommend_patterns, handle_recommend_playbook,
     handle_record_recommendation_feedback, handle_record_recommendation_session,
-    handle_resume_from_handoff, handle_search_patterns,
+    handle_resume_from_compact, handle_resume_from_handoff, handle_search_patterns,
 };
 pub use memory_handlers::{
     handle_advanced_pattern_analysis, handle_analyze_patterns, handle_configure_embeddings,

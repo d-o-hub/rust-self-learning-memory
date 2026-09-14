@@ -68,7 +68,7 @@ parking_lot = "0.12.5"
 # lz4_flex 0.14 gates Vec-based block APIs behind `alloc` (via `std`).
 lz4_flex = { version = "0.14", optional = true, default-features = false, features = ["std"] }
 # Zstd for best compression ratio
-zstd = { version = "0.13", optional = true }
+zstd = { version = "0.14", optional = true }
 # Flate2 for Gzip (uses miniz_oxide by default, no C dependency)
 flate2 = { version = "1.1", optional = true, default-features = true, features = ["rust_backend"] }
 # Base64 encoding for compressed data storage

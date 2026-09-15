@@ -220,3 +220,41 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Prevention: `.agents/skills/commit/SKILL.md` (repair section), LESSON-023,
   `release-cadence-manager` skill.
 - References: PR #928, PR #927; `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`.
+## LESSON-025: Criterion writes three estimates files per benchmark; only new/ is absolute (2026-09-15)
+
+- Issue: the `Performance Benchmarks` workflow ingested every `estimates.json` under the
+  criterion dir, stripped `/new/`, `/base/` and `/change/` down to one benchmark name, and
+  emitted all of them as absolute ns. Reproduced with a scratch Criterion 0.8 bench:
+  `base/estimates.json` is a byte-identical copy of `new/estimates.json`, and once a
+  previous run exists in the same target dir, `change/estimates.json` holds the RELATIVE
+  delta (e.g. -0.099) which the old code emitted as `-1 ns/iter`. Two sources under one
+  name also produced duplicate rows (masked only because `sort -u` collapsed the identical
+  `new`/`base` pairs) and silently dropped benchmarks: `floor()` turned sub-1ns means to 0.
+- Evidence (CI run 34879770281, job `Run Benchmarks`): `Criterion estimates.json files
+  found: 232` -> `Converted benchmark lines: 222` -> `Total benchmark entries: 111`
+  (2 files per benchmark; every pair identical because the CI target dir is fresh).
+- Fixes:
+  1. Ingest only `-path '*/new/estimates.json'` (fresh, absolute, one row per benchmark).
+  2. Emit 2-decimal floats instead of flooring, so sub-1ns means survive
+     (`compression_overhead/without_compression` measures ~0.31 ns and was silently
+     dropped from every run); fail closed on an estimate with no positive ns mean.
+  3. Fail closed when converted rows != fresh file count (provenance) and when a duplicate
+     benchmark name survives conversion (silent last-row-wins in the store step).
+  4. Guard fixtures live in `./scripts/test-benchmark-workflow.sh --fixtures`.
+- Why it matters for gating: the store step compares each benchmark against the previously
+  stored run, so ingesting `change/` values would inject numbers unrelated to any
+  measurement, and dropped rows shift the dataset (observed 111<->139 entries), making
+  alerts compare across different benchmark sets.
+- Gate calibration (same PR): a controlled same-commit measurement (commit `e4a62748` ran
+  twice, gh-pages entries 2026-09-13T22:09Z and 2026-09-14T03:24Z, no code change) gives
+  median ratio 1.03, 43% of 111 benchmarks >10%, max 1.74x, min 0.35x. With the default
+  `fail-threshold = alert-threshold` (110%), 13/13 run pairs breached and
+  `store-benchmark` never carried signal. `fail-threshold: '500%'` (strict `>`; >=25%
+  margin over the observed 4.00x envelope across 1480 comparisons) keeps a
+  catastrophic-regression gate, while `alert-threshold: '110%'` still comments and cc's
+  @maintainers. The blocking perf gate stays deterministic: `eval benchmark
+  --fail-on-regression` in the `Retrieval Quality & Cost Benchmark` job.
+- Prevention: never infer measurement noise from cross-commit ratios alone - repeat the
+  same commit and compare (stored history lives in `gh-pages:dev/bench/data.js`).
+- References: `.github/workflows/benchmarks.yml` (`benchmark`, `store-benchmark`),
+  `scripts/test-benchmark-workflow.sh`, `agent_docs/github_actions_patterns.md`.

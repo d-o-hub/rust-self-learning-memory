@@ -198,41 +198,71 @@ jobs:
            bench_results_file="benchmark_results/output.txt"
            criterion_dir="$CARGO_TARGET_DIR/criterion"
            : > "$bench_results_file"
-           estimate_count=0
+           fresh_count=0
            converted_count=0
+           unparsed_files=()
            if [ -d "$criterion_dir" ]; then
+             # Only new/estimates.json holds absolute ns for the run just completed.
+             # Criterion also writes base/ (a byte-identical copy of new/) and, when a
+             # previous run exists in the same target dir, change/ (RELATIVE deltas,
+             # e.g. -0.099). Ingesting those as nanosecond means produced duplicate
+             # benchmark names and bogus values (e.g. "-1 ns/iter").
              while IFS= read -r json_file; do
-               estimate_count=$((estimate_count + 1))
-               # Criterion layout: <group>/<bench>/new/estimates.json (also base/change)
+               fresh_count=$((fresh_count + 1))
                bench_name=$(echo "$json_file" | sed "s|$criterion_dir/||" | \
-                 sed 's|/new/estimates.json||' | sed 's|/base/estimates.json||' | \
-                 sed 's|/change/estimates.json||' | sed 's|/.*benchmarks/||' | tr '/' '_')
-               # Prefer jq: Criterion stores mean/std_dev.point_estimate as floats (ns)
-               mean_ns=$(jq -r '(.mean.point_estimate // empty) | floor' "$json_file" 2>/dev/null || true)
-               std_dev=$(jq -r '(.std_dev.point_estimate // empty) | floor' "$json_file" 2>/dev/null || true)
+                 sed 's|/new/estimates.json$||' | sed 's|/.*benchmarks/||' | tr '/' '_')
+               # Prefer jq: Criterion stores mean/std_dev.point_estimate as floats (ns).
+               # Keep 2 decimals instead of flooring: compression_overhead/
+               # without_compression measures ~0.31 ns (the no-op floor) and flooring
+               # silently dropped those 5 benchmarks from every run's dataset.
+               # The action's cargo parser accepts floats (/^test (.+)\.\.\. bench:
+               # \s+([0-9,.]+) (\w+\/\w+) \(\+\/- ([0-9,.]+)\)$/).
+               mean_ns=$(jq -r '(.mean.point_estimate // empty) | (. * 100 | round) / 100' "$json_file" 2>/dev/null || true)
+               std_dev=$(jq -r '(.std_dev.point_estimate // empty) | (. * 100 | round) / 100' "$json_file" 2>/dev/null || true)
                if [ -z "$mean_ns" ] || [ "$mean_ns" = "null" ]; then
                  # Fallback for older/nested layouts
                  mean_ns=$(jq -r '.. | objects | select(has("point_estimate")) | .point_estimate' "$json_file" 2>/dev/null \
-                   | head -1 | awk '{printf "%d", $1}')
+                   | head -1 | awk '{printf "%.2f", $1}')
                fi
-               if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ] && [ "$mean_ns" != "null" ]; then
-                 if [ -n "${std_dev:-}" ] && [ "$std_dev" != "0" ] && [ "$std_dev" != "null" ]; then
-                   echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
-                 else
-                   echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
-                 fi
-                 converted_count=$((converted_count + 1))
+               if [[ ! "$mean_ns" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+                 unparsed_files+=("$json_file")
+                 continue
+               fi
+               if ! awk -v v="$mean_ns" 'BEGIN{exit !(v + 0 > 0)}'; then
+                 unparsed_files+=("$json_file")
+                 continue
+               fi
+               if [ -n "${std_dev:-}" ] && [ "$std_dev" != "0" ] && [ "$std_dev" != "null" ]; then
+                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
                else
-                 echo "⚠️  Could not parse mean from $json_file (sample):"
-                 head -c 400 "$json_file" || true
-                 echo
+                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
                fi
-             done < <(find "$criterion_dir" -type f -name "estimates.json" 2>/dev/null | sort)
+               converted_count=$((converted_count + 1))
+             done < <(find "$criterion_dir" -type f -path '*/new/estimates.json' 2>/dev/null | sort)
+             if [ "${#unparsed_files[@]}" -gt 0 ]; then
+               # A dropped benchmark silently narrows the dataset (observed entry
+               # counts drifting 111↔139), so treat it as a signal failure.
+               echo "❌ ${#unparsed_files[@]} fresh Criterion estimate(s) had no positive ns mean:"
+               printf '   %s\n' "${unparsed_files[@]}"
+               exit 1
+             fi
+             if [ "$converted_count" -ne "$fresh_count" ]; then
+               echo "❌ Converted $converted_count rows from $fresh_count fresh estimates; refusing partial dataset"
+               exit 1
+             fi
              if [ -s "$bench_results_file" ]; then
-               sort -u "$bench_results_file" -o "$bench_results_file"
+               dup_names=$(awk '{print $2}' "$bench_results_file" | sort | uniq -d)
+               if [ -n "$dup_names" ]; then
+                 # Two sources emitting the same benchmark name would collapse
+                 # silently in the store step (last row wins).
+                 echo "❌ Duplicate benchmark names after conversion:"
+                 echo "$dup_names"
+                 exit 1
+               fi
+               sort "$bench_results_file" -o "$bench_results_file"
              fi
            fi
-           echo "Criterion estimates.json files found: $estimate_count"
+           echo "Fresh Criterion estimates (new/): $fresh_count"
            echo "Converted benchmark lines: $converted_count"
            if [ ! -s "$bench_results_file" ]; then
              # W2.5: empty converted results block — do not substitute dummy data

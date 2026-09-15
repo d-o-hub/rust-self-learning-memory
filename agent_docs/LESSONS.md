@@ -266,3 +266,34 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   every run carries no signal.
 - References: `.github/workflows/benchmarks.yml` (`benchmark`, `store-benchmark`),
   `scripts/test-benchmark-workflow.sh`, `agent_docs/github_actions_patterns.md`.
+
+## LESSON-026: A sensor that scans missing paths reports success forever (2026-09-15)
+
+- Issue: `scripts/check-loc.sh` — the do-harness `loc` sensor and the pre-commit
+  `loc` hook — walked `$ROOT/src` and `$ROOT/crates`. Neither directory exists in
+  this workspace (crates live at `memory-core/`, `memory-cli/`, `memory-mcp/`, ...),
+  so `find` matched nothing, the script printed `check-loc OK` and exited 0 on every
+  commit. Six source files silently drifted past the 500 LOC invariant between
+  v0.1.40 and now: `checkpoint.rs` 330->554, `episode/core/types.rs` 490->503,
+  `memory/checkpoint/compact.rs` (new file) 514, `patterns/similarity.rs` 395->533,
+  `storage/backend.rs` 480->502, `mcp/tools/checkpoint/tool.rs` 415->713.
+- Impact: main CI stayed green (the CI `Quality Gates` job runs the security audit
+  and coverage only), but the canonical release path runs
+  `scripts/quality-gates.sh`, whose blocking `run_source_file_size_gate` scans
+  `git ls-files '*.rs'` for real and failed the release. The drift was discovered
+  only when `release-manager ship` stopped at the quality-gates phase.
+- Fixes:
+  1. `scripts/check-loc.sh` now selects files with `git ls-files '*.rs'` plus
+     untracked ones (excluding `target/` and `benches/`) and applies the same
+     test-file carve-out as the gate, so sensor and gate agree.
+  2. The six files were split at cohesive seams: inline `#[cfg(test)] mod tests`
+     bodies moved to sibling `*/tests.rs` files, `types.rs` payload enums/DTOs moved
+     to `types/models.rs` (re-exported), and the compact byte-budget helpers moved to
+     `memory/checkpoint/compact/budget.rs` (`pub(super)`).
+- Prevention: a sensor must fail closed when its search root is absent — assert the
+  scan found files (or count them) before reporting OK, and keep the sensor's file
+  selection identical to the gate it stands in for. Grep any new sensor's paths
+  against `cargo metadata` before trusting a green result.
+- References: `scripts/check-loc.sh`, `scripts/quality-gates.sh`
+  (`run_source_file_size_gate`), `do-harness.toml` (sensor `loc`), AGENTS.md core
+  invariant "Files: <=500 LOC per source file".

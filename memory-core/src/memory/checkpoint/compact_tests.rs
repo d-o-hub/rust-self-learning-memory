@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::episode::ExecutionStep;
+use crate::types::ExecutionResult;
 
 fn step(number: usize, tool: &str, action: &str) -> ExecutionStep {
     let mut step = ExecutionStep::new(number, tool.to_string(), action.to_string());

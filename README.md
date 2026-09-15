@@ -14,8 +14,8 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 **Architecture:**
 - **do-memory-core**: Core memory operations, pattern extraction, and reward scoring
-- **do-memory-storage-turso**: Primary database storage (libSQL)
-- **do-memory-storage-redb**: Fast embedded cache layer
+- **do-memory-storage-turso**: Optional Turso database storage (libSQL)
+- **do-memory-storage-redb**: Primary local cache layer (redb)
 - **do-memory-mcp**: MCP server (lazy tool loading; code-exec fail-closed)
 - **do-memory-cli**: Full-featured command-line interface (episode, pattern, storage, playbook, feedback, and more)
 - **do-memory-test-utils**: Shared testing utilities
@@ -33,8 +33,8 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Automatic reflection generation for learning
 
 ### 📚 Multiple Storage Backends
-- **Turso Cloud**: Remote libSQL database (default)
-- **redb Cache**: Fast embedded key-value storage
+- **Turso Cloud**: Remote libSQL database (optional)
+- **redb Cache**: Fast embedded key-value storage (default)
 - **Local SQLite**: Local file-based database (fallback)
 - Automatic caching with TTL-based invalidation
 
@@ -114,7 +114,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ### 🔍 Pattern Search Example
 
 ```rust
-use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
+use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -131,7 +131,7 @@ async fn main() -> anyhow::Result<()> {
     
     let results = memory.search_patterns_semantic(
         "How to handle API rate limiting with retries",
-        context,
+        context.clone(),
         5  // limit
     ).await?;
     
@@ -408,7 +408,7 @@ async fn main() -> anyhow::Result<()> {
 | Crate | Description |
 |-------|-------------|
 | [do-memory-core](memory-core/README.md) | Core episodic learning system |
-| [do-memory-mcp](memory-mcp/README.md) | MCP server with secure sandbox |
+| [do-memory-mcp](memory-mcp/README.md) | MCP server with code execution fail-closed |
 | [do-memory-cli](memory-cli/README.md) | Command-line interface |
 | [do-memory-storage-turso](memory-storage-turso/README.md) | Turso/libSQL storage backend |
 | [do-memory-storage-redb](memory-storage-redb/README.md) | redb cache backend |
@@ -475,7 +475,7 @@ When the `csm` feature is enabled, semantic search uses a 4-tier cascade to mini
 | 1 | BM25 exact match | O(n) Rayon scan | 0 | Keyword-heavy queries |
 | 2 | HDC similarity | 10,240-bit SIMD | 0 | Semantic fallback |
 | 3 | ConceptGraph expansion | Graph BFS | 0 | Known-domain synonyms |
-| 4 | API embedding | Network call | 1 | Final fallback |
+| 4 | API embedding | Network call | 1 | Final fallback (CascadeRetriever makes decision) |
 
 **Target**: 50-70% API call reduction for typical query workloads. See `agent_docs/csm_integration.md` for details.
 
@@ -498,11 +498,11 @@ Settings resolve highest-wins in this order (issue #846):
 ### Environment Variables
 
 ```bash
-# Turso Cloud (default)
+# Turso Cloud (optional remote backend)
 TURSO_URL=libsql://your-db.turso.io
 TURSO_TOKEN=your-auth-token
 
-# Local redb cache (default local backend)
+# Local redb cache (default backend)
 LOCAL_DATABASE_URL=sqlite:./data/memory.db
 REDB_PATH=./data/memory.redb
 

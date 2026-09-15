@@ -1,7 +1,7 @@
 # GOAP Actions Backlog
 
 - **Last Updated**: 2026-08-12
-- **Active plan**: this PR (`feat/ranking-adaptation`, ADR-082 + ADR-025/054 canonicalization) and merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
+- **Active plan**: this PR (`feat/ranking-adaptation`, ADR-082 + ADR-025/054 canonicalization) and merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
 ## Completed actions (2026-08-12 — ranking adaptation + registry canonicalization)

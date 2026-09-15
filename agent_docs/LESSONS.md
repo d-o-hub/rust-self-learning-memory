@@ -219,7 +219,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   it makes the root cause visible in every workflow instead of masked green.
 - Prevention: `.agents/skills/commit/SKILL.md` (repair section), LESSON-023,
   `release-cadence-manager` skill.
-- References: PR #928, PR #927; `plans/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`.
+- References: PR #928, PR #927; `plans/archive/2026-09-consolidation/superseded-goap/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`.
 ## LESSON-025: Criterion writes three estimates files per benchmark; only new/ is absolute (2026-09-15)
 
 - Issue: the `Performance Benchmarks` workflow ingested every `estimates.json` under the

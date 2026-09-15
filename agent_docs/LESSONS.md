@@ -245,16 +245,24 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   stored run, so ingesting `change/` values would inject numbers unrelated to any
   measurement, and dropped rows shift the dataset (observed 111<->139 entries), making
   alerts compare across different benchmark sets.
-- Gate calibration (same PR): a controlled same-commit measurement (commit `e4a62748` ran
-  twice, gh-pages entries 2026-09-13T22:09Z and 2026-09-14T03:24Z, no code change) gives
-  median ratio 1.03, 43% of 111 benchmarks >10%, max 1.74x, min 0.35x. With the default
-  `fail-threshold = alert-threshold` (110%), 13/13 run pairs breached and
-  `store-benchmark` never carried signal. `fail-threshold: '500%'` (strict `>`; >=25%
-  margin over the observed 4.00x envelope across 1480 comparisons) keeps a
-  catastrophic-regression gate, while `alert-threshold: '110%'` still comments and cc's
-  @maintainers. The blocking perf gate stays deterministic: `eval benchmark
-  --fail-on-regression` in the `Retrieval Quality & Cost Benchmark` job.
+- Gate calibration (follow-up PR `fix/benchmark-store-threshold`): same-code repeats on
+  the FIXED ingestion pipeline measure the real envelope -
+  (a) commits `af36e3c1` vs `80dcda16` (identical ingestion code): median ratio 1.199,
+  max 1.72x, min 0.70x, 77% of 120 benchmarks >10%, 33% >25%, 1% >50%;
+  (b) one SHA measured twice (`04744db9`, push vs `workflow_dispatch`): median 1.212,
+  max 2.28x (`domain_invalidation_latency_100` 13.97us -> 31.88us), 0 benchmarks >3x.
+  The pre-fix history (14 stored runs, 1480 comparisons) reaches 4.00x on a 5ns
+  timer-floor benchmark (3.82x for means >=1us).
+  With the default `fail-threshold = alert-threshold` (110%), 13/13 run pairs breached and
+  `store-benchmark` failed on every main push; a same-code repeat (`e4a62748`) raised 75
+  alerts on its own. `fail-threshold: '500%'` (strict `>`, so >=25% margin over the
+  observed 4.00x envelope) keeps a catastrophic-regression gate, while
+  `alert-threshold: '110%'` still comments and cc's @maintainers. The blocking perf gate
+  stays deterministic: `eval benchmark --fail-on-regression` in the
+  `Retrieval Quality & Cost Benchmark` job.
 - Prevention: never infer measurement noise from cross-commit ratios alone - repeat the
-  same commit and compare (stored history lives in `gh-pages:dev/bench/data.js`).
+  same commit and compare (stored history lives in `gh-pages:dev/bench/data.js`), and
+  never set a failure threshold below the measured same-code envelope; a gate that fails
+  every run carries no signal.
 - References: `.github/workflows/benchmarks.yml` (`benchmark`, `store-benchmark`),
   `scripts/test-benchmark-workflow.sh`, `agent_docs/github_actions_patterns.md`.

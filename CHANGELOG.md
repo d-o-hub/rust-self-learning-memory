@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (previously `base/` duplicates and `change/` relative deltas were emitted as
   nanoseconds) and sub-nanosecond means are kept as decimals instead of being
   silently dropped (#1022)
+- Benchmark store gate calibrated against same-code repeat measurements: >=10%
+  deltas still comment and cc maintainers, but only >=5x single-benchmark
+  deltas fail the job, so `Store Benchmark Results` stops failing on every
+  main push (#1025)
 
 ## [0.1.40] - 2026-09-06
 

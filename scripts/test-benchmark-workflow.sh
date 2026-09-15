@@ -56,7 +56,17 @@ check_regression_threshold() {
   if rg -q 'fail-on-alert:\s*false' "$WF"; then
     echo "WARN: fail-on-alert is false — regressions comment but do not block (W2.5 partial)"
   fi
-  echo "OK: regression threshold section inspected"
+  # The failure threshold must stay above the measured same-code noise envelope
+  # (LESSON-025). Defaulting back to alert-threshold (110%) made every main run fail.
+  local fail_pct
+  fail_pct=$(rg -o "fail-threshold: '([0-9]+)%'" -r '$1' "$WF" | head -1 || true)
+  if [[ -z "$fail_pct" ]]; then
+    fail "benchmarks.yml must set fail-threshold explicitly (defaults to alert-threshold)"
+  fi
+  if [[ "$fail_pct" -lt 200 ]]; then
+    fail "fail-threshold ${fail_pct}% is below the measured same-code envelope (>=200% required)"
+  fi
+  echo "OK: regression threshold section inspected (fail-threshold=${fail_pct}%)"
 }
 
 check_missing_criterion_fixture() {

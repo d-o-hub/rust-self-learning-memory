@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.41] - 2026-09-15
+
+### Added
+
+- Retrieval metrics exposed through MCP tools with acceptance tests (#962,
+  #1005): eight retrieval metric families with cardinality bounds and latency
+  percentiles in `get_metrics(metric_type="retrieval")`
+- Confidence-gated API embedding fallback for CSM (#992)
+- Durable episode writes batched off the completion path (#993)
+- Compact handoff refinements from PR #994 review (#994)
+
+### Fixed
+
+- Reranker `top_k` capped to `MAX_QUERY_LIMIT` (#980)
+- Jaccard claims corrected and duplicate semantics pinned (#986)
+- CI no longer commits generated coverage reports
+- rustls bumped to 0.23.45 for RUSTSEC-2026-0285 (#1021)
+
+### Performance
+
+- String similarity optimized with an ASCII fast-path and stack DP (#1010)
+
+### Documentation
+
+- README and agent_docs synchronized with the current implementation state
+  (#1011)
+
+### Maintenance
+
+- Dependency bumps: rust-patch-minor (#1002, #1018) and rust-major (#1019)
+- Post-release workspace bump to 0.1.41 and changelog regeneration (#998, #999)
+
+### CI/CD
+
+- actions-all dependency bumps (#1001)
+- Benchmark ingestion repaired: only fresh Criterion `new/` estimates are read
+  (previously `base/` duplicates and `change/` relative deltas were emitted as
+  nanoseconds) and sub-nanosecond means are kept as decimals instead of being
+  silently dropped (#1022)
+
 ## [0.1.40] - 2026-09-06
 
 
@@ -2883,7 +2923,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-## [0.1.11] - 2026-01-04
+### 0.1.11 — continued (shipped 2026-01-04)
 
 
 
@@ -2988,7 +3028,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-## [0.1.10] - 2026-01-02
+### 0.1.10 — continued (shipped 2026-01-02)
 
 
 

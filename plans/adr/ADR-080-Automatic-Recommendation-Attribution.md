@@ -3,7 +3,7 @@
 - **Status**: Proposed
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
-- **Plan**: [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
+- **Plan**: [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
 - **Related**: ADR-039 (plans governance), ADR-044 (recommendation attribution), ADR-072 (authority/evidence), ADR-075 (durability truth)
 - **Code evidence**: `memory-core/src/memory/pattern_api.rs`, `memory-core/src/memory/retrieval/playbooks.rs`, `memory-core/src/memory/api.rs`, `memory-core/src/memory/persistence.rs`, `memory-mcp/src/mcp/tools/pattern_search.rs`, `memory-cli/src/commands/pattern/core/search.rs`
 

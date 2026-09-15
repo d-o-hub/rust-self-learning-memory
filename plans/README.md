@@ -1,9 +1,9 @@
 # Plans Directory
 
-**Workspace**: `v0.1.40` (post-v0.1.39 bump) · **Released tag**: `v0.1.39` · **Main baseline**: `872949b816e78ce8d81f4f8fe2a6af71f319f27e` (PR #947 merged 2026-08-12)
+**Workspace**: `v0.1.41` (release pending tag) · **Released tag**: `v0.1.40` · **Main baseline**: `04744db9e60fbeb0c75c4f64a3a02c41957988af` (PR #1022 merged 2026-09-15)
 **Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan
-**Last Updated**: 2026-08-12
-**Open PRs**: none (docs-only tracker PR transient) · **Open issues**: none
+**Last Updated**: 2026-09-15
+**Open PRs**: release prep + benchmark-gate calibration · **Open issues**: release drift #1020 (warning)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation
@@ -19,13 +19,13 @@
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
 | [GATE_CONTRACT.md](GATE_CONTRACT.md) | Local/CI quality gate matrix |
-| [GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md](GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md) | **Historical**: PR review & CI fix wave (2026-08-07), superseded by merged #947 (2026-08-12) |
-| [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) | **Historical**: CIT-A1/A2/A3 workflow-side wave (2026-08-06), superseded by merged #947 (2026-08-12) |
-| [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) | **Historical**: CIT-A4/A5 implementation + plan truth (2026-08-06), superseded by merged #947 (2026-08-12) |
-| [GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md](GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md) | **Historical**: ADR-081 §2 capability truth (2026-08-10), superseded by merged #947 (2026-08-12) |
-| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Historical upstream**: CI trust + product-truth fixes + ADR-080 attribution capture |
+| [GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md](archive/2026-09-consolidation/superseded-goap/GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md) | **Historical**: PR review & CI fix wave (2026-08-07), superseded by merged #947 (2026-08-12) |
+| [GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md](archive/2026-09-consolidation/superseded-goap/GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md) | **Historical**: CIT-A1/A2/A3 workflow-side wave (2026-08-06), superseded by merged #947 (2026-08-12) |
+| [GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md](archive/2026-09-consolidation/superseded-goap/GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md) | **Historical**: CIT-A4/A5 implementation + plan truth (2026-08-06), superseded by merged #947 (2026-08-12) |
+| [GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md](archive/2026-09-consolidation/superseded-goap/GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md) | **Historical**: ADR-081 §2 capability truth (2026-08-10), superseded by merged #947 (2026-08-12) |
+| [GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md](archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md) | **Historical upstream**: CI trust + product-truth fixes + ADR-080 attribution capture |
 | [GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md](GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md) | Reference recommendations backlog |
-| [ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md](ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md) | Official `gh` / `gh skill` skills + manual vs repo policy |
+| [ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md](archive/2026-09-consolidation/analyses/ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md) | Official `gh` / `gh skill` skills + manual vs repo policy |
 
 ## Architecture
 

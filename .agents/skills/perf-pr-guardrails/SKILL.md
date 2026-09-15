@@ -16,7 +16,7 @@ complexity improvements — and **especially** auto-generated perf PRs (Jules /
 - Deciding whether a perf PR has enough impact to keep vs. close
 - Auditing a perf PR's PR-body + doc-comment claims
 - Adding guard rails after a perf-PR review found inflated claims (see
-  `plans/GOAP_PR925_REVIEW_AND_PERF_PR_GUARDRAILS_2026-08-06.md`)
+  `plans/archive/2026-09-consolidation/superseded-goap/GOAP_PR925_REVIEW_AND_PERF_PR_GUARDRAILS_2026-08-06.md`)
 
 ## The Checklist (all 7 items)
 

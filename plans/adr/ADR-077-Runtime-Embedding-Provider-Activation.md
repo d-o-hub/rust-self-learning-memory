@@ -3,7 +3,7 @@
 - **Status**: Accepted / Implemented
 - **Date**: 2026-07-26
 - **Deciders**: Project maintainers
-- **Plan**: [`../GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`](../GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md)
+- **Plan**: [`../GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`](../archive/2026-09-consolidation/superseded-goap/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md)
 - **Related**: ADR-024 (lazy MCP tools), ADR-056 (local storage), ADR-072 (authority and evidence), ADR-074 (provider cache identity)
 - **Code evidence**: `memory-mcp/src/mcp/tools/embeddings/tool/execute/configure.rs`, `memory-core/src/embeddings/semantic_service.rs`, `memory-core/src/memory/core/struct_priv.rs`, `memory-core/src/embeddings/config/provider_config.rs`
 
@@ -143,6 +143,6 @@ is a separate feature with its own security decision.
 
 ## References
 
-- `plans/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`
+- `plans/archive/2026-09-consolidation/superseded-goap/GOAP_RUNTIME_EMBEDDING_ACTIVATION_2026-07-26.md`
 - `memory-mcp/tests/embeddings_integration.rs`
 - `memory-core/tests/embedding_integration_test.rs`

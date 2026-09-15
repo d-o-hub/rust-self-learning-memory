@@ -4,7 +4,7 @@
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
 - **Related**: ADR-029, ADR-030, ADR-038, ADR-039, ADR-042, ADR-072
-- **Plan**: `plans/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
+- **Plan**: `plans/archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`
 
 ## Context
 

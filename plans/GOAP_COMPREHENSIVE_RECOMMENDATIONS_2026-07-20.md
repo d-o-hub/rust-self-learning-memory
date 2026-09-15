@@ -146,7 +146,7 @@ No product/research implementation this sprint.
 
 ### Track H — GitHub CLI skills & best practices (P1)
 
-**Analysis**: `plans/ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md`
+**Analysis**: `plans/archive/2026-09-consolidation/analyses/ANALYSIS_GH_CLI_SKILLS_AND_BEST_PRACTICES_2026-07-20.md`
 
 | ID | Recommendation | Status |
 |----|----------------|--------|

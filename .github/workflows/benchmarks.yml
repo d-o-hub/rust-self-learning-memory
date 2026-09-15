@@ -327,10 +327,27 @@ jobs:
           output-file-path: output.txt
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
+          # W2.5 sensitivity kept at 10% for signal: every >=10% delta still posts a
+          # commit comment and cc's @maintainers.
           alert-threshold: '110%'
           comment-on-alert: true
-          # W2.5: >10% regression blocks the job (was soft-fail only)
           fail-on-alert: true
+          # Calibration (2026-09-15). Two same-code repeat measurements on the fixed
+          # ingestion pipeline: (a) commits af36e3c1/80dcda16 -> median ratio 1.199,
+          # max 1.72x; (b) one SHA measured twice (04744db9 push vs dispatch) ->
+          # median 1.212, max 2.28x, 0 benchmarks above 3x. Across the 14 stored
+          # pre-fix main runs (1480 comparisons) the envelope reaches 4.00x on a
+          # 5ns timer-floor benchmark (3.82x for means >=1us).
+          # With fail-threshold defaulting to alert-threshold (110%), 13/13 run pairs
+          # breached and the store job failed on every main push; a same-code repeat
+          # (e4a62748) raised 75 alerts on its own.
+          # fail-threshold uses strict '>' (dist/src/write.js: `ratio > failThreshold`),
+          # so 500% keeps >=25% margin over the observed envelope while still failing
+          # closed on catastrophic single-benchmark regressions.
+          # Blocking perf gate stays deterministic: the Retrieval Quality & Cost
+          # Benchmark job runs `eval benchmark --fail-on-regression` against
+          # benches/fixtures/retrieval_baseline.json.
+          fail-threshold: '500%'
           alert-comment-cc-users: '@maintainers'
 
   regression-check:

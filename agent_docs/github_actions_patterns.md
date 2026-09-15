@@ -77,6 +77,22 @@ Historical: PR #860 cancelled YAML Lint wait every push; #871 fixed name/concurr
 
 Deleting a benchmark from `Cargo.toml` without updating the workflow causes silent failures (stderr is suppressed with `2>/dev/null`), producing no criterion output and triggering the "artifacts not available" fallback comment on PRs.
 
+## Criterion Estimates: Only `new/` Is Absolute (2026-09-15)
+
+**Rule**: ingest `*/new/estimates.json` only (`find … -path '*/new/estimates.json'`).
+
+Criterion 0.8 writes three files per benchmark: `new/` (absolute ns for the run just
+completed), `base/` (a byte-identical copy of `new/` — this is why
+`Criterion estimates.json files found: 232` collapsed to 111 entries), and — when a
+previous run exists in the same target dir — `change/` with **relative** deltas
+(`-0.099`), which the old conversion emitted as `-1 ns/iter`. CI target dirs are fresh
+today, so the defect is latent there, but any retry/cache/local run that warms the dir
+silently corrupts the stored series. Means are emitted as 2-decimal floats because
+`compression_overhead/without_compression` measures ~0.31 ns and flooring it dropped
+5 benchmarks from every dataset (CI run for PR #1005: 233 files -> 223 lines -> 112
+entries). The conversion step also fails closed on a non-positive mean, on a dataset
+smaller than the fresh-file count, and on duplicate benchmark names. See LESSON-025 and `scripts/test-benchmark-workflow.sh`.
+
 ## Upload Artifact LCA Pitfall (2026-06-05)
 
 `actions/upload-artifact` computes the **least common ancestor (LCA)** of all input paths and stores files relative to that root. When downstream jobs download the artifact by name, files are extracted to `$GITHUB_WORKSPACE` preserving that structure.

@@ -88,11 +88,35 @@ check_jq_conversion() {
     cat >"$sample" <<'JSON'
 {"mean":{"point_estimate":12345.67,"standard_error":1.0},"std_dev":{"point_estimate":10.2}}
 JSON
-    mean=$(jq -r '(.mean.point_estimate // empty) | floor' "$sample")
+    mean=$(jq -r '(.mean.point_estimate // empty) | (. * 100 | round) / 100' "$sample")
     rm -f "$sample"
-    [[ "$mean" == "12345" ]] || fail "jq floor extraction fixture failed (got: $mean)"
+    [[ "$mean" == "12345.67" ]] || fail "jq extraction fixture failed (got: $mean)"
+    # Sub-ns means must survive (compression_overhead/without_compression ~= 0.31 ns)
+    subns=$(printf '%s' '{"mean":{"point_estimate":0.31141323256648357}}' \
+      | jq -r '(.mean.point_estimate // empty) | (. * 100 | round) / 100')
+    [[ "$subns" == "0.31" ]] || fail "sub-ns mean fixture failed (got: $subns)"
   fi
   echo "OK: jq-based Criterion conversion present"
+}
+
+check_fresh_only_ingest() {
+  # Criterion writes base/ (identical copy of new/) and change/ (relative deltas)
+  # next to new/. Storing any of those as absolute ns corrupts the series
+  # (duplicate names, "-1 ns/iter" from a -0.099 delta).
+  if rg -q -- '-type f -name "estimates.json"' "$WF"; then
+    fail "benchmarks.yml ingests every estimates.json; base//change/ must be excluded"
+  fi
+  rg -q '\*/new/estimates.json' "$WF" \
+    || fail "benchmarks.yml must restrict ingestion to */new/estimates.json"
+  rg -q 'refusing partial dataset' "$WF" \
+    || fail "benchmarks.yml must refuse a dataset smaller than the fresh-file count"
+  echo "OK: fresh-only Criterion ingest enforced"
+}
+
+check_duplicate_name_guard() {
+  rg -q 'Duplicate benchmark names after conversion' "$WF" \
+    || fail "benchmarks.yml must block duplicate benchmark names (silent last-row-wins)"
+  echo "OK: duplicate benchmark-name guard present"
 }
 
 case "$MODE" in
@@ -103,6 +127,8 @@ case "$MODE" in
     check_regression_threshold
     check_missing_criterion_fixture
     check_jq_conversion
+    check_fresh_only_ingest
+    check_duplicate_name_guard
     echo "OK: benchmark workflow fixtures passed"
     ;;
   -h|--help)

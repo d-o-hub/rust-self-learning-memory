@@ -141,3 +141,7 @@ __pycache__/
 # NOTE: .agents/events/ is deliberately NOT ignored — this repo commits
 # Steering Loop metrics events (see AGENTS.md "Steering Loop").
 
+# Generated coverage reports (published to Codecov and Actions artifacts)
+/coverage/
+/lcov.info
+/lcov-full.info

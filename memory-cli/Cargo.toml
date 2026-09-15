@@ -44,8 +44,8 @@ dialoguer = "0.12"
 # Additional CLI dependencies for operational features
 
 # Platform and system utilities for smart defaults
-dirs = "6.0"
-sysinfo = "0.38"
+dirs = "7.0"
+sysinfo = "0.39"
 
 # Test utilities dependencies
 assert_cmd = "2.2"

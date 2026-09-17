@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use super::labels::{
     CacheLayer, EmbeddingOutcome, EmbeddingProviderLabel, FALLBACK_REASONS, FeedbackSignal,
-    JudgmentOutcome, RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
+    RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
 };
 use super::registry::RetrievalMetrics;
 
@@ -45,15 +45,6 @@ const ALL_SIGNALS: [FeedbackSignal; 4] = [
     FeedbackSignal::Abstained,
 ];
 
-const ALL_JUDGMENT_OUTCOMES: [JudgmentOutcome; 6] = [
-    JudgmentOutcome::NotConfigured,
-    JudgmentOutcome::Ok,
-    JudgmentOutcome::Unavailable,
-    JudgmentOutcome::Timeout,
-    JudgmentOutcome::Invalid,
-    JudgmentOutcome::ProviderError,
-];
-
 impl RetrievalMetrics {
     /// JSON snapshot for MCP `get_metrics` (zero series omitted).
     #[must_use]
@@ -71,7 +62,6 @@ impl RetrievalMetrics {
             "cache": self.cache_map(),
             "embeddings": self.embeddings_map(),
             "candidates": self.candidates_map(),
-            "judgments": self.judgments_map(),
         })
     }
 
@@ -270,49 +260,6 @@ impl RetrievalMetrics {
                 count
             );
         }
-
-        out.push_str(
-            "# HELP memory_judgment_requests_total Semantic candidate judgment calls by judge status and result\n",
-        );
-        out.push_str("# TYPE memory_judgment_requests_total counter\n");
-        for conf_bool in [false, true] {
-            let conf_idx = usize::from(conf_bool);
-            for outcome in ALL_JUDGMENT_OUTCOMES {
-                let count = self.judgments[conf_idx][outcome.index()].load(Ordering::Relaxed);
-                if count > 0 {
-                    let _ = writeln!(
-                        out,
-                        "memory_judgment_requests_total{{judge_configured=\"{}\",outcome=\"{}\"}} {}",
-                        conf_bool,
-                        outcome.as_str(),
-                        count
-                    );
-                }
-            }
-        }
-        let latency = self.judgment_durations_ms.lock();
-        if latency.count() > 0 {
-            out.push_str("# HELP memory_judgment_duration_seconds Semantic judgment execution latency\n");
-            out.push_str("# TYPE memory_judgment_duration_seconds summary\n");
-            let (p50, p95, p99) = latency.percentiles_ms();
-            for (quantile, value_ms) in [("0.5", p50), ("0.95", p95), ("0.99", p99)] {
-                let _ = writeln!(
-                    out,
-                    "memory_judgment_duration_seconds{{quantile=\"{}\"}} {:.3}",
-                    quantile,
-                    value_ms as f64 / 1000.0
-                );
-            }
-        }
-        let candidate_count = self.judgment_candidates_count.load(Ordering::Relaxed);
-        if candidate_count > 0 {
-            let candidate_sum = self.judgment_candidates_sum.load(Ordering::Relaxed);
-            out.push_str("# HELP memory_judgment_candidates Total candidates submitted for semantic judgment\n");
-            out.push_str("# TYPE memory_judgment_candidates summary\n");
-            let _ = writeln!(out, "memory_judgment_candidates_sum {}", candidate_sum);
-            let _ = writeln!(out, "memory_judgment_candidates_count {}", candidate_count);
-        }
-
         out
     }
 
@@ -371,22 +318,6 @@ impl RetrievalMetrics {
                 })
             })
             .collect();
-        Value::Object(map)
-    }
-
-    /// Nonzero judgment counts keyed by configuration status and outcome.
-    fn judgments_map(&self) -> Value {
-        let mut map = serde_json::Map::new();
-        for conf_bool in [false, true] {
-            let conf_idx = usize::from(conf_bool);
-            for outcome in ALL_JUDGMENT_OUTCOMES {
-                let count = self.judgments[conf_idx][outcome.index()].load(Ordering::Relaxed);
-                if count > 0 {
-                    let key = format!("judge_configured={}:outcome={}", conf_bool, outcome.as_str());
-                    map.insert(key, json!(count));
-                }
-            }
-        }
         Value::Object(map)
     }
 

@@ -10,9 +10,9 @@ use std::sync::{
 use super::super::storage_metrics::OperationLatency;
 use super::labels::{
     CacheLayer, EmbeddingOutcome, EmbeddingProviderLabel, FallbackReason, FeedbackSignal,
-    JudgmentOutcome, N_EMB_OUTCOMES, N_FALLBACK_REASONS, N_JUDGMENT_OUTCOMES, N_LAYERS,
-    N_OPERATIONS, N_OUTCOMES, N_PROVIDERS, N_SIGNALS, N_STAGES, N_TIERS, RetrievalOperation,
-    RetrievalOutcome, RetrievalStage, RetrievalTier, fallback_index,
+    N_EMB_OUTCOMES, N_FALLBACK_REASONS, N_LAYERS, N_OPERATIONS, N_OUTCOMES, N_PROVIDERS, N_SIGNALS,
+    N_STAGES, N_TIERS, RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
+    fallback_index,
 };
 use crate::retrieval::cascade::CascadeResult;
 
@@ -31,10 +31,6 @@ pub struct RetrievalMetrics {
     pub(super) embedding_durations_ms: [Mutex<OperationLatency>; N_PROVIDERS],
     pub(super) fallbacks: [AtomicU64; N_FALLBACK_REASONS],
     pub(super) feedback: [AtomicU64; N_SIGNALS],
-    pub(super) judgments: [[AtomicU64; N_JUDGMENT_OUTCOMES]; 2],
-    pub(super) judgment_durations_ms: Mutex<OperationLatency>,
-    pub(super) judgment_candidates_sum: AtomicU64,
-    pub(super) judgment_candidates_count: AtomicU64,
 }
 
 impl RetrievalMetrics {
@@ -51,10 +47,6 @@ impl RetrievalMetrics {
             embedding_durations_ms: Default::default(),
             fallbacks: Default::default(),
             feedback: Default::default(),
-            judgments: Default::default(),
-            judgment_durations_ms: Mutex::default(),
-            judgment_candidates_sum: AtomicU64::default(),
-            judgment_candidates_count: AtomicU64::default(),
         }
     }
 
@@ -107,25 +99,6 @@ impl RetrievalMetrics {
         self.feedback[signal.index()].fetch_add(1, Ordering::Relaxed);
     }
 
-    /// Record one semantic judgment invocation.
-    pub fn record_judgment(
-        &self,
-        judge_configured: bool,
-        outcome: JudgmentOutcome,
-        candidate_count: usize,
-        duration_ms: u64,
-    ) {
-        let conf_idx = usize::from(judge_configured);
-        self.judgments[conf_idx][outcome.index()].fetch_add(1, Ordering::Relaxed);
-        if judge_configured {
-            self.judgment_durations_ms.lock().record(duration_ms);
-            self.judgment_candidates_sum
-                .fetch_add(candidate_count as u64, Ordering::Relaxed);
-            self.judgment_candidates_count
-                .fetch_add(1, Ordering::Relaxed);
-        }
-    }
-
     /// Record one finished cascade retrieval: request, duration,
     /// candidate-set size, and Tier-4 fallback decision.
     pub fn record_cascade(&self, duration_ms: u64, result: &CascadeResult) {
@@ -175,14 +148,6 @@ impl RetrievalMetrics {
         for cell in &self.feedback {
             cell.store(0, Ordering::Relaxed);
         }
-        for conf in &self.judgments {
-            for cell in conf {
-                cell.store(0, Ordering::Relaxed);
-            }
-        }
-        *self.judgment_durations_ms.lock() = OperationLatency::default();
-        self.judgment_candidates_sum.store(0, Ordering::Relaxed);
-        self.judgment_candidates_count.store(0, Ordering::Relaxed);
     }
 }
 

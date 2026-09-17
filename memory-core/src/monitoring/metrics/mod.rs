@@ -40,8 +40,8 @@ mod storage_metrics;
 pub use http_server::MetricsHttpServer;
 pub use retrieval_metrics::{
     CacheLayer, EmbeddingOutcome, EmbeddingProviderLabel, FallbackReason, FeedbackSignal,
-    JudgmentOutcome, RetrievalMetrics, RetrievalOperation, RetrievalOutcome, RetrievalStage,
-    RetrievalTier, cascade_tier, global_retrieval_metrics, provisional_fallback_reason,
+    RetrievalMetrics, RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
+    cascade_tier, global_retrieval_metrics, provisional_fallback_reason,
 };
 pub use storage_metrics::{CacheStats, OperationLatency, RedbMetrics, TursoStorageMetrics};
 

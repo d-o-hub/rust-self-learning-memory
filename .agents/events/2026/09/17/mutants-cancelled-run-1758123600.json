@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-17T15:40:00Z",
+  "sensor": "release-manager::ci-check-cancelled-run",
+  "category": "maintainability",
+  "violation_count": 12,
+  "root_cause": "release-manager.sh ci-check requires every completed workflow run on origin/main HEAD to conclude success/skipped/neutral and counts `cancelled` as failed. `.github/workflows/mutants.yml` triggers on push to main when memory-core/src/{reward,retrieval,retry,patterns}/** change, and its four shards carry `timeout-minutes: 60` while needing longer, so GitHub killed the shard, the job and the whole run concluded `cancelled`. All 12 runs in the preceding month ended the same way, so any main commit touching those paths blocked the canonical release path (the path filter is why most merges ship fine).",
+  "guide_updated": "agent_docs/LESSONS.md#lesson-027",
+  "skill_created": false,
+  "resolution": "Bounded each shard inside its own job budget: `timeout --signal=TERM --kill-after=60s \"$BUDGET\"` (default 3000s, override via MUTANTS_SHARD_BUDGET_SECONDS) so the step exits before the job timeout and the run concludes success; rc 124/137 emits a truncation notice, other non-zero rc emits a warning, and the job stays continue-on-error (Phase 1 of issue #747 is informational). Fixed in PR #1028."
+}

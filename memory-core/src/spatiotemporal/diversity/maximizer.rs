@@ -247,35 +247,12 @@ impl DiversityMaximizer {
     /// ```
     #[must_use]
     pub fn calculate_similarity(episode1: &ScoredEpisode, episode2: &ScoredEpisode) -> f32 {
-        let emb1 = episode1.embedding();
-        let emb2 = episode2.embedding();
-
-        // Handle dimension mismatch
-        if emb1.len() != emb2.len() {
-            return 0.0;
-        }
-
-        if emb1.is_empty() {
-            return 0.0;
-        }
-
-        // Calculate dot product
-        let dot_product: f32 = emb1.iter().zip(emb2.iter()).map(|(a, b)| a * b).sum();
-
-        // Calculate magnitudes
-        let magnitude1: f32 = emb1.iter().map(|x| x * x).sum::<f32>().sqrt();
-        let magnitude2: f32 = emb2.iter().map(|x| x * x).sum::<f32>().sqrt();
-
-        // Avoid division by zero
-        if magnitude1 == 0.0 || magnitude2 == 0.0 {
-            return 0.0;
-        }
-
-        // Cosine similarity
-        let similarity = dot_product / (magnitude1 * magnitude2);
-
-        // Clamp to [0, 1] (cosine can be negative for opposite vectors)
-        similarity.clamp(0.0, 1.0)
+        // Delegate similarity calculation to `crate::embeddings::cosine_similarity`,
+        // leveraging its 8-way unrolled accumulators for instruction-level parallelism
+        // and SIMD auto-vectorization over raw slices. Convert normalized score [0, 1]
+        // back to standard cosine similarity range [0, 1].
+        let normalized = crate::embeddings::cosine_similarity(episode1.embedding(), episode2.embedding());
+        (normalized * 2.0 - 1.0).clamp(0.0, 1.0)
     }
 
     /// Calculate diversity score for a set of episodes

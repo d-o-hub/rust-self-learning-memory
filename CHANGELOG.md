@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Jaccard claims corrected and duplicate semantics pinned (#986)
 - CI no longer commits generated coverage reports
 - rustls bumped to 0.23.45 for RUSTSEC-2026-0285 (#1021)
+- Six source files split back under the 500 LOC invariant: the package-private
+  LOC gate in `quality-gates.sh` had been failing, which blocked the local
+  release path even though main CI stayed green
 
 ### Performance
 

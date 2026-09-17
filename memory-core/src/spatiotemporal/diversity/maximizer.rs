@@ -251,7 +251,8 @@ impl DiversityMaximizer {
         // leveraging its 8-way unrolled accumulators for instruction-level parallelism
         // and SIMD auto-vectorization over raw slices. Convert normalized score [0, 1]
         // back to standard cosine similarity range [0, 1].
-        let normalized = crate::embeddings::cosine_similarity(episode1.embedding(), episode2.embedding());
+        let normalized =
+            crate::embeddings::cosine_similarity(episode1.embedding(), episode2.embedding());
         (normalized * 2.0 - 1.0).clamp(0.0, 1.0)
     }
 

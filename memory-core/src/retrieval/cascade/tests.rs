@@ -20,6 +20,30 @@ fn test_cascade_retriever_creation() {
     let retriever = CascadeRetriever::new(config);
     assert_eq!(retriever.config().top_k, 10);
     assert!(retriever.is_empty());
+    assert!(retriever.judge().is_none());
+}
+
+#[test]
+fn test_cascade_retriever_with_judge() {
+    use crate::retrieval::judgment::{
+        CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge,
+    };
+    use std::sync::Arc;
+
+    struct DummyJudge;
+    impl RetrievalJudge for DummyJudge {
+        fn judge_candidates(
+            &self,
+            _query: &str,
+            _candidates: &[JudgmentCandidate<'_>],
+        ) -> Result<Vec<CandidateJudgment>, JudgmentError> {
+            Ok(vec![])
+        }
+    }
+
+    let config = CascadeConfig::default();
+    let retriever = CascadeRetriever::new(config).with_judge(Arc::new(DummyJudge));
+    assert!(retriever.judge().is_some());
 }
 
 #[test]

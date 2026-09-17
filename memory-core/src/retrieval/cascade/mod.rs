@@ -16,9 +16,11 @@ mod fallback;
 pub use fallback::{FallbackDecision, decide_fallback, local_confidence};
 
 mod types;
+use std::sync::Arc;
 pub use types::{
     CascadeConfig, CascadeError, CascadeResult, FallbackPolicy, FallbackReason, TierResult,
 };
+use super::RetrievalJudge;
 
 /// Cascading retrieval orchestrator.
 ///
@@ -26,6 +28,8 @@ pub use types::{
 /// only when CPU-local tiers cannot satisfy the query.
 pub struct CascadeRetriever {
     config: CascadeConfig,
+    /// Optional semantic judgment provider for candidate evaluation.
+    judge: Option<Arc<dyn RetrievalJudge>>,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
     /// Concept graph for ontology-based term expansion (Tier 3).
@@ -44,6 +48,7 @@ impl CascadeRetriever {
     pub fn new(config: CascadeConfig) -> Self {
         Self {
             config,
+            judge: None,
             episode_data: Vec::new(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
@@ -60,6 +65,19 @@ impl CascadeRetriever {
     #[must_use]
     pub fn default_config() -> Self {
         Self::new(CascadeConfig::default())
+    }
+
+    /// Attach an optional semantic judgment provider to the retriever.
+    #[must_use]
+    pub fn with_judge(mut self, judge: Arc<dyn RetrievalJudge>) -> Self {
+        self.judge = Some(judge);
+        self
+    }
+
+    /// Get reference to the configured semantic judge if present.
+    #[must_use]
+    pub fn judge(&self) -> Option<&Arc<dyn RetrievalJudge>> {
+        self.judge.as_ref()
     }
 
     /// Tokenize text for BM25 indexing/search.

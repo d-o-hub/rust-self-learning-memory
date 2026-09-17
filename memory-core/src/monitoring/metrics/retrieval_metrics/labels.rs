@@ -16,6 +16,7 @@ pub(super) const N_EMB_OUTCOMES: usize = 2;
 pub(super) const N_STAGES: usize = 2;
 pub(super) const N_FALLBACK_REASONS: usize = 6;
 pub(super) const N_SIGNALS: usize = 4;
+pub(super) const N_JUDGMENT_OUTCOMES: usize = 6;
 
 /// Retrieval operation dimension. Vocabulary: `query`, `cascade`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -397,6 +398,52 @@ pub(super) const FALLBACK_REASONS: [&str; N_FALLBACK_REASONS] = [
     "always_embed_policy",
     "local_only_policy",
 ];
+
+/// Judgment execution outcome dimension. Vocabulary: `not_configured`, `ok`,
+/// `unavailable`, `timeout`, `invalid`, `provider_error`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum JudgmentOutcome {
+    /// No judgment provider was configured.
+    NotConfigured,
+    /// Semantic judgment succeeded.
+    Ok,
+    /// Provider was unavailable.
+    Unavailable,
+    /// Operation timed out.
+    Timeout,
+    /// Provider returned invalid response.
+    Invalid,
+    /// Provider execution error.
+    ProviderError,
+}
+
+impl JudgmentOutcome {
+    /// Zero-based index for fixed-size storage.
+    #[must_use]
+    pub(super) const fn index(self) -> usize {
+        match self {
+            JudgmentOutcome::NotConfigured => 0,
+            JudgmentOutcome::Ok => 1,
+            JudgmentOutcome::Unavailable => 2,
+            JudgmentOutcome::Timeout => 3,
+            JudgmentOutcome::Invalid => 4,
+            JudgmentOutcome::ProviderError => 5,
+        }
+    }
+
+    /// Bounded label value.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            JudgmentOutcome::NotConfigured => "not_configured",
+            JudgmentOutcome::Ok => "ok",
+            JudgmentOutcome::Unavailable => "unavailable",
+            JudgmentOutcome::Timeout => "timeout",
+            JudgmentOutcome::Invalid => "invalid",
+            JudgmentOutcome::ProviderError => "provider_error",
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

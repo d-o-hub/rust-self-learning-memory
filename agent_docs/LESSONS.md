@@ -297,3 +297,29 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: `scripts/check-loc.sh`, `scripts/quality-gates.sh`
   (`run_source_file_size_gate`), `do-harness.toml` (sensor `loc`), AGENTS.md core
   invariant "Files: <=500 LOC per source file".
+
+## LESSON-027: A push-triggered workflow that self-cancels blocks the release gate (2026-09-17)
+
+- Issue: `release-manager.sh ci-check` requires every completed workflow run on
+  `origin/main` HEAD to conclude success/skipped/neutral. `Mutation Testing`
+  (`mutants.yml`) triggers on push to main when `memory-core/src/{reward,
+  retrieval,retry,patterns}/**` change, and its four shards each carry
+  `timeout-minutes: 60` while needing longer: GitHub kills the shard, the job and
+  the whole run conclude `cancelled`, and `ci-check` counts that as one failed
+  run on HEAD. All 12 runs in the preceding month concluded `cancelled` for the
+  same reason, so any main commit touching those paths blocked the release path
+  (the path filter is why most merges ship fine — e.g. release-prep merges touch
+  only Cargo.toml/CHANGELOG/docs and never start the workflow).
+- Impact: `fix/loc-invariant-restore` (PR #1026) merged with every run green
+  except `Mutation Testing`, and `ship` refused to tag `452eb21a`.
+- Fix: the shard step now wraps `cargo mutants` in
+  `timeout --signal=TERM --kill-after=60s "$BUDGET"` (default 3000s, override
+  with `MUTANTS_SHARD_BUDGET_SECONDS`), so the step exits before the job timeout
+  and the run concludes `success`. rc 124/137 emits a truncation notice and any
+  other non-zero rc emits a warning; the job stays `continue-on-error: true`
+  because Phase 1 is informational (issue #747).
+- Prevention: never let a workflow's own timeout be the normal termination path
+  for a job — bound the work inside the job budget. Before adding a push trigger,
+  ask what `release-manager.sh ci-check` will report when the job is cancelled.
+- References: `.github/workflows/mutants.yml`, `scripts/release-manager.sh`
+  (`do_ci_check`), `.agents/skills/release-guard/SKILL.md`.

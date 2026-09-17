@@ -22,10 +22,6 @@ use uuid::Uuid;
 pub trait StorageBackend: Send + Sync {
     /// Store an episode
     ///
-    /// # Arguments
-    ///
-    /// * `episode` - Episode to store
-    ///
     /// # Errors
     ///
     /// Returns error if storage operation fails
@@ -60,20 +56,12 @@ pub trait StorageBackend: Send + Sync {
 
     /// Delete an episode by ID
     ///
-    /// # Arguments
-    ///
-    /// * `id` - Episode UUID
-    ///
     /// # Errors
     ///
     /// Returns error if storage operation fails
     async fn delete_episode(&self, id: Uuid) -> Result<()>;
 
     /// Store a pattern
-    ///
-    /// # Arguments
-    ///
-    /// * `pattern` - Pattern to store
     ///
     /// # Errors
     ///

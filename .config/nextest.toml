@@ -24,6 +24,21 @@ status-level = "skip"
 filter = "package(do-memory-cli) and test(update)"
 slow-timeout = { period = "180s", terminate-after = 2 }
 
+# Whole-binary overrides for the CLI-wave tests: each spawns the debug CLI
+# binary once per command, so runtime tracks machine speed rather than the code
+# under test. Measured uncapped on the slowest dev box (4-core ULV, sequential,
+# idle): bulk_operations 134.5s, relationship_command_tests 179.0s,
+# pattern_discovery 400.5s. The default 120s cap killed them mid-run while they
+# were still passing, so each binary gets a cap above its slowest test.
+# CI's `ci` profile is left untouched: it retries twice and passes on its runners.
+[[profile.default.overrides]]
+filter = "package(e2e-tests) and binary(cli_workflows)"
+slow-timeout = { period = "240s", terminate-after = 2 }
+
+[[profile.default.overrides]]
+filter = "package(do-memory-cli) and binary(relationship_command_tests)"
+slow-timeout = { period = "240s", terminate-after = 2 }
+
 [[profile.ci.overrides]]
 filter = "package(do-memory-cli) and test(update)"
 slow-timeout = { period = "180s", terminate-after = 2 }
@@ -32,11 +47,10 @@ slow-timeout = { period = "180s", terminate-after = 2 }
 filter = "package(e2e-tests) and test(quality_gate_performance_regression)"
 slow-timeout = { period = "180s", terminate-after = 2 }
 
-# Pattern discovery e2e spawns multiple CLI processes; allow ~3 min under load.
-[[profile.default.overrides]]
-filter = "package(e2e-tests) and test(test_pattern_discovery)"
-slow-timeout = { period = "90s", terminate-after = 3 }
-
+# Pattern discovery e2e spawns multiple CLI processes; the default profile now
+# covers it through the `binary(cli_workflows)` override above (measured 400.5s
+# uncapped, cap 480s). CI's `ci` profile keeps 90s x 3 = 270s: its runners stay
+# well inside it and retry twice.
 [[profile.ci.overrides]]
 filter = "package(e2e-tests) and test(test_pattern_discovery)"
 slow-timeout = { period = "90s", terminate-after = 3 }

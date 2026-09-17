@@ -323,3 +323,33 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   ask what `release-manager.sh ci-check` will report when the job is cancelled.
 - References: `.github/workflows/mutants.yml`, `scripts/release-manager.sh`
   (`do_ci_check`), `.agents/skills/release-guard/SKILL.md`.
+
+## LESSON-028: Measure a test's real runtime before trusting a timeout to be the bug (2026-09-17)
+
+- Issue: `cargo nextest run --all` (the local gate `release-manager ship` runs)
+  killed `e2e-tests::cli_workflows::test_bulk_operations`,
+  `do-memory-cli::relationship_command_tests::test_relationship_full_cycle` and
+  `test_pattern_discovery` at their `profile.default` caps (120s, 120s, 270s).
+  The tests were passing — every assertion logged before the kill — but each
+  spawns the debug CLI binary once per command, so their runtime tracks machine
+  speed. The plan's remedy (idle machine, no contention) did not help: running
+  them single-threaded still exceeded the caps.
+- Measurements (uncapped, idle, sequential):
+  `cargo test -p e2e-tests --test cli_workflows test_bulk_operations -- --exact`
+  → 134.5s; `... relationship_command_tests test_relationship_full_cycle` →
+  179.0s; `... cli_workflows test_pattern_discovery` → 400.5s.
+- Fix: `.config/nextest.toml` `profile.default` gained whole-binary overrides
+  (`binary(cli_workflows)`, `binary(relationship_command_tests)`) with
+  `period = "240s", terminate-after = 2` (kill at 480s, above the slowest
+  measured test). The redundant per-test default override for
+  `test_pattern_discovery` was removed: when several overrides match, the
+  binary-level one wins, so two entries with different caps for the same test
+  made the effective limit unpredictable. `profile.ci` is untouched (it retries
+  twice and passes on its runners).
+- Prevention: to size a timeout, bypass the harness and measure —
+  `cargo test -p <crate> --test <binary> <test> -- --exact` runs without
+  nextest's caps. Set the cap above the slowest machine you must support, keep
+  one override per test binary, and never treat "the job was killed at the
+  limit" as a slow test's fault without that measurement.
+- References: `.config/nextest.toml`, `scripts/release-manager.sh`
+  (`ship --execute` → `cargo nextest run --all`), LESSON-027.

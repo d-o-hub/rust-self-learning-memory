@@ -90,27 +90,14 @@ jobs:
       - name: Run mutation testing – ${{ matrix.module }}
         run: |
           TIMEOUT="${{ github.event.inputs.timeout || '60' }}"
-          # Bound the shard below the job's `timeout-minutes` so the step always
-          # exits normally. If GitHub kills the job instead, the job — and the
-          # whole run — concludes `cancelled`, and `release-manager.sh
-          # ci-check` counts a cancelled run on main HEAD as a failed gate, so
-          # every commit touching these paths would block the release path.
-          # Phase 1 is informational: partial results are acceptable.
-          BUDGET="${MUTANTS_SHARD_BUDGET_SECONDS:-3000}"
-          echo "=== Mutants: memory-core/src/${{ matrix.module }} (shard budget ${BUDGET}s) ==="
-          rc=0
-          timeout --signal=TERM --kill-after=60s "$BUDGET" cargo mutants \
+          echo "=== Mutants: memory-core/src/${{ matrix.module }} ==="
+          cargo mutants \
             --package do-memory-core \
             --timeout "$TIMEOUT" \
             --jobs 4 \
             --file "memory-core/src/${{ matrix.module }}/**/*.rs" \
             --output "mutants-${{ matrix.module }}.out" \
-            -- --lib || rc=$?
-          if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
-            echo "::notice title=Mutation shard truncated::memory-core/src/${{ matrix.module }} hit its ${BUDGET}s budget; partial results are uploaded."
-          elif [ "$rc" -ne 0 ]; then
-            echo "::warning title=Mutation shard exited non-zero::cargo-mutants exited $rc for memory-core/src/${{ matrix.module }}; artifacts may be partial."
-          fi
+            -- --lib
         continue-on-error: true
 
       - name: Upload shard report

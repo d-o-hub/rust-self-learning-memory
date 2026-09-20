@@ -1,6 +1,14 @@
 [profile.default]
-retries = 0
-slow-timeout = { period = "60s", terminate-after = 2 }
+# This profile gates local releases (`release-manager ship`), but it is the only
+# one with no retries and the tightest cap, so a test starved by the CLI-wave
+# tests on a 4-core dev box is killed mid-run while passing. Measured: the
+# cli_workflows waves legitimately take 150-380s each on the slowest dev box, and
+# a 37s unit test (do-memory-cli simple_config_tests) was starved past 120s while
+# they held all cores. One retry (run serially after the pass) matches the
+# precedent in `ci` (2) and `nightly` (1) and cannot mask a deterministic
+# failure - only transient starvation.
+retries = 1
+slow-timeout = { period = "120s", terminate-after = 2 }
 fail-fast = false
 
 [profile.ci]

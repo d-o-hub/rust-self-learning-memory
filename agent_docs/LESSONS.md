@@ -351,5 +351,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   nextest's caps. Set the cap above the slowest machine you must support, keep
   one override per test binary, and never treat "the job was killed at the
   limit" as a slow test's fault without that measurement.
+- Follow-up (same day): per-test overrides fixed those three tests but not the
+  class. The next full run killed a *different* test —
+  `do-memory-cli config::types::simple_config_tests::test_simple_config_with_cloud_platform`,
+  ~37s uncontended — starved past the 120s base cap while the CLI waves held all
+  four cores for ~6 minutes. `profile.default` was the only profile that gates
+  local releases *and* the only one with no retries, so it now has `retries = 1`
+  and a 240s base cap: retries cannot mask a deterministic failure, and nextest
+  runs the retry serially after the parallel pass, which is exactly when a
+  starved test succeeds. `cargo nextest run --all` then reported 3956/3956
+  passed, exit 0, with no test flagged flaky.
 - References: `.config/nextest.toml`, `scripts/release-manager.sh`
   (`ship --execute` → `cargo nextest run --all`), LESSON-027.

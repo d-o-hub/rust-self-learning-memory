@@ -93,7 +93,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install sccache
-        uses: taiki-e/install-action@5bf6ce016fd2e72eefc647cbca1e4213f65955b8
+        uses: taiki-e/install-action@4076c08d76dba979c11a7285295b0716c1d67908
         with:
           tool: sccache
 
@@ -320,7 +320,7 @@ jobs:
           name: benchmark-results-${{ github.sha }}
           path: .
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
+        uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1
         with:
           name: Rust Benchmarks
           tool: 'cargo'

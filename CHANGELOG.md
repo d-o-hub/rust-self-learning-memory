@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `DomainIndex::get_recent_episodes` caps its `limit` at `MAX_QUERY_LIMIT`
+  instead of accepting an unbounded value, so a caller cannot force an
+  unbounded result-set allocation (#1033)
+
 ## [0.1.41] - 2026-09-15
 
 ### Added

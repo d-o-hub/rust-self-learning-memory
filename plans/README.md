@@ -1,9 +1,9 @@
 # Plans Directory
 
-**Workspace**: `v0.1.41` (release pending tag) · **Released tag**: `v0.1.40` · **Main baseline**: `04744db9e60fbeb0c75c4f64a3a02c41957988af` (PR #1022 merged 2026-09-15)
+**Workspace**: `v0.1.42` (post-v0.1.41 bump) · **Released tag**: `v0.1.41` · **Main baseline**: `37f9cafa060cf51fe9e744682df5acbf19ec55c4` (v0.1.41 tagged 2026-09-20)
 **Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan
-**Last Updated**: 2026-09-15
-**Open PRs**: release prep + benchmark-gate calibration · **Open issues**: release drift #1020 (warning)
+**Last Updated**: 2026-09-21
+**Open PRs**: dependabot #1037/#1038 · **Open issues**: none blocking (#1020 release drift closed by v0.1.41)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

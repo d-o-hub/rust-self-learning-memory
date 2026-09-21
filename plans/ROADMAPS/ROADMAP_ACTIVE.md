@@ -1,9 +1,9 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-09-15
+**Last Updated**: 2026-09-21
 **Released Version**: v0.1.41 (latest tag)
-**Workspace Version**: 0.1.41 (release pending tag)
-**Active Sprint**: observability wave — #962 retrieval telemetry in review; perf PRs #992-994/#978 in CI; release drift #976 pending ship
+**Workspace Version**: 0.1.42 (post-v0.1.41 bump)
+**Active Sprint**: v0.1.41 shipped 2026-09-20; LOC-invariant and release-gate repairs landed (#1026/#1028/#1029/#1035); dependabot bumps #1037/#1038 pending
 **Plan**: merged #947 (2026-08-12); prior waves: `GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` (all historical)
 **Branch**: feat/retrieval-observability-962 (WIP) off main @ `5f2c215b`
 **Open PRs**: 13 (see #976 drift context)

@@ -36,7 +36,7 @@ jobs:
       # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: jlumbroso/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6
         with:
           tool-cache: false
           android: true
@@ -130,7 +130,7 @@ jobs:
           RUST_LOG: info
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
           files: ./lcov.info
           fail_ci_if_error: false

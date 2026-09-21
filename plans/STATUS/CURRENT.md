@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-09-15
-**Released Version**: v0.1.41 (release pending tag)
-**Workspace Version**: 0.1.41 (matches release)
+**Last Updated**: 2026-09-21
+**Released Version**: v0.1.41 (latest tag)
+**Workspace Version**: 0.1.42 (post-v0.1.41 bump)
 **Edition**: Rust 2024  
 **Active plan**: merged #952 (2026-08-13) — ADR-082 + ADR-025/054 canonicalization landed; no in-flight code plan; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
 **Branch**: main @ `9c8bfa79` (PR #952 merged 2026-08-13)

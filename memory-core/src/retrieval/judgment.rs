@@ -183,20 +183,21 @@ pub fn validate_and_align_judgments(
         }
     }
 
-    // Re-align judgments to match input candidate order
+    // Re-align judgments to match input candidate order. Every lookup
+    // succeeds: the set check above rejects unknown or missing IDs and the
+    // duplicate check rejects repeats, so each ID is consumed exactly once.
     let mut judgment_map: std::collections::HashMap<String, CandidateJudgment> =
         judgments.into_iter().map(|j| (j.id.clone(), j)).collect();
 
     let mut aligned = Vec::with_capacity(candidates.len());
     for c in candidates {
-        if let Some(j) = judgment_map.remove(c.id) {
-            aligned.push(j);
-        } else {
+        let Some(j) = judgment_map.remove(c.id) else {
             return Err(JudgmentError::Invalid(format!(
                 "unknown candidate ID mismatch during alignment: '{}'",
                 c.id
             )));
-        }
+        };
+        aligned.push(j);
     }
 
     Ok(aligned)

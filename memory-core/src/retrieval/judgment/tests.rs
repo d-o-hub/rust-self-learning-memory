@@ -204,6 +204,64 @@ fn test_provider_unavailable_error_propagated() {
 }
 
 #[test]
+fn test_candidate_count_mismatch_rejected() {
+    let candidates = [
+        JudgmentCandidate::new("ep-1", "Text 1", 0.9),
+        JudgmentCandidate::new("ep-2", "Text 2", 0.7),
+    ];
+
+    let judge = FakeJudge::new(Ok(vec![sample_judgment("ep-1", 0.9)]));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert!(matches!(res, Err(JudgmentError::Invalid(_))));
+}
+
+#[test]
+fn test_provider_timeout_and_failure_outcomes_propagated() {
+    let candidates = [JudgmentCandidate::new("ep-1", "Text 1", 0.9)];
+
+    let judge = FakeJudge::new(Err(JudgmentError::Timeout));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert_eq!(res, Err(JudgmentError::Timeout));
+
+    let judge = FakeJudge::new(Err(JudgmentError::Provider("boom".to_string())));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert_eq!(res, Err(JudgmentError::Provider("boom".to_string())));
+}
+
+#[test]
+fn test_alignment_impossible_when_candidate_replaced_by_duplicate() {
+    // Same length, but ep-2 is missing while ep-1 is duplicated: the ID-set
+    // check rejects this before alignment is attempted.
+    let candidates = [
+        JudgmentCandidate::new("ep-1", "Text 1", 0.9),
+        JudgmentCandidate::new("ep-2", "Text 2", 0.7),
+    ];
+
+    let raw_judgments = vec![sample_judgment("ep-1", 0.9), sample_judgment("ep-1", 0.5)];
+
+    let judge = FakeJudge::new(Ok(raw_judgments));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert!(matches!(res, Err(JudgmentError::Invalid(_))));
+}
+
+#[test]
+fn test_provider_error_telemetry_outcome_recorded() {
+    let metrics = global_retrieval_metrics();
+    metrics.reset();
+
+    let candidates = [JudgmentCandidate::new("ep-1", "Text 1", 0.9)];
+    let judge = FakeJudge::new(Err(JudgmentError::Provider("boom".to_string())));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert!(matches!(res, Err(JudgmentError::Provider(_))));
+
+    let snapshot = metrics.snapshot().to_string();
+    assert!(
+        snapshot.contains("provider_error"),
+        "provider-error outcome must be recorded: {snapshot}"
+    );
+}
+
+#[test]
 fn test_metrics_no_sensitive_labels() {
     let metrics = global_retrieval_metrics();
     metrics.reset();

@@ -105,6 +105,17 @@ fn test_estimate_api_call_probability() {
 }
 
 #[test]
+fn test_estimate_api_mid_length_query_probability() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    // 20-50 char query exercises the second length-factor branch
+    let prob = retriever.estimate_api_call_probability("how do database connection pools behave");
+    assert!(
+        (0.2..=0.6).contains(&prob),
+        "mid-length query should land mid-range: {prob}"
+    );
+}
+
+#[test]
 fn test_estimate_api_short_query_low_probability() {
     let retriever = CascadeRetriever::new(CascadeConfig::default());
     // Short keyword query — should favor BM25, low API probability
@@ -112,6 +123,19 @@ fn test_estimate_api_short_query_low_probability() {
     assert!(
         prob < 0.3,
         "short keyword query should have low prob: {prob}"
+    );
+}
+
+#[test]
+fn test_estimate_api_long_query_high_probability() {
+    let retriever = CascadeRetriever::new(CascadeConfig::default());
+    // 100+ char query exercises the top length-factor branch
+    let prob = retriever.estimate_api_call_probability(
+        "explain in exhaustive detail the theoretical foundations of memory-augmented neural network architectures and their retrieval tradeoffs",
+    );
+    assert!(
+        prob > 0.6,
+        "very long abstract query should have high prob: {prob}"
     );
 }
 

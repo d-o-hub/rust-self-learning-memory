@@ -16,6 +16,7 @@ pub(super) const N_EMB_OUTCOMES: usize = 2;
 pub(super) const N_STAGES: usize = 2;
 pub(super) const N_FALLBACK_REASONS: usize = 6;
 pub(super) const N_SIGNALS: usize = 4;
+pub(super) const N_JUDGMENT_OUTCOMES: usize = 6;
 
 /// Retrieval operation dimension. Vocabulary: `query`, `cascade`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -398,84 +399,51 @@ pub(super) const FALLBACK_REASONS: [&str; N_FALLBACK_REASONS] = [
     "local_only_policy",
 ];
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Judgment execution outcome dimension. Vocabulary: `not_configured`, `ok`,
+/// `unavailable`, `timeout`, `invalid`, `provider_error`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum JudgmentOutcome {
+    /// No judgment provider was configured.
+    NotConfigured,
+    /// Semantic judgment succeeded.
+    Ok,
+    /// Provider was unavailable.
+    Unavailable,
+    /// Operation timed out.
+    Timeout,
+    /// Provider returned invalid response.
+    Invalid,
+    /// Provider execution error.
+    ProviderError,
+}
 
-    /// Every label value must be Prometheus-safe (bounded vocabulary guard).
-    fn assert_label_value(value: &str) {
-        assert!(
-            value
-                .bytes()
-                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_'),
-            "unbounded label value: {value}"
-        );
-    }
-
-    #[test]
-    fn label_vocabularies_are_bounded() {
-        for value in RetrievalTier::all() {
-            assert_label_value(value);
-        }
-        assert_eq!(RetrievalTier::all().len(), 11);
-        for value in FALLBACK_REASONS {
-            assert_label_value(value);
-        }
-        assert_eq!(FALLBACK_REASONS.len(), 6);
-        for op in [RetrievalOperation::Query, RetrievalOperation::Cascade] {
-            assert_label_value(op.as_str());
-        }
-        for signal in [
-            FeedbackSignal::Success,
-            FeedbackSignal::Partial,
-            FeedbackSignal::Failure,
-            FeedbackSignal::Abstained,
-        ] {
-            assert_label_value(signal.as_str());
-        }
-        for provider in [
-            EmbeddingProviderLabel::Local,
-            EmbeddingProviderLabel::OpenAI,
-            EmbeddingProviderLabel::Mistral,
-            EmbeddingProviderLabel::AzureOpenAI,
-            EmbeddingProviderLabel::Custom,
-        ] {
-            assert_label_value(provider.as_str());
+impl JudgmentOutcome {
+    /// Zero-based index for fixed-size storage.
+    #[must_use]
+    pub(super) const fn index(self) -> usize {
+        match self {
+            JudgmentOutcome::NotConfigured => 0,
+            JudgmentOutcome::Ok => 1,
+            JudgmentOutcome::Unavailable => 2,
+            JudgmentOutcome::Timeout => 3,
+            JudgmentOutcome::Invalid => 4,
+            JudgmentOutcome::ProviderError => 5,
         }
     }
 
-    #[test]
-    fn feedback_signal_mapping_covers_outcome_kinds() {
-        use TaskOutcome::{Abstained, Failure, PartialSuccess, Success};
-        assert_eq!(
-            FeedbackSignal::from_outcome(&Success {
-                verdict: "v".into(),
-                artifacts: vec![]
-            }),
-            FeedbackSignal::Success
-        );
-        assert_eq!(
-            FeedbackSignal::from_outcome(&PartialSuccess {
-                verdict: "v".into(),
-                completed: vec![],
-                failed: vec![]
-            }),
-            FeedbackSignal::Partial
-        );
-        assert_eq!(
-            FeedbackSignal::from_outcome(&Failure {
-                reason: "r".into(),
-                error_details: None
-            }),
-            FeedbackSignal::Failure
-        );
-        assert_eq!(
-            FeedbackSignal::from_outcome(&Abstained {
-                reason: "r".into(),
-                stopped_at_step: 0,
-                infeasibility_signals: vec![]
-            }),
-            FeedbackSignal::Abstained
-        );
+    /// Bounded label value.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            JudgmentOutcome::NotConfigured => "not_configured",
+            JudgmentOutcome::Ok => "ok",
+            JudgmentOutcome::Unavailable => "unavailable",
+            JudgmentOutcome::Timeout => "timeout",
+            JudgmentOutcome::Invalid => "invalid",
+            JudgmentOutcome::ProviderError => "provider_error",
+        }
     }
 }
+
+#[cfg(test)]
+mod tests;

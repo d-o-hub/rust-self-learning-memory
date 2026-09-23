@@ -1,15 +1,16 @@
 # Retrieval Observability
 
-**Issue**: #962 (retrieval-plane telemetry)
-**Last Updated**: 2026-09-05
+**Issues**: #962 (retrieval-plane telemetry) · #1030 (semantic judgment telemetry)
+**Last Updated**: 2026-09-23
 **Registry**: `do_memory_core::monitoring::metrics::global_retrieval_metrics()`
 
 ---
 
 ## Overview
 
-Every retrieval request, cache lookup, embedding call, Tier-4 fallback, and
-recommendation feedback signal is recorded into a process-global
+Every retrieval request, cache lookup, embedding call, Tier-4 fallback,
+semantic judgment call, and recommendation feedback signal is recorded into a
+process-global
 `RetrievalMetrics` registry. The same registry backs three instrumentation
 surfaces, so the CLI, MCP, and Prometheus always agree:
 
@@ -38,6 +39,10 @@ endpoint into Prometheus.
 | `memory_embedding_requests_total` | counter | `provider`, `result` | Embedding calls by provider and `ok`/`error` result |
 | `memory_embedding_duration_seconds` | summary | `provider`, `quantile` | Embedding call latency per provider; quantiles 0.5, 0.95, 0.99 |
 | `memory_retrieval_fallback_total` | counter | `reason` | Tier-4 (remote embedding) fallback decisions by reason |
+| `memory_judgment_requests_total` | counter | `judge_configured`, `outcome` | Semantic candidate judgment calls by configuration status and result |
+| `memory_judgment_duration_seconds` | summary | `quantile` | Semantic judgment provider latency; quantiles 0.5, 0.95, 0.99 |
+| `memory_judgment_candidates_sum` | counter | - | Cumulative candidates submitted for semantic judgment |
+| `memory_judgment_candidates_count` | counter | - | Judgment observations; divide `sum` by `count` for the average batch size |
 | `memory_recommendation_feedback_total` | counter | `signal` | Recorded recommendation feedback by outcome signal |
 
 `memory_retrieval_candidates_sum` and `_count` are the `sum`/`count` pair of a
@@ -61,6 +66,8 @@ the series count is bounded at compile time.
 | `provider` | `local`, `openai`, `mistral`, `azure_openai`, `custom` |
 | `result` (embeddings) | `ok`, `error` |
 | `reason` (fallback) | `local_tier_sufficient`, `local_confident`, `insufficient_confidence`, `no_local_results`, `always_embed_policy`, `local_only_policy` |
+| `judge_configured` | `false`, `true` |
+| `outcome` (judgment) | `not_configured`, `ok`, `unavailable`, `timeout`, `invalid`, `provider_error` |
 | `signal` (feedback) | `success`, `partial`, `failure`, `abstained` |
 
 Tier markers that describe pipeline internals (for example `api_fallback_needed`)
@@ -170,11 +177,10 @@ Sample result (shape only — zero-valued entries are omitted in real output):
   "timestamp": 1757068800
 }
 ```
-
 Snapshot keys: `requests` (per-series counts plus `latency_ms` percentiles),
 `fallbacks` (reason -> count), `feedback` (signal -> count), `cache`
 (hit/miss -> count), `embeddings` (provider -> `{ok, error}`), `candidates`
-(stage -> `{observations, total}`).
+(stage -> `{observations, total}`), `judgments` (judge-configured outcome -> count).
 
 ---
 
@@ -210,7 +216,10 @@ is fixed regardless of traffic or data:
 | `memory_embedding_duration_seconds` | 5 x 3 = 15 |
 | `memory_retrieval_fallback_total` | 6 |
 | `memory_recommendation_feedback_total` | 4 |
-| **Total** | **151** |
+| `memory_judgment_requests_total` | 2 x 6 = 12 |
+| `memory_judgment_duration_seconds` | 3 |
+| `memory_judgment_candidates_sum` / `_count` | 2 |
+| **Total** | **168** |
 
 Zero-valued series are omitted from both the JSON snapshot and the Prometheus
 exposition, so an idle process exports almost nothing. A latency summary series

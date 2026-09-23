@@ -246,24 +246,28 @@ fn test_alignment_impossible_when_candidate_replaced_by_duplicate() {
 }
 
 #[test]
-#[serial(metrics_registry)]
 fn test_provider_error_telemetry_outcome_recorded() {
     let metrics = global_retrieval_metrics();
-    metrics.reset();
+    let before = metrics.snapshot()["judgments"]["judge_configured=true:outcome=provider_error"]
+        .as_u64()
+        .unwrap_or(0);
 
     let candidates = [JudgmentCandidate::new("ep-1", "Text 1", 0.9)];
     let judge = FakeJudge::new(Err(JudgmentError::Provider("boom".to_string())));
     let res = evaluate_judgments(Some(&judge), "query", &candidates);
     assert!(matches!(res, Err(JudgmentError::Provider(_))));
 
-    let snapshot = metrics.snapshot().to_string();
-    assert!(
-        snapshot.contains("provider_error"),
-        "provider-error outcome must be recorded: {snapshot}"
+    let after = metrics.snapshot()["judgments"]["judge_configured=true:outcome=provider_error"]
+        .as_u64()
+        .unwrap_or(0);
+    assert_eq!(
+        after,
+        before + 1,
+        "provider-error outcome must be recorded exactly once"
     );
 }
+
 #[test]
-#[serial(metrics_registry)]
 fn test_metrics_no_sensitive_labels() {
     let metrics = global_retrieval_metrics();
     metrics.reset();

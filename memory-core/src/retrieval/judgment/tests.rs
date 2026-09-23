@@ -2,6 +2,7 @@
 
 use super::*;
 use proptest::prelude::*;
+use serial_test::serial;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 struct FakeJudge {
@@ -245,6 +246,7 @@ fn test_alignment_impossible_when_candidate_replaced_by_duplicate() {
 }
 
 #[test]
+#[serial(metrics_registry)]
 fn test_provider_error_telemetry_outcome_recorded() {
     let metrics = global_retrieval_metrics();
     metrics.reset();
@@ -260,8 +262,8 @@ fn test_provider_error_telemetry_outcome_recorded() {
         "provider-error outcome must be recorded: {snapshot}"
     );
 }
-
 #[test]
+#[serial(metrics_registry)]
 fn test_metrics_no_sensitive_labels() {
     let metrics = global_retrieval_metrics();
     metrics.reset();

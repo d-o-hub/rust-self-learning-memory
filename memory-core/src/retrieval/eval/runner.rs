@@ -6,6 +6,7 @@ use std::time::Instant;
 use crate::retrieval::cascade::{CascadeConfig, CascadeRetriever, FallbackPolicy};
 use crate::search::metrics::{mrr, ndcg_at_k, recall_at_k};
 
+use super::rerank::{RerankCounters, RerankProbe};
 use super::types::{
     BenchmarkMetrics, BenchmarkReport, CostModel, FixtureCorpus, LatencyStats, RetrievalStrategy,
     TierDistribution,
@@ -75,10 +76,22 @@ impl RetrievalEvaluator {
     }
 
     /// Run evaluation for a specific retrieval strategy.
-    #[allow(clippy::too_many_lines)]
     pub fn evaluate_strategy(
         &self,
         strategy: RetrievalStrategy,
+    ) -> anyhow::Result<BenchmarkMetrics> {
+        self.run_evaluation(strategy, None)
+    }
+
+    /// Shared per-query evaluation loop for the plain and reranked arms.
+    ///
+    /// The reranked arm lives in [`super::rerank`]: it supplies a
+    /// [`RerankProbe`], which this loop drives with one retrieval per query.
+    #[allow(clippy::too_many_lines)]
+    pub(super) fn run_evaluation(
+        &self,
+        strategy: RetrievalStrategy,
+        mut rerank: Option<RerankProbe>,
     ) -> anyhow::Result<BenchmarkMetrics> {
         let (id_to_index, successful_item_ids) = self.build_item_indexes();
 
@@ -98,6 +111,12 @@ impl RetrievalEvaluator {
         };
 
         let mut retriever = CascadeRetriever::new(config);
+        if let Some(probe) = rerank.as_ref() {
+            retriever = retriever
+                .with_judge(probe.judge_handle())
+                .with_semantic_rerank(probe.config().clone())
+                .map_err(|e| anyhow::anyhow!("invalid semantic rerank configuration: {e}"))?;
+        }
         for item in &self.corpus.corpus {
             retriever.add_episode(&item.id, &item.text);
         }
@@ -127,12 +146,18 @@ impl RetrievalEvaluator {
                 cache_hits += 1;
             }
 
+            let rerank_start = rerank.as_ref().map(RerankProbe::begin_query);
+
             let start_local = Instant::now();
             let cascade_res = retriever.retrieve(&query_entry.query);
             let local_duration_us = start_local.elapsed().as_micros() as u64;
 
             let (retrieved_ids, api_calls, contributing_tiers) =
                 self.resolve_query_strategy(&cascade_res, &query_entry.query, strategy);
+
+            if let (Some(probe), Some(start)) = (rerank.as_mut(), rerank_start) {
+                probe.finish_query(start, retrieved_ids.first().map(String::as_str));
+            }
 
             let e2e_duration_us = start_e2e.elapsed().as_micros() as u64;
 
@@ -203,6 +228,12 @@ impl RetrievalEvaluator {
         let mrr_score = mrr(&retrieved_idx_lists, &expected_idx_sets);
         let total_q_f = total_q as f64;
 
+        let rerank_counters = rerank
+            .as_ref()
+            .map_or(RerankCounters::default(), RerankProbe::counters);
+        let (judge_calls_per_query, rerank_candidates_per_query, top1_changed_rate) =
+            rerank_counters.per_query(total_q);
+
         let embedding_calls_per_query = f64::from(total_embedding_calls) / total_q_f;
 
         let cost_per_query = (self.cost_model.cost_per_api_call
@@ -249,6 +280,9 @@ impl RetrievalEvaluator {
                 / candidate_sizes_after.len() as f64,
             estimated_cost_per_query: cost_per_query,
             estimated_cost_per_successful_rec: cost_per_rec,
+            judge_calls_per_query,
+            rerank_candidates_per_query,
+            top1_changed_rate,
         })
     }
 

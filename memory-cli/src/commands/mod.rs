@@ -213,6 +213,7 @@ pub async fn handle_eval_command(
         EvalCommands::Benchmark {
             fixture,
             strategy,
+            rerank,
             baseline,
             fail_on_regression,
             max_recall_drop,
@@ -227,6 +228,7 @@ pub async fn handle_eval_command(
             eval::benchmark(
                 fixture,
                 strategy,
+                rerank,
                 baseline,
                 fail_on_regression,
                 max_recall_drop,

@@ -1,18 +1,27 @@
 //! Retrieval quality and cost benchmark command (`eval benchmark`).
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
+use do_memory_core::retrieval::eval::{LocalOverlapJudge, RERANK_COMPARISON_STRATEGY};
 use do_memory_core::retrieval::{
     BenchmarkReport, FixtureCorpus, RegressionChecker, RegressionThresholds, RetrievalEvaluator,
-    RetrievalStrategy, format_markdown_report,
+    RetrievalStrategy, SemanticRerankConfig, format_markdown_report,
 };
 
 use crate::output::OutputFormat;
+
+/// Strategies that exist on demand and are never tracked by baseline artifacts.
+///
+/// Regression checks skip these when the baseline has no counterpart, so a
+/// `--rerank` run stays comparable against `benches/fixtures/retrieval_baseline.json`.
+const COMPARISON_ONLY_STRATEGIES: [&str; 1] = [RERANK_COMPARISON_STRATEGY];
 
 #[allow(clippy::too_many_arguments)]
 pub async fn benchmark(
     fixture_path: Option<PathBuf>,
     strategy_str: String,
+    rerank: bool,
     baseline_path: Option<PathBuf>,
     fail_on_regression: bool,
     max_recall_drop: f64,
@@ -46,7 +55,7 @@ pub async fn benchmark(
     let evaluator = RetrievalEvaluator::new(corpus);
 
     // 2. Execute benchmark
-    let report: BenchmarkReport = if strategy_str.eq_ignore_ascii_case("all") {
+    let mut report: BenchmarkReport = if strategy_str.eq_ignore_ascii_case("all") {
         evaluator.evaluate_all()?
     } else {
         let strategy: RetrievalStrategy = strategy_str.parse().map_err(anyhow::Error::msg)?;
@@ -61,6 +70,24 @@ pub async fn benchmark(
             strategies,
         }
     };
+
+    // 2b. Optional semantic rerank comparison arm (issue #1031). The baseline
+    // local strategy runs exactly as above; this entry shows the same queries
+    // after the offline judge and deterministic score fusion.
+    if rerank {
+        let rerank_config = SemanticRerankConfig {
+            enabled: true,
+            ..SemanticRerankConfig::default()
+        };
+        let reranked = evaluator.evaluate_strategy_with_rerank(
+            RetrievalStrategy::LocalOnly,
+            Arc::new(LocalOverlapJudge::new()),
+            &rerank_config,
+        )?;
+        report
+            .strategies
+            .insert(RERANK_COMPARISON_STRATEGY.to_string(), reranked);
+    }
 
     // 3. Baseline comparison
     let default_baseline = PathBuf::from("benches/fixtures/retrieval_baseline.json");
@@ -84,7 +111,7 @@ pub async fn benchmark(
                 max_cost_increase_ratio: max_cost_increase,
             };
             let checker = RegressionChecker::new(thresholds);
-            Some(checker.check(&report, &baseline_report))
+            Some(checker.check_ignoring(&report, &baseline_report, &COMPARISON_ONLY_STRATEGIES))
         } else {
             None
         }

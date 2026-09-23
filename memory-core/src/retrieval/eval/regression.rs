@@ -34,12 +34,31 @@ impl RegressionChecker {
         current: &BenchmarkReport,
         baseline: &BenchmarkReport,
     ) -> RegressionCheckResult {
+        self.check_ignoring(current, baseline, &[])
+    }
+
+    /// Compare current report against baseline, skipping comparison-only strategies.
+    ///
+    /// `comparison_only` names strategies that are reported on demand and are
+    /// deliberately absent from baseline artifacts — currently the semantic
+    /// rerank arm ([`crate::retrieval::eval::RERANK_COMPARISON_STRATEGY`]). Such
+    /// a strategy is skipped when the baseline has no counterpart instead of
+    /// being flagged, so `--rerank` runs stay comparable against the shipped
+    /// baseline. Every other strategy keeps the strict "present in current run
+    /// but missing in baseline" check, and a comparison-only strategy that *is*
+    /// present in the baseline is still regression-checked.
+    pub fn check_ignoring(
+        &self,
+        current: &BenchmarkReport,
+        baseline: &BenchmarkReport,
+        comparison_only: &[&str],
+    ) -> RegressionCheckResult {
         let mut violations = Vec::new();
 
         for (strategy_name, curr_m) in &current.strategies {
             if let Some(base_m) = baseline.strategies.get(strategy_name) {
                 self.check_strategy(strategy_name, curr_m, base_m, &mut violations);
-            } else {
+            } else if !comparison_only.contains(&strategy_name.as_str()) {
                 violations.push(format!(
                     "Strategy '{strategy_name}' present in current run but missing in baseline"
                 ));
@@ -244,6 +263,37 @@ pub fn format_markdown_report(
             m.estimated_cost_per_query,
             m.estimated_cost_per_successful_rec
         );
+    }
+    let _ = writeln!(out);
+
+    // Rendered only when the run actually exercised the semantic rerank arm, so
+    // reports without reranking stay unchanged (issue #1031).
+    let reranked = report.strategies.values().any(|m| {
+        m.judge_calls_per_query > 0.0
+            || m.rerank_candidates_per_query > 0.0
+            || m.top1_changed_rate > 0.0
+    });
+
+    if reranked {
+        let _ = writeln!(out, "## Semantic Rerank Comparison");
+        let _ = writeln!(out);
+        let _ = writeln!(
+            out,
+            "| Strategy | Judge Calls / Query | Rerank Candidates / Query | Top-1 Changed |"
+        );
+        let _ = writeln!(out, "|:---|:---:|:---:|:---:|");
+
+        for (name, m) in &report.strategies {
+            let _ = writeln!(
+                out,
+                "| **{}** | {:.2} | {:.2} | {:.1}% |",
+                name,
+                m.judge_calls_per_query,
+                m.rerank_candidates_per_query,
+                m.top1_changed_rate * 100.0
+            );
+        }
+        let _ = writeln!(out);
     }
 
     out

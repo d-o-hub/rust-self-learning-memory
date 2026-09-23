@@ -580,4 +580,525 @@ mod csm_tests {
         assert_eq!(result.fallback_reason, FallbackReason::LocalOnlyPolicy);
         assert_eq!(result.contributing_tiers, vec!["none".to_string()]);
     }
+
+    // ── Semantic rerank integration (issue #1031) ──
+
+    use crate::monitoring::metrics::global_retrieval_metrics;
+    use crate::retrieval::judgment::{
+        AtomicScore, CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge,
+    };
+    use crate::retrieval::rerank::{RerankConfigError, SemanticRerankConfig};
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    /// Deterministic fake judge: counts provider calls, promotes one candidate
+    /// id to maximum relevance, and can fail like an unavailable provider.
+    struct RecordingJudge {
+        calls: Arc<AtomicUsize>,
+        promote: String,
+        fail: bool,
+    }
+
+    impl RetrievalJudge for RecordingJudge {
+        fn judge_candidates(
+            &self,
+            _query: &str,
+            candidates: &[JudgmentCandidate<'_>],
+        ) -> Result<Vec<CandidateJudgment>, JudgmentError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            if self.fail {
+                return Err(JudgmentError::Unavailable);
+            }
+            Ok(candidates
+                .iter()
+                .map(|candidate| CandidateJudgment {
+                    id: candidate.id.to_string(),
+                    relevance: if candidate.id == self.promote {
+                        AtomicScore::new(1.0, 1.0)
+                    } else {
+                        AtomicScore::new(0.0, 1.0)
+                    },
+                    useful_evidence: AtomicScore::new(0.5, 1.0),
+                    contradiction: AtomicScore::new(0.0, 1.0),
+                    instruction_like: AtomicScore::new(0.0, 1.0),
+                })
+                .collect())
+        }
+    }
+
+    /// Rerank enabled with a shortlist/output budget that never truncates the
+    /// small test corpora (`output_k <= shortlist_k`).
+    fn enabled_rerank_config() -> SemanticRerankConfig {
+        SemanticRerankConfig {
+            enabled: true,
+            shortlist_k: 20,
+            output_k: 20,
+            ..SemanticRerankConfig::default()
+        }
+    }
+
+    /// BM25-only cascade shape: Tier 1 suffices, so the merged/HDC/ConceptGraph
+    /// branches are never reached.
+    fn bm25_path_config() -> CascadeConfig {
+        CascadeConfig {
+            merge_results: false,
+            enable_concept_expansion: false,
+            min_results: 1,
+            ..CascadeConfig::default()
+        }
+    }
+
+    /// Three episodes that all match the `AUTH_QUERY` tokens, so Tier 1
+    /// returns a shortlist longer than one candidate.
+    const AUTH_CORPUS: [(&str, &str); 3] = [
+        ("ep-1", "authentication JWT token implementation details"),
+        ("ep-2", "authentication JWT validation"),
+        ("ep-3", "authentication JWT parsing"),
+    ];
+    const AUTH_QUERY: &str = "authentication JWT token";
+
+    /// One BM25 match plus two unrelated episodes: the merged path needs both tiers.
+    const MERGED_CORPUS: [(&str, &str); 3] = [
+        ("ep-1", "authentication JWT token"),
+        ("ep-2", "database connection pool timeout"),
+        ("ep-3", "rate limiting middleware design"),
+    ];
+
+    /// No episode shares a token with the query, so only HDC can answer.
+    const SEMANTICLESS_CORPUS: [(&str, &str); 3] = [
+        ("ep-1", "database connection pool timeout"),
+        ("ep-2", "rate limiting middleware design"),
+        ("ep-3", "build artifact caching strategy"),
+    ];
+
+    /// Episodes matched through ontology expansion ("auth" -> authentication
+    /// domain terms), reachable only in Tier 3.
+    const ONTOLOGY_CORPUS: [(&str, &str); 2] = [
+        ("ep-1", "implement JWT authentication flow"),
+        ("ep-2", "login session handling"),
+    ];
+    const ONTOLOGY_QUERY: &str = "fix auth bug";
+
+    fn add_corpus(retriever: &mut CascadeRetriever, corpus: &[(&str, &str)]) {
+        for (id, text) in corpus {
+            retriever.add_episode(id, text);
+        }
+    }
+
+    /// Local reference run: same cascade config, no judge, rerank disabled.
+    fn local_baseline(
+        query: &str,
+        config: CascadeConfig,
+        corpus: &[(&str, &str)],
+    ) -> CascadeResult {
+        let mut retriever = CascadeRetriever::new(config);
+        add_corpus(&mut retriever, corpus);
+        retriever
+            .retrieve(query)
+            .expect("csm retrieve should succeed")
+    }
+
+    /// Judge invocation count observed by the fake provider.
+    fn judge_calls(calls: &Arc<AtomicUsize>) -> usize {
+        calls.load(Ordering::SeqCst)
+    }
+
+    /// The candidate that must lead the reranked list: the local trailer is
+    /// never the local leader, so a leader change proves reranking applied.
+    fn promoted_candidate(local: &CascadeResult) -> String {
+        let promoted = local
+            .episode_ids
+            .last()
+            .expect("precondition: the local path returned candidates")
+            .clone();
+        assert_ne!(
+            local.episode_ids.first(),
+            Some(&promoted),
+            "precondition: the promoted candidate is not the local leader"
+        );
+        promoted
+    }
+
+    /// Rerank-enabled retriever whose judge promotes `promote`.
+    fn reranking_retriever(
+        config: CascadeConfig,
+        calls: &Arc<AtomicUsize>,
+        promote: &str,
+    ) -> CascadeRetriever {
+        CascadeRetriever::new(config)
+            .with_judge(Arc::new(RecordingJudge {
+                calls: Arc::clone(calls),
+                promote: promote.to_string(),
+                fail: false,
+            }))
+            .with_semantic_rerank(enabled_rerank_config())
+            .expect("enabled rerank config is valid")
+    }
+
+    /// Rerank-enabled retriever whose judge fails like an unavailable provider.
+    fn failing_rerank_retriever(
+        config: CascadeConfig,
+        calls: &Arc<AtomicUsize>,
+    ) -> CascadeRetriever {
+        CascadeRetriever::new(config)
+            .with_judge(Arc::new(RecordingJudge {
+                calls: Arc::clone(calls),
+                promote: String::new(),
+                fail: true,
+            }))
+            .with_semantic_rerank(enabled_rerank_config())
+            .expect("enabled rerank config is valid")
+    }
+
+    #[test]
+    fn test_semantic_rerank_applies_on_bm25_path() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+        assert_eq!(
+            local.contributing_tiers,
+            vec!["bm25".to_string()],
+            "precondition: BM25 alone satisfies the query"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let reranked = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(reranked.contributing_tiers, vec!["bm25".to_string()]);
+        assert_eq!(
+            reranked.episode_ids.first(),
+            Some(&promoted),
+            "the judge's strongest candidate must lead the reranked list"
+        );
+        assert_ne!(
+            reranked.episode_ids.first(),
+            local.episode_ids.first(),
+            "the BM25 ordering must have been reranked"
+        );
+        assert_eq!(judge_calls(&calls), 1, "one provider call per retrieval");
+    }
+
+    #[test]
+    fn test_semantic_rerank_applies_on_merged_bm25_hdc_path() {
+        // Default cascade: the single BM25 match cannot reach `min_results`,
+        // so BM25 and HDC are merged before finalization.
+        let config = CascadeConfig::default();
+        let query = "authentication JWT token";
+        let local = local_baseline(query, config.clone(), &MERGED_CORPUS);
+        assert_eq!(
+            local.contributing_tiers,
+            vec!["bm25".to_string(), "hdc".to_string()],
+            "precondition: the merged BM25+HDC path is used"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &MERGED_CORPUS);
+
+        let reranked = retriever
+            .retrieve(query)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(
+            reranked.contributing_tiers,
+            vec!["bm25".to_string(), "hdc".to_string()]
+        );
+        assert_eq!(reranked.episode_ids.first(), Some(&promoted));
+        assert_ne!(reranked.episode_ids.first(), local.episode_ids.first());
+        assert_eq!(judge_calls(&calls), 1, "one provider call per retrieval");
+    }
+
+    #[test]
+    fn test_semantic_rerank_applies_on_hdc_path() {
+        let config = CascadeConfig {
+            min_results: 1,
+            // Cosine similarity is always >= -1.0, so Tier 2 suffices for any
+            // encoding of the indexed episodes.
+            hdc_threshold: -1.0,
+            ..CascadeConfig::default()
+        };
+        // No query token occurs in the corpus, so Tier 1 yields nothing.
+        let query = "zzzznomatch qqqq";
+        let local = local_baseline(query, config.clone(), &SEMANTICLESS_CORPUS);
+        assert_eq!(
+            local.contributing_tiers,
+            vec!["hdc".to_string()],
+            "precondition: HDC alone satisfies the query"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &SEMANTICLESS_CORPUS);
+
+        let reranked = retriever
+            .retrieve(query)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(reranked.contributing_tiers, vec!["hdc".to_string()]);
+        assert_eq!(reranked.episode_ids.first(), Some(&promoted));
+        assert_ne!(reranked.episode_ids.first(), local.episode_ids.first());
+        assert_eq!(judge_calls(&calls), 1, "one provider call per retrieval");
+    }
+
+    #[test]
+    fn test_semantic_rerank_applies_on_concept_graph_path() {
+        let config = CascadeConfig {
+            min_results: 1,
+            // HDC can never clear this for two distinct episodes, so Tier 3 decides.
+            hdc_threshold: 1.0,
+            concept_graph_threshold: 0.02,
+            ..CascadeConfig::default()
+        };
+        let local = local_baseline(ONTOLOGY_QUERY, config.clone(), &ONTOLOGY_CORPUS);
+        assert_eq!(
+            local.contributing_tiers,
+            vec!["concept_graph".to_string()],
+            "precondition: ConceptGraph alone satisfies the query"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &ONTOLOGY_CORPUS);
+
+        let reranked = retriever
+            .retrieve(ONTOLOGY_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(
+            reranked.contributing_tiers,
+            vec!["concept_graph".to_string()]
+        );
+        assert_eq!(reranked.episode_ids.first(), Some(&promoted));
+        assert_ne!(reranked.episode_ids.first(), local.episode_ids.first());
+        assert_eq!(judge_calls(&calls), 1, "one provider call per retrieval");
+    }
+
+    #[test]
+    fn test_semantic_rerank_applies_once_on_tier4_path() {
+        let config = CascadeConfig {
+            merge_results: false,
+            enable_concept_expansion: false,
+            // Unreachable with three episodes, so no tier can suffice.
+            min_results: 4,
+            ..CascadeConfig::default()
+        };
+        let query = "authentication JWT";
+        let local = local_baseline(query, config.clone(), &AUTH_CORPUS);
+        assert!(
+            local.episode_ids.len() >= 2,
+            "precondition: Tier 4 still holds local candidates to rerank"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let reranked = retriever
+            .retrieve(query)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(
+            judge_calls(&calls),
+            1,
+            "Tier 4 must rerank the local shortlist exactly once"
+        );
+        assert_eq!(
+            reranked.episode_ids.first(),
+            Some(&promoted),
+            "tier accounting must see the reranked ordering"
+        );
+        assert_eq!(
+            reranked.top_score, reranked.scores[0],
+            "the fallback decision must report the reranked top score"
+        );
+        assert_eq!(reranked.episode_ids.len(), reranked.scores.len());
+    }
+
+    #[test]
+    fn test_rerank_disabled_matches_baseline_and_makes_no_provider_call() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = CascadeRetriever::new(config)
+            .with_judge(Arc::new(RecordingJudge {
+                calls: Arc::clone(&calls),
+                promote: "ep-1".to_string(),
+                fail: false,
+            }))
+            .with_semantic_rerank(SemanticRerankConfig::default())
+            .expect("the default rerank config is valid");
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        assert!(
+            !retriever.semantic_rerank_config().enabled,
+            "reranking must default to disabled"
+        );
+        let disabled = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(disabled.episode_ids, local.episode_ids);
+        assert_eq!(disabled.scores, local.scores);
+        assert_eq!(
+            judge_calls(&calls),
+            0,
+            "disabled reranking performs no provider work"
+        );
+    }
+
+    #[test]
+    fn test_rerank_enabled_without_judge_matches_baseline() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let mut retriever = CascadeRetriever::new(config)
+            .with_semantic_rerank(enabled_rerank_config())
+            .expect("enabled rerank config is valid");
+        assert!(retriever.judge().is_none());
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let unchanged = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert!(
+            retriever.semantic_rerank_config().enabled,
+            "precondition: reranking is enabled but no judge is attached"
+        );
+        assert_eq!(unchanged.episode_ids, local.episode_ids);
+        assert_eq!(unchanged.scores, local.scores);
+    }
+
+    #[test]
+    fn test_rerank_provider_error_preserves_local_results() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = failing_rerank_retriever(config, &calls);
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let degraded = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("a provider failure must not fail retrieval");
+
+        assert_eq!(degraded.episode_ids, local.episode_ids, "ids preserved");
+        assert_eq!(degraded.scores, local.scores, "scores preserved");
+        assert_eq!(judge_calls(&calls), 1, "the provider was attempted once");
+    }
+
+    #[test]
+    fn test_rerank_preserves_always_embed_accounting() {
+        let config = CascadeConfig {
+            fallback_policy: FallbackPolicy::AlwaysEmbed,
+            merge_results: false,
+            enable_concept_expansion: false,
+            min_results: 1,
+            ..CascadeConfig::default()
+        };
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = reranking_retriever(config, &calls, &promoted);
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let result = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(
+            result.api_calls, 1,
+            "AlwaysEmbed still counts the Tier 4 call"
+        );
+        assert_eq!(result.fallback_reason, FallbackReason::AlwaysEmbedPolicy);
+        assert!(result.contributing_tiers.contains(&"api".to_string()));
+        assert_eq!(
+            result.episode_ids.first(),
+            Some(&promoted),
+            "reranking still runs on the AlwaysEmbed path"
+        );
+    }
+
+    #[test]
+    fn test_rerank_telemetry_stays_redacted() {
+        let query_marker = "secretquerymarker";
+        let id_marker = "ep-secretmarker";
+        let query = format!("{query_marker} authentication JWT token");
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever =
+            reranking_retriever(bm25_path_config(), &calls, &format!("{id_marker}-3"));
+        for (id, text) in AUTH_CORPUS {
+            retriever.add_episode(&format!("{id_marker}-{id}"), text);
+        }
+
+        let result = retriever
+            .retrieve(&query)
+            .expect("csm retrieve should succeed");
+        assert_eq!(judge_calls(&calls), 1, "precondition: reranking ran");
+        assert!(result.contributing_tiers.contains(&"bm25".to_string()));
+
+        let metrics = global_retrieval_metrics();
+        let snapshot = metrics.snapshot().to_string();
+        let exposition = metrics.export_prometheus();
+        for marker in [query_marker, id_marker] {
+            assert!(
+                !snapshot.contains(marker),
+                "JSON snapshot must not carry {marker}"
+            );
+            assert!(
+                !exposition.contains(marker),
+                "Prometheus exposition must not carry {marker}"
+            );
+        }
+        assert!(
+            exposition.contains("operation=\"cascade\""),
+            "cascade telemetry is recorded while staying bounded"
+        );
+    }
+
+    #[test]
+    fn test_with_semantic_rerank_rejects_invalid_config() {
+        let invalid = SemanticRerankConfig {
+            enabled: true,
+            shortlist_k: 4,
+            output_k: 5,
+            ..SemanticRerankConfig::default()
+        };
+
+        let outcome = CascadeRetriever::default_config().with_semantic_rerank(invalid);
+
+        assert!(
+            matches!(outcome, Err(RerankConfigError::InvalidOutputK { .. })),
+            "output_k > shortlist_k must be rejected up front"
+        );
+    }
+
+    #[test]
+    fn test_with_semantic_rerank_stores_normalized_weights() {
+        let retriever = CascadeRetriever::default_config()
+            .with_semantic_rerank(SemanticRerankConfig {
+                enabled: true,
+                local_weight: 2.0,
+                semantic_weight: 6.0,
+                ..SemanticRerankConfig::default()
+            })
+            .expect("weights are normalized rather than rejected");
+
+        let config = retriever.semantic_rerank_config();
+        assert!(config.enabled);
+        assert!((config.local_weight - 0.25).abs() < f32::EPSILON);
+        assert!((config.semantic_weight - 0.75).abs() < f32::EPSILON);
+    }
 }

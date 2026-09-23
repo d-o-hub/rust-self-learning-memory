@@ -11,8 +11,9 @@ use super::super::storage_metrics::OperationLatency;
 use super::labels::{
     CacheLayer, EmbeddingOutcome, EmbeddingProviderLabel, FallbackReason, FeedbackSignal,
     JudgmentOutcome, N_EMB_OUTCOMES, N_FALLBACK_REASONS, N_JUDGMENT_OUTCOMES, N_LAYERS,
-    N_OPERATIONS, N_OUTCOMES, N_PROVIDERS, N_SIGNALS, N_STAGES, N_TIERS, RetrievalOperation,
-    RetrievalOutcome, RetrievalStage, RetrievalTier, fallback_index,
+    N_OPERATIONS, N_OUTCOMES, N_PROVIDERS, N_RERANK_STATUSES, N_SIGNALS, N_STAGES, N_TIERS,
+    RerankStatus, RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
+    fallback_index,
 };
 use crate::retrieval::cascade::CascadeResult;
 
@@ -35,6 +36,15 @@ pub struct RetrievalMetrics {
     pub(super) judgment_durations_ms: Mutex<OperationLatency>,
     pub(super) judgment_candidates_sum: AtomicU64,
     pub(super) judgment_candidates_count: AtomicU64,
+    pub(super) rerank: [AtomicU64; N_RERANK_STATUSES],
+    pub(super) rerank_durations_ms: Mutex<OperationLatency>,
+    pub(super) rerank_shortlist_sum: AtomicU64,
+    pub(super) rerank_shortlist_count: AtomicU64,
+    pub(super) rerank_output_sum: AtomicU64,
+    pub(super) rerank_output_count: AtomicU64,
+    pub(super) rerank_top1_changed: AtomicU64,
+    pub(super) rerank_confidence_sum_micro: AtomicU64,
+    pub(super) rerank_confidence_count: AtomicU64,
 }
 
 impl RetrievalMetrics {
@@ -55,6 +65,15 @@ impl RetrievalMetrics {
             judgment_durations_ms: Mutex::default(),
             judgment_candidates_sum: AtomicU64::default(),
             judgment_candidates_count: AtomicU64::default(),
+            rerank: Default::default(),
+            rerank_durations_ms: Mutex::default(),
+            rerank_shortlist_sum: AtomicU64::default(),
+            rerank_shortlist_count: AtomicU64::default(),
+            rerank_output_sum: AtomicU64::default(),
+            rerank_output_count: AtomicU64::default(),
+            rerank_top1_changed: AtomicU64::default(),
+            rerank_confidence_sum_micro: AtomicU64::default(),
+            rerank_confidence_count: AtomicU64::default(),
         }
     }
 
@@ -126,6 +145,42 @@ impl RetrievalMetrics {
         }
     }
 
+    /// Record one `semantic_rerank` invocation.
+    ///
+    /// The status counter increments on every call; duration, candidate-set,
+    /// top-1, and confidence samples are recorded only for `applied` and
+    /// `low_confidence`. Every other status short-circuits before the judge
+    /// call, so its timing and sizes would describe work never performed.
+    pub fn record_rerank(
+        &self,
+        status: RerankStatus,
+        shortlist_count: usize,
+        output_count: usize,
+        duration_ms: u64,
+        top1_changed: bool,
+        avg_relevance_confidence: f32,
+    ) {
+        self.rerank[status.index()].fetch_add(1, Ordering::Relaxed);
+        if matches!(status, RerankStatus::Applied | RerankStatus::LowConfidence) {
+            self.rerank_durations_ms.lock().record(duration_ms);
+            self.rerank_shortlist_sum
+                .fetch_add(shortlist_count as u64, Ordering::Relaxed);
+            self.rerank_shortlist_count.fetch_add(1, Ordering::Relaxed);
+            self.rerank_output_sum
+                .fetch_add(output_count as u64, Ordering::Relaxed);
+            self.rerank_output_count.fetch_add(1, Ordering::Relaxed);
+            self.rerank_top1_changed
+                .fetch_add(u64::from(top1_changed), Ordering::Relaxed);
+            // Integer storage keeps the confidence sum exact; sub-micro
+            // precision is beyond anything the judge reports.
+            self.rerank_confidence_sum_micro.fetch_add(
+                (avg_relevance_confidence.clamp(0.0, 1.0) * 1_000_000.0) as u64,
+                Ordering::Relaxed,
+            );
+            self.rerank_confidence_count.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
     /// Record one finished cascade retrieval: request, duration,
     /// candidate-set size, and Tier-4 fallback decision.
     pub fn record_cascade(&self, duration_ms: u64, result: &CascadeResult) {
@@ -183,6 +238,17 @@ impl RetrievalMetrics {
         *self.judgment_durations_ms.lock() = OperationLatency::default();
         self.judgment_candidates_sum.store(0, Ordering::Relaxed);
         self.judgment_candidates_count.store(0, Ordering::Relaxed);
+        for cell in &self.rerank {
+            cell.store(0, Ordering::Relaxed);
+        }
+        *self.rerank_durations_ms.lock() = OperationLatency::default();
+        self.rerank_shortlist_sum.store(0, Ordering::Relaxed);
+        self.rerank_shortlist_count.store(0, Ordering::Relaxed);
+        self.rerank_output_sum.store(0, Ordering::Relaxed);
+        self.rerank_output_count.store(0, Ordering::Relaxed);
+        self.rerank_top1_changed.store(0, Ordering::Relaxed);
+        self.rerank_confidence_sum_micro.store(0, Ordering::Relaxed);
+        self.rerank_confidence_count.store(0, Ordering::Relaxed);
     }
 }
 
@@ -308,5 +374,48 @@ mod tests {
                 .is_empty()
         );
         assert!(!metrics.export_prometheus().contains("tier=\"bm25\""));
+    }
+
+    #[test]
+    fn rerank_samples_follow_judge_backed_statuses() {
+        let metrics = RetrievalMetrics::new();
+        metrics.record_rerank(RerankStatus::Disabled, 9, 4, 12, true, 0.9);
+        metrics.record_rerank(RerankStatus::NotConfigured, 9, 4, 12, true, 0.9);
+        metrics.record_rerank(RerankStatus::Applied, 20, 10, 30, true, 0.8125);
+        metrics.record_rerank(RerankStatus::LowConfidence, 20, 10, 10, false, 0.5);
+        metrics.record_rerank(RerankStatus::ProviderError, 9, 4, 12, true, 0.9);
+        metrics.record_rerank(RerankStatus::Invalid, 9, 4, 12, true, 0.9);
+
+        // Every status counts, including the ones that never reached the
+        // judge.
+        assert_eq!(
+            metrics.rerank[RerankStatus::Disabled.index()].load(Ordering::Relaxed),
+            1
+        );
+        assert_eq!(
+            metrics.rerank[RerankStatus::Invalid.index()].load(Ordering::Relaxed),
+            1
+        );
+
+        // Only judge-backed invocations carry timing, sizes, and confidence.
+        assert_eq!(metrics.rerank_durations_ms.lock().count(), 2);
+        assert_eq!(metrics.rerank_shortlist_sum.load(Ordering::Relaxed), 40);
+        assert_eq!(metrics.rerank_shortlist_count.load(Ordering::Relaxed), 2);
+        assert_eq!(metrics.rerank_output_sum.load(Ordering::Relaxed), 20);
+        assert_eq!(metrics.rerank_output_count.load(Ordering::Relaxed), 2);
+        assert_eq!(metrics.rerank_top1_changed.load(Ordering::Relaxed), 1);
+        assert_eq!(metrics.rerank_confidence_count.load(Ordering::Relaxed), 2);
+        assert_eq!(
+            metrics.rerank_confidence_sum_micro.load(Ordering::Relaxed),
+            1_312_500
+        );
+
+        metrics.reset();
+        assert_eq!(metrics.rerank_durations_ms.lock().count(), 0);
+        assert_eq!(
+            metrics.rerank_confidence_sum_micro.load(Ordering::Relaxed),
+            0
+        );
+        assert!(!metrics.export_prometheus().contains("memory_rerank"));
     }
 }

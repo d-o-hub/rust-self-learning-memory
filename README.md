@@ -479,6 +479,13 @@ When the `csm` feature is enabled, semantic search uses a 4-tier cascade to mini
 
 **Target**: 50-70% API call reduction for typical query workloads. See `agent_docs/csm_integration.md` for details.
 
+Reranking is **not** a fifth tier: it is an optional post-retrieval stage over the
+bounded local shortlist (`CascadeRetriever::with_semantic_rerank` + a
+`RetrievalJudge` provider). It is disabled by default, never scans the corpus
+with a model, and preserves the local order on any provider failure. See
+`memory-core/src/retrieval/rerank.rs` and `docs/eval_benchmark_guide.md`
+(`--rerank`) for the comparison mode.
+
 ## Configuration
 
 ### Configuration Precedence

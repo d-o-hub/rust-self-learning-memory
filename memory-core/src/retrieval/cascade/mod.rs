@@ -13,12 +13,16 @@ mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
 mod fallback;
+mod heuristics;
 pub use fallback::{FallbackDecision, decide_fallback, local_confidence};
 
 mod types;
+use std::sync::Arc;
 pub use types::{
     CascadeConfig, CascadeError, CascadeResult, FallbackPolicy, FallbackReason, TierResult,
 };
+
+use super::RetrievalJudge;
 
 /// Cascading retrieval orchestrator.
 ///
@@ -26,6 +30,8 @@ pub use types::{
 /// only when CPU-local tiers cannot satisfy the query.
 pub struct CascadeRetriever {
     config: CascadeConfig,
+    /// Optional semantic judgment provider for candidate evaluation.
+    judge: Option<Arc<dyn RetrievalJudge>>,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
     /// Concept graph for ontology-based term expansion (Tier 3).
@@ -44,6 +50,7 @@ impl CascadeRetriever {
     pub fn new(config: CascadeConfig) -> Self {
         Self {
             config,
+            judge: None,
             episode_data: Vec::new(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
@@ -60,6 +67,19 @@ impl CascadeRetriever {
     #[must_use]
     pub fn default_config() -> Self {
         Self::new(CascadeConfig::default())
+    }
+
+    /// Attach an optional semantic judgment provider to the retriever.
+    #[must_use]
+    pub fn with_judge(mut self, judge: Arc<dyn RetrievalJudge>) -> Self {
+        self.judge = Some(judge);
+        self
+    }
+
+    /// Get reference to the configured semantic judge if present.
+    #[must_use]
+    pub fn judge(&self) -> Option<&Arc<dyn RetrievalJudge>> {
+        self.judge.as_ref()
     }
 
     /// Tokenize text for BM25 indexing/search.
@@ -423,59 +443,7 @@ impl CascadeRetriever {
     pub fn config(&self) -> &CascadeConfig {
         &self.config
     }
-
-    /// Estimate the probability that a query would require an API call.
-    ///
-    /// Returns a value in [0.0, 1.0] where:
-    /// - 0.0 means CPU-local tiers (BM25/HDC/ConceptGraph) are very likely to suffice
-    /// - 1.0 means an API embedding call is almost certainly needed
-    ///
-    /// Heuristic: short keyword-rich queries resolve via BM25 (low probability);
-    /// long abstract queries with few known terms need semantic embedding (high probability).
-    pub fn estimate_api_call_probability(&self, query: &str) -> f32 {
-        let len = query.len() as f32;
-        let word_count = query.split_whitespace().count() as f32;
-
-        // Base probability from query length — short queries favor BM25
-        let length_factor: f32 = if len < 20.0 {
-            0.1
-        } else if len < 50.0 {
-            0.25
-        } else if len < 100.0 {
-            0.5
-        } else {
-            0.7
-        };
-
-        // Keyword density — queries with many short words are more BM25-friendly
-        let avg_word_len = if word_count > 0.0 {
-            len / word_count
-        } else {
-            10.0
-        };
-        let keyword_factor: f32 = if avg_word_len < 5.0 {
-            0.0 // Short words = good keyword match candidates
-        } else if avg_word_len < 8.0 {
-            0.15
-        } else {
-            0.3 // Long words = more semantic, harder for BM25
-        };
-
-        // Concept-level boost — code-like tokens (identifiers, paths) are BM25-friendly
-        let code_token_count = query
-            .split_whitespace()
-            .filter(|w| w.contains('_') || w.contains("::") || w.contains('/'))
-            .count() as f32;
-        let code_factor: f32 = if word_count > 0.0 && code_token_count / word_count > 0.3 {
-            -0.15 // Many code tokens boost BM25 relevance
-        } else {
-            0.0
-        };
-
-        (length_factor + keyword_factor + code_factor).clamp(0.0, 1.0)
-    }
 }
-
 #[cfg(test)]
 mod tests;
 #[cfg(feature = "csm")]

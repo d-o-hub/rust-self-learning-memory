@@ -15,6 +15,7 @@ pub mod cache;
 pub mod cascade;
 pub mod eval;
 pub mod gist;
+pub mod judgment;
 pub mod semantic_retriever;
 pub mod shard;
 pub mod signature;
@@ -46,6 +47,9 @@ pub use eval::{
     RetrievalStrategy, format_markdown_report,
 };
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
+pub use judgment::{
+    AtomicScore, CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge,
+};
 pub use semantic_retriever::{HybridHit, ScoreComponents, SemanticRetriever};
 pub use shard::{EpisodeMetadata, RoutingResult, ScopeFilter, ShardConfig, ShardRouter, TimeRange};
 pub use signature::{

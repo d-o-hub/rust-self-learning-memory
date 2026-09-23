@@ -28,7 +28,7 @@ mod registry;
 
 pub use labels::{
     CacheLayer, EmbeddingOutcome, EmbeddingProviderLabel, FallbackReason, FeedbackSignal,
-    RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
+    JudgmentOutcome, RetrievalOperation, RetrievalOutcome, RetrievalStage, RetrievalTier,
 };
 pub use registry::{
     RetrievalMetrics, cascade_tier, global_retrieval_metrics, provisional_fallback_reason,

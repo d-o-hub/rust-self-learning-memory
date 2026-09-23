@@ -229,6 +229,29 @@ fn test_provider_timeout_and_failure_outcomes_propagated() {
 }
 
 #[test]
+fn test_provider_reported_invalid_outcome_recorded() {
+    // The provider itself may declare its output invalid; that path bypasses
+    // the local validator and must still be recorded as the `invalid` outcome.
+    let metrics = global_retrieval_metrics();
+    let before = metrics.snapshot()["judgments"]["judge_configured=true:outcome=invalid"]
+        .as_u64()
+        .unwrap_or(0);
+
+    let candidates = [JudgmentCandidate::new("ep-1", "Text 1", 0.9)];
+    let judge = FakeJudge::new(Err(JudgmentError::Invalid("provider said no".to_string())));
+    let res = evaluate_judgments(Some(&judge), "query", &candidates);
+    assert!(matches!(res, Err(JudgmentError::Invalid(_))));
+
+    let after = metrics.snapshot()["judgments"]["judge_configured=true:outcome=invalid"]
+        .as_u64()
+        .unwrap_or(0);
+    assert!(
+        after > before,
+        "provider-declared invalid outcome must be recorded"
+    );
+}
+
+#[test]
 fn test_alignment_impossible_when_candidate_replaced_by_duplicate() {
     // Same length, but ep-2 is missing while ep-1 is duplicated: the ID-set
     // check rejects this before alignment is attempted.

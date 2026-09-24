@@ -213,6 +213,46 @@ fn test_tier_result_helpers() {
     assert!(!tier_result.is_empty());
 }
 
+/// Covers the ungated `with_semantic_rerank` constructor, so it must run
+/// without the `csm` feature (the coverage job builds default features).
+#[test]
+fn test_with_semantic_rerank_rejects_invalid_config() {
+    use crate::retrieval::rerank::{RerankConfigError, SemanticRerankConfig};
+
+    let invalid = SemanticRerankConfig {
+        enabled: true,
+        shortlist_k: 4,
+        output_k: 5,
+        ..SemanticRerankConfig::default()
+    };
+
+    let outcome = CascadeRetriever::default_config().with_semantic_rerank(invalid);
+
+    assert!(
+        matches!(outcome, Err(RerankConfigError::InvalidOutputK { .. })),
+        "output_k > shortlist_k must be rejected up front"
+    );
+}
+
+#[test]
+fn test_with_semantic_rerank_stores_normalized_weights() {
+    use crate::retrieval::rerank::SemanticRerankConfig;
+
+    let retriever = CascadeRetriever::default_config()
+        .with_semantic_rerank(SemanticRerankConfig {
+            enabled: true,
+            local_weight: 2.0,
+            semantic_weight: 6.0,
+            ..SemanticRerankConfig::default()
+        })
+        .expect("weights are normalized rather than rejected");
+
+    let config = retriever.semantic_rerank_config();
+    assert!(config.enabled);
+    assert!((config.local_weight - 0.25).abs() < f32::EPSILON);
+    assert!((config.semantic_weight - 0.75).abs() < f32::EPSILON);
+}
+
 /// Tests for CSM-enabled cascade behavior.
 #[cfg(feature = "csm")]
 mod csm_tests {
@@ -587,7 +627,7 @@ mod csm_tests {
     use crate::retrieval::judgment::{
         AtomicScore, CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge,
     };
-    use crate::retrieval::rerank::{RerankConfigError, SemanticRerankConfig};
+    use crate::retrieval::rerank::SemanticRerankConfig;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -1066,39 +1106,5 @@ mod csm_tests {
             exposition.contains("operation=\"cascade\""),
             "cascade telemetry is recorded while staying bounded"
         );
-    }
-
-    #[test]
-    fn test_with_semantic_rerank_rejects_invalid_config() {
-        let invalid = SemanticRerankConfig {
-            enabled: true,
-            shortlist_k: 4,
-            output_k: 5,
-            ..SemanticRerankConfig::default()
-        };
-
-        let outcome = CascadeRetriever::default_config().with_semantic_rerank(invalid);
-
-        assert!(
-            matches!(outcome, Err(RerankConfigError::InvalidOutputK { .. })),
-            "output_k > shortlist_k must be rejected up front"
-        );
-    }
-
-    #[test]
-    fn test_with_semantic_rerank_stores_normalized_weights() {
-        let retriever = CascadeRetriever::default_config()
-            .with_semantic_rerank(SemanticRerankConfig {
-                enabled: true,
-                local_weight: 2.0,
-                semantic_weight: 6.0,
-                ..SemanticRerankConfig::default()
-            })
-            .expect("weights are normalized rather than rejected");
-
-        let config = retriever.semantic_rerank_config();
-        assert!(config.enabled);
-        assert!((config.local_weight - 0.25).abs() < f32::EPSILON);
-        assert!((config.semantic_weight - 0.75).abs() < f32::EPSILON);
     }
 }

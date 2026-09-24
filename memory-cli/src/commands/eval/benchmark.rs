@@ -166,3 +166,142 @@ pub(super) fn format_time(dt: chrono::DateTime<chrono::Utc>) -> String {
         format!("{} weeks ago", diff.num_weeks())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::*;
+
+    /// Two-item corpus with one query per item, mirroring the eval fixtures.
+    const TINY_CORPUS: &str = r#"{
+  "version": "1.0.0",
+  "description": "CLI benchmark test fixture",
+  "corpus": [
+    {"id": "item-1", "text": "OAuth2 authentication JWT tokens in Rust", "context": null, "tags": ["auth"], "is_successful": true, "reward_score": 1.0},
+    {"id": "item-2", "text": "PostgreSQL query optimization", "context": null, "tags": ["db"], "is_successful": true, "reward_score": 0.9}
+  ],
+  "queries": [
+    {"id": "q-1", "query": "auth JWT tokens Rust", "context": null, "expected_ids": ["item-1"], "tags": ["auth"], "expected_accepted_id": "item-1"},
+    {"id": "q-2", "query": "PostgreSQL optimization", "context": null, "expected_ids": ["item-2"], "tags": ["db"], "expected_accepted_id": "item-2"}
+  ]
+}"#;
+
+    fn write_tiny_corpus(dir: &Path) -> PathBuf {
+        let fixture = dir.join("corpus.json");
+        std::fs::write(&fixture, TINY_CORPUS).expect("fixture written");
+        fixture
+    }
+
+    #[tokio::test]
+    async fn test_benchmark_writes_report_with_rerank_arm() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let fixture = write_tiny_corpus(dir.path());
+        let json_out = dir.path().join("report.json");
+        let md_out = dir.path().join("report.md");
+
+        benchmark(
+            Some(fixture),
+            "all".to_string(),
+            true,
+            None,
+            false,
+            0.05,
+            0.05,
+            0.05,
+            0.50,
+            0.20,
+            Some(json_out.clone()),
+            Some(md_out.clone()),
+            false,
+            OutputFormat::Json,
+        )
+        .await
+        .expect("benchmark runs with the rerank comparison arm");
+
+        let json: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&json_out).expect("json written"))
+                .expect("valid report json");
+        let strategies = json["strategies"].as_object().expect("strategies map");
+        assert!(
+            strategies.contains_key(RERANK_COMPARISON_STRATEGY),
+            "the rerank comparison arm must be reported: {:?}",
+            strategies.keys().collect::<Vec<_>>()
+        );
+        let arm = &strategies[RERANK_COMPARISON_STRATEGY];
+        for key in [
+            "judge_calls_per_query",
+            "rerank_candidates_per_query",
+            "top1_changed_rate",
+        ] {
+            assert!(arm.get(key).is_some(), "missing counter {key}");
+        }
+
+        let markdown = std::fs::read_to_string(&md_out).expect("markdown written");
+        assert!(
+            markdown.contains(RERANK_COMPARISON_STRATEGY),
+            "markdown report must list the comparison arm"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_benchmark_single_strategy_and_missing_fixture() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let fixture = write_tiny_corpus(dir.path());
+        let json_out = dir.path().join("single.json");
+
+        benchmark(
+            Some(fixture),
+            "local_only".to_string(),
+            false,
+            None,
+            false,
+            0.05,
+            0.05,
+            0.05,
+            0.50,
+            0.20,
+            Some(json_out.clone()),
+            None,
+            false,
+            OutputFormat::Json,
+        )
+        .await
+        .expect("single-strategy benchmark runs");
+
+        let json: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&json_out).expect("json written"))
+                .expect("valid report json");
+        assert!(
+            !json["strategies"]
+                .as_object()
+                .expect("strategies map")
+                .contains_key(RERANK_COMPARISON_STRATEGY),
+            "the comparison arm is opt-in"
+        );
+
+        let missing = dir.path().join("does-not-exist.json");
+        let error = benchmark(
+            Some(missing),
+            "all".to_string(),
+            false,
+            None,
+            false,
+            0.05,
+            0.05,
+            0.05,
+            0.50,
+            0.20,
+            None,
+            None,
+            false,
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("a missing fixture must fail the command");
+        assert!(
+            error.to_string().contains("does-not-exist.json"),
+            "error must name the missing fixture: {error}"
+        );
+    }
+}

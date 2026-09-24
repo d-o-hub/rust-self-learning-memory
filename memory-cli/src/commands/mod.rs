@@ -255,3 +255,65 @@ pub async fn handle_external_signal_command(
 ) -> anyhow::Result<()> {
     external_signals::handle_external_signal_command(command, memory, config, format).await
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::ConfigPreset;
+    use do_memory_core::retrieval::eval::RERANK_COMPARISON_STRATEGY;
+
+    /// Dispatch coverage for the `eval benchmark --rerank` pass-through.
+    #[tokio::test]
+    async fn test_handle_eval_command_dispatches_benchmark_with_rerank() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let fixture = dir.path().join("corpus.json");
+        std::fs::write(
+            &fixture,
+            r#"{
+  "version": "1.0.0",
+  "description": "dispatch test fixture",
+  "corpus": [
+    {"id": "item-1", "text": "OAuth2 authentication JWT tokens in Rust", "context": null, "tags": ["auth"], "is_successful": true, "reward_score": 1.0}
+  ],
+  "queries": [
+    {"id": "q-1", "query": "auth JWT tokens Rust", "context": null, "expected_ids": ["item-1"], "tags": ["auth"], "expected_accepted_id": "item-1"}
+  ]
+}"#,
+        )
+        .expect("fixture written");
+        let json_out = dir.path().join("dispatch.json");
+
+        let memory = do_memory_core::SelfLearningMemory::new();
+        let config = ConfigPreset::Memory.create_config();
+        let command = EvalCommands::Benchmark {
+            fixture: Some(fixture),
+            strategy: "local_only".to_string(),
+            rerank: true,
+            baseline: None,
+            fail_on_regression: false,
+            max_recall_drop: 0.05,
+            max_mrr_drop: 0.05,
+            max_ndcg_drop: 0.05,
+            max_latency_increase: 0.50,
+            max_cost_increase: 0.20,
+            output_json: Some(json_out.clone()),
+            output_markdown: None,
+            remote: false,
+        };
+
+        handle_eval_command(command, &memory, &config, OutputFormat::Json, false)
+            .await
+            .expect("dispatch must run the benchmark with the rerank arm");
+
+        let json: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&json_out).expect("json written"))
+                .expect("valid report json");
+        assert!(
+            json["strategies"]
+                .as_object()
+                .expect("strategies map")
+                .contains_key(RERANK_COMPARISON_STRATEGY),
+            "the dispatched run must include the rerank comparison arm"
+        );
+    }
+}

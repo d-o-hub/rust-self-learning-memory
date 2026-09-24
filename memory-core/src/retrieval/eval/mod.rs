@@ -254,6 +254,36 @@ mod tests {
         );
     }
 
+    /// The comparison arm must run offline without the `csm` feature: the
+    /// cascade reports `CapabilityUnavailable` and the runner falls back to the
+    /// keyword search, so the arm still produces a report with bounded counters.
+    #[test]
+    fn test_rerank_comparison_arm_runs_offline_and_reports_bounded_counters() {
+        use crate::retrieval::rerank::SemanticRerankConfig;
+        use std::sync::Arc;
+
+        let corpus = create_test_corpus();
+        let evaluator = RetrievalEvaluator::new(corpus);
+        let judge = Arc::new(LocalOverlapJudge::new());
+        let config = SemanticRerankConfig {
+            enabled: true,
+            ..SemanticRerankConfig::default()
+        };
+
+        let metrics = evaluator
+            .evaluate_strategy_with_rerank(RetrievalStrategy::LocalOnly, judge, &config)
+            .expect("comparison arm must run offline");
+
+        assert_eq!(metrics.total_queries, 2);
+        assert!(
+            (0.0..=1.0).contains(&metrics.judge_calls_per_query),
+            "judge calls/query must stay bounded: {}",
+            metrics.judge_calls_per_query
+        );
+        assert!(metrics.rerank_candidates_per_query >= 0.0);
+        assert!((0.0..=1.0).contains(&metrics.top1_changed_rate));
+    }
+
     /// Rerank comparison tests (issue #1031). They need the CSM cascade to
     /// produce multi-candidate local shortlists.
     #[cfg(feature = "csm")]

@@ -207,4 +207,19 @@ mod tests {
         assert_eq!(judgments[0].contradiction, AtomicScore::new(0.0, 0.0));
         assert_eq!(judgments[0].instruction_like, AtomicScore::new(0.0, 0.0));
     }
+
+    #[test]
+    fn test_default_judge_reports_documented_confidence() {
+        let judge = LocalOverlapJudge::default();
+
+        assert_eq!(judge.confidence(), LOCAL_OVERLAP_JUDGE_CONFIDENCE);
+
+        let judgments = judge
+            .judge_candidates("", &[candidate("c", "text")])
+            .expect("offline judge cannot fail");
+        assert_eq!(
+            judgments[0].relevance.value, 0.0,
+            "an empty query has no tokens to overlap"
+        );
+    }
 }

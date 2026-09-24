@@ -377,6 +377,15 @@
         "files": ["memory-core/src/patterns/**", "benches/**"]
       },
       "priority": "high"
+    },
+    {
+      "skill": "coverage-waivers",
+      "triggers": {
+        "keywords": ["Codecov", "patch coverage", "missing lines", "coverage waiver", "coverage gap", "low patch"],
+        "patterns": ["Patch coverage is", "Missing :warning:", "codecov/patch", "llvm-cov"],
+        "files": [".github/workflows/coverage.yml"]
+      },
+      "priority": "high"
     }
   ]
 }

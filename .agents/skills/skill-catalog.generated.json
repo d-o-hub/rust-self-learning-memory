@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T15:33:35Z",
+  "generated_at": "2026-09-24T17:07:26Z",
   "schema_version": 1,
   "skills": [
     {
@@ -31,6 +31,12 @@
       "has_evals": true,
       "id": "build-rust",
       "name": "build-rust"
+    },
+    {
+      "description": "",
+      "has_evals": true,
+      "id": "cargo-mutants-workspace",
+      "name": "cargo-mutants-workspace"
     },
     {
       "description": "Checkpoint episodes and create handoff packs for multi-agent session continuity",
@@ -67,6 +73,12 @@
       "has_evals": true,
       "id": "commit",
       "name": "commit"
+    },
+    {
+      "description": "Classify and answer Codecov patch-coverage findings on a PR: which uncovered lines need tests, which are structurally uncoverable, and how to reply with per-file evidence. Use when a PR shows missing-lines/low-patch Codecov comments, when deciding whether to add tests before merge, or when writing a coverage waiver.",
+      "has_evals": true,
+      "id": "coverage-waivers",
+      "name": "coverage-waivers"
     },
     {
       "description": "Systematic debugging approach for Rust async code with Tokio, Turso, and redb. Use when diagnosing runtime issues, performance problems, async deadlocks, database connection issues, or panics.",
@@ -141,6 +153,12 @@
       "name": "goap-agent"
     },
     {
+      "description": ">",
+      "has_evals": true,
+      "id": "harness",
+      "name": "harness"
+    },
+    {
       "description": "Extract non-obvious session learnings into scoped AGENTS.md files",
       "has_evals": true,
       "id": "learn",
@@ -169,6 +187,12 @@
       "has_evals": true,
       "id": "performance",
       "name": "performance"
+    },
+    {
+      "description": "Review performance-optimization PRs (especially auto-generated ones like Jules bot PRs) before approving, merging, or closing. Verifies complexity/memory claims against the pre-change code, demands benchmark or measurement evidence, checks branch coverage of heuristics (longer-first, asymmetric, unicode/multibyte), rejects tests written only for dead defensive branches, and enforces commitlint compliance. Use when reviewing perf PRs, judging close-vs-merge decisions, or adding guard rails after a perf PR review found overstated claims.",
+      "has_evals": true,
+      "id": "perf-pr-guardrails",
+      "name": "perf-pr-guardrails"
     },
     {
       "description": "Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project",

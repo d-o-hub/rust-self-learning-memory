@@ -1,0 +1,44 @@
+{
+  "tests": [
+    {
+      "name": "skill-md-present",
+      "description": "coverage-waivers skill file exists",
+      "exec": "test -f .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "documents-default-feature-pipeline",
+      "description": "States that coverage runs default features only",
+      "exec": "rg -qi 'default features only|no feature flags' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "documents-tracing-waiver-class",
+      "description": "Documents tracing/log field spans as a waiver class",
+      "exec": "rg -q 'tracing' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'field spans|field expressions' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "documents-unreachable-waiver-class",
+      "description": "Documents unreachable defensive arms as a waiver class",
+      "exec": "rg -qi 'unreachable defensive arm' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "documents-feature-gated-gap",
+      "description": "Documents feature-gated files and the csm CI gap",
+      "exec": "rg -q '#1045' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'feature-gated' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "requires-ungated-tests",
+      "description": "Requires coverable lines to be tested with ungated tests",
+      "exec": "rg -qi 'ungated' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "has-reply-template",
+      "description": "Provides a thread-ready waiver reply template",
+      "exec": "rg -q 'Reply Template' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "rejects-ci-green-alone",
+      "description": "Rejects CI-green-alone merging with an unanswered Codecov comment",
+      "exec": "rg -q 'CI green, ready to merge' .agents/skills/coverage-waivers/SKILL.md"
+    }
+  ]
+}

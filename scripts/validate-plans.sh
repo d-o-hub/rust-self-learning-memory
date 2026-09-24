@@ -11,6 +11,7 @@
 #   ./scripts/validate-plans.sh --package-policy PKG
 #   ./scripts/validate-plans.sh --adr-decision ADR-XXX
 #   ./scripts/validate-plans.sh --supersession
+#   ./scripts/validate-plans.sh --tracker-drift
 #   ./scripts/validate-plans.sh --all
 #   ./scripts/validate-plans.sh --help
 
@@ -31,6 +32,7 @@ Usage:
   ./scripts/validate-plans.sh --package-policy PKG
   ./scripts/validate-plans.sh --adr-decision ADR-XXX
   ./scripts/validate-plans.sh --supersession
+  ./scripts/validate-plans.sh --tracker-drift
   ./scripts/validate-plans.sh --all
   ./scripts/validate-plans.sh --help
 
@@ -241,6 +243,64 @@ check_supersession() {
   done
 }
 
+# ── Soft: tracker drift ───────────────────────────────────────────────────────
+# Status documents silently rot: ROADMAP_ACTIVE.md / CURRENT.md carried "13 open
+# PRs / 6 open issues" headers while GitHub reported 0 PRs and 3 issues. This
+# check compares the claimed counts against live GitHub state and warns only —
+# it never fails, and it skips cleanly when gh is unavailable or offline.
+
+# Extract a claimed count from a tracker line: a number, or 0 for none/no-open.
+tracker_claim_count() {
+  local line="$1"
+  [[ -n "$line" ]] || { printf ''; return 0; }
+  if printf '%s' "$line" | grep -qiE 'none|no open|zero'; then
+    printf '0'
+    return 0
+  fi
+  printf '%s' "$line" | grep -oE '[0-9]+' | head -1 || printf ''
+}
+
+check_tracker_drift() {
+  local repo=""
+  if command -v gh >/dev/null 2>&1; then
+    repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)
+  fi
+  if [[ -z "$repo" ]]; then
+    note "tracker-drift skipped (gh unavailable or not authenticated)"
+    return 0
+  fi
+
+  local actual_prs actual_issues
+  actual_prs=$(gh pr list --repo "$repo" --state open --limit 200 --json number 2>/dev/null | jq 'length' 2>/dev/null || true)
+  actual_issues=$(gh issue list --repo "$repo" --state open --limit 200 --json number 2>/dev/null | jq 'length' 2>/dev/null || true)
+  if [[ -z "$actual_prs" || -z "$actual_issues" ]]; then
+    note "tracker-drift skipped (GitHub query failed)"
+    return 0
+  fi
+
+  local mismatches=0
+  local file line claim
+  for file in plans/ROADMAPS/ROADMAP_ACTIVE.md plans/STATUS/CURRENT.md; do
+    [[ -f "$file" ]] || continue
+
+    line=$(grep -iE 'open PRs' "$file" | head -1 || true)
+    claim=$(tracker_claim_count "$line")
+    if [[ -n "$claim" && "$claim" != "$actual_prs" ]]; then
+      warn "$file claims ${claim} open PR(s); GitHub reports ${actual_prs}"
+      mismatches=$((mismatches + 1))
+    fi
+
+    line=$(grep -iE 'open issues' "$file" | head -1 || true)
+    claim=$(tracker_claim_count "$line")
+    if [[ -n "$claim" && "$claim" != "$actual_issues" ]]; then
+      warn "$file claims ${claim} open issue(s); GitHub reports ${actual_issues}"
+      mismatches=$((mismatches + 1))
+    fi
+  done
+
+  echo "OK: tracker-drift soft check (github: prs=${actual_prs} issues=${actual_issues}, mismatches=${mismatches})"
+}
+
 # ── Argument parsing (support combined flags) ─────────────────────────────────
 if [[ $# -eq 0 ]]; then
   set -- --all
@@ -294,6 +354,11 @@ while [[ $# -gt 0 ]]; do
       RAN_ANY=1
       shift
       ;;
+    --tracker-drift)
+      check_tracker_drift
+      RAN_ANY=1
+      shift
+      ;;
     --all)
       check_active_set
       check_version_state
@@ -302,6 +367,7 @@ while [[ $# -gt 0 ]]; do
       check_identifiers
       check_links
       check_supersession
+      check_tracker_drift
       RAN_ANY=1
       shift
       ;;

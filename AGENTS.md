@@ -8,6 +8,7 @@
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
 - **Quality Gates**: `./scripts/quality-gates.sh`
 - **PR Readiness**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
+- **Merge (gated)**: `./scripts/merge-pr.sh <PR> [--accept-codecov-waiver] --execute` (dry run without `--execute`)
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 - **Release Cadence**: `release-cadence-manager` | `./scripts/release-cadence-manager.sh`
 
@@ -23,6 +24,7 @@ Always use Skill + CLI first for high-frequency ops:
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
 | PR merge readiness | `pr-readiness` | `./scripts/check-pr-readiness.sh` |
+| PR merge (gated) | `pr-readiness` | `./scripts/merge-pr.sh <PR> --execute` |
 | Wait for CI | `ci-poll` | `gh pr checks` / Actions |
 | Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
 | Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |

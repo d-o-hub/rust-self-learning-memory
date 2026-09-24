@@ -4,7 +4,7 @@
 
 ### OpenAI
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 let api_key = std::env::var("OPENAI_API_KEY")?;
 let config = ModelConfig::openai_3_small();
@@ -14,7 +14,7 @@ let embedding = provider.embed_text("Hello world").await?;
 
 ### Mistral AI
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 let api_key = std::env::var("MISTRAL_API_KEY")?;
 let config = ModelConfig::mistral_embed();
@@ -24,7 +24,7 @@ let embedding = provider.embed_text("Hello world").await?;
 
 ### Azure OpenAI
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 let api_key = std::env::var("AZURE_OPENAI_API_KEY")?;
 let config = ModelConfig::azure_openai(
@@ -39,7 +39,7 @@ let embedding = provider.embed_text("Hello world").await?;
 
 ### Local Server (LM Studio, Ollama, etc.)
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 let config = ModelConfig::custom(
     "text-embedding-model",

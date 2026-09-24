@@ -21,7 +21,7 @@ The `EpisodeFilter` API provides rich filtering capabilities for querying episod
 ### Basic Filtering
 
 ```rust
-use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+use do_memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
 
 let memory = SelfLearningMemory::new();
 
@@ -154,7 +154,7 @@ let matching = memory.list_episodes_filtered(filter, None, None).await?;
 ### Outcome-Based Filtering
 
 ```rust
-use memory_core::OutcomeType;
+use do_memory_core::OutcomeType;
 
 // Only failures
 let filter = EpisodeFilter::builder()
@@ -327,7 +327,7 @@ let episodes = memory.list_episodes_filtered(filter, Some(10), None).await?;
 
 ## CLI Integration
 
-The filtering API is designed to work seamlessly with the do-memory-cli. See the CLI documentation for command-line usage examples.
+The filtering API is designed to work with the do-memory-cli. See the CLI documentation for command-line usage examples.
 
 ## Future Enhancements
 

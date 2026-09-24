@@ -6,7 +6,7 @@
 
 ## Overview
 
-Regex search enables powerful pattern matching for complex queries. This feature includes built-in ReDoS (Regular Expression Denial of Service) protection to ensure safe operation.
+Regex search enables pattern matching for complex queries. This feature includes built-in ReDoS (Regular Expression Denial of Service) protection to ensure safe operation.
 
 ## Key Features
 
@@ -21,8 +21,8 @@ Regex search enables powerful pattern matching for complex queries. This feature
 ### Enable Regex Search
 
 ```rust
-use memory_core::{EpisodeFilter, SelfLearningMemory};
-use memory_core::search::SearchMode;
+use do_memory_core::{EpisodeFilter, SelfLearningMemory};
+use do_memory_core::search::SearchMode;
 
 let memory = SelfLearningMemory::new();
 
@@ -145,7 +145,7 @@ The system automatically validates regex patterns to prevent ReDoS attacks:
 ### Blocked Patterns
 
 ```rust
-use memory_core::search::validate_regex_pattern;
+use do_memory_core::search::validate_regex_pattern;
 
 // Nested quantifiers (catastrophic backtracking)
 assert!(validate_regex_pattern("(a+)+").is_err());

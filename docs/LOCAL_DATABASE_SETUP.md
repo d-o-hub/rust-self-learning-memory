@@ -175,7 +175,7 @@ cargo run --bin do-memory-cli -- pattern list
 ### Programmatic Usage
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome};
 use memory_cli::config::Config;
 
 #[tokio::main]

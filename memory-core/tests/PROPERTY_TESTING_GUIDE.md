@@ -56,7 +56,7 @@ PROPTEST_CASES=10000 cargo test -p do-memory-core
 ### Basic Template
 
 ```rust
-use memory_core::types::MyType;
+use do_memory_core::types::MyType;
 use proptest::prelude::*;
 
 proptest! {

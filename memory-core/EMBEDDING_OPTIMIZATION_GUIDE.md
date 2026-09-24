@@ -19,7 +19,7 @@ Each embedding provider has specific characteristics that affect performance, re
 
 **Configuration:**
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{ModelConfig, OptimizationConfig};
 
 let mut config = ModelConfig::openai_3_small();
 config.optimization.max_retries = 5;           // Increase retry attempts
@@ -101,7 +101,7 @@ config.optimization.connection_pool_size = 30;  // More connections
 **Best for:** Production workloads with high volume
 
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{ModelConfig, OptimizationConfig};
 
 let config = ModelConfig::openai_3_small();
 // Already optimized with:
@@ -187,7 +187,7 @@ let config = ModelConfig::custom(
 For critical applications where reliability is paramount:
 
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{ModelConfig, OptimizationConfig};
 
 let mut config = ModelConfig::openai_3_small();
 config.optimization = OptimizationConfig {
@@ -363,7 +363,7 @@ for chunk in texts.chunks(batch_size) {
 ## Example: Complete Configuration
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig, OptimizationConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

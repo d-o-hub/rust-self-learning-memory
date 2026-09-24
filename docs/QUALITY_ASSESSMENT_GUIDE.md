@@ -5,8 +5,8 @@ This guide explains how to use the Quality Assessment module for pre-storage epi
 ## Quick Start
 
 ```rust
-use memory_core::pre_storage::{QualityAssessor, QualityConfig};
-use memory_core::{Episode, TaskContext, TaskType};
+use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
+use do_memory_core::{Episode, TaskContext, TaskType};
 
 // Create assessor with default configuration (threshold: 0.7)
 let assessor = QualityAssessor::new(QualityConfig::default());
@@ -45,7 +45,7 @@ The default configuration uses:
 ### Custom Threshold
 
 ```rust
-use memory_core::pre_storage::QualityConfig;
+use do_memory_core::pre_storage::QualityConfig;
 
 // Higher threshold (more selective)
 let high_quality_config = QualityConfig::new(0.85);
@@ -57,7 +57,7 @@ let low_quality_config = QualityConfig::new(0.5);
 ### Custom Feature Weights
 
 ```rust
-use memory_core::pre_storage::{QualityConfig, QualityFeature};
+use do_memory_core::pre_storage::{QualityConfig, QualityFeature};
 
 let mut config = QualityConfig::default();
 
@@ -215,8 +215,8 @@ config.set_weight(QualityFeature::ErrorRate, 0.10);
 Integration with `SelfLearningMemory`:
 
 ```rust
-use memory_core::pre_storage::{QualityAssessor, QualityConfig};
-use memory_core::memory::SelfLearningMemory;
+use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
+use do_memory_core::memory::SelfLearningMemory;
 
 impl SelfLearningMemory {
     pub async fn complete_episode_with_quality_check(
@@ -329,7 +329,7 @@ Full API documentation is available via:
 cargo doc --package do-memory-core --open
 ```
 
-Look for `memory_core::pre_storage` module.
+Look for `do_memory_core::pre_storage` module.
 
 ### Configuration Fields
 
@@ -359,4 +359,4 @@ pub enum QualityFeature {
 
 **Version**: 1.0
 **Last Updated**: 2025-12-25
-**Module**: `memory_core::pre_storage`
+**Module**: `do_memory_core::pre_storage`

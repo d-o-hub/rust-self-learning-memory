@@ -156,7 +156,7 @@ for (const threshold of thresholds) {
 The quality metrics tool integrates with the PREMem quality assessment system:
 
 ```rust
-use memory_core::pre_storage::{QualityAssessor, QualityConfig};
+use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
 use memory_mcp::mcp::tools::quality_metrics::{QualityMetricsTool, QualityMetricsInput};
 
 // Create quality assessor

@@ -29,7 +29,7 @@ cargo build --features agentfs
 ### 2. Configure in Code
 
 ```rust
-use memory_core::{SelfLearningMemory, ExternalSignalConfig};
+use do_memory_core::{SelfLearningMemory, ExternalSignalConfig};
 
 let memory = SelfLearningMemory::builder()
     .with_agentfs_provider(AgentFsConfig::from_env()?)
@@ -121,7 +121,7 @@ pub struct ToolSignal {
 ### Programmatic Configuration
 
 ```rust
-use memory_core::external::{
+use do_memory_core::external::{
     AgentFsConfig, ExternalSignalConfig, SignalMerger
 };
 
@@ -315,7 +315,7 @@ impl ExternalSignalProvider for MyAuditProvider {
 ### Testing
 
 ```rust
-use memory_core::external::MockExternalSignalProvider;
+use do_memory_core::external::MockExternalSignalProvider;
 
 let mock_provider = MockExternalSignalProvider::with_signals(vec![
     ExternalSignalSet {

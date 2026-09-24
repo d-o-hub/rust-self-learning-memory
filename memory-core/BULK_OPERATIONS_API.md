@@ -37,7 +37,7 @@ Retrieve a single episode by its unique identifier.
 
 **Example**:
 ```rust
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use uuid::Uuid;
 
 let memory = SelfLearningMemory::new();
@@ -69,7 +69,7 @@ Retrieve multiple episodes by their IDs in a single operation.
 
 **Example**:
 ```rust
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use uuid::Uuid;
 
 let memory = SelfLearningMemory::new();

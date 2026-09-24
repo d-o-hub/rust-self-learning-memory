@@ -96,7 +96,7 @@ do-memory-storage-redb = "0.1"
 ### Basic Usage
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

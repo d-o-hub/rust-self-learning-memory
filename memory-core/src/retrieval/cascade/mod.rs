@@ -13,6 +13,8 @@ mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
 mod fallback;
+#[cfg(feature = "csm")]
+mod finalize;
 mod heuristics;
 pub use fallback::{FallbackDecision, decide_fallback, local_confidence};
 
@@ -23,6 +25,7 @@ pub use types::{
 };
 
 use super::RetrievalJudge;
+use super::rerank::{RerankConfigError, SemanticRerankConfig};
 
 /// Cascading retrieval orchestrator.
 ///
@@ -32,6 +35,11 @@ pub struct CascadeRetriever {
     config: CascadeConfig,
     /// Optional semantic judgment provider for candidate evaluation.
     judge: Option<Arc<dyn RetrievalJudge>>,
+    /// Optional semantic rerank over the bounded local shortlist (issue #1031).
+    ///
+    /// Disabled by default: no provider call, no shortlist text index, and the
+    /// local tier ordering is returned verbatim.
+    semantic_rerank: SemanticRerankConfig,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
     /// Concept graph for ontology-based term expansion (Tier 3).
@@ -51,6 +59,7 @@ impl CascadeRetriever {
         Self {
             config,
             judge: None,
+            semantic_rerank: SemanticRerankConfig::default(),
             episode_data: Vec::new(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
@@ -80,6 +89,32 @@ impl CascadeRetriever {
     #[must_use]
     pub fn judge(&self) -> Option<&Arc<dyn RetrievalJudge>> {
         self.judge.as_ref()
+    }
+
+    /// Attach a semantic rerank configuration (issue #1031).
+    ///
+    /// The configuration is validated and normalized up front, so an invalid
+    /// configuration can never reach the retrieval path. Reranking stays
+    /// opt-in: nothing happens unless [`SemanticRerankConfig::enabled`] is set
+    /// *and* a judge is attached.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first violated rule as [`RerankConfigError`] (for example
+    /// `output_k > shortlist_k`); the receiver is dropped unchanged in that
+    /// case, so a failed call cannot leave a half-configured retriever behind.
+    pub fn with_semantic_rerank(
+        mut self,
+        config: SemanticRerankConfig,
+    ) -> Result<Self, RerankConfigError> {
+        self.semantic_rerank = config.validated()?;
+        Ok(self)
+    }
+
+    /// The validated, normalized semantic rerank configuration in effect.
+    #[must_use]
+    pub fn semantic_rerank_config(&self) -> &SemanticRerankConfig {
+        &self.semantic_rerank
     }
 
     /// Tokenize text for BM25 indexing/search.
@@ -142,6 +177,12 @@ impl CascadeRetriever {
     ///
     /// Without `csm`, this method returns `Err(CascadeError::CapabilityUnavailable)`
     /// rather than empty results.
+    ///
+    /// Every local result set is finalized through one rerank-aware path: when
+    /// semantic reranking is configured (see [`Self::with_semantic_rerank`])
+    /// the bounded local shortlist is reranked exactly once per call. The
+    /// default configuration is disabled, which leaves ids, scores, and
+    /// accounting byte-identical to the unreranked pipeline.
     pub fn retrieve(&self, query: &str) -> Result<CascadeResult, CascadeError> {
         #[cfg(feature = "csm")]
         {
@@ -184,7 +225,7 @@ impl CascadeRetriever {
 
         // Check if BM25 produced sufficient results
         if bm25_results.sufficient {
-            return self.finish_local(&bm25_results.results, vec!["bm25".to_string()]);
+            return self.finish_ranked(query, &bm25_results.results, vec!["bm25".to_string()]);
         }
 
         // Tier 2: HDC similarity search
@@ -203,10 +244,14 @@ impl CascadeRetriever {
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
-                return self.finish_local(&merged, vec!["bm25".to_string(), "hdc".to_string()]);
+                return self.finish_ranked(
+                    query,
+                    &merged,
+                    vec!["bm25".to_string(), "hdc".to_string()],
+                );
             }
         } else if hdc_results.sufficient {
-            return self.finish_local(&hdc_results.results, vec!["hdc".to_string()]);
+            return self.finish_ranked(query, &hdc_results.results, vec!["hdc".to_string()]);
         }
 
         // Tier 3: ConceptGraph expansion (optional)
@@ -214,8 +259,11 @@ impl CascadeRetriever {
             let concept_results = self.retrieve_concept_graph(query);
 
             if concept_results.sufficient {
-                return self
-                    .finish_local(&concept_results.results, vec!["concept_graph".to_string()]);
+                return self.finish_ranked(
+                    query,
+                    &concept_results.results,
+                    vec!["concept_graph".to_string()],
+                );
             }
         }
 
@@ -235,6 +283,11 @@ impl CascadeRetriever {
         } else {
             bm25_results.results.clone()
         };
+
+        // The same single rerank call runs before the fallback decision, so
+        // the decision, the tier accounting, and the returned literal all see
+        // the final ordering.
+        let best_results = self.rerank_local(query, best_results);
 
         let decision = decide_fallback(
             self.config.fallback_policy,
@@ -280,38 +333,6 @@ impl CascadeRetriever {
             fallback_reason: decision.reason,
             top_score: decision.top_score,
             score_margin: decision.score_margin,
-        }
-    }
-
-    /// Package sufficient local-tier results as the final [`CascadeResult`].
-    ///
-    /// Records confidence telemetry for the returned list. The only policy
-    /// with an effect here is [`FallbackPolicy::AlwaysEmbed`], which counts
-    /// a Tier 4 call on top of the local hit for baseline comparisons.
-    #[cfg(feature = "csm")]
-    fn finish_local(&self, results: &[(String, f32)], tiers: Vec<String>) -> CascadeResult {
-        let (top_score, score_margin, _) = local_confidence(
-            results,
-            self.config.local_confidence_threshold,
-            self.config.minimum_score_margin,
-        );
-        let forced = self.config.fallback_policy == FallbackPolicy::AlwaysEmbed;
-        let mut contributing_tiers = tiers;
-        if forced {
-            contributing_tiers.push("api".to_string());
-        }
-        CascadeResult {
-            episode_ids: results.iter().map(|(id, _)| id.clone()).collect(),
-            scores: results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers,
-            api_calls: u32::from(forced),
-            fallback_reason: if forced {
-                FallbackReason::AlwaysEmbedPolicy
-            } else {
-                FallbackReason::LocalTierSufficient
-            },
-            top_score,
-            score_margin,
         }
     }
 

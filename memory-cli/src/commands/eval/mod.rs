@@ -45,6 +45,16 @@ pub enum EvalCommands {
         #[arg(long, default_value = "all")]
         strategy: String,
 
+        /// Also run the semantic rerank comparison arm (`local_only+rerank`)
+        ///
+        /// The arm reuses `local_only` with the deterministic offline
+        /// token-overlap judge and a rerank configuration validated by the
+        /// cascade. It reports judge calls/query, rerank candidates/query, and
+        /// top-1 changed rate; it is a mechanism comparison, not a retrieval
+        /// quality claim.
+        #[arg(long)]
+        rerank: bool,
+
         /// Path to baseline JSON artifact for regression check
         #[arg(long, value_name = "FILE")]
         baseline: Option<PathBuf>,

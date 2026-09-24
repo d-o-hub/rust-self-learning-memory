@@ -1,10 +1,19 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-08-11
-- **Status**: closure PR (`fix/ci-attribution-truth-closure`) implements the same-run CI fast gate + ADR-080/081 attribution closure; v0.1.39 shipped; workspace bumped to 0.1.40; ADR-080/081 remain `Proposed` pending maintainer acceptance; ADR-079 stage 4 live fault-inject proof is external maintainer evidence
-- **Workspace**: `0.1.40` · **Tag**: `v0.1.39`
-- **Plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation)
+- **Last Updated**: 2026-09-24
+- **Status**: retrieval judgment (#1030 → #1041) and semantic shortlist rerank (#1031 → #1042) merged 2026-09-24; v0.1.41 shipped, workspace bumped to 0.1.42; merge/coverage tooling in review (#1046); ADR-080/081/082 remain `Proposed` pending maintainer acceptance; ADR-079 stage 4 live fault-inject proof is external maintainer evidence
+- **Workspace**: `0.1.42` · **Tag**: `v0.1.41`
+- **Plan**: no in-flight code plan; next candidate #1032 (evidence-aware passage classification) and tracker hygiene (#1046)
 - **Archive**: `plans/archive/2026-07-consolidation/`
+
+## Closed this wave (2026-09-24)
+
+| Goal | Status |
+|------|--------|
+| Retrieval judgment interface (#1030) | ✅ Merged via PR #1041 (`RetrievalJudge`, typed atomic judgments, strict validation, bounded telemetry) |
+| Semantic shortlist rerank (#1031) | ✅ Merged via PR #1042 (opt-in config, deterministic fusion, single finalization path, offline `--rerank` comparison) |
+| Merge/coverage tooling | 🔄 PR #1046 (`merge-pr.sh`, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill) |
+| Harness friction → upstream | ✅ 8 issues filed in `d-o-hub/do-harness` (#238–#245) |
 
 ## Closed this wave (2026-08-09)
 

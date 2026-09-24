@@ -17,7 +17,13 @@ pub(super) const N_STAGES: usize = 2;
 pub(super) const N_FALLBACK_REASONS: usize = 6;
 pub(super) const N_SIGNALS: usize = 4;
 pub(super) const N_JUDGMENT_OUTCOMES: usize = 6;
-pub(super) const N_RERANK_STATUSES: usize = 6;
+
+mod rerank;
+pub(super) use rerank::N_RERANK_STATUSES;
+pub use rerank::RerankStatus;
+mod evidence;
+pub use evidence::EvidenceStatus;
+pub(super) use evidence::{DISPOSITIONS, N_DISPOSITIONS, N_EVIDENCE_STATUSES};
 
 /// Retrieval operation dimension. Vocabulary: `query`, `cascade`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -442,53 +448,6 @@ impl JudgmentOutcome {
             JudgmentOutcome::Timeout => "timeout",
             JudgmentOutcome::Invalid => "invalid",
             JudgmentOutcome::ProviderError => "provider_error",
-        }
-    }
-}
-
-/// Semantic rerank outcome dimension. Vocabulary: `disabled`,
-/// `not_configured`, `applied`, `low_confidence`, `provider_error`,
-/// `invalid`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RerankStatus {
-    /// Configuration disabled reranking.
-    Disabled,
-    /// Reranking was enabled but no judge was configured.
-    NotConfigured,
-    /// Candidate order was reranked from judge scores.
-    Applied,
-    /// Judge ran but its confidence stayed below the threshold.
-    LowConfidence,
-    /// Judge provider call failed.
-    ProviderError,
-    /// Judge response was unusable (unparseable or incomplete).
-    Invalid,
-}
-
-impl RerankStatus {
-    /// Zero-based index for fixed-size storage.
-    #[must_use]
-    pub(super) const fn index(self) -> usize {
-        match self {
-            RerankStatus::Disabled => 0,
-            RerankStatus::NotConfigured => 1,
-            RerankStatus::Applied => 2,
-            RerankStatus::LowConfidence => 3,
-            RerankStatus::ProviderError => 4,
-            RerankStatus::Invalid => 5,
-        }
-    }
-
-    /// Bounded label value.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            RerankStatus::Disabled => "disabled",
-            RerankStatus::NotConfigured => "not_configured",
-            RerankStatus::Applied => "applied",
-            RerankStatus::LowConfidence => "low_confidence",
-            RerankStatus::ProviderError => "provider_error",
-            RerankStatus::Invalid => "invalid",
         }
     }
 }

@@ -1,18 +1,21 @@
 //! Retrieval quality and cost evaluation benchmark harness.
 
+mod evidence;
 mod regression;
 mod rerank;
 mod rerank_judge;
 mod runner;
 mod types;
 
+pub use evidence::{EVIDENCE_FIXTURE_JUDGE_CONFIDENCE, EvidenceFixtureJudge};
 pub use regression::{RegressionCheckResult, RegressionChecker, format_markdown_report};
 pub use rerank_judge::{LOCAL_OVERLAP_JUDGE_CONFIDENCE, LocalOverlapJudge};
 pub use runner::RetrievalEvaluator;
 pub use types::{
-    BenchmarkMetrics, BenchmarkQuery, BenchmarkReport, CostModel, FixtureCorpus, FixtureItem,
-    LatencyStats, RERANK_COMPARISON_STRATEGY, RegressionThresholds, RetrievalStrategy,
-    TierDistribution,
+    BenchmarkMetrics, BenchmarkQuery, BenchmarkReport, ClassificationMetrics, CostModel,
+    DispositionDistribution, EVIDENCE_COMPARISON_STRATEGY, EVIDENCE_DIMENSIONS,
+    EvidenceFixtureLabel, EvidenceMetrics, FixtureCorpus, FixtureItem, LatencyStats,
+    RERANK_COMPARISON_STRATEGY, RegressionThresholds, RetrievalStrategy, TierDistribution,
 };
 
 #[cfg(test)]
@@ -49,6 +52,7 @@ mod tests {
                     expected_ids: vec!["item-1".to_string()],
                     tags: vec!["auth".to_string()],
                     expected_accepted_id: Some("item-1".to_string()),
+                    evidence_labels: std::collections::HashMap::new(),
                 },
                 BenchmarkQuery {
                     id: "q-2".to_string(),
@@ -57,6 +61,7 @@ mod tests {
                     expected_ids: vec!["item-2".to_string()],
                     tags: vec!["db".to_string()],
                     expected_accepted_id: Some("item-2".to_string()),
+                    evidence_labels: std::collections::HashMap::new(),
                 },
             ],
         }
@@ -327,6 +332,7 @@ mod tests {
                         expected_ids: vec!["item-alpha".to_string()],
                         tags: Vec::new(),
                         expected_accepted_id: Some("item-alpha".to_string()),
+                        evidence_labels: std::collections::HashMap::new(),
                     },
                     BenchmarkQuery {
                         id: "q-beta".to_string(),
@@ -335,6 +341,7 @@ mod tests {
                         expected_ids: vec!["item-beta".to_string()],
                         tags: Vec::new(),
                         expected_accepted_id: Some("item-beta".to_string()),
+                        evidence_labels: std::collections::HashMap::new(),
                     },
                 ],
             }

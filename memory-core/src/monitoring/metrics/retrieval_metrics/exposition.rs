@@ -11,6 +11,7 @@ use super::labels::{
 };
 use super::registry::RetrievalMetrics;
 
+mod evidence;
 mod rerank;
 
 const ALL_OPERATIONS: [RetrievalOperation; 2] =
@@ -75,6 +76,7 @@ impl RetrievalMetrics {
             "candidates": self.candidates_map(),
             "judgments": self.judgments_map(),
             "rerank": self.rerank_map(),
+            "evidence": self.evidence_map(),
         })
     }
 
@@ -319,6 +321,7 @@ impl RetrievalMetrics {
         }
 
         self.write_rerank_lines(&mut out);
+        self.write_evidence_lines(&mut out);
 
         out
     }

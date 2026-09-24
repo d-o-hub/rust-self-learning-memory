@@ -239,7 +239,7 @@ impl RetrievalEvaluator {
         judge: Arc<dyn RetrievalJudge>,
         rerank_config: &SemanticRerankConfig,
     ) -> anyhow::Result<BenchmarkMetrics> {
-        self.run_evaluation(strategy, Some(RerankProbe::new(judge, rerank_config)))
+        self.run_evaluation(strategy, Some(RerankProbe::new(judge, rerank_config)), None)
     }
 }
 

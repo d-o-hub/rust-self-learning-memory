@@ -55,6 +55,17 @@ pub enum EvalCommands {
         #[arg(long)]
         rerank: bool,
 
+        /// Also run the evidence-classification comparison arm (`local_only+evidence`)
+        ///
+        /// The arm reuses `local_only` with the deterministic fixture-backed
+        /// judge, which replays each query's own `evidence_labels`, and the
+        /// default evidence policy, which never drops a candidate. It reports
+        /// per-dimension precision/recall, the disposition distribution, and the
+        /// release-blocking false-drop count; it is a mechanism comparison, not
+        /// a retrieval quality claim.
+        #[arg(long)]
+        evidence: bool,
+
         /// Path to baseline JSON artifact for regression check
         #[arg(long, value_name = "FILE")]
         baseline: Option<PathBuf>,

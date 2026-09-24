@@ -12,10 +12,14 @@
 mod concept_graph;
 pub use concept_graph::ConceptGraph;
 
+#[cfg(feature = "csm")]
+mod evidence_stage;
 mod fallback;
 #[cfg(feature = "csm")]
 mod finalize;
 mod heuristics;
+#[cfg(feature = "csm")]
+mod pipeline;
 pub use fallback::{FallbackDecision, decide_fallback, local_confidence};
 
 mod types;
@@ -23,6 +27,8 @@ use std::sync::Arc;
 pub use types::{
     CascadeConfig, CascadeError, CascadeResult, FallbackPolicy, FallbackReason, TierResult,
 };
+
+use crate::retrieval::{EvidencePolicy, EvidencePolicyError, EvidenceRetrievalResult};
 
 use super::RetrievalJudge;
 use super::rerank::{RerankConfigError, SemanticRerankConfig};
@@ -40,6 +46,13 @@ pub struct CascadeRetriever {
     /// Disabled by default: no provider call, no shortlist text index, and the
     /// local tier ordering is returned verbatim.
     semantic_rerank: SemanticRerankConfig,
+    /// Optional evidence-classification policy (issue #1032).
+    ///
+    /// Disabled by default: plain [`CascadeRetriever::retrieve`] ignores this
+    /// field entirely, and no candidate is classified unless a caller opts in
+    /// with [`CascadeRetriever::with_evidence_policy`] *and* calls
+    /// [`CascadeRetriever::retrieve_with_evidence`].
+    evidence_policy: Option<EvidencePolicy>,
     /// Episode data indexed for retrieval (id -> text).
     episode_data: Vec<(String, String)>,
     /// Concept graph for ontology-based term expansion (Tier 3).
@@ -60,6 +73,7 @@ impl CascadeRetriever {
             config,
             judge: None,
             semantic_rerank: SemanticRerankConfig::default(),
+            evidence_policy: None,
             episode_data: Vec::new(),
             #[cfg(feature = "csm")]
             concept_graph: ConceptGraph::from_embedded(),
@@ -115,6 +129,32 @@ impl CascadeRetriever {
     #[must_use]
     pub fn semantic_rerank_config(&self) -> &SemanticRerankConfig {
         &self.semantic_rerank
+    }
+
+    /// Attach an evidence-classification policy (issue #1032).
+    ///
+    /// The policy is validated up front, so an invalid policy can never reach
+    /// the retrieval path. Classification stays opt-in and separate from
+    /// [`Self::retrieve`]: nothing is classified unless
+    /// [`Self::retrieve_with_evidence`] is called.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first violated rule as [`EvidencePolicyError`] (for example
+    /// `candidate_limit == 0`); the receiver is dropped unchanged in that case,
+    /// so a failed call cannot leave a half-configured retriever behind.
+    pub fn with_evidence_policy(
+        mut self,
+        policy: EvidencePolicy,
+    ) -> Result<Self, EvidencePolicyError> {
+        self.evidence_policy = Some(policy.validated()?);
+        Ok(self)
+    }
+
+    /// The validated evidence-classification policy in effect, if any.
+    #[must_use]
+    pub fn evidence_policy(&self) -> Option<&EvidencePolicy> {
+        self.evidence_policy.as_ref()
     }
 
     /// Tokenize text for BM25 indexing/search.
@@ -209,130 +249,50 @@ impl CascadeRetriever {
         }
     }
 
-    /// Full cascade implementation using CSM components.
+    /// Execute the cascade and classify every candidate as evidence (issue #1032).
     ///
-    /// Tiers 1-3 return their local results once the count-based sufficiency
-    /// rules hold. When no tier suffices, the Tier 4 fallback decision is
-    /// governed by [`CascadeConfig::fallback_policy`]: `Adaptive` (default)
-    /// returns confident local results without counting an API call and only
-    /// escalates genuinely uncertain queries (see [`decide_fallback`]).
-    #[cfg(feature = "csm")]
-    fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
-        use super::{compute_weights, merge_results};
-
-        // Tier 1: BM25 keyword search
-        let bm25_results = self.retrieve_bm25(query);
-
-        // Check if BM25 produced sufficient results
-        if bm25_results.sufficient {
-            return self.finish_ranked(query, &bm25_results.results, vec!["bm25".to_string()]);
-        }
-
-        // Tier 2: HDC similarity search
-        let hdc_results = self.retrieve_hdc(query);
-
-        // Check if HDC produced sufficient results (or merge with BM25)
-        if self.config.merge_results && !bm25_results.is_empty() {
-            // Merge BM25 and HDC results with query-length-dependent weights
-            let weights = compute_weights(query.len());
-            let merged = merge_results(
-                &bm25_results.results,
-                &hdc_results.results,
-                weights,
-                self.config.top_k,
+    /// Runs the same local cascade as [`Self::retrieve`] and returns its result
+    /// unchanged as [`EvidenceRetrievalResult::base`]; `hits` is the evidence
+    /// view over that ranking and `status` is the bounded outcome of the
+    /// evidence stage.
+    ///
+    /// The stage is opt-in. Without a policy (see
+    /// [`Self::with_evidence_policy`]) the status is
+    /// [`EvidenceStatus::Disabled`](crate::monitoring::metrics::EvidenceStatus::Disabled), no
+    /// candidate is classified, and the result is the plain cascade result plus
+    /// one evidence hit per candidate.
+    ///
+    /// At most one provider call is made: the rerank stage and the evidence
+    /// stage share a single judgment batch (see `retrieve_evidence_with_csm`).
+    ///
+    /// Without the `csm` feature this returns
+    /// `Err(CascadeError::CapabilityUnavailable)` exactly like [`Self::retrieve`].
+    pub fn retrieve_with_evidence(
+        &self,
+        query: &str,
+    ) -> Result<EvidenceRetrievalResult, CascadeError> {
+        #[cfg(feature = "csm")]
+        {
+            let start = std::time::Instant::now();
+            let result = self.retrieve_evidence_with_csm(query);
+            // The returned base is a cascade result, so cascade telemetry is
+            // recorded here exactly as `retrieve()` does (bounded fields only:
+            // tiers, counts, fallback marker — redaction contract, issue #962).
+            crate::monitoring::metrics::global_retrieval_metrics().record_cascade(
+                start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64,
+                &result.base,
             );
-
-            // Check if merged results are sufficient
-            if merged.len() >= self.config.min_results {
-                return self.finish_ranked(
-                    query,
-                    &merged,
-                    vec!["bm25".to_string(), "hdc".to_string()],
-                );
-            }
-        } else if hdc_results.sufficient {
-            return self.finish_ranked(query, &hdc_results.results, vec!["hdc".to_string()]);
+            Ok(result)
         }
 
-        // Tier 3: ConceptGraph expansion (optional)
-        if self.config.enable_concept_expansion {
-            let concept_results = self.retrieve_concept_graph(query);
-
-            if concept_results.sufficient {
-                return self.finish_ranked(
-                    query,
-                    &concept_results.results,
-                    vec!["concept_graph".to_string()],
-                );
-            }
-        }
-
-        // Tier 4: confidence-gated API fallback (issue #968).
-        // Return best available results; whether they count as an API call
-        // is decided by the fallback policy, not by result counts alone.
-        let best_results: Vec<(String, f32)> = if self.config.merge_results {
-            let weights = compute_weights(query.len());
-            merge_results(
-                &bm25_results.results,
-                &hdc_results.results,
-                weights,
-                self.config.top_k,
-            )
-        } else if !hdc_results.is_empty() {
-            hdc_results.results.clone()
-        } else {
-            bm25_results.results.clone()
-        };
-
-        // The same single rerank call runs before the fallback decision, so
-        // the decision, the tier accounting, and the returned literal all see
-        // the final ordering.
-        let best_results = self.rerank_local(query, best_results);
-
-        let decision = decide_fallback(
-            self.config.fallback_policy,
-            self.config.local_confidence_threshold,
-            self.config.minimum_score_margin,
-            &best_results,
-        );
-        // No query text, IDs, or scores-as-labels: bounded enums plus
-        // numerics only (telemetry contract in
-        // `plans/GOAP_FEATURE_WAVE_2026-09-04.md`).
-        tracing::info!(
-            policy = %self.config.fallback_policy,
-            reason = %decision.reason,
-            top_score = decision.top_score,
-            score_margin = decision.score_margin,
-            candidates = best_results.len(),
-            api_calls = decision.api_calls,
-            "cascade Tier 4 fallback decision"
-        );
-
-        let mut tiers = Vec::new();
-        if !bm25_results.is_empty() {
-            tiers.push("bm25".to_string());
-        }
-        if !hdc_results.is_empty() {
-            tiers.push("hdc".to_string());
-        }
-        if decision.api_calls == 1 {
-            if best_results.is_empty() {
-                tiers = vec!["none".to_string()];
-            } else {
-                tiers.push("api_fallback_needed".to_string());
-            }
-        } else if tiers.is_empty() {
-            tiers = vec!["none".to_string()];
-        }
-
-        CascadeResult {
-            episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
-            scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: tiers,
-            api_calls: decision.api_calls,
-            fallback_reason: decision.reason,
-            top_score: decision.top_score,
-            score_margin: decision.score_margin,
+        #[cfg(not(feature = "csm"))]
+        {
+            tracing::warn!(
+                "CSM feature not enabled; evidence-aware cascade retrieval is unavailable. \
+                 Enable the `csm` feature for BM25/HDC/ConceptGraph retrieval."
+            );
+            let _ = query;
+            Err(CascadeError::CapabilityUnavailable)
         }
     }
 
@@ -465,6 +425,7 @@ impl CascadeRetriever {
         &self.config
     }
 }
+
 #[cfg(test)]
 mod tests;
 #[cfg(feature = "csm")]

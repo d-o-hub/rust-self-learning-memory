@@ -1,14 +1,14 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-08-12
-- **Version**: workspace `0.1.40` · latest tag `v0.1.39`
-- **Branch**: main @ `872949b8` (PR #947 merged 2026-08-12)
-- **Open PRs**: docs-only tracker PR (Step 8); #947 merged
-- **Open issues**: none — #913 closed 2026-08-02
-- **Active plan**: none in flight — #947 merged 2026-08-12; ADR-079 stage 4 + ADR-080/081 lifecycle await maintainer
-- **Note**: #947 merged 2026-08-12; evidence in plans/STATUS/VALIDATION_LATEST.md.
+- **Last Updated**: 2026-09-24
+- **Version**: workspace `0.1.42` · latest tag `v0.1.41`
+- **Branch**: main @ `1461d61d` (PR #1042 merged 2026-09-24)
+- **Open PRs**: run `gh pr list --state open` (this header no longer pins counts; the tracker-drift check guards it)
+- **Open issues**: run `gh issue list --state open` — open work is evidence-aware passage classification and the `csm` CI gap
+- **Active plan**: none in flight — #1030/#1031 landed via #1041/#1042 (2026-09-24); ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
+- **Note**: retrieval judgment + rerank merged 2026-09-24; 8 harness-friction issues filed upstream (`d-o-hub/do-harness` #238–#245).
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.39` tagged and shipped (workspace bumped to `0.1.40` post-release)
+- **Release**: ✅ `v0.1.41` tagged and shipped (workspace bumped to `0.1.42` post-release)
 
 ---
 

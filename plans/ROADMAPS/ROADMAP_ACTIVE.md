@@ -1,25 +1,34 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-09-21
+**Last Updated**: 2026-09-24
 **Released Version**: v0.1.41 (latest tag)
 **Workspace Version**: 0.1.42 (post-v0.1.41 bump)
-**Active Sprint**: v0.1.41 shipped 2026-09-20; LOC-invariant and release-gate repairs landed (#1026/#1028/#1029/#1035); dependabot bumps #1037/#1038 pending
-**Plan**: merged #947 (2026-08-12); prior waves: `GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md` (all historical)
-**Branch**: feat/retrieval-observability-962 (WIP) off main @ `5f2c215b`
-**Open PRs**: 13 (see #976 drift context)
-**Open issues**: 6 (#976 critical: release due)
+**Active Sprint**: v0.1.42 — retrieval judgment (#1030 → PR #1041) and semantic shortlist rerank (#1031 → PR #1042) merged 2026-09-24; gated merge path + tracker-drift check in review (#1046)
+**Plan**: #1030/#1031 landed via PRs #1041/#1042; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
+**Branch**: main @ `1461d61d`
+**Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
+**Open issues**: run `gh issue list --state open` — open work is evidence-aware passage classification and the `csm` CI gap
+
+## Sprint 2026-09-24 — Retrieval judgment + rerank
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | Retrieval | #1030 typed semantic judgment interface (`RetrievalJudge`, validation, bounded telemetry) | ✅ Merged (#1041) |
+| P1 | Retrieval | #1031 opt-in semantic shortlist rerank (deterministic fusion, single finalization path, `--rerank` eval arm) | ✅ Merged (#1042) |
+| P2 | Tooling | Gated merge path (`merge-pr.sh`) + soft tracker-drift check + `coverage-waivers` skill | 🔄 PR #1046 |
+| P2 | Retrieval | #1032 evidence-aware passage classification (depends on #1030/#1031) | ⏳ Open |
 
 ## Sprint 2026-09-05 — Observability + dev-harness adoption
 
 | Prio | Area | Item | Status |
 |------|------|------|--------|
-| P1 | Observability | #962 retrieval telemetry: bounded labels, MCP `get_metrics(retrieval)`, redaction tests | ✅ Implemented (branch feat/retrieval-observability-962) |
+| P1 | Observability | #962 retrieval telemetry: bounded labels, MCP `get_metrics(retrieval)`, redaction tests | ✅ Merged (#1005, 2026-09-15) |
 | P1 | Build | Fix `.gitignore` swallowing `metrics/` sources; tokio `net` feature; wasm gate | ✅ Done |
 | P1 | Observability | Prometheus exposition validity (single TYPE per family, per-(op,tier) quantiles) | ✅ Done |
 | P2 | Observability | Module split ≤500 LOC (labels/registry/exposition) | ✅ Done |
-| P2 | Observability | CLI retrieval-metrics surface + docs dashboard example (#962 acceptance) | 🔄 In progress |
+| P2 | Observability | CLI retrieval-metrics surface + docs dashboard example (#962 acceptance) | ✅ Done (`do-memory-cli monitor retrieval` + `docs/RETRIEVAL_OBSERVABILITY.md`) |
 | P2 | Workflow | do-harness dev harness adopted (sensors fmt/check/clippy/test/deny/loc) | ✅ Done |
-| P1 | Release | #976 drift (30 commits / 24 d): ship via release-guard once #962 lands | ⏳ Pending |
+| P1 | Release | #976 drift (30 commits / 24 d): ship via release-guard once #962 lands | ✅ Shipped v0.1.40 (2026-09-06) and v0.1.41 (2026-09-20); workspace bumped to 0.1.42 (#1039) |
 
 ---
 

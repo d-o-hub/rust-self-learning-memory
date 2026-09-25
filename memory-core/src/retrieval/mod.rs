@@ -6,6 +6,7 @@
 //! - ConceptGraph ontology expansion (via CSM crate, synonym matching)
 //! - HDC hyperdimensional vectors (via CSM crate)
 //! - Cascading retrieval pipeline (WG-131)
+//! - Optional semantic reranking over a bounded local shortlist (#1031)
 //! - Hierarchical/gist reranking for dense context (WG-118)
 //! - Reconstructive retrieval windows (WG-120, E-mem-inspired)
 //! - Execution-signature retrieval (WG-121, APEX-EM-inspired)
@@ -16,6 +17,7 @@ pub mod cascade;
 pub mod eval;
 pub mod gist;
 pub mod judgment;
+pub mod rerank;
 pub mod semantic_retriever;
 pub mod shard;
 pub mod signature;
@@ -50,6 +52,7 @@ pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker,
 pub use judgment::{
     AtomicScore, CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge,
 };
+pub use rerank::{RerankConfigError, RerankOutcome, SemanticRerankConfig, semantic_rerank};
 pub use semantic_retriever::{HybridHit, ScoreComponents, SemanticRetriever};
 pub use shard::{EpisodeMetadata, RoutingResult, ScopeFilter, ShardConfig, ShardRouter, TimeRange};
 pub use signature::{

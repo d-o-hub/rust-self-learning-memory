@@ -38,6 +38,14 @@ impl std::str::FromStr for RetrievalStrategy {
     }
 }
 
+/// Report key of the semantic rerank comparison arm (issue #1031).
+///
+/// The arm reuses [`RetrievalStrategy::LocalOnly`] with an offline judge and an
+/// enabled [`crate::retrieval::rerank::SemanticRerankConfig`]. It is a
+/// comparison-only entry: baseline artifacts do not track it, so regression
+/// checks skip it when it is missing from the baseline.
+pub const RERANK_COMPARISON_STRATEGY: &str = "local_only+rerank";
+
 /// Cost model for estimating external API embedding usage costs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CostModel {
@@ -249,6 +257,26 @@ pub struct BenchmarkMetrics {
     pub estimated_cost_per_query: f64,
     /// Estimated cost per successful recommendation in USD.
     pub estimated_cost_per_successful_rec: f64,
+    /// Average semantic judge invocations per query (issue #1031).
+    ///
+    /// `0.0` unless the run exercised the semantic rerank comparison arm, and
+    /// `0.0` for queries where the rerank stage short-circuited before calling
+    /// the judge (disabled, no judge, empty shortlist, provider skipped).
+    #[serde(default)]
+    pub judge_calls_per_query: f64,
+    /// Average number of candidates submitted to the semantic judge per query.
+    ///
+    /// Equals the judged shortlist size, so it never exceeds
+    /// `SemanticRerankConfig::shortlist_k` for reranked queries and is `0.0`
+    /// for queries the judge never saw.
+    #[serde(default)]
+    pub rerank_candidates_per_query: f64,
+    /// Fraction of evaluated queries whose top-1 result changed after rerank.
+    ///
+    /// Derived without a second retrieval: see
+    /// `RetrievalEvaluator::evaluate_strategy_with_rerank`.
+    #[serde(default)]
+    pub top1_changed_rate: f64,
 }
 
 /// Threshold limits for detecting statistical quality or cost regressions.

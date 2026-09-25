@@ -108,6 +108,117 @@ violation.
 
 ---
 
+## Evidence Classification Comparison Mode (issue #1032)
+
+`--evidence` adds an extra report entry named **`local_only+evidence`** to
+whatever the `--strategy` selection already produces. The entry reuses
+`local_only` and installs the optional evidence-classification stage (per
+candidate typed judgments, disposition policy, bounded telemetry) with the
+default `EvidencePolicy`:
+
+```bash
+# Compare the baseline local cascade against local cascade + evidence classification
+cargo run -p do-memory-cli -- eval benchmark --evidence
+
+# Same, on a single strategy arm, with both artifacts written
+cargo run -p do-memory-cli --features do-memory-core/csm -- eval benchmark \
+  --strategy local_only \
+  --evidence \
+  --output-json benchmark_results/retrieval_evidence.json \
+  --output-markdown benchmark_results/retrieval_evidence.md
+```
+
+`--evidence` and `--rerank` are independent and each add their own arm;
+`--strategy` keeps its meaning in every combination. Retrieval runs **once per
+query** in the evidence arm; the counters and the added latency are captured from
+the judge call itself, not by re-running retrieval.
+
+### Evidence Labels in the Corpus
+
+The arm needs ground truth, so a query may carry `evidence_labels` keyed by
+corpus item ID:
+
+```json
+{
+  "id": "q-01",
+  "query": "OAuth2 JWT token authentication in Rust tokio",
+  "expected_ids": ["item-auth-01"],
+  "expected_accepted_id": "item-auth-01",
+  "evidence_labels": {
+    "item-auth-01": {
+      "relevance": true,
+      "useful_evidence": true,
+      "contradiction": false,
+      "instruction_like": false,
+      "expected_disposition": "keep"
+    },
+    "item-injection-02": {
+      "relevance": true,
+      "useful_evidence": true,
+      "contradiction": false,
+      "instruction_like": true,
+      "expected_disposition": "flag"
+    }
+  }
+}
+```
+
+`evidence_labels` is optional and defaults to empty, so **existing fixtures and
+baselines keep loading and are never regenerated**: only a query that carries
+labels can be scored, and only candidates whose IDs appear in that query's map
+count towards the per-dimension metrics and the false-drop count.
+
+### Offline Judge and Its Limits
+
+The arm uses `EvidenceFixtureJudge`, a deterministic, offline `RetrievalJudge`
+that replays each query's own labels: every labelled dimension becomes `1.0` or
+`0.0` at the fixed confidence `EVIDENCE_FIXTURE_JUDGE_CONFIDENCE` (`1.0`), ids
+and candidate order are preserved, and labels are keyed by query text. A
+candidate with no label for that query is still judged — all four dimensions
+`0.0` at full confidence — and the default policy turns that trusted all-false
+judgment into `demote`, never a drop.
+
+**This arm is a mechanism benchmark, not a retrieval-quality claim.** Because the
+judge replays the same labels the metrics score against, the arm verifies that
+the classification stage is wired, bounded, policy-correct, and observable; it
+cannot show that evidence-aware classification *improves* retrieval quality. Any
+such claim requires a real provider judge and labels independent of the judge,
+and must be established on this repository's fixtures.
+
+### Evidence Metrics
+
+Reports gain one `evidence_metrics` block per evidence run (JSON whenever the arm
+ran, Markdown section only then):
+
+| Metric | Meaning |
+|:---|:---|
+| `per_dimension` | Per-dimension `tp`/`fp`/`fn`/`tn`, `precision`, and `recall`, in `EVIDENCE_DIMENSIONS` order: `relevance`, `useful_evidence`, `contradiction`, `instruction_like`. Judged values are binarized at the policy threshold of that dimension (`min_relevance`, `min_useful_evidence`, `contradiction_flag_threshold`, `instruction_flag_threshold`). |
+| `dispositions` | `keep`/`flag`/`demote`/`drop` counts with percentages and `total`, over every classified candidate. |
+| `false_drop_count` | Labelled candidates whose `expected_disposition` is `keep` that the stage actually dropped. |
+| `false_drop_rate` | `false_drop_count` over the classified labelled candidates. |
+| `judge_calls_per_query` | Judge invocations per evaluated query (`1.00` when the stage judged every query; a query whose local plan yields fewer than two candidates never reaches the judge and contributes `0`). |
+| `added_latency_p50_us`, `added_latency_p95_us` | Median and 95th-percentile per-query time spent inside the judge — the provider work the stage added. Queries that never reached the judge record `0`. |
+
+**False drops are release-blocking.** A non-zero `false_drop_count` fails the
+regression check regardless of thresholds, because dropping a candidate the
+fixture expects to keep is a classification defect rather than a trade-off. The
+default policy sets `allow_drop = false`, so no path returns `drop` and a correct
+run reports `0`; the metric exists to catch a policy or wiring change that starts
+removing candidates.
+
+Retrieved passage text is **data, never instruction**. Classification is
+inferential and cannot promote a candidate, the instruction-likeness rule
+precedes the low-relevance rule so injected text is flagged rather than silently
+dropped, and with the default policy no candidate is removed at all.
+
+`local_only+evidence` is a comparison-only entry that baselines do not track, so
+the regression check skips it when the baseline has no counterpart; every other
+strategy keeps the strict "missing from baseline" violation. The false-drop gate
+is **not** skipped: it is evaluated for every strategy in the run, so the first
+run that exercises the arm is already gated.
+
+---
+
 ## Metrics Reported
 
 The benchmark produces both machine-readable JSON and concise Markdown reports detailing:
@@ -130,6 +241,11 @@ The benchmark produces both machine-readable JSON and concise Markdown reports d
   - `Judge Calls / Query`: judge invocations per evaluated query.
   - `Rerank Candidates / Query`: judged shortlist candidates per query.
   - `Top-1 Changed`: share of queries whose top-1 changed after rerank.
+- **Evidence Classification** (populated by `--evidence`; absent otherwise):
+  - `Per-Dimension Precision / Recall`: judged dimensions binarized at the policy thresholds, scored against the query's evidence labels.
+  - `Keep / Flag / Demote / Drop`: disposition distribution over classified candidates.
+  - `False Drops`: labelled keep candidates that were dropped — release-blocking when non-zero.
+  - `Judge Calls / Query`, `Added P50 / P95`: judge invocations and judge time added per query.
 
 ---
 

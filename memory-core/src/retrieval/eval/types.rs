@@ -46,6 +46,14 @@ impl std::str::FromStr for RetrievalStrategy {
 /// checks skip it when it is missing from the baseline.
 pub const RERANK_COMPARISON_STRATEGY: &str = "local_only+rerank";
 
+/// Report key of the evidence-classification comparison arm (issue #1032).
+///
+/// The arm reuses [`RetrievalStrategy::LocalOnly`] with the deterministic
+/// fixture-backed judge and the default [`crate::retrieval::EvidencePolicy`]. It
+/// is a comparison-only entry: baseline artifacts do not track it, so regression
+/// checks skip it when it is missing from the baseline.
+pub const EVIDENCE_COMPARISON_STRATEGY: &str = "local_only+evidence";
+
 /// Cost model for estimating external API embedding usage costs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CostModel {
@@ -107,6 +115,12 @@ pub struct BenchmarkQuery {
     /// Expected top recommendation ID for acceptance testing.
     #[serde(default)]
     pub expected_accepted_id: Option<String>,
+    /// Per-candidate evidence ground truth keyed by corpus item ID (issue #1032).
+    ///
+    /// A candidate with no entry stays unlabelled: it is still classified, but
+    /// it never contributes to per-dimension metrics or the false-drop count.
+    #[serde(default)]
+    pub evidence_labels: HashMap<String, EvidenceFixtureLabel>,
 }
 
 /// Immutable ground-truth benchmark corpus.
@@ -218,6 +232,164 @@ pub struct TierDistribution {
     pub tier4_percentage: f64,
 }
 
+/// Per-candidate evidence ground truth for one benchmark query (issue #1032).
+///
+/// Each boolean is the expected value of one judged dimension, and
+/// `expected_disposition` is the disposition the policy should produce for that
+/// candidate (`keep`, `demote`, `flag`, or `drop`; empty when unset). A `keep`
+/// expectation the evidence stage turns into a drop is the false drop that
+/// blocks a release.
+// `struct_excessive_bools` targets control-flow state; this struct mirrors the
+// documented JSON fixture schema, where each dimension is an independent
+// boolean and the field names are the label vocabulary.
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceFixtureLabel {
+    /// Expected query-relevance judgment.
+    #[serde(default)]
+    pub relevance: bool,
+    /// Expected usefulness-as-evidence judgment.
+    #[serde(default)]
+    pub useful_evidence: bool,
+    /// Expected contradiction judgment.
+    #[serde(default)]
+    pub contradiction: bool,
+    /// Expected instruction-likeness judgment.
+    #[serde(default)]
+    pub instruction_like: bool,
+    /// Expected disposition: `keep`, `demote`, `flag`, or `drop`.
+    #[serde(default)]
+    pub expected_disposition: String,
+}
+
+/// Dimension names of [`EvidenceMetrics::per_dimension`], in index order.
+pub const EVIDENCE_DIMENSIONS: [&str; 4] = [
+    "relevance",
+    "useful_evidence",
+    "contradiction",
+    "instruction_like",
+];
+
+/// Counts and derived rates for one evidence dimension.
+///
+/// Predicted positives are the judged values at or above that dimension's policy
+/// threshold, compared against the fixture labels.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ClassificationMetrics {
+    /// Labelled positives the judge also scored at or above the threshold.
+    pub tp: u64,
+    /// Labelled negatives the judge scored at or above the threshold.
+    pub fp: u64,
+    /// Labelled positives the judge scored below the threshold.
+    #[serde(default, rename = "fn")]
+    pub fn_: u64,
+    /// Labelled negatives the judge scored below the threshold.
+    pub tn: u64,
+    /// `tp / (tp + fp)`, `0.0` when nothing was predicted positive.
+    pub precision: f64,
+    /// `tp / (tp + fn)`, `0.0` when nothing was labelled positive.
+    pub recall: f64,
+}
+
+impl ClassificationMetrics {
+    /// Derive precision and recall from raw confusion counts.
+    #[must_use]
+    pub fn from_counts(tp: u64, fp: u64, fn_: u64, tn: u64) -> Self {
+        Self {
+            tp,
+            fp,
+            fn_,
+            tn,
+            precision: count_ratio(tp, tp + fp),
+            recall: count_ratio(tp, tp + fn_),
+        }
+    }
+}
+
+/// Disposition distribution over one evidence comparison run.
+///
+/// Counts are in [`crate::retrieval::EvidenceDisposition`] rank order and
+/// `total` is their sum; percentages are shares of `total`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct DispositionDistribution {
+    /// Candidates kept unchanged.
+    pub keep: u64,
+    /// Candidates kept but flagged as contradictory or instruction-like.
+    pub flag: u64,
+    /// Candidates kept at a demoted score.
+    pub demote: u64,
+    /// Candidates removed from the result.
+    pub drop: u64,
+    /// Sum of the four counts.
+    pub total: u64,
+    /// `keep` as a percentage of `total`.
+    pub keep_percentage: f64,
+    /// `flag` as a percentage of `total`.
+    pub flag_percentage: f64,
+    /// `demote` as a percentage of `total`.
+    pub demote_percentage: f64,
+    /// `drop` as a percentage of `total`.
+    pub drop_percentage: f64,
+}
+
+impl DispositionDistribution {
+    /// Build the distribution from counts in rank order: keep, flag, demote, drop.
+    #[must_use]
+    pub fn from_counts(counts: [u64; 4]) -> Self {
+        let [keep, flag, demote, dropped] = counts;
+        let total = counts.iter().sum();
+        let percentage = |count: u64| count_ratio(count, total) * 100.0;
+        Self {
+            keep,
+            flag,
+            demote,
+            drop: dropped,
+            total,
+            keep_percentage: percentage(keep),
+            flag_percentage: percentage(flag),
+            demote_percentage: percentage(demote),
+            drop_percentage: percentage(dropped),
+        }
+    }
+}
+
+/// Evidence-classification metrics for one `local_only+evidence` run (issue #1032).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct EvidenceMetrics {
+    /// Per-dimension counts in [`EVIDENCE_DIMENSIONS`] order.
+    #[serde(default)]
+    pub per_dimension: [ClassificationMetrics; 4],
+    /// Disposition counts over every classified candidate.
+    #[serde(default)]
+    pub dispositions: DispositionDistribution,
+    /// Labelled candidates expected to be kept that the evidence stage dropped.
+    ///
+    /// Release-blocking: any non-zero value fails the regression check.
+    #[serde(default)]
+    pub false_drop_count: u64,
+    /// `false_drop_count` as a share of the classified labelled candidates.
+    #[serde(default)]
+    pub false_drop_rate: f64,
+    /// Judge invocations per evaluated query.
+    #[serde(default)]
+    pub judge_calls_per_query: f64,
+    /// Median per-query time spent inside the judge, in microseconds.
+    #[serde(default)]
+    pub added_latency_p50_us: u64,
+    /// 95th percentile per-query time spent inside the judge, in microseconds.
+    #[serde(default)]
+    pub added_latency_p95_us: u64,
+}
+
+/// Zero-safe ratio behind every count-derived rate in this module.
+pub(super) fn count_ratio(numerator: u64, denominator: u64) -> f64 {
+    if denominator == 0 {
+        0.0
+    } else {
+        numerator as f64 / denominator as f64
+    }
+}
+
 /// Aggregated metrics for a single retrieval evaluation run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkMetrics {
@@ -277,6 +449,12 @@ pub struct BenchmarkMetrics {
     /// `RetrievalEvaluator::evaluate_strategy_with_rerank`.
     #[serde(default)]
     pub top1_changed_rate: f64,
+    /// Evidence-classification metrics (issue #1032).
+    ///
+    /// `None` unless the run exercised the `local_only+evidence` comparison arm;
+    /// baseline artifacts predate the key and keep loading unchanged.
+    #[serde(default)]
+    pub evidence_metrics: Option<EvidenceMetrics>,
 }
 
 /// Threshold limits for detecting statistical quality or cost regressions.

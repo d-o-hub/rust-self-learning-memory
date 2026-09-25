@@ -3,9 +3,12 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
-use crate::retrieval::cascade::{CascadeConfig, CascadeRetriever, FallbackPolicy};
+use crate::retrieval::cascade::{
+    CascadeConfig, CascadeError, CascadeResult, CascadeRetriever, FallbackPolicy,
+};
 use crate::search::metrics::{mrr, ndcg_at_k, recall_at_k};
 
+use super::evidence::{EvidenceProbe, QueryOutcome};
 use super::rerank::{RerankCounters, RerankProbe};
 use super::types::{
     BenchmarkMetrics, BenchmarkReport, CostModel, FixtureCorpus, LatencyStats, RetrievalStrategy,
@@ -80,18 +83,21 @@ impl RetrievalEvaluator {
         &self,
         strategy: RetrievalStrategy,
     ) -> anyhow::Result<BenchmarkMetrics> {
-        self.run_evaluation(strategy, None)
+        self.run_evaluation(strategy, None, None)
     }
 
-    /// Shared per-query evaluation loop for the plain and reranked arms.
+    /// Shared per-query evaluation loop for the plain, reranked, and evidence arms.
     ///
-    /// The reranked arm lives in [`super::rerank`]: it supplies a
-    /// [`RerankProbe`], which this loop drives with one retrieval per query.
+    /// The reranked arm lives in [`super::rerank`] and the evidence arm in
+    /// [`super::evidence`]: each supplies its own probe and judge, and the public
+    /// entry points drive exactly one probe per run, so this loop performs one
+    /// retrieval per query.
     #[allow(clippy::too_many_lines)]
     pub(super) fn run_evaluation(
         &self,
         strategy: RetrievalStrategy,
         mut rerank: Option<RerankProbe>,
+        mut evidence: Option<EvidenceProbe>,
     ) -> anyhow::Result<BenchmarkMetrics> {
         let (id_to_index, successful_item_ids) = self.build_item_indexes();
 
@@ -116,6 +122,12 @@ impl RetrievalEvaluator {
                 .with_judge(probe.judge_handle())
                 .with_semantic_rerank(probe.config().clone())
                 .map_err(|e| anyhow::anyhow!("invalid semantic rerank configuration: {e}"))?;
+        }
+        if let Some(probe) = evidence.as_ref() {
+            retriever = retriever
+                .with_judge(probe.judge_handle())
+                .with_evidence_policy(probe.policy().clone())
+                .map_err(|e| anyhow::anyhow!("invalid evidence policy: {e}"))?;
         }
         for item in &self.corpus.corpus {
             retriever.add_episode(&item.id, &item.text);
@@ -147,13 +159,22 @@ impl RetrievalEvaluator {
             }
 
             let rerank_start = rerank.as_ref().map(RerankProbe::begin_query);
+            let evidence_start = evidence.as_ref().map(EvidenceProbe::begin_query);
 
             let start_local = Instant::now();
-            let cascade_res = retriever.retrieve(&query_entry.query);
+            let outcome = if evidence.is_some() {
+                QueryOutcome::Evidence(retriever.retrieve_with_evidence(&query_entry.query))
+            } else {
+                QueryOutcome::Plain(retriever.retrieve(&query_entry.query))
+            };
             let local_duration_us = start_local.elapsed().as_micros() as u64;
 
+            if let (Some(probe), Some(start)) = (evidence.as_mut(), evidence_start) {
+                probe.record(start, &query_entry.evidence_labels, outcome.evidence());
+            }
+
             let (retrieved_ids, api_calls, contributing_tiers) =
-                self.resolve_query_strategy(&cascade_res, &query_entry.query, strategy);
+                self.resolve_query_strategy(outcome.cascade(), &query_entry.query, strategy);
 
             if let (Some(probe), Some(start)) = (rerank.as_mut(), rerank_start) {
                 probe.finish_query(start, retrieved_ids.first().map(String::as_str));
@@ -283,6 +304,7 @@ impl RetrievalEvaluator {
             judge_calls_per_query,
             rerank_candidates_per_query,
             top1_changed_rate,
+            evidence_metrics: evidence.as_ref().map(|probe| probe.metrics(total_q)),
         })
     }
 
@@ -302,10 +324,7 @@ impl RetrievalEvaluator {
 
     fn resolve_query_strategy(
         &self,
-        cascade_res: &Result<
-            crate::retrieval::cascade::CascadeResult,
-            crate::retrieval::cascade::CascadeError,
-        >,
+        cascade_res: Result<&CascadeResult, &CascadeError>,
         query: &str,
         strategy: RetrievalStrategy,
     ) -> (Vec<String>, u32, Vec<String>) {
@@ -452,7 +471,7 @@ fn compute_ndcgs(
     (sum_1 / q_f, sum_3 / q_f, sum_5 / q_f, sum_10 / q_f)
 }
 
-fn compute_percentiles(latencies: &[u64]) -> LatencyStats {
+pub(super) fn compute_percentiles(latencies: &[u64]) -> LatencyStats {
     if latencies.is_empty() {
         return LatencyStats::default();
     }

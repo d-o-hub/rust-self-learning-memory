@@ -7,6 +7,7 @@
 //! - HDC hyperdimensional vectors (via CSM crate)
 //! - Cascading retrieval pipeline (WG-131)
 //! - Optional semantic reranking over a bounded local shortlist (#1031)
+//! - Opt-in evidence-aware passage classification (#1032)
 //! - Hierarchical/gist reranking for dense context (WG-118)
 //! - Reconstructive retrieval windows (WG-120, E-mem-inspired)
 //! - Execution-signature retrieval (WG-121, APEX-EM-inspired)
@@ -15,6 +16,7 @@
 pub mod cache;
 pub mod cascade;
 pub mod eval;
+pub mod evidence;
 pub mod gist;
 pub mod judgment;
 pub mod rerank;
@@ -47,6 +49,10 @@ pub use eval::{
     BenchmarkMetrics, BenchmarkQuery, BenchmarkReport, CostModel, FixtureCorpus, FixtureItem,
     RegressionCheckResult, RegressionChecker, RegressionThresholds, RetrievalEvaluator,
     RetrievalStrategy, format_markdown_report,
+};
+pub use evidence::{
+    CandidateEvidence, EvidenceDisposition, EvidenceHit, EvidencePolicy, EvidencePolicyError,
+    EvidenceRetrievalResult, classify_disposition,
 };
 pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};
 pub use judgment::{

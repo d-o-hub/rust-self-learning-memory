@@ -1,7 +1,7 @@
 # Retrieval Observability
 
-**Issues**: #962 (retrieval-plane telemetry) · #1030 (semantic judgment telemetry) · #1031 (semantic rerank telemetry)
-**Last Updated**: 2026-09-23
+**Issues**: #962 (retrieval-plane telemetry) · #1030 (semantic judgment telemetry) · #1031 (semantic rerank telemetry) · #1032 (evidence classification telemetry)
+**Last Updated**: 2026-09-24
 **Registry**: `do_memory_core::monitoring::metrics::global_retrieval_metrics()`
 
 ---
@@ -9,8 +9,9 @@
 ## Overview
 
 Every retrieval request, cache lookup, embedding call, Tier-4 fallback,
-semantic judgment call, semantic rerank invocation, and recommendation
-feedback signal is recorded into a process-global `RetrievalMetrics` registry.
+semantic judgment call, semantic rerank invocation, evidence-classification
+run, and recommendation feedback signal is recorded into a process-global
+`RetrievalMetrics` registry.
 The same registry backs three instrumentation surfaces, so the CLI, MCP, and
 Prometheus always agree:
 
@@ -52,6 +53,11 @@ endpoint into Prometheus.
 | `memory_rerank_top1_changed_total` | counter | - | Rerank invocations that changed the top-ranked candidate |
 | `memory_rerank_confidence_sum` | counter | - | Cumulative judge-reported relevance confidence (0..1) |
 | `memory_rerank_confidence_count` | counter | - | Confidence observations; divide `sum` by `count` for the average confidence |
+| `memory_evidence_requests_total` | counter | `status` | Evidence-classification invocations by status; only `applied` and `low_confidence` reached the judge |
+| `memory_evidence_dispositions_total` | counter | `disposition` | Classified candidate dispositions (`keep`, `flag`, `demote`, `drop`); judge-backed invocations only |
+| `memory_evidence_candidates_sum` | counter | - | Cumulative candidates submitted for evidence classification |
+| `memory_evidence_candidates_count` | counter | - | Evidence observations; divide `sum` by `count` for the average candidate count |
+| `memory_evidence_duration_seconds` | summary | `quantile` | Judge-backed evidence-classification latency; quantiles 0.5, 0.95, 0.99 |
 | `memory_recommendation_feedback_total` | counter | `signal` | Recorded recommendation feedback by outcome signal |
 
 `memory_retrieval_candidates_sum` and `_count` are the `sum`/`count` pair of a
@@ -78,6 +84,8 @@ the series count is bounded at compile time.
 | `judge_configured` | `false`, `true` |
 | `outcome` (judgment) | `not_configured`, `ok`, `unavailable`, `timeout`, `invalid`, `provider_error` |
 | `status` (rerank) | `disabled`, `not_configured`, `applied`, `low_confidence`, `provider_error`, `invalid` |
+| `status` (evidence) | `disabled`, `not_configured`, `applied`, `low_confidence`, `provider_error`, `invalid` |
+| `disposition` (evidence) | `keep`, `flag`, `demote`, `drop` (rank order) |
 | `signal` (feedback) | `success`, `partial`, `failure`, `abstained` |
 
 Tier markers that describe pipeline internals (for example `api_fallback_needed`)
@@ -190,6 +198,13 @@ Sample result (shape only — zero-valued entries are omitted in real output):
       "output": { "observations": 64, "total": 640 },
       "top1_changed": 7,
       "confidence": { "observations": 64, "avg": 0.8125 }
+    },
+    "evidence": {
+      "status=applied": 60,
+      "status=not_configured": 4,
+      "dispositions": { "keep": 48, "flag": 6, "demote": 5, "drop": 1 },
+      "candidates": { "observations": 60, "total": 1200 },
+      "duration_ms": { "p50": 31.2, "p95": 88.5, "p99": 140.1 }
     }
   },
   "timestamp": 1757068800
@@ -201,7 +216,9 @@ Snapshot keys: `requests` (per-series counts plus `latency_ms` percentiles),
 (stage -> `{observations, total}`), `judgments` (judge-configured outcome ->
 count), `rerank` (`status=<value>` counters plus `shortlist`/`output`
 `{observations, total}`, a `top1_changed` count, and a `confidence`
-`{observations, avg}` summary).
+`{observations, avg}` summary), `evidence` (`status=<value>` counters, a
+`dispositions` map, a `candidates` `{observations, total}` summary, and a
+`duration_ms` `{p50, p95, p99}` summary).
 
 ---
 
@@ -246,7 +263,11 @@ is fixed regardless of traffic or data:
 | `memory_rerank_output_sum` / `_count` | 2 |
 | `memory_rerank_top1_changed_total` | 1 |
 | `memory_rerank_confidence_sum` / `_count` | 2 |
-| **Total** | **184** |
+| `memory_evidence_requests_total` | 6 |
+| `memory_evidence_dispositions_total` | 4 |
+| `memory_evidence_candidates_sum` / `_count` | 2 |
+| `memory_evidence_duration_seconds` | 3 |
+| **Total** | **199** |
 
 Zero-valued series are omitted from both the JSON snapshot and the Prometheus
 exposition, so an idle process exports almost nothing. A latency summary series
@@ -265,6 +286,10 @@ for strict scrapers.
 - Rerank telemetry is bounded the same way: `status` is the fixed six-value
   vocabulary and the remaining fields are aggregate counts and averages, so
   judge rationales, candidate text, and episode IDs cannot enter the series.
+- Evidence telemetry is bounded the same way: `status` and `disposition` are
+  fixed vocabularies and the remaining fields are aggregate counts and
+  percentiles, so judge rationales, candidate text, and episode IDs cannot
+  enter the series.
 
 ---
 

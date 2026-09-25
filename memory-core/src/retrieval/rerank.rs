@@ -42,14 +42,13 @@
 //! text are never logged or emitted.
 
 use std::collections::HashMap;
-use std::time::Instant;
 
 use tracing::{debug, info};
 
 use crate::monitoring::metrics::{RerankStatus, global_retrieval_metrics};
-use crate::retrieval::judgment::{
-    CandidateJudgment, JudgmentCandidate, JudgmentError, RetrievalJudge, evaluate_judgments,
-};
+use crate::retrieval::judgment::{CandidateJudgment, JudgmentCandidate, RetrievalJudge};
+
+use batch::{build_shortlist, fuse_shortlist, judge_shortlist};
 
 /// Configuration for the optional semantic rerank stage, disabled by default so
 /// retrieval ordering, cost, and provider usage are unchanged unless a caller
@@ -161,6 +160,120 @@ pub struct RerankOutcome {
     pub top1_changed: bool,
 }
 
+/// One validated judgment batch over a bounded shortlist, shared by every
+/// judgment-consuming stage.
+///
+/// Produced by [`judge_shortlist_once`], which makes at most one provider call.
+/// When `status` is [`RerankStatus::Applied`] and `shortlist_len > 1`, the
+/// `judgments` align one-to-one with the leading `shortlist_len` candidates of
+/// the input list; every other path carries no judgments. Callers that already
+/// hold a batch fuse it with [`fuse_with_judgments`] instead of paying for a
+/// second provider call.
+#[derive(Debug)]
+pub(crate) struct JudgedShortlist {
+    /// Number of leading local candidates the batch covers (`0` when nothing
+    /// was shortlisted).
+    pub shortlist_len: usize,
+    /// Validated, shortlist-aligned judgments (empty unless `status` is
+    /// [`RerankStatus::Applied`]).
+    pub judgments: Vec<CandidateJudgment>,
+    /// Provider duration in milliseconds (`0` when no provider call was made).
+    pub provider_ms: u64,
+    /// Bounded outcome of the shared provider seam.
+    pub status: RerankStatus,
+}
+
+/// Runs the shared provider seam at most once over the leading `shortlist_k`
+/// candidates and returns the validated batch.
+///
+/// Precedence (first match wins), mirroring the decisions the rerank stage takes
+/// on top of it: no judge yields [`RerankStatus::NotConfigured`] without touching
+/// the provider; a shortlisted candidate without passage text yields
+/// [`RerankStatus::Invalid`]; a shortlist of at most one candidate yields
+/// [`RerankStatus::Applied`] because there is no competing order to establish;
+/// otherwise the judge is called at most once and its aligned judgments are
+/// returned with [`RerankStatus::Applied`], or the bounded failure status is
+/// returned with no judgments.
+///
+/// The caller owns the stage gates (`enabled`, validated configuration), so this
+/// seam never validates configuration or records telemetry.
+pub(crate) fn judge_shortlist_once<'a>(
+    query: &str,
+    candidates: &'a [(String, f32)],
+    texts: &HashMap<&'a str, &'a str>,
+    judge: Option<&dyn RetrievalJudge>,
+    shortlist_k: usize,
+) -> JudgedShortlist {
+    let Some(judge) = judge else {
+        return JudgedShortlist {
+            shortlist_len: 0,
+            judgments: Vec::new(),
+            provider_ms: 0,
+            status: RerankStatus::NotConfigured,
+        };
+    };
+    let shortlist_len = shortlist_k.min(candidates.len());
+    let Some(shortlist) = build_shortlist(candidates, texts, shortlist_len) else {
+        debug!(
+            shortlist_len,
+            "judgment shortlist text missing; keeping local order"
+        );
+        return JudgedShortlist {
+            shortlist_len,
+            judgments: Vec::new(),
+            provider_ms: 0,
+            status: RerankStatus::Invalid,
+        };
+    };
+    if shortlist_len <= 1 {
+        return JudgedShortlist {
+            shortlist_len,
+            judgments: Vec::new(),
+            provider_ms: 0,
+            status: RerankStatus::Applied,
+        };
+    }
+
+    match judge_shortlist(query, &shortlist, judge) {
+        Ok((judgments, provider_ms)) => JudgedShortlist {
+            shortlist_len,
+            judgments,
+            provider_ms,
+            status: RerankStatus::Applied,
+        },
+        Err((status, provider_ms)) => JudgedShortlist {
+            shortlist_len,
+            judgments: Vec::new(),
+            provider_ms,
+            status,
+        },
+    }
+}
+
+/// Fuses a judged shortlist into the ranked `(id, score)` pairs a caller
+/// returns, truncated to `output_k`.
+///
+/// `shortlist` and `judgments` align one-to-one and are non-empty. Returns the
+/// ranked entries, the mean relevance confidence over the shortlist, and how
+/// many judgments met [`SemanticRerankConfig::min_judgment_confidence`]. The
+/// ordering rule and the below-floor rule are the ones documented on the
+/// internal fusion helper; this wrapper lets callers outside this module fuse a
+/// shared judgment batch without naming the private ordered-entry type.
+pub(crate) fn fuse_with_judgments(
+    shortlist: &[JudgmentCandidate<'_>],
+    judgments: &[CandidateJudgment],
+    config: &SemanticRerankConfig,
+    output_k: usize,
+) -> (Vec<(String, f32)>, f32, usize) {
+    let (fused, avg_confidence, confident_count) =
+        fuse_shortlist(shortlist, judgments, config, output_k);
+    let ranked = fused
+        .into_iter()
+        .map(|candidate| (candidate.id, candidate.score))
+        .collect();
+    (ranked, avg_confidence, confident_count)
+}
+
 /// Semantically rerank the leading local candidates against `query`.
 ///
 /// `candidates` MUST be the caller's local ranking, best first (descending local
@@ -217,15 +330,6 @@ struct RerankReport {
     provider_ms: u64,
 }
 
-/// One candidate during deterministic fused ordering.
-struct FusedCandidate {
-    /// Candidate id, stable across the local and provider views.
-    id: String,
-    score: f32,
-    /// Position in the pre-rerank local order (primary tie-break).
-    local_rank: usize,
-}
-
 /// Runs the rerank decision tree, returning the outcome plus telemetry values.
 fn rerank_report(
     query: &str,
@@ -258,123 +362,62 @@ fn rerank_report(
         return report(verbatim(RerankStatus::Applied, 0), 0.0, 0);
     }
 
-    // Bounded shortlist: the leading local order only, never the full corpus.
-    let shortlist_len = config.shortlist_k.min(candidates.len());
-    let Some(shortlist) = build_shortlist(candidates, texts, shortlist_len) else {
-        debug!(
-            shortlist_len,
-            "semantic rerank shortlist text missing; keeping local order"
-        );
-        return report(verbatim(RerankStatus::Invalid, shortlist_len), 0.0, 0);
-    };
+    // The shared provider seam: at most one judgment call over the bounded
+    // leading shortlist, reused by every judgment-consuming stage.
+    let batch = judge_shortlist_once(query, candidates, texts, Some(judge), config.shortlist_k);
+    if batch.status != RerankStatus::Applied {
+        let outcome = verbatim(batch.status, batch.shortlist_len);
+        return report(outcome, 0.0, batch.provider_ms);
+    }
 
-    // A single shortlisted candidate has no competing order to establish: skip
-    // the provider and return the leading local order capped at `output_k`.
-    if shortlist_len <= 1 {
+    // A shortlist of at most one candidate has no competing order to establish:
+    // the leading local order stands, capped at `output_k`.
+    if batch.shortlist_len <= 1 {
         let output_len = config.output_k.min(candidates.len());
-        let outcome =
-            local_order_outcome(candidates, output_len, shortlist_len, RerankStatus::Applied);
+        let outcome = local_order_outcome(
+            candidates,
+            output_len,
+            batch.shortlist_len,
+            RerankStatus::Applied,
+        );
         return report(outcome, 0.0, 0);
     }
 
-    let (judgments, provider_ms) = match judge_shortlist(query, &shortlist, judge) {
-        Ok(judged) => judged,
-        Err((status, provider_ms)) => {
-            return report(verbatim(status, shortlist_len), 0.0, provider_ms);
-        }
-    };
-
-    let (ordered, avg_confidence, confident_count) =
-        fuse_shortlist(&shortlist, &judgments, &config, config.output_k);
+    // The batch covered exactly this shortlist, so fusion reuses its judgments
+    // against the leading local ids and scores. Only those two fields feed the
+    // fusion, so the provider-facing passage text is not rebuilt here.
+    let mut shortlist: Vec<JudgmentCandidate<'_>> = Vec::with_capacity(batch.shortlist_len);
+    for (id, score) in candidates.iter().take(batch.shortlist_len) {
+        shortlist.push(JudgmentCandidate::new(id, "", *score));
+    }
+    let (fused, avg_confidence, confident_count) =
+        fuse_with_judgments(&shortlist, &batch.judgments, &config, config.output_k);
     if confident_count == 0 {
         debug!(
-            shortlist_len,
+            shortlist_len = batch.shortlist_len,
             "no judgment above the confidence floor; keeping local order"
         );
-        let outcome = verbatim(RerankStatus::LowConfidence, shortlist_len);
-        return report(outcome, avg_confidence, provider_ms);
+        let outcome = verbatim(RerankStatus::LowConfidence, batch.shortlist_len);
+        return report(outcome, avg_confidence, batch.provider_ms);
     }
 
-    let output_len = ordered.len();
-    let top1_changed = ordered
+    let output_len = fused.len();
+    let top1_changed = fused
         .first()
         .zip(candidates.first())
-        .is_some_and(|(top, (local_top_id, _))| top.id.as_str() != local_top_id.as_str());
-
+        .is_some_and(|((top, _), (local_top_id, _))| top.as_str() != local_top_id.as_str());
     report(
         RerankOutcome {
-            ids: ordered.iter().map(|entry| entry.id.clone()).collect(),
-            scores: ordered.iter().map(|entry| entry.score).collect(),
+            ids: fused.iter().map(|(id, _)| id.clone()).collect(),
+            scores: fused.iter().map(|(_, score)| *score).collect(),
             status: RerankStatus::Applied,
-            shortlist_len,
+            shortlist_len: batch.shortlist_len,
             output_len,
             top1_changed,
         },
         avg_confidence,
-        provider_ms,
+        batch.provider_ms,
     )
-}
-
-/// Builds the one judgment batch from the leading local candidates.
-///
-/// `None` means a shortlisted candidate has no passage text, which must skip the
-/// provider call rather than judge a candidate without text.
-fn build_shortlist<'a>(
-    candidates: &'a [(String, f32)],
-    texts: &HashMap<&'a str, &'a str>,
-    shortlist_len: usize,
-) -> Option<Vec<JudgmentCandidate<'a>>> {
-    let mut shortlist: Vec<JudgmentCandidate<'a>> = Vec::with_capacity(shortlist_len);
-    for (id, local_score) in candidates.iter().take(shortlist_len) {
-        let text = texts.get(id.as_str()).copied()?;
-        shortlist.push(JudgmentCandidate::new(id, text, *local_score));
-    }
-    Some(shortlist)
-}
-
-/// Calls the judge once and aligns its judgments with the shortlist.
-///
-/// # Errors
-///
-/// Returns the bounded [`RerankStatus`] the failed attempt maps to plus the
-/// provider duration, so the caller keeps the local order without inspecting
-/// provider error strings.
-fn judge_shortlist(
-    query: &str,
-    shortlist: &[JudgmentCandidate<'_>],
-    judge: &dyn RetrievalJudge,
-) -> Result<(Vec<CandidateJudgment>, u64), (RerankStatus, u64)> {
-    let provider_start = Instant::now();
-    let result = evaluate_judgments(Some(judge), query, shortlist);
-    let provider_ms = provider_start
-        .elapsed()
-        .as_millis()
-        .min(u128::from(u64::MAX)) as u64;
-
-    match result {
-        Ok(Some(judgments)) if judgments.len() == shortlist.len() => Ok((judgments, provider_ms)),
-        Ok(Some(judgments)) => {
-            let count = judgments.len();
-            debug!(
-                shortlist_len = shortlist.len(),
-                judgment_count = count,
-                "count mismatch"
-            );
-            Err((RerankStatus::Invalid, provider_ms))
-        }
-        // Unreachable while a judge is configured: never invent a ranking.
-        Ok(None) => Err((RerankStatus::NotConfigured, provider_ms)),
-        Err(err) => {
-            let status = match err {
-                JudgmentError::Invalid(_) => RerankStatus::Invalid,
-                JudgmentError::Unavailable
-                | JudgmentError::Timeout
-                | JudgmentError::Provider(_) => RerankStatus::ProviderError,
-            };
-            debug!(status = %status.as_str(), shortlist_len = shortlist.len(), "provider call failed");
-            Err((status, provider_ms))
-        }
-    }
 }
 
 /// The leading local candidates in unchanged order, capped at `output_len`.
@@ -398,64 +441,6 @@ fn local_order_outcome(
         output_len,
         top1_changed: false,
     }
-}
-
-/// Fuses local scores with aligned relevance judgments, orders the result
-/// deterministically, and truncates it to `output_k`.
-///
-/// Returns the ordered entries, the mean relevance confidence over the
-/// shortlist, and how many judgments met the confidence floor. `shortlist` and
-/// `judgments` are aligned one-to-one and non-empty. Ordering is descending
-/// fused score, ties resolved by original local rank, then candidate id.
-fn fuse_shortlist(
-    shortlist: &[JudgmentCandidate<'_>],
-    judgments: &[CandidateJudgment],
-    config: &SemanticRerankConfig,
-    output_k: usize,
-) -> (Vec<FusedCandidate>, f32, usize) {
-    let local_scores: Vec<f32> = shortlist
-        .iter()
-        .map(|candidate| candidate.local_score)
-        .collect();
-    let normalized = normalize_min_max(&local_scores);
-
-    let mut fused: Vec<FusedCandidate> = Vec::with_capacity(shortlist.len());
-    let mut confidence_sum = 0.0_f32;
-    let mut confident_count = 0_usize;
-
-    for (local_rank, (candidate, judgment)) in shortlist.iter().zip(judgments.iter()).enumerate() {
-        let relevance = judgment.relevance;
-        confidence_sum += relevance.confidence;
-
-        let local = normalized[local_rank];
-        let score = if relevance.confidence >= config.min_judgment_confidence {
-            confident_count += 1;
-            config.local_weight * local
-                + config.semantic_weight * (relevance.value * relevance.confidence)
-        } else {
-            // Below the confidence floor the provider signal is not trustworthy
-            // enough to outweigh a deterministic local score, so the candidate
-            // keeps its normalized local score and, with it, its local ordering.
-            local
-        };
-
-        fused.push(FusedCandidate {
-            id: candidate.id.to_string(),
-            score,
-            local_rank,
-        });
-    }
-
-    fused.sort_by(|a, b| {
-        b.score
-            .total_cmp(&a.score)
-            .then_with(|| a.local_rank.cmp(&b.local_rank))
-            .then_with(|| a.id.cmp(&b.id))
-    });
-    fused.truncate(output_k);
-
-    let avg_confidence = confidence_sum / shortlist.len() as f32;
-    (fused, avg_confidence, confident_count)
 }
 
 /// Min-max normalizes `scores` into `[0.0, 1.0]`.
@@ -488,6 +473,8 @@ fn normalize_min_max(scores: &[f32]) -> Vec<f32> {
         })
         .collect()
 }
+
+mod batch;
 
 #[cfg(test)]
 mod tests;

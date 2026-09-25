@@ -253,6 +253,64 @@ fn test_with_semantic_rerank_stores_normalized_weights() {
     assert!((config.semantic_weight - 0.75).abs() < f32::EPSILON);
 }
 
+/// Covers the ungated evidence-policy plumbing, so it must run without the
+/// `csm` feature (the coverage job builds default features).
+#[test]
+fn test_evidence_policy_is_absent_by_default() {
+    let retriever = CascadeRetriever::default_config();
+
+    assert!(
+        retriever.evidence_policy().is_none(),
+        "evidence classification must be opt-in"
+    );
+}
+
+#[test]
+fn test_with_evidence_policy_rejects_invalid_policy() {
+    use crate::retrieval::evidence::{EvidencePolicy, EvidencePolicyError};
+
+    let invalid = EvidencePolicy {
+        candidate_limit: 0,
+        ..EvidencePolicy::default()
+    };
+
+    let outcome = CascadeRetriever::default_config().with_evidence_policy(invalid);
+
+    assert_eq!(
+        outcome.err(),
+        Some(EvidencePolicyError::ZeroCandidateLimit),
+        "a policy with no candidate budget must be rejected up front"
+    );
+}
+
+#[test]
+fn test_with_evidence_policy_stores_validated_policy() {
+    use crate::retrieval::evidence::EvidencePolicy;
+
+    let policy = EvidencePolicy {
+        candidate_limit: 7,
+        allow_drop: true,
+        ..EvidencePolicy::default()
+    };
+
+    let retriever = CascadeRetriever::default_config()
+        .with_evidence_policy(policy.clone())
+        .expect("the test policy is valid");
+
+    assert_eq!(retriever.evidence_policy(), Some(&policy));
+}
+
+#[cfg(not(feature = "csm"))]
+#[test]
+fn test_retrieve_with_evidence_unavailable_without_csm() {
+    let retriever = CascadeRetriever::default_config();
+
+    assert!(matches!(
+        retriever.retrieve_with_evidence("test query"),
+        Err(CascadeError::CapabilityUnavailable)
+    ));
+}
+
 /// Tests for CSM-enabled cascade behavior.
 #[cfg(feature = "csm")]
 mod csm_tests {
@@ -1106,5 +1164,485 @@ mod csm_tests {
             exposition.contains("operation=\"cascade\""),
             "cascade telemetry is recorded while staying bounded"
         );
+    }
+
+    // ── Evidence classification integration (issue #1032) ──
+
+    use crate::monitoring::metrics::EvidenceStatus;
+    use crate::retrieval::evidence::{
+        CandidateEvidence, EvidenceDisposition, EvidenceHit, EvidencePolicy,
+        EvidenceRetrievalResult,
+    };
+
+    /// A trusted, unremarkable judgment: relevant, useful, nothing suspicious.
+    fn kept(id: &str) -> CandidateJudgment {
+        judged(id, 1.0, 1.0, 0.0, 0.0, 1.0)
+    }
+
+    /// One typed judgment carrying `confidence` on every dimension.
+    fn judged(
+        id: &str,
+        relevance: f32,
+        useful_evidence: f32,
+        contradiction: f32,
+        instruction_like: f32,
+        confidence: f32,
+    ) -> CandidateJudgment {
+        CandidateJudgment {
+            id: id.to_string(),
+            relevance: AtomicScore::new(relevance, confidence),
+            useful_evidence: AtomicScore::new(useful_evidence, confidence),
+            contradiction: AtomicScore::new(contradiction, confidence),
+            instruction_like: AtomicScore::new(instruction_like, confidence),
+        }
+    }
+
+    /// Deterministic judge: counts provider calls and returns one fixed
+    /// judgment per candidate id (a trusted `Keep` by default), or fails like
+    /// an unavailable provider.
+    struct ScriptedJudge {
+        calls: Arc<AtomicUsize>,
+        scripts: Vec<(String, CandidateJudgment)>,
+        fail: bool,
+    }
+
+    impl ScriptedJudge {
+        fn new(calls: &Arc<AtomicUsize>, scripts: Vec<(String, CandidateJudgment)>) -> Self {
+            Self {
+                calls: Arc::clone(calls),
+                scripts,
+                fail: false,
+            }
+        }
+
+        fn unavailable(calls: &Arc<AtomicUsize>) -> Self {
+            Self {
+                calls: Arc::clone(calls),
+                scripts: Vec::new(),
+                fail: true,
+            }
+        }
+    }
+
+    impl RetrievalJudge for ScriptedJudge {
+        fn judge_candidates(
+            &self,
+            _query: &str,
+            candidates: &[JudgmentCandidate<'_>],
+        ) -> Result<Vec<CandidateJudgment>, JudgmentError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            if self.fail {
+                return Err(JudgmentError::Unavailable);
+            }
+            Ok(candidates
+                .iter()
+                .map(|candidate| {
+                    self.scripts
+                        .iter()
+                        .find(|(id, _)| id.as_str() == candidate.id)
+                        .map_or_else(|| kept(candidate.id), |(_, judgment)| judgment.clone())
+                })
+                .collect())
+        }
+    }
+
+    /// Evidence-aware retriever over `AUTH_CORPUS` with a scripted judge and no
+    /// rerank, so the evidence stage owns the only provider call.
+    fn evidence_retriever(
+        config: CascadeConfig,
+        calls: &Arc<AtomicUsize>,
+        scripts: Vec<(String, CandidateJudgment)>,
+        policy: EvidencePolicy,
+    ) -> CascadeRetriever {
+        let mut retriever = CascadeRetriever::new(config)
+            .with_judge(Arc::new(ScriptedJudge::new(calls, scripts)))
+            .with_evidence_policy(policy)
+            .expect("the test evidence policy is valid");
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+        retriever
+    }
+
+    /// Rerank- and evidence-enabled retriever over `AUTH_CORPUS` whose judge
+    /// promotes `promote` to full relevance.
+    fn reranking_evidence_retriever(
+        config: CascadeConfig,
+        calls: &Arc<AtomicUsize>,
+        promote: &str,
+        policy: EvidencePolicy,
+    ) -> CascadeRetriever {
+        let mut retriever = CascadeRetriever::new(config)
+            .with_judge(Arc::new(RecordingJudge {
+                calls: Arc::clone(calls),
+                promote: promote.to_string(),
+                fail: false,
+            }))
+            .with_semantic_rerank(enabled_rerank_config())
+            .expect("enabled rerank config is valid")
+            .with_evidence_policy(policy)
+            .expect("the test evidence policy is valid");
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+        retriever
+    }
+
+    /// The evidence view's entry for `episode_id`.
+    fn hit_for<'a>(result: &'a EvidenceRetrievalResult, episode_id: &str) -> &'a EvidenceHit {
+        result
+            .hits
+            .iter()
+            .find(|hit| hit.episode_id == episode_id)
+            .expect("the candidate is present in the evidence view")
+    }
+
+    #[test]
+    fn test_evidence_base_matches_plain_retrieve() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+        assert_eq!(local.contributing_tiers, vec!["bm25".to_string()]);
+        let promoted = promoted_candidate(&local);
+
+        // One retriever per entry point, same judge and rerank configuration.
+        let plain_calls = Arc::new(AtomicUsize::new(0));
+        let mut plain = reranking_retriever(config.clone(), &plain_calls, &promoted);
+        add_corpus(&mut plain, &AUTH_CORPUS);
+        let expected = plain
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let retriever =
+            reranking_evidence_retriever(config, &calls, &promoted, EvidencePolicy::default());
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(result.base.episode_ids, expected.episode_ids);
+        assert_eq!(result.base.scores, expected.scores);
+        assert_eq!(result.base.contributing_tiers, expected.contributing_tiers);
+        assert_eq!(result.base.api_calls, expected.api_calls);
+        assert_eq!(result.base.fallback_reason, expected.fallback_reason);
+        assert_eq!(result.base.top_score, expected.top_score);
+        assert_eq!(result.base.score_margin, expected.score_margin);
+        assert_ne!(
+            result.base.episode_ids.first(),
+            local.episode_ids.first(),
+            "precondition: the shared batch reranked the local order"
+        );
+        assert_eq!(
+            result.hits.first().map(|hit| hit.episode_id.as_str()),
+            Some(promoted.as_str()),
+            "the trusted candidate leads the evidence view"
+        );
+        assert_eq!(
+            result.hits.len(),
+            result.base.episode_ids.len(),
+            "the default policy never removes a candidate"
+        );
+        assert_eq!(result.status, EvidenceStatus::Applied);
+        assert_eq!(
+            judge_calls(&calls),
+            1,
+            "the rerank and evidence stages share one provider call"
+        );
+        assert_eq!(judge_calls(&plain_calls), 1);
+
+        // `local_score` is the pre-rerank local score, `final_score` the score
+        // after rerank.
+        let promoted_hit = hit_for(&result, &promoted);
+        assert_eq!(promoted_hit.final_score, result.base.scores[0]);
+        let local_index = local
+            .episode_ids
+            .iter()
+            .position(|id| id == &promoted_hit.episode_id)
+            .expect("the promoted candidate came from the local result");
+        assert_eq!(promoted_hit.local_score, local.scores[local_index]);
+    }
+
+    #[test]
+    fn test_evidence_rerank_shares_one_provider_call_on_tier4_path() {
+        let config = CascadeConfig {
+            merge_results: false,
+            enable_concept_expansion: false,
+            // Unreachable with three episodes, so no tier can suffice.
+            min_results: 4,
+            ..CascadeConfig::default()
+        };
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+        assert!(
+            local.episode_ids.len() >= 2,
+            "precondition: Tier 4 still holds local candidates"
+        );
+        let promoted = promoted_candidate(&local);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let retriever =
+            reranking_evidence_retriever(config, &calls, &promoted, EvidencePolicy::default());
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(
+            judge_calls(&calls),
+            1,
+            "Tier 4 must share one provider call across both stages"
+        );
+        assert_eq!(
+            result.base.episode_ids.first(),
+            Some(&promoted),
+            "tier accounting must see the reranked ordering"
+        );
+        assert_eq!(
+            result.hits.first().map(|hit| hit.episode_id.as_str()),
+            Some(promoted.as_str())
+        );
+        assert_eq!(result.status, EvidenceStatus::Applied);
+    }
+
+    #[test]
+    fn test_evidence_provider_unavailable_preserves_local_results() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = CascadeRetriever::new(config)
+            .with_judge(Arc::new(ScriptedJudge::unavailable(&calls)))
+            .with_evidence_policy(EvidencePolicy::default())
+            .expect("the test evidence policy is valid");
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("a provider failure must not fail retrieval");
+
+        assert_eq!(result.base.episode_ids, local.episode_ids, "ids preserved");
+        assert_eq!(result.base.scores, local.scores, "scores preserved");
+        assert_eq!(result.status, EvidenceStatus::ProviderError);
+        assert!(
+            result.hits.iter().all(|hit| hit.evidence.is_none()),
+            "a failed batch classifies nothing"
+        );
+        assert_eq!(
+            result.hits.len(),
+            result.base.episode_ids.len(),
+            "the evidence view still covers the local candidates"
+        );
+        assert_eq!(judge_calls(&calls), 1, "the provider was attempted once");
+    }
+
+    #[test]
+    fn test_instruction_like_candidate_is_flagged_and_never_dropped() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+        // Instruction-like and low-relevance: the flag rule must win, so an
+        // injected passage can never be silently removed.
+        let injected = judged("ep-1", 0.1, 0.1, 0.0, 1.0, 0.95);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let retriever = evidence_retriever(
+            config,
+            &calls,
+            vec![("ep-1".to_string(), injected.clone())],
+            EvidencePolicy::default(),
+        );
+
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        let hit = hit_for(&result, "ep-1");
+        assert_eq!(
+            hit.evidence,
+            Some(CandidateEvidence::from_judgment(
+                &injected,
+                EvidenceDisposition::Flag
+            )),
+            "instruction-like text is flagged, never dropped"
+        );
+        assert!(
+            result.hits.iter().any(|hit| hit.episode_id == "ep-1"),
+            "the flagged candidate stays in the evidence view"
+        );
+
+        // Classification is read-only: the retriever's own path is unchanged.
+        let after = retriever
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+        assert_eq!(after.episode_ids, local.episode_ids);
+        assert_eq!(after.scores, local.scores);
+        assert_eq!(
+            judge_calls(&calls),
+            1,
+            "the evidence stage made the only provider call"
+        );
+    }
+
+    #[test]
+    fn test_evidence_demotion_is_deterministic_across_runs() {
+        let config = bm25_path_config();
+        let scripts = || vec![("ep-1".to_string(), judged("ep-1", 0.1, 0.9, 0.0, 0.0, 0.95))];
+
+        let first_calls = Arc::new(AtomicUsize::new(0));
+        let first = evidence_retriever(
+            config.clone(),
+            &first_calls,
+            scripts(),
+            EvidencePolicy::default(),
+        );
+        let first_result = first
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        let second_calls = Arc::new(AtomicUsize::new(0));
+        let second =
+            evidence_retriever(config, &second_calls, scripts(), EvidencePolicy::default());
+        let second_result = second
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(
+            hit_for(&first_result, "ep-1")
+                .evidence
+                .map(|evidence| evidence.disposition),
+            Some(EvidenceDisposition::Demote),
+            "low relevance is demoted when dropping is not allowed"
+        );
+        assert_eq!(
+            first_result.hits, second_result.hits,
+            "the same judgments produce the same evidence view"
+        );
+        assert_eq!(first_result.base.scores, second_result.base.scores);
+        assert_eq!(first_result.status, second_result.status);
+    }
+
+    #[test]
+    fn test_evidence_allow_drop_removes_only_low_relevance_candidates() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let retriever = evidence_retriever(
+            config,
+            &calls,
+            vec![("ep-1".to_string(), judged("ep-1", 0.1, 0.9, 0.0, 0.0, 0.95))],
+            EvidencePolicy {
+                allow_drop: true,
+                ..EvidencePolicy::default()
+            },
+        );
+
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(
+            result.base.episode_ids, local.episode_ids,
+            "evidence classification never changes base"
+        );
+        assert_eq!(result.base.scores, local.scores);
+        assert!(
+            !result.hits.iter().any(|hit| hit.episode_id == "ep-1"),
+            "the low-relevance candidate is dropped from the evidence view"
+        );
+        assert_eq!(result.hits.len(), result.base.episode_ids.len() - 1);
+        assert!(
+            result.hits.iter().all(|hit| {
+                !hit.evidence
+                    .is_some_and(|evidence| evidence.disposition == EvidenceDisposition::Drop)
+            }),
+            "no dropped candidate survives"
+        );
+        assert_eq!(result.status, EvidenceStatus::Applied);
+    }
+
+    #[test]
+    fn test_evidence_telemetry_stays_redacted() {
+        let query_marker = "secretquerymarker";
+        let id_marker = "ep-secretmarker";
+        let query = format!("{query_marker} authentication JWT token");
+        let injected_id = format!("{id_marker}-ep-1");
+        let injected = judged(&injected_id, 0.1, 0.1, 0.0, 1.0, 0.95);
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = CascadeRetriever::new(bm25_path_config())
+            .with_judge(Arc::new(ScriptedJudge::new(
+                &calls,
+                vec![(injected_id, injected)],
+            )))
+            .with_evidence_policy(EvidencePolicy::default())
+            .expect("the test evidence policy is valid");
+        for (id, text) in AUTH_CORPUS {
+            retriever.add_episode(&format!("{id_marker}-{id}"), text);
+        }
+
+        let result = retriever
+            .retrieve_with_evidence(&query)
+            .expect("csm evidence retrieval should succeed");
+        assert_eq!(result.status, EvidenceStatus::Applied);
+
+        let metrics = global_retrieval_metrics();
+        let snapshot = metrics.snapshot().to_string();
+        let exposition = metrics.export_prometheus();
+        for marker in [query_marker, id_marker] {
+            assert!(
+                !snapshot.contains(marker),
+                "JSON snapshot must not carry {marker}"
+            );
+            assert!(
+                !exposition.contains(marker),
+                "Prometheus exposition must not carry {marker}"
+            );
+        }
+        assert!(
+            exposition.contains("memory_evidence_requests_total{status=\"applied\"}"),
+            "evidence telemetry is recorded while staying bounded"
+        );
+    }
+
+    #[test]
+    fn test_evidence_without_policy_reports_disabled() {
+        let config = bm25_path_config();
+        let local = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        // A judge is attached, so only the missing policy can keep it idle.
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut retriever = CascadeRetriever::new(config)
+            .with_judge(Arc::new(ScriptedJudge::new(&calls, Vec::new())));
+        add_corpus(&mut retriever, &AUTH_CORPUS);
+
+        let result = retriever
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(result.status, EvidenceStatus::Disabled);
+        assert_eq!(result.base.episode_ids, local.episode_ids);
+        assert_eq!(result.base.scores, local.scores);
+        assert_eq!(result.hits.len(), result.base.episode_ids.len());
+        assert!(result.hits.iter().all(|hit| hit.evidence.is_none()));
+        assert_eq!(
+            judge_calls(&calls),
+            0,
+            "a disabled evidence stage makes no provider call"
+        );
+    }
+
+    #[test]
+    fn test_evidence_policy_does_not_change_plain_retrieve() {
+        let config = bm25_path_config();
+        let without_policy = local_baseline(AUTH_QUERY, config.clone(), &AUTH_CORPUS);
+
+        let mut with_policy = CascadeRetriever::new(config)
+            .with_evidence_policy(EvidencePolicy::default())
+            .expect("the test evidence policy is valid");
+        add_corpus(&mut with_policy, &AUTH_CORPUS);
+        let plain = with_policy
+            .retrieve(AUTH_QUERY)
+            .expect("csm retrieve should succeed");
+
+        assert_eq!(plain.episode_ids, without_policy.episode_ids);
+        assert_eq!(plain.scores, without_policy.scores);
+        assert_eq!(plain.contributing_tiers, without_policy.contributing_tiers);
+        assert_eq!(plain.api_calls, without_policy.api_calls);
+        assert_eq!(plain.fallback_reason, without_policy.fallback_reason);
+        assert_eq!(plain.top_score, without_policy.top_score);
+        assert_eq!(plain.score_margin, without_policy.score_margin);
     }
 }

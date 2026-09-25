@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Write as _;
 
-use super::types::{BenchmarkMetrics, BenchmarkReport, RegressionThresholds};
+use super::types::{BenchmarkMetrics, BenchmarkReport, EVIDENCE_DIMENSIONS, RegressionThresholds};
 
 /// Results of a regression check comparing current run against baseline.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,12 +41,17 @@ impl RegressionChecker {
     ///
     /// `comparison_only` names strategies that are reported on demand and are
     /// deliberately absent from baseline artifacts — currently the semantic
-    /// rerank arm ([`crate::retrieval::eval::RERANK_COMPARISON_STRATEGY`]). Such
-    /// a strategy is skipped when the baseline has no counterpart instead of
-    /// being flagged, so `--rerank` runs stay comparable against the shipped
-    /// baseline. Every other strategy keeps the strict "present in current run
-    /// but missing in baseline" check, and a comparison-only strategy that *is*
-    /// present in the baseline is still regression-checked.
+    /// rerank arm ([`crate::retrieval::eval::RERANK_COMPARISON_STRATEGY`]) and
+    /// the evidence-classification arm
+    /// ([`crate::retrieval::eval::EVIDENCE_COMPARISON_STRATEGY`]). Such a
+    /// strategy is skipped when the baseline has no counterpart instead of being
+    /// flagged, so `--rerank` and `--evidence` runs stay comparable against the
+    /// shipped baseline. Every other strategy keeps the strict "present in
+    /// current run but missing in baseline" check, and a comparison-only strategy
+    /// that *is* present in the baseline is still regression-checked.
+    ///
+    /// Evidence false drops are *not* skipped: they are checked for every
+    /// strategy in the current run, including one the baseline does not track.
     pub fn check_ignoring(
         &self,
         current: &BenchmarkReport,
@@ -61,6 +66,22 @@ impl RegressionChecker {
             } else if !comparison_only.contains(&strategy_name.as_str()) {
                 violations.push(format!(
                     "Strategy '{strategy_name}' present in current run but missing in baseline"
+                ));
+            }
+
+            // Evidence false drops (issue #1032): dropping a labelled candidate
+            // the fixture expects to keep is a classification defect, not a
+            // trade-off, so any non-zero count fails the check — including for a
+            // comparison-only arm the baseline does not track, which would
+            // otherwise never be gated.
+            let false_drops = curr_m
+                .evidence_metrics
+                .as_ref()
+                .filter(|metrics| metrics.false_drop_count > 0);
+            if let Some(evidence) = false_drops {
+                violations.push(format!(
+                    "[{strategy_name}] Evidence classification false-dropped {} labelled keep candidate(s) (rate {:.4}); false drops are release-blocking",
+                    evidence.false_drop_count, evidence.false_drop_rate
                 ));
             }
         }
@@ -291,6 +312,88 @@ pub fn format_markdown_report(
                 m.judge_calls_per_query,
                 m.rerank_candidates_per_query,
                 m.top1_changed_rate * 100.0
+            );
+        }
+        let _ = writeln!(out);
+    }
+
+    // Rendered only when the run actually exercised the evidence arm, so
+    // reports without evidence classification stay unchanged (issue #1032).
+    let classified = report
+        .strategies
+        .values()
+        .any(|m| m.evidence_metrics.is_some());
+
+    if classified {
+        let _ = writeln!(out, "## Evidence Classification");
+        let _ = writeln!(out);
+        let _ = writeln!(
+            out,
+            "| Strategy | Dimension | Precision | Recall | TP | FP | FN | TN |"
+        );
+        let _ = writeln!(out, "|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|");
+        for (name, m) in &report.strategies {
+            let Some(evidence) = m.evidence_metrics.as_ref() else {
+                continue;
+            };
+            for (dimension, metric) in EVIDENCE_DIMENSIONS.iter().zip(&evidence.per_dimension) {
+                let _ = writeln!(
+                    out,
+                    "| **{}** | `{}` | {:.3} | {:.3} | {} | {} | {} | {} |",
+                    name,
+                    dimension,
+                    metric.precision,
+                    metric.recall,
+                    metric.tp,
+                    metric.fp,
+                    metric.fn_,
+                    metric.tn
+                );
+            }
+        }
+        let _ = writeln!(out);
+
+        let _ = writeln!(
+            out,
+            "| Strategy | Keep | Flag | Demote | Drop | Total | False Drops | False Drop Rate |"
+        );
+        let _ = writeln!(out, "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|");
+        for (name, m) in &report.strategies {
+            let Some(evidence) = m.evidence_metrics.as_ref() else {
+                continue;
+            };
+            let counts = &evidence.dispositions;
+            let _ = writeln!(
+                out,
+                "| **{}** | {} | {} | {} | {} | {} | {} | {:.4} |",
+                name,
+                counts.keep,
+                counts.flag,
+                counts.demote,
+                counts.drop,
+                counts.total,
+                evidence.false_drop_count,
+                evidence.false_drop_rate
+            );
+        }
+        let _ = writeln!(out);
+
+        let _ = writeln!(
+            out,
+            "| Strategy | Judge Calls / Query | Added P50 (μs) | Added P95 (μs) |"
+        );
+        let _ = writeln!(out, "|:---|:---:|:---:|:---:|");
+        for (name, m) in &report.strategies {
+            let Some(evidence) = m.evidence_metrics.as_ref() else {
+                continue;
+            };
+            let _ = writeln!(
+                out,
+                "| **{}** | {:.2} | {} | {} |",
+                name,
+                evidence.judge_calls_per_query,
+                evidence.added_latency_p50_us,
+                evidence.added_latency_p95_us
             );
         }
         let _ = writeln!(out);

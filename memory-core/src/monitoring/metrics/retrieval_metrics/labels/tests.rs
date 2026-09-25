@@ -64,6 +64,24 @@ fn label_vocabularies_are_bounded() {
         assert_eq!(status.index(), expected);
         assert_label_value(status.as_str());
     }
+    let evidence_statuses = [
+        EvidenceStatus::Disabled,
+        EvidenceStatus::NotConfigured,
+        EvidenceStatus::Applied,
+        EvidenceStatus::LowConfidence,
+        EvidenceStatus::ProviderError,
+        EvidenceStatus::Invalid,
+    ];
+    assert_eq!(evidence_statuses.len(), N_EVIDENCE_STATUSES);
+    for (expected, status) in evidence_statuses.iter().enumerate() {
+        // `index()` is the storage slot and the exposition walk order.
+        assert_eq!(status.index(), expected);
+        assert_label_value(status.as_str());
+    }
+    for disposition in DISPOSITIONS {
+        assert_label_value(disposition);
+    }
+    assert_eq!(DISPOSITIONS.len(), N_DISPOSITIONS);
 }
 
 #[test]

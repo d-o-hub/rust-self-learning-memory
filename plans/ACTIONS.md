@@ -1,8 +1,17 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-08-12
-- **Active plan**: this PR (`feat/ranking-adaptation`, ADR-082 + ADR-025/054 canonicalization) and merged #947 (2026-08-12); see ADR-079 stage 4 / ADR-080/081 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
+- **Last Updated**: 2026-09-24
+- **Active plan**: no in-flight code plan — #1030/#1031 landed via PRs #1041/#1042 (2026-09-24); tooling in review (#1046); next candidate is evidence-aware passage classification (#1032). See ADR-079 stage 4 / ADR-080/081/082 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Completed actions (2026-09-24 — retrieval judgment + rerank + merge tooling)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-364 | Implement the provider-neutral typed semantic judgment interface (#1030) | R-F11 / #1030 | ✅ merged in PR #1041 — `RetrievalJudge`, typed atomic judgments, ID/score validation, bounded telemetry, 12 gate-satisfying tests |
+| ACT-365 | Implement opt-in semantic shortlist rerank with deterministic fusion (#1031) | R-F12 / #1031 | ✅ merged in PR #1042 — `SemanticRerankConfig`, single `finish_ranked` path, `RerankStatus` telemetry, offline `--rerank` eval comparison (regression PASSED) |
+| ACT-366 | Gate merges on readiness and check tracker drift; capture coverage-waiver knowledge | tooling | 🔄 PR #1046 — `merge-pr.sh`, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill |
+| ACT-367 | File harness friction upstream (sensor re-runs, beat scoping, PR readiness CLI, coverage classifier, project-check sensors, ci-explain, learn drafting, PR-loop metrics) | harness | ✅ 8 issues in `d-o-hub/do-harness` (#238–#245) |
 
 ## Completed actions (2026-08-12 — ranking adaptation + registry canonicalization)
 

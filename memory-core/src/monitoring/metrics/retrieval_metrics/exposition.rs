@@ -11,6 +11,8 @@ use super::labels::{
 };
 use super::registry::RetrievalMetrics;
 
+mod rerank;
+
 const ALL_OPERATIONS: [RetrievalOperation; 2] =
     [RetrievalOperation::Query, RetrievalOperation::Cascade];
 
@@ -72,6 +74,7 @@ impl RetrievalMetrics {
             "embeddings": self.embeddings_map(),
             "candidates": self.candidates_map(),
             "judgments": self.judgments_map(),
+            "rerank": self.rerank_map(),
         })
     }
 
@@ -314,6 +317,8 @@ impl RetrievalMetrics {
             let _ = writeln!(out, "memory_judgment_candidates_sum {}", candidate_sum);
             let _ = writeln!(out, "memory_judgment_candidates_count {}", candidate_count);
         }
+
+        self.write_rerank_lines(&mut out);
 
         out
     }

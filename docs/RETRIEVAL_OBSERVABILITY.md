@@ -1,6 +1,6 @@
 # Retrieval Observability
 
-**Issues**: #962 (retrieval-plane telemetry) · #1030 (semantic judgment telemetry)
+**Issues**: #962 (retrieval-plane telemetry) · #1030 (semantic judgment telemetry) · #1031 (semantic rerank telemetry)
 **Last Updated**: 2026-09-23
 **Registry**: `do_memory_core::monitoring::metrics::global_retrieval_metrics()`
 
@@ -9,10 +9,10 @@
 ## Overview
 
 Every retrieval request, cache lookup, embedding call, Tier-4 fallback,
-semantic judgment call, and recommendation feedback signal is recorded into a
-process-global
-`RetrievalMetrics` registry. The same registry backs three instrumentation
-surfaces, so the CLI, MCP, and Prometheus always agree:
+semantic judgment call, semantic rerank invocation, and recommendation
+feedback signal is recorded into a process-global `RetrievalMetrics` registry.
+The same registry backs three instrumentation surfaces, so the CLI, MCP, and
+Prometheus always agree:
 
 | Surface | Access | Format |
 |---------|--------|--------|
@@ -43,6 +43,15 @@ endpoint into Prometheus.
 | `memory_judgment_duration_seconds` | summary | `quantile` | Semantic judgment provider latency; quantiles 0.5, 0.95, 0.99 |
 | `memory_judgment_candidates_sum` | counter | - | Cumulative candidates submitted for semantic judgment |
 | `memory_judgment_candidates_count` | counter | - | Judgment observations; divide `sum` by `count` for the average batch size |
+| `memory_rerank_requests_total` | counter | `status` | Semantic rerank invocations by status; only `applied` and `low_confidence` reached the judge |
+| `memory_rerank_duration_seconds` | summary | `quantile` | Judge-backed rerank latency; quantiles 0.5, 0.95, 0.99 |
+| `memory_rerank_shortlist_sum` | counter | - | Cumulative candidate-set sizes entering semantic rerank |
+| `memory_rerank_shortlist_count` | counter | - | Rerank observations; divide `sum` by `count` for the average shortlist size |
+| `memory_rerank_output_sum` | counter | - | Cumulative reranked result sizes |
+| `memory_rerank_output_count` | counter | - | Rerank observations; divide `sum` by `count` for the average output size |
+| `memory_rerank_top1_changed_total` | counter | - | Rerank invocations that changed the top-ranked candidate |
+| `memory_rerank_confidence_sum` | counter | - | Cumulative judge-reported relevance confidence (0..1) |
+| `memory_rerank_confidence_count` | counter | - | Confidence observations; divide `sum` by `count` for the average confidence |
 | `memory_recommendation_feedback_total` | counter | `signal` | Recorded recommendation feedback by outcome signal |
 
 `memory_retrieval_candidates_sum` and `_count` are the `sum`/`count` pair of a
@@ -68,6 +77,7 @@ the series count is bounded at compile time.
 | `reason` (fallback) | `local_tier_sufficient`, `local_confident`, `insufficient_confidence`, `no_local_results`, `always_embed_policy`, `local_only_policy` |
 | `judge_configured` | `false`, `true` |
 | `outcome` (judgment) | `not_configured`, `ok`, `unavailable`, `timeout`, `invalid`, `provider_error` |
+| `status` (rerank) | `disabled`, `not_configured`, `applied`, `low_confidence`, `provider_error`, `invalid` |
 | `signal` (feedback) | `success`, `partial`, `failure`, `abstained` |
 
 Tier markers that describe pipeline internals (for example `api_fallback_needed`)
@@ -172,6 +182,14 @@ Sample result (shape only — zero-valued entries are omitted in real output):
     "candidates": {
       "cascade": { "observations": 64, "total": 1583 },
       "scored": { "observations": 64, "total": 320 }
+    },
+    "rerank": {
+      "status=applied": 61,
+      "status=low_confidence": 3,
+      "shortlist": { "observations": 64, "total": 1280 },
+      "output": { "observations": 64, "total": 640 },
+      "top1_changed": 7,
+      "confidence": { "observations": 64, "avg": 0.8125 }
     }
   },
   "timestamp": 1757068800
@@ -180,7 +198,10 @@ Sample result (shape only — zero-valued entries are omitted in real output):
 Snapshot keys: `requests` (per-series counts plus `latency_ms` percentiles),
 `fallbacks` (reason -> count), `feedback` (signal -> count), `cache`
 (hit/miss -> count), `embeddings` (provider -> `{ok, error}`), `candidates`
-(stage -> `{observations, total}`), `judgments` (judge-configured outcome -> count).
+(stage -> `{observations, total}`), `judgments` (judge-configured outcome ->
+count), `rerank` (`status=<value>` counters plus `shortlist`/`output`
+`{observations, total}`, a `top1_changed` count, and a `confidence`
+`{observations, avg}` summary).
 
 ---
 
@@ -219,7 +240,13 @@ is fixed regardless of traffic or data:
 | `memory_judgment_requests_total` | 2 x 6 = 12 |
 | `memory_judgment_duration_seconds` | 3 |
 | `memory_judgment_candidates_sum` / `_count` | 2 |
-| **Total** | **168** |
+| `memory_rerank_requests_total` | 6 |
+| `memory_rerank_duration_seconds` | 3 |
+| `memory_rerank_shortlist_sum` / `_count` | 2 |
+| `memory_rerank_output_sum` / `_count` | 2 |
+| `memory_rerank_top1_changed_total` | 1 |
+| `memory_rerank_confidence_sum` / `_count` | 2 |
+| **Total** | **184** |
 
 Zero-valued series are omitted from both the JSON snapshot and the Prometheus
 exposition, so an idle process exports almost nothing. A latency summary series
@@ -235,6 +262,9 @@ for strict scrapers.
   label values, series names, or HELP text.
 - The JSON snapshot carries the same aggregates only; it never echoes request
   payloads.
+- Rerank telemetry is bounded the same way: `status` is the fixed six-value
+  vocabulary and the remaining fields are aggregate counts and averages, so
+  judge rationales, candidate text, and episode IDs cannot enter the series.
 
 ---
 

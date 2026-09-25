@@ -1,18 +1,27 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-09-21
+**Last Updated**: 2026-09-24
 **Released Version**: v0.1.41 (latest tag)
 **Workspace Version**: 0.1.42 (post-v0.1.41 bump)
 **Edition**: Rust 2024  
-**Active plan**: merged #952 (2026-08-13) — ADR-082 + ADR-025/054 canonicalization landed; no in-flight code plan; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `9c8bfa79` (PR #952 merged 2026-08-13)
+**Active plan**: none in flight — #1030 (typed semantic judgment) and #1031 (semantic shortlist rerank) merged 2026-09-24 via PRs #1041/#1042; #1046 (gated merge path, tracker-drift check, coverage-waivers skill) in review; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `1461d61d` (PR #1042 merged 2026-09-24)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | none (docs-only tracker PR #949 transient) |
-| Open issues | None — #913 (Nix CI eval) closed 2026-08-02 |
+| Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
+| Open issues | run `gh issue list --state open` — open work is evidence-aware passage classification and the `csm` CI gap |
+
+## Recent completed (2026-09-24 — retrieval judgment + rerank + merge tooling)
+
+| Wave | Result |
+|------|--------|
+| Typed semantic judgment (#1030 → PR #1041) | ✅ `RetrievalJudge` interface, typed atomic judgments, strict ID/score validation with ID-join alignment, optional `CascadeRetriever::with_judge`, bounded `JudgmentOutcome` telemetry; merged `d4d57a63`-era, 6 commits |
+| Semantic shortlist rerank (#1031 → PR #1042) | ✅ opt-in `SemanticRerankConfig` + deterministic min-max/relevance fusion, single `finish_ranked` path over all local-success branches, `RerankStatus` telemetry, offline `--rerank` eval comparison (judge calls/query 0.73, candidates/query 5.93, regression PASSED); merged `1461d61d` |
+| Merge/coverage tooling (PR #1046) | 🔄 `merge-pr.sh` gated merge path, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill (8/8 evals) |
+| Harness issues | 8 filed upstream in `d-o-hub/do-harness` (#238–#245) from this wave's friction |
 
 ## Recent completed (2026-08-12 — feedback-to-ranking adaptation + ADR registry)
 

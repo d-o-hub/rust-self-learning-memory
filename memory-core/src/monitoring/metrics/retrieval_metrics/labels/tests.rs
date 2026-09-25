@@ -50,6 +50,20 @@ fn label_vocabularies_are_bounded() {
     ] {
         assert_label_value(outcome.as_str());
     }
+    let rerank_statuses = [
+        RerankStatus::Disabled,
+        RerankStatus::NotConfigured,
+        RerankStatus::Applied,
+        RerankStatus::LowConfidence,
+        RerankStatus::ProviderError,
+        RerankStatus::Invalid,
+    ];
+    assert_eq!(rerank_statuses.len(), N_RERANK_STATUSES);
+    for (expected, status) in rerank_statuses.iter().enumerate() {
+        // `index()` is the storage slot and the exposition walk order.
+        assert_eq!(status.index(), expected);
+        assert_label_value(status.as_str());
+    }
 }
 
 #[test]

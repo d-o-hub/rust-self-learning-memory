@@ -458,7 +458,7 @@ Embeddings integrate with the memory system in several ways:
 The CLI embedding commands use the same embedding providers as the do-memory-core API:
 
 ```rust
-use memory_core::embeddings::{
+use do_memory_core::embeddings::{
     SemanticService,
     EmbeddingConfig,
     LocalEmbeddingProvider,

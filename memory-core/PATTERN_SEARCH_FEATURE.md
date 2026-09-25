@@ -100,7 +100,7 @@ pub async fn discover_analogous_patterns(
 ### Configuration
 
 ```rust
-use memory_core::memory::SearchConfig;
+use do_memory_core::memory::SearchConfig;
 
 // Default config
 let config = SearchConfig::default();

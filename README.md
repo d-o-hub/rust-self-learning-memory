@@ -43,17 +43,17 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🔄 Episode Checkpoints and Handoff
 - Checkpoint episodes mid-task for long-running workflows
-- Generate handoff packs to transfer state between agents or sessions
+- Generate handoff packs (compact or full) to transfer state between agents
 - Resume execution from saved checkpoints
-- State preservation with findings and pending actions
+- State preservation with objective, status, findings, pending actions, and recent step excerpts
 
 ### 🌊 CSM Cascading Retrieval
-- 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
+- CPU-local retrieval via Chaotic Semantic Memory (CSM)
 - 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API Embeddings)
-- Hyperdimensional computing (HDC) binary vectors for zero-API similarity search
-- 50-70% reduction in external API embedding calls
+- Hyperdimensional computing (HDC) binary vectors for similarity search
+- Reduction in external API embedding calls
 - Semantic pattern search with natural language queries
-- Intelligent pattern recommendations for tasks using multi-signal ranking
+- Pattern recommendations for tasks using multi-signal ranking
 - Cross-domain pattern discovery to find analogous patterns
 - Async pattern extraction with queue-based workers
 - Pattern effectiveness tracking with decay over time
@@ -590,7 +590,7 @@ batch_size = 100
 ┌───────────▼───────────┐                   ┌───────────▼───────────┐
 │do-memory-storage-turso│                   │do-memory-storage-redb │
 │                       │                   │                       │
-│ libSQL (remote/local) │                   │ Embedded cache (redb) │
+│ Durable (libSQL/Turso)│                   │ Cache Layer (redb)    │
 └───────────────────────┘                   └───────────────────────┘
 ```
 

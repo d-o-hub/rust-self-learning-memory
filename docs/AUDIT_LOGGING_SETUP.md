@@ -56,7 +56,7 @@ grep "audit" /var/log/memory/audit.log | tail -10
 ### Basic Configuration
 
 ```rust
-use memory_core::security::audit::{AuditConfig, AuditLogger, AuditOutput, AuditLogLevel};
+use do_memory_core::security::audit::{AuditConfig, AuditLogger, AuditOutput, AuditLogLevel};
 
 // Manual configuration
 let config = AuditConfig {
@@ -401,7 +401,7 @@ sudo chmod 750 /var/log/memory
 
 **Configuration** (programmatic):
 ```rust
-use memory_core::security::audit::{AuditConfig, AuditOutput};
+use do_memory_core::security::audit::{AuditConfig, AuditOutput};
 
 let config = AuditConfig {
     enabled: true,

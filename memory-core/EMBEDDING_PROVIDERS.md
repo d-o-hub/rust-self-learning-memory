@@ -26,7 +26,7 @@ The embedding system now supports configurable API endpoints, allowing you to us
 ### 1. OpenAI (Standard)
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -57,7 +57,7 @@ export OPENAI_API_KEY="sk-your-api-key-here"
 ### 2. Mistral AI
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -80,7 +80,7 @@ export MISTRAL_API_KEY="your-mistral-api-key"
 ### 3. Azure OpenAI Service
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -117,7 +117,7 @@ https://{resource}.openai.azure.com/openai/deployments/{deployment}/embeddings?a
 For local embedding servers like LM Studio, Ollama with OpenAI compatibility, or self-hosted solutions:
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+use do_memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -251,7 +251,7 @@ println!("Provider warmed up and ready");
 You can create a configuration loader that reads from environment:
 
 ```rust
-use memory_core::embeddings::{ModelConfig, OpenAIEmbeddingProvider};
+use do_memory_core::embeddings::{ModelConfig, OpenAIEmbeddingProvider};
 
 fn create_provider_from_env() -> anyhow::Result<OpenAIEmbeddingProvider> {
     let provider_type = std::env::var("EMBEDDING_PROVIDER")

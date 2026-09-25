@@ -871,3 +871,70 @@ fn test_judge_shortlist_once_skips_the_provider_without_a_judge_or_a_shortlist()
     // No path above may reach the provider.
     assert_eq!(judge.calls(), 0);
 }
+
+/// `judge_shortlist_once` must map provider contract violations to bounded
+/// statuses without inventing a ranking: a wrong judgment count is `Invalid`,
+/// provider failures keep their class, and a missing judge never calls out.
+#[test]
+fn test_judge_shortlist_once_maps_count_mismatch_and_provider_errors() {
+    let candidates = [("ep-1".to_string(), 0.9_f32), ("ep-2".to_string(), 0.5_f32)];
+    let texts: HashMap<&str, &str> = HashMap::from([("ep-1", "one"), ("ep-2", "two")]);
+
+    // Wrong count: one judgment for a two-candidate shortlist.
+    let mismatched = FakeJudge::raw(vec![judgment("ep-1", AtomicScore::new(0.9, 0.9))]);
+    let batch = judge_shortlist_once("q", &candidates, &texts, Some(&mismatched), 2);
+    assert_eq!(batch.status, RerankStatus::Invalid);
+    assert_eq!(batch.shortlist_len, 2);
+
+    // Provider failure keeps its class.
+    let failing = FakeJudge::failing(JudgmentError::Unavailable);
+    let batch = judge_shortlist_once("q", &candidates, &texts, Some(&failing), 2);
+    assert_eq!(batch.status, RerankStatus::ProviderError);
+
+    // No judge: no provider call, no shortlist built.
+    let batch = judge_shortlist_once("q", &candidates, &texts, None, 2);
+    assert_eq!(batch.status, RerankStatus::NotConfigured);
+    assert_eq!(batch.shortlist_len, 0);
+}
+
+/// The provider path behind `semantic_rerank` must surface malformed output and
+/// provider failures as bounded statuses, and must truncate the fused ranking
+/// to `output_k`.
+#[test]
+fn test_semantic_rerank_surfaces_provider_contract_and_truncates_output() {
+    let candidates: Vec<(String, f32)> = vec![
+        ("ep-1".to_string(), 0.9),
+        ("ep-2".to_string(), 0.5),
+        ("ep-3".to_string(), 0.2),
+    ];
+    let texts: HashMap<&str, &str> =
+        HashMap::from([("ep-1", "one"), ("ep-2", "two"), ("ep-3", "three")]);
+    let config = SemanticRerankConfig {
+        enabled: true,
+        output_k: 2,
+        ..SemanticRerankConfig::default()
+    };
+
+    // Wrong judgment count violates the provider contract -> Invalid.
+    let mismatched = FakeJudge::raw(vec![judgment("ep-1", AtomicScore::new(0.9, 0.9))]);
+    let outcome = semantic_rerank("q", &candidates, &texts, Some(&mismatched), &config);
+    assert_eq!(outcome.status, RerankStatus::Invalid);
+    assert_eq!(outcome.ids.len(), candidates.len());
+
+    // Provider failure -> ProviderError with the local order preserved.
+    let failing = FakeJudge::failing(JudgmentError::Timeout);
+    let outcome = semantic_rerank("q", &candidates, &texts, Some(&failing), &config);
+    assert_eq!(outcome.status, RerankStatus::ProviderError);
+    assert_eq!(
+        outcome.ids,
+        vec!["ep-1".to_string(), "ep-2".to_string(), "ep-3".to_string()]
+    );
+
+    // Successful fusion truncates to `output_k`.
+    let judge = FakeJudge::fixed(AtomicScore::new(0.8, 0.9));
+    let outcome = semantic_rerank("q", &candidates, &texts, Some(&judge), &config);
+    assert_eq!(outcome.status, RerankStatus::Applied);
+    assert_eq!(outcome.ids.len(), 2, "output_k caps the returned ranking");
+    assert_eq!(outcome.output_len, 2);
+    assert_eq!(outcome.shortlist_len, 3);
+}

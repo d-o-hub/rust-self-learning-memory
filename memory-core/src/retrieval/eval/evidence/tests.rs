@@ -4,10 +4,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::retrieval::eval::*;
-use crate::retrieval::evidence::{EvidenceDisposition, EvidencePolicy, classify_disposition};
+use crate::retrieval::evidence::{
+    CandidateEvidence, EvidenceDisposition, EvidenceHit, EvidencePolicy, EvidenceRetrievalResult,
+    classify_disposition,
+};
 use crate::retrieval::judgment::{
     AtomicScore, CandidateJudgment, JudgmentCandidate, RetrievalJudge,
 };
+use crate::retrieval::{CascadeResult, FallbackReason};
 
 /// Query text shared by [`labelled_corpus`]'s only query.
 const LABELLED_QUERY: &str = "alpha beta gamma retrieval pipeline";
@@ -357,6 +361,183 @@ fn test_regression_check_is_blocked_by_false_drops() {
         "the violation must name the arm: {:?}",
         ignoring.violations
     );
+}
+
+/// The arm itself must run on default features: without `csm` the cascade
+/// reports `CapabilityUnavailable`, the loop falls back to keyword search, no
+/// judge is reached, and the metrics block is still produced and bounded.
+#[test]
+fn test_evidence_arm_runs_without_csm_and_reports_bounded_metrics() {
+    let corpus = labelled_corpus();
+    let judge = Arc::new(EvidenceFixtureJudge::from_corpus(&corpus));
+    let evaluator = RetrievalEvaluator::new(corpus);
+
+    let metrics = evaluator
+        .evaluate_with_evidence(
+            RetrievalStrategy::LocalOnly,
+            judge,
+            &EvidencePolicy::default(),
+        )
+        .expect("the evidence arm must run offline");
+
+    let evidence = metrics
+        .evidence_metrics
+        .expect("the arm always reports an evidence metrics block");
+    assert!(
+        (0.0..=1.0).contains(&evidence.judge_calls_per_query),
+        "judge calls/query must stay bounded: {}",
+        evidence.judge_calls_per_query
+    );
+    assert_eq!(
+        evidence.false_drop_count, 0,
+        "the default policy cannot drop a candidate, so a false drop is a defect"
+    );
+    assert_eq!(evidence.false_drop_rate, 0.0);
+    assert!(
+        evidence.dispositions.total <= metrics.total_queries as u64 * 20,
+        "classified candidates per query must stay bounded by candidate_limit"
+    );
+}
+
+/// Folding labelled hits into the confusion matrix is pure and must not need
+/// `csm`: dimension counts, the disposition distribution, and false drops are
+/// asserted exactly, including the unlabelled-hit path.
+#[test]
+fn test_confusion_counts_dimensions_dispositions_and_false_drops() {
+    use super::EvidenceConfusion;
+
+    let keep = label([true, true, false, false], "keep");
+    let dropped = label([true, false, false, false], "keep");
+    // Labelled negative on every dimension: the judge scores it high, which is
+    // a false positive for `relevance` and `useful_evidence`.
+    let negative = label([false, false, false, false], "demote");
+    let labels = HashMap::from([
+        ("hit-dropped".to_string(), dropped.clone()),
+        ("hit-labelled".to_string(), keep.clone()),
+        ("hit-negative".to_string(), negative.clone()),
+    ]);
+
+    let policy = EvidencePolicy {
+        allow_drop: true,
+        ..EvidencePolicy::default()
+    };
+
+    let evidence_for = |relevance: f32, disposition: EvidenceDisposition| {
+        let judgment = CandidateJudgment {
+            id: "x".to_string(),
+            relevance: AtomicScore::new(relevance, 1.0),
+            useful_evidence: AtomicScore::new(0.0, 1.0),
+            contradiction: AtomicScore::new(0.0, 1.0),
+            instruction_like: AtomicScore::new(0.0, 1.0),
+        };
+        CandidateEvidence::from_judgment(&judgment, disposition)
+    };
+
+    let result = EvidenceRetrievalResult {
+        base: CascadeResult {
+            episode_ids: vec!["hit-labelled".to_string(), "hit-dropped".to_string()],
+            scores: vec![1.0, 0.5],
+            contributing_tiers: vec!["bm25".to_string()],
+            api_calls: 0,
+            fallback_reason: FallbackReason::LocalTierSufficient,
+            top_score: 1.0,
+            score_margin: 0.5,
+        },
+        hits: vec![
+            EvidenceHit {
+                episode_id: "hit-labelled".to_string(),
+                local_score: 1.0,
+                final_score: 1.0,
+                evidence: Some(evidence_for(0.9, EvidenceDisposition::Keep)),
+            },
+            EvidenceHit {
+                episode_id: "hit-dropped".to_string(),
+                local_score: 0.5,
+                final_score: 0.5,
+                evidence: Some(evidence_for(0.1, EvidenceDisposition::Drop)),
+            },
+            EvidenceHit {
+                episode_id: "hit-negative".to_string(),
+                local_score: 0.45,
+                final_score: 0.45,
+                evidence: Some(CandidateEvidence::from_judgment(
+                    &CandidateJudgment {
+                        id: "hit-negative".to_string(),
+                        relevance: AtomicScore::new(0.9, 1.0),
+                        useful_evidence: AtomicScore::new(0.9, 1.0),
+                        contradiction: AtomicScore::new(0.0, 1.0),
+                        instruction_like: AtomicScore::new(0.0, 1.0),
+                    },
+                    EvidenceDisposition::Demote,
+                )),
+            },
+            EvidenceHit {
+                episode_id: "hit-unlabelled".to_string(),
+                local_score: 0.4,
+                final_score: 0.4,
+                evidence: Some(evidence_for(0.9, EvidenceDisposition::Flag)),
+            },
+            EvidenceHit {
+                episode_id: "hit-no-evidence".to_string(),
+                local_score: 0.3,
+                final_score: 0.3,
+                evidence: None,
+            },
+        ],
+        status: crate::monitoring::metrics::EvidenceStatus::Applied,
+    };
+
+    let mut confusion = EvidenceConfusion::default();
+    confusion.record(&labels, Some(&result), &policy);
+    let metrics = confusion.metrics(2, 4, 7, 9);
+
+    // One keep + one flag + one demote + one drop; the evidence-less hit is not
+    // counted, while the unlabelled flag still counts towards the distribution.
+    assert_eq!(metrics.dispositions.keep, 1);
+    assert_eq!(metrics.dispositions.flag, 1);
+    assert_eq!(metrics.dispositions.demote, 1);
+    assert_eq!(metrics.dispositions.drop, 1);
+    assert_eq!(metrics.dispositions.total, 4);
+
+    // Only the three labelled hits enter the per-dimension matrix.
+    let relevance = metrics.per_dimension[0].clone();
+    assert_eq!(
+        (relevance.tp, relevance.fp, relevance.fn_, relevance.tn),
+        (1, 1, 1, 0),
+        "keep hit true positive, negative hit false positive, dropped hit false negative"
+    );
+    let useful = metrics.per_dimension[1].clone();
+    assert_eq!((useful.tp, useful.fp, useful.fn_, useful.tn), (0, 1, 1, 1));
+
+    // `hit-dropped` was labelled "keep" and dropped: a real false drop.
+    assert_eq!(metrics.false_drop_count, 1);
+    assert_eq!(metrics.false_drop_rate, 1.0 / 3.0);
+    assert_eq!(metrics.judge_calls_per_query, 0.5);
+    assert_eq!(
+        (metrics.added_latency_p50_us, metrics.added_latency_p95_us),
+        (7, 9)
+    );
+}
+
+/// The timing wrapper must record provider attempts, successful or not:
+/// `judge_calls_per_query` counts attempts and latency accumulates from them.
+#[test]
+fn test_timed_judge_records_attempts_and_latency() {
+    use super::TimedJudge;
+
+    let labels = HashMap::from([(
+        "q".to_string(),
+        HashMap::from([("c".to_string(), label([true, true, false, false], "keep"))]),
+    )]);
+    let judge: Arc<dyn RetrievalJudge> = Arc::new(EvidenceFixtureJudge::new(labels));
+    let timed = TimedJudge::new(judge);
+    let candidates = vec![JudgmentCandidate::new("c", "alpha", 0.5)];
+
+    assert!(timed.judge_candidates("q", &candidates).is_ok());
+    assert_eq!(timed.totals().0, 1, "a judged call is counted once");
+
+    assert!(timed.judge_candidates("q", &candidates).is_ok());
+    assert_eq!(timed.totals().0, 2, "every provider attempt accumulates");
 }
 
 /// Under the default policy the arm classifies every query exactly once and

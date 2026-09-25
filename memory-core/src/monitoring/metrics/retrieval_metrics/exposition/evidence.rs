@@ -180,4 +180,24 @@ mod tests {
         assert_eq!(evidence["candidates"]["total"], 20);
         assert_eq!(evidence["duration_ms"]["p50"], 30);
     }
+
+    /// A zero-count disposition is omitted while the family header still renders
+    /// exactly once (the zero-skip path of the dispositions loop).
+    #[test]
+    fn evidence_dispositions_omit_zero_counts() {
+        let metrics = RetrievalMetrics::new();
+        metrics.record_evidence(EvidenceStatus::Applied, 2, [1, 0, 0, 0], 5);
+
+        let text = metrics.export_prometheus();
+        assert!(text.contains("memory_evidence_dispositions_total{disposition=\"keep\"} 1"));
+        assert!(!text.contains("memory_evidence_dispositions_total{disposition=\"flag\""));
+        assert!(!text.contains("memory_evidence_dispositions_total{disposition=\"demote\""));
+        assert!(!text.contains("memory_evidence_dispositions_total{disposition=\"drop\""));
+        assert_eq!(
+            text.matches("# TYPE memory_evidence_dispositions_total")
+                .count(),
+            1,
+            "duplicate TYPE line invalidates exposition"
+        );
+    }
 }

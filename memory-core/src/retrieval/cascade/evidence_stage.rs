@@ -16,8 +16,8 @@ use crate::monitoring::metrics::{EvidenceStatus, RerankStatus, global_retrieval_
 use crate::retrieval::EvidenceRetrievalResult;
 use crate::retrieval::evidence::{
     CandidateEvidence, EvidenceDisposition, EvidenceHit, EvidencePolicy, classify_disposition,
+    judged_confident,
 };
-use crate::retrieval::judgment::CandidateJudgment;
 
 use super::{CascadeResult, CascadeRetriever};
 use crate::retrieval::rerank::{JudgedShortlist, judge_shortlist_once};
@@ -151,7 +151,7 @@ impl EvidenceStage {
 /// Only the first `min(candidate_limit, shortlist_len)` judged candidates are
 /// classified: the batch may cover a wider prefix when the rerank stage asked
 /// for more. The status is bounded — a failed or unusable batch maps straight
-/// through, and an `Applied` batch in which no classified judgment is confident
+/// through, and an `Applied` batch in which no classified dimension is trusted
 /// enough (including an empty batch) is [`EvidenceStatus::LowConfidence`].
 fn classify_evidence(
     batch: &JudgedShortlist,
@@ -174,7 +174,7 @@ fn classify_evidence(
         );
         let disposition = classify_disposition(judgment, policy);
         dispositions[usize::from(disposition.rank())] += 1;
-        any_confident |= judgment_confident(judgment, policy.min_confidence);
+        any_confident |= judged_confident(judgment, policy.min_confidence);
         evidence.push(CandidateEvidence::from_judgment(judgment, disposition));
     }
 
@@ -269,18 +269,4 @@ fn evidence_hits(
                 .is_some_and(|evidence| evidence.disposition == EvidenceDisposition::Drop)
         })
         .collect()
-}
-
-/// True when every judged dimension is confident enough to act on.
-///
-/// Mirrors the confidence guard inside
-/// [`classify_disposition`](crate::retrieval::evidence::classify_disposition),
-/// which the evidence module keeps private: the telemetry status needs the
-/// predicate without a disposition, and `Keep` alone cannot distinguish "trusted
-/// and clean" from "not trusted".
-fn judgment_confident(judgment: &CandidateJudgment, min_confidence: f32) -> bool {
-    judgment.relevance.confidence >= min_confidence
-        && judgment.useful_evidence.confidence >= min_confidence
-        && judgment.contradiction.confidence >= min_confidence
-        && judgment.instruction_like.confidence >= min_confidence
 }

@@ -1645,4 +1645,66 @@ mod csm_tests {
         assert_eq!(plain.top_score, without_policy.top_score);
         assert_eq!(plain.score_margin, without_policy.score_margin);
     }
+
+    #[test]
+    fn test_evidence_status_tracks_trusted_dimensions() {
+        let config = bm25_path_config();
+
+        // Every dimension is below the confidence floor: nothing is trusted,
+        // every candidate stays, and telemetry reports low confidence.
+        let unassessed_scripts: Vec<(String, CandidateJudgment)> = AUTH_CORPUS
+            .iter()
+            .map(|(id, _)| ((*id).to_string(), judged(id, 0.9, 0.9, 0.0, 0.0, 0.0)))
+            .collect();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let unassessed = evidence_retriever(
+            config.clone(),
+            &calls,
+            unassessed_scripts,
+            EvidencePolicy::default(),
+        );
+        let result = unassessed
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(result.status, EvidenceStatus::LowConfidence);
+        assert!(result.hits.iter().all(|hit| {
+            hit.evidence
+                .is_some_and(|evidence| evidence.disposition == EvidenceDisposition::Keep)
+        }));
+
+        // Relevance-only trusted judgments: the stage acts on them, so the
+        // status is `Applied` even though the other dimensions are unassessed.
+        let relevance_only_scripts: Vec<(String, CandidateJudgment)> = AUTH_CORPUS
+            .iter()
+            .map(|(id, _)| {
+                (
+                    (*id).to_string(),
+                    CandidateJudgment {
+                        id: (*id).to_string(),
+                        relevance: AtomicScore::new(0.20, 0.90),
+                        useful_evidence: AtomicScore::new(0.0, 0.0),
+                        contradiction: AtomicScore::new(0.0, 0.0),
+                        instruction_like: AtomicScore::new(0.0, 0.0),
+                    },
+                )
+            })
+            .collect();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let relevance_only = evidence_retriever(
+            config,
+            &calls,
+            relevance_only_scripts,
+            EvidencePolicy::default(),
+        );
+        let result = relevance_only
+            .retrieve_with_evidence(AUTH_QUERY)
+            .expect("csm evidence retrieval should succeed");
+
+        assert_eq!(result.status, EvidenceStatus::Applied);
+        assert!(result.hits.iter().all(|hit| {
+            hit.evidence
+                .is_some_and(|evidence| evidence.disposition == EvidenceDisposition::Demote)
+        }));
+    }
 }

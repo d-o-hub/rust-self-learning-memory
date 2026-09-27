@@ -12,17 +12,23 @@
 //!
 //! # Policy order (first match wins)
 //!
-//! 1. any judged confidence below [`EvidencePolicy::min_confidence`] →
-//!    [`EvidenceDisposition::Keep`]: the judgment is not trusted enough to act on,
-//!    but its evidence is still attached to the hit so callers can inspect or log it;
-//! 2. `instruction_like >= instruction_flag_threshold` →
+//! Every rule is gated by the confidence of the dimension it inspects: a
+//! dimension whose confidence is below [`EvidencePolicy::min_confidence`] is
+//! **not trusted** and never acted on, while a trusted dimension fires its rule
+//! regardless of the other three. A judge that assesses only some dimensions
+//! reports the rest as unassessed (`0.0` value, `0.0` confidence), so an
+//! unassessed dimension can neither trigger a rule nor block one.
+//!
+//! 1. trusted `instruction_like >= instruction_flag_threshold` →
 //!    [`EvidenceDisposition::Flag`];
-//! 3. `contradiction >= contradiction_flag_threshold` →
+//! 2. trusted `contradiction >= contradiction_flag_threshold` →
 //!    [`EvidenceDisposition::Flag`];
-//! 4. `relevance < min_relevance` → [`EvidenceDisposition::Drop`] when
+//! 3. trusted `relevance < min_relevance` → [`EvidenceDisposition::Drop`] when
 //!    [`EvidencePolicy::allow_drop`] is set, otherwise [`EvidenceDisposition::Demote`];
-//! 5. `useful_evidence < min_useful_evidence` → [`EvidenceDisposition::Demote`];
-//! 6. otherwise [`EvidenceDisposition::Keep`].
+//! 4. trusted `useful_evidence < min_useful_evidence` → [`EvidenceDisposition::Demote`];
+//! 5. otherwise [`EvidenceDisposition::Keep`], including when no dimension is
+//!    trusted; the judgment is still attached to the hit so callers can inspect
+//!    or log it.
 //!
 //! The default policy has `allow_drop = false`, so **no** path returns
 //! [`EvidenceDisposition::Drop`] unless a caller explicitly opts in.
@@ -57,8 +63,9 @@ pub enum EvidenceDisposition {
     /// The candidate stays in place with its local score: the judgment raised
     /// no actionable concern.
     Keep,
-    /// The candidate stays but is demoted: the judgment is not decisive enough
-    /// to remove it, so it is kept at a lower final score.
+    /// The candidate stays but is demoted in ranking: the judgment is not
+    /// decisive enough to remove it, so it is ordered after the non-demoted
+    /// hits. Only the ordering changes; the numeric score is untouched.
     Demote,
     /// The candidate is kept but marked: it is contradictory or
     /// instruction-like and callers should surface it rather than trust it.
@@ -242,42 +249,61 @@ fn unit_interval(value: f32) -> bool {
     value.is_finite() && (0.0..=1.0).contains(&value)
 }
 
-/// True when every judged dimension is confident enough to act on.
-fn confident(j: &CandidateJudgment, min_confidence: f32) -> bool {
-    j.relevance.confidence >= min_confidence
-        && j.useful_evidence.confidence >= min_confidence
-        && j.contradiction.confidence >= min_confidence
-        && j.instruction_like.confidence >= min_confidence
+/// True when one atomic score is trusted enough to act on.
+fn score_confident(score: AtomicScore, min_confidence: f32) -> bool {
+    score.confidence >= min_confidence
+}
+
+/// True when at least one judged dimension is trusted enough to act on.
+///
+/// Telemetry needs this predicate without a disposition: `Keep` alone cannot
+/// distinguish "trusted and clean" from "nothing was trusted", and a judge that
+/// assesses only some dimensions (for example a lexical relevance judge) still
+/// counts as acting when its one assessed dimension clears the floor. The only
+/// consumer is the `csm`-gated evidence stage.
+#[cfg(feature = "csm")]
+pub(crate) fn judged_confident(j: &CandidateJudgment, min_confidence: f32) -> bool {
+    score_confident(j.relevance, min_confidence)
+        || score_confident(j.useful_evidence, min_confidence)
+        || score_confident(j.contradiction, min_confidence)
+        || score_confident(j.instruction_like, min_confidence)
 }
 
 /// Classify one judged candidate under `policy`.
 ///
-/// Implements the module-level first-match order: the low-confidence guard
-/// returns [`EvidenceDisposition::Keep`] before anything else (the evidence is
-/// still attached by the caller), the two flag thresholds come next so
-/// instruction-like and contradictory text is never silently dropped, and the
-/// low-relevance rule yields [`EvidenceDisposition::Drop`] only when
-/// `policy.allow_drop` is set. With `allow_drop == false` no input returns
-/// [`EvidenceDisposition::Drop`].
+/// Implements the module-level first-match order. Each rule is gated by the
+/// confidence of its own dimension, so an untrusted (or unassessed) dimension
+/// can neither trigger nor block a rule: a trusted low relevance score demotes
+/// (or drops, with `policy.allow_drop`) even when the other three dimensions
+/// are unassessed, and a trusted instruction-like or contradictory score flags
+/// before any low-relevance rule runs, so injected text is never silently
+/// dropped. With `allow_drop == false` no input returns
+/// [`EvidenceDisposition::Drop`], and when no dimension is trusted the
+/// candidate is [`EvidenceDisposition::Keep`].
 #[must_use]
 pub fn classify_disposition(j: &CandidateJudgment, policy: &EvidencePolicy) -> EvidenceDisposition {
-    if !confident(j, policy.min_confidence) {
-        return EvidenceDisposition::Keep;
-    }
-    if j.instruction_like.value >= policy.instruction_flag_threshold {
+    if score_confident(j.instruction_like, policy.min_confidence)
+        && j.instruction_like.value >= policy.instruction_flag_threshold
+    {
         return EvidenceDisposition::Flag;
     }
-    if j.contradiction.value >= policy.contradiction_flag_threshold {
+    if score_confident(j.contradiction, policy.min_confidence)
+        && j.contradiction.value >= policy.contradiction_flag_threshold
+    {
         return EvidenceDisposition::Flag;
     }
-    if j.relevance.value < policy.min_relevance {
+    if score_confident(j.relevance, policy.min_confidence)
+        && j.relevance.value < policy.min_relevance
+    {
         return if policy.allow_drop {
             EvidenceDisposition::Drop
         } else {
             EvidenceDisposition::Demote
         };
     }
-    if j.useful_evidence.value < policy.min_useful_evidence {
+    if score_confident(j.useful_evidence, policy.min_confidence)
+        && j.useful_evidence.value < policy.min_useful_evidence
+    {
         return EvidenceDisposition::Demote;
     }
     EvidenceDisposition::Keep
@@ -290,7 +316,8 @@ pub struct EvidenceHit {
     pub episode_id: String,
     /// Score assigned by local retrieval before any evidence adjustment.
     pub local_score: f32,
-    /// Score after evidence classification was applied.
+    /// Finalized cascade score for this episode. Evidence classification only
+    /// reorders hits and can remove drops; it never changes this number.
     pub final_score: f32,
     /// The judgment and disposition, absent when the candidate was not judged.
     pub evidence: Option<CandidateEvidence>,

@@ -45,6 +45,28 @@ fn judgment_with_confidence(
     }
 }
 
+/// A dimension the judge did not assess: no value, no confidence.
+const fn unassessed() -> AtomicScore {
+    AtomicScore::new(0.0, 0.0)
+}
+
+/// A judgment built from explicit atomic scores, so a test can trust or
+/// question any subset of the four dimensions.
+fn scored(
+    relevance: AtomicScore,
+    useful_evidence: AtomicScore,
+    contradiction: AtomicScore,
+    instruction_like: AtomicScore,
+) -> CandidateJudgment {
+    CandidateJudgment {
+        id: "ep-1".to_string(),
+        relevance,
+        useful_evidence,
+        contradiction,
+        instruction_like,
+    }
+}
+
 /// A copy of the default policy with one field mutated.
 fn policy_with(mutate: impl FnOnce(&mut EvidencePolicy)) -> EvidencePolicy {
     let mut policy = EvidencePolicy::default();
@@ -167,6 +189,131 @@ fn low_confidence_keeps_with_evidence_attached() {
     assert_eq!(evidence.useful_evidence, judgment.useful_evidence);
     assert_eq!(evidence.contradiction, judgment.contradiction);
     assert_eq!(evidence.instruction_like, judgment.instruction_like);
+}
+
+#[test]
+fn relevance_only_low_score_is_demoted_then_dropped_when_allowed() {
+    let policy = EvidencePolicy::default();
+    // The shipped lexical judge shape: relevance trusted, every other
+    // dimension unassessed. A trusted low relevance score is actionable.
+    let judgment = scored(
+        AtomicScore::new(0.20, 0.90),
+        unassessed(),
+        unassessed(),
+        unassessed(),
+    );
+
+    assert_eq!(
+        classify_disposition(&judgment, &policy),
+        EvidenceDisposition::Demote
+    );
+
+    let allowed = policy_with(|p| p.allow_drop = true);
+    assert_eq!(
+        classify_disposition(&judgment, &allowed),
+        EvidenceDisposition::Drop
+    );
+}
+
+#[test]
+fn relevance_only_high_score_is_kept() {
+    let policy = EvidencePolicy::default();
+    let judgment = scored(
+        AtomicScore::new(0.90, 0.90),
+        unassessed(),
+        unassessed(),
+        unassessed(),
+    );
+
+    assert_eq!(
+        classify_disposition(&judgment, &policy),
+        EvidenceDisposition::Keep
+    );
+}
+
+#[test]
+fn trusted_flag_rules_fire_with_other_dimensions_unassessed() {
+    let policy = EvidencePolicy::default();
+
+    let contradiction = scored(
+        unassessed(),
+        unassessed(),
+        AtomicScore::new(0.85, 0.90),
+        unassessed(),
+    );
+    assert_eq!(
+        classify_disposition(&contradiction, &policy),
+        EvidenceDisposition::Flag
+    );
+
+    let instruction = scored(
+        unassessed(),
+        unassessed(),
+        unassessed(),
+        AtomicScore::new(0.90, 0.90),
+    );
+    assert_eq!(
+        classify_disposition(&instruction, &policy),
+        EvidenceDisposition::Flag
+    );
+}
+
+#[test]
+fn untrusted_dimension_never_triggers_its_rule() {
+    let policy = EvidencePolicy::default();
+    // Decisive values, but neither dimension clears the confidence floor:
+    // nothing may be acted on.
+    let judgment = scored(
+        unassessed(),
+        unassessed(),
+        AtomicScore::new(0.99, 0.10),
+        AtomicScore::new(0.99, 0.10),
+    );
+
+    assert_eq!(
+        classify_disposition(&judgment, &policy),
+        EvidenceDisposition::Keep
+    );
+}
+
+#[test]
+fn trusted_dimension_acts_while_another_is_unassessed() {
+    let policy = EvidencePolicy::default();
+
+    let low_relevance = scored(
+        AtomicScore::new(0.20, 0.90),
+        unassessed(),
+        unassessed(),
+        unassessed(),
+    );
+    assert_eq!(
+        classify_disposition(&low_relevance, &policy),
+        EvidenceDisposition::Demote
+    );
+
+    // An untrusted instruction-likeness value cannot suppress a trusted
+    // contradiction.
+    let contradiction = scored(
+        unassessed(),
+        unassessed(),
+        AtomicScore::new(0.85, 0.90),
+        AtomicScore::new(0.99, 0.10),
+    );
+    assert_eq!(
+        classify_disposition(&contradiction, &policy),
+        EvidenceDisposition::Flag
+    );
+}
+
+#[test]
+fn all_unassessed_dimensions_keep() {
+    let policy = EvidencePolicy::default();
+    let judgment = scored(unassessed(), unassessed(), unassessed(), unassessed());
+
+    assert_eq!(
+        classify_disposition(&judgment, &policy),
+        EvidenceDisposition::Keep
+    );
 }
 
 #[test]

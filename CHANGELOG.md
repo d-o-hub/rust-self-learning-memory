@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Changelog v0.1.41 release record corrected (#1040)
+- Evidence classification gates each rule on its own dimension's confidence
+  instead of requiring all four dimensions to be trusted, so a judge that
+  assesses a subset (including the shipped lexical relevance judge) can flag,
+  demote and drop by policy, and the stage reports `Applied` whenever any
+  dimension is trusted (#1053)
 
 ### Chore
 

@@ -9,96 +9,157 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.42] - 2026-09-27
 
-### Added
 
-- Provider-neutral typed semantic judgment interface (#1030, #1041): batched
-  `RetrievalJudge` trait with atomic relevance/useful-evidence/contradiction/
-  instruction-likeness scores, strict ID and score validation, optional
-  `CascadeRetriever::with_judge` injection, and bounded judgment telemetry
-- Opt-in semantic shortlist rerank (#1031, #1042): validated
-  `SemanticRerankConfig`, deterministic min-max plus relevance fusion over a
-  bounded shortlist, one shared judgment batch per retrieval, `RerankStatus`
-  telemetry, and an offline `--rerank` evaluation comparison arm
-- Evidence-aware passage classification (#1032, #1049): `retrieve_with_evidence`
-  returns the unchanged cascade result plus typed evidence hits and a
-  deterministic disposition policy (keep/flag/demote/drop), with a
-  release-blocking false-drop metric and per-dimension precision/recall in the
-  evaluation harness
-
-### Changed
-
-- `csm`-feature suites (cascade, rerank, evidence) now execute in CI and are
-  part of the `CI / Required` aggregate (#1045, #1051)
-- Merges are gated by `scripts/merge-pr.sh` (readiness check plus independent
-  live verification, never `--admin`); plan validation gained a soft
-  tracker-drift check and the `coverage-waivers` skill documents the coverage
-  waiver classes (#1046)
-- Plan trackers refreshed: pinned counts replaced by `gh` pointers and GOAP
-  state realigned with the workspace version (#1047)
-
-### Fixed
-
-- Changelog v0.1.41 release record corrected (#1040)
-- Evidence classification gates each rule on its own dimension's confidence
-  instead of requiring all four dimensions to be trusted, so a judge that
-  assesses a subset (including the shipped lexical relevance judge) can flag,
-  demote and drop by policy, and the stage reports `Applied` whenever any
-  dimension is trusted (#1053)
-
-### Chore
-
-- Dependency bumps: actions-all group and rust-patch-minor group (#1037, #1038)
-- Workspace bumped to 0.1.42 after shipping v0.1.41 (#1039)
-
-## [0.1.41] - 2026-09-20
 
 ### Added
 
-- Retrieval metrics exposed through MCP tools with acceptance tests (#962,
-  #1005): eight retrieval metric families with cardinality bounds and latency
-  percentiles in `get_metrics(metric_type="retrieval")`
-- Confidence-gated API embedding fallback for CSM (#992)
-- Durable episode writes batched off the completion path (#993)
-- Compact handoff refinements from PR #994 review (#994)
+- add provider-neutral typed semantic judgment interface ([44f9f46](https://github.com/d-o-hub/rust-self-learning-memory/commit/44f9f46ec653e88d9aed1525b8ef79f7b9a81433))
 
-### Fixed
+- add opt-in semantic shortlist rerank ([7f03bd1](https://github.com/d-o-hub/rust-self-learning-memory/commit/7f03bd18645b70b3753e6d2691311bdfab06cdd4))
 
-- Reranker `top_k` capped to `MAX_QUERY_LIMIT` (#980)
-- Jaccard claims corrected and duplicate semantics pinned (#986)
-- CI no longer commits generated coverage reports
-- rustls bumped to 0.23.45 for RUSTSEC-2026-0285 (#1021)
-- Six source files split back under the 500 LOC invariant: the package-private
-  LOC gate in `quality-gates.sh` had been failing, which blocked the local
-  release path even though main CI stayed green
-- `DomainIndex::get_recent_episodes` caps its `limit` at `MAX_QUERY_LIMIT`
-  instead of accepting an unbounded value, so a caller cannot force an
-  unbounded result-set allocation (#1033)
+- add offline semantic rerank comparison mode ([48e8aaa](https://github.com/d-o-hub/rust-self-learning-memory/commit/48e8aaae879cd34873a8a88d2c7a269006028d24))
 
-### Performance
+- add evidence-aware passage classification ([cded575](https://github.com/d-o-hub/rust-self-learning-memory/commit/cded575de040c031b9f4470fa4df50f2dc71716e))
 
-- String similarity optimized with an ASCII fast-path and stack DP (#1010)
-
-### Documentation
-
-- README and agent_docs synchronized with the current implementation state
-  (#1011)
-
-### Maintenance
-
-- Dependency bumps: rust-patch-minor (#1002, #1018) and rust-major (#1019)
-- Post-release workspace bump to 0.1.41 and changelog regeneration (#998, #999)
 
 ### CI/CD
 
-- actions-all dependency bumps (#1001)
-- Benchmark ingestion repaired: only fresh Criterion `new/` estimates are read
-  (previously `base/` duplicates and `change/` relative deltas were emitted as
-  nanoseconds) and sub-nanosecond means are kept as decimals instead of being
-  silently dropped (#1022)
-- Benchmark store gate calibrated against same-code repeat measurements: >=10%
-  deltas still comment and cc maintainers, but only >=5x single-benchmark
-  deltas fail the job, so `Store Benchmark Results` stops failing on every
-  main push (#1025)
+- bump the actions-all group with 5 updates (#1037) ([0fa9499](https://github.com/d-o-hub/rust-self-learning-memory/commit/0fa9499325597379e08a849493d081b61b0bc416))
+
+- run csm-feature suites in the required aggregate ([04c8e11](https://github.com/d-o-hub/rust-self-learning-memory/commit/04c8e114fb1696bf0b4e79c869c007f26c735af5))
+
+
+### Documentation
+
+- correct v0.1.41 release record ([0fefe5b](https://github.com/d-o-hub/rust-self-learning-memory/commit/0fefe5b927f12cd5fac3a0a52fc247bb15c44bfb))
+
+- refresh trackers and stop pinning live counts ([ef3c9e5](https://github.com/d-o-hub/rust-self-learning-memory/commit/ef3c9e5e5c15c602239f5ac5d1435d617d6a9fae))
+
+- record the evidence-confidence fix in 0.1.42 (#1053) ([f603269](https://github.com/d-o-hub/rust-self-learning-memory/commit/f603269fe2cbf9ecf48a96cbf437ab74a15d3717))
+
+
+### Fixed
+
+- gate each evidence rule on its own dimension confidence ([bf09cc6](https://github.com/d-o-hub/rust-self-learning-memory/commit/bf09cc6c98be0609964942d50e4b6d4938456126))
+
+
+### Maintenance
+
+- bump workspace to 0.1.42 after shipping v0.1.41 (#1039) ([dd729e5](https://github.com/d-o-hub/rust-self-learning-memory/commit/dd729e57f627c7133f128373ad34dc8d11a4ee76))
+
+- bump the rust-patch-minor group with 4 updates (#1038) ([4f7a6d1](https://github.com/d-o-hub/rust-self-learning-memory/commit/4f7a6d189d6f9a8594971f952e9f0ef272ff17a0))
+
+- gate merges on readiness and check tracker drift ([52bcfd8](https://github.com/d-o-hub/rust-self-learning-memory/commit/52bcfd86aabda4ac4dfa9b6c2dde13f2a39cdf09))
+
+- prepare v0.1.42 changelog and version docs ([7fbba18](https://github.com/d-o-hub/rust-self-learning-memory/commit/7fbba18d21ed99cfd50a4cfc3817ce9db4c62c00))
+
+- re-trigger release cadence check with label present ([ba8f48d](https://github.com/d-o-hub/rust-self-learning-memory/commit/ba8f48dad48dd60ab4833c9833aa540271598b75))
+
+
+### Testing
+
+- cover judgment alignment, outcome telemetry, heuristic branches ([c00d5ee](https://github.com/d-o-hub/rust-self-learning-memory/commit/c00d5ee6e9166c9482e86feaa4b80c2617867981))
+
+- serialize global-registry metrics tests ([7d9d313](https://github.com/d-o-hub/rust-self-learning-memory/commit/7d9d3130c8b28340619d4f7d0fbb8d0a1d558eba))
+
+- use reset-free delta assertions for registry tests ([8ca6ad3](https://github.com/d-o-hub/rust-self-learning-memory/commit/8ca6ad3d60d8d724188902cad8aed0b35cba89d4))
+
+- harden registry tests against parallel writers ([33a5056](https://github.com/d-o-hub/rust-self-learning-memory/commit/33a50562ee83c24b917ec73de48e55e2afbfda74))
+
+- cover provider-declared invalid outcome ([b0be887](https://github.com/d-o-hub/rust-self-learning-memory/commit/b0be887f778ed9e4ab5b0884e356315b29fa1b42))
+
+- cover rerank entry points on default features ([69e50f3](https://github.com/d-o-hub/rust-self-learning-memory/commit/69e50f3592e7fb95ae0a3d29c023f35905e1b282))
+
+- cover evidence entry points on default features ([2fa70fd](https://github.com/d-o-hub/rust-self-learning-memory/commit/2fa70fdb8f1fdd6457110cabc813830591a7d7bf))
+
+
+## [0.1.41] - 2026-09-20
+
+
+
+### Added
+
+- add confidence-gated API embedding fallback for CSM (#992) ([a87d586](https://github.com/d-o-hub/rust-self-learning-memory/commit/a87d586d7859fd7166e134e4539d3a7523c1094b))
+
+- batch durable episode writes off the completion path (#993) ([d79c257](https://github.com/d-o-hub/rust-self-learning-memory/commit/d79c2570263232a0c3b8dba0993e6ed1cdb5160e))
+
+- address PR #994 review feedback and refine compact handoffs ([0659fe7](https://github.com/d-o-hub/rust-self-learning-memory/commit/0659fe738df75cacf9aa7e4536f18c0019ff7f4d))
+
+- address PR #994 review feedback and refine compact handoffs ([1b1e66b](https://github.com/d-o-hub/rust-self-learning-memory/commit/1b1e66b74a63a73ff7932804592f43454f808958))
+
+- address PR #994 review feedback and refine compact handoffs ([ecf5f74](https://github.com/d-o-hub/rust-self-learning-memory/commit/ecf5f74d9cd049e377d6b14770d9e496cdcdbca1))
+
+- address PR #994 review feedback and refine compact handoffs ([1fc7cfd](https://github.com/d-o-hub/rust-self-learning-memory/commit/1fc7cfd30afaf381774710d9580d0ab91de40dfd))
+
+- address PR #994 review feedback and refine compact handoffs ([ae910e9](https://github.com/d-o-hub/rust-self-learning-memory/commit/ae910e9f6abdbff1583e4efa402c316c1a73fd4b))
+
+- address PR #994 review feedback and refine compact handoffs ([2345b53](https://github.com/d-o-hub/rust-self-learning-memory/commit/2345b53586de5717d0518d4b0cff68cb479f8445))
+
+- expose retrieval metrics in MCP tools and add acceptance tests (#962) (#1005) ([5893cfd](https://github.com/d-o-hub/rust-self-learning-memory/commit/5893cfd2431572ad2ff3da4a73886cebb2e5d1d2))
+
+
+### CI/CD
+
+- bump the actions-all group across 1 directory with 3 updates (#1001) ([e208486](https://github.com/d-o-hub/rust-self-learning-memory/commit/e2084861dc1e50bb322c2376171030f94fc983d4))
+
+- bound shards so the workflow cannot end cancelled (#1028) ([471ab7d](https://github.com/d-o-hub/rust-self-learning-memory/commit/471ab7d502fccfc98fb66823bd232321ca93c1d5))
+
+
+### Changed
+
+- restore the 500 LOC invariant that blocked the v0.1.41 release (#1026) ([452eb21](https://github.com/d-o-hub/rust-self-learning-memory/commit/452eb21aba14f6305794af4e21a9cdda2171f535))
+
+
+### Documentation
+
+- synchronize README and agent_docs with current implementation state (#1011) ([202ae0e](https://github.com/d-o-hub/rust-self-learning-memory/commit/202ae0e160c51f0d99cdd40bb0dff44b682426e0))
+
+- archive completed GOAP waves and refresh the plans index (#1024) ([fcca76d](https://github.com/d-o-hub/rust-self-learning-memory/commit/fcca76d2dbbea68a3c60e631c430c803d9a01cd7))
+
+
+### Fixed
+
+- cap reranker top_k to MAX_QUERY_LIMIT (#980) ([c2dc849](https://github.com/d-o-hub/rust-self-learning-memory/commit/c2dc849bcafb3f61f92fb72c852dd7344c384f60))
+
+- correct jaccard claims and pin duplicate semantics (#986) ([02154df](https://github.com/d-o-hub/rust-self-learning-memory/commit/02154dfdde8e2f039b57d2a1f2b455f6ad95b2c7))
+
+- stop committing generated coverage reports ([e4a6274](https://github.com/d-o-hub/rust-self-learning-memory/commit/e4a627484796ce3802e575c1c19e64587fa0c73f))
+
+- bump rustls to 0.23.45 (RUSTSEC-2026-0285) (#1021) ([f310192](https://github.com/d-o-hub/rust-self-learning-memory/commit/f3101929449ed0376712db5300b58729b185671b))
+
+- ingest only fresh Criterion new/ estimates in benchmarks (#1022) ([04744db](https://github.com/d-o-hub/rust-self-learning-memory/commit/04744db9e60fbeb0c75c4f64a3a02c41957988af))
+
+- fail benchmark store above the measured same-code noise envelope (#1025) ([19e88d4](https://github.com/d-o-hub/rust-self-learning-memory/commit/19e88d4a9f44e966e6784eb18a98fc2b42330da3))
+
+- cap limit parameter in DomainIndex::get_recent_episodes (#1033) ([ba95bc8](https://github.com/d-o-hub/rust-self-learning-memory/commit/ba95bc88c1c98aa480c84af333102c3645b5e713))
+
+
+### Maintenance
+
+- bump workspace to 0.1.41 after shipping v0.1.40 ([00dcbc0](https://github.com/d-o-hub/rust-self-learning-memory/commit/00dcbc03106953914b8646e63b3426f91cf9b1da))
+
+- bump the rust-patch-minor group across 1 directory with 10 updates (#1002) ([9d91a01](https://github.com/d-o-hub/rust-self-learning-memory/commit/9d91a01b83cb5e6911826fdbb1a93e364942eaf0))
+
+- update CHANGELOG.md for v0.1.40 (#999) ([27350fe](https://github.com/d-o-hub/rust-self-learning-memory/commit/27350fe7eb2fdef5f9bf9d3a7db3420f17401e5e))
+
+- bump the rust-major group with 3 updates (#1019) ([22c47b3](https://github.com/d-o-hub/rust-self-learning-memory/commit/22c47b39cd5c8540147423e4e3c7769d979587db))
+
+- bump the rust-patch-minor group with 3 updates (#1018) ([2fe9d29](https://github.com/d-o-hub/rust-self-learning-memory/commit/2fe9d294e04c5e4cf92d6cfd767f3ddcaae3b256))
+
+- prepare v0.1.41 changelog and version docs (#1023) ([775e2d9](https://github.com/d-o-hub/rust-self-learning-memory/commit/775e2d9a30db17f712584bcdbf6cba44139cb963))
+
+
+### Performance
+
+- optimize string similarity with ASCII fast-path and stack DP (#1010) ([dccef98](https://github.com/d-o-hub/rust-self-learning-memory/commit/dccef98856fe0c9bf6a52b7304f64cd6b60c6c23))
+
+
+### Testing
+
+- size local nextest caps to measured CLI-wave runtime (#1029) ([2b0d2d5](https://github.com/d-o-hub/rust-self-learning-memory/commit/2b0d2d5c54b86020a087bd255e10f06bdcf23252))
+
+- give the default profile one retry and a 240s base cap (#1035) ([37f9caf](https://github.com/d-o-hub/rust-self-learning-memory/commit/37f9cafa060cf51fe9e744682df5acbf19ec55c4))
+
 
 ## [0.1.40] - 2026-09-06
 
@@ -2976,7 +3037,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - quality fixes and MCP protocol upgrade ([5b96562](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b9656292fda84d1e51ca56bf5d7da7486359090))
 
 
-### 0.1.11 — continued (shipped 2026-01-04)
+## [0.1.11] - 2026-01-04
 
 
 
@@ -3081,7 +3142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump version to v0.1.10 ([5b7808d](https://github.com/d-o-hub/rust-self-learning-memory/commit/5b7808d3ab6ea15ace731db5c2e7c6e120b4b493))
 
 
-### 0.1.10 — continued (shipped 2026-01-02)
+## [0.1.10] - 2026-01-02
 
 
 

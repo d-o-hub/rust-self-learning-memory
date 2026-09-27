@@ -2,12 +2,12 @@
 
 **Last Updated**: 2026-09-27
 **Released Version**: v0.1.42 (latest tag)
-**Workspace Version**: 0.1.42 (release pending tag)
-**Active Sprint**: v0.1.42 release — retrieval judgment (#1030 → #1041), semantic shortlist rerank (#1031 → #1042), evidence-aware classification (#1032 → #1049), merge/coverage tooling (#1046), tracker refresh (#1047) and csm CI enforcement (#1045 → #1051) all merged; release prep follows (drift issue #1048)
+**Workspace Version**: 0.1.43 (post-v0.1.42 bump)
+**Active Sprint**: v0.1.42 shipped 2026-09-27 — retrieval judgment (#1030 → #1041), shortlist rerank (#1031 → #1042), evidence-aware classification (#1032 → #1049) with the per-dimension confidence fix (#1053), tooling (#1046/#1047) and csm CI enforcement (#1045 → #1051); post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next
 **Plan**: #1030/#1031/#1032 landed via PRs #1041/#1042/#1049; tooling via #1046/#1047; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `619e6f37`
+**Branch**: main @ `47a07a0b`
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: run `gh issue list --state open` — the retrieval and csm CI items are closed; release-drift tracks this release
+**Open issues**: none open — #1048 release drift closed by v0.1.42 (2026-09-27)
 
 ## Sprint 2026-09-24 — Retrieval judgment + rerank
 
@@ -15,8 +15,8 @@
 |------|------|------|--------|
 | P1 | Retrieval | #1030 typed semantic judgment interface (`RetrievalJudge`, validation, bounded telemetry) | ✅ Merged (#1041) |
 | P1 | Retrieval | #1031 opt-in semantic shortlist rerank (deterministic fusion, single finalization path, `--rerank` eval arm) | ✅ Merged (#1042) |
-| P2 | Tooling | Gated merge path (`merge-pr.sh`) + soft tracker-drift check + `coverage-waivers` skill | 🔄 PR #1046 |
-| P2 | Retrieval | #1032 evidence-aware passage classification (depends on #1030/#1031) | ⏳ Open |
+| P2 | Tooling | Gated merge path (`merge-pr.sh`) + soft tracker-drift check + `coverage-waivers` skill | ✅ Merged (#1046) |
+| P2 | Retrieval | #1032 evidence-aware passage classification (depends on #1030/#1031) | ✅ Merged (#1049); confidence gating fixed in #1053 |
 
 ## Sprint 2026-09-05 — Observability + dev-harness adoption
 

@@ -1,18 +1,26 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-09-27
-**Released Version**: v0.1.42 (release pending tag)
-**Workspace Version**: 0.1.42 (matches release)
+**Released Version**: v0.1.42 (latest tag)
+**Workspace Version**: 0.1.43 (post-v0.1.42 bump)
 **Edition**: Rust 2024  
-**Active plan**: none in flight — all four 2026-09 wave items merged (#1041 judgment, #1042 rerank, #1049 evidence classification, #1046/#1047 tooling, #1051 csm CI); this PR prepares v0.1.42; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `619e6f37` (PR #1051 merged 2026-09-27)
+**Active plan**: none in flight — v0.1.42 shipped 2026-09-27 (#1041 judgment, #1042 rerank, #1049 evidence classification with the #1053 per-dimension confidence fix, #1046/#1047 tooling, #1051 csm CI); post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `47a07a0b` (PR #1053 merged 2026-09-27)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — the retrieval and csm CI items are closed; release-drift tracks this release |
+| Open issues | none open — #1048 release drift closed by v0.1.42 (2026-09-27) |
+
+## Recent completed (2026-09-27 — v0.1.42 shipped)
+
+| Wave | Result |
+|------|--------|
+| v0.1.42 release | ✅ tag `v0.1.42` on `47a07a0b`; GitHub Release with dist artifacts for five targets; drift issue #1048 auto-closed by the tag-triggered check; workspace bumped to 0.1.43 |
+| Evidence classification confidence gating (#1053) | ✅ each evidence rule gated on its own dimension's confidence; shipped in v0.1.42 (4 new regressions; 47/47 with `--features csm`) |
+| Changelog automation (#1054) | closed — the curated 0.1.42 notes (#1052/#1053) take precedence over the git-cliff rewrite |
 
 ## Recent completed (2026-09-24 — retrieval judgment + rerank + merge tooling)
 
@@ -20,7 +28,7 @@
 |------|--------|
 | Typed semantic judgment (#1030 → PR #1041) | ✅ `RetrievalJudge` interface, typed atomic judgments, strict ID/score validation with ID-join alignment, optional `CascadeRetriever::with_judge`, bounded `JudgmentOutcome` telemetry; merged `d4d57a63`-era, 6 commits |
 | Semantic shortlist rerank (#1031 → PR #1042) | ✅ opt-in `SemanticRerankConfig` + deterministic min-max/relevance fusion, single `finish_ranked` path over all local-success branches, `RerankStatus` telemetry, offline `--rerank` eval comparison (judge calls/query 0.73, candidates/query 5.93, regression PASSED); merged `1461d61d` |
-| Merge/coverage tooling (PR #1046) | 🔄 `merge-pr.sh` gated merge path, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill (8/8 evals) |
+| Merge/coverage tooling (PR #1046) | ✅ `merge-pr.sh` gated merge path, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill (8/8 evals) |
 | Harness issues | 8 filed upstream in `d-o-hub/do-harness` (#238–#245) from this wave's friction |
 
 ## Recent completed (2026-08-12 — feedback-to-ranking adaptation + ADR registry)

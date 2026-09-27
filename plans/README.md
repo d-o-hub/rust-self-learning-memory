@@ -1,9 +1,9 @@
 # Plans Directory
 
-**Workspace**: `v0.1.42` (post-v0.1.41 bump) · **Released tag**: `v0.1.41` · **Main baseline**: `37f9cafa060cf51fe9e744682df5acbf19ec55c4` (v0.1.41 tagged 2026-09-20)
-**Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan
-**Last Updated**: 2026-09-21
-**Open PRs**: dependabot #1037/#1038 · **Open issues**: none blocking (#1020 release drift closed by v0.1.41)
+**Workspace**: `v0.1.43` (post-v0.1.42 bump) · **Released tag**: `v0.1.42` · **Main baseline**: `47a07a0bb61e8dd0ec44599dd51f0d96d5ce26c8` (v0.1.42 tagged 2026-09-27)
+**Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan; post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next
+**Last Updated**: 2026-09-27
+**Open PRs**: docs audit repair #1044 · **Open issues**: none blocking (#1048 release drift closed by v0.1.42)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

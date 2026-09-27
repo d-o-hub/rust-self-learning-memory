@@ -41,11 +41,12 @@ merge-required** by the ruleset.
 
 | Gate | Measured (how) | Blocking floor (local) | Workflow enforcement today | Merge-required? | Aspirational target | Authoritative surface |
 |------|----------------|------------------------|----------------------------|-----------------|---------------------|-----------------------|
-| CI / Required aggregate | `if: always()` eval of fast-gate/commitlint/test/MCP/multi-platform/quality-gates results via `scripts/ci-required-evaluate.sh` | only `success` accepted; failure/cancelled/timed_out/skipped rejected | `ci.yml` `CI / Required` job (2026-08-11, same-run) | **Yes** (ruleset requires this context, 2026-08-10) | live ruleset requires this stable context | `ci.yml` aggregate + `scripts/ci-required-evaluate.sh` |
+| CI / Required aggregate | `if: always()` eval of fast-gate/commitlint/test/csm-tests/MCP/multi-platform/quality-gates results via `scripts/ci-required-evaluate.sh` | only `success` accepted; failure/cancelled/timed_out/skipped rejected | `ci.yml` `CI / Required` job (2026-08-11, same-run) | **Yes** (ruleset requires this context, 2026-08-10) | live ruleset requires this stable context | `ci.yml` aggregate + `scripts/ci-required-evaluate.sh` |
 | Format | `cargo fmt --check` | required | same-run `fast-gate` job runs `./scripts/code-quality.sh fmt --workspace` | No | 100% formatted | `./scripts/code-quality.sh fmt --workspace` (local + CI) |
 | Clippy | `cargo clippy -D warnings` | required | same-run `fast-gate` job runs `./scripts/code-quality.sh clippy --workspace` | No | 0 warnings workspace | `./scripts/code-quality.sh clippy --workspace` (local + CI) |
 | Build check | `cargo check` / `./scripts/build-rust.sh check` | recommended | Builds occur in CI jobs, but no exact canonical check | No | always clean | `./scripts/build-rust.sh check` |
 | Unit + integration | `cargo nextest run --all` | required before commit (AGENTS) | CI Tests runs `cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils` (support-crate exclusions; MCP and multi-platform duplicate subsets) | No | all pass | PR workflow is narrower than full local `cargo nextest run --all`; local command is authoritative |
+| CSM feature tests | `cargo nextest run -p do-memory-core --features csm` | required before csm-affecting changes | `ci.yml` `csm-tests` job runs it with the `ci` profile (issue #1045, 2026-09-25) | No (inside the aggregate needs set) | feature-gated suites actually execute in CI | `ci.yml` `csm-tests` |
 | Doctests | `cargo test --doc` | required before commit (AGENTS) | same-run `fast-gate` invokes `scripts/check-doctests.sh` | No | all pass | `cargo test --doc` / `scripts/check-doctests.sh` |
 | Docs links | `cargo doc --no-deps` | required before commit | same-run `fast-gate` invokes `scripts/check-doctests.sh` with warnings denied | No | 0 broken | `cargo doc --no-deps --document-private-items` |
 | LOC ≤500 | quality-gates source-size check | required in quality-gates | No equivalent production LOC job; File Structure validates locations | No | 0 prod files >500 | `./scripts/quality-gates.sh` LOC check |
@@ -74,6 +75,7 @@ merge-required** by the ruleset.
 |---------|------------------|---------------|
 | fmt + clippy | `./scripts/code-quality.sh fmt --workspace` / `clippy --workspace` | same-run `fast-gate` job in `ci.yml` (canonical local commands) |
 | tests | `cargo nextest run --all` | CI Tests job excludes `do-memory-benches`, `do-memory-examples`, `do-memory-test-utils`; **PR workflow narrower than local `--all`** |
+| csm feature tests | `cargo nextest run -p do-memory-core --features csm` | CI `csm-tests` job (`ci.yml`, issue #1045) |
 | quality bundle | `./scripts/quality-gates.sh` | Quality Gates job duplicates only a subset; **not parity** |
 | deny advisories | `cargo deny check` | Cargo Deny / Supply Chain (`security.yml` / `supply-chain.yml`) |
 | skill schema | `./scripts/run-evals.sh --fixtures` | Skill Evals workflow (`skill-evals.yml`) always |

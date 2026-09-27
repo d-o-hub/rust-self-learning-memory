@@ -131,10 +131,10 @@ if [[ "$CI_PARITY" == true ]]; then
   if ! awk '
     /^  [a-zA-Z0-9_-]+:/ { in_required = 0 }
     /name: CI \/ Required/ { in_required = 1; found = 1 }
-    in_required && /needs: \[fast-gate, commitlint, test, mcp-build, multi-platform, quality-gates\]/ { ok = 1 }
+    in_required && /needs: \[fast-gate, commitlint, test, csm-tests, mcp-build, multi-platform, quality-gates\]/ { ok = 1 }
     END { exit !(found && ok) }
   ' "$WF_DIR/ci.yml"; then
-    fail "CI / Required aggregate needs must be exactly [fast-gate, commitlint, test, mcp-build, multi-platform, quality-gates]"
+    fail "CI / Required aggregate needs must be exactly [fast-gate, commitlint, test, csm-tests, mcp-build, multi-platform, quality-gates]"
   fi
 
   # ci-required-evaluate.sh is the single result-mapping authority (accepts

@@ -29,11 +29,10 @@ cargo build --features agentfs
 ### 2. Configure in Code
 
 ```rust
-use memory_core::{SelfLearningMemory, ExternalSignalConfig};
+use do_memory_core::reward::external::{AgentFsConfig, AgentFsProvider, ExternalSignalRegistry};
 
-let memory = SelfLearningMemory::builder()
-    .with_agentfs_provider(AgentFsConfig::from_env()?)
-    .build();
+let mut registry = ExternalSignalRegistry::new();
+registry.register(Box::new(AgentFsProvider::new(AgentFsConfig::from_env()?)));
 ```
 
 ### 3. Verify Integration
@@ -121,7 +120,7 @@ pub struct ToolSignal {
 ### Programmatic Configuration
 
 ```rust
-use memory_core::external::{
+use do_memory_core::reward::external::{
     AgentFsConfig, ExternalSignalConfig, SignalMerger
 };
 
@@ -142,6 +141,8 @@ let signal_config = ExternalSignalConfig {
         map
     },
     min_confidence: 0.5,
+    enable_caching: true,
+    cache_ttl_seconds: 3600,
 };
 ```
 
@@ -315,9 +316,14 @@ impl ExternalSignalProvider for MyAuditProvider {
 ### Testing
 
 ```rust
-use memory_core::external::MockExternalSignalProvider;
+#[cfg(test)]
+use do_memory_core::reward::external::{
+    ExternalSignalRegistry, ExternalSignalSet, MockExternalSignalProvider, ToolSignal,
+};
+use chrono::Utc;
 
-let mock_provider = MockExternalSignalProvider::with_signals(vec![
+let mock_provider = MockExternalSignalProvider::with_signals(vec![(
+    "test".to_string(),
     ExternalSignalSet {
         provider: "test".to_string(),
         tool_signals: vec![ToolSignal {
@@ -325,16 +331,16 @@ let mock_provider = MockExternalSignalProvider::with_signals(vec![
             success_rate: 0.95,
             avg_latency_ms: 150.0,
             sample_count: 100,
+            metadata: Default::default(),
         }],
         confidence: 0.9,
         timestamp: Utc::now(),
         episode_quality: None,
-    }
-]);
+    },
+)]);
 
-let memory = SelfLearningMemory::builder()
-    .with_external_signal(Box::new(mock_provider))
-    .build();
+let mut registry = ExternalSignalRegistry::new();
+registry.register(Box::new(mock_provider));
 ```
 
 ## API Reference

@@ -21,7 +21,7 @@ use tokio::sync::Mutex;
 
 // Local modules
 use crate::embeddings::*;
-use memory_core::Episode;
+use do_memory_core::Episode;
 ```
 
 ### Async Patterns
@@ -166,10 +166,10 @@ Use backticks for code elements in documentation:
 /// # Examples
 ///
 /// ```rust
-/// use memory_core::{SelfLearningMemory, MemoryConfig};
+/// use do_memory_core::{SelfLearningMemory, MemoryConfig};
 ///
 /// let config = MemoryConfig::default();
-/// let memory = SelfLearningMemory::new(config).await?;
+/// let memory = SelfLearningMemory::with_config(config);
 /// ```
 pub async fn create_memory(config: MemoryConfig) -> Result<SelfLearningMemory> {
     // Implementation

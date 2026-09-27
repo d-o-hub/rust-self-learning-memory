@@ -21,8 +21,8 @@ Fuzzy search enables finding episodes even when search queries contain typos or 
 ### Enable Fuzzy Search
 
 ```rust
-use memory_core::{EpisodeFilter, SelfLearningMemory};
-use memory_core::search::SearchMode;
+use do_memory_core::{EpisodeFilter, SelfLearningMemory};
+use do_memory_core::search::SearchMode;
 
 let memory = SelfLearningMemory::new();
 
@@ -55,7 +55,7 @@ let filter = EpisodeFilter::builder()
 ### Using SearchMode Enum
 
 ```rust
-use memory_core::search::SearchMode;
+use do_memory_core::search::SearchMode;
 
 // Explicit fuzzy search
 let filter = EpisodeFilter::builder()
@@ -75,7 +75,7 @@ let filter = EpisodeFilter::builder()
 Search across different episode fields:
 
 ```rust
-use memory_core::search::SearchField;
+use do_memory_core::search::SearchField;
 
 // Search only in episode descriptions (default)
 let filter = EpisodeFilter::builder()

@@ -21,7 +21,7 @@ The `EpisodeFilter` API provides rich filtering capabilities for querying episod
 ### Basic Filtering
 
 ```rust
-use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+use do_memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
 
 let memory = SelfLearningMemory::new();
 
@@ -154,7 +154,7 @@ let matching = memory.list_episodes_filtered(filter, None, None).await?;
 ### Outcome-Based Filtering
 
 ```rust
-use memory_core::OutcomeType;
+use do_memory_core::OutcomeType;
 
 // Only failures
 let filter = EpisodeFilter::builder()

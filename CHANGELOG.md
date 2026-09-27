@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.42] - 2026-09-27
+
+### Added
+
+- Provider-neutral typed semantic judgment interface (#1030, #1041): batched
+  `RetrievalJudge` trait with atomic relevance/useful-evidence/contradiction/
+  instruction-likeness scores, strict ID and score validation, optional
+  `CascadeRetriever::with_judge` injection, and bounded judgment telemetry
+- Opt-in semantic shortlist rerank (#1031, #1042): validated
+  `SemanticRerankConfig`, deterministic min-max plus relevance fusion over a
+  bounded shortlist, one shared judgment batch per retrieval, `RerankStatus`
+  telemetry, and an offline `--rerank` evaluation comparison arm
+- Evidence-aware passage classification (#1032, #1049): `retrieve_with_evidence`
+  returns the unchanged cascade result plus typed evidence hits and a
+  deterministic disposition policy (keep/flag/demote/drop), with a
+  release-blocking false-drop metric and per-dimension precision/recall in the
+  evaluation harness
+
+### Changed
+
+- `csm`-feature suites (cascade, rerank, evidence) now execute in CI and are
+  part of the `CI / Required` aggregate (#1045, #1051)
+- Merges are gated by `scripts/merge-pr.sh` (readiness check plus independent
+  live verification, never `--admin`); plan validation gained a soft
+  tracker-drift check and the `coverage-waivers` skill documents the coverage
+  waiver classes (#1046)
+- Plan trackers refreshed: pinned counts replaced by `gh` pointers and GOAP
+  state realigned with the workspace version (#1047)
+
+### Fixed
+
+- Changelog v0.1.41 release record corrected (#1040)
+
+### Chore
+
+- Dependency bumps: actions-all group and rust-patch-minor group (#1037, #1038)
+- Workspace bumped to 0.1.42 after shipping v0.1.41 (#1039)
 
 ## [0.1.41] - 2026-09-20
 

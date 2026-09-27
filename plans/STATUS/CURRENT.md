@@ -1,18 +1,18 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-09-24
-**Released Version**: v0.1.41 (latest tag)
-**Workspace Version**: 0.1.42 (post-v0.1.41 bump)
+**Last Updated**: 2026-09-27
+**Released Version**: v0.1.42 (release pending tag)
+**Workspace Version**: 0.1.42 (matches release)
 **Edition**: Rust 2024  
-**Active plan**: none in flight — #1030 (typed semantic judgment) and #1031 (semantic shortlist rerank) merged 2026-09-24 via PRs #1041/#1042; #1046 (gated merge path, tracker-drift check, coverage-waivers skill) in review; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `1461d61d` (PR #1042 merged 2026-09-24)
+**Active plan**: none in flight — all four 2026-09 wave items merged (#1041 judgment, #1042 rerank, #1049 evidence classification, #1046/#1047 tooling, #1051 csm CI); this PR prepares v0.1.42; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `619e6f37` (PR #1051 merged 2026-09-27)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — open work is evidence-aware passage classification and the `csm` CI gap |
+| Open issues | run `gh issue list --state open` — the retrieval and csm CI items are closed; release-drift tracks this release |
 
 ## Recent completed (2026-09-24 — retrieval judgment + rerank + merge tooling)
 

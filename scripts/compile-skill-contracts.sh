@@ -10,6 +10,11 @@
 
 set -euo pipefail
 
+# Locale-independent ordering: `sort` collation differs between machines
+# (en_US.UTF-8 ignores punctuation; CI runs under C), so the catalog bytes must
+# be produced under a fixed locale on every host.
+export LC_ALL=C
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
@@ -33,7 +38,6 @@ TMP=$(mktemp)
 {
   echo '{'
   echo '  "schema_version": 1,'
-  echo "  \"generated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
   echo '  "skills": ['
   first=1
   while IFS= read -r skill; do

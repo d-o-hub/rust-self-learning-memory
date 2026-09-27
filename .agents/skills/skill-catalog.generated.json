@@ -1,5 +1,4 @@
 {
-  "generated_at": "2026-09-24T17:07:26Z",
   "schema_version": 1,
   "skills": [
     {
@@ -33,7 +32,7 @@
       "name": "build-rust"
     },
     {
-      "description": "",
+      "description": "Run cargo-mutants in this Cargo workspace: package-scoped mutation testing with workspace-root-relative --file globs plus an explicit file-existence guard. Use when running cargo mutants, targeting one crate's mutation tests, or debugging 'no mutants tested' path errors.",
       "has_evals": true,
       "id": "cargo-mutants-workspace",
       "name": "cargo-mutants-workspace"
@@ -57,16 +56,16 @@
       "name": "ci-poll"
     },
     {
-      "description": "Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt.",
-      "has_evals": true,
-      "id": "codebase-analyzer",
-      "name": "codebase-analyzer"
-    },
-    {
       "description": "Maintain high code quality through formatting, linting, static analysis, and clean code principles. Use for rustfmt, clippy, cargo audit, code reviews, refactoring, and quality gates.",
       "has_evals": true,
       "id": "code-quality",
       "name": "code-quality"
+    },
+    {
+      "description": "Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt.",
+      "has_evals": true,
+      "id": "codebase-analyzer",
+      "name": "codebase-analyzer"
     },
     {
       "description": "Git commit with enforced quality gates, proper message format, and safe push workflow",
@@ -129,6 +128,12 @@
       "name": "feature-implement"
     },
     {
+      "description": "Manage git worktrees for efficient multi-branch development. Use when creating worktrees for feature branches, organizing worktree directories, cleaning up unused worktrees, or implementing worktree-based workflows.",
+      "has_evals": true,
+      "id": "git-worktree-manager",
+      "name": "git-worktree-manager"
+    },
+    {
       "description": "Background reference for release prep (SemVer, changelog categories). For actual releases, ALWAYS use the release-guard skill and release-manager.sh ship — never manual gh release create.",
       "has_evals": true,
       "id": "github-release-best-practices",
@@ -141,19 +146,13 @@
       "name": "github-workflows"
     },
     {
-      "description": "Manage git worktrees for efficient multi-branch development. Use when creating worktrees for feature branches, organizing worktree directories, cleaning up unused worktrees, or implementing worktree-based workflows.",
-      "has_evals": true,
-      "id": "git-worktree-manager",
-      "name": "git-worktree-manager"
-    },
-    {
       "description": "Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm/iterative execution strategies, or coordination of multiple specialized agents.",
       "has_evals": true,
       "id": "goap-agent",
       "name": "goap-agent"
     },
     {
-      "description": ">",
+      "description": "Map the harness-engineering feedforward guides and feedback sensors, and run the self-correction protocol when a computational sensor fires. Use when a sensor fails (do-harness verify), before making code changes, or when setting up agent context for a new task. Triggers: harness, sensor fire, self-correction, harness doctor.",
       "has_evals": true,
       "id": "harness",
       "name": "harness"
@@ -183,16 +182,16 @@
       "name": "memory-harness"
     },
     {
-      "description": "Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI.",
-      "has_evals": true,
-      "id": "performance",
-      "name": "performance"
-    },
-    {
       "description": "Review performance-optimization PRs (especially auto-generated ones like Jules bot PRs) before approving, merging, or closing. Verifies complexity/memory claims against the pre-change code, demands benchmark or measurement evidence, checks branch coverage of heuristics (longer-first, asymmetric, unicode/multibyte), rejects tests written only for dead defensive branches, and enforces commitlint compliance. Use when reviewing perf PRs, judging close-vs-merge decisions, or adding guard rails after a perf PR review found overstated claims.",
       "has_evals": true,
       "id": "perf-pr-guardrails",
       "name": "perf-pr-guardrails"
+    },
+    {
+      "description": "Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI.",
+      "has_evals": true,
+      "id": "performance",
+      "name": "performance"
     },
     {
       "description": "Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project",

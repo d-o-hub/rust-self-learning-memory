@@ -66,7 +66,7 @@
     {
       "skill": "ci-fix",
       "triggers": {
-        "keywords": ["CI fail", "github actions", "workflow failed", "cancelled check", "Actions"],
+        "keywords": ["CI fail", "workflow failed", "cancelled check", "ci-fix"],
         "patterns": ["gh run", "workflow", "\\.github/workflows"],
         "files": [".github/workflows/**/*.yml"]
       },
@@ -386,6 +386,24 @@
         "files": [".github/workflows/coverage.yml"]
       },
       "priority": "high"
+    },
+    {
+      "skill": "harness",
+      "triggers": {
+        "keywords": ["sensor", "sensor fire", "do-harness", "self-correction", "verify --record", "harness doctor"],
+        "patterns": ["do-harness", "agent_state\\.db", "HARNESS VIOLATION"],
+        "files": ["do-harness.toml", "HARNESS.md", ".do-harness/**"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "cargo-mutants-workspace",
+      "triggers": {
+        "keywords": ["mutation testing", "cargo mutants", "mutants", "mutation score", "cargo-mutants"],
+        "patterns": ["cargo.?mutants", "cargo-mutants-workspace", "mutation testing"],
+        "files": [".github/workflows/mutants.yml", ".agents/skills/cargo-mutants-workspace/**"]
+      },
+      "priority": "medium"
     }
   ]
 }

@@ -1,7 +1,7 @@
 # Skills Index
 
-> Generated 2026-07-25T00:00:00Z
-**Skills**: 41 · **Routed**: 41
+> Generated 2026-09-27T00:00:00Z
+**Skills**: 44 · **Routed**: 44
 
 | Skill | Evals | Routed |
 |-------|:-----:|:------:|
@@ -10,12 +10,14 @@
 | [analysis-swarm](skills/analysis-swarm/SKILL.md) | yes | yes |
 | [architecture-validation](skills/architecture-validation/SKILL.md) | yes | yes |
 | [build-rust](skills/build-rust/SKILL.md) | yes | yes |
+| [cargo-mutants-workspace](skills/cargo-mutants-workspace/SKILL.md) | yes | yes |
 | [checkpoint-handoff](skills/checkpoint-handoff/SKILL.md) | yes | yes |
 | [ci-fix](skills/ci-fix/SKILL.md) | yes | yes |
 | [ci-poll](skills/ci-poll/SKILL.md) | yes | yes |
 | [code-quality](skills/code-quality/SKILL.md) | yes | yes |
 | [codebase-analyzer](skills/codebase-analyzer/SKILL.md) | yes | yes |
 | [commit](skills/commit/SKILL.md) | yes | yes |
+| [coverage-waivers](skills/coverage-waivers/SKILL.md) | yes | yes |
 | [debug-troubleshoot](skills/debug-troubleshoot/SKILL.md) | yes | yes |
 | [do-memory-cli-ops](skills/do-memory-cli-ops/SKILL.md) | yes | yes |
 | [do-memory-mcp](skills/do-memory-mcp/SKILL.md) | yes | yes |
@@ -28,6 +30,7 @@
 | [github-release-best-practices](skills/github-release-best-practices/SKILL.md) | yes | yes |
 | [github-workflows](skills/github-workflows/SKILL.md) | yes | yes |
 | [goap-agent](skills/goap-agent/SKILL.md) | yes | yes |
+| [harness](skills/harness/SKILL.md) | yes | yes |
 | [learn](skills/learn/SKILL.md) | yes | yes |
 | [loop-agent](skills/loop-agent/SKILL.md) | yes | yes |
 | [memory-context](skills/memory-context/SKILL.md) | yes | yes |

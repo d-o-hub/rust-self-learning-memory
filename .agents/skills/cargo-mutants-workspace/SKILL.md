@@ -1,3 +1,8 @@
+---
+name: cargo-mutants-workspace
+description: "Run cargo-mutants in this Cargo workspace: package-scoped mutation testing with workspace-root-relative --file globs plus an explicit file-existence guard. Use when running cargo mutants, targeting one crate's mutation tests, or debugging 'no mutants tested' path errors."
+---
+
 # Cargo Mutants Workspace Skill
 
 ## Context

@@ -59,6 +59,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends jq ripgrep
 
+      - name: Skill catalog determinism (compile --check)
+        # Fails if skill-catalog.generated.json drifts from a fresh
+        # deterministic generation, or if any defined skill lacks a route.
+        run: |
+          chmod +x scripts/compile-skill-contracts.sh scripts/validate-skill-routes.sh
+          ./scripts/compile-skill-contracts.sh --check
+
       - name: Required aggregate fixtures
         # Regression for the false-green CI / Required aggregate: evaluator
         # accepts ONLY success; waiter/anchor topology fails the guard.
@@ -105,6 +112,7 @@ jobs:
             echo ""
             echo "| Check | When |"
             echo "|-------|------|"
+            echo "| compile-skill-contracts --check | always |"
             echo "| test-workflow-guards --required-aggregate | always |"
             echo "| validate-gate-contract | always |"
             echo "| validate-gate-contract --ci-parity | always |"

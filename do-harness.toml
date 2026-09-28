@@ -19,7 +19,7 @@ argv = ["cargo", "check", "--workspace"]
 
 [[sensors]]
 name = "clippy"
-argv = ["cargo", "clippy", "--workspace", "--", "-D", "warnings"]
+argv = ["bash", "scripts/code-quality.sh", "clippy", "--workspace"]
 
 [[sensors]]
 name = "test"

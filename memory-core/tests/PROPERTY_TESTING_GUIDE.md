@@ -43,7 +43,7 @@ cargo test -p do-memory-core tag_property_tests
 Run specific properties:
 ```bash
 cargo test -p do-memory-core episode_id_is_valid_uuid
-cargo test -p memory_core similarity_is_reflexive
+cargo test -p do-memory-core similarity_is_reflexive
 ```
 
 Increase test cases for exhaustive testing:
@@ -56,7 +56,7 @@ PROPTEST_CASES=10000 cargo test -p do-memory-core
 ### Basic Template
 
 ```rust
-use memory_core::types::MyType;
+use do_memory_core::types::MyType;
 use proptest::prelude::*;
 
 proptest! {

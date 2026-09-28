@@ -175,14 +175,14 @@ cargo run --bin do-memory-cli -- pattern list
 ### Programmatic Usage
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome};
-use memory_cli::config::Config;
+use do_memory_cli::config::load_and_init;
+use do_memory_core::{TaskContext, TaskType, TaskOutcome};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Load configuration (will auto-detect local SQLite)
-    let config = Config::load(None)?;
-    let memory = config.create_memory().await?;
+    // Load configuration (auto-detects local SQLite) and initialize storage
+    let (_config, storage) = load_and_init(None).await?;
+    let memory = storage.memory;
 
     // Use the memory system
     let episode_id = memory.start_episode(

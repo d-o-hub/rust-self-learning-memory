@@ -21,8 +21,8 @@ Episode relationships enable modeling connections between tasks, supporting hier
 ### Creating Relationships
 
 ```rust
-use memory_core::memory::SelfLearningMemory;
-use memory_core::episode::{RelationshipType, RelationshipMetadata};
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::episode::{RelationshipType, RelationshipMetadata};
 
 let memory = SelfLearningMemory::new();
 
@@ -59,7 +59,7 @@ let relationships = memory.get_episode_relationships(
 ).await?;
 
 // Find related episodes with filters
-use memory_core::memory::relationship_query::RelationshipFilter;
+use do_memory_core::memory::relationship_query::RelationshipFilter;
 
 let related = memory.find_related_episodes(
     episode_id,

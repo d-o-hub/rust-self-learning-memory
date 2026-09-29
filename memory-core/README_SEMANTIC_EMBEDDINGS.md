@@ -34,8 +34,8 @@ The semantic embeddings feature enhances the memory system with vector-based sim
 The simplest way to get started is using the default local provider with automatic model download:
 
 ```rust
-use memory_core::embeddings::SemanticService;
-use memory_core::embeddings::InMemoryEmbeddingStorage;
+use do_memory_core::embeddings::SemanticService;
+use do_memory_core::embeddings::InMemoryEmbeddingStorage;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
 ### Basic Usage with SelfLearningMemory
 
 ```rust
-use memory_core::{
+use do_memory_core::{
     SelfLearningMemory,
     embeddings::{EmbeddingConfig, EmbeddingProvider},
     types::{TaskContext, TaskType, TaskOutcome}
@@ -166,7 +166,7 @@ let embedding = semantic_service.provider.embed_text("Hello").await?;
 ### Progress Reporting
 
 ```rust
-use memory_core::embeddings::LocalEmbeddingProvider;
+use do_memory_core::embeddings::LocalEmbeddingProvider;
 
 let provider = LocalEmbeddingProvider::new().await?;
 // First time: Shows download progress
@@ -201,7 +201,7 @@ let provider = LocalEmbeddingProvider::new().await?;
 For offline deployment or custom models:
 
 ```rust
-use memory_core::embeddings::LocalEmbeddingProvider;
+use do_memory_core::embeddings::LocalEmbeddingProvider;
 use std::path::PathBuf;
 
 // Use pre-downloaded model
@@ -244,7 +244,7 @@ Embeddings are stored in two backends for optimal performance:
 ### Automatic Storage
 
 ```rust
-use memory_core::embeddings::SemanticService;
+use do_memory_core::embeddings::SemanticService;
 
 let semantic_service = SemanticService::default(storage).await?;
 
@@ -316,7 +316,7 @@ use memory_core::embeddings_simple::text_to_embedding;
 let embedding = text_to_embedding("implement REST API");
 
 // NEW (v0.2.0+)
-use memory_core::embeddings::SemanticService;
+use do_memory_core::embeddings::SemanticService;
 let semantic_service = SemanticService::default(storage).await?;
 let embedding = semantic_service.provider.embed_text("implement REST API").await?;
 ```
@@ -354,7 +354,7 @@ let results = semantic_memory.semantic_search_episodes(
 use memory_core::embeddings_simple;  // ⚠️ This will be removed
 
 // NEW - Use embeddings module instead
-use memory_core::embeddings;         // ✅ Correct
+use do_memory_core::embeddings;      // ✅ Correct
 ```
 
 ### Migration Checklist

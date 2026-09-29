@@ -1,11 +1,6 @@
 ---
 name: harness
-description: >
-  Map the harness-engineering feedforward guides and feedback sensors, and run
-  the self-correction protocol when a computational sensor fires. Use when a
-  sensor fails (do-harness verify), before making code changes, or when setting
-  up agent context for a new task. Triggers: "harness", "sensor fire",
-  "CI failure", "self-correction".
+description: "Map the harness-engineering feedforward guides and feedback sensors, and run the self-correction protocol when a computational sensor fires. Use when a sensor fails (do-harness verify), before making code changes, or when setting up agent context for a new task. Triggers: harness, sensor fire, self-correction, harness doctor."
 license: MIT
 metadata:
   version: "0.1.0"

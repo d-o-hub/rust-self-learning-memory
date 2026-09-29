@@ -15,7 +15,7 @@ Episodes represent complete task execution records in the memory system. Each ep
 ### 1. Creating Episodes
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 
 let memory = SelfLearningMemory::new();
 
@@ -35,7 +35,7 @@ let episode_id = memory.start_episode(
 ### 2. Logging Steps
 
 ```rust
-use memory_core::{ExecutionStep, ExecutionResult};
+use do_memory_core::{ExecutionStep, ExecutionResult};
 
 let mut step = ExecutionStep::new(
     1,
@@ -54,7 +54,7 @@ memory.log_step(episode_id, step).await;
 ### 3. Completing Episodes
 
 ```rust
-use memory_core::TaskOutcome;
+use do_memory_core::TaskOutcome;
 
 memory.complete_episode(
     episode_id,
@@ -172,7 +172,7 @@ The `delete_episode` tool is available through the MCP protocol:
 ## Error Handling
 
 ```rust
-use memory_core::Error;
+use do_memory_core::Error;
 
 match memory.delete_episode(episode_id).await {
     Ok(()) => println!("Episode deleted successfully"),

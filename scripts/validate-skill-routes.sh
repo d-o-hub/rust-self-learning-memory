@@ -27,6 +27,16 @@ for s in "${RULE_SKILLS[@]}"; do
   [[ -f "$SKILLS_DIR/$s/SKILL.md" ]] || fail "rule references missing skill: $s"
 done
 
+# Reverse direction: every defined skill (dir with SKILL.md) must have a route
+mapfile -t DEFINED_SKILLS < <(
+  find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name 'SKILL.md' \
+    | sed "s|$SKILLS_DIR/||;s|/SKILL.md||" | sort
+)
+for s in "${DEFINED_SKILLS[@]}"; do
+  printf '%s\n' "${RULE_SKILLS[@]}" | rg -qx "$s" \
+    || fail "defined skill '$s' has no skill-rules route"
+done
+
 # Required high-frequency skills must have at least one route
 REQUIRED=(release-guard pr-readiness commit ci-fix code-quality test-runner goap-agent build-rust)
 for s in "${REQUIRED[@]}"; do
@@ -44,4 +54,4 @@ while IFS= read -r line; do
   fi
 done < <(jq -c '.rules[]' "$RULES")
 
-echo "OK: skill routes validated (${#RULE_SKILLS[@]} unique skills routed)"
+echo "OK: skill routes validated (${#DEFINED_SKILLS[@]} defined / ${#RULE_SKILLS[@]} routed)"

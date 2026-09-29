@@ -21,6 +21,7 @@ pub mod gist;
 pub mod judgment;
 pub mod rerank;
 pub mod semantic_retriever;
+mod semantic_retriever_identity;
 pub mod shard;
 pub mod signature;
 pub mod windows;

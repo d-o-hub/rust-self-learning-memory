@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Runtime embedding activation is now a single serialized state update (#1072):
+  concurrent activations produce unique monotonic revisions and one coherent
+  winning snapshot; cache and provenance identity follow the active provider
+  (with the query-cache generation advanced on every identity change); ANN
+  indexes are bound to the provider identity that produced their vectors and
+  incompatible snapshots are dropped instead of queried; and the new
+  `try_activate_semantic_service` rejects a blank provider identity without
+  disturbing the previous snapshot.
 - `memory-storage-turso` connection pools no longer rely on raw-pointer
   ownership or unnecessary `unsafe`: adaptive-pool guards own their
   `Arc`-based metrics/current-max state, caching-pool guards own an `Arc` to the

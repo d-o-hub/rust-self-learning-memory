@@ -5,15 +5,44 @@
 //!
 //! # Concurrency contract
 //!
-//! The method reads the current revision under a *read* lock, drops that lock,
-//! then re-acquires a *write* lock to install the new activation.  No lock is
-//! held across `.await` points.
+//! The activation slot is a single `tokio::sync::RwLock` holding the whole
+//! snapshot (service, revision, provider identity, reindex flag). The next
+//! revision is derived and installed while the *write* guard is held, so
+//! concurrent activations serialise and can never derive the same revision from
+//! a stale read. Readers only ever see a complete snapshot:
+//! [`SelfLearningMemory::embedding_activation`] and
+//! [`SelfLearningMemory::live_semantic_service`] clone the snapshot and drop the
+//! guard before awaiting any provider call. The synchronous cache-identity
+//! projection uses a non-blocking read (see
+//! [`SelfLearningMemory::effective_provider_identity`]).
 
 use std::sync::Arc;
 
 use crate::embeddings::{EmbeddingActivation, SemanticService};
 
 use super::SelfLearningMemory;
+
+/// Failure modes of [`SelfLearningMemory::try_activate_semantic_service`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EmbeddingActivationError {
+    /// The supplied provider identity was empty or whitespace-only.
+    ///
+    /// An empty identity would poison cache keys and provenance envelopes, so
+    /// activation is refused and the previous snapshot is left untouched.
+    EmptyProviderIdentity,
+}
+
+impl std::fmt::Display for EmbeddingActivationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::EmptyProviderIdentity => {
+                write!(f, "provider identity must not be empty")
+            }
+        }
+    }
+}
+
+impl std::error::Error for EmbeddingActivationError {}
 
 impl SelfLearningMemory {
     /// Atomically replace the active embedding provider.
@@ -23,14 +52,17 @@ impl SelfLearningMemory {
     ///
     /// # Behaviour
     ///
-    /// 1. Reads the current activation (revision + identity) under a read lock,
-    ///    then immediately drops that lock.
-    /// 2. Computes `reindex_required`: `true` when there was a prior activation
-    ///    with a *different* `provider_identity`.
-    /// 3. Acquires a write lock and stores the new `EmbeddingActivation` with
-    ///    `revision = old_revision + 1` (or `1` if this is the first activation).
-    /// 4. Mirrors the service into `self.semantic_service` for backwards
-    ///    compatibility with existing callers that read that field directly.
+    /// The read-and-derive of the previous revision and identity happens *under
+    /// the write lock*, together with the installation of the new snapshot, so
+    /// concurrent calls cannot derive the same revision. The installed
+    /// [`EmbeddingActivation`] carries the new service, the next revision, the
+    /// provider identity and the `reindex_required` flag as one unit.
+    ///
+    /// `reindex_required` is `true` when a previous activation exists with a
+    /// different `provider_identity`. The ANN index is realigned with the new
+    /// provider in the same critical section, and the query-cache generation is
+    /// bumped whenever the effective provider identity changes so cached results
+    /// from the previous provider can never be served again.
     ///
     /// # Returns
     ///
@@ -39,82 +71,143 @@ impl SelfLearningMemory {
     ///
     /// # Panics
     ///
-    /// Never panics — `RwLock` poisoning cannot occur in Tokio.
+    /// Never panics — tokio `RwLock`s are not poisoned.
     pub async fn activate_semantic_service(
         &self,
         service: Arc<SemanticService>,
         provider_identity: String,
     ) -> Arc<SemanticService> {
-        // --- Step 1: read current state without holding the lock across await ---
-        let (old_revision, old_identity, old_service) = {
-            let guard = self.active_embedding.read().await;
-            match guard.as_ref() {
-                Some(act) => (
-                    act.revision,
-                    Some(act.provider_identity.clone()),
-                    Some(Arc::clone(&act.service)),
-                ),
-                None => (0u64, None, None),
-            }
-        };
-        // Guard is dropped here — no lock held across any await.
+        self.install_activation(service, provider_identity).await
+    }
 
-        // --- Step 2: compute derived fields ---
-        let new_revision = old_revision + 1;
-        let reindex_required = match &old_identity {
-            Some(prev) => prev != &provider_identity,
-            None => false,
-        };
+    /// Fallible variant of [`Self::activate_semantic_service`].
+    ///
+    /// Validates the provider identity *before* touching any runtime state, so
+    /// a rejected activation leaves the previous snapshot, ANN index and cache
+    /// generation fully intact.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EmbeddingActivationError::EmptyProviderIdentity`] when
+    /// `provider_identity` is empty or whitespace-only. Such an identity would
+    /// poison cache keys and provenance envelopes, which is why
+    /// [`Self::activate_semantic_service`] callers are expected to supply a
+    /// non-empty identity.
+    pub async fn try_activate_semantic_service(
+        &self,
+        service: Arc<SemanticService>,
+        provider_identity: String,
+    ) -> Result<Arc<SemanticService>, EmbeddingActivationError> {
+        if provider_identity.trim().is_empty() {
+            return Err(EmbeddingActivationError::EmptyProviderIdentity);
+        }
+        Ok(self.install_activation(service, provider_identity).await)
+    }
 
-        // --- Step 3: write-lock and install ---
+    /// Install `service` as the active provider under a single write lock.
+    ///
+    /// No guard is held across a provider `.await`; all state (activation
+    /// snapshot, ANN index identity, cache generation) is updated in one
+    /// critical section so concurrent activations serialise and readers can
+    /// never observe a torn snapshot.
+    async fn install_activation(
+        &self,
+        service: Arc<SemanticService>,
+        provider_identity: String,
+    ) -> Arc<SemanticService> {
+        let previous_service;
+        let identity_changed;
         {
             let mut guard = self.active_embedding.write().await;
+
+            let (new_revision, reindex_required, changed) = match guard.as_ref() {
+                Some(previous) => {
+                    let changed = previous.provider_identity != provider_identity;
+                    (previous.revision + 1, changed, changed)
+                }
+                None => (
+                    1,
+                    false,
+                    // First runtime activation: compare against the provider the
+                    // instance was configured with so a switch still invalidates
+                    // the query cache.
+                    self.semantic_config.provider.cache_identity() != provider_identity,
+                ),
+            };
+
+            previous_service = guard.as_ref().map(|act| Arc::clone(&act.service));
+            identity_changed = changed;
+
+            // Keep the ANN index consistent with the provider that will serve
+            // queries; incompatible vectors are dropped, never queried.
+            if let Some(retriever) = &self.semantic_retriever {
+                retriever.reconcile_provider_identity(&provider_identity);
+            }
+
             *guard = Some(EmbeddingActivation {
                 service: Arc::clone(&service),
                 revision: new_revision,
                 provider_identity,
                 reindex_required,
             });
-        }
-        // Write guard dropped — lock released before we touch semantic_service.
 
-        // --- Step 4: mirror into the legacy field (no lock needed — field is
-        //     behind the struct's own Arc via Clone, but we need interior mut) ---
-        // SAFETY: semantic_service is wrapped in Option<Arc<…>> inside the struct.
-        // Because SelfLearningMemory derives Clone via Arc fields we cannot take
-        // &mut self here.  We use the active_embedding lock as the synchronisation
-        // point instead; callers that need the live service should call
-        // `semantic_service()` which we update below via a separate RwLock path.
-        //
-        // To update `semantic_service` without a `&mut self` we need an interior-
-        // mutable cell.  The field is currently a plain `Option<Arc<…>>` so we
-        // instead leave the legacy field as-is and update the `semantic_service()`
-        // accessor to check `active_embedding` first (see `mod.rs`).
-        //
-        // Return the previous service (or the new one if first activation).
-        old_service.unwrap_or(service)
+            if identity_changed {
+                // Entries from an older generation of the same identity can no
+                // longer match, and entries from the previous provider must not
+                // be served either.
+                self.query_cache.bump_index_generation();
+            }
+        }
+        // Guard dropped — no lock held across any await.
+
+        previous_service.unwrap_or(service)
     }
 
     /// Get a reference to the current embedding activation, if any.
     ///
-    /// Returns a clone of the [`EmbeddingActivation`] snapshot so callers do not
-    /// hold the lock.
+    /// Returns a clone of the [`EmbeddingActivation`] snapshot taken under the
+    /// read lock, so callers never hold the lock and never observe a
+    /// half-installed activation.
     pub async fn embedding_activation(&self) -> Option<EmbeddingActivation> {
         self.active_embedding.read().await.clone()
     }
 
+    /// Identity used for cache keys and provenance.
+    ///
+    /// Prefers the runtime-activated provider so cache identity follows
+    /// provider switches; falls back to the construction-time
+    /// `semantic_config` when no runtime activation has happened.
+    ///
+    /// Reads the activation slot without awaiting. Should an activation hold the
+    /// write lock at that instant, the startup identity is returned instead;
+    /// that can never produce a stale hit because every activation that changes
+    /// the effective identity also advances the query-cache generation, so the
+    /// resulting key differs from every entry the previous provider wrote.
+    #[must_use]
+    pub fn effective_provider_identity(&self) -> String {
+        self.active_embedding
+            .try_read()
+            .ok()
+            .and_then(|guard| guard.as_ref().map(|act| act.provider_identity.clone()))
+            .unwrap_or_else(|| self.semantic_config.provider.cache_identity())
+    }
+
     /// Get the live `SemanticService`, preferring the runtime-activated slot.
     ///
-    /// Checks `active_embedding` first (set by
-    /// [`Self::activate_semantic_service`]), then falls back to the static
-    /// `semantic_service` field set at construction time.  MCP embedding tools
-    /// should call this instead of the sync
+    /// Clones the provider snapshot under the read lock, then falls back to the
+    /// static `semantic_service` field set at construction time. Callers must
+    /// use this (rather than the sync
     /// [`semantic_service()`](crate::memory::SelfLearningMemory::semantic_service)
-    /// accessor so they see dynamically activated providers.
+    /// accessor) so they see dynamically activated providers.
     pub async fn live_semantic_service(&self) -> Option<Arc<SemanticService>> {
-        // Check the runtime slot first.
-        if let Some(act) = self.active_embedding.read().await.as_ref() {
-            return Some(Arc::clone(&act.service));
+        let activated = self
+            .active_embedding
+            .read()
+            .await
+            .as_ref()
+            .map(|act| Arc::clone(&act.service));
+        if activated.is_some() {
+            return activated;
         }
         // Fall back to the static field (set at construction or via builder).
         self.semantic_service.as_ref().map(Arc::clone)
@@ -122,217 +215,5 @@ impl SelfLearningMemory {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage, MockLocalModel};
-
-    fn make_service(name: &str) -> Arc<SemanticService> {
-        let provider = Box::new(MockLocalModel::new(name.to_string(), 4));
-        let storage = Box::new(InMemoryEmbeddingStorage::new());
-        Arc::new(SemanticService::new(
-            provider,
-            storage,
-            EmbeddingConfig::default(),
-        ))
-    }
-
-    #[tokio::test]
-    async fn test_activate_first_time_sets_revision_one() {
-        let memory = SelfLearningMemory::new();
-        let svc = make_service("model-a");
-
-        memory
-            .activate_semantic_service(Arc::clone(&svc), "local:model-a:4".to_string())
-            .await;
-
-        let act = memory
-            .embedding_activation()
-            .await
-            .expect("activation should be set");
-        assert_eq!(act.revision, 1);
-        assert_eq!(act.provider_identity, "local:model-a:4");
-        assert!(
-            !act.reindex_required,
-            "first activation never requires reindex"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_activate_twice_increments_revision_and_sets_reindex() {
-        let memory = SelfLearningMemory::new();
-
-        // First activation
-        memory
-            .activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
-            .await;
-
-        // Second activation with a different provider identity
-        memory
-            .activate_semantic_service(
-                make_service("model-b"),
-                "openai:text-embedding-3-small:1536".to_string(),
-            )
-            .await;
-
-        let act = memory
-            .embedding_activation()
-            .await
-            .expect("activation should be set");
-
-        assert_eq!(act.revision, 2, "revision should increment on each call");
-        assert!(
-            act.reindex_required,
-            "reindex_required must be true when provider identity changes"
-        );
-        assert_eq!(act.provider_identity, "openai:text-embedding-3-small:1536");
-    }
-
-    #[tokio::test]
-    async fn test_activate_same_identity_does_not_require_reindex() {
-        let memory = SelfLearningMemory::new();
-
-        memory
-            .activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
-            .await;
-        memory
-            .activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
-            .await;
-
-        let act = memory.embedding_activation().await.unwrap();
-        assert_eq!(act.revision, 2);
-        assert!(
-            !act.reindex_required,
-            "same identity should not require reindex"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_semantic_service_returns_some_after_activation() {
-        let memory = SelfLearningMemory::new();
-
-        // Before activation, semantic_service() returns None
-        assert!(
-            memory.semantic_service().is_none(),
-            "should be None before activation"
-        );
-
-        // After activation, active_embedding holds the service
-        memory
-            .activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
-            .await;
-
-        let act = memory.embedding_activation().await;
-        assert!(
-            act.is_some(),
-            "active_embedding should be Some after activation"
-        );
-    }
-
-    /// `live_semantic_service` must fall back to the static `semantic_service`
-    /// field when `active_embedding` is None.
-    #[tokio::test]
-    async fn test_live_semantic_service_falls_back_to_static_field() {
-        use crate::embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage};
-        use std::sync::Arc;
-
-        let mut memory = SelfLearningMemory::new();
-
-        // active_embedding is None; static field also None — expect None.
-        let live = memory.live_semantic_service().await;
-        assert!(live.is_none(), "should be None when both slots are empty");
-
-        // Directly set the static semantic_service field (pub(super) within this module).
-        let provider = Box::new(MockLocalModel::new("static-model".to_string(), 4));
-        let storage = Box::new(InMemoryEmbeddingStorage::new());
-        let static_svc = Arc::new(SemanticService::new(
-            provider,
-            storage,
-            EmbeddingConfig::default(),
-        ));
-        memory.semantic_service = Some(Arc::clone(&static_svc));
-
-        // active_embedding is still None — must fall back to static field.
-        let live = memory.live_semantic_service().await;
-        assert!(
-            live.is_some(),
-            "live_semantic_service must return static field when active_embedding is None"
-        );
-
-        // After activation, the runtime slot takes priority over the static field.
-        memory
-            .activate_semantic_service(make_service("runtime-model"), "local:rt:4".to_string())
-            .await;
-        let live = memory.live_semantic_service().await;
-        assert!(
-            live.is_some(),
-            "runtime slot must be returned after activation"
-        );
-    }
-
-    /// REA-2026-07-26-A6: reader routine for the concurrency test below.
-    ///
-    /// Repeatedly snapshots the live service and activation.  Extracted into its
-    /// own coroutine so the spawned task stays shallow; must never deadlock or
-    /// panic while a writer replaces the provider concurrently.
-    async fn read_activation_snapshots(memory: Arc<SelfLearningMemory>, reads: usize) {
-        for _ in 0..reads {
-            // Snapshot before any provider/storage await — must never deadlock or
-            // panic while a writer holds the write lock.
-            let _svc = memory.live_semantic_service().await;
-            if let Some(act) = memory.embedding_activation().await {
-                assert!(
-                    !act.provider_identity.is_empty(),
-                    "identity must never be observed empty"
-                );
-                assert!(act.revision >= 1, "revision must be positive once set");
-            }
-            tokio::task::yield_now().await;
-        }
-    }
-
-    /// REA-2026-07-26-A6: reads during a replacement must never deadlock, panic,
-    /// or observe a half-built activation.  Many reader tasks snapshot the live
-    /// service and activation concurrently with a writer that replaces the
-    /// provider repeatedly.  Runs on a multi-thread runtime so the readers and
-    /// writer execute on distinct OS threads (ADR-077 §4).  The final revision
-    /// must equal the number of writes, proving every replacement landed and no
-    /// reader observed a torn slot.
-    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-    async fn test_concurrent_reads_during_activation_replacement() {
-        const WRITES: u64 = 25;
-        const READERS: usize = 8;
-        const READS_PER_TASK: usize = 50;
-
-        let memory = Arc::new(SelfLearningMemory::new());
-        let mut reader_handles = Vec::with_capacity(READERS);
-
-        for _ in 0..READERS {
-            let m = Arc::clone(&memory);
-            reader_handles.push(tokio::spawn(read_activation_snapshots(m, READS_PER_TASK)));
-        }
-
-        let writer_memory = Arc::clone(&memory);
-        let writer = tokio::spawn(async move {
-            for i in 0..WRITES {
-                let model = format!("model-{}", i % 3);
-                writer_memory
-                    .activate_semantic_service(make_service(&model), format!("local:{model}:4"))
-                    .await;
-            }
-        });
-
-        writer.await.expect("writer must not panic");
-        for handle in reader_handles {
-            handle.await.expect("reader must not panic");
-        }
-
-        let final_act = memory
-            .embedding_activation()
-            .await
-            .expect("activation must be set after writes");
-        assert_eq!(
-            final_act.revision, WRITES,
-            "every replacement must advance the revision exactly once"
-        );
-    }
-}
+#[path = "embedding_activation_tests.rs"]
+mod tests;

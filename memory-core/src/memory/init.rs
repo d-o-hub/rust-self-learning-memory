@@ -29,6 +29,32 @@ pub fn default_db_path() -> PathBuf {
         .join("memory.db")
 }
 
+/// Build the ANN-backed semantic retriever for `config`.
+///
+/// A persisted snapshot at `config.ann_index_path` is adopted only when it
+/// records the same provider identity as `provider_identity`. Legacy snapshots
+/// without an identity, or snapshots produced by a different provider, are
+/// replaced with a fresh empty index bound to `provider_identity` so stale
+/// vectors are never queried with embeddings from another provider.
+fn initialize_semantic_retriever(
+    config: &MemoryConfig,
+    provider_identity: &str,
+) -> Arc<crate::retrieval::SemanticRetriever> {
+    let loaded = config.ann_index_path.as_ref().and_then(|path| {
+        crate::embeddings::SimpleVectorIndex::load(path)
+            .ok()
+            .filter(|index| index.has_provider_identity(provider_identity))
+    });
+    let index = loaded.unwrap_or_else(|| {
+        crate::embeddings::SimpleVectorIndex::with_provider_identity(provider_identity)
+    });
+    Arc::new(crate::retrieval::SemanticRetriever::with_provider_identity(
+        config.clone(),
+        Box::new(index),
+        provider_identity,
+    ))
+}
+
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]
 pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
@@ -92,28 +118,16 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         None
     };
 
-    // Initialize ANN-backed semantic retriever
-    let semantic_retriever = if let Some(path) = &config.ann_index_path {
-        if let Ok(index) = crate::embeddings::SimpleVectorIndex::load(path) {
-            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-                config.clone(),
-                Box::new(index),
-            )))
-        } else {
-            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-                config.clone(),
-                Box::new(crate::embeddings::SimpleVectorIndex::new()),
-            )))
-        }
-    } else {
-        Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-            config.clone(),
-            Box::new(crate::embeddings::SimpleVectorIndex::new()),
-        )))
-    };
-
-    // Initialize semantic config (service will be initialized on first use if needed)
+    // Initialize semantic config before the ANN retriever so the persisted
+    // index can be checked against the provider it will be queried with.
     let semantic_config = EmbeddingConfig::default();
+    let startup_provider_identity = semantic_config.provider.cache_identity();
+
+    // Initialize ANN-backed semantic retriever bound to the startup provider.
+    let semantic_retriever = Some(initialize_semantic_retriever(
+        &config,
+        &startup_provider_identity,
+    ));
 
     // Semantic service initialized to None (will be created lazily if needed)
     let semantic_service: Option<Arc<crate::embeddings::SemanticService>> = None;
@@ -259,28 +273,16 @@ pub fn with_storage(
         None
     };
 
-    // Initialize ANN-backed semantic retriever
-    let semantic_retriever = if let Some(path) = &config.ann_index_path {
-        if let Ok(index) = crate::embeddings::SimpleVectorIndex::load(path) {
-            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-                config.clone(),
-                Box::new(index),
-            )))
-        } else {
-            Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-                config.clone(),
-                Box::new(crate::embeddings::SimpleVectorIndex::new()),
-            )))
-        }
-    } else {
-        Some(Arc::new(crate::retrieval::SemanticRetriever::new(
-            config.clone(),
-            Box::new(crate::embeddings::SimpleVectorIndex::new()),
-        )))
-    };
-
-    // Initialize semantic config (service will be initialized lazily if needed)
+    // Initialize semantic config before the ANN retriever so the persisted
+    // index can be checked against the provider it will be queried with.
     let semantic_config = EmbeddingConfig::default();
+    let startup_provider_identity = semantic_config.provider.cache_identity();
+
+    // Initialize ANN-backed semantic retriever bound to the startup provider.
+    let semantic_retriever = Some(initialize_semantic_retriever(
+        &config,
+        &startup_provider_identity,
+    ));
 
     // Semantic service initialized to None (will be created lazily if needed)
     let semantic_service: Option<Arc<crate::embeddings::SemanticService>> = None;
@@ -355,6 +357,12 @@ pub fn with_semantic_config(
     semantic_config: EmbeddingConfig,
 ) -> super::SelfLearningMemory {
     let mut memory = with_config(config);
+    // Bind the ANN index to the configured provider: a persisted snapshot from
+    // a different provider is dropped rather than queried with mismatched
+    // embeddings (issue #1072).
+    if let Some(retriever) = &memory.semantic_retriever {
+        retriever.reconcile_provider_identity(&semantic_config.provider.cache_identity());
+    }
     memory.semantic_config = semantic_config;
     memory
 }

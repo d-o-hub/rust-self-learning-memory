@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `memory-storage-turso` connection pools no longer rely on raw-pointer
+  ownership or unnecessary `unsafe`: adaptive-pool guards own their
+  `Arc`-based metrics/current-max state, caching-pool guards own an `Arc` to the
+  shared pool state and return connections safely even after the pool value is
+  dropped, and keep-alive connection extraction no longer double-drops the
+  pooled connection (#1060, #1061, #1062)
+
 ## [0.1.42] - 2026-09-27
 
 ### Added

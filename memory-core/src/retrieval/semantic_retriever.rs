@@ -37,16 +37,29 @@ pub struct ScoreComponents {
 
 /// Hybrid retriever that combines multiple signals for episode ranking.
 pub struct SemanticRetriever {
-    config: MemoryConfig,
+    pub(super) config: MemoryConfig,
     pub vector_index: RwLock<Box<dyn VectorIndex>>,
+    /// Provider identity the index must be queried with, when constrained.
+    ///
+    /// `None` means the index carries no provenance constraint (an unstamped
+    /// legacy index or an in-memory index that was never associated with a
+    /// provider), in which case queries are allowed as before. Once an identity
+    /// is recorded, `retrieve` refuses to query an index whose recorded
+    /// producer does not match it.
+    pub(super) index_identity: RwLock<Option<String>>,
 }
 
 impl SemanticRetriever {
     /// Create a new hybrid retriever.
+    ///
+    /// The provider identity constraint is taken from the index itself when it
+    /// records one.
     pub fn new(config: MemoryConfig, vector_index: Box<dyn VectorIndex>) -> Self {
+        let index_identity = vector_index.provider_identity().map(str::to_owned);
         Self {
             config,
             vector_index: RwLock::new(vector_index),
+            index_identity: RwLock::new(index_identity),
         }
     }
 
@@ -59,6 +72,21 @@ impl SemanticRetriever {
         episodes: HashMap<Uuid, Arc<Episode>>,
         limit: usize,
     ) -> Result<Vec<HybridHit>> {
+        if !self.index_matches_identity() {
+            let index_identity = self
+                .vector_index
+                .read()
+                .provider_identity()
+                .map(str::to_owned);
+            let required = self.index_identity.read().clone();
+            tracing::warn!(
+                ?index_identity,
+                ?required,
+                "ANN index was built by a different provider; refusing to query stale vectors"
+            );
+            return Ok(Vec::new());
+        }
+
         // 1. Semantic search
         let semantic_hits = {
             let index = self.vector_index.read();
@@ -97,7 +125,15 @@ impl SemanticRetriever {
     }
 
     /// Add an episode to the index.
+    ///
+    /// No-op when the index does not belong to the required provider, so
+    /// vectors produced by different embedding providers can never be mixed in
+    /// one index while it is quarantined.
     pub fn upsert(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
+        if !self.index_matches_identity() {
+            tracing::warn!(id, "ANN index provider mismatch; skipping vector upsert");
+            return Ok(());
+        }
         let mut index = self.vector_index.write();
         index.upsert(id, &embedding)
     }

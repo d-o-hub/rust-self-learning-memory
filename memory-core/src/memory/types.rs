@@ -127,11 +127,16 @@ pub struct SelfLearningMemory {
     pub(super) semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search
     pub(super) semantic_config: EmbeddingConfig,
-    /// Runtime embedding activation slot — swapped by `activate_semantic_service`.
+    /// Runtime embedding activation slot — swapped atomically by
+    /// [`Self::activate_semantic_service`].
     ///
-    /// Held behind a shared `RwLock` so the slot can be replaced while other
-    /// tasks hold a read-lock on the current service.  The struct derives
-    /// `Clone`, so the `Arc` wrapper makes cloning cheap.
+    /// Holds the whole activation snapshot (service + revision + identity +
+    /// reindex flag) so readers observe either the previous or the next
+    /// activation, never a half-installed one. Async readers clone the snapshot
+    /// and drop the guard before awaiting any provider call; the synchronous
+    /// cache-identity projection uses a non-blocking read (see
+    /// [`Self::effective_provider_identity`]). The struct derives `Clone`, so
+    /// the `Arc` wrapper makes cloning cheap.
     pub(super) active_embedding:
         Arc<tokio::sync::RwLock<Option<crate::embeddings::EmbeddingActivation>>>,
 

@@ -458,11 +458,16 @@ Embeddings integrate with the memory system in several ways:
 The CLI embedding commands use the same embedding providers as the do-memory-core API:
 
 ```rust
-use memory_core::embeddings::{
+use do_memory_core::TaskContext;
+use do_memory_core::embeddings::{
+    EmbeddingStorageBackend,
+    InMemoryEmbeddingStorage,
     SemanticService,
-    EmbeddingConfig,
-    LocalEmbeddingProvider,
 };
+
+// Embeddings are stored behind a pluggable backend
+let storage: Box<dyn EmbeddingStorageBackend> = Box::new(InMemoryEmbeddingStorage::new());
+let context = TaskContext::default();
 
 let service = SemanticService::default(storage).await?;
 let results = service.find_similar_episodes(

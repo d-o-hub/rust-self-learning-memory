@@ -19,9 +19,9 @@ Each embedding provider has specific characteristics that affect performance, re
 
 **Configuration:**
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{OpenAIConfig, OptimizationConfig};
 
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization.max_retries = 5;           // Increase retry attempts
 config.optimization.retry_delay_ms = 500;      // Faster initial retry
 ```
@@ -38,7 +38,7 @@ config.optimization.retry_delay_ms = 500;      // Faster initial retry
 
 **Configuration:**
 ```rust
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization.timeout_seconds = Some(120);  // Custom timeout
 ```
 
@@ -62,7 +62,7 @@ let embeddings = provider.embed_batch(&texts).await?;
 
 **Configuration:**
 ```rust
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization.max_batch_size = Some(500);  // Custom batch size
 ```
 
@@ -78,7 +78,7 @@ config.optimization.max_batch_size = Some(500);  // Custom batch size
 
 **Configuration:**
 ```rust
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization.connection_pool_size = 30;  // More connections
 ```
 
@@ -101,9 +101,9 @@ config.optimization.connection_pool_size = 30;  // More connections
 **Best for:** Production workloads with high volume
 
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{OpenAIConfig, OptimizationConfig};
 
-let config = ModelConfig::openai_3_small();
+let config = OpenAIConfig::text_embedding_3_small();
 // Already optimized with:
 // - 60s timeout
 // - 3 retries with 1s base delay
@@ -122,7 +122,9 @@ let config = ModelConfig::openai_3_small();
 **Best for:** Cost-effective embeddings with good quality
 
 ```rust
-let config = ModelConfig::mistral_embed();
+use do_memory_core::embeddings::MistralConfig;
+
+let config = MistralConfig::mistral_embed();
 // Optimized with:
 // - 30s timeout (faster responses)
 // - 3 retries with 500ms base delay
@@ -139,7 +141,9 @@ let config = ModelConfig::mistral_embed();
 **Best for:** Enterprise deployments with compliance needs
 
 ```rust
-let config = ModelConfig::azure_openai(
+use do_memory_core::embeddings::AzureOpenAIConfig;
+
+let config = AzureOpenAIConfig::new(
     "my-deployment", 
     "my-resource", 
     "2023-05-15", 
@@ -161,11 +165,12 @@ let config = ModelConfig::azure_openai(
 **Best for:** Development, testing, or self-hosted models
 
 ```rust
-let config = ModelConfig::custom(
+use do_memory_core::embeddings::CustomConfig;
+
+let config = CustomConfig::new(
     "local-model",
     768,
     "http://localhost:1234/v1",
-    None
 );
 // Optimized with:
 // - 10s timeout (local should be fast)
@@ -187,9 +192,9 @@ let config = ModelConfig::custom(
 For critical applications where reliability is paramount:
 
 ```rust
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{OpenAIConfig, OptimizationConfig};
 
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization = OptimizationConfig {
     timeout_seconds: Some(120),        // Generous timeout
     max_retries: 5,                    // More retry attempts
@@ -199,6 +204,7 @@ config.optimization = OptimizationConfig {
     rate_limit_tpm: Some(500_000),
     compression_enabled: true,
     connection_pool_size: 15,
+    ..Default::default()
 };
 ```
 
@@ -207,7 +213,7 @@ config.optimization = OptimizationConfig {
 Minimize costs while maintaining functionality:
 
 ```rust
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization = OptimizationConfig {
     timeout_seconds: Some(30),         // Fail fast
     max_retries: 2,                    // Fewer retries
@@ -217,6 +223,7 @@ config.optimization = OptimizationConfig {
     rate_limit_tpm: Some(1_000_000),
     compression_enabled: true,         // Reduce bandwidth
     connection_pool_size: 10,          // Fewer connections
+    ..Default::default()
 };
 ```
 
@@ -225,7 +232,7 @@ config.optimization = OptimizationConfig {
 Fast feedback during development:
 
 ```rust
-let mut config = ModelConfig::openai_3_small();
+let mut config = OpenAIConfig::text_embedding_3_small();
 config.optimization = OptimizationConfig {
     timeout_seconds: Some(10),         // Fail fast
     max_retries: 1,                    // Don't wait long
@@ -235,6 +242,7 @@ config.optimization = OptimizationConfig {
     rate_limit_tpm: None,
     compression_enabled: false,
     connection_pool_size: 2,
+    ..Default::default()
 };
 ```
 
@@ -363,12 +371,12 @@ for chunk in texts.chunks(batch_size) {
 ## Example: Complete Configuration
 
 ```rust
-use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig, OptimizationConfig};
+use do_memory_core::embeddings::{OpenAIConfig, OpenAIEmbeddingProvider, OptimizationConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Start with provider-optimized defaults
-    let mut config = ModelConfig::openai_3_small();
+    let mut config = OpenAIConfig::text_embedding_3_small();
     
     // Fine-tune for your use case
     config.optimization.max_retries = 5;

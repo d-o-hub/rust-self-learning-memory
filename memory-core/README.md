@@ -96,16 +96,21 @@ do-memory-storage-redb = "0.1"
 ### Basic Usage
 
 ```rust
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep};
+use do_memory_core::{
+    ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskType,
+    TaskOutcome,
+};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize memory system
-    let memory = SelfLearningMemory::new(Default::default()).await?;
+    let memory = SelfLearningMemory::new();
 
     // Start an episode
     let context = TaskContext {
-        language: "rust".to_string(),
+        language: Some("rust".to_string()),
+        framework: Some("tokio".to_string()),
+        complexity: ComplexityLevel::Moderate,
         domain: "web".to_string(),
         tags: vec!["api".to_string()],
     };
@@ -122,8 +127,10 @@ async fn main() -> anyhow::Result<()> {
         timestamp: chrono::Utc::now(),
         tool: "rustc".to_string(),
         action: "compile".to_string(),
-        parameters: serde_json::json!({}),
-        result: Some("Compiled successfully".to_string()),
+        parameters_json: serde_json::json!({}).to_string(),
+        result: Some(ExecutionResult::Success {
+            output: "Compiled successfully".to_string(),
+        }),
         latency_ms: 1250,
         tokens_used: Some(2500),
         metadata: Default::default(),
@@ -137,8 +144,10 @@ async fn main() -> anyhow::Result<()> {
         artifacts: vec![],
     };
 
-    let completed = memory.complete_episode(episode_id, outcome).await?;
+    memory.complete_episode(episode_id, outcome).await?;
 
+    // Episode now has reward, reflection, and patterns
+    let completed = memory.get_episode(episode_id).await?;
     println!("Episode completed with reward: {}", completed.reward.unwrap().total);
 
     // Retrieve similar past episodes
@@ -146,7 +155,7 @@ async fn main() -> anyhow::Result<()> {
         "Build REST endpoint".to_string(),
         context,
         5,
-    ).await?;
+    ).await;
 
     println!("Found {} relevant episodes", relevant.len());
     Ok(())

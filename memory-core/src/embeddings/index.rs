@@ -271,4 +271,52 @@ mod tests {
             Some("openai:text-embedding-3-small:1536")
         );
     }
+
+    #[test]
+    fn test_vector_index_identity_is_trimmed_and_blank_never_matches() {
+        let index = SimpleVectorIndex::with_provider_identity("  local:a:4  ");
+        assert_eq!(index.provider_identity(), Some("local:a:4"));
+        assert!(index.has_provider_identity("local:a:4"));
+        assert!(index.has_provider_identity("  local:a:4 "));
+
+        let blank = SimpleVectorIndex::with_provider_identity("   ");
+        assert_eq!(blank.provider_identity(), None);
+        assert!(!blank.has_provider_identity(""));
+        assert!(!blank.has_provider_identity("local:a:4"));
+    }
+
+    #[test]
+    fn test_vector_index_unstamped_snapshot_omits_identity_field() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("index.json");
+
+        // An empty identity must serialize exactly like a legacy snapshot so
+        // the on-disk format stays backward compatible.
+        let mut index = SimpleVectorIndex::new();
+        index.upsert("1", &[1.0, 0.0]).unwrap();
+        index.save(&path).unwrap();
+
+        let raw = std::fs::read_to_string(&path).unwrap();
+        assert!(
+            !raw.contains("provider_identity"),
+            "unstamped snapshot must not gain an identity field: {raw}"
+        );
+        assert_eq!(
+            SimpleVectorIndex::load(&path).unwrap().provider_identity(),
+            None
+        );
+    }
+
+    #[test]
+    fn test_vector_index_load_rejects_malformed_snapshot() {
+        let dir = tempdir().unwrap();
+        let malformed = dir.path().join("malformed.json");
+        std::fs::write(&malformed, "{ not json").unwrap();
+
+        assert!(
+            SimpleVectorIndex::load(&malformed).is_err(),
+            "a corrupt snapshot must surface an error instead of panicking"
+        );
+        assert!(SimpleVectorIndex::load(&dir.path().join("missing.json")).is_err());
+    }
 }

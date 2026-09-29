@@ -393,3 +393,73 @@ async fn test_activation_invalidates_incompatible_ann_index() {
     );
     assert_eq!(retriever.vector_index.read().len(), 0);
 }
+
+#[tokio::test]
+async fn test_try_activate_semantic_service_accepts_valid_identity() {
+    let memory = SelfLearningMemory::new();
+
+    let installed = memory
+        .try_activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
+        .await
+        .expect("a non-blank identity must be accepted");
+
+    let act = memory
+        .embedding_activation()
+        .await
+        .expect("activation should be set");
+    assert_eq!(act.revision, 1);
+    assert_eq!(act.provider_identity, "local:model-a:4");
+    // First activation replaces nothing, so the newly installed service is
+    // returned and is the same instance the readers observe.
+    assert!(Arc::ptr_eq(&installed, &act.service));
+    let live = memory
+        .live_semantic_service()
+        .await
+        .expect("live service must exist");
+    assert!(Arc::ptr_eq(&installed, &live));
+}
+
+#[tokio::test]
+async fn test_embedding_activation_error_reports_blank_identity() {
+    let memory = SelfLearningMemory::new();
+
+    let err = memory
+        .try_activate_semantic_service(make_service("model-a"), "  \t ".to_string())
+        .await
+        .err()
+        .expect("blank identity must be rejected");
+
+    assert_eq!(err, EmbeddingActivationError::EmptyProviderIdentity);
+    assert_eq!(err.clone(), EmbeddingActivationError::EmptyProviderIdentity);
+    assert_eq!(format!("{err}"), "provider identity must not be empty");
+    assert!(!format!("{err:?}").is_empty());
+
+    let as_std_error: &dyn std::error::Error = &err;
+    assert_eq!(
+        as_std_error.to_string(),
+        "provider identity must not be empty"
+    );
+    assert!(std::error::Error::source(as_std_error).is_none());
+}
+
+#[tokio::test]
+async fn test_effective_provider_identity_falls_back_to_startup_config() {
+    let memory = SelfLearningMemory::new();
+
+    assert_eq!(
+        memory.effective_provider_identity(),
+        EmbeddingConfig::default().provider.cache_identity(),
+        "without an activation the startup provider identity is reported"
+    );
+}
+
+#[tokio::test]
+async fn test_effective_provider_identity_prefers_activated_provider() {
+    let memory = SelfLearningMemory::new();
+
+    memory
+        .activate_semantic_service(make_service("model-a"), "local:model-a:4".to_string())
+        .await;
+
+    assert_eq!(memory.effective_provider_identity(), "local:model-a:4");
+}

@@ -90,89 +90,11 @@ mod tests {
     use std::collections::HashMap;
     use std::path::Path;
     use std::sync::Arc;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use uuid::Uuid;
 
-    /// Index with no recorded provider identity that counts how often it is
-    /// queried; used to prove a quarantined index is never searched.
-    struct CountingIndex {
-        searches: Arc<AtomicUsize>,
-        identity: Option<String>,
-    }
-
-    impl VectorIndex for CountingIndex {
-        fn upsert(&mut self, _id: &str, _embedding: &[f32]) -> crate::error::Result<()> {
-            Ok(())
-        }
-
-        fn remove(&mut self, _id: &str) -> crate::error::Result<()> {
-            Ok(())
-        }
-
-        fn search(&self, _query: &[f32], _top_k: usize) -> crate::error::Result<Vec<VectorHit>> {
-            self.searches.fetch_add(1, Ordering::SeqCst);
-            Ok(Vec::new())
-        }
-
-        fn save(&self, _path: &Path) -> crate::error::Result<()> {
-            Ok(())
-        }
-
-        fn len(&self) -> usize {
-            0
-        }
-
-        fn provider_identity(&self) -> Option<&str> {
-            self.identity.as_deref()
-        }
-    }
-
-    #[test]
-    fn test_retrieve_refuses_index_from_another_provider() {
-        let searches = Arc::new(AtomicUsize::new(0));
-        let retriever = SemanticRetriever::with_provider_identity(
-            MemoryConfig::default(),
-            Box::new(CountingIndex {
-                searches: Arc::clone(&searches),
-                identity: None,
-            }),
-            "openai:text-embedding-3-small:1536",
-        );
-
-        let hits = retriever
-            .retrieve("q", &[1.0], &TaskContext::default(), HashMap::new(), 5)
-            .unwrap();
-        assert!(hits.is_empty());
-        assert_eq!(
-            searches.load(Ordering::SeqCst),
-            0,
-            "an index that cannot prove its provider must not be queried"
-        );
-    }
-
-    #[test]
-    fn test_retrieve_queries_unconstrained_index() {
-        let searches = Arc::new(AtomicUsize::new(0));
-        let retriever = SemanticRetriever::new(
-            MemoryConfig::default(),
-            Box::new(CountingIndex {
-                searches: Arc::clone(&searches),
-                identity: None,
-            }),
-        );
-
-        let hits = retriever
-            .retrieve("q", &[1.0], &TaskContext::default(), HashMap::new(), 5)
-            .unwrap();
-        assert!(hits.is_empty());
-        assert_eq!(
-            searches.load(Ordering::SeqCst),
-            1,
-            "an index with no provenance constraint is queried as before"
-        );
-    }
-
-    #[test]
-    fn test_reconcile_drops_vectors_for_new_provider() {
+    /// An episode keyed by its own id, wrapped in the map the retriever looks
+    /// hits up in.
+    fn episode_entry() -> (Uuid, HashMap<Uuid, Arc<Episode>>) {
         let episode = Episode::new(
             "rust api".to_string(),
             TaskContext::default(),
@@ -181,11 +103,224 @@ mod tests {
         let id = episode.episode_id;
         let mut episodes = HashMap::new();
         episodes.insert(id, Arc::new(episode));
+        (id, episodes)
+    }
 
-        let mut index = SimpleVectorIndex::with_provider_identity("local:a:4");
+    /// Index holding one vector for `id`, optionally stamped with a provider.
+    fn index_with_vector(identity: Option<&str>, id: Uuid) -> SimpleVectorIndex {
+        let mut index = match identity {
+            Some(identity) => SimpleVectorIndex::with_provider_identity(identity),
+            None => SimpleVectorIndex::new(),
+        };
         index.upsert(&id.to_string(), &[1.0, 0.0]).unwrap();
+        index
+    }
 
-        let retriever = SemanticRetriever::new(MemoryConfig::default(), Box::new(index));
+    /// Minimal index that leaves the [`VectorIndex`] provenance hooks at their
+    /// defaults: it can neither report nor adopt a provider identity.
+    struct HooklessIndex {
+        inner: SimpleVectorIndex,
+    }
+
+    impl VectorIndex for HooklessIndex {
+        fn upsert(&mut self, id: &str, embedding: &[f32]) -> crate::error::Result<()> {
+            self.inner.upsert(id, embedding)
+        }
+
+        fn remove(&mut self, id: &str) -> crate::error::Result<()> {
+            self.inner.remove(id)
+        }
+
+        fn search(&self, query: &[f32], top_k: usize) -> crate::error::Result<Vec<VectorHit>> {
+            self.inner.search(query, top_k)
+        }
+
+        fn save(&self, path: &Path) -> crate::error::Result<()> {
+            self.inner.save(path)
+        }
+
+        fn len(&self) -> usize {
+            self.inner.len()
+        }
+    }
+
+    #[test]
+    fn test_retrieve_queries_index_with_matching_identity() {
+        let (id, episodes) = episode_entry();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(Some("local:a:4"), id)),
+        );
+
+        assert_eq!(retriever.provider_identity().as_deref(), Some("local:a:4"));
+        assert!(retriever.index_matches_identity());
+
+        let hits = retriever
+            .retrieve("q", &[1.0, 0.0], &TaskContext::default(), episodes, 5)
+            .unwrap();
+        assert_eq!(hits.len(), 1, "a matching identity must be queried");
+    }
+
+    #[test]
+    fn test_retrieve_refuses_populated_index_bound_to_another_provider() {
+        let (id, episodes) = episode_entry();
+        let retriever = SemanticRetriever::with_provider_identity(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(Some("local:a:4"), id)),
+            "openai:text-embedding-3-small:1536",
+        );
+
+        assert!(!retriever.index_matches_identity());
+        assert_eq!(
+            retriever.vector_index.read().len(),
+            1,
+            "the foreign vectors are still physically present"
+        );
+
+        let hits = retriever
+            .retrieve("q", &[1.0, 0.0], &TaskContext::default(), episodes, 5)
+            .unwrap();
+        assert!(
+            hits.is_empty(),
+            "they must not be queried under a different provider identity"
+        );
+    }
+
+    #[test]
+    fn test_retrieve_queries_unstamped_index_without_constraint() {
+        let (id, episodes) = episode_entry();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(None, id)),
+        );
+
+        assert_eq!(retriever.provider_identity(), None);
+        assert!(retriever.index_matches_identity());
+
+        let hits = retriever
+            .retrieve("q", &[1.0, 0.0], &TaskContext::default(), episodes, 5)
+            .unwrap();
+        assert_eq!(
+            hits.len(),
+            1,
+            "an index with no recorded provenance stays queryable"
+        );
+    }
+
+    #[test]
+    fn test_with_provider_identity_treats_blank_identity_as_unconstrained() {
+        let (id, episodes) = episode_entry();
+        let retriever = SemanticRetriever::with_provider_identity(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(None, id)),
+            "   ",
+        );
+
+        assert_eq!(
+            retriever.provider_identity(),
+            None,
+            "a blank identity must not constrain the index"
+        );
+        let hits = retriever
+            .retrieve("q", &[1.0, 0.0], &TaskContext::default(), episodes, 5)
+            .unwrap();
+        assert_eq!(hits.len(), 1);
+    }
+
+    #[test]
+    fn test_reconcile_provider_identity_ignores_blank_identity() {
+        let (id, _) = episode_entry();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(Some("local:a:4"), id)),
+        );
+
+        retriever.reconcile_provider_identity("   ");
+
+        assert_eq!(retriever.provider_identity().as_deref(), Some("local:a:4"));
+        assert!(retriever.index_matches_identity());
+        assert_eq!(
+            retriever.vector_index.read().len(),
+            1,
+            "a blank identity must not drop vectors"
+        );
+    }
+
+    #[test]
+    fn test_reconcile_provider_identity_keeps_vectors_for_same_provider() {
+        let (id, _) = episode_entry();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(Some("local:a:4"), id)),
+        );
+
+        // Padded but equivalent identity: must be treated as unchanged.
+        retriever.reconcile_provider_identity(" local:a:4 ");
+
+        assert_eq!(retriever.provider_identity().as_deref(), Some("local:a:4"));
+        assert_eq!(
+            retriever.vector_index.read().len(),
+            1,
+            "an unchanged provider must keep its vectors"
+        );
+    }
+
+    #[test]
+    fn test_upsert_is_skipped_when_index_is_quarantined() {
+        let retriever = SemanticRetriever::with_provider_identity(
+            MemoryConfig::default(),
+            Box::new(SimpleVectorIndex::new()),
+            "openai:text-embedding-3-small:1536",
+        );
+
+        retriever.upsert("ep", vec![1.0]).unwrap();
+
+        assert_eq!(
+            retriever.vector_index.read().len(),
+            0,
+            "vectors must not be written into an index bound to another provider"
+        );
+    }
+
+    #[test]
+    fn test_hookless_index_is_quarantined_once_an_identity_is_required() {
+        let dir = tempfile::tempdir().unwrap();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(HooklessIndex {
+                inner: SimpleVectorIndex::new(),
+            }),
+        );
+
+        // Without a recorded identity the index is usable and delegates writes.
+        assert_eq!(retriever.provider_identity(), None);
+        assert!(retriever.index_matches_identity());
+        retriever.upsert("ep", vec![1.0, 0.0]).unwrap();
+        assert_eq!(retriever.vector_index.read().len(), 1);
+        retriever.save(&dir.path().join("ann.json")).unwrap();
+        assert!(dir.path().join("ann.json").exists());
+        retriever.remove("ep").unwrap();
+        assert_eq!(retriever.vector_index.read().len(), 0);
+
+        // The default reconcile hook cannot adopt an identity, so the index is
+        // quarantined rather than queried with vectors of unknown provenance.
+        retriever.reconcile_provider_identity("local:a:4");
+        assert_eq!(retriever.provider_identity().as_deref(), Some("local:a:4"));
+        assert!(!retriever.index_matches_identity());
+
+        let hits = retriever
+            .retrieve("q", &[1.0, 0.0], &TaskContext::default(), HashMap::new(), 5)
+            .unwrap();
+        assert!(hits.is_empty());
+    }
+
+    #[test]
+    fn test_reconcile_drops_vectors_for_new_provider() {
+        let (id, episodes) = episode_entry();
+        let retriever = SemanticRetriever::new(
+            MemoryConfig::default(),
+            Box::new(index_with_vector(Some("local:a:4"), id)),
+        );
         assert_eq!(retriever.provider_identity().as_deref(), Some("local:a:4"));
 
         let context = TaskContext::default();
@@ -198,6 +333,11 @@ mod tests {
         assert_eq!(
             retriever.provider_identity().as_deref(),
             Some("openai:text-embedding-3-small:1536")
+        );
+        assert_eq!(
+            retriever.vector_index.read().len(),
+            0,
+            "incomparable vectors must be dropped"
         );
 
         let hits = retriever

@@ -263,3 +263,41 @@ async fn test_active_stats_zero_after_drop_and_extraction() {
 
     assert_eq!(pool.active_connections(), 0);
 }
+
+#[tokio::test]
+async fn test_connection_accessors_and_last_used() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+
+    // connection() and connection_id() reflect the acquired connection.
+    assert!(conn.connection().is_ok());
+    let conn_id = conn.connection_id();
+    assert_eq!(pool.tracked_connections(), 1);
+    assert!(!pool.is_stale(conn_id));
+
+    // update_last_used() moves the timestamp forward.
+    let before = conn.last_used();
+    tokio::time::sleep(Duration::from_millis(5)).await;
+    conn.update_last_used();
+    assert!(conn.last_used() > before);
+
+    drop(conn);
+    assert_eq!(pool.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_drop_with_zero_active_stats_does_not_underflow() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+
+    // Force the shared counter to zero before the wrapper drops: the custom
+    // Drop must clamp instead of underflowing.
+    pool.stats.write().active_connections = 0;
+
+    drop(conn);
+
+    assert_eq!(pool.active_connections(), 0);
+}

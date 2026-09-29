@@ -123,3 +123,79 @@ async fn test_cleanup_callback() {
 
     assert_eq!(cleaned_up.load(std::sync::atomic::Ordering::Relaxed), 0);
 }
+
+#[tokio::test]
+async fn test_guard_survives_pool_drop() {
+    let (pool, _dir) = create_test_pool().await;
+
+    let guard = pool.get().await.unwrap();
+    let shared = Arc::clone(&pool.state);
+    let guard_id = guard.id().expect("connection id");
+
+    // Drop the owning pool value first. The guard owns its return state, so it
+    // must remain usable and safely return the connection afterwards.
+    drop(pool);
+
+    assert_eq!(guard.id().expect("connection id"), guard_id);
+    assert_eq!(shared.active_connections(), 1);
+
+    drop(guard);
+
+    let stats = shared.stats();
+    assert_eq!(stats.active_connections, 0);
+    assert_eq!(stats.total_returns, 1);
+    assert_eq!(shared.available_connections(), 2);
+    assert_eq!(shared.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_return_restores_counts_and_permit_once() {
+    let (pool, _dir) = create_test_pool().await;
+
+    // Baseline: the pre-created connections are idle, no checkouts yet.
+    assert_eq!(pool.available_connections(), 2);
+    assert_eq!(pool.stats().total_checkouts, 0);
+    assert_eq!(pool.semaphore.available_permits(), 5);
+
+    {
+        let _guard = pool.get().await.unwrap();
+        let stats = pool.stats();
+        assert_eq!(stats.active_connections, 1);
+        assert_eq!(stats.idle_connections, 1);
+        assert_eq!(stats.total_returns, 0);
+        assert_eq!(pool.semaphore.available_permits(), 4);
+    }
+
+    let stats = pool.stats();
+    assert_eq!(stats.active_connections, 0, "active count restored once");
+    assert_eq!(stats.idle_connections, 2, "idle count restored once");
+    assert_eq!(stats.total_returns, 1, "return recorded exactly once");
+    assert_eq!(
+        pool.semaphore.available_permits(),
+        5,
+        "permit released exactly once"
+    );
+}
+
+#[tokio::test]
+async fn test_guard_moved_across_tasks() {
+    let (pool, _dir) = create_test_pool().await;
+
+    let guard = pool.get().await.unwrap();
+    let guard_id = guard.id().expect("connection id");
+
+    // Moving the guard to another task requires it to be auto-`Send`.
+    let handle = tokio::spawn(async move {
+        let moved_id = guard.id().expect("connection id");
+        drop(guard);
+        moved_id
+    });
+
+    assert_eq!(handle.await.unwrap(), guard_id);
+
+    let stats = pool.stats();
+    assert_eq!(stats.active_connections, 0);
+    assert_eq!(stats.total_returns, 1);
+    assert_eq!(pool.active_connections(), 0);
+    assert_eq!(pool.available_connections(), 2);
+}

@@ -9,10 +9,12 @@
 //! snapshot (service, revision, provider identity, reindex flag). The next
 //! revision is derived and installed while the *write* guard is held, so
 //! concurrent activations serialise and can never derive the same revision from
-//! a stale read. Readers only ever see a complete snapshot: [`Self::embedding_activation`]
-//! and [`Self::live_semantic_service`] clone the snapshot and drop the guard
-//! before awaiting any provider call. The synchronous cache-identity projection
-//! uses a non-blocking read (see [`Self::effective_provider_identity`]).
+//! a stale read. Readers only ever see a complete snapshot:
+//! [`SelfLearningMemory::embedding_activation`] and
+//! [`SelfLearningMemory::live_semantic_service`] clone the snapshot and drop the
+//! guard before awaiting any provider call. The synchronous cache-identity
+//! projection uses a non-blocking read (see
+//! [`SelfLearningMemory::effective_provider_identity`]).
 
 use std::sync::Arc;
 

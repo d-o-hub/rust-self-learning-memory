@@ -398,7 +398,9 @@ impl SelfLearningMemory {
         // Semantic Search - Generate and store embedding
 
         // Generate and store embedding for semantic search
-        if let Some(ref semantic) = self.semantic_service {
+        // Uses the live provider snapshot so episodes are embedded with the
+        // runtime-activated provider (issue #1072).
+        if let Some(semantic) = self.live_semantic_service().await {
             if let Err(e) = semantic.embed_episode(episode_ref).await {
                 warn!(
                     episode_id = %episode_id,
@@ -413,7 +415,7 @@ impl SelfLearningMemory {
                 );
 
                 // Update ANN index for hybrid search (v0.1.34)
-                if let Some(ref retriever) = self.semantic_retriever {
+                if let Some(retriever) = &self.semantic_retriever {
                     if let Ok(embeddings) = semantic.get_embeddings_batch(&[episode_id]).await {
                         if let Some(Some(embedding)) = embeddings.first() {
                             let _ = retriever.upsert(&episode_id.to_string(), embedding.clone());

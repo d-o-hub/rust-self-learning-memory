@@ -32,10 +32,11 @@ impl SelfLearningMemory {
         if self.config.retrieval_mode != crate::types::RetrievalMode::Hybrid {
             return None;
         }
-        let (retriever, semantic) = (
-            self.semantic_retriever.as_ref()?,
-            self.semantic_service.as_ref()?,
-        );
+        let retriever = self.semantic_retriever.as_ref()?;
+        // Clone the live provider snapshot before any provider await so the
+        // query embedding is produced by the same provider the cache key and
+        // ANN index identity describe (issue #1072).
+        let semantic = self.live_semantic_service().await?;
 
         // Generate query embedding
         match semantic.embed_query_text(task_description).await {

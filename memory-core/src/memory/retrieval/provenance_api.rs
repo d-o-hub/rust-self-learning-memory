@@ -33,7 +33,8 @@ impl SelfLearningMemory {
             .with_task_context(context)
             .with_limit(limit)
             .with_retrieval_mode(self.config.retrieval_mode.to_string())
-            .with_provider_identity(self.semantic_config.provider.cache_identity())
+            // Provenance follows the runtime-activated provider (issue #1072).
+            .with_provider_identity(self.effective_provider_identity())
             .with_ranking_config_version(RANKING_CONFIG_VERSION)
             .with_index_generation(self.query_cache.index_generation())
     }
@@ -124,5 +125,42 @@ mod tests {
             second.provenance.ranking_config_version,
             RANKING_CONFIG_VERSION
         );
+    }
+
+    /// Issue #1072: the provenance envelope must describe the activated provider
+    /// and the generation must advance so entries from the previous provider can
+    /// never be served again.
+    #[tokio::test]
+    async fn provenance_identity_follows_provider_activation() {
+        use crate::embeddings::{
+            EmbeddingConfig, InMemoryEmbeddingStorage, MockLocalModel, SemanticService,
+        };
+        use std::sync::Arc;
+
+        let memory = SelfLearningMemory::new();
+        let ctx = TaskContext::default();
+
+        let before = memory
+            .retrieve_relevant_context_with_provenance("q".to_string(), ctx.clone(), 3)
+            .await
+            .provenance;
+
+        let service = Arc::new(SemanticService::new(
+            Box::new(MockLocalModel::new("model-a".to_string(), 4)),
+            Box::new(InMemoryEmbeddingStorage::new()),
+            EmbeddingConfig::default(),
+        ));
+        memory
+            .activate_semantic_service(service, "local:model-a:4".to_string())
+            .await;
+
+        let after = memory
+            .retrieve_relevant_context_with_provenance("q".to_string(), ctx, 3)
+            .await
+            .provenance;
+
+        assert_eq!(after.provider_identity, "local:model-a:4");
+        assert_ne!(after.provider_identity, before.provider_identity);
+        assert_ne!(after.index_generation, before.index_generation);
     }
 }

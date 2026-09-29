@@ -99,14 +99,21 @@ impl SelfLearningMemory {
 
         // v0.1.12: Check query cache first
         // ADR-074 / S1.2: full identity = TaskContext + mode + provider + ranking + generation
+        // The provider identity follows the runtime-activated provider (issue #1072),
+        // not the construction-time semantic config.
         let cache_key = crate::retrieval::CacheKey::new(task_description.clone())
             .with_task_context(&context)
             .with_limit(limit)
             .with_retrieval_mode(self.config.retrieval_mode.to_string())
-            .with_provider_identity(self.semantic_config.provider.cache_identity())
+            .with_provider_identity(self.effective_provider_identity())
             .with_ranking_config_version(crate::retrieval::RANKING_CONFIG_VERSION)
             .with_index_generation(self.query_cache.index_generation());
         let query_start = std::time::Instant::now();
+
+        // Snapshot the live provider before any provider `.await` so cache
+        // identity and the service used for embedding stay coherent even if an
+        // activation swaps the provider mid-retrieval.
+        let live_semantic = self.live_semantic_service().await;
 
         if let Some(cached_episodes) = self.query_cache.get(&cache_key) {
             debug!(
@@ -237,7 +244,7 @@ impl SelfLearningMemory {
         }
 
         // Semantic Search - Try semantic similarity first
-        if let Some(ref semantic) = self.semantic_service {
+        if let Some(semantic) = &live_semantic {
             if let Some(semantic_episodes) = self
                 .try_semantic_retrieval(
                     semantic,
@@ -260,7 +267,7 @@ impl SelfLearningMemory {
         // Phase 3: Use hierarchical retriever for efficient search (if enabled)
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
             // Generate query embedding if semantic service is available
-            let query_embedding = if let Some(ref semantic) = self.semantic_service {
+            let query_embedding = if let Some(semantic) = &live_semantic {
                 match semantic.embed_query_text(&task_description).await {
                     Ok(embedding) => {
                         debug!(

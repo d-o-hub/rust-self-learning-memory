@@ -74,6 +74,27 @@ pub enum Error {
     /// Cache operation error with detailed context.
     #[error("{0}")]
     Cache(#[from] CacheError),
+
+    /// The on-disk schema version does not match this binary and the database
+    /// holds data that must be migrated or explicitly reset by an operator
+    /// (issue #1069).
+    ///
+    /// This error is returned **before** any write is performed: the database
+    /// file and every table are left untouched so the data can be backed up or
+    /// migrated by an external tool.
+    #[error(
+        "schema migration required for '{path}': stored version {stored_version:?}, current version {current_version} ({detail})"
+    )]
+    SchemaMigrationRequired {
+        /// Path to the database file that requires migration.
+        path: String,
+        /// Schema version recorded in the database, if any.
+        stored_version: Option<u64>,
+        /// Schema version this binary expects.
+        current_version: u64,
+        /// Human-readable explanation of why migration is required.
+        detail: String,
+    },
 }
 
 impl Error {
@@ -100,7 +121,8 @@ impl Error {
             | Error::ValidationFailed(_)
             | Error::QuotaExceeded(_)
             | Error::Configuration(_)
-            | Error::RetryQueueTimeout => false,
+            | Error::RetryQueueTimeout
+            | Error::SchemaMigrationRequired { .. } => false,
             // Relationship errors - generally non-recoverable
             Error::Relationship(rel_err) => {
                 matches!(rel_err, RelationshipError::ValidationFailed { .. })
@@ -143,6 +165,14 @@ impl Error {
             Error::Cache(e) => Some(e),
             _ => None,
         }
+    }
+
+    /// Check if this is a schema-migration-required error (issue #1069).
+    ///
+    /// When this is `true` the database was deliberately left untouched.
+    #[must_use]
+    pub fn is_schema_migration_required(&self) -> bool {
+        matches!(self, Error::SchemaMigrationRequired { .. })
     }
 }
 

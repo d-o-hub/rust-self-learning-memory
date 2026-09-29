@@ -209,3 +209,57 @@ async fn test_underlying_pool_stats() {
     // Note: pool validation happens during pool creation, so checkouts may be > 1
     assert!(pool_stats.total_checkouts >= 1);
 }
+
+#[tokio::test]
+async fn test_into_connection_no_double_drop() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+
+    // Consuming the wrapper extracts the connection; scope exit must not drop
+    // the pooled connection a second time.
+    let raw = conn.into_connection().unwrap();
+
+    // Keep-alive stats decremented exactly once.
+    assert_eq!(pool.active_connections(), 0);
+    // Underlying pool permit released exactly once.
+    let pool_stats = pool.pool_statistics().await;
+    assert_eq!(pool_stats.active_connections, 0);
+
+    // The extracted libSQL connection stays usable until its caller drops it.
+    assert!(raw.query("SELECT 1", ()).await.is_ok());
+
+    drop(raw);
+
+    // Dropping the raw connection must not release the permit again.
+    let pool_stats = pool.pool_statistics().await;
+    assert_eq!(pool_stats.active_connections, 0);
+    assert_eq!(pool.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_active_stats_zero_after_drop_and_extraction() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    // Ordinary drop.
+    {
+        let conn = pool.get().await.unwrap();
+        assert_eq!(pool.active_connections(), 1);
+        assert!(conn.connection().is_ok());
+    }
+    assert_eq!(pool.active_connections(), 0);
+
+    // Extraction path.
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+    let raw = conn.into_connection().unwrap();
+    assert_eq!(pool.active_connections(), 0);
+
+    // Extracted connection remains usable after the wrapper is gone.
+    let mut rows = raw.query("SELECT 1", ()).await.unwrap();
+    assert!(rows.next().await.unwrap().is_some());
+    drop(raw);
+
+    assert_eq!(pool.active_connections(), 0);
+}

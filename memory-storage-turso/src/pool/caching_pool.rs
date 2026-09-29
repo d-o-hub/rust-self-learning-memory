@@ -63,6 +63,126 @@ pub struct CachingPoolStats {
     pub evictions: u64,
 }
 
+/// Shared state for the caching pool.
+///
+/// This state is held behind an `Arc` by both the `CachingPool` and every
+/// `ConnectionGuard` it hands out. A guard therefore owns a reference to the
+/// return path and to the idle/active/statistics bookkeeping, so returning a
+/// connection is safe even after the owning `CachingPool` value has been
+/// dropped.
+struct CachingPoolState {
+    idle_connections: Mutex<Vec<PooledConnection>>,
+    active_connection_ids: Mutex<std::collections::HashSet<u64>>,
+    stats: Mutex<CachingPoolStats>,
+    cleanup_callback: Mutex<Option<Arc<dyn Fn(u64) + Send + Sync>>>,
+}
+
+impl CachingPoolState {
+    fn new() -> Self {
+        Self {
+            idle_connections: Mutex::new(Vec::new()),
+            active_connection_ids: Mutex::new(std::collections::HashSet::new()),
+            stats: Mutex::new(CachingPoolStats::default()),
+            cleanup_callback: Mutex::new(None),
+        }
+    }
+
+    /// Return a connection to the idle pool and update bookkeeping.
+    fn return_connection(&self, mut connection: PooledConnection) {
+        let conn_id = connection.id();
+
+        debug!("Returning connection {} to pool", conn_id);
+
+        // Mark as no longer active
+        self.active_connection_ids.lock().remove(&conn_id);
+        self.stats.lock().total_returns += 1;
+        self.stats.lock().active_connections = self.active_connection_ids.lock().len();
+        self.stats.lock().idle_connections = self.idle_connections.lock().len() + 1;
+
+        // Update last-used time
+        connection.touch();
+
+        // Return to idle pool
+        self.idle_connections.lock().push(connection);
+    }
+
+    /// Permanently destroy a connection and notify the cleanup callback.
+    fn destroy_connection(&self, connection: PooledConnection) {
+        let conn_id = connection.id();
+
+        debug!("Destroying connection {}", conn_id);
+
+        // Mark as no longer active
+        self.active_connection_ids.lock().remove(&conn_id);
+        self.stats.lock().evictions += 1;
+
+        // Invoke cleanup callback to clear prepared statement cache
+        if let Some(callback) = self.cleanup_callback.lock().as_ref() {
+            callback(conn_id);
+        }
+
+        // Connection is dropped here
+    }
+
+    /// Clean up idle connections that exceed max age or idle time.
+    fn cleanup_idle_connections(&self, config: &CachingPoolConfig) -> usize {
+        let mut idle = self.idle_connections.lock();
+        let original_len = idle.len();
+
+        // Retain only connections that are within limits
+        idle.retain(|conn| {
+            let age = conn.age();
+            let idle_time = conn.idle_time();
+
+            let should_keep = age < config.max_connection_age && idle_time < config.max_idle_time;
+
+            if !should_keep {
+                // Invoke cleanup callback for evicted connections
+                if let Some(callback) = self.cleanup_callback.lock().as_ref() {
+                    callback(conn.id());
+                }
+                self.stats.lock().evictions += 1;
+            }
+
+            should_keep
+        });
+
+        let evicted = original_len - idle.len();
+        if evicted > 0 {
+            info!(
+                "Cleaned up {} idle connections (remaining: {})",
+                evicted,
+                idle.len()
+            );
+        }
+
+        self.stats.lock().idle_connections = idle.len();
+        evicted
+    }
+
+    fn stats(&self) -> CachingPoolStats {
+        self.stats.lock().clone()
+    }
+
+    fn cache_hit_rate(&self) -> f64 {
+        let stats = self.stats.lock();
+        let total = stats.cache_hits + stats.cache_misses;
+        if total == 0 {
+            0.0
+        } else {
+            stats.cache_hits as f64 / total as f64
+        }
+    }
+
+    fn available_connections(&self) -> usize {
+        self.idle_connections.lock().len()
+    }
+
+    fn active_connections(&self) -> usize {
+        self.active_connection_ids.lock().len()
+    }
+}
+
 /// A connection pool that maintains reusable connections with stable IDs
 ///
 /// # Architecture
@@ -87,11 +207,9 @@ pub struct CachingPoolStats {
 pub struct CachingPool {
     db: Arc<Database>,
     config: CachingPoolConfig,
-    idle_connections: Mutex<Vec<PooledConnection>>,
-    active_connection_ids: Mutex<std::collections::HashSet<u64>>,
     semaphore: Arc<Semaphore>,
-    stats: Mutex<CachingPoolStats>,
-    cleanup_callback: Mutex<Option<Arc<dyn Fn(u64) + Send + Sync>>>,
+    /// Shared with every `ConnectionGuard` handed out by `get`.
+    state: Arc<CachingPoolState>,
 }
 
 impl CachingPool {
@@ -120,18 +238,12 @@ impl CachingPool {
             .map_err(|e| Error::Storage(format!("Database validation failed: {}", e)))?;
 
         let semaphore = Arc::new(Semaphore::new(config.max_connections));
-        let idle_connections = Mutex::new(Vec::new());
-        let active_connection_ids = Mutex::new(std::collections::HashSet::new());
-        let stats = Mutex::new(CachingPoolStats::default());
 
         let pool = Self {
             db,
             config,
-            idle_connections,
-            active_connection_ids,
             semaphore,
-            stats,
-            cleanup_callback: Mutex::new(None),
+            state: Arc::new(CachingPoolState::new()),
         };
 
         // Pre-create minimum connections
@@ -149,17 +261,17 @@ impl CachingPool {
     where
         F: Fn(u64) + Send + Sync + 'static,
     {
-        *self.cleanup_callback.lock() = Some(Arc::new(callback));
+        *self.state.cleanup_callback.lock() = Some(Arc::new(callback));
     }
 
     /// Pre-create the minimum number of connections
     async fn pre_create_connections(&self) -> Result<()> {
-        let current_count = self.idle_connections.lock().len();
+        let current_count = self.state.idle_connections.lock().len();
         let needed = self.config.min_connections.saturating_sub(current_count);
 
         for _ in 0..needed {
             let conn = self.create_connection().await?;
-            self.idle_connections.lock().push(conn);
+            self.state.idle_connections.lock().push(conn);
         }
 
         debug!("Pre-created {} connections", needed);
@@ -184,8 +296,8 @@ impl CachingPool {
         }
 
         // Update stats
-        self.stats.lock().total_created += 1;
-        self.stats.lock().cache_misses += 1;
+        self.state.stats.lock().total_created += 1;
+        self.state.stats.lock().cache_misses += 1;
 
         Ok(pooled_conn)
     }
@@ -216,14 +328,14 @@ impl CachingPool {
 
         // Try to get an idle connection
         let mut pooled_conn = {
-            let mut idle = self.idle_connections.lock();
+            let mut idle = self.state.idle_connections.lock();
             idle.pop()
         };
 
-        let conn_id = if let Some(ref conn) = pooled_conn {
+        let conn_id = if let Some(conn) = &pooled_conn {
             // Reusing existing connection - cache hit
             debug!("Reusing connection {}", conn.id());
-            self.stats.lock().cache_hits += 1;
+            self.state.stats.lock().cache_hits += 1;
             conn.id()
         } else {
             // No idle connection available - create new
@@ -234,10 +346,10 @@ impl CachingPool {
         };
 
         // Mark as active
-        self.active_connection_ids.lock().insert(conn_id);
-        self.stats.lock().total_checkouts += 1;
-        self.stats.lock().active_connections += 1;
-        self.stats.lock().idle_connections = self.idle_connections.lock().len();
+        self.state.active_connection_ids.lock().insert(conn_id);
+        self.state.stats.lock().total_checkouts += 1;
+        self.state.stats.lock().active_connections += 1;
+        self.state.stats.lock().idle_connections = self.state.idle_connections.lock().len();
 
         // SAFETY: pooled_conn is guaranteed to be Some at this point:
         // - Either we got it from idle.pop() and it was Some
@@ -247,118 +359,47 @@ impl CachingPool {
         })?;
 
         Ok(ConnectionGuard {
-            pool: self as *const Self as usize, // Store as pointer-sized integer
+            // The guard owns a reference to the shared state, so it can return
+            // the connection safely even if the pool value is dropped first.
+            state: Arc::clone(&self.state),
             connection: Some(connection),
             _permit: Some(permit),
         })
     }
 
-    /// Return a connection to the pool
-    fn return_connection(&self, mut connection: PooledConnection) {
-        let conn_id = connection.id();
-
-        debug!("Returning connection {} to pool", conn_id);
-
-        // Mark as no longer active
-        self.active_connection_ids.lock().remove(&conn_id);
-        self.stats.lock().total_returns += 1;
-        self.stats.lock().active_connections = self.active_connection_ids.lock().len();
-        self.stats.lock().idle_connections = self.idle_connections.lock().len() + 1;
-
-        // Update last-used time
-        connection.touch();
-
-        // Return to idle pool
-        self.idle_connections.lock().push(connection);
-    }
-
-    /// Destroy a connection permanently
-    fn destroy_connection(&self, connection: PooledConnection) {
-        let conn_id = connection.id();
-
-        debug!("Destroying connection {}", conn_id);
-
-        // Mark as no longer active
-        self.active_connection_ids.lock().remove(&conn_id);
-        self.stats.lock().evictions += 1;
-
-        // Invoke cleanup callback to clear prepared statement cache
-        if let Some(callback) = self.cleanup_callback.lock().as_ref() {
-            callback(conn_id);
-        }
-
-        // Connection is dropped here
-    }
-
     /// Clean up idle connections that exceed max age or idle time
     pub fn cleanup_idle_connections(&self) -> usize {
-        let mut idle = self.idle_connections.lock();
-        let original_len = idle.len();
-
-        // Retain only connections that are within limits
-        idle.retain(|conn| {
-            let age = conn.age();
-            let idle_time = conn.idle_time();
-
-            let should_keep =
-                age < self.config.max_connection_age && idle_time < self.config.max_idle_time;
-
-            if !should_keep {
-                // Invoke cleanup callback for evicted connections
-                if let Some(callback) = self.cleanup_callback.lock().as_ref() {
-                    callback(conn.id());
-                }
-                self.stats.lock().evictions += 1;
-            }
-
-            should_keep
-        });
-
-        let evicted = original_len - idle.len();
-        if evicted > 0 {
-            info!(
-                "Cleaned up {} idle connections (remaining: {})",
-                evicted,
-                idle.len()
-            );
-        }
-
-        self.stats.lock().idle_connections = idle.len();
-        evicted
+        self.state.cleanup_idle_connections(&self.config)
     }
 
     /// Get current pool statistics
     pub fn stats(&self) -> CachingPoolStats {
-        self.stats.lock().clone()
+        self.state.stats()
     }
 
     /// Get the cache hit rate
     pub fn cache_hit_rate(&self) -> f64 {
-        let stats = self.stats.lock();
-        let total = stats.cache_hits + stats.cache_misses;
-        if total == 0 {
-            0.0
-        } else {
-            stats.cache_hits as f64 / total as f64
-        }
+        self.state.cache_hit_rate()
     }
 
     /// Get number of available connections
     pub fn available_connections(&self) -> usize {
-        self.idle_connections.lock().len()
+        self.state.available_connections()
     }
 
     /// Get number of active (checked out) connections
     pub fn active_connections(&self) -> usize {
-        self.active_connection_ids.lock().len()
+        self.state.active_connections()
     }
 }
 
 /// Guard for a checked-out connection
 ///
-/// Automatically returns the connection to the pool when dropped.
+/// Automatically returns the connection to the pool when dropped. The guard
+/// owns an `Arc` to the pool's shared state, so the return is safe even if the
+/// `CachingPool` value itself has already been dropped.
 pub struct ConnectionGuard {
-    pool: usize,
+    state: Arc<CachingPoolState>,
     connection: Option<PooledConnection>,
     _permit: Option<tokio::sync::OwnedSemaphorePermit>,
 }
@@ -401,19 +442,17 @@ impl ConnectionGuard {
 
 impl Drop for ConnectionGuard {
     fn drop(&mut self) {
-        // Convert pointer back to reference
-        let pool = unsafe { &*(self.pool as *const CachingPool) };
-
-        // Return connection to pool instead of destroying it
+        // Return connection to pool instead of destroying it. Booking the
+        // return and releasing the permit happen exactly once here.
         if let (Some(_permit), Some(connection)) = (self._permit.take(), self.connection.take()) {
-            pool.return_connection(connection);
+            self.state.return_connection(connection);
         }
     }
 }
 
-// SAFETY: The connection guard is Send because the pool reference is never accessed concurrently
-// from different threads (it's only accessed in Drop which runs sequentially).
-unsafe impl Send for ConnectionGuard {}
+// `ConnectionGuard` is auto-`Send`: it owns an `Arc<CachingPoolState>` (whose
+// mutex-protected contents are all `Send`) plus the pooled connection and an
+// owned semaphore permit. No `unsafe` impl is needed.
 
 #[cfg(test)]
 #[path = "caching_pool_tests.rs"]

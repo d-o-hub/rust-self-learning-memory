@@ -369,3 +369,98 @@ async fn test_connection_cache_integration() {
     assert_eq!(cache.connection_size(conn_id), 0);
     assert_eq!(cache.connection_count(), 0);
 }
+
+#[tokio::test]
+async fn test_connection_outlives_pool() {
+    let (pool, _dir) = create_test_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    // Clone the shared state the guard owns so we can observe it after the
+    // pool value (and the allocations it owns) is gone.
+    let metrics = Arc::clone(&conn.metrics);
+    let current_max = Arc::clone(&conn.current_max);
+    assert_eq!(metrics.active_connections.load(Ordering::Relaxed), 1);
+
+    // Drop the pool first: the guard must not reference freed state.
+    drop(pool);
+
+    assert_eq!(metrics.total_released.load(Ordering::Relaxed), 0);
+
+    // Dropping the checked-out connection now updates the owned state exactly once.
+    drop(conn);
+
+    assert_eq!(metrics.active_connections.load(Ordering::Relaxed), 0);
+    assert_eq!(metrics.total_released.load(Ordering::Relaxed), 1);
+    assert_eq!(current_max.load(Ordering::Relaxed), 2);
+}
+
+#[tokio::test]
+async fn test_release_metrics_updated_exactly_once() {
+    let (pool, _dir) = create_test_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+
+    let before = pool.metrics();
+    drop(conn);
+
+    let after = pool.metrics();
+    assert_eq!(after.active_connections, 0);
+    assert_eq!(after.total_acquired, before.total_acquired);
+    assert_eq!(after.total_released, before.total_released + 1);
+    assert_eq!(pool.available_connections(), 2);
+}
+
+#[tokio::test]
+async fn test_concurrent_checkout_drop_with_cleanup() {
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    let (pool, _dir) = create_large_test_pool().await;
+    let pool = Arc::new(pool);
+
+    let cleanup_count = Arc::new(AtomicU64::new(0));
+    let cleanup_count_clone = Arc::clone(&cleanup_count);
+    pool.set_cleanup_callback(Arc::new(move |_conn_id| {
+        cleanup_count_clone.fetch_add(1, Ordering::Relaxed);
+    }));
+
+    let mut handles = Vec::new();
+    for _ in 0..5 {
+        let pool = Arc::clone(&pool);
+        handles.push(tokio::spawn(async move {
+            let conn = pool.get().await.unwrap();
+            assert!(conn.connection().is_some());
+            drop(conn);
+        }));
+    }
+    for handle in handles {
+        handle.await.unwrap();
+    }
+
+    let metrics = pool.metrics();
+    assert_eq!(metrics.total_acquired, 5);
+    assert_eq!(metrics.total_released, 5);
+    assert_eq!(metrics.active_connections, 0);
+    assert_eq!(cleanup_count.load(Ordering::Relaxed), 5);
+}
+
+#[tokio::test]
+async fn test_connection_moved_across_tasks() {
+    let (pool, _dir) = create_test_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    let conn_id = conn.connection_id();
+
+    // Moving the guard to another task requires it to be auto-`Send`.
+    let handle = tokio::spawn(async move {
+        let moved_id = conn.connection_id();
+        assert!(conn.connection().is_some());
+        drop(conn);
+        moved_id
+    });
+
+    assert_eq!(handle.await.unwrap(), conn_id);
+    assert_eq!(pool.active_connections(), 0);
+    assert_eq!(pool.metrics().total_released, 1);
+}

@@ -2,7 +2,6 @@
 
 use libsql::Connection;
 use parking_lot::RwLock;
-use std::mem::ManuallyDrop;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -12,8 +11,11 @@ use super::config::KeepAliveStatistics;
 /// A connection wrapper that tracks last used time
 #[derive(Debug)]
 pub struct KeepAliveConnection {
-    /// The underlying pooled connection
-    pooled: ManuallyDrop<PooledConnection>,
+    /// The underlying pooled connection.
+    ///
+    /// `None` once [`KeepAliveConnection::into_connection`] has extracted it,
+    /// which makes the custom `Drop` a no-op for the extracted case.
+    pooled: Option<PooledConnection>,
     /// The connection ID for tracking
     connection_id: usize,
     /// Timestamp when this connection was last used
@@ -31,7 +33,7 @@ impl KeepAliveConnection {
         stats: Arc<RwLock<KeepAliveStatistics>>,
     ) -> Self {
         Self {
-            pooled: ManuallyDrop::new(pooled),
+            pooled: Some(pooled),
             connection_id,
             last_used: RwLock::new(last_used),
             stats,
@@ -44,11 +46,14 @@ impl KeepAliveConnection {
     ///
     /// Returns an error if the underlying connection is not available.
     pub fn connection(&self) -> do_memory_core::Result<&Connection> {
-        self.pooled.connection().ok_or_else(|| {
-            do_memory_core::Error::Storage(
-                "KeepAliveConnection: underlying connection is None".to_string(),
-            )
-        })
+        self.pooled
+            .as_ref()
+            .and_then(PooledConnection::connection)
+            .ok_or_else(|| {
+                do_memory_core::Error::Storage(
+                    "KeepAliveConnection: underlying connection is None".to_string(),
+                )
+            })
     }
 
     /// Get the connection ID
@@ -76,22 +81,26 @@ impl KeepAliveConnection {
     ///
     /// Returns an error if the underlying connection is not available.
     pub fn into_connection(mut self) -> do_memory_core::Result<Connection> {
-        // Safety: We're taking the pooled connection out and preventing the Drop
-        // from running on self.pooled by using ManuallyDrop.
-        let pooled = unsafe { ManuallyDrop::take(&mut self.pooled) };
+        // Take the pooled connection out. The option is left as `None`, so the
+        // `Drop` below will not run it a second time (no double drop), and the
+        // extracted `Connection` stays usable until its caller drops it.
+        let pooled = self.pooled.take().ok_or_else(|| {
+            do_memory_core::Error::Storage(
+                "KeepAliveConnection: underlying connection is None".to_string(),
+            )
+        })?;
         pooled.into_inner()
     }
 }
 
 impl Drop for KeepAliveConnection {
     fn drop(&mut self) {
-        // Safety: We only drop the pooled connection if it wasn't already taken
-        // by into_connection(). If into_connection was called, the ManuallyDrop
-        // was already taken.
-        unsafe {
-            ManuallyDrop::drop(&mut self.pooled);
-        }
-        // Update stats through the Arc reference
+        // Only drop a pooled connection that was not already extracted by
+        // `into_connection`. When it is present, its own `Drop` releases the
+        // underlying pool permit exactly once.
+        drop(self.pooled.take());
+
+        // Update stats through the Arc reference, exactly once per wrapper.
         let mut stats = self.stats.write();
         if stats.active_connections > 0 {
             stats.active_connections -= 1;

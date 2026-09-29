@@ -319,9 +319,6 @@ impl AdaptiveConnectionPool {
             .connect()
             .map_err(|e| Error::Storage(format!("Failed to create connection: {}", e)))?;
 
-        let metrics_ptr = Arc::as_ptr(&self.metrics) as *mut AdaptiveMetrics;
-        let current_max_ptr = Arc::as_ptr(&self.current_max) as *mut AtomicU32;
-
         // Get cleanup callback if registered
         let cleanup_callback = self.cleanup_callback.read().clone();
 
@@ -329,8 +326,10 @@ impl AdaptiveConnectionPool {
 
         Ok(AdaptivePooledConnection {
             conn_id,
-            metrics_ptr,
-            current_max_ptr,
+            // Own the shared state so the guard stays valid even if the pool is
+            // dropped while this connection is checked out.
+            metrics: Arc::clone(&self.metrics),
+            current_max: Arc::clone(&self.current_max),
             permit: Some(permit),
             connection: Some(connection),
             cleanup_callback,
@@ -413,8 +412,10 @@ impl AdaptiveConnectionPool {
 
 pub struct AdaptivePooledConnection {
     conn_id: ConnectionId,
-    metrics_ptr: *mut AdaptiveMetrics,
-    current_max_ptr: *mut AtomicU32,
+    /// Shared adaptive metrics, owned so the guard never outlives its state.
+    metrics: Arc<AdaptiveMetrics>,
+    /// Shared current-max counter, owned for the same reason.
+    current_max: Arc<AtomicU32>,
     permit: Option<OwnedSemaphorePermit>,
     connection: Option<libsql::Connection>,
     cleanup_callback: Option<ConnectionCleanupCallback>,
@@ -429,10 +430,10 @@ impl std::fmt::Debug for AdaptivePooledConnection {
     }
 }
 
-#[allow(unsafe_code)]
-unsafe impl Send for AdaptivePooledConnection {}
-#[allow(unsafe_code)]
-unsafe impl Sync for AdaptivePooledConnection {}
+// `AdaptivePooledConnection` is auto-`Send`/`Sync`: every field is composed of
+// `Send + Sync` types (`Arc` over atomics, an owned semaphore permit, and
+// `libsql::Connection`, which is itself `Send + Sync`). No `unsafe` impls are
+// required now that the guard owns its shared state instead of raw pointers.
 
 impl AdaptivePooledConnection {
     /// Get the unique connection identifier
@@ -459,25 +460,19 @@ impl Drop for AdaptivePooledConnection {
         if let Some(permit) = self.permit.take() {
             drop(permit);
 
-            #[allow(unsafe_code)]
-            unsafe {
-                if let Some(metrics) = self.metrics_ptr.as_mut() {
-                    let active = metrics.active_connections.fetch_sub(1, Ordering::Relaxed);
+            let active = self
+                .metrics
+                .active_connections
+                .fetch_sub(1, Ordering::Relaxed);
 
-                    let max = self
-                        .current_max_ptr
-                        .as_ref()
-                        .map(|m| m.load(Ordering::Relaxed))
-                        .unwrap_or(1);
+            let max = self.current_max.load(Ordering::Relaxed).max(1);
 
-                    let new_utilization = ((active - 1) as f64 / max as f64) * 100.0;
-                    metrics
-                        .utilization_percent
-                        .store(new_utilization as u64, Ordering::Relaxed);
+            let new_utilization = (active.saturating_sub(1) as f64 / max as f64) * 100.0;
+            self.metrics
+                .utilization_percent
+                .store(new_utilization as u64, Ordering::Relaxed);
 
-                    metrics.total_released.fetch_add(1, Ordering::Relaxed);
-                }
-            }
+            self.metrics.total_released.fetch_add(1, Ordering::Relaxed);
 
             // Call cleanup callback if registered
             if let Some(callback) = &self.cleanup_callback {

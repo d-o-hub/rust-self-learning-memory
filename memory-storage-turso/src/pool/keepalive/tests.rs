@@ -209,3 +209,95 @@ async fn test_underlying_pool_stats() {
     // Note: pool validation happens during pool creation, so checkouts may be > 1
     assert!(pool_stats.total_checkouts >= 1);
 }
+
+#[tokio::test]
+async fn test_into_connection_no_double_drop() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+
+    // Consuming the wrapper extracts the connection; scope exit must not drop
+    // the pooled connection a second time.
+    let raw = conn.into_connection().unwrap();
+
+    // Keep-alive stats decremented exactly once.
+    assert_eq!(pool.active_connections(), 0);
+    // Underlying pool permit released exactly once.
+    let pool_stats = pool.pool_statistics().await;
+    assert_eq!(pool_stats.active_connections, 0);
+
+    // The extracted libSQL connection stays usable until its caller drops it.
+    assert!(raw.query("SELECT 1", ()).await.is_ok());
+
+    drop(raw);
+
+    // Dropping the raw connection must not release the permit again.
+    let pool_stats = pool.pool_statistics().await;
+    assert_eq!(pool_stats.active_connections, 0);
+    assert_eq!(pool.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_active_stats_zero_after_drop_and_extraction() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    // Ordinary drop.
+    {
+        let conn = pool.get().await.unwrap();
+        assert_eq!(pool.active_connections(), 1);
+        assert!(conn.connection().is_ok());
+    }
+    assert_eq!(pool.active_connections(), 0);
+
+    // Extraction path.
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+    let raw = conn.into_connection().unwrap();
+    assert_eq!(pool.active_connections(), 0);
+
+    // Extracted connection remains usable after the wrapper is gone.
+    let mut rows = raw.query("SELECT 1", ()).await.unwrap();
+    assert!(rows.next().await.unwrap().is_some());
+    drop(raw);
+
+    assert_eq!(pool.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_connection_accessors_and_last_used() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+
+    // connection() and connection_id() reflect the acquired connection.
+    assert!(conn.connection().is_ok());
+    let conn_id = conn.connection_id();
+    assert_eq!(pool.tracked_connections(), 1);
+    assert!(!pool.is_stale(conn_id));
+
+    // update_last_used() moves the timestamp forward.
+    let before = conn.last_used();
+    tokio::time::sleep(Duration::from_millis(5)).await;
+    conn.update_last_used();
+    assert!(conn.last_used() > before);
+
+    drop(conn);
+    assert_eq!(pool.active_connections(), 0);
+}
+
+#[tokio::test]
+async fn test_drop_with_zero_active_stats_does_not_underflow() {
+    let (pool, _dir) = create_test_keepalive_pool().await;
+
+    let conn = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 1);
+
+    // Force the shared counter to zero before the wrapper drops: the custom
+    // Drop must clamp instead of underflowing.
+    pool.stats.write().active_connections = 0;
+
+    drop(conn);
+
+    assert_eq!(pool.active_connections(), 0);
+}

@@ -33,6 +33,7 @@
 #![allow(clippy::struct_excessive_bools)]
 #![allow(clippy::fn_params_excessive_bools)]
 
+mod auth;
 mod core;
 mod handlers;
 mod jsonrpc;
@@ -53,23 +54,27 @@ pub use do_memory_mcp::protocol::OAuthConfig;
 // Re-export types needed by other modules
 #[allow(unused)]
 pub use types::{
-    ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, Content, EmbeddingEnvConfig,
-    RateLimitEnvConfig,
+    ActiveElicitation, ActiveTask, AuthenticatedPrincipal, CallToolParams, CallToolResult, Content,
+    EmbeddingEnvConfig, RateLimitEnvConfig, RequestAuthorization,
 };
 
 // Re-export all types and functions for convenient access (may be used by external consumers)
 #[allow(unused)]
+pub use auth::{AuthContext, Rejection, rejection_response, subject_identity};
+#[allow(unused)]
 pub use core::*;
 #[allow(unused)]
-pub use jsonrpc::run_jsonrpc_server;
+pub use jsonrpc::{handle_request, load_rate_limit_config, run_jsonrpc_server};
 // Always export load_oauth_config (it's available without the oauth feature)
 #[allow(unused)]
-pub use oauth::load_oauth_config;
+pub use oauth::{
+    authorize_request, extract_bearer_token, extract_request_bearer_token, load_oauth_config,
+};
 // Other oauth functions are gated behind the feature
 #[cfg(feature = "oauth")]
 #[allow(unused)]
 pub use oauth::{
-    check_scopes, create_www_authenticate_header, extract_bearer_token, validate_bearer_token,
+    check_scopes, create_www_authenticate_header, validate_access_token, validate_bearer_token,
 };
 #[allow(unused)]
 pub use storage::initialize_memory_system;

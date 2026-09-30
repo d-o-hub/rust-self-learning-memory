@@ -25,6 +25,34 @@ pub enum AuthorizationResult {
     InsufficientScope(Vec<String>),
 }
 
+/// Authenticated caller derived from a validated access token
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuthenticatedPrincipal {
+    /// Token subject (`sub` claim)
+    pub subject: String,
+    /// Scopes granted by the token
+    pub scopes: Vec<String>,
+}
+
+/// Outcome of the pre-dispatch authorization check (issues #1082, #1084)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RequestAuthorization {
+    /// OAuth is disabled: the caller is unauthenticated and is rate limited as
+    /// the process-scoped principal.
+    Unauthenticated,
+    /// Credentials were validated; the principal is trusted for rate limiting.
+    Authenticated(AuthenticatedPrincipal),
+    /// Request must be rejected. `description` never contains credential material.
+    Rejected {
+        /// JSON-RPC error code
+        code: i32,
+        /// Stable machine-readable error name
+        error: String,
+        /// Human-readable diagnostic
+        description: String,
+    },
+}
+
 // ============================================================
 // MCP Core Protocol Types (deprecated - use library versions)
 // ============================================================

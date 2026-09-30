@@ -127,12 +127,23 @@ impl OperationType {
 }
 
 /// Client identifier for rate limiting
+///
+/// Identities MUST come from a trusted principal (a validated token subject or a
+/// process/transport-scoped identity). Caller-supplied request fields such as
+/// `client_id` or `_meta.headers` are never used as an identity, otherwise an
+/// unauthenticated caller could rotate IDs to escape a saturated bucket
+/// (issue #1084).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ClientId {
     /// Client identified by IP address
     Ip(String),
     /// Client identified by custom ID
     Id(String),
+    /// Identity scoped to the current OS process (stdio transports have no
+    /// authenticated transport principal)
+    Process(u32),
+    /// Shared bucket used once the identity capacity is reached
+    Shared,
     /// Unknown client (fallback)
     Unknown,
 }
@@ -155,6 +166,14 @@ impl ClientId {
             ClientId::Ip(ip.to_string())
         }
     }
+
+    /// Identity scoped to the current OS process.
+    ///
+    /// Used when the transport cannot carry validated credentials (stdio), so
+    /// every request from the transport shares exactly one bucket.
+    pub fn process() -> Self {
+        ClientId::Process(std::process::id())
+    }
 }
 
 impl std::fmt::Display for ClientId {
@@ -162,6 +181,8 @@ impl std::fmt::Display for ClientId {
         match self {
             ClientId::Ip(ip) => write!(f, "ip:{}", ip),
             ClientId::Id(id) => write!(f, "id:{}", id),
+            ClientId::Process(pid) => write!(f, "process:{}", pid),
+            ClientId::Shared => write!(f, "shared"),
             ClientId::Unknown => write!(f, "unknown"),
         }
     }

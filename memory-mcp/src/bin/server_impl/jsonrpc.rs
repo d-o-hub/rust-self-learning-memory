@@ -1,5 +1,6 @@
 //! JSON-RPC server infrastructure
 
+use super::auth::{AuthContext, rejection_response};
 use super::core::{
     handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
     handle_protected_resource_metadata, handle_shutdown,
@@ -223,6 +224,19 @@ pub async fn run_jsonrpc_server(
     let rate_limit_config = load_rate_limit_config();
     let rate_limiter = Arc::new(RateLimiter::new(rate_limit_config));
 
+    // Fail closed before serving a single request: advertising authorization
+    // that cannot be enforced would be a security misrepresentation (#1082).
+    if let Some(reason) = oauth_config.enforcement_error() {
+        error!("Refusing to start: {reason}");
+        anyhow::bail!("OAuth configuration cannot be enforced: {reason}");
+    }
+    let auth_context = AuthContext::from_env(oauth_config);
+    if auth_context.is_enforced() {
+        info!("OAuth 2.1 enforcement active for all non-discovery methods");
+    } else {
+        info!("OAuth 2.1 disabled; using the process-scoped rate-limit identity");
+    }
+
     if rate_limiter.is_enabled() {
         info!("Rate limiting enabled");
     } else {
@@ -248,7 +262,7 @@ pub async fn run_jsonrpc_server(
                         let response = handle_request(
                             request,
                             &mcp_server,
-                            &oauth_config,
+                            &auth_context,
                             &elicitation_tracker,
                             &task_tracker,
                             &embedding_config,
@@ -297,11 +311,11 @@ pub async fn run_jsonrpc_server(
     Ok(())
 }
 
-/// Handle a JSON-RPC request with rate limiting
+/// Handle a JSON-RPC request with authorization and rate limiting
 pub async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
-    oauth_config: &OAuthConfig,
+    auth_context: &AuthContext,
     elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
     task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
     embedding_config: &EmbeddingEnvConfig,
@@ -309,9 +323,6 @@ pub async fn handle_request(
 ) -> Option<JsonRpcResponse> {
     if request.id.is_none() || matches!(request.id, Some(serde_json::Value::Null)) {
         return None;
-    }
-    if oauth_config.enabled {
-        debug!("OAuth enabled");
     }
 
     // Normalize method name
@@ -327,12 +338,20 @@ pub async fn handle_request(
         };
     }
 
+    // Authorize before dispatch (#1082). The request-supplied client id is still
+    // used for the bucket here; #1084 replaces it with the trusted principal.
+    let operation_type = OperationType::from_method(&method);
+    if let Err(rejection) =
+        auth_context.resolve_identity(&method, operation_type, request.params.as_ref())
+    {
+        return Some(rejection_response(request.id, &rejection));
+    }
+
     // Check rate limit
     let client_id = extract_client_id(
         request.params.as_ref(),
         &rate_limiter.config.client_id_header,
     );
-    let operation_type = OperationType::from_method(&method);
     let rate_limit_result = rate_limiter.check_rate_limit(&client_id, operation_type);
 
     if !rate_limit_result.allowed {
@@ -364,7 +383,7 @@ pub async fn handle_request(
     // Note: Rate limit headers would typically be added here for HTTP-based protocols
     // For stdio-based JSON-RPC, we include rate limit info in the response data
     match method.as_str() {
-        "initialize" => handle_initialize(request, oauth_config).await,
+        "initialize" => handle_initialize(request, auth_context.config()).await,
         "tools/list" => handle_list_tools(request, mcp_server).await,
         "tools/describe" => handle_describe_tool(request, mcp_server).await,
         "tools/describe_batch" => handle_describe_tools(request, mcp_server).await,
@@ -383,7 +402,7 @@ pub async fn handle_request(
         "task/list" => handle_task_list(request, task_tracker).await,
         "embedding/config" => handle_embedding_config(request, embedding_config).await,
         ".well-known/oauth-protected-resource" => {
-            handle_protected_resource_metadata(request, oauth_config).await
+            handle_protected_resource_metadata(request, auth_context.config()).await
         }
         "health" | "health/check" => handle_health_check(request).await,
         _ => {

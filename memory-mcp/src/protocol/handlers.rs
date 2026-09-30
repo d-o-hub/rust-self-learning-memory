@@ -60,8 +60,11 @@ pub async fn handle_initialize(
         }
     });
 
-    // Add OAuth 2.1 authorization capability if enabled
-    if oauth_config.enabled {
+    // Advertise OAuth 2.1 authorization only when enforcement is real.
+    // Advertising it for an unenforceable configuration (missing secret, or the
+    // `oauth` feature not compiled in) would be a security misrepresentation
+    // (issue #1082).
+    if oauth_config.is_enforced() {
         capabilities["authorization"] = json!({
             "enabled": true,
             "issuer": oauth_config.issuer.clone().unwrap_or_default(),

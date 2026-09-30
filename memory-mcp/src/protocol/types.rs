@@ -38,6 +38,57 @@ impl Default for OAuthConfig {
     }
 }
 
+impl OAuthConfig {
+    /// Diagnostic explaining why OAuth cannot be enforced, if that is the case
+    ///
+    /// Returns `None` when OAuth is disabled or when the configuration is
+    /// sufficient to verify tokens. Callers MUST treat `Some(_)` as fail-closed:
+    /// never dispatch requests while authorization is advertised but cannot be
+    /// verified.
+    pub fn enforcement_error(&self) -> Option<&'static str> {
+        if !self.enabled {
+            return None;
+        }
+
+        #[cfg(not(feature = "oauth"))]
+        {
+            Some(
+                "MCP_OAUTH_ENABLED is set but this server was built without the `oauth` feature, \
+                 so token signatures cannot be verified",
+            )
+        }
+
+        #[cfg(feature = "oauth")]
+        {
+            if self.token_secret.is_none() {
+                Some(
+                    "MCP_OAUTH_ENABLED is set but MCP_OAUTH_TOKEN_SECRET is missing, \
+                     so token signatures cannot be verified",
+                )
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Whether authorization is enabled *and* actually enforceable
+    pub fn is_enforced(&self) -> bool {
+        self.enabled && self.enforcement_error().is_none()
+    }
+}
+
+/// Validate an OAuth configuration before serving requests (issue #1082)
+///
+/// Returns `Err` with an actionable diagnostic when `MCP_OAUTH_ENABLED` is set
+/// but tokens cannot be verified. Callers MUST fail closed (refuse to start or
+/// reject the request) rather than serving unauthenticated traffic.
+pub fn validate_oauth_config(config: &OAuthConfig) -> Result<(), &'static str> {
+    match config.enforcement_error() {
+        None => Ok(()),
+        Some(reason) => Err(reason),
+    }
+}
+
 /// MCP Initialize response payload
 #[derive(Debug, Serialize)]
 pub struct InitializeResult {

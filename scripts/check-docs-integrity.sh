@@ -44,6 +44,7 @@ fi
 link_failures=0
 script_failures=0
 version_failures=0
+fc_failures=0
 
 echo "[docs-integrity] Checking markdown links..."
 
@@ -234,6 +235,86 @@ else
   done
 fi
 
+echo "[docs-integrity] Checking fail-closed code-execution contract in active docs..."
+python3 - <<'PY' || fc_failures=1
+import os
+import re
+import subprocess
+import sys
+
+repo = os.getcwd()
+
+# Historical records are exempt: dated ADRs, CHANGELOG, and archived plans.
+SKIP_PREFIXES = (
+    "plans/archive/",
+    "plans/STATUS/archive/",
+    "plans/adr/",
+    "CHANGELOG.md",
+)
+
+# Removed backend/type names that must never be advertised as present.
+BANNED = re.compile(
+    r"\b(wasmtime-backend|javy-backend|wasm-rquickjs"
+    r"|WasmtimeSandbox|UnifiedSandbox|WasmtimeConfig|SandboxBackend)\b"
+)
+
+# A banned token is acceptable only when the surrounding text negates it.
+NEGATIONS = (
+    "no ", "not ", "never", "removed", "absent", "unavailable",
+    "does not exist", "do not exist", "without", "nonexistent",
+    "historical", "supersed", "obsolete", "rejected", "fail-closed",
+)
+
+# Key contract documents must state the fail-closed posture.
+REQUIRED = {
+    "memory-mcp/README.md": "fail-closed",
+    "memory-mcp/SECURITY.md": "fail-closed",
+    "docs/API_REFERENCE.md": "fail-closed",
+}
+
+files = [
+    p
+    for p in subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
+    if not p.startswith(SKIP_PREFIXES)
+]
+
+problems = []
+for rel, marker in REQUIRED.items():
+    if not os.path.exists(rel):
+        problems.append(f"missing required contract doc: {rel}")
+        continue
+    with open(rel, encoding="utf-8") as f:
+        if marker not in f.read().lower():
+            problems.append(f"{rel} does not state the '{marker}' code-execution contract")
+
+for rel in files:
+    abs_path = os.path.join(repo, rel)
+    if not os.path.exists(abs_path):
+        continue
+    try:
+        with open(abs_path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except UnicodeDecodeError:
+        continue
+    for idx, line in enumerate(lines):
+        if not BANNED.search(line):
+            continue
+        # Allow wrapped negations on the next physical line.
+        window = (line + " " + (lines[idx + 1] if idx + 1 < len(lines) else "")).lower()
+        if not any(n in window for n in NEGATIONS):
+            problems.append(f"{rel}:{idx + 1}: advertises removed backend/type: {line.strip()}")
+
+if problems:
+    for p in problems:
+        print(f"  - {p}")
+    sys.exit(1)
+print("OK")
+PY
+
+if [[ $fc_failures -eq 0 ]]; then
+  echo "[docs-integrity] Fail-closed contract check passed"
+fi
+
 if [[ "$CHECK_URLS" == "true" ]]; then
   echo "[docs-integrity] Checking external https links (HEAD requests)..."
   python3 - <<'PY'
@@ -281,7 +362,7 @@ PY
   fi
 fi
 
-if [[ $link_failures -ne 0 || $script_failures -ne 0 || $version_failures -ne 0 ]]; then
+if [[ $link_failures -ne 0 || $script_failures -ne 0 || $version_failures -ne 0 || $fc_failures -ne 0 ]]; then
   echo "[docs-integrity] FAILED"
   exit 1
 fi

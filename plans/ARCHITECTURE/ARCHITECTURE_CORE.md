@@ -29,7 +29,7 @@ The Self-Learning Memory System is a production-ready Rust-based episodic learni
 | **do-memory-core** | Core episodic learning system | tokio, serde, anyhow | ✅ Stable |
 | **do-memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio | ✅ Stable |
 | **do-memory-storage-redb** | High-speed cache (embedded) | redb, tokio | ✅ Stable |
-| **do-memory-mcp** | MCP protocol server | wasmtime, tokio | ✅ Stable (v0.1.14) 🔄 Planning Complete (2026-01-31) |
+| **do-memory-mcp** | MCP protocol server | tokio, serde | ✅ Stable |
 | **do-memory-cli** | CLI for operations | clap, dialoguer | ✅ Stable |
 | **do-memory-test-utils** | Shared test utilities | tokio-test | ✅ Stable |
 | **benches** | Performance benchmarks | criterion | ✅ Stable |
@@ -544,7 +544,8 @@ The Memory-MCP server provides **~20 tools** for episodic memory operations acro
 
 4. **System & Monitoring** (5 tools)
    - `health_check`, `get_metrics`, `quality_metrics`
-   - `execute_agent_code`, `configure_embeddings`
+   - `configure_embeddings`
+   - `execute_agent_code` — **unavailable / fail-closed** (no working execution backend)
 
 #### Tool Loading Mechanism (Pre-Optimization)
 
@@ -600,9 +601,8 @@ Based on research documents:
 - **Redb**: Cache layer for hot data
 - **Impact**: Field projection reduces storage I/O
 
-#### WASM Sandbox Integration
-- **Current**: `execute_agent_code` tool uses WASM sandbox
-- **Impact**: No changes needed (isolated execution)
+#### Code Execution Integration
+- **Current**: `execute_agent_code` is **fail-closed** — unavailable in production with no execution backend (the WASM sandbox was removed in v0.1.29; see ADR-052/ADR-073)
 
 ### Performance Targets (Post-Optimization)
 

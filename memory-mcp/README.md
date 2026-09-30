@@ -1,195 +1,195 @@
 # Memory MCP Integration
 
-MCP (Model Context Protocol) server integration for the self-learning memory system with secure code execution capabilities.
+MCP (Model Context Protocol) server integration for the self-learning memory
+system. The server exposes episode lifecycle, memory retrieval, pattern
+analysis, embeddings, and monitoring tools over JSON-RPC on stdio.
+
+> **Agent code execution is fail-closed.** `execute_agent_code` is **not** a
+> working execution backend. It is absent from tool discovery and direct calls
+> are rejected. There is no WASM/Wasmtime/Javy sandbox in production. See
+> [ADR-073](../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md)
+> and [ADR-052](../plans/adr/ADR-052-Comprehensive-Analysis-v0.1.29.md).
 
 ## Features
 
-- **MCP Server**: Standard MCP protocol implementation with 19 tools
+- **MCP Server**: JSON-RPC over stdio with tool discovery and a shared tool registry
 - **Episode Lifecycle Management**: Programmatic episode creation, tracking, and completion
-- **Secure Code Sandbox**: WASM-based code execution with comprehensive security
-- **Memory Integration**: Query episodic memory and analyze learned patterns
-- **Pattern Analysis**: Advanced pattern extraction and recommendations
-- **Embeddings Support**: Multiple providers (OpenAI, Ollama, local models)
+- **Episode Relationships, Tags, and Handoffs**: Knowledge-graph links, tag filtering, checkpoints
+- **Memory Integration**: Query episodic and semantic memory; analyze learned patterns
+- **Pattern Analysis**: Pattern extraction, search, recommendations, and playbooks
+- **Embeddings Support**: Multiple providers (local, OpenAI, Mistral)
 - **Progressive Tool Disclosure**: Tools prioritized based on usage patterns
-- **Execution Monitoring**: Detailed statistics and performance tracking
+- **Monitoring**: Health checks, metrics, rate limiting, and audit logging
+- **Fail-Closed Code Execution**: `execute_agent_code` is unavailable in production
 
-## Implementation Status
+## Code Execution Status
 
-### Phase 2A: Wasmtime WASM Sandbox ✅ **COMPLETE**
+`execute_agent_code` is a **fail-closed, unavailable** tool in production:
 
-**Status**: Production-ready POC eliminating rquickjs GC crashes
+- It is not advertised by `tools/list` (no working backend is registered).
+- Direct `tools/call` for it is rejected by the dispatcher in
+  `src/bin/server_impl/handlers/call_tool.rs` with a JSON-RPC error and the
+  detail `"execute_agent_code tool is not available due to WASM sandbox
+  compilation issues"`.
+- The batch dispatcher rejects it identically
+  (`src/bin/server_impl/handlers/batch_execute.rs`).
+- The handler in `src/bin/server_impl/tools/memory_handlers.rs` additionally
+  audit-logs the attempt and returns
+  `"Code execution is no longer available. The WASM sandbox was removed in v0.1.29."`
+- The WASM/Wasmtime/Javy/rquickjs dependencies and the `wasmtime-backend`,
+  `javy-backend`, and `wasm-rquickjs` feature names were removed in v0.1.29
+  (ADR-052). They do not exist in this crate today.
 
-- ✅ wasmtime 24.0.5 integration
-- ✅ Concurrent execution without SIGABRT crashes
-- ✅ 100-parallel stress test passing
-- ✅ Semaphore-based pooling (max 20 concurrent)
-- ✅ Comprehensive metrics and health monitoring
-- ✅ All tests passing (5/5)
+Use the supported episode and memory tools instead (see
+[Available Tools](#available-tools)), or run agent code in an external runner
+that you control outside this MCP server.
 
-**Key Achievement**: Zero GC crashes under high concurrency (100 parallel executions)
+### `sandbox-dev` (trusted local experimentation only)
 
-<!-- NOTE: Phase 2A documentation has been archived. See plans/archive/ for historical documents. -->
+A legacy Node.js `CodeSandbox` still lives in `src/sandbox/`, but it is
+compiled **only** when the non-default `sandbox-dev` feature is enabled:
 
-### Phase 2B: JavaScript Support via Javy (Next)
+```bash
+cargo test -p do-memory-mcp --features sandbox-dev
+```
 
-**Goal**: Enable JavaScript/TypeScript execution through Javy compiler
+`sandbox-dev` is **not** a production sandbox and MUST NOT be enabled for
+untrusted input. It exists solely for trusted local experimentation.
 
-- ⏳ Javy v8.0.0 integration (JavaScript→WASM)
-- ⏳ WASI preview1 (stdout/stderr capture)
-- ⏳ Fuel-based timeout enforcement
-- ⏳ Performance benchmarking vs baseline
+**Limits that ARE enforced in this path:**
 
-> **Note:** The `javy` backend requires either a bundled `javy-plugin.wasm` plugin (set via `JAVY_PLUGIN`) or the `javy` CLI available on PATH. CI will attempt to install the CLI when running the `javy-backend` feature; if neither is present, Javy tests will be skipped gracefully.
+- Execution timeout (`max_execution_time_ms`) via a Tokio timeout; the child
+  process is killed on drop (`kill_on_drop(true)`).
+- Maximum code length (100 KB) checked before execution.
+- Static regex screening of the source for filesystem, network, subprocess, and
+  obvious malicious patterns (see `src/sandbox/mod.rs`).
+- Global shadowing/deletion in the JavaScript wrapper (`process`, `require`,
+  `module`, `__dirname`, `__filename`) when those capabilities are disabled.
 
-### Phase 1: rquickjs Migration ✅ **COMPLETE**
+**Limits that are NOT enforced (do not rely on them):**
 
-**Problem Solved**: rquickjs v0.6.2 had critical GC race conditions causing SIGABRT crashes under concurrent test execution.
-
-**Solution**: Disabled WASM sandbox in all tests (via `MCP_USE_WASM=false`) until wasmtime replacement complete.
-
-## Security Architecture
-
-The sandbox implements **defense-in-depth** security with multiple layers:
-
-### 1. Input Validation
-- Code length limits (100KB max)
-- Malicious pattern detection
-- Syntax validation
-
-### 2. Process Isolation
-- Separate Node.js process per execution
-- Restricted global access
-- No require/import capabilities (by default)
-
-### 3. Resource Limits
-- Configurable timeout (default: 5 seconds)
-- Memory limits (default: 128MB)
-- CPU usage constraints (default: 50%)
-
-### 4. Access Controls
-- **File System**: Denied by default, whitelist approach when enabled
-- **Network**: Denied by default, no external connections
-- **Subprocesses**: Denied, no command execution
-
-### 5. Pattern Detection
-Automatically blocks:
-- `require('fs')`, `require('http')`, `require('https')`
-- `require('child_process')`, `exec()`, `spawn()`
-- `eval()`, `new Function()`
-- `while(true)`, `for(;;)` infinite loops
-- `fetch()`, `WebSocket`, `XMLHttpRequest`
+- OS-level isolation: `src/sandbox/isolation.rs` provides `apply_isolation`
+  (privilege drop, `ulimit`, namespaces), but the execution path does **not**
+  call it.
+- Memory limits (`max_memory_mb`) and CPU limits (`max_cpu_percent` /
+  `max_cpu_seconds`) are configuration-only; they are not applied to the child
+  process.
+- Output sanitization: stdout/stderr are returned as-is.
+- The Node.js process itself is a full interpreter; regex screening is
+  heuristic and can be bypassed by runtime obfuscation.
+- There is no runtime capability enforcement for network/filesystem/subprocess;
+  the settings only drive source-pattern checks.
 
 ## Usage
 
-### Basic Example
+The server is constructed with a memory system and a sandbox configuration, then
+served over stdio:
 
 ```rust
-use memory_mcp::{MemoryMCPServer, SandboxConfig, ExecutionContext};
-use serde_json::json;
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Create server with restrictive sandbox
-    let server = MemoryMCPServer::new(SandboxConfig::restrictive()).await?;
-
-    // Execute code securely
-    let code = r#"
-        const result = {
-            sum: 1 + 1,
-            message: "Hello from sandbox"
-        };
-        console.log("Calculating sum...");
-        return result;
-    "#;
-
-    let context = ExecutionContext::new(
-        "Calculate sum".to_string(),
-        json!({"a": 1, "b": 1}),
-    );
-
-    let result = server.execute_agent_code(code.to_string(), context).await?;
-    println!("Result: {:?}", result);
-
-    Ok(())
+async fn build_server(memory: Arc<SelfLearningMemory>) -> anyhow::Result<Arc<Mutex<MemoryMCPServer>>> {
+    let server = MemoryMCPServer::new(SandboxConfig::restrictive(), memory).await?;
+    Ok(Arc::new(Mutex::new(server)))
 }
 ```
 
-### Sandbox Configurations
+`SelfLearningMemory` and its storage backends are initialized by
+`src/bin/server_impl`; see `src/bin/memory-mcp-server.rs` for the full startup
+path and stdio JSON-RPC loop.
 
-#### Restrictive (Recommended for Untrusted Code)
+### Calling a supported tool
 
-```rust
-let config = SandboxConfig::restrictive();
-// - 3 second timeout
-// - 64MB memory limit
-// - 30% CPU limit
-// - No network, no filesystem, no subprocesses
+Use episode and memory tools rather than code execution:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "query_memory",
+    "arguments": {
+      "query": "implement REST API",
+      "domain": "web-api",
+      "task_type": "code_generation",
+      "limit": 10
+    }
+  }
+}
 ```
 
-#### Default (Balanced)
+### Calling `execute_agent_code` (fails closed)
 
-```rust
-let config = SandboxConfig::default();
-// - 5 second timeout
-// - 128MB memory limit
-// - 50% CPU limit
-// - No network, no filesystem, no subprocesses
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "execute_agent_code",
+    "arguments": { "code": "console.log('hello')" }
+  }
+}
 ```
 
-#### Permissive (For Trusted Code)
+Observed response (production build):
 
-```rust
-let config = SandboxConfig::permissive();
-// - 10 second timeout
-// - 256MB memory limit
-// - 80% CPU limit
-// - Filesystem access to whitelisted paths
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": null,
+  "error": {
+    "code": -32000,
+    "message": "Tool execution failed",
+    "data": {
+      "details": "execute_agent_code tool is not available due to WASM sandbox compilation issues"
+    }
+  }
+}
 ```
 
-### Custom Configuration
+### Sandbox configuration
 
-```rust
-let config = SandboxConfig {
-    max_execution_time_ms: 3000,
-    max_memory_mb: 64,
-    max_cpu_percent: 30,
-    allowed_paths: vec!["/tmp/safe-dir".to_string()],
-    allowed_network: vec![],
-    allow_network: false,
-    allow_filesystem: false,
-    allow_subprocesses: false,
-};
-```
+`SandboxConfig` is still accepted at construction (the server is built with
+`SandboxConfig::restrictive()` by default) but, without a registered execution
+backend, it no longer governs any production code path. Treat the timeout,
+memory, and CPU fields as advisory configuration only.
 
 ## Available Tools
 
-The MCP server provides **22 tools** organized into categories:
+The MCP server exposes tools grouped into categories, defined in the shared
+registry (`src/server/tools/registry/`). Consult the registry and
+[docs/API_REFERENCE.md](../docs/API_REFERENCE.md) for the authoritative,
+current surface.
 
 ### Episode Lifecycle Management
-
-Programmatically manage episodes through the MCP interface:
 
 - **`create_episode`** - Start tracking a new task with metadata
 - **`add_episode_step`** - Log execution steps to track progress
 - **`complete_episode`** - Finalize episode and trigger learning cycle
 - **`get_episode`** - Retrieve complete episode details
 - **`get_episode_timeline`** - Visualize chronological task progression
+- **`update_episode`** - Update episode details
 - **`delete_episode`** - Remove episodes permanently (with safeguards)
+- **`checkpoint_episode`** - Create mid-task checkpoints
+- **`get_handoff_pack`** / **`resume_from_handoff`** - Multi-agent handoff
 
 📖 **[Complete Episode Lifecycle Documentation](EPISODE_LIFECYCLE_TOOLS.md)**
 
-### Batch Operations Contract Status
+### Episode Relationships & Tags
 
-The MCP JSON-RPC endpoint supports `batch/execute` (multi-operation transport).
-However, tool-level batch analytics names are currently **deferred and not advertised**:
+- **`add_episode_relationship`**, **`get_episode_relationships`**, **`remove_episode_relationship`**
+- **`find_related_episodes`**, **`check_relationship_exists`**
+- **`add_episode_tags`**, **`get_episode_tags`**, **`set_episode_tags`**, **`remove_episode_tags`**
+- **`search_episodes_by_tags`**
+- **`get_dependency_graph`**, **`get_topological_order`**, **`validate_no_cycles`**
 
-- `batch_query_episodes`
-- `batch_pattern_analysis`
-- `batch_compare_episodes`
-
-These names intentionally return `Tool not found` until dedicated handlers are implemented.
-
-📖 **[Batch Tool Status (WG-053)](BATCH_OPERATIONS_TOOLS.md)**
+📖 **[Episode Tags Tools](EPISODE_TAGS_TOOLS.md)**
 
 ### Memory & Query Tools
 
@@ -197,197 +197,83 @@ These names intentionally return `Tool not found` until dedicated handlers are i
 - **`query_semantic_memory`** - Semantic search using embeddings
 - **`bulk_episodes`** - Retrieve multiple episodes efficiently
 
-### Code Execution
-
-- **`execute_agent_code`** - Execute TypeScript/JavaScript in secure WASM sandbox
-
 ### Pattern Analysis
 
 - **`analyze_patterns`** - Analyze patterns from past episodes
 - **`advanced_pattern_analysis`** - Deep pattern analysis with statistical methods
 - **`search_patterns`** - Search for specific patterns
 - **`recommend_patterns`** - Get pattern recommendations for tasks
+- **`recommend_playbook`** - Get actionable playbooks for tasks
+- **`explain_pattern`** - Explain a specific pattern
 
 ### Embeddings & Configuration
 
-- **`configure_embeddings`** - Configure embedding providers (OpenAI, Ollama, local)
+- **`configure_embeddings`** - Configure embedding providers (local, OpenAI, Mistral)
 - **`test_embeddings`** - Test embedding generation
+- **`generate_embedding`** - Generate an embedding for supplied text
+- **`search_by_embedding`** - Search by embedding vector
+- **`embedding_provider_status`** - Report active provider health
 
 ### Monitoring & Health
 
 - **`health_check`** - Server health and status
 - **`get_metrics`** - Performance metrics and statistics
 - **`quality_metrics`** - Episode quality assessment
+- **`record_recommendation_session`**, **`record_recommendation_feedback`**, **`get_recommendation_stats`**
 
-### Quick Reference
+### Code Execution (fail-closed)
 
-#### 1. `query_memory`
+- **`execute_agent_code`** - **Unavailable / fail-closed.** Not a working
+  execution backend; calls are rejected. Use the tools above instead.
 
-```json
-{
-  "query": "Search query describing task",
-  "domain": "Task domain (e.g., 'web-api')",
-  "task_type": "code_generation | debugging | refactoring | testing | analysis | documentation",
-  "limit": 10
-}
-```
+### Batch Operations Contract Status
 
-#### 2. `execute_agent_code`
+The MCP JSON-RPC endpoint supports `batch/execute` (multi-operation transport).
+Tool-level batch analytics names are intentionally **deferred and not
+advertised**:
 
-```json
-{
-  "code": "TypeScript/JavaScript code to execute",
-  "context": {
-    "task": "Task description",
-    "input": { "data": "as JSON" }
-  }
-}
-```
+- `batch_query_episodes`
+- `batch_pattern_analysis`
+- `batch_compare_episodes`
 
-#### 3. `analyze_patterns`
+These names return `Tool not found` until dedicated handlers are implemented.
 
-```json
-{
-  "task_type": "Type of task to analyze",
-  "min_success_rate": 0.7,
-  "limit": 20
-}
-```
+📖 **[Batch Tool Status (WG-053)](BATCH_OPERATIONS_TOOLS.md)**
 
-## Security Testing
+## Security
 
-The crate includes comprehensive security tests:
+Production security boundaries, authentication, isolation, and audit logging
+are described in [SECURITY.md](SECURITY.md). In brief:
+
+- Transport is JSON-RPC over stdio; there is no network listener by default.
+- OAuth 2.1 bearer-token validation is opt-in via the `oauth` feature and
+  `MCP_OAUTH_*` environment variables; when disabled the server logs that OAuth
+  is disabled.
+- Per-client token-bucket rate limiting protects against DoS.
+- Structured audit logging records security-relevant events, including rejected
+  `execute_agent_code` attempts.
+- Agent code execution is fail-closed; the only in-tree executor is the
+  non-default, trusted-local `sandbox-dev` path documented above.
+
+## Testing
 
 ```bash
-# Run all tests
-cargo test --package do-memory-mcp
+# Run the crate tests
+cargo test -p do-memory-mcp
 
-# Run only security tests
-cargo test --package do-memory-mcp --test security_test
-
-# Run integration tests
-cargo test --package do-memory-mcp --test integration_test
-```
-
-### Security Test Coverage
-
-- File system access blocking (12 tests)
-- Network access blocking (4 tests)
-- Process execution blocking (3 tests)
-- Infinite loop detection (2 tests)
-- Code injection blocking (2 tests)
-- Resource exhaustion (2 tests)
-- Path traversal attacks (3 tests)
-- Legitimate code execution (4 tests)
-
-## Execution Results
-
-The sandbox returns detailed execution results:
-
-```rust
-pub enum ExecutionResult {
-    Success {
-        output: String,
-        stdout: String,
-        stderr: String,
-        execution_time_ms: u64,
-    },
-    Error {
-        message: String,
-        error_type: ErrorType,
-        stdout: String,
-        stderr: String,
-    },
-    Timeout {
-        elapsed_ms: u64,
-        partial_output: Option<String>,
-    },
-    SecurityViolation {
-        reason: String,
-        violation_type: SecurityViolationType,
-    },
-}
-```
-
-## Performance
-
-- **Average execution time**: ~50-200ms for simple code
-- **Timeout overhead**: <10ms
-- **Memory footprint**: ~5MB per execution
-- **Concurrent executions**: Supported via async runtime
-
-## Limitations
-
-1. **Node.js Required**: The sandbox requires Node.js to be installed
-2. **Pattern-Based Detection**: Some obfuscated attacks may bypass detection
-3. **Resource Monitoring**: CPU/memory limits are advisory, not enforced
-4. **Async Timeout**: Async code may run slightly beyond timeout
-
-## Best Practices
-
-### For Untrusted Code
-
-```rust
-// Use restrictive config
-let config = SandboxConfig::restrictive();
-let server = MemoryMCPServer::new(config).await?;
-
-// Always check result type
-match server.execute_agent_code(code, context).await? {
-    ExecutionResult::Success { .. } => { /* handle success */ },
-    ExecutionResult::SecurityViolation { reason, .. } => {
-        eprintln!("Security violation: {}", reason);
-    },
-    _ => { /* handle other cases */ }
-}
-```
-
-### For Trusted Code
-
-```rust
-// Use permissive config with specific whitelist
-let mut config = SandboxConfig::permissive();
-config.allowed_paths = vec!["/app/data".to_string()];
-config.allowed_network = vec!["api.example.com".to_string()];
-
-let server = MemoryMCPServer::new(config).await?;
-```
-
-### Error Handling
-
-```rust
-use memory_mcp::{ExecutionResult, ErrorType};
-
-let result = server.execute_agent_code(code, context).await?;
-
-match result {
-    ExecutionResult::Success { output, .. } => {
-        println!("Success: {}", output);
-    },
-    ExecutionResult::Error { error_type: ErrorType::Syntax, message, .. } => {
-        eprintln!("Syntax error: {}", message);
-    },
-    ExecutionResult::Error { error_type: ErrorType::Runtime, message, .. } => {
-        eprintln!("Runtime error: {}", message);
-    },
-    ExecutionResult::Timeout { elapsed_ms, .. } => {
-        eprintln!("Timeout after {}ms", elapsed_ms);
-    },
-    ExecutionResult::SecurityViolation { reason, violation_type, .. } => {
-        eprintln!("Security violation ({:?}): {}", violation_type, reason);
-    },
-}
+# Include the trusted-development sandbox path (local experimentation only)
+cargo test -p do-memory-mcp --features sandbox-dev
 ```
 
 ## Contributing
 
-When adding new features:
-
-1. **Security First**: Always consider security implications
-2. **Test Coverage**: Add tests for both success and failure cases
-3. **Documentation**: Update README and inline docs
-4. **Performance**: Profile code execution paths
+1. **Security first**: keep `execute_agent_code` fail-closed unless an approved
+   backend with enforced controls exists (ADR-073).
+2. **Test coverage**: add tests for both success and failure cases.
+3. **Documentation**: update this README and inline docs; do not reintroduce
+   WASM/Javy production claims.
+4. **Performance**: profile memory/query paths.
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License - See the repository `LICENSE` file for details.

@@ -131,17 +131,14 @@ async fn store_patterns_batch(&self, patterns: &[Pattern]) -> Result<()>;
 
 ## Security Communication
 
-### Sandbox Isolation
+### Code Execution Isolation
 
-MCP server uses Wasmtime sandbox for untrusted code:
-
-```rust
-// Agent code execution is fail-closed; no wasmtime sandbox path
-pub struct WasmtimeSandbox {
-    engine: Engine,
-    module: Module,
-}
-```
+Agent code execution is **fail-closed**: `execute_agent_code` is unavailable in
+production and there is no Wasmtime/Node sandbox path. The legacy Node
+executor is compiled only with the non-default `sandbox-dev` feature for
+trusted local experimentation. See
+[../memory-mcp/SECURITY.md](../memory-mcp/SECURITY.md) and
+[../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md](../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md).
 
 ### Parameterized SQL
 

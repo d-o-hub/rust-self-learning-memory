@@ -1,425 +1,169 @@
-# MCP Sandbox Security Audit Report
+# MCP Code Execution Security Review
 
-**Date**: 2025-11-07
-**Auditor**: Claude Code (Feature Implementer Agent)
-**Scope**: MCP Code Execution Sandbox Security Hardening
-**Status**: ✅ COMPLETE - 0 Critical Vulnerabilities
+**Date**: 2026-09-30
+**Status**: Reconciled with current fail-closed posture (supersedes the
+2025-11-07 "MCP Sandbox Security Audit Report")
+**Scope**: Agent code execution and MCP security boundaries
 
 ---
 
 ## Executive Summary
 
-Comprehensive security hardening has been implemented for the MCP sandbox. The system now features:
+The MCP code-execution **sandbox no longer exists in production**. The
+WASM/Wasmtime/Javy backend and its feature names were removed in v0.1.29
+(ADR-052). `execute_agent_code` is **fail-closed**: it is not advertised by
+`tools/list`, direct and batch calls are rejected, and the handler audit-logs
+the attempt and returns "no longer available".
 
-- **Enhanced Resource Limits**: CPU, memory, and execution time controls
-- **Process Isolation**: Separate processes with privilege dropping support
-- **File System Restrictions**: Whitelist-based access control with path traversal prevention
-- **Network Access Control**: Domain whitelisting and HTTPS enforcement
-- **Comprehensive Penetration Testing**: 18 attack scenarios validated
+This document replaces the earlier audit that rated a production sandbox
+"approved for production use". That report described code and configuration
+(`sandbox/{isolation,fs,network}.rs`) that is now compiled only behind the
+non-default `sandbox-dev` feature and is **not** wired into any execution path
+in a production build.
 
-### Security Score: 94/100
+### Current security score
 
-**Breakdown**:
-- Process Isolation: 95/100
-- Resource Limits: 90/100
-- File System Security: 100/100
-- Network Security: 100/100
-- Code Injection Prevention: 90/100
-
----
-
-## 1. Security Enhancements Implemented
-
-### 1.1 Enhanced Resource Limits
-
-**Location**: `do-memory-mcp/src/types.rs`
-
-```rust
-pub struct ResourceLimits {
-    pub max_cpu_percent: f32,         // 50% default
-    pub max_memory_mb: usize,         // 128MB default
-    pub max_execution_time_ms: u64,   // 5000ms default
-    pub max_file_operations: usize,   // 0 (deny by default)
-    pub max_network_requests: usize,  // 0 (deny by default)
-}
-```
-
-**Features**:
-- Configurable resource limits per sandbox instance
-- Restrictive defaults (50% CPU, 128MB RAM, 5s timeout)
-- Zero file/network operations by default
-
-**Status**: ✅ Implemented and tested
+No production sandbox exists to score. The relevant boundaries are the MCP
+server itself: stdio transport, optional OAuth 2.1 authentication, per-client
+rate limiting, redacted audit logging, and parameterized storage access.
 
 ---
 
-### 1.2 Process Isolation
+## 1. Current Security Boundaries (production)
 
-**Location**: `do-memory-mcp/src/sandbox/isolation.rs`
+### 1.1 Transport
 
-**Features**:
-- Separate Node.js process execution
-- ulimit-based resource constraints (Unix only)
-- Privilege dropping support (drop to specified UID/GID)
-- Process limits (max 1 process)
-- Core dump prevention
-- File size limits
+- JSON-RPC 2.0 over **stdio** (`src/bin/memory-mcp-server.rs`). No network
+  listener is bound by the default binary.
+- Malformed JSON is answered with JSON-RPC errors, not panics.
 
-**Implementation**:
-```rust
-pub struct IsolationConfig {
-    pub drop_to_uid: Option<u32>,      // Privilege dropping
-    pub drop_to_gid: Option<u32>,
-    pub max_memory_bytes: Option<usize>, // 128MB default
-    pub max_cpu_seconds: Option<u64>,    // 5s default
-    pub max_processes: Option<usize>,    // 1 process only
-}
-```
+### 1.2 Authentication & Authorization
 
-**Status**: ✅ Implemented with platform-specific support (Unix)
+- OAuth 2.1 bearer-token validation (`src/bin/server_impl/oauth.rs`), compiled
+  only with the `oauth` feature; configured via `MCP_OAUTH_*`.
+- When the feature is disabled the server logs that OAuth is disabled.
 
----
+### 1.3 Rate Limiting
 
-### 1.3 File System Restrictions
+- Per-client token-bucket rate limiting (`src/server/rate_limiter/`) with
+  separate read/write limits, configured via `MCP_RATE_LIMIT_*`.
 
-**Location**: `do-memory-mcp/src/sandbox/fs.rs`
+### 1.4 Audit Logging
 
-**Features**:
-- Whitelist-only file access
-- Read-only mode by default
-- Path sanitization (removes `.` and `..`)
-- Path traversal attack prevention
-- Symlink resolution control
-- Suspicious filename detection
-- Maximum path depth limits (10 levels default)
+- Structured JSON audit logging (`src/server/audit/`) for authentication,
+  rate-limit violations, security violations, configuration changes, episode
+  deletion, and rejected code-execution attempts.
+- Recursive key-based redaction (`src/server/audit/redaction.rs`), configured
+  via `AUDIT_LOG_REDACT_FIELDS`.
 
-**Security Controls**:
-```rust
-pub struct FileSystemRestrictions {
-    pub allowed_paths: Vec<PathBuf>,  // Whitelist
-    pub read_only: bool,              // true by default
-    pub max_path_depth: usize,        // 10 levels
-    pub follow_symlinks: bool,        // false by default
-}
-```
+### 1.5 Input Validation & Storage
 
-**Attack Prevention**:
-- ✅ Path traversal (`../../../etc/passwd`)
-- ✅ Null byte injection (`/etc/passwd\0`)
-- ✅ Symlink escapes
-- ✅ Hidden Unicode characters
-- ✅ Control characters in filenames
-
-**Status**: ✅ Implemented and fully tested
+- Parameterized SQL on all backends (Turso/libSQL, redb). No string
+  concatenation of queries.
+- Tool parameters validated against schemas with size/range limits.
+- Malformed episode/pattern identifiers rejected consistently across
+  core/MCP/CLI.
 
 ---
 
-### 1.4 Network Access Control
+## 2. Agent Code Execution (fail-closed)
 
-**Location**: `do-memory-mcp/src/sandbox/network.rs`
+| Path | State |
+|------|-------|
+| `tools/list` | `execute_agent_code` **not advertised** |
+| `tools/call` (direct) | rejected — error `-32000`, "Tool execution failed" |
+| `batch/execute` | rejected identically |
+| Handler `handle_execute_code` | audit-logs attempt, returns "no longer available" |
+| WASM/Wasmtime/Javy backend | **removed** (v0.1.29, ADR-052) |
+| Feature names | `wasmtime-backend`, `javy-backend`, `wasm-rquickjs` **do not exist** |
 
-**Features**:
-- Block all network access by default
-- Domain whitelist with subdomain support
-- HTTPS-only enforcement
-- Private IP blocking (RFC1918)
-- Localhost blocking
-- IP address validation
-- Request rate limiting
+### 2.1 `sandbox-dev` — trusted local experimentation only
 
-**Security Controls**:
-```rust
-pub struct NetworkRestrictions {
-    pub block_all: bool,              // true by default
-    pub allowed_domains: Vec<String>, // Empty by default
-    pub https_only: bool,             // true (no HTTP)
-    pub block_private_ips: bool,      // true (no RFC1918)
-    pub block_localhost: bool,        // true
-    pub max_requests: usize,          // 0 by default
-}
-```
+A legacy Node.js `CodeSandbox` (`src/sandbox/`) is compiled **only** with the
+non-default `sandbox-dev` feature. It is **not** a production sandbox and MUST
+NOT receive untrusted input.
 
-**Blocked Ranges**:
-- ✅ Localhost (127.0.0.1, ::1)
-- ✅ Private IPs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
-- ✅ Link-local addresses
-- ✅ Broadcast addresses
-- ✅ Documentation addresses
+**Enforced:**
 
-**Status**: ✅ Implemented and fully tested
+- Execution timeout (`max_execution_time_ms`) via Tokio timeout, with
+  `kill_on_drop(true)` terminating the child.
+- Maximum code length (100 KB) checked before execution.
+- Static regex source screening (filesystem/network/subprocess/malicious).
+- Global shadowing/deletion in the JavaScript wrapper.
 
----
+**Not enforced:**
 
-## 2. Penetration Test Results
-
-**Total Tests**: 18
-**Passed**: 18 (100%)
-**Critical Findings**: 1 (documented, acceptable)
-**High Findings**: 0
-**Medium Findings**: 0
-**Low Findings**: 0
-
-### 2.1 Sandbox Escape Attempts (3 tests)
-
-| Attack Vector | Result | Notes |
-|--------------|--------|-------|
-| Process binding access | ⚠️ LIMITED | Process object accessible but neutered |
-| Require bypass | ✅ BLOCKED | Pattern matching prevents eval-based bypass |
-| Prototype pollution | ✅ MITIGATED | Constructor escape blocked |
-
-**Finding**: Process object is accessible but cannot be used for dangerous operations (require() is blocked).
+- OS-level isolation. `src/sandbox/isolation.rs` exposes `apply_isolation`
+  (privilege drop, `ulimit`, namespaces), but the execution path never calls it.
+- Memory (`max_memory_mb`) and CPU (`max_cpu_percent`/`max_cpu_seconds`) limits —
+  configuration only.
+- Output sanitization — stdout/stderr returned as-is.
+- Runtime capability enforcement for filesystem/network/subprocess; the
+  `fs.rs`/`network.rs` restrictions are source-pattern checks, not runtime
+  controls.
 
 ---
 
-### 2.2 Resource Exhaustion Attacks (3 tests)
-
-| Attack Vector | Result | Prevention Method |
-|--------------|--------|-------------------|
-| CPU exhaustion | ✅ BLOCKED | Timeout after 1s |
-| Memory exhaustion | ✅ BLOCKED | Infinite loop detection |
-| Stack overflow | ✅ BLOCKED | Timeout + V8 limits |
-
----
-
-### 2.3 Code Injection Attacks (2 tests)
-
-| Attack Vector | Result | Detection Method |
-|--------------|--------|------------------|
-| Direct eval() | ✅ BLOCKED | Pattern matching |
-| Function constructor | ✅ BLOCKED | Pattern matching |
-| Indirect code execution | ✅ BLOCKED | No dangerous constructors |
-
----
-
-### 2.4 Path Traversal Attacks (1 test)
-
-| Attack Vector | Result |
-|--------------|--------|
-| Basic traversal (`../../../etc/passwd`) | ✅ BLOCKED |
-| Encoded traversal (`%2e%2e%2f`) | ✅ BLOCKED |
-| Windows traversal (`..\\..\\`) | ✅ BLOCKED |
-| Null byte injection | ✅ BLOCKED |
-| Absolute paths | ✅ BLOCKED |
-
----
-
-### 2.5 Privilege Escalation Attempts (1 test)
-
-| Attack Vector | Result |
-|--------------|--------|
-| Process execution (whoami, sudo) | ✅ BLOCKED |
-
----
-
-### 2.6 Network Exfiltration Attempts (1 test)
-
-| Attack Vector | Result |
-|--------------|--------|
-| HTTP/HTTPS requests | ✅ BLOCKED |
-| WebSocket connections | ✅ BLOCKED |
-| Fetch API | ✅ BLOCKED |
-
----
-
-### 2.7 Advanced Attack Scenarios (7 tests)
-
-| Test | Result | Description |
-|------|--------|-------------|
-| Timing attack bypass | ✅ PASSED | Async operations timeout properly |
-| Multi-stage attack | ✅ PASSED | Blocked at first violation |
-| Advanced obfuscation | ✅ PASSED | String concat doesn't bypass checks |
-| Security summary | ✅ PASSED | All 5 critical controls enforced |
-| Resource limits config | ✅ PASSED | Correct default values |
-| Network deny-all | ✅ PASSED | Blocks all when configured |
-| HTTPS enforcement | ✅ PASSED | HTTP requests rejected |
-
----
-
-## 3. Security Findings
-
-### 3.1 Process Object Accessibility (Low Risk)
-
-**Severity**: 🟡 LOW
-**Status**: DOCUMENTED - ACCEPTABLE RISK
-**CVSS**: 3.1 (Low)
-
-**Description**:
-The JavaScript `process` object is partially accessible through `global.process` and `this.process` bindings in some contexts.
-
-**Impact**:
-Limited. While the process object can be accessed, it cannot be used for:
-- ✅ `require()` is blocked by pattern matching
-- ✅ File system operations blocked
-- ✅ Child process spawning blocked
-- ✅ Process is isolated and can be killed
-- ✅ Runs with restricted permissions (if configured)
-
-**Defense in Depth**:
-1. **Primary**: Pattern matching blocks dangerous `require()` calls before execution
-2. **Secondary**: Process runs isolated with resource limits
-3. **Tertiary**: Timeout kills long-running processes
-4. **Quaternary**: Privilege dropping (Unix) reduces process capabilities
-
-**Recommendation**: ACCEPTED - Defense in depth prevents exploitation
-
----
-
-## 4. Security Controls Matrix
-
-| Control | Implemented | Tested | Effective | Notes |
-|---------|-------------|--------|-----------|-------|
-| Input validation | ✅ | ✅ | 90% | Pattern matching for malicious code |
-| Process isolation | ✅ | ✅ | 95% | Separate process, ulimit, privilege drop |
-| Resource limits | ✅ | ✅ | 90% | CPU, memory, time enforced |
-| Timeout enforcement | ✅ | ✅ | 100% | 5s default, kills process |
-| File system restrictions | ✅ | ✅ | 100% | Whitelist-only, path sanitization |
-| Network access control | ✅ | ✅ | 100% | Deny-all default, domain whitelist |
-| Code injection prevention | ✅ | ✅ | 90% | eval(), Function() blocked |
-| Path traversal prevention | ✅ | ✅ | 100% | Sanitization, validation |
-| Privilege escalation prevention | ✅ | ✅ | 95% | Process isolation, no child_process |
-
-**Overall Effectiveness**: 94.4%
-
----
-
-## 5. Compliance Status
-
-### OWASP Top 10 (2021)
+## 3. OWASP Top 10 (2021) — current surface
 
 | Risk | Status | Implementation |
 |------|--------|----------------|
-| A01: Broken Access Control | ✅ MITIGATED | File/network whitelists |
-| A02: Cryptographic Failures | ✅ MITIGATED | HTTPS-only mode |
-| A03: Injection | ✅ MITIGATED | Input validation, parameterized queries |
-| A04: Insecure Design | ✅ MITIGATED | Defense in depth architecture |
-| A05: Security Misconfiguration | ✅ MITIGATED | Secure defaults (deny-all) |
-| A06: Vulnerable Components | ✅ ONGOING | Dependency scanning via cargo-audit |
-| A07: Identification/Authentication | N/A | Not applicable to sandbox |
-| A08: Software/Data Integrity | ✅ MITIGATED | Code validation before execution |
-| A09: Security Logging/Monitoring | ⚠️ PARTIAL | Tracing implemented, needs enhancement |
-| A10: Server-Side Request Forgery | ✅ MITIGATED | Network restrictions |
-
-**Compliance Score**: 90%
+| A01: Broken Access Control | ✅ | OAuth 2.1 (opt-in) + rate limiting + fail-closed tools |
+| A02: Cryptographic Failures | ✅ | TLS to Turso; credentials via env only |
+| A03: Injection | ✅ | Parameterized SQL; validated identifiers |
+| A04: Insecure Design | ✅ | Fail-closed execution; no untrusted-code path |
+| A05: Security Misconfiguration | ✅ | Sandbox-dev not built by default; env-driven config |
+| A06: Vulnerable Components | ✅ | `cargo audit` in CI |
+| A07: Identification/Authentication | ✅ | OAuth 2.1 when `oauth` enabled |
+| A08: Software/Data Integrity | ✅ | No production code execution path |
+| A09: Security Logging/Monitoring | ✅ | Structured audit logging with redaction |
+| A10: Server-Side Request Forgery | ✅ | No network listener; no egress from server |
 
 ---
 
-## 6. Recommendations
+## 4. Recommendations
 
 ### Immediate (High Priority)
-- ✅ All completed in this implementation
+
+- Keep `execute_agent_code` fail-closed and out of tool discovery.
+- Do **not** enable `sandbox-dev` in production builds.
 
 ### Short Term (Medium Priority)
-1. **Enhanced Logging**: Add security event logging for:
-   - Failed access attempts
-   - Resource limit violations
-   - Pattern matching blocks
 
-2. **Metrics Collection**: Track:
-   - Security violations by type
-   - Resource usage trends
-   - Attack attempt frequency
+1. Ensure OAuth and rate limiting are enabled and tuned for shared deployments.
+2. Configure audit destinations and redaction field lists.
+3. Keep the reachability/docs-integrity checks green
+   (`scripts/check-source-reachability.sh`, `scripts/check-docs-integrity.sh`).
 
 ### Long Term (Low Priority)
-1. **Runtime Monitoring**: Implement runtime behavior analysis
-2. **Sandboxing Enhancement**: Consider VM-based isolation (Firecracker, gVisor)
-3. **Machine Learning**: Pattern detection for novel attack vectors
+
+1. If code execution is ever reintroduced, adopt an approved capability-enforced
+   backend per ADR-073 (WASI/component model with enforced capabilities).
+2. Add runtime behavior analysis and resource enforcement only together with a
+   real backend.
 
 ---
 
-## 7. Testing Summary
+## 5. Conclusion
 
-### Test Coverage
+There is **no production sandbox** for agent code. The MCP server's security
+rests on its transport, authentication, rate limiting, audit logging, and
+parameterized storage access. The legacy Node executor is trusted-local only and
+implements only timeout/length/regex controls — no OS isolation, no enforced
+memory/CPU limits, no output sanitization.
 
-| Test Category | Tests | Passed | Coverage |
-|--------------|-------|--------|----------|
-| Unit Tests | 15 | 15 | 100% |
-| Integration Tests | 27 | 27 | 100% |
-| Penetration Tests | 18 | 18 | 100% |
-| Security Tests | 5 | 5 | 100% |
-| **Total** | **65** | **65** | **100%** |
-
-### Code Quality
-
-- ✅ `cargo fmt` - All code formatted
-- ✅ `cargo clippy` - 0 warnings
-- ✅ `cargo build` - Builds successfully
-- ✅ `cargo test` - All tests pass
-- ✅ MSRV compliance - Rust 1.70.0+
+**Superseded finding**: the earlier "APPROVED FOR PRODUCTION USE" rating applied
+to a sandbox that no longer exists and must not be relied upon.
 
 ---
 
-## 8. Conclusion
+## 6. Related Documents
 
-The MCP sandbox has been comprehensively hardened with multiple layers of security:
-
-1. **Enhanced Resource Limits**: CPU, memory, and time controls prevent DoS
-2. **Process Isolation**: Separate processes with privilege dropping
-3. **File System Security**: Whitelist-based access prevents data exfiltration
-4. **Network Security**: Domain whitelisting prevents network attacks
-5. **Comprehensive Testing**: 18 penetration tests validate security
-
-### Final Security Rating: 🟢 STRONG (94/100)
-
-**Vulnerabilities**: 0 Critical, 0 High, 0 Medium, 1 Low (documented and acceptable)
-
-**Recommendation**: APPROVED FOR PRODUCTION USE with continued monitoring
+- [README.md](README.md) — fail-closed code-execution contract and `sandbox-dev` limits
+- [SECURITY.md](SECURITY.md) — current security boundaries
+- [../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md](../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md)
+- [../plans/adr/ADR-052-Comprehensive-Analysis-v0.1.29.md](../plans/adr/ADR-052-Comprehensive-Analysis-v0.1.29.md)
 
 ---
 
-## 9. Files Modified/Created
-
-### Created:
-- `do-memory-mcp/src/sandbox/isolation.rs` (271 lines) - Process isolation
-- `do-memory-mcp/src/sandbox/fs.rs` (385 lines) - File system restrictions
-- `do-memory-mcp/src/sandbox/network.rs` (409 lines) - Network access control
-- `do-memory-mcp/tests/penetration_tests.rs` (663 lines) - Comprehensive pentests
-- `do-memory-mcp/SECURITY_AUDIT.md` (this document)
-
-### Modified:
-- `do-memory-mcp/src/sandbox.rs` - Added security module imports
-- `do-memory-mcp/src/types.rs` - Added ResourceLimits struct
-- `do-memory-mcp/src/lib.rs` - Exported new security types
-- `do-memory-mcp/Cargo.toml` - Added `url` and `libc` dependencies
-
-### Total Lines of Code Added: ~1,750 lines
-
----
-
-## Appendix A: Security Configuration Examples
-
-### Restrictive (Untrusted Code)
-```rust
-let config = SandboxConfig::restrictive();
-// - 30% CPU max
-// - 64MB memory max
-// - 3s timeout
-// - 0 file operations
-// - 0 network requests
-```
-
-### Default (Standard Use)
-```rust
-let config = SandboxConfig::default();
-// - 50% CPU max
-// - 128MB memory max
-// - 5s timeout
-// - 0 file operations
-// - 0 network requests
-```
-
-### Permissive (Trusted Code)
-```rust
-let config = SandboxConfig::permissive();
-// - 80% CPU max
-// - 256MB memory max
-// - 10s timeout
-// - 100 file operations
-// - 10 network requests
-```
-
----
-
-**End of Security Audit Report**
-
-**Signed**: Claude Code (Feature Implementer Agent)
-**Date**: 2025-11-07
+**End of Security Review**

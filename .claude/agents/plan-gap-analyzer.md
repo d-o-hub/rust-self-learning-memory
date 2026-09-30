@@ -131,8 +131,7 @@ rg "#\[instrument\]|tracing::" do-memory-core/src/
 
 **Week 7-8: MCP Integration**
 - [ ] MemoryMCPServer implementation
-- [ ] Tool generation (query_memory, execute_agent_code)
-- [ ] VM2 sandbox with resource limits
+- [ ] Tool generation (query_memory; `execute_agent_code` stays fail-closed)
 - [ ] Security validation
 
 **Week 9-10: Performance**

@@ -153,3 +153,33 @@ async fn test_get_metrics_multibyte_truncation() {
     let long_unicode = "あ".repeat(200);
     let _ = handle_get_metrics(&mut server, Some(json!({"metric_type": long_unicode}))).await;
 }
+
+#[tokio::test]
+async fn test_relationship_handlers_rate_limit_by_process_identity() -> anyhow::Result<()> {
+    use do_memory_mcp::server::rate_limiter::OperationType;
+
+    let memory = Arc::new(SelfLearningMemory::new());
+    let mut server = MemoryMCPServer::new(SandboxConfig::default(), memory).await?;
+    assert!(
+        server.rate_limiter().is_enabled(),
+        "this test requires rate limiting to be enabled"
+    );
+
+    // Saturate the process-scoped write bucket
+    let identity = server.rate_limit_identity();
+    let burst = server.rate_limiter().config.write_burst_size.max(1);
+    for _ in 0..burst {
+        server.check_rate_limit(&identity, OperationType::Write);
+    }
+
+    // #1084: the caller-supplied `client_id` must not select the bucket, so the
+    // saturated process bucket still rejects the relationship write.
+    let error = handle_add_episode_relationship(&mut server, Some(json!({"client_id": "rotated"})))
+        .await
+        .expect_err("a saturated write bucket must reject the relationship write");
+    assert!(
+        error.to_string().contains("Rate limit exceeded"),
+        "unexpected error: {error}"
+    );
+    Ok(())
+}

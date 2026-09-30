@@ -124,4 +124,74 @@ mod tests {
         let protocol_version = result.get("protocolVersion").and_then(|v| v.as_str());
         assert_eq!(protocol_version, Some("2025-11-25"));
     }
+
+    #[tokio::test]
+    async fn test_initialize_omits_authorization_capability_when_disabled() {
+        let req = JsonRpcRequest {
+            jsonrpc: Some("2.0".to_string()),
+            id: Some(json!(5)),
+            method: "initialize".into(),
+            params: Some(json!({"protocolVersion": "2025-11-25"})),
+        };
+
+        let resp = handle_initialize(req, &OAuthConfig::default())
+            .await
+            .unwrap();
+        let capabilities = resp.result.unwrap()["capabilities"].clone();
+        assert!(
+            capabilities.get("authorization").is_none(),
+            "authorization must not be advertised while OAuth is disabled"
+        );
+        assert!(capabilities.get("tools").is_some());
+    }
+
+    #[cfg(feature = "oauth")]
+    #[tokio::test]
+    async fn test_initialize_advertises_authorization_only_when_enforced() {
+        let enforced = OAuthConfig {
+            enabled: true,
+            issuer: Some("https://issuer.example".to_string()),
+            audience: Some("mcp-server".to_string()),
+            token_secret: Some("secret".to_string()),
+            ..OAuthConfig::default()
+        };
+        let req = JsonRpcRequest {
+            jsonrpc: Some("2.0".to_string()),
+            id: Some(json!(6)),
+            method: "initialize".into(),
+            params: Some(json!({"protocolVersion": "2025-11-25"})),
+        };
+
+        let value = handle_initialize(req, &enforced)
+            .await
+            .unwrap()
+            .result
+            .unwrap();
+        let authorization = &value["capabilities"]["authorization"];
+        assert_eq!(authorization["enabled"], json!(true));
+        assert_eq!(authorization["issuer"], json!("https://issuer.example"));
+        assert_eq!(authorization["audience"], json!("mcp-server"));
+
+        // Enabled but unenforceable (no secret): the capability must be absent
+        let misconfigured = OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        };
+        let req = JsonRpcRequest {
+            jsonrpc: Some("2.0".to_string()),
+            id: Some(json!(7)),
+            method: "initialize".into(),
+            params: Some(json!({"protocolVersion": "2025-11-25"})),
+        };
+        let value = handle_initialize(req, &misconfigured)
+            .await
+            .unwrap()
+            .result
+            .unwrap();
+        assert!(
+            value["capabilities"].get("authorization").is_none(),
+            "an unenforceable configuration must not advertise authorization"
+        );
+    }
 }

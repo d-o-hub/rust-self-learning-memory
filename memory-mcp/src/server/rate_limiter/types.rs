@@ -225,3 +225,54 @@ pub struct RateLimiterStats {
     /// Maximum distinct identity buckets tracked per operation type
     pub max_identities: usize,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_client_id_constructors() {
+        assert_eq!(ClientId::from_string(""), ClientId::Unknown);
+        assert_eq!(ClientId::from_ip(""), ClientId::Unknown);
+        assert_eq!(
+            ClientId::from_string("client-a"),
+            ClientId::Id("client-a".to_string())
+        );
+        assert_eq!(
+            ClientId::from_ip("10.0.0.1"),
+            ClientId::Ip("10.0.0.1".to_string())
+        );
+        assert_eq!(
+            ClientId::process(),
+            ClientId::Process(std::process::id()),
+            "the process identity must be scoped to this process"
+        );
+    }
+
+    #[test]
+    fn test_client_id_display() {
+        assert_eq!(ClientId::from_string("client-a").to_string(), "id:client-a");
+        assert_eq!(ClientId::from_ip("10.0.0.1").to_string(), "ip:10.0.0.1");
+        assert_eq!(
+            ClientId::process().to_string(),
+            format!("process:{}", std::process::id())
+        );
+        assert_eq!(ClientId::Shared.to_string(), "shared");
+        assert_eq!(ClientId::Unknown.to_string(), "unknown");
+    }
+
+    #[test]
+    fn test_rate_limit_config_invariants() {
+        let config = RateLimitConfig::default();
+        assert!(config.enabled);
+        assert!(
+            config.max_identities > 0,
+            "the default identity bound must permit at least one bucket"
+        );
+        assert!(config.read_requests_per_second > 0);
+        assert!(config.write_requests_per_second > 0);
+
+        // The environment loader filters out a zero/garbage identity bound
+        assert!(RateLimitConfig::from_env().max_identities > 0);
+    }
+}

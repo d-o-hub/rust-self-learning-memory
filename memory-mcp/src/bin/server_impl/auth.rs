@@ -157,3 +157,242 @@ pub fn rejection_response(id: Option<Value>, rejection: &Rejection) -> JsonRpcRe
         }),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(feature = "oauth")]
+    const SECRET: &str = "auth-context-test-secret";
+    #[cfg(feature = "oauth")]
+    const ISSUER: &str = "https://auth.example.com";
+    #[cfg(feature = "oauth")]
+    const AUDIENCE: &str = "mcp-server";
+
+    fn disabled_config() -> OAuthConfig {
+        OAuthConfig::default()
+    }
+
+    fn unenforceable_config() -> OAuthConfig {
+        OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        }
+    }
+
+    #[cfg(feature = "oauth")]
+    fn enforced_config() -> OAuthConfig {
+        OAuthConfig {
+            enabled: true,
+            issuer: Some(ISSUER.to_string()),
+            audience: Some(AUDIENCE.to_string()),
+            token_secret: Some(SECRET.to_string()),
+            ..OAuthConfig::default()
+        }
+    }
+
+    #[cfg(feature = "oauth")]
+    fn signed_token(scope: &str, subject: &str) -> anyhow::Result<String> {
+        use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        struct Claims {
+            iss: String,
+            aud: String,
+            exp: u64,
+            sub: String,
+            scope: String,
+        }
+
+        Ok(encode(
+            &Header::new(Algorithm::HS256),
+            &Claims {
+                iss: ISSUER.to_string(),
+                aud: AUDIENCE.to_string(),
+                exp: jsonwebtoken::get_current_timestamp() + 600,
+                sub: subject.to_string(),
+                scope: scope.to_string(),
+            },
+            &EncodingKey::from_secret(SECRET.as_bytes()),
+        )?)
+    }
+
+    #[test]
+    fn test_subject_identity_is_stable_and_opaque() {
+        let alice = subject_identity("alice@example.com");
+        assert_eq!(alice, subject_identity("alice@example.com"));
+        assert_ne!(alice, subject_identity("bob@example.com"));
+        assert!(
+            !format!("{alice}").contains("alice@example.com"),
+            "bucket keys must not persist the raw subject"
+        );
+    }
+
+    #[test]
+    fn test_auth_context_reports_enforcement() {
+        let disabled = AuthContext::new(disabled_config(), ClientId::process(), None);
+        assert!(!disabled.is_enforced());
+        assert!(!disabled.config().enabled);
+
+        let misconfigured = AuthContext::new(
+            unenforceable_config(),
+            ClientId::process(),
+            Some("unused".to_string()),
+        );
+        assert!(!misconfigured.is_enforced());
+        assert!(misconfigured.config().enabled);
+    }
+
+    #[test]
+    fn test_auth_context_from_env_uses_process_identity() {
+        let context = AuthContext::from_env(disabled_config());
+        assert!(!context.is_enforced());
+        // The process identity is the fallback principal for unauthenticated stdio
+        let identity = context
+            .resolve_identity("tools/list", OperationType::Write, None)
+            .expect("disabled OAuth must not reject requests");
+        assert_eq!(identity, ClientId::process());
+    }
+
+    #[test]
+    fn test_resolve_identity_disabled_uses_process_identity() {
+        let context = AuthContext::new(disabled_config(), ClientId::process(), None);
+        for method in ["tools/list", "tools/call", "initialize"] {
+            let identity = context
+                .resolve_identity(method, OperationType::Write, None)
+                .expect("disabled OAuth must not reject requests");
+            assert_eq!(identity, ClientId::process());
+        }
+    }
+
+    #[test]
+    fn test_resolve_identity_unenforceable_config_fails_closed() {
+        // Even discovery methods are rejected: the configuration claims to
+        // enforce authorization while it cannot.
+        let context = AuthContext::new(unenforceable_config(), ClientId::process(), None);
+        for method in ["initialize", "tools/list", "tools/call"] {
+            let rejection = context
+                .resolve_identity(method, OperationType::Write, None)
+                .expect_err("unenforceable configuration must fail closed");
+            assert_eq!(rejection.code, UNAUTHORIZED_CODE);
+            assert_eq!(rejection.error, "invalid_config");
+            // The diagnostic names the missing secret (with the `oauth` feature)
+            // or the missing feature itself, and always states that enforcement
+            // is impossible.
+            assert!(
+                rejection.description.contains("cannot be enforced"),
+                "unexpected diagnostic: {rejection:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_rejection_response_codes_and_messages() {
+        let unauthorized = Rejection {
+            code: UNAUTHORIZED_CODE,
+            error: "unauthorized".to_string(),
+            description: "missing bearer token".to_string(),
+        };
+        let response = rejection_response(Some(json!(7)), &unauthorized);
+        assert_eq!(response.id, Some(json!(7)));
+        assert!(response.result.is_none());
+        let error = response.error.expect("rejection must carry an error");
+        assert_eq!(error.code, UNAUTHORIZED_CODE);
+        assert_eq!(error.message, "Unauthorized");
+        assert_eq!(
+            error.data,
+            Some(json!({"error": "unauthorized", "description": "missing bearer token"}))
+        );
+
+        let scope = Rejection {
+            code: -32003,
+            error: "insufficient_scope".to_string(),
+            description: "token is missing the required scope 'mcp:write'".to_string(),
+        };
+        let response = rejection_response(None, &scope);
+        assert!(response.id.is_none());
+        let error = response.error.expect("rejection must carry an error");
+        assert_eq!(error.code, -32003);
+        assert_eq!(error.message, "Insufficient scope");
+    }
+
+    #[test]
+    fn test_resolve_identity_ignores_request_identity_fields() {
+        // Regression for #1084: identity-like request fields are not a principal
+        let params = json!({"_meta": {"client_id": "spoofed"}, "client_id": "spoofed"});
+        let context = AuthContext::new(disabled_config(), ClientId::process(), None);
+        let identity = context
+            .resolve_identity("tools/call", OperationType::Write, Some(&params))
+            .expect("disabled OAuth must not reject requests");
+        assert_eq!(identity, ClientId::process());
+    }
+
+    #[cfg(feature = "oauth")]
+    #[test]
+    fn test_resolve_identity_authenticated_uses_subject() -> anyhow::Result<()> {
+        let token = signed_token("mcp:read", "user-42")?;
+        let params = json!({"_meta": {"authorization": format!("Bearer {token}")}});
+        let context = AuthContext::new(enforced_config(), ClientId::process(), None);
+
+        let identity = context
+            .resolve_identity("tools/list", OperationType::Read, Some(&params))
+            .map_err(|rejection| anyhow::anyhow!("{rejection:?}"))?;
+        assert_eq!(identity, subject_identity("user-42"));
+        assert_ne!(identity, ClientId::process());
+        Ok(())
+    }
+
+    #[cfg(feature = "oauth")]
+    #[test]
+    fn test_resolve_identity_uses_transport_credential() -> anyhow::Result<()> {
+        let token = signed_token("mcp:write", "user-43")?;
+        let context = AuthContext::new(enforced_config(), ClientId::process(), Some(token.clone()));
+
+        let identity = context
+            .resolve_identity("tools/call", OperationType::Write, None)
+            .map_err(|rejection| anyhow::anyhow!("{rejection:?}"))?;
+        assert_eq!(identity, subject_identity("user-43"));
+        Ok(())
+    }
+
+    #[cfg(feature = "oauth")]
+    #[test]
+    fn test_resolve_identity_enforced_rules() -> anyhow::Result<()> {
+        let context = AuthContext::new(enforced_config(), ClientId::process(), None);
+
+        // Discovery methods stay reachable without credentials
+        assert_eq!(
+            context
+                .resolve_identity("initialize", OperationType::Read, None)
+                .map_err(|rejection| anyhow::anyhow!("{rejection:?}"))?,
+            ClientId::process()
+        );
+
+        // Protected methods require a token
+        let rejection = context
+            .resolve_identity("tools/list", OperationType::Read, None)
+            .expect_err("protected method must require a token");
+        assert_eq!(rejection.code, UNAUTHORIZED_CODE);
+        assert_eq!(rejection.error, "unauthorized");
+
+        // Invalid tokens are rejected without echoing the token
+        let params = json!({"_meta": {"authorization": "Bearer not-a-jwt"}});
+        let rejection = context
+            .resolve_identity("tools/list", OperationType::Read, Some(&params))
+            .expect_err("invalid token must be rejected");
+        assert_eq!(rejection.error, "invalid_token");
+        assert!(!rejection.description.contains("not-a-jwt"));
+
+        // Valid token with the wrong scope is rejected with -32003
+        let token = signed_token("mcp:read", "user-44")?;
+        let params = json!({"_meta": {"authorization": format!("Bearer {token}")}});
+        let rejection = context
+            .resolve_identity("tools/call", OperationType::Write, Some(&params))
+            .expect_err("read scope must not authorize a write");
+        assert_eq!(rejection.code, -32003);
+        assert_eq!(rejection.error, "insufficient_scope");
+        Ok(())
+    }
+}

@@ -409,3 +409,20 @@ impl RateLimitEnvConfig {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rate_limit_env_config_bounds_identities() {
+        let config = RateLimitEnvConfig::default();
+        assert!(config.enabled);
+        assert!(config.max_identities > 0);
+        assert!(config.read_burst > 0);
+        assert!(config.write_burst > 0);
+
+        // A zero/garbage override must never disable bucket bounding entirely
+        assert!(RateLimitEnvConfig::from_env().max_identities > 0);
+    }
+}

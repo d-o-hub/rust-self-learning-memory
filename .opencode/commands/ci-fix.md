@@ -36,13 +36,10 @@ grep -r "actions-rs" .github/workflows/
 # Fix: Update to v2+ versions
 ```
 
-### Optional Dependency Issues (libclang, wasmtime)
+### Optional Dependency Issues (libclang)
 ```bash
-# Build without problematic crate
-cargo build --workspace --exclude do-memory-mcp
-
-# Or fix the dependency
-cargo update -p libclang
+# Build with the specific features you need
+cargo build --workspace --features "turso,redb"
 ```
 
 ### Clippy Lint Allow-List

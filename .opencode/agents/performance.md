@@ -61,7 +61,7 @@ Your focus is on ensuring optimal performance and preventing performance regress
 - Analyze concurrent operation benchmarks (workloads A-E)
 - Identify async/await bottlenecks and contention points
 - Optimize semaphore limits and parallelization strategies
-- Profile WASM sandbox execution performance
+- Profile retrieval/query execution performance
 
 ### 6. Memory Usage Analysis
 - Run memory pressure benchmarks (`memory_pressure.rs`)

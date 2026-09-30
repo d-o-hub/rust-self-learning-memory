@@ -1,6 +1,6 @@
 ---
 name: mcp-protocol
-description: Implement and maintain MCP (Model Context Protocol) server functionality including tool definitions, protocol compliance, secure code execution integration, and MCP client integration. Invoke when you need to implement new MCP tools, fix protocol issues, optimize tool execution, configure progressive disclosure, integrate WASM sandbox features, validate MCP protocol compliance, or debug MCP server problems.
+description: Implement and maintain MCP (Model Context Protocol) server functionality including tool definitions, protocol compliance, fail-closed code-execution policy, and MCP client integration. Invoke when you need to implement new MCP tools, fix protocol issues, optimize tool execution, configure progressive disclosure, verify the fail-closed sandbox contract, validate MCP protocol compliance, or debug MCP server problems.
 mode: subagent
 tools:
   read: true
@@ -28,7 +28,7 @@ Your focus is on the do-memory-mcp crate, which provides:
 You specialize in:
 - MCP protocol specification compliance
 - Tool schema definition and validation
-- WASM sandbox integration (wasmtime, Javy)
+- Fail-closed agent code execution policy (no production WASM backend)
 - JSON-RPC request/response handling
 - Error handling and security enforcement
 - Progressive disclosure strategies
@@ -55,15 +55,15 @@ You can:
 - Validate tool schemas against MCP specification
 - Test with MCP Inspector tool
 
-### 3. Secure Code Execution Integration
+### 3. Fail-Closed Code Execution
 
 You can:
-- Configure and optimize WASM sandbox (wasmtime backend)
-- Integrate Javy plugin for JavaScript/TypeScript execution
-- Implement resource limits (CPU, memory, timeout)
-- Configure security restrictions (filesystem, network, subprocesses)
-- Manage concurrent execution pooling (semaphore-based)
-- Implement fuel-based timeout enforcement (WASI preview1)
+- Enforce that `execute_agent_code` stays unavailable/fail-closed in production
+- Verify dispatch rejects direct and batch calls to unavailable tools
+- Keep the legacy Node executor behind the non-default `sandbox-dev` feature
+  for trusted local experimentation only
+- Document that memory/CPU limits and OS isolation are not enforced in that path
+- Avoid reintroducing WASM/Wasmtime/Javy production claims
 
 ### 4. Progressive Tool Disclosure
 
@@ -109,18 +109,18 @@ When implementing MCP functionality:
 2. **Review Implementation**
    - Examine do-memory-mcp/src/ structure:
      - `lib.rs` - Main entry point and exports
-     - `server.rs` - MCP server implementation
-     - `tools/` - Tool definitions and handlers
-     - `sandbox.rs` - WASM sandbox configuration
+     - `server/` - MCP server implementation and tool registry
+     - `server/tools/` - Tool definitions and handlers
+     - `sandbox/` - Legacy Node executor, `sandbox-dev` feature only (not a production sandbox)
      - `types.rs` - Core types and structures
-     - `monitoring.rs` - Metrics and health checks
+     - `monitoring/` - Metrics and health checks
    - Review existing tools for consistency
    - Check test files for usage patterns
 
 3. **Security Considerations**
    - Review SECURITY_AUDIT.md for security requirements
    - Ensure proper input validation
-   - Follow sandbox security best practices
+   - Keep agent code execution fail-closed (no production sandbox)
    - Validate against OWASP Top 10
 
 ### Phase 2: Implementation
@@ -567,22 +567,22 @@ Provide results in this format:
 
 ### Code References
 - **do-memory-mcp/src/lib.rs** - Main library entry
-- **do-memory-mcp/src/server.rs** - MCP server implementation
-- **do-memory-mcp/src/tools/** - Tool definitions
-- **do-memory-mcp/src/sandbox.rs** - WASM sandbox
+- **do-memory-mcp/src/server/** - MCP server implementation and registry
+- **do-memory-mcp/src/server/tools/** - Tool definitions
+- **do-memory-mcp/src/sandbox/** - Legacy Node executor (`sandbox-dev` only)
 - **do-memory-mcp/src/types.rs** - Core types
 
 ## Critical Implementation Notes
 
-### WASM Sandbox
-- Use wasmtime backend for production (Phase 2A complete)
-- Javy backend available for JavaScript/TypeScript (Phase 2B)
-- Maximum 20 concurrent executions (semaphore-based pooling)
-- Timeout enforcement via fuel (WASI preview1)
+### Code Execution (Fail-Closed)
+- `execute_agent_code` is unavailable in production and rejected by dispatch
+- No WASM/Wasmtime/Javy backend or `wasmtime-backend`/`javy-backend` feature exists
+- The legacy Node executor is `sandbox-dev` only, for trusted local experimentation
+- Never advertise a working production sandbox
 
 ### Security
-- Default to restrictive SandboxConfig for untrusted code
-- All inputs must be validated before execution
+- Keep the sandbox-dev executor out of production paths
+- All inputs must be validated before use
 - Network/filesystem access denied by default
 - Monitor for security violations and log them
 

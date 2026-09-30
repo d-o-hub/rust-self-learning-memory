@@ -78,7 +78,18 @@ check_sandbox_gate() {
     fail "production MCP paths import sandbox CodeSandbox (must stay fail-closed)"
   fi
 
-  echo "OK: sandbox quarantined behind sandbox-dev feature"
+  # Direct/batch dispatch must reject execute_agent_code (fail-closed contract)
+  for handler in \
+    memory-mcp/src/bin/server_impl/handlers/call_tool.rs \
+    memory-mcp/src/bin/server_impl/handlers/batch_execute.rs; do
+    if [[ -f "$handler" ]]; then
+      if ! (rg -q '"execute_agent_code"' "$handler" && rg -qi 'not available' "$handler"); then
+        fail "$handler does not reject execute_agent_code (fail-closed contract)"
+      fi
+    fi
+  done
+
+  echo "OK: sandbox quarantined behind sandbox-dev feature; execute_agent_code rejected"
 }
 
 if [[ "$FIXTURES" -eq 1 ]]; then

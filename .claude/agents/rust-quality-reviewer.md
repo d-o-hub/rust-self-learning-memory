@@ -338,7 +338,7 @@ rg "pub fn.*test|mock|fixture" do-memory-test-utils/src/ --glob "*.rs"
   - **Low coverage in**:
     - do-memory-core/src/extraction.rs: 62%
     - do-memory-core/src/sync.rs: 45%
-    - do-memory-mcp/src/sandbox.rs: 71%
+    - do-memory-mcp/src/sandbox/mod.rs: 71% (sandbox-dev path)
   - **Recommendation**: Add tests for edge cases
 
 - Missing integration tests for:
@@ -490,8 +490,8 @@ rg "validate|sanitize|check.*len|max.*size" --glob "*.rs"
 - Input validation present in most places
 
 ⚠️ **Issues**:
-- Resource limits defined but not enforced:
-  - do-memory-mcp/src/sandbox.rs:123
+- Resource limits defined but not enforced in the trusted-only sandbox-dev path:
+  - do-memory-mcp/src/sandbox/mod.rs:123
     - **Config**: max_memory_mb = 128
     - **Enforcement**: Not implemented
     - **Risk**: DoS via memory exhaustion

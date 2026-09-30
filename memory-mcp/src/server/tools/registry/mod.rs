@@ -6,6 +6,7 @@ pub mod definitions;
 
 pub use definitions::create_default_registry;
 
+use crate::protocol::ToolStub;
 use crate::types::Tool;
 use anyhow::Result;
 use parking_lot::RwLock;
@@ -118,6 +119,37 @@ impl ToolRegistry {
         tools.extend(loaded.values().cloned());
         tools.sort_by(|a, b| self.cmp_tools_by_usage(a, b));
         tools
+    }
+
+    /// Get every registered tool with its full schema (core + extended).
+    ///
+    /// Unlike [`Self::get_loaded_tools`], this is independent of the session
+    /// loading state: it never mutates `session_loaded` or usage counters, so a
+    /// freshly created registry returns the complete registry. Core tools come
+    /// first (in definition order), followed by extended tools sorted by name
+    /// for deterministic output.
+    pub fn get_all_tools(&self) -> Vec<Tool> {
+        let mut tools = self.core_tools.clone();
+        tools.extend(self.sorted_extended_tools());
+        tools
+    }
+
+    /// Get name/description stubs for every registered tool (core + extended).
+    ///
+    /// Data source for the lazy (`lazy=true`) `tools/list` response: it covers
+    /// the whole registry without cloning full input schemas and without
+    /// touching session loading state. Ordering matches [`Self::get_all_tools`].
+    pub fn get_all_tool_stubs(&self) -> Vec<ToolStub> {
+        let mut stubs: Vec<ToolStub> = self.core_tools.iter().map(tool_stub).collect();
+        stubs.extend(self.sorted_extended_tools().iter().map(tool_stub));
+        stubs
+    }
+
+    /// Extended tools in deterministic (name-sorted) order.
+    fn sorted_extended_tools(&self) -> Vec<Tool> {
+        let mut extended: Vec<Tool> = self.extended_tools.values().cloned().collect();
+        extended.sort_by(|a, b| a.name.cmp(&b.name));
+        extended
     }
 
     /// Load a specific tool by name (if not already loaded)
@@ -273,6 +305,15 @@ impl ToolRegistry {
     }
 }
 
+/// Convert a full tool into its lightweight name/description stub.
+fn tool_stub(tool: &Tool) -> ToolStub {
+    ToolStub {
+        name: tool.name.clone(),
+        title: None,
+        description: tool.description.clone(),
+    }
+}
+
 /// Create the default tool registry with core and extended tools
 pub fn create_tool_registry() -> ToolRegistry {
     create_default_registry()
@@ -371,5 +412,81 @@ mod tests {
         // Should be much smaller than full tool count
         let total = registry.total_tool_count();
         assert_eq!(names.len(), total);
+    }
+
+    #[test]
+    fn test_get_all_tools_covers_full_registry() {
+        let registry = create_tool_registry();
+
+        let tools = registry.get_all_tools();
+        assert_eq!(tools.len(), registry.total_tool_count());
+
+        // Names are unique and match the lightweight name listing.
+        let mut names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
+        let expected = registry.list_tool_names();
+        names.sort();
+        let mut expected_sorted = expected.clone();
+        expected_sorted.sort();
+        assert_eq!(names, expected_sorted);
+
+        // Every tool carries a full input schema.
+        for tool in &tools {
+            assert!(
+                tool.input_schema.is_object(),
+                "tool '{}' must expose an object inputSchema",
+                tool.name
+            );
+        }
+
+        // Core tools come first, in definition order.
+        let core_len = registry.get_core_tools().len();
+        assert_eq!(
+            tools[..core_len]
+                .iter()
+                .map(|t| t.name.clone())
+                .collect::<Vec<_>>(),
+            registry
+                .get_core_tools()
+                .iter()
+                .map(|t| t.name.clone())
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn test_get_all_tools_does_not_load_extended_tools() {
+        let registry = create_tool_registry();
+        let before = registry.get_loaded_tools();
+
+        let all = registry.get_all_tools();
+        assert!(all.len() > before.len());
+
+        let after = registry.get_loaded_tools();
+        assert_eq!(before.len(), after.len(), "listing must not load tools");
+        assert_eq!(
+            registry.loaded_tool_count(),
+            before.len(),
+            "listing must not change loaded count"
+        );
+    }
+
+    #[test]
+    fn test_get_all_tool_stubs_parity_with_full_tools() {
+        let registry = create_tool_registry();
+
+        let full = registry.get_all_tools();
+        let stubs = registry.get_all_tool_stubs();
+
+        assert_eq!(stubs.len(), full.len());
+        for (tool, stub) in full.iter().zip(stubs.iter()) {
+            assert_eq!(tool.name, stub.name);
+            assert_eq!(tool.description, stub.description);
+        }
+
+        // Stubs never load execution state.
+        assert_eq!(
+            registry.loaded_tool_count(),
+            registry.get_core_tools().len()
+        );
     }
 }

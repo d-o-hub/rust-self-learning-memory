@@ -2,6 +2,7 @@
 //!
 //! This module contains core tool execution methods: list_tools, get_tool, query_memory, and analyze_patterns.
 
+use crate::protocol::ToolStub;
 use crate::types::Tool;
 use anyhow::Result;
 use do_memory_core::{Episode, Pattern, TaskOutcome};
@@ -63,6 +64,26 @@ impl crate::server::MemoryMCPServer {
     /// regardless of progressive disclosure state.
     pub fn list_all_tool_names(&self) -> Vec<String> {
         self.tool_registry.list_tool_names()
+    }
+
+    /// List every registered tool with its full schema (core + extended).
+    ///
+    /// Data source for the default (non-lazy) `tools/list` response: a freshly
+    /// created server advertises the complete registry, not merely the tools
+    /// loaded so far. Session/progressive-disclosure state is not modified, so
+    /// [`Self::list_tools`] ordering and usage metrics are unaffected.
+    pub fn list_all_tools(&self) -> Vec<Tool> {
+        let tools = self.tool_registry.get_all_tools();
+        debug!("Listed {} registered tools (full registry)", tools.len());
+        tools
+    }
+
+    /// List name/description stubs for every registered tool (core + extended).
+    ///
+    /// Data source for the lazy (`lazy=true`) `tools/list` response. Covers the
+    /// whole registry without loading execution state or cloning full schemas.
+    pub fn list_all_tool_stubs(&self) -> Vec<ToolStub> {
+        self.tool_registry.get_all_tool_stubs()
     }
 
     /// Get a specific tool by name

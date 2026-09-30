@@ -1,7 +1,8 @@
 //! MCP Tool Contract Parity Tests
 //!
 //! This test module verifies that every tool advertised by the MCP server
-//! (via `list_tools`) has a corresponding handler that can dispatch to it.
+//! (via the full-registry `tools/list` payload) has a corresponding handler
+//! that can dispatch to it.
 //!
 //! This catches the issue where tools are defined in the schema but
 //! their handlers are commented out or missing, which creates a broken
@@ -9,11 +10,43 @@
 
 #![allow(missing_docs)]
 #![allow(clippy::doc_markdown)]
+// Integration tests are separate crate roots and don't inherit the
+// `allow-expect-in-tests` / `allow-unwrap-in-tests` settings.
+#![allow(clippy::expect_used)]
+#![allow(clippy::panic)]
 
 use do_memory_core::{MemoryConfig, SelfLearningMemory};
 use do_memory_mcp::MemoryMCPServer;
+use do_memory_mcp::jsonrpc::JsonRpcRequest;
+use do_memory_mcp::protocol::{handle_describe_tool, handle_list_tools_with_lazy};
 use do_memory_mcp::types::SandboxConfig;
+use serde_json::json;
+use std::collections::HashSet;
 use std::sync::Arc;
+
+/// Build a fresh MCP server with no tools loaded beyond the core set.
+async fn fresh_server() -> MemoryMCPServer {
+    MemoryMCPServer::new(
+        SandboxConfig::default(),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            batch_config: None,
+            ..Default::default()
+        })),
+    )
+    .await
+    .expect("Failed to create MCP server")
+}
+
+/// Build a `tools/list` JSON-RPC request.
+fn list_request(id: i64, params: Option<serde_json::Value>) -> JsonRpcRequest {
+    JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
+        id: Some(json!(id)),
+        method: "tools/list".to_string(),
+        params,
+    }
+}
 
 /// Get the list of dispatchable tool names from the handlers.rs match statement.
 ///
@@ -71,6 +104,12 @@ fn get_dispatchable_tool_names() -> Vec<&'static str> {
         "get_dependency_graph",
         "validate_no_cycles",
         "get_topological_order",
+        // External signal provider
+        "configure_agentfs",
+        "external_signal_status",
+        "test_agentfs_connection",
+        // Checkpoint resume (issue #965)
+        "resume_from_compact",
     ]
 }
 
@@ -93,7 +132,7 @@ async fn test_all_advertised_tools_are_dispatchable() {
     .expect("Failed to create MCP server");
 
     // Get all tools advertised by the server
-    let advertised_tools = server.list_tools().await;
+    let advertised_tools = server.list_all_tools();
     let advertised_names: Vec<String> = advertised_tools.iter().map(|t| t.name.clone()).collect();
 
     // Get the dispatchable tool names
@@ -145,7 +184,7 @@ async fn test_dispatch_table_covers_advertised_tools() {
     .await
     .expect("Failed to create MCP server");
 
-    let advertised_tools = server.list_tools().await;
+    let advertised_tools = server.list_all_tools();
     let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
 
     let dispatchable_names = get_dispatchable_tool_names();
@@ -186,7 +225,7 @@ async fn test_unimplemented_batch_tools_not_advertised() {
     .await
     .expect("Failed to create MCP server");
 
-    let advertised_tools = server.list_tools().await;
+    let advertised_tools = server.list_all_tools();
     let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
 
     // These tools should NOT be advertised while intentionally deferred
@@ -271,7 +310,7 @@ async fn test_core_tools_always_available() {
     .await
     .expect("Failed to create MCP server");
 
-    let advertised_tools = server.list_tools().await;
+    let advertised_tools = server.list_all_tools();
     let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
 
     // Core tools should always be available
@@ -344,6 +383,176 @@ async fn test_agents_md_categories_registered() {
         assert!(
             all_tool_names.contains(&tool.to_string()),
             "Tool '{tool}' is documented in AGENTS.md but not registered in the server"
+        );
+    }
+}
+
+// =============================================================================
+// ADR-024 registry parity (issue #1083)
+//
+// ADR-024 specifies that the default (`lazy=false`) `tools/list` response
+// returns full schemas for *all registered* tools, while `lazy=true` returns
+// name/description stubs for the same set. These tests pin that contract to the
+// registry contents on a freshly created server (no extended tool loaded).
+// =============================================================================
+
+/// Fresh default listing exposes every registered tool with its `inputSchema`.
+#[tokio::test]
+async fn test_fresh_default_listing_covers_full_registry() {
+    let server = fresh_server().await;
+
+    let registered = server.list_all_tool_names();
+    let listed = server.list_all_tools();
+
+    assert_eq!(
+        listed.len(),
+        registered.len(),
+        "default listing must expose the whole registry"
+    );
+
+    let listed_names: HashSet<&str> = listed.iter().map(|t| t.name.as_str()).collect();
+    assert_eq!(
+        listed_names.len(),
+        listed.len(),
+        "default listing must not contain duplicate tool names"
+    );
+
+    for name in &registered {
+        assert!(
+            listed_names.contains(name.as_str()),
+            "registered tool '{name}' missing from the default tools/list payload"
+        );
+    }
+
+    for tool in &listed {
+        assert!(
+            tool.input_schema.is_object(),
+            "tool '{}' must expose a full object inputSchema in default listing",
+            tool.name
+        );
+    }
+}
+
+/// Core tools lead the full listing and the listing does not load extended tools.
+#[tokio::test]
+async fn test_default_listing_preserves_core_order_and_metrics() {
+    let server = fresh_server().await;
+
+    // Fresh server: progressive disclosure exposes exactly the core tools.
+    let core = server.list_tools().await;
+    let all = server.list_all_tools();
+
+    assert!(
+        all.len() > core.len(),
+        "registry must contain extended tools"
+    );
+
+    let core_names: Vec<&str> = core.iter().map(|t| t.name.as_str()).collect();
+    let leading_names: Vec<&str> = all
+        .iter()
+        .take(core.len())
+        .map(|t| t.name.as_str())
+        .collect();
+    assert_eq!(
+        leading_names, core_names,
+        "core tools must lead the full listing in their existing order"
+    );
+
+    // Enumerating the full registry must not mutate progressive-disclosure state.
+    let after = server.list_tools().await;
+    assert_eq!(
+        after.len(),
+        core.len(),
+        "default listing must not load extended tools"
+    );
+    let after_names: Vec<&str> = after.iter().map(|t| t.name.as_str()).collect();
+    assert_eq!(after_names, core_names, "core ordering must be unchanged");
+}
+
+/// Lazy listing exposes every registered name/description without loading state.
+#[tokio::test]
+async fn test_lazy_listing_parity_with_full_listing() {
+    let server = fresh_server().await;
+    let core_count = server.list_tools().await.len();
+    let full = server.list_all_tools();
+
+    // Registry-level stubs (what the handler consults for lazy listings).
+    let stubs = server.list_all_tool_stubs();
+    assert_eq!(stubs.len(), full.len());
+    for (tool, stub) in full.iter().zip(stubs.iter()) {
+        assert_eq!(tool.name, stub.name);
+        assert_eq!(tool.description, stub.description);
+    }
+
+    // Protocol-level lazy response omits schemas but keeps names + descriptions.
+    let lazy_response = handle_list_tools_with_lazy(
+        list_request(1, Some(json!({"lazy": true}))),
+        server.list_all_tools(),
+    )
+    .expect("lazy response should exist");
+    let lazy_result = lazy_response.result.expect("lazy result should be present");
+    let lazy_tools = lazy_result["tools"]
+        .as_array()
+        .expect("lazy tools array should exist");
+
+    assert_eq!(lazy_tools.len(), full.len());
+    let lazy_names: HashSet<String> = lazy_tools
+        .iter()
+        .map(|t| t["name"].as_str().expect("name").to_string())
+        .collect();
+    let full_names: HashSet<String> = full.iter().map(|t| t.name.clone()).collect();
+    assert_eq!(
+        lazy_names, full_names,
+        "lazy names must match the full registry"
+    );
+
+    for tool in lazy_tools {
+        assert!(tool.get("inputSchema").is_none(), "stubs omit inputSchema");
+        assert!(
+            tool.get("description").is_some(),
+            "stubs include descriptions"
+        );
+    }
+
+    // Neither lazy nor full listing loads execution state.
+    assert_eq!(
+        server.list_tools().await.len(),
+        core_count,
+        "lazy listing must not load extended tools"
+    );
+}
+
+/// `tools/describe` returns the same schema as the full listing entry.
+#[tokio::test]
+async fn test_describe_matches_full_listing_schema() {
+    let server = fresh_server().await;
+    let full = server.list_all_tools();
+
+    // One core tool and two extended tools that a fresh server has never loaded.
+    for name in ["query_memory", "quality_metrics", "resume_from_compact"] {
+        let expected = full
+            .iter()
+            .find(|t| t.name == name)
+            .unwrap_or_else(|| panic!("tool '{name}' must be registered"));
+
+        let response = handle_describe_tool(
+            JsonRpcRequest {
+                jsonrpc: Some("2.0".to_string()),
+                id: Some(json!(1)),
+                method: "tools/describe".to_string(),
+                params: Some(json!({"name": name})),
+            },
+            |n: &str| full.iter().find(|t| t.name == n).cloned(),
+        )
+        .expect("describe response should exist");
+
+        let result = response.result.expect("describe result should be present");
+        let tool = result.get("tool").expect("tool object should exist");
+        assert_eq!(tool["name"], json!(expected.name));
+        assert_eq!(tool["description"], json!(expected.description));
+        assert_eq!(
+            tool["inputSchema"], expected.input_schema,
+            "describe schema for '{name}' must match the full listing schema"
         );
     }
 }

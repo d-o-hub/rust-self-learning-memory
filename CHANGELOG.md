@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MCP_RATE_LIMIT_MAX_IDENTITIES` with a shared overflow bucket, existing
   read/write limits and retry headers are unchanged, and the unused
   `MCP_RATE_LIMIT_CLIENT_ID_HEADER` knob was removed.
+- MCP `tools/list` now enumerates the full tool registry on a fresh server
+  (#1083): the default (`lazy=false`) response returns every registered tool with
+  its `inputSchema`, `lazy=true` returns name/description stubs for the same set
+  without loading execution state, and `tools/describe` stays schema-identical
+  to the full listing. Backed by new `list_all_tools()` /
+  `list_all_tool_stubs()` server APIs and the corresponding registry accessors.
+>>>>>>> origin/main
 - Runtime embedding activation is now a single serialized state update (#1072):
   concurrent activations produce unique monotonic revisions and one coherent
   winning snapshot; cache and provenance identity follow the active provider

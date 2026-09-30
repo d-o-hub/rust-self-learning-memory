@@ -767,41 +767,46 @@ impl LRUCache {
 
 Main MCP server implementation.
 
-**Location**: `do-memory-mcp/src/server.rs`
+**Location**: `do-memory-mcp/src/server/`
 
 ```rust
 pub struct MemoryMCPServer {
     memory: Arc<SelfLearningMemory>,
-    config: ServerConfig,
-    sandbox: Arc<UnifiedSandbox>,
+    tool_registry: Arc<...>,
+    config: SandboxConfig,
+    // monitoring, audit logger, rate limiter, cache
 }
 
 impl MemoryMCPServer {
-    /// Create new MCP server
+    /// Create new MCP server.
+    ///
+    /// `SandboxConfig` is still accepted for compatibility, but there is no
+    /// production code-execution backend; agent code execution is fail-closed.
     pub async fn new(
+        config: SandboxConfig,
         memory: Arc<SelfLearningMemory>,
-        config: ServerConfig,
-    ) -> Result<Self, MCPServerError> {
-        // Initialize sandbox
-        // Setup routes
+    ) -> Result<Self> {
+        // Build shared tool registry (lazy loading)
+        // Initialize monitoring, audit logger, rate limiter, cache
         // ...
     }
 
-    /// Start server (run until stopped)
-    pub async fn run(&self) -> Result<(), MCPServerError> {
-        // Start JSON-RPC listener
-        // Handle incoming requests
-        // ...
-    }
+    /// Access the underlying memory system
+    pub fn memory(&self) -> Arc<SelfLearningMemory> { /* ... */ }
 
-    /// Stop server gracefully
-    pub async fn stop(&self) -> Result<(), MCPServerError> {
-        // Close connections
-        // Cleanup resources
-        // ...
-    }
+    /// Access the audit logger
+    pub fn audit_logger(&self) -> Arc<AuditLogger> { /* ... */ }
+
+    /// Access the rate limiter
+    pub fn rate_limiter(&self) -> &RateLimiter { /* ... */ }
+
+    /// Enforce rate limits for a request
+    pub fn check_rate_limit(&self, /* client, operation */) -> ... { /* ... */ }
 }
 ```
+
+The stdio JSON-RPC loop itself lives in the binary
+(`do-memory-mcp/src/bin/memory-mcp-server.rs`), not on `MemoryMCPServer`.
 
 ---
 
@@ -852,36 +857,27 @@ async fn handle_query_memory(
 
 #### 2. execute_agent_code
 
-Execute JavaScript/TypeScript code securely.
+**Unavailable / fail-closed.** The WASM sandbox was removed in v0.1.29
+(ADR-052); there is no working code-execution backend. The tool is not
+advertised by `tools/list` and direct calls are rejected by the dispatcher.
 
-```rust
-async fn handle_execute_agent_code(
-    &self,
-    params: ExecuteAgentCodeParams,
-) -> Result<ExecuteAgentCodeResult, MCPServerError>
-```
+**Observed rejection**:
 
-**Parameters**:
 ```json
 {
-  "code": "string",
-  "context": {
-    "task": "string",
-    "input": {...}
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32000,
+    "message": "Tool execution failed",
+    "data": {
+      "details": "execute_agent_code tool is not available due to WASM sandbox compilation issues"
+    }
   }
 }
 ```
 
-**Returns**:
-```json
-{
-  "output": "string",
-  "stderr": "string",
-  "execution_time_ms": 123,
-  "success": true,
-  "timeout": false
-}
-```
+Use episode/memory tools (`query_memory`, `create_episode`, …) instead. See
+ADR-073 for the intended future capability-enforced contract.
 
 ---
 
@@ -985,68 +981,34 @@ async fn handle_advanced_pattern_analysis(
 
 ---
 
-### Sandbox API
+### Code Execution API
 
-#### UnifiedSandbox
+There is **no** production code-execution API. `do-memory-mcp/src/unified_sandbox.rs`
+and `do-memory-mcp/src/wasmtime_sandbox.rs` do not exist; the WASM sandbox and
+its backends were removed in v0.1.29 (ADR-052). `execute_agent_code` is
+fail-closed.
 
-Abstract sandbox supporting multiple backends.
-
-**Location**: `do-memory-mcp/src/unified_sandbox.rs`
+A legacy Node.js executor survives behind the non-default `sandbox-dev` feature
+for trusted local experimentation only:
 
 ```rust
-pub struct UnifiedSandbox {
-    backend: SandboxBackend,
-    config: SandboxConfig,
-}
+// Available ONLY with `--features sandbox-dev`; trusted local use only.
+// Not a production sandbox — see memory-mcp/SECURITY.md.
+#[cfg(feature = "sandbox-dev")]
+pub struct CodeSandbox { /* ... */ }
 
-pub enum SandboxBackend {
-    Wasm(WasmtimeSandbox),
-    // NodeJs sandbox deprecated
-}
-
-impl UnifiedSandbox {
-    pub async fn execute(
-        &self,
-        code: &str,
-        context: String,
-    ) -> Result<ExecutionResult, SandboxError> {
-        match &self.backend {
-            SandboxBackend::Wasm(wasm) => wasm.execute(code, context).await,
-        }
-    }
+#[cfg(feature = "sandbox-dev")]
+impl CodeSandbox {
+    pub fn new(config: SandboxConfig) -> Result<Self> { /* ... */ }
+    pub async fn execute(&self, code: &str, context: ExecutionContext)
+        -> Result<ExecutionResult> { /* ... */ }
 }
 ```
 
-**Usage Example**:
-```rust
-use memory_mcp::sandbox::{UnifiedSandbox, SandboxConfig, SandboxBackend};
-use memory_mcp::wasmtime_sandbox::WasmtimeSandbox;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config = SandboxConfig {
-        max_execution_time_ms: 5000,
-        max_memory_bytes: 128 * 1024 * 1024, // 128MB
-        max_pool_size: 20,
-    };
-
-    let wasmtime = WasmtimeSandbox::new(config.clone()).await?;
-    let sandbox = UnifiedSandbox {
-        backend: SandboxBackend::Wasm(wasmtime),
-        config,
-    };
-
-    // Execute code
-    let result = sandbox.execute(
-        "function analyze(data) { return data.filter(x => x > 10); }",
-        r#"{"task": "filter", "input": [5, 15, 8, 20]}"#.to_string()
-    ).await?;
-
-    println!("Output: {}", result.output);
-
-    Ok(())
-}
-```
+Enforced in that path: execution timeout (`kill_on_drop`), 100 KB code-length
+cap, static regex source screening, wrapper global shadowing/deletion.
+**Not** enforced: OS-level isolation, memory/CPU limits, output sanitization,
+runtime capability enforcement.
 
 ---
 
@@ -1067,32 +1029,32 @@ pub struct MemoryConfig {
 }
 ```
 
-### ServerConfig
+### Server configuration
 
-Configuration for MCP server.
-
-```rust
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerConfig {
-    pub host: String, // Default: "127.0.0.1"
-    pub port: u16, // Default: 8080
-    pub max_request_size: usize, // Default: 10MB
-    pub timeout_secs: u64, // Default: 30
-}
-```
+There is no `ServerConfig` type. The server binary runs a stdio JSON-RPC loop;
+runtime behavior is configured through environment variables
+(`MCP_OAUTH_*`, `MCP_RATE_LIMIT_*`, `AUDIT_LOG_*`).
 
 ### SandboxConfig
 
-Configuration for code sandbox.
+Configuration accepted by `MemoryMCPServer::new`. With no registered execution
+backend it no longer governs a production code path; treat its limits as
+advisory configuration only.
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SandboxConfig {
-    pub max_execution_time_ms: u64, // Default: 5000
-    pub max_memory_bytes: usize, // Default: 128MB
-    pub max_pool_size: usize, // Default: 20
-    pub allow_network: bool, // Default: false
-    pub allowed_paths: Vec<PathBuf>, // Default: []
+    pub max_execution_time_ms: u64,   // Default: 5000
+    pub max_memory_mb: usize,         // Default: 128 (advisory)
+    pub max_cpu_percent: u8,          // Default: 50  (advisory)
+    pub allowed_paths: Vec<String>,   // Default: []
+    pub allowed_network: Vec<String>, // Default: []
+    pub allow_network: bool,          // Default: false
+    pub allow_filesystem: bool,       // Default: false
+    pub allow_subprocesses: bool,     // Default: false
+    pub resource_limits: ResourceLimits,
+    pub process_uid: Option<u32>,     // Default: None
+    pub read_only_mode: bool,         // Default: false
 }
 ```
 

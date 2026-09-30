@@ -89,7 +89,6 @@ tools:
   - expand_folder
   - bash
   - query_memory
-  - execute_agent_code
   - analyze_patterns
   - health_check
   - get_metrics

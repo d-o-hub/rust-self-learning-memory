@@ -552,7 +552,7 @@ fn prop_reward_bounds() {
 - ✅ Parameterized queries (SQL injection prevention)
 - ✅ Path sanitization
 - ✅ Resource limits
-- ✅ Sandboxed code execution
+- ✅ Fail-closed code execution (`execute_agent_code` unavailable)
 
 **Examples**:
 ```rust

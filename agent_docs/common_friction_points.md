@@ -133,7 +133,7 @@ cargo build --features "turso,redb"
 
 # Or exclude problematic crates
 [workspace]
-exclude = ["crates/wasm-sandbox"]
+exclude = ["do-memory-benches"]
 ```
 
 ### Network-Dependent Test Flakiness

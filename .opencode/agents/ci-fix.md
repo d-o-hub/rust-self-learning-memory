@@ -46,9 +46,9 @@ grep -r "actions/checkout@v1" .github/workflows/
 grep -r "actions-rs" .github/workflows/
 ```
 
-### Optional Dependency Issues (libclang, wasmtime)
+### Optional Dependency Issues (libclang)
 ```bash
-cargo build --workspace --exclude do-memory-mcp
+cargo build --workspace --features "turso,redb"
 ```
 
 ### Clippy Lint Allow-List

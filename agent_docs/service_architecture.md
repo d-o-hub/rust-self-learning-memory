@@ -108,34 +108,33 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
 ### 4. MCP Server (do-memory-mcp/)
-**Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
+**Purpose**: Model Context Protocol server for episodic memory, pattern analysis, and monitoring over JSON-RPC on stdio
 
 **Architecture**:
-- 6-layer security sandbox using Wasmtime
-- WASM code execution with resource limits
-- JSON-RPC protocol implementation
-- Progressive tool disclosure
+- JSON-RPC protocol implementation over stdio
+- Progressive tool disclosure via a shared tool registry
+- OAuth 2.1 authentication (opt-in `oauth` feature), rate limiting, audit logging
 - Advanced pattern analysis tools
+- **Agent code execution is fail-closed**: `execute_agent_code` is unavailable and direct calls are rejected
 
 **Components**:
-- `src/server.rs` - Main server implementation
+- `src/server/` - Main server implementation and tool registry
 - `src/mcp/tools/` - MCP tool implementations
-- `src/sandbox/` - Security sandbox layers
-- Agent code execution is **fail-closed** (`execute_agent_code` unavailable; no wasmtime/javy backend)
 - `src/patterns/` - Advanced pattern analysis
 - `src/monitoring/` - Health and metrics
+- `src/sandbox/` - Legacy Node executor, compiled only with the non-default `sandbox-dev` feature (trusted local experimentation only; not a production sandbox)
 
 **MCP Tools**:
 1. `query_memory` - Retrieve episodes and patterns
 2. `create_episode` - Create new episodes
-3. `add_step` - Log execution steps
+3. `add_episode_step` - Log execution steps
 4. `complete_episode` - Complete and score episodes
-5. `execute_code` - Execute code in WASM sandbox
+5. `recommend_playbook` - Get actionable playbooks for tasks
 6. `health_check` - System health status
-7. `recommend_playbook` - Get actionable playbooks for tasks
-8. `record_recommendation_feedback` - Track recommendation outcomes
-9. `checkpoint_episode` - Create mid-task checkpoints
-10. `get_handoff_pack` - Generate handoff for multi-agent workflows
+7. `record_recommendation_feedback` - Track recommendation outcomes
+8. `checkpoint_episode` - Create mid-task checkpoints
+9. `get_handoff_pack` - Generate handoff for multi-agent workflows
+10. `execute_agent_code` - **Unavailable / fail-closed** (no working execution backend)
 
 **Features**:
 - Tool usage tracking
@@ -152,7 +151,7 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 - `playbook` - Playbook recommendation (ADR-044)
 - `feedback` - Record recommendation feedback (ADR-044)
 - `storage` - Storage operations (sync, vacuum, health)
-- `eval` - Code evaluation in sandbox
+- `eval` - Evaluation and calibration (retrieval quality, domain calibration, benchmarks)
 - `health` - System health checks
 - `monitor` - Metrics and monitoring
 - `logs` - View and filter logs
@@ -266,7 +265,7 @@ TURSO_POOL_SIZE=10
 - **Storage**: Linear scaling with Turso partitioning
 - **Cache**: Sub-ms lookup for hot data (postcard deserialization)
 - **Pattern Extraction**: Async queue-based processing
-- **WASM Execution**: 20 parallel executions by default
+- **Code Execution**: fail-closed (`execute_agent_code` unavailable; no execution backend)
 
 ### Horizontal Scaling
 - Multiple MCP server instances
@@ -289,13 +288,14 @@ TURSO_POOL_SIZE=10
 - GDPR compliance through data deletion
 - Secure communication (TLS)
 
-### Sandbox Security (6-Layer)
-1. **Isolation** - Process-level isolation
-2. **Network** - No network access
-3. **Filesystem** - Sandboxed filesystem
-4. **Resources** - CPU/memory/time limits
-5. **Code Analysis** - Static analysis before execution
-6. **Runtime Monitoring** - Real-time monitoring
+### Security Boundaries
+- JSON-RPC over stdio (no network listener by default)
+- OAuth 2.1 authentication (opt-in `oauth` feature; `MCP_OAUTH_*` env vars)
+- Per-client token-bucket rate limiting
+- Structured, redacted audit logging
+- Parameterized SQL for all storage access
+- Agent code execution is fail-closed; no production sandbox is provided
+  (the in-tree Node executor is non-default `sandbox-dev`, trusted local use only)
 
 ## Monitoring
 
@@ -311,7 +311,6 @@ TURSO_POOL_SIZE=10
 - Cache hit/miss ratios
 - Query latency (P50, P95, P99)
 - Storage operation times
-- WASM execution statistics
 
 ### Logging
 - Structured logging with `tracing`

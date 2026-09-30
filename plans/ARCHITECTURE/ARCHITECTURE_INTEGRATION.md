@@ -62,8 +62,8 @@ impl SelfLearningMemory {
 
 **Security**:
 - Input validation
-- Sandbox execution
-- Resource limits
+- Optional OAuth 2.1 authentication and per-client rate limiting
+- Agent code execution is fail-closed (no production sandbox)
 
 **Implementation**:
 ```rust
@@ -168,7 +168,7 @@ impl StorageSynchronizer<P, C> {
 - Integrates with `Arc<SelfLearningMemory>`
 - Provides standardized MCP tools
 - Handles JSON-RPC protocol
-- Manages sandbox execution
+- Keeps agent code execution fail-closed
 
 ### MCP Tools (6 Main)
 
@@ -217,46 +217,22 @@ pub async fn query_memory(&self, params: QueryParams) -> Result<JsonValue> {
 ```
 
 #### 2. execute_agent_code
-**Purpose**: Run JavaScript/TypeScript securely
+**Purpose**: **Unavailable / fail-closed** in production
 
-**Parameters**:
-```json
-{
-  "code": "function analyze(data) { return data.filter(...); }",
-  "context": {
-    "task": "filter episodes",
-    "input": { "episodes": [...] }
-  }
-}
+The WASM sandbox was removed in v0.1.29 (ADR-052). No execution backend is
+registered, so the tool is absent from `tools/list` and direct calls are
+rejected by the dispatcher:
+
+```text
+jsonrpc error -32000
+  message: "Tool execution failed"
+  data: { "details": "execute_agent_code tool is not available due to WASM sandbox compilation issues" }
 ```
 
-**Returns**: Execution result or error
-
-**Sandbox Integration**:
-```rust
-pub async fn execute_agent_code(&self, params: CodeParams) -> Result<JsonValue> {
-    // Validate code length
-    if params.code.len() > self.config.max_code_length {
-        return Err(anyhow!("Code exceeds maximum length"));
-    }
-
-    // Create sandbox wrapper
-    let wrapped = self.create_wrapper(&params.code, &params.context)?;
-
-    // Execute with timeout and resource limits
-    let result = tokio::time::timeout(
-        self.config.sandbox_timeout,
-        self.sandbox.execute(&wrapped)
-    ).await
-    .map_err(|_| anyhow!("Execution timeout"))??;
-
-    Ok(json!({
-        "output": result.stdout,
-        "error": result.stderr,
-        "exit_code": result.exit_code
-    }))
-}
-```
+Use episode/memory tools for agent work, or run generated code in an external
+runner. See ADR-073 for the (future) capability-enforced contract and
+[../../memory-mcp/SECURITY.md](../../memory-mcp/SECURITY.md) for the security
+boundary.
 
 #### 3. analyze_patterns
 **Purpose**: Statistical and predictive pattern analysis
@@ -402,53 +378,23 @@ pub async fn get_metrics(&self) -> Result<JsonValue> {
 }
 ```
 
-### Sandbox Architecture
+### Code Execution Architecture
 
-**UnifiedSandbox**: Abstraction supporting multiple backends
+**Production state**: There is **no** unified sandbox and no WASM/Wasmtime/Javy
+backend. `execute_agent_code` is fail-closed; the dispatcher rejects it and the
+tool is not advertised.
 
-**Backends**:
-1. **SandboxBackend::Wasm** (Wasmtime) - **PREFERRED**
-2. **SandboxBackend::NodeJs** - Legacy Node.js process
-3. **SandboxBackend::Hybrid** - Intelligent routing
+The historical `UnifiedSandbox`/`WasmtimeSandbox`/`CodeSandbox` designs were
+removed in v0.1.29 (ADR-052). A legacy Node.js `CodeSandbox`
+(`memory-mcp/src/sandbox/`) survives only behind the non-default `sandbox-dev`
+feature for trusted local experimentation. It is not a production sandbox:
 
-#### WasmtimeSandbox (Preferred)
+- **Enforced**: execution timeout with `kill_on_drop`, 100 KB code-length cap,
+  static regex source screening, wrapper global shadowing/deletion.
+- **Not enforced**: OS-level isolation (`apply_isolation` is never called),
+  memory/CPU limits, output sanitization, runtime capability enforcement.
 
-**Features**:
-- Shared wasmtime engine for efficiency
-- Fuel-based timeout enforcement (5s default)
-- WASI support for stdout/stderr capture
-- Concurrent execution via semaphore pool
-- Memory limits (128MB default)
-
-**Configuration**:
-```rust
-pub struct WasmtimeConfig {
-    pub max_execution_time_ms: u64,  // Default: 5000
-    pub max_memory_bytes: usize,     // Default: 128MB
-    pub max_pool_size: usize,        // Default: 20
-    pub fuel_per_ms: u64,            // Default: 1_000_000
-}
-```
-
-**Execution Flow**:
-1. Compile JavaScript to WASM (if needed)
-2. Create Wasmtime instance with fuel/memory limits
-3. Execute with timeout enforcement
-4. Capture stdout/stderr via WASI
-5. Return result or timeout error
-
-#### CodeSandbox (Node.js - Legacy)
-
-**Features**:
-- Process isolation (spawn separate Node.js)
-- Resource limits (CPU, memory)
-- Input validation (malicious code detection)
-- Timeout enforcement (kill process)
-
-**Security**:
-- Network access denied by default
-- Filesystem restrictions
-- Sandboxed execution environment
+See [../../memory-mcp/SECURITY.md](../../memory-mcp/SECURITY.md).
 
 ---
 
@@ -541,7 +487,7 @@ fn suggest_cache_size(available_gb: f64) -> usize; // gb * 200MB, clamped [1000,
 | **Reward Scoring** | ✅ Multi-component | ❌ | ❌ | ❌ | ❌ |
 | **Reflection** | ✅ Insight generation | ❌ | ❌ | ❌ | ❌ |
 | **Monitoring** | ✅ Basic metrics | ✅ Full MCP | ❌ | ✅ Usage tracking | ✅ Cache metrics |
-| **Sandbox** | ❌ | ✅ Wasmtime/Node.js | ❌ | ❌ | ❌ |
+| **Code Execution** | ❌ | ❌ fail-closed (`sandbox-dev` = trusted local only) | ❌ | ❌ | ❌ |
 | **Pattern Analysis** | ✅ Basic | ✅ Statistical/Predictive | ❌ | ❌ | ❌ |
 | **Configuration** | ✅ MemoryConfig | ✅ SandboxConfig | ✅ Full system | ✅ TursoConfig | ✅ CacheConfig |
 
@@ -567,10 +513,9 @@ do-memory-mcp
 ├── do-memory-core (shared)
 ├── do-memory-storage-turso (shared)
 ├── do-memory-storage-redb (shared)
-├── wasmtime (WASM execution)
-├── javy (optional JS→WASM)
-├── augurs (forecasting)
-└── deep_causality (causal inference)
+├── agentfs-sdk
+├── sysinfo (health/metrics)
+└── jsonwebtoken (optional, `oauth` feature)
 
 Shared Dependencies:
 - tokio (async runtime)
@@ -596,11 +541,11 @@ local-embeddings = ["candle-core", "candle-nn", "tokenizers"]
 ### do-memory-mcp
 ```toml
 [features]
-default = ["wasmtime-backend"]
-wasmtime-backend = ["wasmtime", "wasmtime-wasi"]
-javy-backend = ["javy"]
-wasm-rquickjs = ["rquickjs"]
-full = ["wasmtime-backend", "javy-backend"]
+default = []
+oauth = ["dep:jsonwebtoken"]
+embeddings = []
+streaming-impl = []
+sandbox-dev = []   # trusted local experimentation only; not a production sandbox
 ```
 
 ### do-memory-cli

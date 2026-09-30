@@ -226,9 +226,9 @@ async fn test_async_operation() {
 
 ### MCP Server Tests
 - Tool registration and execution
-- Sandbox isolation (Wasmtime)
+- Fail-closed `execute_agent_code` contract (rejected when unavailable)
 - JSON-RPC protocol
-- Security boundaries
+- Security boundaries (auth, rate limiting, audit logging)
 - Pattern analysis tools
 
 ### CLI Tests

@@ -183,15 +183,15 @@ ERROR Failed to serialize initialize response: <error_details>
 - Error details in `data.details` field
 
 **Common Issues:**
-1. **Code execution errors** in sandbox
+1. **Unavailable tools** (e.g. `execute_agent_code` is fail-closed)
 2. **Invalid tool parameters**
-3. **Resource limits exceeded**
+3. **Rate limits exceeded**
 4. **Security violations**
 
 **Solutions:**
 1. **Check tool parameters** are correctly formatted
-2. **Review sandbox logs** for execution details
-3. **Verify resource limits** are appropriate
+2. **Confirm the tool is supported** (unavailable tools return -32000)
+3. **Verify rate limits and auth** are configured appropriately
 4. **Test tools individually** to isolate issues
 
 ### Problem: Method not found (-32601)

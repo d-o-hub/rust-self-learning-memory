@@ -49,7 +49,11 @@
 **Current version:** Not directly in Cargo.lock (transitive via another dep)  
 **Recommended:** Update the crate that transitively pulls in aws-lc
 
-### 3. Wasmtime (Transitive) — 3 CVEs
+### 3. Wasmtime (Transitive) — ✅ No longer applicable
+
+The WASM sandbox and its `wasmtime` / `wasmtime-wasi` / `rquickjs` dependencies
+were removed in v0.1.29 (ADR-052). `wasmtime` is not present in the current
+`Cargo.lock`, so the historical alerts below are obsolete:
 
 | Alert | Severity | Description | Minimum Fix |
 |-------|----------|-------------|-------------|
@@ -57,8 +61,7 @@
 | #5 | **Medium** | Guest-controlled resource exhaustion in WASI | wasmtime 42.0.0+ |
 | #3 | **Medium** | Panic on dropping `Func::call_async` future | wasmtime 43.0.1+ |
 
-**Current version:** Not directly in Cargo.lock (transitive)  
-**Recommended:** Update the crate that transitively pulls in wasmtime
+**Status:** Resolved by dependency removal — no action required.
 
 ---
 
@@ -115,7 +118,7 @@ No urgent dependency upgrades are needed. Continue monitoring with `cargo audit`
 |----------|--------|--------|--------|
 | 1 | Verify `openssl` crate version | Low (cargo update -p) | ✅ Already at latest (v0.10.79) — see Verification Results ⬇ |
 | 2 | Verify `jsonwebtoken` version | Low (cargo update -p) | ✅ Already at latest (v10.4.0) — see Verification Results ⬇ |
-| 3 | Run `cargo update` to pull latest transitive deps | Low | Fixes aws-lc, wasmtime, webpki, etc. |
+| 3 | Run `cargo update` to pull latest transitive deps | Low | Fixes aws-lc, webpki, etc. (wasmtime removed in v0.1.29) |
 | 4 | Add `cargo audit` to pre-commit hook | Low | Prevents future regressions |
 | 5 | Schedule regular Dependabot review | Low | Keep on top of alerts |
 

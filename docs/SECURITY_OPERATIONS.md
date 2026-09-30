@@ -1,7 +1,7 @@
 # Security Operations Guide
 
-**Version**: v0.1.13  
-**Last Updated**: 2026-02-01
+**Version**: v0.1.43  
+**Last Updated**: 2026-09-30
 **Audience**: Security Teams, DevOps, System Administrators  
 **Classification**: Internal Use  
 
@@ -43,10 +43,10 @@ This guide provides comprehensive security operations procedures for the Rust Se
 │ - Input validation, output sanitization, rate limiting          │
 ├─────────────────────────────────────────────────────────────────┤
 │ Layer 5: API Security                                            │
-│ - OAuth 2.0, rate limiting, request validation                  │
+│ - OAuth 2.1 authentication, rate limiting, request validation   │
 ├─────────────────────────────────────────────────────────────────┤
-│ Layer 4: Sandbox Security                                        │
-│ - WASM isolation, resource limits, network controls             │
+│ Layer 4: Execution Control                                       │
+│ - Agent code execution fail-closed (no production sandbox)      │
 ├─────────────────────────────────────────────────────────────────┤
 │ Layer 3: Storage Security                                        │
 │ - Encrypted connections, parameterized queries, access control  │
@@ -64,8 +64,8 @@ This guide provides comprehensive security operations procedures for the Rust Se
 | Component | Purpose | Implementation |
 |-----------|---------|----------------|
 | Rate Limiter | DoS prevention | Token bucket algorithm |
-| Audit Logger | Security event tracking | Structured JSON logging |
-| WASM Sandbox | Code execution isolation | Wasmtime with resource limits |
+| Audit Logger | Security event tracking | Structured JSON logging with redaction |
+| Code Execution | Agent code isolation | **Fail-closed** — `execute_agent_code` unavailable; no WASM sandbox |
 | Input Validator | Injection prevention | Size limits, type checking |
 | Secret Manager | Credential protection | Environment variables only |
 
@@ -274,7 +274,7 @@ export MCP_RATE_LIMIT_WRITE_RPS=20
 | Rate Limit Violations | < 10/hour | > 50/hour | Clients hitting rate limits |
 | Security Violations | 0 | > 0 | Policy violations detected |
 | Unusual Query Patterns | Baseline | 3σ deviation | Abnormal query behavior |
-| Sandbox Escapes | 0 | > 0 | WASM sandbox breaches |
+| Unauthorized Tool Calls | 0 | > 0 | Attempts to invoke unavailable/fail-closed tools |
 
 ### Monitoring Dashboard
 
@@ -552,7 +552,7 @@ Discovered by [Researcher Name] ([Organization]).
 - [ ] Audit logging enabled
 - [ ] TLS configured for Turso connections
 - [ ] Input validation configured
-- [ ] Sandbox resource limits set
+- [ ] Agent code execution fail-closed (`sandbox-dev` disabled)
 - [ ] OAuth enabled (if applicable)
 - [ ] Security headers configured
 - [ ] Log rotation configured
@@ -643,6 +643,6 @@ echo "Compliance evidence: $OUTPUT_DIR.tar.gz"
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-02-01
+**Last Updated**: 2026-09-30
 **Maintained By**: Security Team  
-**Next Review**: 2026-03-01
+**Next Review**: 2027-03-01

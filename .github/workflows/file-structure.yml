@@ -116,3 +116,9 @@ jobs:
 
           echo "✅ File structure validation PASSED"
           echo "All markdown files are in correct locations"
+
+      - name: Enforce the 500 LOC ceiling for source files
+        run: |
+          # Mirrors the blocking gate in scripts/quality-gates.sh and the
+          # pre-commit `loc` sensor; test files are reported but do not block.
+          ./scripts/check-loc.sh

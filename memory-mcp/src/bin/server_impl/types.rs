@@ -356,7 +356,7 @@ pub struct RateLimitEnvConfig {
     pub write_rps: u32,
     pub write_burst: u32,
     pub cleanup_interval_secs: u64,
-    pub client_id_header: String,
+    pub max_identities: usize,
 }
 
 impl Default for RateLimitEnvConfig {
@@ -368,7 +368,7 @@ impl Default for RateLimitEnvConfig {
             write_rps: 20,
             write_burst: 30,
             cleanup_interval_secs: 60,
-            client_id_header: "X-Client-ID".to_string(),
+            max_identities: 10_000,
         }
     }
 }
@@ -401,8 +401,11 @@ impl RateLimitEnvConfig {
                 .ok()
                 .and_then(|v| v.parse::<u64>().ok())
                 .unwrap_or(60),
-            client_id_header: std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
-                .unwrap_or_else(|_| "X-Client-ID".to_string()),
+            max_identities: std::env::var("MCP_RATE_LIMIT_MAX_IDENTITIES")
+                .ok()
+                .and_then(|v| v.parse::<usize>().ok())
+                .filter(|v| *v > 0)
+                .unwrap_or(10_000),
         }
     }
 }

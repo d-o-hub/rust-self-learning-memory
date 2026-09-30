@@ -2,11 +2,16 @@
 //!
 //! This module provides token bucket-based rate limiting to prevent DoS attacks.
 //! Features:
-//! - Per-client rate limiting (by IP or client ID)
+//! - Per-principal rate limiting (validated token subject, or one process-scoped
+//!   bucket for unauthenticated stdio transports)
 //! - Token bucket algorithm for smooth rate limiting
 //! - Different limits for read vs write operations
+//! - Bounded bucket cardinality (overflow identities share one bucket)
 //! - Configurable via environment variables
 //! - Rate limit headers in responses
+//!
+//! Identities are supplied by the caller from a *trusted* principal only; request
+//! payload fields such as `client_id` MUST NOT be used (issue #1084).
 
 use parking_lot::RwLock;
 use std::collections::HashMap;
@@ -173,9 +178,24 @@ impl RateLimiter {
 
         let mut buckets_guard = buckets.write();
 
+        // Bound bucket cardinality: once the identity capacity is reached, new
+        // identities share one overflow bucket instead of growing the map.
+        // Trusted principals make this a safety net, not an attacker-controlled path.
+        let identity = if buckets_guard.contains_key(client_id)
+            || buckets_guard.len() < self.config.max_identities
+        {
+            client_id.clone()
+        } else {
+            warn!(
+                "Rate limit identity capacity ({}) reached; new identities share one bucket",
+                self.config.max_identities
+            );
+            ClientId::Shared
+        };
+
         // Get or create bucket for this client
-        let bucket = buckets_guard.entry(client_id.clone()).or_insert_with(|| {
-            trace!("Creating new rate limit bucket for client: {}", client_id);
+        let bucket = buckets_guard.entry(identity.clone()).or_insert_with(|| {
+            trace!("Creating new rate limit bucket for client: {}", identity);
             TokenBucket::new(rps, burst)
         });
 
@@ -259,6 +279,7 @@ impl RateLimiter {
                 self.config.write_requests_per_second,
                 self.config.write_burst_size,
             ),
+            max_identities: self.config.max_identities,
         }
     }
 
@@ -342,7 +363,7 @@ mod tests {
             write_burst_size: 3,
             cleanup_interval: Duration::from_secs(60),
             stale_threshold: Duration::from_secs(300),
-            client_id_header: "X-Client-ID".to_string(),
+            max_identities: 10_000,
         };
         let limiter = RateLimiter::new(config);
 

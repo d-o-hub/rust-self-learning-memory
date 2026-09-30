@@ -11,7 +11,7 @@ pub async fn handle_add_episode_relationship(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Write);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -75,7 +75,7 @@ pub async fn handle_remove_episode_relationship(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Write);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -125,7 +125,7 @@ pub async fn handle_get_episode_relationships(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -176,7 +176,7 @@ pub async fn handle_find_related_episodes(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -238,7 +238,7 @@ pub async fn handle_check_relationship_exists(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -291,7 +291,7 @@ pub async fn handle_get_dependency_graph(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -347,7 +347,7 @@ pub async fn handle_validate_no_cycles(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);
@@ -409,7 +409,7 @@ pub async fn handle_get_topological_order(
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
 
-    let client_id = server.client_id_from_args(&args);
+    let client_id = server.rate_limit_identity();
     let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
     if !rate_limit_result.allowed {
         let client_id_str = get_client_id(&args);

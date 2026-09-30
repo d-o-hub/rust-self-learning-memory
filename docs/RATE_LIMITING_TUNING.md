@@ -76,7 +76,7 @@ curl -I http://localhost:8080/api/episodes | grep -i rate
 | `MCP_RATE_LIMIT_WRITE_RPS` | integer | `20` | Write requests per second |
 | `MCP_RATE_LIMIT_WRITE_BURST` | integer | `30` | Write burst size |
 | `MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS` | integer | `60` | Cleanup interval for stale buckets |
-| `MCP_RATE_LIMIT_CLIENT_ID_HEADER` | string | `X-Client-ID` | Header name for client identification |
+| `MCP_RATE_LIMIT_MAX_IDENTITIES` | integer | `10000` | Maximum distinct identity buckets per operation type; further identities share one overflow bucket |
 
 ### Basic Configuration Example
 
@@ -88,7 +88,7 @@ MCP_RATE_LIMIT_READ_BURST=150
 MCP_RATE_LIMIT_WRITE_RPS=20
 MCP_RATE_LIMIT_WRITE_BURST=30
 MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS=60
-MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Client-ID
+MCP_RATE_LIMIT_MAX_IDENTITIES=10000
 ```
 
 ### Programmatic Configuration
@@ -104,7 +104,7 @@ let config = RateLimitConfig {
     write_requests_per_second: 20,
     write_burst_size: 30,
     cleanup_interval: Duration::from_secs(60),
-    client_id_header: "X-Client-ID".to_string(),
+    max_identities: 10_000,
 };
 
 let limiter = RateLimiter::new(config);
@@ -296,23 +296,25 @@ impl TieredRateLimiter {
 - Requires client tier management
 - Potential for abuse if tiers are misconfigured
 
-## Per-Client vs Per-IP Limits
+## Per-Principal vs Per-IP Limits
 
-### Per-Client Limits (Default)
+### Per-Principal Limits (Default)
 
-**Description**: Rate limiting based on client ID (from header).
-
-**Configuration**:
-```bash
-export MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Client-ID
-```
+**Description**: Rate limiting based on a *trusted* principal, never on
+caller-supplied request fields.
 
 **How It Works**:
 ```
-Client "alice" → 100 RPS
-Client "bob"   → 100 RPS
-Client "charlie" → 100 RPS
+Validated token subject "alice" → 100 RPS
+Validated token subject "bob"   → 100 RPS
+stdio / unauthenticated transport → one process-scoped bucket (100 RPS shared)
 ```
+
+The bucket key is derived from the validated OAuth subject when authorization is
+enforced, and from a single process-scoped identity otherwise. Fields such as
+`client_id`, `_meta.client_id` or `_meta.headers` are ignored: trusting them let
+an unauthenticated caller rotate identifiers and escape a saturated bucket
+(issue #1084).
 
 **Use Cases**:
 - API services with authenticated clients
@@ -320,13 +322,12 @@ Client "charlie" → 100 RPS
 - Per-user rate limiting
 
 **Pros**:
-- Fair allocation per user
-- Works with NAT and proxies
-- Bounded memory (one bucket per client)
+- Fair allocation per authenticated user
+- Cannot be bypassed by rotating request identifiers
+- Bounded memory (`MCP_RATE_LIMIT_MAX_IDENTITIES`, overflow identities share one bucket)
 
 **Cons**:
-- Requires client identification
-- Can be circumvented by creating multiple clients
+- Unauthenticated stdio clients share one bucket by design
 - Requires cleanup of stale buckets
 
 ### Per-IP Limits
@@ -691,8 +692,9 @@ echo $MCP_RATE_LIMIT_ENABLED
 # Check rate limit metrics
 curl http://localhost:8080/metrics | grep rate_limit
 
-# Check client ID header
-curl -I http://localhost:8080/api/episodes | grep -i client
+# Check which principal currently owns buckets
+# (validated token subject, or the process-scoped stdio identity)
+# Request-supplied client_id/_meta.headers values are NOT identities
 ```
 
 **Solutions**:
@@ -703,9 +705,11 @@ curl -I http://localhost:8080/api/episodes | grep -i client
    sudo systemctl restart memory-service
    ```
 
-2. **Ensure client ID is being sent**:
+2. **Remember that stdio clients share one process-scoped bucket**:
    ```bash
-   curl -H "X-Client-ID: test-client" http://localhost:8080/api/episodes
+   # Authenticated clients get per-subject buckets; without OAuth all stdio
+   # requests share the single process identity (issue #1084)
+   export MCP_OAUTH_ENABLED=true
    ```
 
 3. **Check rate limit configuration**:
@@ -738,24 +742,13 @@ curl http://localhost:8080/metrics | grep rate_limit_buckets_active
    export MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS=60  # More frequent cleanup
    ```
 
-2. **Implement bucket limit**:
-   ```rust
-   // Maximum number of active buckets
-   const MAX_BUCKETS: usize = 10000;
-
-   if buckets.len() >= MAX_BUCKETS {
-       // Remove oldest bucket
-       remove_oldest_bucket();
-   }
-   ```
-
-3. **Use per-IP limits instead of per-client**:
+2. **Bound the identity count**:
    ```bash
-   # Fewer unique IPs than unique client IDs
-   export MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Forwarded-For
+   # Distinct identities beyond this share one overflow bucket
+   export MCP_RATE_LIMIT_MAX_IDENTITIES=10000
    ```
 
-4. **Monitor and alert on bucket count**:
+3. **Monitor and alert on bucket count**:
    ```bash
    # Alert if bucket count exceeds threshold
    if bucket_count > 10000 {

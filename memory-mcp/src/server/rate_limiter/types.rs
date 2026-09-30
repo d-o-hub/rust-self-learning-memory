@@ -20,8 +20,11 @@ pub struct RateLimitConfig {
     pub cleanup_interval: Duration,
     /// Time after which a bucket is considered stale and should be cleaned up
     pub stale_threshold: Duration,
-    /// Header name to extract client ID from
-    pub client_id_header: String,
+    /// Maximum number of distinct identity buckets tracked per operation type.
+    ///
+    /// Once this limit is reached, new identities share a single `ClientId::Shared`
+    /// bucket so that cardinality stays bounded (issue #1084).
+    pub max_identities: usize,
 }
 
 impl Default for RateLimitConfig {
@@ -34,7 +37,7 @@ impl Default for RateLimitConfig {
             write_burst_size: 30,
             cleanup_interval: Duration::from_secs(60),
             stale_threshold: Duration::from_secs(300), // 5 minutes
-            client_id_header: "X-Client-ID".to_string(),
+            max_identities: 10_000,
         }
     }
 }
@@ -77,8 +80,11 @@ impl RateLimitConfig {
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(300);
 
-        let client_id_header = std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
-            .unwrap_or_else(|_| "X-Client-ID".to_string());
+        let max_identities = std::env::var("MCP_RATE_LIMIT_MAX_IDENTITIES")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .filter(|v| *v > 0)
+            .unwrap_or(10_000);
 
         Self {
             enabled,
@@ -88,7 +94,7 @@ impl RateLimitConfig {
             write_burst_size,
             cleanup_interval: Duration::from_secs(cleanup_interval_secs),
             stale_threshold: Duration::from_secs(stale_threshold_secs),
-            client_id_header,
+            max_identities,
         }
     }
 }
@@ -142,7 +148,7 @@ pub enum ClientId {
     /// Identity scoped to the current OS process (stdio transports have no
     /// authenticated transport principal)
     Process(u32),
-    /// Shared bucket used once the identity capacity is reached
+    /// Shared bucket used once [`RateLimitConfig::max_identities`] is reached
     Shared,
     /// Unknown client (fallback)
     Unknown,
@@ -216,4 +222,6 @@ pub struct RateLimiterStats {
     pub read_config: (u32, u32),
     /// Write configuration (rps, burst)
     pub write_config: (u32, u32),
+    /// Maximum distinct identity buckets tracked per operation type
+    pub max_identities: usize,
 }

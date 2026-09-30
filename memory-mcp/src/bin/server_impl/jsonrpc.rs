@@ -18,7 +18,7 @@ use do_memory_mcp::jsonrpc::{
 };
 use do_memory_mcp::monitoring::types::{CacheHealth, HealthResponse, StorageHealth, SyncHealth};
 use do_memory_mcp::protocol::OAuthConfig;
-use do_memory_mcp::server::rate_limiter::{ClientId, OperationType, RateLimitConfig, RateLimiter};
+use do_memory_mcp::server::rate_limiter::{OperationType, RateLimitConfig, RateLimiter};
 use serde_json::json;
 use std::io::{self, Write};
 use std::sync::Arc;
@@ -65,35 +65,8 @@ pub fn load_rate_limit_config() -> RateLimitConfig {
         write_burst_size: env_config.write_burst,
         cleanup_interval: std::time::Duration::from_secs(env_config.cleanup_interval_secs),
         stale_threshold: std::time::Duration::from_secs(300),
-        client_id_header: env_config.client_id_header,
+        max_identities: env_config.max_identities,
     }
-}
-
-/// Extract client ID from request parameters or use default
-fn extract_client_id(params: Option<&serde_json::Value>, client_id_header: &str) -> ClientId {
-    if let Some(params) = params {
-        // Try to extract from meta field (common in MCP requests)
-        if let Some(meta) = params.get("_meta") {
-            if let Some(client_id) = meta.get("client_id").and_then(|v| v.as_str()) {
-                return ClientId::from_string(client_id);
-            }
-
-            // Try to extract from headers in meta
-            if let Some(headers) = meta.get("headers") {
-                if let Some(client_id) = headers.get(client_id_header).and_then(|v| v.as_str()) {
-                    return ClientId::from_string(client_id);
-                }
-            }
-        }
-
-        // Try to extract from client_id field directly
-        if let Some(client_id) = params.get("client_id").and_then(|v| v.as_str()) {
-            return ClientId::from_string(client_id);
-        }
-    }
-
-    // Fallback to unknown client
-    ClientId::Unknown
 }
 
 /// Handle embedding/config request
@@ -338,20 +311,17 @@ pub async fn handle_request(
         };
     }
 
-    // Authorize before dispatch (#1082). The request-supplied client id is still
-    // used for the bucket here; #1084 replaces it with the trusted principal.
+    // Authorize before dispatch and derive the trusted rate-limit identity
+    // from the validated principal (#1082, #1084). Request-supplied identifiers
+    // never select a bucket.
     let operation_type = OperationType::from_method(&method);
-    if let Err(rejection) =
-        auth_context.resolve_identity(&method, operation_type, request.params.as_ref())
-    {
-        return Some(rejection_response(request.id, &rejection));
-    }
+    let client_id =
+        match auth_context.resolve_identity(&method, operation_type, request.params.as_ref()) {
+            Ok(identity) => identity,
+            Err(rejection) => return Some(rejection_response(request.id, &rejection)),
+        };
 
     // Check rate limit
-    let client_id = extract_client_id(
-        request.params.as_ref(),
-        &rate_limiter.config.client_id_header,
-    );
     let rate_limit_result = rate_limiter.check_rate_limit(&client_id, operation_type);
 
     if !rate_limit_result.allowed {

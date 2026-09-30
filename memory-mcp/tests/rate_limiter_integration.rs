@@ -17,7 +17,7 @@ fn test_rate_limit_config_from_env_defaults() {
     assert_eq!(config.write_requests_per_second, 20);
     assert_eq!(config.write_burst_size, 30);
     assert_eq!(config.cleanup_interval, Duration::from_secs(60));
-    assert_eq!(config.client_id_header, "X-Client-ID");
+    assert_eq!(config.max_identities, 10_000);
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn test_rate_limiter_per_client_isolation() {
         write_burst_size: 2,
         cleanup_interval: Duration::from_secs(60),
         stale_threshold: Duration::from_secs(300),
-        client_id_header: "X-Client-ID".to_string(),
+        max_identities: 10_000,
     };
     let limiter = RateLimiter::new(config);
 
@@ -144,7 +144,7 @@ fn test_rate_limiter_read_write_separation() {
         write_burst_size: 2,
         cleanup_interval: Duration::from_secs(60),
         stale_threshold: Duration::from_secs(300),
-        client_id_header: "X-Client-ID".to_string(),
+        max_identities: 10_000,
     };
     let limiter = RateLimiter::new(config);
 
@@ -337,7 +337,7 @@ fn test_burst_allowance() {
         write_burst_size: 10,
         cleanup_interval: Duration::from_secs(60),
         stale_threshold: Duration::from_secs(300),
-        client_id_header: "X-Client-ID".to_string(),
+        max_identities: 10_000,
     };
     let limiter = RateLimiter::new(config);
 

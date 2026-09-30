@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- MCP OAuth 2.1 authorization is now enforced instead of only logged (#1082):
+  every non-discovery request requires a verified token (signature, issuer,
+  audience, expiry, scope) when `MCP_OAUTH_ENABLED=true`, an enabled-but-
+  unenforceable configuration (missing `MCP_OAUTH_TOKEN_SECRET`, or the `oauth`
+  feature not compiled in) fails closed at startup, and the `initialize`
+  capability advertises `authorization` only when enforcement is real.
+  Credentials are read from the request or, for stdio, from the
+  `MCP_OAUTH_TOKEN`/`MCP_OAUTH_BEARER_TOKEN` process environment; rejection
+  errors never echo token material.
+- MCP rate-limit buckets are now keyed by a trusted principal instead of
+  caller-supplied identifiers (#1084): the bucket comes from the validated token
+  subject when authorization is enforced and from a single process-scoped
+  identity otherwise, so rotating `client_id`/`_meta.headers` values can no
+  longer reset or bypass a saturated bucket. Bucket cardinality is bounded by
+  `MCP_RATE_LIMIT_MAX_IDENTITIES` with a shared overflow bucket, existing
+  read/write limits and retry headers are unchanged, and the unused
+  `MCP_RATE_LIMIT_CLIENT_ID_HEADER` knob was removed.
 - Runtime embedding activation is now a single serialized state update (#1072):
   concurrent activations produce unique monotonic revisions and one coherent
   winning snapshot; cache and provenance identity follow the active provider

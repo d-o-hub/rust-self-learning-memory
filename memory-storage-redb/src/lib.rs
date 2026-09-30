@@ -55,7 +55,7 @@
 
 use do_memory_core::{Error, Result};
 use redb::{Database, TableDefinition};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::info;
@@ -141,6 +141,41 @@ pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str>
 pub(crate) const PROCEDURAL_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("procedural");
 
+/// Names of every user-data table with `(&str, &[u8])` rows.
+///
+/// The `recommendation_episode_index` table is typed `(&str, &str)` and is
+/// therefore checked separately by the schema inspector.
+pub(crate) const DATA_TABLE_NAMES: [&str; 11] = [
+    "episodes",
+    "patterns",
+    "heuristics",
+    "embeddings",
+    "metadata",
+    "summaries",
+    "relationships",
+    "episode_pattern_relationships",
+    "recommendation_sessions",
+    "recommendation_feedback",
+    "procedural",
+];
+
+/// Every table this crate owns, including the schema-version metadata table.
+pub(crate) const KNOWN_TABLE_NAMES: [&str; 13] = [
+    "episodes",
+    "patterns",
+    "heuristics",
+    "embeddings",
+    "metadata",
+    "summaries",
+    "relationships",
+    "episode_pattern_relationships",
+    "recommendation_sessions",
+    "recommendation_feedback",
+    "recommendation_episode_index",
+    "procedural",
+    "schema_version",
+];
+
 // ============================================================================
 // Schema Versioning (Automatic Cache Invalidation)
 // ============================================================================
@@ -195,6 +230,11 @@ where
 pub struct RedbStorage {
     pub(crate) db: Arc<Database>,
     pub(crate) cache: Box<dyn CacheTrait>,
+    /// Filesystem path of the underlying database file.
+    ///
+    /// Retained so schema/migration errors can report exactly which file an
+    /// operator must inspect or back up (issue #1069).
+    pub(crate) path: PathBuf,
 }
 
 impl RedbStorage {
@@ -247,21 +287,7 @@ impl RedbStorage {
     /// # }
     /// ```
     pub async fn new_with_cache_config(path: &Path, cache_config: CacheConfig) -> Result<Self> {
-        info!("Opening redb database at {}", path.display());
-
-        // Use spawn_blocking for synchronous redb initialization with timeout
-        let path_buf = path.to_path_buf();
-        let db = with_db_timeout(move || {
-            Database::create(&path_buf)
-                .map_err(|e| Error::Storage(format!("Failed to create redb database: {}", e)))
-        })
-        .await?;
-
-        let cache: Box<dyn CacheTrait> = Box::new(LRUCache::new(cache_config));
-        let storage = Self {
-            db: Arc::new(db),
-            cache,
-        };
+        let storage = Self::open_with_cache(path, Box::new(LRUCache::new(cache_config))).await?;
 
         // Initialize tables
         storage.initialize_tables().await?;
@@ -303,27 +329,53 @@ impl RedbStorage {
         path: &Path,
         config: AdaptiveCacheConfig,
     ) -> Result<Self> {
-        info!("Opening redb database at {}", path.display());
-
-        // Use spawn_blocking for synchronous redb initialization with timeout
-        let path_buf = path.to_path_buf();
-        let db = with_db_timeout(move || {
-            Database::create(&path_buf)
-                .map_err(|e| Error::Storage(format!("Failed to create redb database: {}", e)))
-        })
-        .await?;
-
-        let cache: Box<dyn CacheTrait> = Box::new(AdaptiveCacheAdapter::new(config));
-        let storage = Self {
-            db: Arc::new(db),
-            cache,
-        };
+        let storage =
+            Self::open_with_cache(path, Box::new(AdaptiveCacheAdapter::new(config))).await?;
 
         // Initialize tables
         storage.initialize_tables().await?;
 
         info!("Successfully opened redb database with adaptive cache");
         Ok(storage)
+    }
+
+    /// Open a redb database **without** running the schema check and without
+    /// creating any table.
+    ///
+    /// Escape hatch for operator tooling that must inspect, migrate or
+    /// explicitly reset a database whose stored schema version does not match
+    /// the current binary (issue #1069). Normal application code must use
+    /// [`RedbStorage::new`], which fails closed instead of touching mismatched
+    /// data. The returned handle has *not* validated the schema; call
+    /// [`RedbStorage::migrate_schema`] or [`RedbStorage::reset_all_tables`]
+    /// deliberately.
+    pub async fn open_unchecked(path: &Path) -> Result<Self> {
+        Self::open_with_cache(
+            path,
+            Box::new(AdaptiveCacheAdapter::new(AdaptiveCacheConfig::default())),
+        )
+        .await
+    }
+
+    /// Open the database file and build the storage handle, without touching
+    /// any table or the schema version.
+    async fn open_with_cache(path: &Path, cache: Box<dyn CacheTrait>) -> Result<Self> {
+        info!("Opening redb database at {}", path.display());
+
+        // Use spawn_blocking for synchronous redb initialization with timeout
+        let db_path = path.to_path_buf();
+        let path_buf = db_path.clone();
+        let db = with_db_timeout(move || {
+            Database::create(&path_buf)
+                .map_err(|e| Error::Storage(format!("Failed to create redb database: {}", e)))
+        })
+        .await?;
+
+        Ok(Self {
+            db: Arc::new(db),
+            cache,
+            path: db_path,
+        })
     }
 }
 

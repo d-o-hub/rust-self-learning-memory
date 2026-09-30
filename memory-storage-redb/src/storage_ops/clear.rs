@@ -1,7 +1,9 @@
 //! Table clearing operations for RedbStorage
 //!
-//! Provides functionality to clear tables for schema version changes
-//! and manual cache clearing.
+//! Clearing is split into an *explicit* operator action
+//! ([`RedbStorage::reset_all_tables`]) and the single internal implementation
+//! ([`RedbStorage::clear_all_tables`]) it delegates to. Nothing in the open or
+//! schema-inspection path clears data any more (issue #1069).
 
 use super::super::{
     EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE,
@@ -13,12 +15,38 @@ use crate::RedbStorage;
 use do_memory_core::{Error, Result};
 use redb::ReadableTable;
 use std::sync::Arc;
-use tracing::info;
+use tracing::{info, warn};
 
 impl RedbStorage {
-    /// Clear all tables (internal helper for schema version changes)
+    /// **Destructive, explicit operator action.**
+    ///
+    /// Erases every row from every table (episodes, patterns, heuristics,
+    /// embeddings, metadata, summaries, relationships, recommendation sessions,
+    /// feedback and episode index, procedural data), clears the in-memory
+    /// cache, then records the current schema version and rebuilds the derived
+    /// indexes.
+    ///
+    /// All user data is permanently lost. This is the only supported path that
+    /// clears every table; it is never invoked implicitly by opening a
+    /// database. Call it deliberately, after taking a backup, when a schema
+    /// mismatch must be resolved by discarding data.
+    pub async fn reset_all_tables(&self) -> Result<()> {
+        warn!(
+            path = %self.path.display(),
+            "reset_all_tables: permanently erasing every table (explicit operator reset)"
+        );
+
+        self.clear_all_tables().await?;
+        self.store_schema_version().await?;
+        self.rebuild_indexes().await?;
+
+        info!("Explicit reset complete; database now records the current schema version");
+        Ok(())
+    }
+
+    /// Clear all tables (internal implementation used only by explicit resets).
     pub(super) async fn clear_all_tables(&self) -> Result<()> {
-        info!("Clearing all tables due to schema version change");
+        info!("Clearing all tables (explicit reset)");
 
         let db = Arc::clone(&self.db);
 
@@ -74,44 +102,15 @@ impl RedbStorage {
         Ok(())
     }
 
-    /// Clear all cached data (use with caution!)
+    /// **Destructive.** Clear all cached data (use with caution!).
+    ///
+    /// Retained for backward compatibility; it delegates to the same single
+    /// clearing implementation as [`RedbStorage::reset_all_tables`], so it
+    /// erases every table, not just cached rows. Prefer `reset_all_tables`,
+    /// which also records the current schema version.
     pub async fn clear_all(&self) -> Result<()> {
         info!("Clearing all cached data from redb");
-
-        // Clear the LRU cache metadata
-        self.cache.clear().await;
-
-        let db = Arc::clone(&self.db);
-
-        with_db_timeout(move || {
-            let write_txn = db
-                .begin_write()
-                .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
-
-            {
-                Self::clear_table_entries(&write_txn, EPISODES_TABLE, "episodes")?;
-                Self::clear_table_entries(&write_txn, PATTERNS_TABLE, "patterns")?;
-                Self::clear_table_entries(&write_txn, HEURISTICS_TABLE, "heuristics")?;
-                Self::clear_table_entries(&write_txn, EMBEDDINGS_TABLE, "embeddings")?;
-                Self::clear_table_entries(&write_txn, METADATA_TABLE, "metadata")?;
-                Self::clear_table_entries(&write_txn, SUMMARIES_TABLE, "summaries")?;
-                Self::clear_table_entries(&write_txn, RELATIONSHIPS_TABLE, "relationships")?;
-                Self::clear_table_entries(
-                    &write_txn,
-                    EPISODE_PATTERN_RELATIONSHIPS_TABLE,
-                    "episode_pattern_relationships",
-                )?;
-                Self::clear_table_entries(&write_txn, PROCEDURAL_TABLE, "procedural")?;
-            }
-
-            write_txn
-                .commit()
-                .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
-
-            Ok::<(), Error>(())
-        })
-        .await?;
-
+        self.clear_all_tables().await?;
         info!("Successfully cleared all cached data");
         Ok(())
     }

@@ -38,6 +38,57 @@ impl Default for OAuthConfig {
     }
 }
 
+impl OAuthConfig {
+    /// Diagnostic explaining why OAuth cannot be enforced, if that is the case
+    ///
+    /// Returns `None` when OAuth is disabled or when the configuration is
+    /// sufficient to verify tokens. Callers MUST treat `Some(_)` as fail-closed:
+    /// never dispatch requests while authorization is advertised but cannot be
+    /// verified.
+    pub fn enforcement_error(&self) -> Option<&'static str> {
+        if !self.enabled {
+            return None;
+        }
+
+        #[cfg(not(feature = "oauth"))]
+        {
+            Some(
+                "MCP_OAUTH_ENABLED is set but this server was built without the `oauth` feature, \
+                 so token signatures cannot be verified",
+            )
+        }
+
+        #[cfg(feature = "oauth")]
+        {
+            if self.token_secret.is_none() {
+                Some(
+                    "MCP_OAUTH_ENABLED is set but MCP_OAUTH_TOKEN_SECRET is missing, \
+                     so token signatures cannot be verified",
+                )
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Whether authorization is enabled *and* actually enforceable
+    pub fn is_enforced(&self) -> bool {
+        self.enabled && self.enforcement_error().is_none()
+    }
+}
+
+/// Validate an OAuth configuration before serving requests (issue #1082)
+///
+/// Returns `Err` with an actionable diagnostic when `MCP_OAUTH_ENABLED` is set
+/// but tokens cannot be verified. Callers MUST fail closed (refuse to start or
+/// reject the request) rather than serving unauthenticated traffic.
+pub fn validate_oauth_config(config: &OAuthConfig) -> Result<(), &'static str> {
+    match config.enforcement_error() {
+        None => Ok(()),
+        Some(reason) => Err(reason),
+    }
+}
+
 /// MCP Initialize response payload
 #[derive(Debug, Serialize)]
 pub struct InitializeResult {
@@ -113,4 +164,67 @@ pub struct ProtectedResourceMetadata {
     pub scopes_supported: Vec<String>,
     #[serde(rename = "resourceMetadata")]
     pub resource_metadata: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_oauth_disabled_is_not_enforced() {
+        let config = OAuthConfig::default();
+        assert!(config.enforcement_error().is_none());
+        assert!(!config.is_enforced());
+        assert!(validate_oauth_config(&config).is_ok());
+    }
+
+    #[cfg(feature = "oauth")]
+    #[test]
+    fn test_oauth_enabled_with_secret_is_enforced() {
+        let config = OAuthConfig {
+            enabled: true,
+            token_secret: Some("secret".to_string()),
+            ..OAuthConfig::default()
+        };
+        assert!(config.enforcement_error().is_none());
+        assert!(config.is_enforced());
+        assert!(validate_oauth_config(&config).is_ok());
+    }
+
+    #[cfg(feature = "oauth")]
+    #[test]
+    fn test_oauth_enabled_without_secret_fails_closed() {
+        let config = OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        };
+        let reason = config
+            .enforcement_error()
+            .expect("missing secret must be reported");
+        assert!(
+            reason.contains("MCP_OAUTH_TOKEN_SECRET"),
+            "unexpected: {reason}"
+        );
+        assert!(!config.is_enforced());
+        assert_eq!(validate_oauth_config(&config), Err(reason));
+    }
+
+    #[cfg(not(feature = "oauth"))]
+    #[test]
+    fn test_oauth_enabled_without_feature_fails_closed() {
+        // Even with a secret configured, a build without the `oauth` feature
+        // cannot verify signatures, so enforcement must be reported as broken.
+        let config = OAuthConfig {
+            enabled: true,
+            token_secret: Some("secret".to_string()),
+            ..OAuthConfig::default()
+        };
+        let reason = config
+            .enforcement_error()
+            .expect("missing feature must be reported");
+        assert!(reason.contains("oauth"), "unexpected: {reason}");
+        assert!(!config.is_enforced());
+        assert_eq!(validate_oauth_config(&config), Err(reason));
+    }
 }

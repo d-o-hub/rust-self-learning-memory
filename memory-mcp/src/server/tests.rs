@@ -264,3 +264,16 @@ async fn test_analyze_patterns() {
     assert!(json.get("patterns").is_some());
     assert!(json.get("statistics").is_some());
 }
+
+#[tokio::test]
+async fn test_rate_limit_identity_is_process_scoped() {
+    let server = create_test_server().await;
+
+    // #1084: stdio carries no authenticated transport principal, so every
+    // request shares one process-scoped bucket and request data is never used
+    // to select an identity.
+    assert_eq!(
+        server.rate_limit_identity(),
+        crate::server::rate_limiter::ClientId::process()
+    );
+}

@@ -51,7 +51,6 @@ use crate::types::{ExecutionStats, SandboxConfig};
 use anyhow::Result;
 use do_memory_core::SelfLearningMemory;
 use parking_lot::RwLock;
-use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::info;
@@ -186,21 +185,19 @@ impl MemoryMCPServer {
         &self.rate_limiter
     }
 
-    /// Extract client ID from tool arguments
+    /// Rate-limit identity for this server instance
     ///
-    /// # Arguments
-    ///
-    /// * `args` - Tool arguments JSON value
+    /// stdio transports cannot carry a validated transport principal, so every
+    /// request shares a single process-scoped bucket. Caller-supplied fields
+    /// (`client_id`, `_meta.headers`, ...) are deliberately ignored: trusting
+    /// them let an unauthenticated caller rotate identifiers to escape a
+    /// saturated bucket (issue #1084).
     ///
     /// # Returns
     ///
-    /// Returns a `ClientId` for rate limiting
-    pub fn client_id_from_args(&self, args: &Value) -> ClientId {
-        args.get("client_id")
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty())
-            .map(ClientId::from_string)
-            .unwrap_or(ClientId::Unknown)
+    /// Returns the process-scoped `ClientId`
+    pub fn rate_limit_identity(&self) -> ClientId {
+        ClientId::process()
     }
 
     /// Check rate limit for a client

@@ -1,5 +1,6 @@
 //! JSON-RPC server infrastructure
 
+use super::auth::{AuthContext, rejection_response};
 use super::core::{
     handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
     handle_protected_resource_metadata, handle_shutdown,
@@ -17,7 +18,7 @@ use do_memory_mcp::jsonrpc::{
 };
 use do_memory_mcp::monitoring::types::{CacheHealth, HealthResponse, StorageHealth, SyncHealth};
 use do_memory_mcp::protocol::OAuthConfig;
-use do_memory_mcp::server::rate_limiter::{ClientId, OperationType, RateLimitConfig, RateLimiter};
+use do_memory_mcp::server::rate_limiter::{OperationType, RateLimitConfig, RateLimiter};
 use serde_json::json;
 use std::io::{self, Write};
 use std::sync::Arc;
@@ -64,35 +65,8 @@ pub fn load_rate_limit_config() -> RateLimitConfig {
         write_burst_size: env_config.write_burst,
         cleanup_interval: std::time::Duration::from_secs(env_config.cleanup_interval_secs),
         stale_threshold: std::time::Duration::from_secs(300),
-        client_id_header: env_config.client_id_header,
+        max_identities: env_config.max_identities,
     }
-}
-
-/// Extract client ID from request parameters or use default
-fn extract_client_id(params: Option<&serde_json::Value>, client_id_header: &str) -> ClientId {
-    if let Some(params) = params {
-        // Try to extract from meta field (common in MCP requests)
-        if let Some(meta) = params.get("_meta") {
-            if let Some(client_id) = meta.get("client_id").and_then(|v| v.as_str()) {
-                return ClientId::from_string(client_id);
-            }
-
-            // Try to extract from headers in meta
-            if let Some(headers) = meta.get("headers") {
-                if let Some(client_id) = headers.get(client_id_header).and_then(|v| v.as_str()) {
-                    return ClientId::from_string(client_id);
-                }
-            }
-        }
-
-        // Try to extract from client_id field directly
-        if let Some(client_id) = params.get("client_id").and_then(|v| v.as_str()) {
-            return ClientId::from_string(client_id);
-        }
-    }
-
-    // Fallback to unknown client
-    ClientId::Unknown
 }
 
 /// Handle embedding/config request
@@ -223,6 +197,19 @@ pub async fn run_jsonrpc_server(
     let rate_limit_config = load_rate_limit_config();
     let rate_limiter = Arc::new(RateLimiter::new(rate_limit_config));
 
+    // Fail closed before serving a single request: advertising authorization
+    // that cannot be enforced would be a security misrepresentation (#1082).
+    if let Some(reason) = oauth_config.enforcement_error() {
+        error!("Refusing to start: {reason}");
+        anyhow::bail!("OAuth configuration cannot be enforced: {reason}");
+    }
+    let auth_context = AuthContext::from_env(oauth_config);
+    if auth_context.is_enforced() {
+        info!("OAuth 2.1 enforcement active for all non-discovery methods");
+    } else {
+        info!("OAuth 2.1 disabled; using the process-scoped rate-limit identity");
+    }
+
     if rate_limiter.is_enabled() {
         info!("Rate limiting enabled");
     } else {
@@ -248,7 +235,7 @@ pub async fn run_jsonrpc_server(
                         let response = handle_request(
                             request,
                             &mcp_server,
-                            &oauth_config,
+                            &auth_context,
                             &elicitation_tracker,
                             &task_tracker,
                             &embedding_config,
@@ -297,11 +284,11 @@ pub async fn run_jsonrpc_server(
     Ok(())
 }
 
-/// Handle a JSON-RPC request with rate limiting
+/// Handle a JSON-RPC request with authorization and rate limiting
 pub async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
-    oauth_config: &OAuthConfig,
+    auth_context: &AuthContext,
     elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
     task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
     embedding_config: &EmbeddingEnvConfig,
@@ -309,9 +296,6 @@ pub async fn handle_request(
 ) -> Option<JsonRpcResponse> {
     if request.id.is_none() || matches!(request.id, Some(serde_json::Value::Null)) {
         return None;
-    }
-    if oauth_config.enabled {
-        debug!("OAuth enabled");
     }
 
     // Normalize method name
@@ -327,12 +311,17 @@ pub async fn handle_request(
         };
     }
 
-    // Check rate limit
-    let client_id = extract_client_id(
-        request.params.as_ref(),
-        &rate_limiter.config.client_id_header,
-    );
+    // Authorize before dispatch and derive the trusted rate-limit identity
+    // from the validated principal (#1082, #1084). Request-supplied identifiers
+    // never select a bucket.
     let operation_type = OperationType::from_method(&method);
+    let client_id =
+        match auth_context.resolve_identity(&method, operation_type, request.params.as_ref()) {
+            Ok(identity) => identity,
+            Err(rejection) => return Some(rejection_response(request.id, &rejection)),
+        };
+
+    // Check rate limit
     let rate_limit_result = rate_limiter.check_rate_limit(&client_id, operation_type);
 
     if !rate_limit_result.allowed {
@@ -364,7 +353,7 @@ pub async fn handle_request(
     // Note: Rate limit headers would typically be added here for HTTP-based protocols
     // For stdio-based JSON-RPC, we include rate limit info in the response data
     match method.as_str() {
-        "initialize" => handle_initialize(request, oauth_config).await,
+        "initialize" => handle_initialize(request, auth_context.config()).await,
         "tools/list" => handle_list_tools(request, mcp_server).await,
         "tools/describe" => handle_describe_tool(request, mcp_server).await,
         "tools/describe_batch" => handle_describe_tools(request, mcp_server).await,
@@ -383,7 +372,7 @@ pub async fn handle_request(
         "task/list" => handle_task_list(request, task_tracker).await,
         "embedding/config" => handle_embedding_config(request, embedding_config).await,
         ".well-known/oauth-protected-resource" => {
-            handle_protected_resource_metadata(request, oauth_config).await
+            handle_protected_resource_metadata(request, auth_context.config()).await
         }
         "health" | "health/check" => handle_health_check(request).await,
         _ => {
@@ -399,5 +388,161 @@ pub async fn handle_request(
                 }),
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    async fn test_server() -> anyhow::Result<Arc<Mutex<MemoryMCPServer>>> {
+        let memory = Arc::new(do_memory_core::SelfLearningMemory::new());
+        let server =
+            MemoryMCPServer::new(do_memory_mcp::SandboxConfig::restrictive(), memory).await?;
+        Ok(Arc::new(Mutex::new(server)))
+    }
+
+    fn embedding_config() -> EmbeddingEnvConfig {
+        EmbeddingEnvConfig {
+            provider: "local".to_string(),
+            api_key: None,
+            api_key_env: "OPENAI_API_KEY".to_string(),
+            model: None,
+            similarity_threshold: 0.7,
+            batch_size: 32,
+        }
+    }
+
+    fn disabled_limiter() -> RateLimiter {
+        RateLimiter::new(RateLimitConfig {
+            enabled: false,
+            ..RateLimitConfig::default()
+        })
+    }
+
+    async fn dispatch(
+        server: &Arc<Mutex<MemoryMCPServer>>,
+        request: JsonRpcRequest,
+        auth_context: &AuthContext,
+    ) -> Option<JsonRpcResponse> {
+        let elicitations: Arc<Mutex<Vec<ActiveElicitation>>> = Arc::new(Mutex::new(Vec::new()));
+        let tasks: Arc<Mutex<Vec<ActiveTask>>> = Arc::new(Mutex::new(Vec::new()));
+        let embedding = embedding_config();
+        let limiter = disabled_limiter();
+        handle_request(
+            request,
+            server,
+            auth_context,
+            &elicitations,
+            &tasks,
+            &embedding,
+            &limiter,
+        )
+        .await
+    }
+
+    fn request(method: &str, params: Option<serde_json::Value>) -> JsonRpcRequest {
+        JsonRpcRequest {
+            jsonrpc: Some("2.0".to_string()),
+            id: Some(json!(1)),
+            method: method.to_string(),
+            params,
+        }
+    }
+
+    #[test]
+    fn test_load_rate_limit_config_bounds_identities() {
+        let config = load_rate_limit_config();
+        // Stale identity buckets must still be evicted after five minutes
+        assert_eq!(config.stale_threshold, std::time::Duration::from_secs(300));
+        assert!(config.max_identities > 0);
+    }
+
+    #[tokio::test]
+    async fn test_notifications_produce_no_response() -> anyhow::Result<()> {
+        let server = test_server().await?;
+        let auth = AuthContext::new(
+            OAuthConfig::default(),
+            do_memory_mcp::server::rate_limiter::ClientId::process(),
+            None,
+        );
+        let mut notification = request("tools/list", None);
+        notification.id = None;
+
+        assert!(dispatch(&server, notification, &auth).await.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_startup_refuses_unenforceable_oauth() -> anyhow::Result<()> {
+        let server = test_server().await?;
+        let misconfigured = OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        };
+
+        let err = run_jsonrpc_server(server, misconfigured)
+            .await
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("server must refuse to start"))?;
+        assert!(
+            err.to_string().contains("cannot be enforced"),
+            "diagnostic must explain that enforcement is impossible, got: {err}"
+        );
+        Ok(())
+    }
+
+    #[cfg(feature = "oauth")]
+    #[tokio::test]
+    async fn test_handle_request_rejects_unauthenticated_tool_call() -> anyhow::Result<()> {
+        let server = test_server().await?;
+        let enforced = OAuthConfig {
+            enabled: true,
+            token_secret: Some("jsonrpc-test-secret".to_string()),
+            ..OAuthConfig::default()
+        };
+        let auth = AuthContext::new(
+            enforced,
+            do_memory_mcp::server::rate_limiter::ClientId::process(),
+            None,
+        );
+
+        let response = dispatch(
+            &server,
+            request(
+                "tools/call",
+                Some(json!({"name": "query_memory", "arguments": {"query": "x"}})),
+            ),
+            &auth,
+        )
+        .await
+        .ok_or_else(|| anyhow::anyhow!("expected an error response"))?;
+
+        let error = response
+            .error
+            .ok_or_else(|| anyhow::anyhow!("unauthenticated call must be rejected"))?;
+        assert_eq!(error.code, super::super::oauth::UNAUTHORIZED_CODE);
+        assert_eq!(error.message, "Unauthorized");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_handle_request_dispatches_when_oauth_disabled() -> anyhow::Result<()> {
+        let server = test_server().await?;
+        let auth = AuthContext::new(
+            OAuthConfig::default(),
+            do_memory_mcp::server::rate_limiter::ClientId::process(),
+            None,
+        );
+
+        let response = dispatch(&server, request("tools/list", None), &auth)
+            .await
+            .ok_or_else(|| anyhow::anyhow!("expected a response"))?;
+        assert!(
+            response.result.is_some(),
+            "requests must be dispatched when OAuth is disabled"
+        );
+        Ok(())
     }
 }

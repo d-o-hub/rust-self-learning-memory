@@ -485,3 +485,215 @@ async fn test_malformed_configuration_resistance() {
         }
     }
 }
+
+// ============================================================================
+// Rate-limit identity (issues #1082 / #1084)
+//
+// The rate-limit bucket must be derived from a trusted principal, never from
+// caller-supplied request fields. Requests themselves are checked through the
+// real `handle_request` path.
+// ============================================================================
+
+#[path = "../src/bin/server_impl/mod.rs"]
+mod server_impl;
+
+use do_memory_mcp::MemoryMCPServer;
+use do_memory_mcp::protocol::OAuthConfig;
+use do_memory_mcp::server::rate_limiter::{
+    ClientId, OperationType, RateLimitConfig, RateLimiter, RateLimiterStats,
+};
+use do_memory_mcp::types::SandboxConfig;
+use server_impl::{
+    AuthContext, EmbeddingEnvConfig, JsonRpcRequest, JsonRpcResponse, handle_request,
+    subject_identity,
+};
+use std::time::Duration;
+
+fn rate_limited_limiter() -> RateLimiter {
+    RateLimiter::new(RateLimitConfig {
+        read_requests_per_second: 1,
+        read_burst_size: 1,
+        write_requests_per_second: 1,
+        write_burst_size: 2,
+        ..RateLimitConfig::default()
+    })
+}
+
+async fn spoof_test_server() -> anyhow::Result<Arc<tokio::sync::Mutex<MemoryMCPServer>>> {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let server = MemoryMCPServer::new(SandboxConfig::restrictive(), memory).await?;
+    Ok(Arc::new(tokio::sync::Mutex::new(server)))
+}
+
+/// Tool call whose caller-supplied identity fields rotate on every request
+fn spoofed_tool_call(client_id: &str) -> JsonRpcRequest {
+    JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
+        id: Some(serde_json::json!(1)),
+        method: "tools/call".to_string(),
+        params: Some(serde_json::json!({
+            "name": "query_memory",
+            "arguments": {"query": "anything"},
+            "_meta": {
+                "client_id": client_id,
+                "headers": {"X-Client-ID": client_id}
+            },
+            "client_id": client_id
+        })),
+    }
+}
+
+async fn dispatch(
+    server: &Arc<tokio::sync::Mutex<MemoryMCPServer>>,
+    request: JsonRpcRequest,
+    auth_context: &AuthContext,
+    limiter: &RateLimiter,
+) -> Option<JsonRpcResponse> {
+    let elicitations = Arc::new(tokio::sync::Mutex::new(Vec::new()));
+    let tasks = Arc::new(tokio::sync::Mutex::new(Vec::new()));
+    let embedding = EmbeddingEnvConfig {
+        provider: "local".to_string(),
+        api_key: None,
+        api_key_env: "OPENAI_API_KEY".to_string(),
+        model: None,
+        similarity_threshold: 0.7,
+        batch_size: 32,
+    };
+    handle_request(
+        request,
+        server,
+        auth_context,
+        &elicitations,
+        &tasks,
+        &embedding,
+        limiter,
+    )
+    .await
+}
+#[tokio::test]
+async fn test_spoofed_client_id_cannot_bypass_saturated_bucket() -> anyhow::Result<()> {
+    let limiter = rate_limited_limiter();
+    let identity = ClientId::process();
+
+    // Saturate the process-scoped bucket
+    assert!(
+        limiter
+            .check_rate_limit(&identity, OperationType::Write)
+            .allowed
+    );
+    assert!(
+        limiter
+            .check_rate_limit(&identity, OperationType::Write)
+            .allowed
+    );
+    assert!(
+        !limiter
+            .check_rate_limit(&identity, OperationType::Write)
+            .allowed,
+        "bucket must be saturated before the bypass attempt"
+    );
+
+    let server = spoof_test_server().await?;
+    let auth_context = AuthContext::new(OAuthConfig::default(), identity, None);
+
+    // Rotating caller-supplied identifiers must not reset or bypass the limit
+    for i in 0..5 {
+        let response = dispatch(
+            &server,
+            spoofed_tool_call(&format!("rotated-client-{i}")),
+            &auth_context,
+            &limiter,
+        )
+        .await
+        .ok_or_else(|| anyhow::anyhow!("expected a rate limit response"))?;
+
+        let error = response
+            .error
+            .ok_or_else(|| anyhow::anyhow!("request {i} bypassed the saturated bucket"))?;
+        assert_eq!(
+            error.code, -32000,
+            "expected rate limit error, got {error:?}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn test_distinct_subjects_get_independent_buckets() {
+    let limiter = rate_limited_limiter();
+    let alice = subject_identity("alice@example.com");
+    let bob = subject_identity("bob@example.com");
+
+    assert_ne!(alice, bob, "distinct subjects must map to distinct buckets");
+    // Identities are opaque: the raw subject must not appear in the bucket key
+    assert!(!format!("{alice}").contains("alice"));
+
+    assert!(
+        limiter
+            .check_rate_limit(&alice, OperationType::Read)
+            .allowed
+    );
+    assert!(
+        !limiter
+            .check_rate_limit(&alice, OperationType::Read)
+            .allowed,
+        "alice's bucket must be saturated"
+    );
+    assert!(
+        limiter.check_rate_limit(&bob, OperationType::Read).allowed,
+        "bob must have an independent bucket"
+    );
+}
+
+#[test]
+fn test_bucket_cardinality_is_bounded_and_observable() {
+    let max_identities = 4;
+    let limiter = RateLimiter::new(RateLimitConfig {
+        read_burst_size: 1,
+        write_burst_size: 1,
+        max_identities,
+        ..RateLimitConfig::default()
+    });
+
+    for i in 0..500 {
+        let identity = ClientId::from_string(&format!("rotated-{i}"));
+        limiter.check_rate_limit(&identity, OperationType::Read);
+    }
+
+    let RateLimiterStats {
+        read_buckets_count,
+        max_identities: observed_max,
+        ..
+    } = limiter.get_stats();
+    // One shared overflow bucket in addition to the tracked identities
+    assert!(
+        read_buckets_count <= max_identities + 1,
+        "bucket cardinality {read_buckets_count} exceeds bound {max_identities} + overflow"
+    );
+    assert_eq!(observed_max, max_identities);
+}
+
+#[test]
+fn test_process_identity_is_transport_scoped() {
+    assert_eq!(ClientId::process(), ClientId::process());
+    assert_ne!(ClientId::process(), ClientId::from_string("spoofed"));
+    assert_ne!(ClientId::process(), ClientId::Unknown);
+}
+
+#[test]
+fn test_stale_identity_buckets_are_evicted() {
+    let limiter = RateLimiter::new(RateLimitConfig {
+        stale_threshold: Duration::ZERO,
+        ..RateLimitConfig::default()
+    });
+
+    limiter.check_rate_limit(&subject_identity("expired-principal"), OperationType::Read);
+    assert_eq!(limiter.get_stats().read_buckets_count, 1);
+
+    limiter.cleanup_stale_buckets(Duration::ZERO);
+    assert_eq!(
+        limiter.get_stats().read_buckets_count,
+        0,
+        "stale principals must be evicted once the token/principal is gone"
+    );
+}

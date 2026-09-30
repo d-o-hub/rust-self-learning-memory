@@ -20,8 +20,11 @@ pub struct RateLimitConfig {
     pub cleanup_interval: Duration,
     /// Time after which a bucket is considered stale and should be cleaned up
     pub stale_threshold: Duration,
-    /// Header name to extract client ID from
-    pub client_id_header: String,
+    /// Maximum number of distinct identity buckets tracked per operation type.
+    ///
+    /// Once this limit is reached, new identities share a single `ClientId::Shared`
+    /// bucket so that cardinality stays bounded (issue #1084).
+    pub max_identities: usize,
 }
 
 impl Default for RateLimitConfig {
@@ -34,7 +37,7 @@ impl Default for RateLimitConfig {
             write_burst_size: 30,
             cleanup_interval: Duration::from_secs(60),
             stale_threshold: Duration::from_secs(300), // 5 minutes
-            client_id_header: "X-Client-ID".to_string(),
+            max_identities: 10_000,
         }
     }
 }
@@ -77,8 +80,11 @@ impl RateLimitConfig {
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(300);
 
-        let client_id_header = std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
-            .unwrap_or_else(|_| "X-Client-ID".to_string());
+        let max_identities = std::env::var("MCP_RATE_LIMIT_MAX_IDENTITIES")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .filter(|v| *v > 0)
+            .unwrap_or(10_000);
 
         Self {
             enabled,
@@ -88,7 +94,7 @@ impl RateLimitConfig {
             write_burst_size,
             cleanup_interval: Duration::from_secs(cleanup_interval_secs),
             stale_threshold: Duration::from_secs(stale_threshold_secs),
-            client_id_header,
+            max_identities,
         }
     }
 }
@@ -127,12 +133,23 @@ impl OperationType {
 }
 
 /// Client identifier for rate limiting
+///
+/// Identities MUST come from a trusted principal (a validated token subject or a
+/// process/transport-scoped identity). Caller-supplied request fields such as
+/// `client_id` or `_meta.headers` are never used as an identity, otherwise an
+/// unauthenticated caller could rotate IDs to escape a saturated bucket
+/// (issue #1084).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ClientId {
     /// Client identified by IP address
     Ip(String),
     /// Client identified by custom ID
     Id(String),
+    /// Identity scoped to the current OS process (stdio transports have no
+    /// authenticated transport principal)
+    Process(u32),
+    /// Shared bucket used once [`RateLimitConfig::max_identities`] is reached
+    Shared,
     /// Unknown client (fallback)
     Unknown,
 }
@@ -155,6 +172,14 @@ impl ClientId {
             ClientId::Ip(ip.to_string())
         }
     }
+
+    /// Identity scoped to the current OS process.
+    ///
+    /// Used when the transport cannot carry validated credentials (stdio), so
+    /// every request from the transport shares exactly one bucket.
+    pub fn process() -> Self {
+        ClientId::Process(std::process::id())
+    }
 }
 
 impl std::fmt::Display for ClientId {
@@ -162,6 +187,8 @@ impl std::fmt::Display for ClientId {
         match self {
             ClientId::Ip(ip) => write!(f, "ip:{}", ip),
             ClientId::Id(id) => write!(f, "id:{}", id),
+            ClientId::Process(pid) => write!(f, "process:{}", pid),
+            ClientId::Shared => write!(f, "shared"),
             ClientId::Unknown => write!(f, "unknown"),
         }
     }
@@ -195,4 +222,57 @@ pub struct RateLimiterStats {
     pub read_config: (u32, u32),
     /// Write configuration (rps, burst)
     pub write_config: (u32, u32),
+    /// Maximum distinct identity buckets tracked per operation type
+    pub max_identities: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_client_id_constructors() {
+        assert_eq!(ClientId::from_string(""), ClientId::Unknown);
+        assert_eq!(ClientId::from_ip(""), ClientId::Unknown);
+        assert_eq!(
+            ClientId::from_string("client-a"),
+            ClientId::Id("client-a".to_string())
+        );
+        assert_eq!(
+            ClientId::from_ip("10.0.0.1"),
+            ClientId::Ip("10.0.0.1".to_string())
+        );
+        assert_eq!(
+            ClientId::process(),
+            ClientId::Process(std::process::id()),
+            "the process identity must be scoped to this process"
+        );
+    }
+
+    #[test]
+    fn test_client_id_display() {
+        assert_eq!(ClientId::from_string("client-a").to_string(), "id:client-a");
+        assert_eq!(ClientId::from_ip("10.0.0.1").to_string(), "ip:10.0.0.1");
+        assert_eq!(
+            ClientId::process().to_string(),
+            format!("process:{}", std::process::id())
+        );
+        assert_eq!(ClientId::Shared.to_string(), "shared");
+        assert_eq!(ClientId::Unknown.to_string(), "unknown");
+    }
+
+    #[test]
+    fn test_rate_limit_config_invariants() {
+        let config = RateLimitConfig::default();
+        assert!(config.enabled);
+        assert!(
+            config.max_identities > 0,
+            "the default identity bound must permit at least one bucket"
+        );
+        assert!(config.read_requests_per_second > 0);
+        assert!(config.write_requests_per_second > 0);
+
+        // The environment loader filters out a zero/garbage identity bound
+        assert!(RateLimitConfig::from_env().max_identities > 0);
+    }
 }

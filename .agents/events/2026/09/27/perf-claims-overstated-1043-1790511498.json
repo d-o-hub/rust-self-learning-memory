@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-27T12:18:18Z",
+  "sensor": "perf-claims-overstated",
+  "category": "maintainability",
+  "violation_count": 1,
+  "root_cause": "Auto-generated Jules perf PR #1043 advertised a 19-37% speedup from delegating DiversityMaximizer::calculate_similarity to the shared cosine helper, with no before/after measurement on the changed path: production MMR consumes fixed 10-dimensional vectors (memory/retrieval/context.rs) while the cited benchmark measures 384-3072 dimensions (benches/cosine_similarity_benchmark.rs), and that benchmark's scalar and simd arms both call the same implementation (cosine_similarity delegates to cosine_similarity_simd), so it cannot measure any delta; an earlier review also requested mismatch/empty/zero-vector tests that already existed in spatiotemporal/diversity/tests.rs",
+  "guide_updated": "HARNESS.md#feedback-sensors (existing perf-pr-guardrails guide re-verified; no guide change needed)",
+  "skill_created": false,
+  "resolution": "Closed PR #1043 with an evidence-based closing comment: behavior equivalence confirmed by reading both implementations; the 22-line duplication removal acknowledged as a maintenance win, not a measured speedup; reopening path stated as either reframing without the perf number plus a real 10-dimensional MMR before/after measurement, or fixing benches/cosine_similarity_benchmark.rs to compare distinct implementations"
+}

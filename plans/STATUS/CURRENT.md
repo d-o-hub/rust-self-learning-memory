@@ -1,18 +1,29 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-09-27
-**Released Version**: v0.1.42 (latest tag)
-**Workspace Version**: 0.1.43 (post-v0.1.42 bump)
+**Last Updated**: 2026-09-30
+**Released Version**: v0.1.43 (release pending tag)
+**Workspace Version**: 0.1.43 (matches release)
 **Edition**: Rust 2024  
-**Active plan**: none in flight — v0.1.42 shipped 2026-09-27 (#1041 judgment, #1042 rerank, #1049 evidence classification with the #1053 per-dimension confidence fix, #1046/#1047 tooling, #1051 csm CI); post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `47a07a0b` (PR #1053 merged 2026-09-27)
+**Active plan**: none in flight — this PR prepares v0.1.43; merged since v0.1.42: MCP OAuth 2.1 enforcement (#1101 → #1082), rate-limit identity from a trusted principal (#1101 → #1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe storage pools (#1095 → #1060-#1062) and the MCP fail-closed docs reconciliation (#1099); release drift is tracked by #1098; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `8faab97b` (PR #1101 merged 2026-09-30)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | none open — #1048 release drift closed by v0.1.42 (2026-09-27) |
+| Open issues | run `gh issue list --state open` — the release-drift issue for this tag tracks the release until it lands |
+
+## Recent completed (2026-09-30 — v0.1.43 prepared)
+
+| Wave | Result |
+|------|--------|
+| MCP OAuth 2.1 enforcement (#1082) + trusted rate-limit identity (#1084) | ✅ #1101 — tokens verified (signature/issuer/audience/expiry/scope) before method dispatch, fail-closed startup without a secret, buckets keyed by the validated subject or the process identity, bounded identity cardinality |
+| redb fail-closed schema handling (#1069) | ✅ #1096 — a mismatched non-empty database is preserved and fails closed with `Error::SchemaMigrationRequired`; `reset_all_tables` is the only clearing path |
+| Embedding activation identity (#1072) | ✅ #1097 — serialized activation revisions, provider-identity-bound ANN indexes, blank identities rejected |
+| MCP `tools/list` full registry (#1083) | ✅ #1100 — default listing enumerates every registered tool with schemas; lazy stubs keep `tools/describe` identical |
+| Storage pool ownership (#1060-#1062) | ✅ #1095 — adaptive/caching/keep-alive guards own their state; no raw-pointer ownership or unnecessary `unsafe` |
+| MCP fail-closed docs reconciliation | ✅ #1099 — security/architecture docs, skills and doc-integrity checks aligned with the shipped fail-closed behavior |
 
 ## Recent completed (2026-09-27 — v0.1.42 shipped)
 

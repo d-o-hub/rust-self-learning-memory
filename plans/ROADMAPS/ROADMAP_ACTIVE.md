@@ -1,13 +1,25 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-09-27
-**Released Version**: v0.1.42 (latest tag)
-**Workspace Version**: 0.1.43 (post-v0.1.42 bump)
-**Active Sprint**: v0.1.42 shipped 2026-09-27 — retrieval judgment (#1030 → #1041), shortlist rerank (#1031 → #1042), evidence-aware classification (#1032 → #1049) with the per-dimension confidence fix (#1053), tooling (#1046/#1047) and csm CI enforcement (#1045 → #1051); post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next
-**Plan**: #1030/#1031/#1032 landed via PRs #1041/#1042/#1049; tooling via #1046/#1047; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `47a07a0b`
+**Last Updated**: 2026-09-30
+**Released Version**: v0.1.43 (release pending tag)
+**Workspace Version**: 0.1.43 (matches release)
+**Active Sprint**: v0.1.43 prepared 2026-09-30 — MCP OAuth 2.1 enforcement + trusted rate-limit identity (#1101 → #1082/#1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe pools (#1095 → #1060-#1062), MCP fail-closed docs reconciliation (#1099) and repo chores (skills #1057, harness clippy sensor #1056, dependabot #1058/#1059); drift tracked by #1098
+**Plan**: #1082/#1084 landed via PR #1101, #1069 via #1096, #1072 via #1097, #1083 via #1100, #1060-#1062 via #1095; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
+**Branch**: main @ `8faab97b` (PR #1101 merged 2026-09-30)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: none open — #1048 release drift closed by v0.1.42 (2026-09-27)
+**Open issues**: run `gh issue list --state open` — the release-drift issue for this tag tracks the release until it lands
+
+## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | MCP security | #1082 OAuth 2.1 enforcement before method dispatch; fail-closed startup without `MCP_OAUTH_TOKEN_SECRET` | ✅ Merged (#1101) |
+| P1 | MCP security | #1084 rate-limit identity from the validated token subject / process identity; bounded bucket cardinality | ✅ Merged (#1101) |
+| P1 | Storage | #1069 redb fails closed on schema mismatch instead of clearing data | ✅ Merged (#1096) |
+| P1 | Core | #1072 atomic, provider-identity-aware embedding activation | ✅ Merged (#1097) |
+| P2 | MCP | #1083 `tools/list` enumerates the full registry by default | ✅ Merged (#1100) |
+| P2 | Storage | #1060-#1062 adaptive/caching/keep-alive pool ownership without raw pointers or `unsafe` | ✅ Merged (#1095) |
+| P2 | Docs | MCP fail-closed claims reconciled across docs, skills and doc-integrity checks | ✅ Merged (#1099) |
 
 ## Sprint 2026-09-24 — Retrieval judgment + rerank
 

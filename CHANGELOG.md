@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.43] - 2026-09-30
+
 ### Fixed
 
 - MCP OAuth 2.1 authorization is now enforced instead of only logged (#1082):

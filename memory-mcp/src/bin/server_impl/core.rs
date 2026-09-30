@@ -11,7 +11,6 @@ use do_memory_mcp::MemoryMCPServer;
 use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use do_memory_mcp::protocol::{
     DescribeToolResult, DescribeToolsResult, ListToolStubsResult, ListToolsResult, McpTool,
-    ToolStub,
 };
 pub use do_memory_mcp::protocol::{
     OAuthConfig, ProtectedResourceMetadata, handle_initialize, handle_shutdown,
@@ -92,18 +91,10 @@ pub async fn handle_list_tools(
         .unwrap_or(false);
 
     let server = mcp_server.lock().await;
-    let tools = server.list_tools().await;
 
     if lazy {
-        // Return lightweight stubs (90-96% token reduction)
-        let tool_stubs: Vec<ToolStub> = tools
-            .into_iter()
-            .map(|tool| ToolStub {
-                name: tool.name,
-                title: None,
-                description: tool.description,
-            })
-            .collect();
+        // Return lightweight stubs covering the whole registry (90-96% token reduction)
+        let tool_stubs = server.list_all_tool_stubs();
 
         let result = ListToolStubsResult { tools: tool_stubs };
 
@@ -131,8 +122,9 @@ pub async fn handle_list_tools(
             }
         }
     } else {
-        // Return full schemas (backward compatible)
-        let mcp_tools: Vec<McpTool> = tools
+        // Return full schemas for every registered tool (backward compatible)
+        let mcp_tools: Vec<McpTool> = server
+            .list_all_tools()
             .into_iter()
             .map(|tool| McpTool {
                 name: tool.name,

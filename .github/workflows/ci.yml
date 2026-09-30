@@ -242,6 +242,7 @@ jobs:
         run: |
           timeout 600s nix develop --command cargo build -p do-memory-mcp || exit 1
           timeout 600s nix develop --command cargo nextest run --profile ci -p do-memory-mcp || exit 1
+          timeout 600s nix develop --command cargo nextest run --profile ci -p do-memory-mcp --features oauth || exit 1
       - name: Upload nextest JUnit (mcp-build)
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

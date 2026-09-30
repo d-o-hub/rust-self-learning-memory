@@ -93,10 +93,13 @@ jobs:
           echo "Generating coverage report for workspace code..."
           # Use --workspace so Codecov patch status can map PR diff lines correctly.
           # Exclude heavy non-gating crates to keep runtime reasonable.
+          # Enable do-memory-mcp/oauth so feature-gated auth code is instrumented
+          # and its tests run (otherwise those changed lines report 0%).
           timeout 2400s nix develop --command cargo llvm-cov --workspace \
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \
+            --features do-memory-mcp/oauth \
             --lcov --output-path lcov.info --jobs 4
           echo "Coverage report generated successfully"
         env:
@@ -120,6 +123,7 @@ jobs:
             --exclude do-memory-benches \
             --exclude do-memory-examples \
             --exclude test-utils \
+            --features do-memory-mcp/oauth \
             --lcov --output-path lcov-full.info --jobs 4 || \
             echo "Full coverage timed out, using library-only report"
           # Use full report if available, otherwise keep library report

@@ -69,22 +69,35 @@ pub const INSUFFICIENT_SCOPE_CODE: i32 = -32003;
 /// - `MCP_OAUTH_JWKS_URI`: JWKS URI for token validation
 /// - `MCP_OAUTH_TOKEN_SECRET`: Secret key for HMAC token validation
 pub fn load_oauth_config() -> OAuthConfig {
-    let enabled = std::env::var("MCP_OAUTH_ENABLED")
-        .unwrap_or_else(|_| "false".to_string())
+    load_oauth_config_from(&process_env)
+}
+
+/// Look up a variable in the process environment
+fn process_env(var: &str) -> Option<String> {
+    std::env::var(var).ok()
+}
+
+/// Load OAuth configuration using the provided environment lookup
+///
+/// The lookup seam keeps configuration parsing unit-testable without mutating
+/// the process environment (`std::env::set_var` is unsafe since Rust 2024).
+pub(crate) fn load_oauth_config_from(lookup: &dyn Fn(&str) -> Option<String>) -> OAuthConfig {
+    let enabled = lookup("MCP_OAUTH_ENABLED")
+        .unwrap_or_else(|| "false".to_string())
         .to_lowercase();
 
     OAuthConfig {
         enabled: enabled == "true" || enabled == "1" || enabled == "yes",
-        audience: std::env::var("MCP_OAUTH_AUDIENCE").ok(),
-        issuer: std::env::var("MCP_OAUTH_ISSUER").ok(),
-        scopes: std::env::var("MCP_OAUTH_SCOPES")
-            .unwrap_or_else(|_| "mcp:read,mcp:write".to_string())
+        audience: lookup("MCP_OAUTH_AUDIENCE"),
+        issuer: lookup("MCP_OAUTH_ISSUER"),
+        scopes: lookup("MCP_OAUTH_SCOPES")
+            .unwrap_or_else(|| "mcp:read,mcp:write".to_string())
             .split(',')
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect(),
-        jwks_uri: std::env::var("MCP_OAUTH_JWKS_URI").ok(),
-        token_secret: std::env::var("MCP_OAUTH_TOKEN_SECRET").ok(),
+        jwks_uri: lookup("MCP_OAUTH_JWKS_URI"),
+        token_secret: lookup("MCP_OAUTH_TOKEN_SECRET"),
     }
 }
 
@@ -93,8 +106,13 @@ pub fn load_oauth_config() -> OAuthConfig {
 /// stdio clients cannot send HTTP headers, so the credential is taken from the
 /// server process environment instead.
 pub fn load_transport_token() -> Option<String> {
+    load_transport_token_from(&process_env)
+}
+
+/// Load the transport-supplied bearer token using the provided environment lookup
+pub(crate) fn load_transport_token_from(lookup: &dyn Fn(&str) -> Option<String>) -> Option<String> {
     for var in ["MCP_OAUTH_TOKEN", "MCP_OAUTH_BEARER_TOKEN"] {
-        if let Ok(value) = std::env::var(var) {
+        if let Some(value) = lookup(var) {
             let value = value.trim();
             if !value.is_empty() {
                 return Some(value.to_string());
@@ -429,7 +447,6 @@ pub fn create_www_authenticate_header(
 }
 
 #[cfg(all(test, feature = "oauth"))]
-#[allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
 mod tests {
     use super::super::types::{AuthorizationResult, RequestAuthorization};
     use do_memory_mcp::protocol::OAuthConfig;
@@ -437,14 +454,11 @@ mod tests {
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
     use serde::{Deserialize, Serialize};
     use serde_json::json;
-    use tokio::sync::Mutex as AsyncMutex;
+    use std::collections::HashMap;
 
     const SECRET: &str = "unit-test-secret";
     const ISSUER: &str = "https://auth.example.com";
     const AUDIENCE: &str = "mcp-server";
-
-    /// Serializes tests that mutate process environment variables.
-    static ENV_LOCK: AsyncMutex<()> = AsyncMutex::const_new(());
 
     #[derive(Debug, Serialize, Deserialize)]
     struct TestClaims {
@@ -927,43 +941,21 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_load_oauth_config_and_transport_token_from_env() -> anyhow::Result<()> {
-        let _guard = ENV_LOCK.lock().await;
-        let previous_bearer = std::env::var("MCP_OAUTH_BEARER_TOKEN").ok();
-        let previous_token = std::env::var("MCP_OAUTH_TOKEN").ok();
+    #[test]
+    fn test_load_oauth_config_and_transport_token_from_lookup() {
+        let env = HashMap::from([
+            ("MCP_OAUTH_ENABLED", "true"),
+            ("MCP_OAUTH_ISSUER", ISSUER),
+            ("MCP_OAUTH_AUDIENCE", AUDIENCE),
+            ("MCP_OAUTH_SCOPES", "mcp:read, mcp:write ,"),
+            ("MCP_OAUTH_JWKS_URI", "https://auth.example.com/jwks"),
+            ("MCP_OAUTH_TOKEN_SECRET", SECRET),
+            ("MCP_OAUTH_TOKEN", "  env-token  "),
+        ]);
+        let lookup = |var: &str| env.get(var).map(|value| (*value).to_string());
 
-        // SAFETY: serialized by ENV_LOCK
-        unsafe {
-            std::env::set_var("MCP_OAUTH_ENABLED", "true");
-            std::env::set_var("MCP_OAUTH_ISSUER", ISSUER);
-            std::env::set_var("MCP_OAUTH_AUDIENCE", AUDIENCE);
-            std::env::set_var("MCP_OAUTH_SCOPES", "mcp:read, mcp:write ,");
-            std::env::set_var("MCP_OAUTH_JWKS_URI", "https://auth.example.com/jwks");
-            std::env::set_var("MCP_OAUTH_TOKEN_SECRET", SECRET);
-            std::env::set_var("MCP_OAUTH_TOKEN", "  env-token  ");
-        }
-
-        let config = super::load_oauth_config();
-        let transport = super::load_transport_token();
-
-        // SAFETY: serialized by ENV_LOCK
-        unsafe {
-            for var in [
-                "MCP_OAUTH_ENABLED",
-                "MCP_OAUTH_ISSUER",
-                "MCP_OAUTH_AUDIENCE",
-                "MCP_OAUTH_SCOPES",
-                "MCP_OAUTH_JWKS_URI",
-                "MCP_OAUTH_TOKEN_SECRET",
-                "MCP_OAUTH_TOKEN",
-            ] {
-                std::env::remove_var(var);
-            }
-            if let Some(value) = &previous_token {
-                std::env::set_var("MCP_OAUTH_TOKEN", value);
-            }
-        }
+        let config = super::load_oauth_config_from(&lookup);
+        let transport = super::load_transport_token_from(&lookup);
 
         assert!(config.enabled);
         assert!(config.is_enforced());
@@ -982,23 +974,11 @@ mod tests {
         assert_eq!(transport.as_deref(), Some("env-token"));
 
         // The bearer-token alias is the fallback when the primary var is unset
-        // SAFETY: serialized by ENV_LOCK
-        unsafe {
-            std::env::remove_var("MCP_OAUTH_TOKEN");
-            std::env::set_var("MCP_OAUTH_BEARER_TOKEN", "alias-token");
-        }
-        let transport = super::load_transport_token();
-        // SAFETY: serialized by ENV_LOCK
-        unsafe {
-            std::env::remove_var("MCP_OAUTH_BEARER_TOKEN");
-            if let Some(value) = &previous_bearer {
-                std::env::set_var("MCP_OAUTH_BEARER_TOKEN", value);
-            }
-            if let Some(value) = &previous_token {
-                std::env::set_var("MCP_OAUTH_TOKEN", value);
-            }
-        }
-        assert_eq!(transport.as_deref(), Some("alias-token"));
-        Ok(())
+        let alias = HashMap::from([("MCP_OAUTH_BEARER_TOKEN", "alias-token")]);
+        let alias_lookup = |var: &str| alias.get(var).map(|value| (*value).to_string());
+        assert_eq!(
+            super::load_transport_token_from(&alias_lookup).as_deref(),
+            Some("alias-token")
+        );
     }
 }

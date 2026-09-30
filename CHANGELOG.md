@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without loading execution state, and `tools/describe` stays schema-identical
   to the full listing. Backed by new `list_all_tools()` /
   `list_all_tool_stubs()` server APIs and the corresponding registry accessors.
+- `RedbStorage` no longer clears a database whose stored schema version is stale
+  or missing (#1069): schema inspection, migration and reset are separate
+  operations, a mismatched non-empty database fails closed with the typed
+  `Error::SchemaMigrationRequired` and every table is left untouched, the new
+  `migrate_schema` adopts decodable legacy rows or preserves the file when a row
+  cannot be decoded, `open_unchecked` is the operator escape hatch for running
+  migration or reset against a mismatched file, and clearing is possible only
+  through the explicit `reset_all_tables`.
 - Runtime embedding activation is now a single serialized state update (#1072):
   concurrent activations produce unique monotonic revisions and one coherent
   winning snapshot; cache and provenance identity follow the active provider

@@ -25,6 +25,34 @@ pub enum AuthorizationResult {
     InsufficientScope(Vec<String>),
 }
 
+/// Authenticated caller derived from a validated access token
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuthenticatedPrincipal {
+    /// Token subject (`sub` claim)
+    pub subject: String,
+    /// Scopes granted by the token
+    pub scopes: Vec<String>,
+}
+
+/// Outcome of the pre-dispatch authorization check (issues #1082, #1084)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RequestAuthorization {
+    /// OAuth is disabled: the caller is unauthenticated and is rate limited as
+    /// the process-scoped principal.
+    Unauthenticated,
+    /// Credentials were validated; the principal is trusted for rate limiting.
+    Authenticated(AuthenticatedPrincipal),
+    /// Request must be rejected. `description` never contains credential material.
+    Rejected {
+        /// JSON-RPC error code
+        code: i32,
+        /// Stable machine-readable error name
+        error: String,
+        /// Human-readable diagnostic
+        description: String,
+    },
+}
+
 // ============================================================
 // MCP Core Protocol Types (deprecated - use library versions)
 // ============================================================
@@ -328,7 +356,7 @@ pub struct RateLimitEnvConfig {
     pub write_rps: u32,
     pub write_burst: u32,
     pub cleanup_interval_secs: u64,
-    pub client_id_header: String,
+    pub max_identities: usize,
 }
 
 impl Default for RateLimitEnvConfig {
@@ -340,7 +368,7 @@ impl Default for RateLimitEnvConfig {
             write_rps: 20,
             write_burst: 30,
             cleanup_interval_secs: 60,
-            client_id_header: "X-Client-ID".to_string(),
+            max_identities: 10_000,
         }
     }
 }
@@ -373,8 +401,28 @@ impl RateLimitEnvConfig {
                 .ok()
                 .and_then(|v| v.parse::<u64>().ok())
                 .unwrap_or(60),
-            client_id_header: std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
-                .unwrap_or_else(|_| "X-Client-ID".to_string()),
+            max_identities: std::env::var("MCP_RATE_LIMIT_MAX_IDENTITIES")
+                .ok()
+                .and_then(|v| v.parse::<usize>().ok())
+                .filter(|v| *v > 0)
+                .unwrap_or(10_000),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rate_limit_env_config_bounds_identities() {
+        let config = RateLimitEnvConfig::default();
+        assert!(config.enabled);
+        assert!(config.max_identities > 0);
+        assert!(config.read_burst > 0);
+        assert!(config.write_burst > 0);
+
+        // A zero/garbage override must never disable bucket bounding entirely
+        assert!(RateLimitEnvConfig::from_env().max_identities > 0);
     }
 }

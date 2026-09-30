@@ -330,8 +330,8 @@ MCP_RATE_LIMIT_WRITE_BURST=30      # Burst allowance
 # Cleanup interval (remove inactive clients)
 MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS=60
 
-# Custom client ID header (default: X-Client-ID)
-MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Client-ID
+# Maximum distinct identity buckets per operation type
+MCP_RATE_LIMIT_MAX_IDENTITIES=10000
 ```
 
 ### Default Limits
@@ -394,18 +394,43 @@ Retry-After: 5
 - Tag operations
 - Configuration changes
 
-### Client Identification
+### Principal Identification
 
-Clients are identified by (in order of preference):
-1. `X-Client-ID` header (if provided)
-2. Source IP address
-3. "unknown" (fallback)
+Rate-limit buckets are keyed by a **trusted principal**, never by client-supplied data:
 
-```bash
-# Example: Set custom client ID
-curl -H "X-Client-ID: service-a" \
-     http://localhost:3000/memory/query
-```
+1. The validated OAuth token subject (`sub`) when `MCP_OAUTH_ENABLED=true` and the
+   token passes signature/issuer/audience/expiry/scope validation.
+2. A single process-scoped identity otherwise (stdio transports cannot carry
+   credentials), so all such requests share one bucket.
+
+Caller-supplied identifiers (`client_id`, `_meta.client_id`,
+`_meta.headers.*`) are ignored: trusting them allowed an unauthenticated caller
+to rotate identifiers and escape a saturated bucket (issue #1084). Distinct
+authenticated subjects get independent buckets, and the number of tracked
+identities is bounded by `MCP_RATE_LIMIT_MAX_IDENTITIES` (further identities
+share one overflow bucket; stale buckets are evicted after
+`MCP_RATE_LIMIT_STALE_THRESHOLD_SECS`).
+
+### OAuth 2.1 Authorization (stdio transport)
+
+`MCP_OAUTH_ENABLED=true` is enforced, not merely advertised:
+
+- Every method except `initialize` and `.well-known/oauth-protected-resource`
+  requires a bearer token whose signature, issuer (`MCP_OAUTH_ISSUER`),
+  audience (`MCP_OAUTH_AUDIENCE`), expiry and scope all validate.
+- Read operations require `mcp:read`; write operations require `mcp:write`.
+- Missing configuration fails closed: the server refuses to start when
+  `MCP_OAUTH_TOKEN_SECRET` is absent (or when the `oauth` feature is not
+  compiled in), and the `initialize` response only advertises the
+  `authorization` capability when enforcement is real.
+- stdio cannot carry HTTP headers, so the credential is read from the request
+  (`_meta.authorization`, `_meta.headers.authorization`, or a top-level
+  `authorization` field) or, as the transport default for stdio, from the server
+  process's `MCP_OAUTH_TOKEN` / `MCP_OAUTH_BEARER_TOKEN` environment variable.
+  With OAuth disabled (the default) no credentials are read at all and requests
+  are rate limited as one process-scoped principal.
+- Rejections return JSON-RPC `-32001` (`Unauthorized`) or `-32003`
+  (`Insufficient scope`) with diagnostics that never echo token material.
 
 ### Tuning Recommendations
 
@@ -600,7 +625,7 @@ MCP_RATE_LIMIT_READ_BURST=150
 MCP_RATE_LIMIT_WRITE_RPS=20
 MCP_RATE_LIMIT_WRITE_BURST=30
 MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS=300
-MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Client-ID
+MCP_RATE_LIMIT_MAX_IDENTITIES=10000
 ```
 
 ### Systemd Service Integration

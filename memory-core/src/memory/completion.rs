@@ -356,15 +356,16 @@ impl SelfLearningMemory {
             }
         }
 
-        if self.turso_storage.is_some() {
-            if let Err(e) = self.store_episode_durable(episode_ref).await {
-                warn!(
-                    episode_id = %episode_id,
-                    error = %e,
-                    "Failed to persist completed episode to Turso"
-                );
-                store_failures.push(format!("turso: {e}"));
-            }
+        // `store_episode_durable` is a no-op when no durable backend is
+        // configured, so the call is unconditional (its no-backend arm is
+        // part of the contract).
+        if let Err(e) = self.store_episode_durable(episode_ref).await {
+            warn!(
+                episode_id = %episode_id,
+                error = %e,
+                "Failed to persist completed episode to Turso"
+            );
+            store_failures.push(format!("turso: {e}"));
         }
 
         if !store_failures.is_empty() {

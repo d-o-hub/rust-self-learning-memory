@@ -96,7 +96,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 1. `verify-release-state.sh --check-unreleased`
 2. Local: fmt, clippy, build check, nextest, doctest, quality-gates  
-   (skip with `--skip-local-tests` only in documented emergencies)
+   (note: quality-gates defaults `QUALITY_GATE_SKIP_OPTIONAL=true` locally; optional tool gates like coverage/audit run when tools are installed or explicit `QUALITY_GATE_SKIP_OPTIONAL=false` is set. Skip local checks with `--skip-local-tests` only in documented emergencies)
 3. `ci-check` on `origin/main` HEAD (all runs completed success/skipped)
 4. `git tag -a vX.Y.Z -m "Release vX.Y.Z"` on that HEAD
 5. `git push origin refs/tags/vX.Y.Z` only (does **not** push commits)

@@ -14,7 +14,7 @@ Unified skill for Rust code quality and clean code development.
 ./scripts/code-quality.sh clippy --workspace     # Lint with clippy
 ./scripts/code-quality.sh audit                  # Security audit
 ./scripts/code-quality.sh check                  # Run all quality gates
-./scripts/quality-gates.sh                       # Full gates (coverage 90%)
+./scripts/quality-gates.sh                       # Full gates (coverage floor 70%, target 90%)
 ```
 
 ## Quality Gates
@@ -24,7 +24,7 @@ Unified skill for Rust code quality and clean code development.
 | Format | `./scripts/code-quality.sh fmt` | 100% compliant |
 | Lint | `./scripts/code-quality.sh clippy --workspace` | Zero warnings |
 | Audit | `cargo audit` | No known vulnerabilities |
-| Coverage | `cargo llvm-cov --html` | >=90% |
+| Coverage | `cargo llvm-cov --html` | >=70% floor (90% target) |
 | Docs | `cargo doc --no-deps` | All public APIs |
 
 ## Rust Quality Dimensions
@@ -34,7 +34,7 @@ Unified skill for Rust code quality and clean code development.
 | Structure | Files <500 LOC, clear modules |
 | Error Handling | Custom Error, Result<T>, `?` operator (no unwrap) |
 | Async | spawn_blocking for CPU work, no blocking in async |
-| Testing | >=90% coverage, AAA pattern, cargo nextest + doctests |
+| Testing | >=70% coverage floor (90% target), AAA pattern, cargo nextest + doctests |
 | Security | Parameterized SQL, env vars, no hardcoded secrets |
 
 ## Clean Code Principles

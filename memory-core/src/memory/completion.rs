@@ -8,64 +8,9 @@ use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
-use crate::Episode;
-
-/// Durability reached by a completion when it returned (issue #1080).
-///
-/// The receipt that carries this value is sourced from live durable-write
-/// queue statistics, so [`EpisodeDurability::Queued`] can never be mistaken
-/// for a committed remote write. See ADR-075 (D2 follow-up).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EpisodeDurability {
-    /// No durable backend is configured: the episode is committed to the
-    /// local backends only.
-    Local,
-    /// Every configured backend (including the durable one) committed the
-    /// episode before the call returned — the synchronous path, or the
-    /// durable write queue is disabled.
-    Committed,
-    /// Local state committed; the durable backend accepted the episode into
-    /// the bounded background write queue and it has not committed yet.
-    ///
-    /// Callers that require remote durability must drain the queue with
-    /// [`flush_durable_writes`](SelfLearningMemory::flush_durable_writes)
-    /// (or [`complete_episode`](SelfLearningMemory::complete_episode) after
-    /// draining) and treat drain errors as failed completions.
-    Queued,
-}
-
-/// Receipt for a completed episode, reporting the durability reached when
-/// the completion returned (issue #1080).
-///
-/// Issued by
-/// [`complete_episode_checked`](SelfLearningMemory::complete_episode_checked).
-#[derive(Debug, Clone)]
-pub struct EpisodeCompletionReceipt {
-    /// The completed episode.
-    pub episode_id: Uuid,
-    /// Durability state at return time.
-    pub durability: EpisodeDurability,
-    /// Waiting durable writes after this completion; `0` unless
-    /// [`EpisodeDurability::Queued`].
-    pub queue_depth: usize,
-}
+use super::completion_receipt::EpisodeCompletionReceipt;
 
 impl SelfLearningMemory {
-    /// Persist one episode to the Turso backend.
-    ///
-    /// Routes through the bounded background queue when it is enabled
-    /// (#967, returning after the enqueue rather than the remote commit)
-    /// and stores synchronously otherwise. Resolves to `Ok(())` when no
-    /// Turso backend is configured. Queue backpressure surfaces as an
-    /// explicit error, never a silent drop.
-    pub(super) async fn store_episode_durable(&self, episode: &Episode) -> Result<()> {
-        match (&self.turso_storage, &self.durable_write_queue) {
-            (Some(_), Some(write_queue)) => write_queue.enqueue_episode(episode.clone()).await,
-            (Some(turso), None) => turso.store_episode(episode).await,
-            (None, _) => Ok(()),
-        }
-    }
-
     /// Complete an episode and trigger learning analysis.
     ///
     /// Finalizes the episode by recording the outcome, then performs the learning
@@ -470,33 +415,10 @@ impl SelfLearningMemory {
         // ============================================================================
         // Semantic Search - Generate and store embedding
 
-        // Generate and store embedding for semantic search
-        // Uses the live provider snapshot so episodes are embedded with the
+        // Generate and store embedding for semantic search. Uses the live
+        // provider snapshot so episodes are embedded with the
         // runtime-activated provider (issue #1072).
-        if let Some(semantic) = self.live_semantic_service().await {
-            if let Err(e) = semantic.embed_episode(episode_ref).await {
-                warn!(
-                    episode_id = %episode_id,
-                    error = %e,
-                    "Failed to generate embedding for episode. Continuing without embedding."
-                );
-                // Don't fail entire operation on embedding error
-            } else {
-                debug!(
-                    episode_id = %episode_id,
-                    "Successfully generated embedding for episode"
-                );
-
-                // Update ANN index for hybrid search (v0.1.34)
-                if let Some(retriever) = &self.semantic_retriever {
-                    if let Ok(embeddings) = semantic.get_embeddings_batch(&[episode_id]).await {
-                        if let Some(Some(embedding)) = embeddings.first() {
-                            let _ = retriever.upsert(&episode_id.to_string(), embedding.clone());
-                        }
-                    }
-                }
-            }
-        }
+        self.update_completion_embeddings(episode_ref).await;
 
         // v0.1.12: Invalidate Query Cache
         // ============================================================================
@@ -563,19 +485,6 @@ impl SelfLearningMemory {
         // Issue #1080: report durability from live queue state, not from a
         // best-effort boolean. `Queued` means the durable write is accepted
         // but not committed; callers drain the queue for that guarantee.
-        let (durability, queue_depth) = match (&self.turso_storage, &self.durable_write_queue) {
-            (Some(_), Some(queue)) => (
-                EpisodeDurability::Queued,
-                queue.get_stats().await.current_depth,
-            ),
-            (Some(_), None) => (EpisodeDurability::Committed, 0),
-            (None, _) => (EpisodeDurability::Local, 0),
-        };
-
-        Ok(EpisodeCompletionReceipt {
-            episode_id,
-            durability,
-            queue_depth,
-        })
+        Ok(self.completion_receipt(episode_id).await)
     }
 }

@@ -435,6 +435,23 @@ impl DurableWriteQueue {
     }
 }
 
+impl super::SelfLearningMemory {
+    /// Persist one episode to the Turso backend.
+    ///
+    /// Routes through the bounded background queue when it is enabled
+    /// (#967, returning after the enqueue rather than the remote commit)
+    /// and stores synchronously otherwise. Resolves to `Ok(())` when no
+    /// Turso backend is configured. Queue backpressure surfaces as an
+    /// explicit error, never a silent drop.
+    pub(super) async fn store_episode_durable(&self, episode: &crate::Episode) -> Result<()> {
+        match (&self.turso_storage, &self.durable_write_queue) {
+            (Some(_), Some(write_queue)) => write_queue.enqueue_episode(episode.clone()).await,
+            (Some(turso), None) => turso.store_episode(episode).await,
+            (None, _) => Ok(()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

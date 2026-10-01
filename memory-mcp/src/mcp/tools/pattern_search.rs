@@ -97,9 +97,7 @@ pub async fn execute(
     input
         .tags
         .truncate(crate::constants::MAX_TAGS_PER_OPERATION);
-    input.limit = input
-        .limit
-        .clamp(1, crate::constants::MAX_SEARCH_LIMIT);
+    input.limit = input.limit.clamp(1, crate::constants::MAX_SEARCH_LIMIT);
     input.min_relevance = input.min_relevance.clamp(0.0, 1.0);
 
     // Build context
@@ -248,9 +246,7 @@ pub async fn execute_recommend(
     input
         .tags
         .truncate(crate::constants::MAX_TAGS_PER_OPERATION);
-    input.limit = input
-        .limit
-        .clamp(1, crate::constants::MAX_RECOMMEND_LIMIT);
+    input.limit = input.limit.clamp(1, crate::constants::MAX_RECOMMEND_LIMIT);
 
     // Build context
     let context = TaskContext {

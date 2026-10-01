@@ -66,7 +66,7 @@ mod tests {
         let parsed: Config = toml::from_str(&toml).expect("template must parse as Config");
         assert_eq!(parsed.database.storage_mode.as_deref(), Some("local"));
         assert!(parsed.storage.max_episodes_cache > 0);
-        assert!(!parsed.cli.default_format.is_empty());
+        assert_ne!(parsed.cli.default_format.len(), 0);
     }
 
     #[test]

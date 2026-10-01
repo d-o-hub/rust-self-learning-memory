@@ -127,7 +127,7 @@ mod tests {
     fn test_mode_recommendation() {
         let recommendation = recommend_mode(&UsagePattern::Development);
         assert_eq!(recommendation.recommended_mode, ConfigurationMode::Simple);
-        assert!(!recommendation.reasoning.is_empty());
+        assert_ne!(recommendation.reasoning.len(), 0);
     }
 
     #[test]

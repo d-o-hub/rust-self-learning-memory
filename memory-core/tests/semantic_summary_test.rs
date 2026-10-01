@@ -52,9 +52,9 @@ async fn test_summarize_complete_episode() {
 
     // Verify summary structure
     assert_eq!(summary.episode_id, episode.episode_id);
-    assert!(!summary.summary_text.is_empty());
-    assert!(!summary.key_concepts.is_empty());
-    assert!(!summary.key_steps.is_empty());
+    assert_ne!(summary.summary_text.len(), 0);
+    assert_ne!(summary.key_concepts.len(), 0);
+    assert_ne!(summary.key_steps.len(), 0);
 
     // Verify summary content
     assert!(summary.summary_text.contains("Task:"));
@@ -79,7 +79,7 @@ async fn test_summarize_incomplete_episode() {
     let summary = summarizer.summarize_episode(&episode).await.unwrap();
 
     assert_eq!(summary.episode_id, episode.episode_id);
-    assert!(!summary.summary_text.is_empty());
+    assert_ne!(summary.summary_text.len(), 0);
     assert!(summary.summary_text.contains("Task:"));
 }
 
@@ -221,7 +221,7 @@ fn test_extract_key_steps_empty_episode() {
     let key_steps = summarizer.extract_key_steps(&episode);
 
     // Should handle empty episode
-    assert!(key_steps.is_empty());
+    assert_eq!(key_steps.len(), 0);
 }
 
 #[test]
@@ -341,7 +341,7 @@ fn test_summary_edge_case_empty_episode() {
     let summary_text = summarizer.generate_summary_text(&episode);
 
     // Should handle empty episode gracefully
-    assert!(!summary_text.is_empty());
+    assert_ne!(summary_text.len(), 0);
     assert!(summary_text.contains("Task:"));
 }
 

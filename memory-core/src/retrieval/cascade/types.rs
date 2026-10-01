@@ -296,8 +296,8 @@ mod tests {
 
         assert!(result.is_empty());
         assert_eq!(result.len(), 0);
-        assert!(result.ids().is_empty());
-        assert!(result.scores().is_empty());
+        assert_eq!(result.ids().len(), 0);
+        assert_eq!(result.scores().len(), 0);
     }
 
     #[test]

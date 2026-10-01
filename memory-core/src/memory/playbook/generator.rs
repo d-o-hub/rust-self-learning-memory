@@ -199,8 +199,8 @@ mod tests {
             .unwrap();
 
         assert!(playbook.task_match_score > 0.0);
-        assert!(!playbook.ordered_steps.is_empty());
-        assert!(!playbook.why_relevant.is_empty());
+        assert_ne!(playbook.ordered_steps.len(), 0);
+        assert_ne!(playbook.why_relevant.len(), 0);
     }
 
     #[test]
@@ -211,7 +211,7 @@ mod tests {
         let playbook = generator.generate(&request, &[], &[], &[]).unwrap();
 
         assert_eq!(playbook.task_match_score, 0.0);
-        assert!(playbook.ordered_steps.is_empty());
+        assert_eq!(playbook.ordered_steps.len(), 0);
         assert_eq!(playbook.confidence, 0.0);
     }
 }

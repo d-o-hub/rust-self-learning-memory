@@ -290,8 +290,8 @@ fn test_empty_candidates_applied_without_provider_call() {
     let outcome = semantic_rerank("query", &[], &HashMap::new(), Some(&judge), &enabled());
 
     assert_eq!(outcome.status, RerankStatus::Applied);
-    assert!(outcome.ids.is_empty());
-    assert!(outcome.scores.is_empty());
+    assert_eq!(outcome.ids.len(), 0);
+    assert_eq!(outcome.scores.len(), 0);
     assert_eq!(outcome.shortlist_len, 0);
     assert_eq!(outcome.output_len, 0);
     assert!(!outcome.top1_changed);
@@ -783,7 +783,7 @@ fn test_min_max_normalization_is_bounded_and_deterministic() {
             .iter()
             .all(|v| (0.0..=1.0).contains(v))
     );
-    assert!(normalize_min_max(&[]).is_empty());
+    assert_eq!(normalize_min_max(&[]).len(), 0);
 }
 
 /// A shared judgment batch fuses exactly like the internal provider path: the
@@ -844,28 +844,28 @@ fn test_judge_shortlist_once_skips_the_provider_without_a_judge_or_a_shortlist()
     let unconfigured = judge_shortlist_once("query", &cands, &passages, None, 20);
     assert_eq!(unconfigured.status, RerankStatus::NotConfigured);
     assert_eq!(unconfigured.shortlist_len, 0);
-    assert!(unconfigured.judgments.is_empty());
+    assert_eq!(unconfigured.judgments.len(), 0);
     assert_eq!(unconfigured.provider_ms, 0);
 
     // Nothing to shortlist, so nothing to call.
     let empty = judge_shortlist_once("query", &[], &HashMap::new(), Some(&judge), 20);
     assert_eq!(empty.status, RerankStatus::Applied);
     assert_eq!(empty.shortlist_len, 0);
-    assert!(empty.judgments.is_empty());
+    assert_eq!(empty.judgments.len(), 0);
     assert_eq!(empty.provider_ms, 0);
 
     // One candidate, because `shortlist_k` caps the batch to one.
     let capped = judge_shortlist_once("query", &cands, &passages, Some(&judge), 1);
     assert_eq!(capped.status, RerankStatus::Applied);
     assert_eq!(capped.shortlist_len, 1);
-    assert!(capped.judgments.is_empty());
+    assert_eq!(capped.judgments.len(), 0);
     assert_eq!(capped.provider_ms, 0);
 
     // One candidate, because the candidate list itself holds a single one.
     let single = judge_shortlist_once("query", &cands[..1], &passages, Some(&judge), 20);
     assert_eq!(single.status, RerankStatus::Applied);
     assert_eq!(single.shortlist_len, 1);
-    assert!(single.judgments.is_empty());
+    assert_eq!(single.judgments.len(), 0);
     assert_eq!(single.provider_ms, 0);
 
     // No path above may reach the provider.

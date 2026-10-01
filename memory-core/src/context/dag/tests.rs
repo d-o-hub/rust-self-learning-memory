@@ -229,7 +229,7 @@ fn test_state_dag_get_episode_nodes() {
     dag.register_episode(&episode);
 
     let nodes = dag.get_episode_nodes(&episode.episode_id);
-    assert!(!nodes.is_empty());
+    assert_ne!(nodes.len(), 0);
 
     // Should have language, domain, etc.
     let types: Vec<_> = nodes.iter().map(|n| n.node_type).collect();
@@ -249,7 +249,7 @@ fn test_state_dag_get_shared_context() {
 
     // Both share language, domain, framework, tags
     let shared = dag.get_shared_context(&[ep1.episode_id, ep2.episode_id]);
-    assert!(!shared.is_empty());
+    assert_ne!(shared.len(), 0);
 
     // Language should be shared
     assert!(
@@ -796,7 +796,7 @@ fn test_full_pipeline_single_episode() {
 
     // Single episode should still produce valid output
     let prompt = assembler.format_for_prompt(&assembled);
-    assert!(!prompt.is_empty());
+    assert_ne!(prompt.len(), 0);
     assert!(prompt.contains("EP:"));
 
     // Single episode has no sharing, so savings are minimal (approximation noise)
@@ -829,7 +829,7 @@ fn test_full_pipeline_empty_bundle() {
 
     // Formatting empty context should produce valid (empty) output
     let prompt = assembler.format_for_prompt(&assembled);
-    assert!(prompt.is_empty());
+    assert_eq!(prompt.len(), 0);
 }
 
 /// Test the pipeline with episodes-only extraction from a mixed bundle.

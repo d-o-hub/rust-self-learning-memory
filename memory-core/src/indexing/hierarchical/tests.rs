@@ -50,7 +50,7 @@ fn test_insert_and_query_domain() {
 
     // Query non-existent domain
     let results = index.query_by_domain("nonexistent", 100);
-    assert!(results.is_empty());
+    assert_eq!(results.len(), 0);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn test_query_by_task_type() {
 
     // Query different task type
     let results = index.query_by_task_type("web-api", TaskType::Analysis, 100);
-    assert!(results.is_empty());
+    assert_eq!(results.len(), 0);
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn test_hierarchical_query() {
         .with_task_type(TaskType::Debugging)
         .with_limit(10);
     let results = index.query(&query);
-    assert!(results.is_empty());
+    assert_eq!(results.len(), 0);
 }
 
 #[test]

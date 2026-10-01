@@ -300,7 +300,7 @@ async fn should_store_1000_episodes_without_performance_degradation() {
         .await;
     let retrieval_time = retrieval_start.elapsed();
 
-    assert!(!results.is_empty());
+    assert_ne!(results.len(), 0);
     assert!(
         retrieval_time.as_millis() < 100,
         "Retrieval degraded to {}ms with 1K episodes",
@@ -354,7 +354,7 @@ async fn should_store_10000_episodes_without_performance_degradation() {
         .await;
     let retrieval_time = retrieval_start.elapsed();
 
-    assert!(!results.is_empty());
+    assert_ne!(results.len(), 0);
     assert!(
         retrieval_time.as_millis() < 100,
         "Retrieval degraded to {}ms with 10K episodes",

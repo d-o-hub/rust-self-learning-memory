@@ -252,7 +252,7 @@ async fn test_compact_handoff_multi_step_workflow_resume_quality() {
     assert_eq!(compact_pack.steps_total, 5);
     assert_eq!(compact_pack.status, "in_progress");
     assert_eq!(compact_pack.evidence_excerpts.len(), 5);
-    assert!(!compact_pack.verified_findings.is_empty());
+    assert_ne!(compact_pack.verified_findings.len(), 0);
     assert!(
         compact_pack
             .artifact_refs

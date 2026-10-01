@@ -140,7 +140,7 @@ storage_mode = "local"
         // Storage/cli sections filled from Default
         assert!(config.storage.max_episodes_cache > 0);
         assert!(config.storage.pool_size > 0);
-        assert!(!config.cli.default_format.is_empty());
+        assert_ne!(config.cli.default_format.len(), 0);
     }
 
     /// Issue #832: storage_mode under [storage] is accepted as an alias.

@@ -109,7 +109,7 @@ mod tests {
 
         let res2 = checker.check(&report2, &report1);
         assert!(!res2.passed);
-        assert!(!res2.violations.is_empty());
+        assert_ne!(res2.violations.len(), 0);
         assert!(res2.violations[0].contains("Recall@5 dropped"));
     }
 

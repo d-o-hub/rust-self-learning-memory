@@ -194,7 +194,7 @@ async fn should_handle_failed_episodes_with_improvements() {
 
     // And: The reflection should contain improvement suggestions
     let reflection = completed.reflection.unwrap();
-    assert!(!reflection.improvements.is_empty());
+    assert_ne!(reflection.improvements.len(), 0);
 }
 
 #[tokio::test]
@@ -321,7 +321,7 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         .await;
 
     // Then: Results should prioritize matching domain and respect limits
-    assert!(!results.is_empty());
+    assert_ne!(results.len(), 0);
     assert!(results.len() <= 10);
     let web_count = results
         .iter()

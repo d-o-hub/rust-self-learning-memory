@@ -514,8 +514,8 @@ async fn test_test_embeddings_tool() {
     assert_eq!(output.provider, "not-configured");
     assert_eq!(output.dimension, 384);
     assert_eq!(output.sample_embedding.len(), 0);
-    assert!(!output.message.is_empty());
-    assert!(!output.errors.is_empty());
+    assert_ne!(output.message.len(), 0);
+    assert_ne!(output.errors.len(), 0);
 }
 
 #[tokio::test]
@@ -625,7 +625,7 @@ async fn test_embeddings_tool_usage_tracking() {
 async fn test_tool_definitions_json_rpc_compliant() {
     let configure_tool = configure_embeddings_tool();
     assert_eq!(configure_tool.name, "configure_embeddings");
-    assert!(!configure_tool.description.is_empty());
+    assert_ne!(configure_tool.description.len(), 0);
 
     let schema = configure_tool.input_schema;
     assert!(schema.is_object());

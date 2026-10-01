@@ -141,7 +141,7 @@ fn test_best_tool_selection() {
 
     assert!(best.is_some());
     let (tool_name, assessment) = best.unwrap();
-    assert!(!tool_name.is_empty());
+    assert_ne!(tool_name.len(), 0);
     assert!(matches!(
         assessment.risk_level,
         RiskLevel::Low | RiskLevel::Medium

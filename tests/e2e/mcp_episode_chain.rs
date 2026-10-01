@@ -125,7 +125,7 @@ async fn test_mcp_complete_episode_chain() {
         )
         .await;
 
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
     assert!(relevant.iter().any(|ep| ep.episode_id == episode_id));
 
     println!("✓ MCP complete episode chain test passed");
@@ -512,7 +512,7 @@ async fn test_mcp_episode_chain_concurrency() {
         .await;
 
     // Verify all episodes found (or at least some are returned)
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
 
     println!("✓ MCP episode chain concurrency test passed");
 }
@@ -628,7 +628,7 @@ async fn test_mcp_episode_chain_filtered_query() {
     let relevant1 = memory
         .retrieve_relevant_context("test".to_string(), context1, 10)
         .await;
-    assert!(!relevant1.is_empty());
+    assert_ne!(relevant1.len(), 0);
 
     // Query by different domain
     let context2 = TaskContext {
@@ -641,7 +641,7 @@ async fn test_mcp_episode_chain_filtered_query() {
     let relevant2 = memory
         .retrieve_relevant_context("test".to_string(), context2, 10)
         .await;
-    assert!(!relevant2.is_empty());
+    assert_ne!(relevant2.len(), 0);
 
     println!("✓ MCP episode chain filtered query test passed");
 }

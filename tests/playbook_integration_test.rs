@@ -78,10 +78,10 @@ async fn test_playbook_generation_flow() {
         .await;
 
     // 3. Verify playbook content
-    assert!(!playbooks.is_empty());
+    assert_ne!(playbooks.len(), 0);
     let playbook = &playbooks[0];
     assert!(playbook.confidence > 0.0);
-    assert!(!playbook.ordered_steps.is_empty());
+    assert_ne!(playbook.ordered_steps.len(), 0);
 
     // Check that it contains steps derived from our pattern
     let has_tool1 = playbook

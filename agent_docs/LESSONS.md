@@ -363,3 +363,27 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   passed, exit 0, with no test flagged flaky.
 - References: `.config/nextest.toml`, `scripts/release-manager.sh`
   (`ship --execute` → `cargo nextest run --all`), LESSON-027.
+
+## LESSON-029: A floating `stable` toolchain can fail every PR without touching it (2026-10-01)
+
+- Issue: `rust-toolchain.toml` pins `channel = "stable"`, so CI (and the release
+  gate) follow the runner's stable. When stable moved to 1.99, its new
+  `clippy::assert_is_empty` lint fired at ~100 pre-existing sites
+  (`assert!(x.is_empty())` / `assert!(!x.is_empty())` in tests across
+  memory-core, memory-mcp, memory-storage-turso/redb, memory-cli and e2e). The
+  required `Quick PR Check` then failed on a PR that touched none of those
+  files (the flagged sources were byte-identical to `main`, whose last runs
+  were green only because they predated the toolchain bump).
+- Impact: every open PR was blocked at merge time, and the failure read like a
+  regression introduced by the PR under review.
+- Fix: migrate the sites (`assert!(x.is_empty())` → `assert_eq!(x.len(), 0)`,
+  `assert!(!x.is_empty())` → `assert_ne!(x.len(), 0)`), verified with the exact
+  toolchain: `rustup toolchain install 1.99.0 --component clippy`,
+  `cargo +1.99.0 clippy --workspace --all-targets -- -D warnings`.
+- Prevention: when CI and local disagree about clippy, suspect a stable bump
+  before suspecting the diff — run the gate with the version CI will use
+  (`rustup toolchain install <version>` / `cargo +<version> clippy`). If
+  surprise migrations are unwanted, pin an exact toolchain instead of `stable`;
+  that is a policy choice, not a code fix.
+- References: `rust-toolchain.toml`, `.github/workflows/ci.yml`
+  (`./scripts/code-quality.sh clippy --workspace`), PR #1107.

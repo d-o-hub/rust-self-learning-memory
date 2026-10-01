@@ -432,7 +432,7 @@ async fn test_embedding_activation_error_reports_blank_identity() {
     assert_eq!(err, EmbeddingActivationError::EmptyProviderIdentity);
     assert_eq!(err.clone(), EmbeddingActivationError::EmptyProviderIdentity);
     assert_eq!(format!("{err}"), "provider identity must not be empty");
-    assert!(!format!("{err:?}").is_empty());
+    assert_ne!(format!("{err:?}").len(), 0);
 
     let as_std_error: &dyn std::error::Error = &err;
     assert_eq!(

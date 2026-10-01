@@ -101,7 +101,7 @@ fn test_query_bucket() {
     // Query by non-existent year
     let bucket = TimeBucket::Year(1999);
     let results = index.query_bucket(&bucket);
-    assert!(results.is_empty());
+    assert_eq!(results.len(), 0);
 }
 
 #[test]

@@ -279,7 +279,7 @@ mod tests {
 
         assert_eq!(graph.root, root);
         assert!(graph.nodes.is_empty());
-        assert!(graph.edges.is_empty());
+        assert_eq!(graph.edges.len(), 0);
     }
 
     #[test]

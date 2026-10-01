@@ -47,7 +47,7 @@ fn test_gist_extractor_default() {
 fn test_gist_extractor_empty() {
     let extractor = GistExtractor::default();
     let gist = extractor.extract("");
-    assert!(gist.key_points.is_empty());
+    assert_eq!(gist.key_points.len(), 0);
     assert_eq!(gist.density, 0.0);
 }
 
@@ -55,7 +55,7 @@ fn test_gist_extractor_empty() {
 fn test_gist_extractor_single_sentence() {
     let extractor = GistExtractor::default();
     let gist = extractor.extract("Fixed authentication bug by adding JWT validation.");
-    assert!(!gist.key_points.is_empty());
+    assert_ne!(gist.key_points.len(), 0);
     assert!(gist.density > 0.0);
 }
 
@@ -73,7 +73,7 @@ fn test_gist_extractor_high_value_keywords() {
     let extractor = GistExtractor::default();
     let gist = extractor.extract("Fixed critical bug in authentication module.");
     // Should extract this sentence due to "fixed" and "bug" keywords
-    assert!(!gist.key_points.is_empty());
+    assert_ne!(gist.key_points.len(), 0);
 }
 
 #[test]

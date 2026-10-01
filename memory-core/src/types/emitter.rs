@@ -300,8 +300,8 @@ mod tests {
         assert_eq!(event.specversion, "1.0");
         assert_eq!(event.event_type, "com.test.event");
         assert_eq!(event.source, "test://source");
-        assert!(!event.id.is_empty());
-        assert!(!event.time.is_empty());
+        assert_ne!(event.id.len(), 0);
+        assert_ne!(event.time.len(), 0);
         assert_eq!(event.data, serde_json::json!({"key": "value"}));
     }
 

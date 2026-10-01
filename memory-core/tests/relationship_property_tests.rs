@@ -275,16 +275,16 @@ proptest! {
 
         // Verify it exists
         assert!(manager.relationship_exists(from_id, to_id, rel_type));
-        assert!(!manager.get_outgoing(from_id).is_empty());
-        assert!(!manager.get_incoming(to_id).is_empty());
+        assert_ne!(manager.get_outgoing(from_id).len(), 0);
+        assert_ne!(manager.get_incoming(to_id).len(), 0);
 
         // Remove it
         manager.remove_relationship(rel.id).unwrap();
 
         // Verify it's gone from all indexes
         assert!(!manager.relationship_exists(from_id, to_id, rel_type));
-        assert!(manager.get_outgoing(from_id).is_empty());
-        assert!(manager.get_incoming(to_id).is_empty());
+        assert_eq!(manager.get_outgoing(from_id).len(), 0);
+        assert_eq!(manager.get_incoming(to_id).len(), 0);
     }
 }
 

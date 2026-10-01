@@ -194,9 +194,9 @@ async fn test_generator_with_tool_sequence() {
         .generate(&request, &patterns, &summaries, &reflections)
         .unwrap();
 
-    assert!(!playbook.ordered_steps.is_empty());
+    assert_ne!(playbook.ordered_steps.len(), 0);
     assert!(playbook.task_match_score > 0.0);
-    assert!(!playbook.when_to_apply.is_empty());
+    assert_ne!(playbook.when_to_apply.len(), 0);
 }
 
 #[tokio::test]
@@ -212,9 +212,9 @@ async fn test_generator_with_decision_point() {
         .generate(&request, &patterns, &summaries, &reflections)
         .unwrap();
 
-    assert!(!playbook.ordered_steps.is_empty());
+    assert_ne!(playbook.ordered_steps.len(), 0);
     // Should have both apply and not-apply conditions
-    assert!(!playbook.when_not_to_apply.is_empty());
+    assert_ne!(playbook.when_not_to_apply.len(), 0);
 }
 
 #[tokio::test]
@@ -252,8 +252,8 @@ async fn test_generator_with_context_pattern() {
         .generate(&request, &patterns, &summaries, &reflections)
         .unwrap();
 
-    assert!(!playbook.ordered_steps.is_empty());
-    assert!(!playbook.supporting_episode_ids.is_empty()); // From evidence
+    assert_ne!(playbook.ordered_steps.len(), 0);
+    assert_ne!(playbook.supporting_episode_ids.len(), 0); // From evidence
 }
 
 #[tokio::test]
@@ -270,9 +270,9 @@ async fn test_generator_with_reflections() {
         .unwrap();
 
     // Should have pitfalls from reflections
-    assert!(!playbook.pitfalls.is_empty());
+    assert_ne!(playbook.pitfalls.len(), 0);
     // Should have expected outcome from summaries
-    assert!(!playbook.expected_outcome.is_empty());
+    assert_ne!(playbook.expected_outcome.len(), 0);
 }
 
 #[tokio::test]
@@ -322,8 +322,8 @@ async fn test_generator_empty_inputs() {
     let playbook = generator.generate(&request, &[], &[], &[]).unwrap();
 
     assert_eq!(playbook.task_match_score, 0.0);
-    assert!(playbook.ordered_steps.is_empty());
-    assert!(playbook.pitfalls.is_empty());
+    assert_eq!(playbook.ordered_steps.len(), 0);
+    assert_eq!(playbook.pitfalls.len(), 0);
     assert_eq!(playbook.confidence, 0.0);
 }
 
@@ -347,7 +347,7 @@ async fn test_generator_multiple_pattern_types() {
 
     // Should synthesize from all pattern types
     assert!(playbook.ordered_steps.len() >= 3);
-    assert!(!playbook.when_to_apply.is_empty());
-    assert!(!playbook.supporting_pattern_ids.is_empty());
+    assert_ne!(playbook.when_to_apply.len(), 0);
+    assert_ne!(playbook.supporting_pattern_ids.len(), 0);
     assert!(playbook.quality_score() > 0.0);
 }

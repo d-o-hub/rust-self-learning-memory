@@ -150,7 +150,7 @@ mod tests {
         let expanded = graph.expand_terms("implement auth");
 
         // Should find auth-related synonyms
-        assert!(!expanded.is_empty());
+        assert_ne!(expanded.len(), 0);
         assert!(expanded.iter().any(|t| t == "auth"));
         assert!(expanded.iter().any(|t| t == "login"));
     }
@@ -160,7 +160,7 @@ mod tests {
         let graph = ConceptGraph::from_embedded();
         let expanded = graph.expand_terms("fix db connection");
 
-        assert!(!expanded.is_empty());
+        assert_ne!(expanded.len(), 0);
         assert!(expanded.iter().any(|t| t == "db"));
     }
 
@@ -170,7 +170,7 @@ mod tests {
         let expanded = graph.expand_terms("xyzzy_nonexistent_term");
 
         // No domain should match this term
-        assert!(expanded.is_empty());
+        assert_eq!(expanded.len(), 0);
     }
 
     #[test]
@@ -179,7 +179,7 @@ mod tests {
         // Query that touches both authentication and database domains
         let expanded = graph.expand_terms("fix auth and db errors");
 
-        assert!(!expanded.is_empty());
+        assert_ne!(expanded.len(), 0);
         // Should have terms from multiple domains
         let has_auth = expanded.iter().any(|t| t == "auth" || t == "login");
         let has_db = expanded.iter().any(|t| t == "db" || t == "sql");
@@ -190,14 +190,14 @@ mod tests {
     fn test_concept_graph_empty_query() {
         let graph = ConceptGraph::from_embedded();
         let expanded = graph.expand_terms("");
-        assert!(expanded.is_empty());
+        assert_eq!(expanded.len(), 0);
     }
 
     #[test]
     fn test_concept_graph_whitespace_query() {
         let graph = ConceptGraph::from_embedded();
         let expanded = graph.expand_terms("   ");
-        assert!(expanded.is_empty());
+        assert_eq!(expanded.len(), 0);
     }
 
     #[test]

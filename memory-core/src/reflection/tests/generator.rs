@@ -65,7 +65,7 @@ fn test_generate_reflection_successful_episode() {
     let generator = ReflectionGenerator::new();
     let reflection = generator.generate(&episode);
 
-    assert!(!reflection.successes.is_empty());
+    assert_ne!(reflection.successes.len(), 0);
     assert!(
         reflection
             .successes
@@ -97,7 +97,7 @@ fn test_generate_reflection_failed_episode() {
     let generator = ReflectionGenerator::new();
     let reflection = generator.generate(&episode);
 
-    assert!(!reflection.improvements.is_empty());
+    assert_ne!(reflection.improvements.len(), 0);
     assert!(reflection.improvements.iter().any(|i| i.contains("failed")));
 }
 
@@ -132,8 +132,8 @@ fn test_generate_reflection_partial_success() {
     let generator = ReflectionGenerator::new();
     let reflection = generator.generate(&episode);
 
-    assert!(!reflection.successes.is_empty());
-    assert!(!reflection.improvements.is_empty());
+    assert_ne!(reflection.successes.len(), 0);
+    assert_ne!(reflection.improvements.len(), 0);
 }
 
 #[test]

@@ -361,5 +361,5 @@ fn test_empty_result_helpers() {
     let result = WindowExpansionResult::empty();
     assert!(result.is_empty());
     assert_eq!(result.len(), 0);
-    assert!(result.episode_ids().is_empty());
+    assert_eq!(result.episode_ids().len(), 0);
 }

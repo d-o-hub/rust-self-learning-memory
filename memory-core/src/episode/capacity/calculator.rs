@@ -294,7 +294,7 @@ mod tests {
             .collect();
 
         let to_evict = manager.evict_if_needed(&episodes);
-        assert!(to_evict.is_empty());
+        assert_eq!(to_evict.len(), 0);
     }
 
     #[test]

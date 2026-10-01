@@ -168,7 +168,7 @@ fn test_temporal_clustering_favors_recent() {
     let clustered = retriever.select_temporal_clusters(&candidates, &query);
 
     // Should return recent episodes first
-    assert!(!clustered.is_empty());
+    assert_ne!(clustered.len(), 0);
 
     // Verify most recent episode is included
     let has_recent = clustered

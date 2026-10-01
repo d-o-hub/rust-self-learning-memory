@@ -69,5 +69,5 @@ async fn test_hybrid_retrieval_flow() {
         .retrieve_relevant_context("REST API implementation".to_string(), context, 5)
         .await;
 
-    assert!(!results.is_empty());
+    assert_ne!(results.len(), 0);
 }

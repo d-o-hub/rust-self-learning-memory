@@ -173,7 +173,7 @@ mod tests {
             PATTERN_SELECT_COLUMNS
         );
         let result = raw_query.query(&sql).await.unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result.len(), 0);
     }
 
     #[tokio::test]
@@ -210,6 +210,6 @@ mod tests {
             .await
             .unwrap();
 
-        assert!(!result.is_empty());
+        assert_ne!(result.len(), 0);
     }
 }

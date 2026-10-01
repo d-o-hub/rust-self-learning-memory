@@ -231,7 +231,7 @@ mod tests {
         let text = "This is a database connection example";
         let matches = fuzzy_search_in_text(text, "databse", 0.7);
 
-        assert!(!matches.is_empty());
+        assert_ne!(matches.len(), 0);
         assert!(matches[0].1 > 0.7);
     }
 
@@ -249,7 +249,7 @@ mod tests {
         let text = "This is a database connection example";
         let matches = fuzzy_search_in_text(text, "databse conection", 0.7);
 
-        assert!(!matches.is_empty());
+        assert_ne!(matches.len(), 0);
     }
 
     #[test]
@@ -257,7 +257,7 @@ mod tests {
         let text = "This is a database connection example";
         let matches = fuzzy_search_in_text(text, "xyz", 0.8);
 
-        assert!(matches.is_empty());
+        assert_eq!(matches.len(), 0);
     }
 
     #[test]
@@ -294,7 +294,7 @@ mod tests {
         let matches = fuzzy_search_in_text(text, "database", 0.7);
 
         // Should find exact substring match
-        assert!(!matches.is_empty());
+        assert_ne!(matches.len(), 0);
     }
 
     #[test]
@@ -328,7 +328,7 @@ mod tests {
         // sliding-window code path (with pointer-subtraction positions) runs.
         let text = "alpha beta  gamma   delta epsilon";
         let matches = fuzzy_search_in_text(text, "gamma delta", 0.8);
-        assert!(!matches.is_empty());
+        assert_ne!(matches.len(), 0);
         // "gamma" starts at byte 12 in "alpha beta  gamma   delta epsilon"
         // (alpha=5 + ' '=1 + beta=4 + "  "=2 = 12)
         assert_eq!(matches[0].0, 12);
@@ -345,7 +345,7 @@ mod tests {
     #[test]
     fn test_fuzzy_search_empty_text() {
         let matches = fuzzy_search_in_text("", "query", 0.8);
-        assert!(matches.is_empty());
+        assert_eq!(matches.len(), 0);
     }
 
     #[test]

@@ -117,7 +117,7 @@ async fn test_predictive_analysis_comprehensive() {
     assert!(!pred.anomalies.is_empty());
     let anomaly = &pred.anomalies[0];
     assert_eq!(anomaly.variable, "trendy_with_anomaly");
-    assert!(!anomaly.anomaly_indices.is_empty());
+    assert_ne!(anomaly.anomaly_indices.len(), 0);
 }
 
 /// Test comprehensive analysis combining all methods
@@ -171,7 +171,7 @@ async fn test_comprehensive_analysis_integration() {
 
     // Check summary
     assert_eq!(output.summary.variables_analyzed, 3);
-    assert!(!output.summary.key_findings.is_empty());
+    assert_ne!(output.summary.key_findings.len(), 0);
     assert!(output.summary.confidence_level > 0.0);
 
     // Performance metrics are valid for unsigned integers (no need to check >= 0)
@@ -436,7 +436,7 @@ async fn test_error_handling() {
         }
         Err(e) => {
             // If error, should be a proper error message
-            assert!(!e.to_string().is_empty());
+            assert_ne!(e.to_string().len(), 0);
         }
     }
 }

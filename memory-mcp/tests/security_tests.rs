@@ -60,7 +60,7 @@ async fn test_input_sanitization() {
         }
         Err(e) => {
             // If error, should be a proper error, not a panic
-            assert!(!e.to_string().is_empty());
+            assert_ne!(e.to_string().len(), 0);
         }
     }
 }
@@ -134,7 +134,7 @@ async fn test_numerical_stability_vulnerabilities() {
             }
             Err(e) => {
                 // Error should be descriptive
-                assert!(!e.to_string().is_empty());
+                assert_ne!(e.to_string().len(), 0);
             }
         }
     }

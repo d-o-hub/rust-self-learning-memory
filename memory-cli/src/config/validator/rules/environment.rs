@@ -125,7 +125,7 @@ mod tests {
             embeddings: crate::config::types::EmbeddingsConfig::default(),
         };
         let issues = quick_validation_check(&config);
-        assert!(issues.is_empty());
+        assert_eq!(issues.len(), 0);
     }
 
     #[test]
@@ -153,7 +153,7 @@ mod tests {
         };
         config.database.redb_path = None;
         let issues = quick_validation_check(&config);
-        assert!(!issues.is_empty());
+        assert_ne!(issues.len(), 0);
         assert!(issues.iter().any(|i| i.contains("database")));
     }
 }

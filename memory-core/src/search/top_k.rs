@@ -97,7 +97,7 @@ mod tests {
         let top = select_top_k(&mut scores, 3, |a, b| {
             b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal)
         });
-        assert!(top.is_empty());
+        assert_eq!(top.len(), 0);
     }
 
     #[test]

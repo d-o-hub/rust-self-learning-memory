@@ -201,7 +201,7 @@ async fn test_tag_workflow_all_commands() {
         .list_episodes_by_tags(vec!["new-tag-1".to_string()], true, Some(10))
         .await
         .expect("Failed to list episodes by tag");
-    assert!(!episodes.is_empty());
+    assert_ne!(episodes.len(), 0);
     assert!(episodes.iter().any(|e| e.episode_id == episode_id));
 
     println!("✓ Tag workflow test passed (7 commands tested)");
@@ -266,7 +266,7 @@ async fn test_relationship_workflow_all_commands() {
         .await
         .expect("Failed to find related episodes");
 
-    assert!(!related.is_empty());
+    assert_ne!(related.len(), 0);
 
     // Test 6: relationship-exists
     let exists = memory

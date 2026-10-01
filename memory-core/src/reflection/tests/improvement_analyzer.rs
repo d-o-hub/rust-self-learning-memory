@@ -47,7 +47,7 @@ fn test_identify_improvements_failed_episode() {
     let episode = create_test_episode("Failed task", TaskType::Testing, steps, Some(outcome));
     let improvements = improvement_analyzer::identify_improvements(&episode, 5);
 
-    assert!(!improvements.is_empty());
+    assert_ne!(improvements.len(), 0);
     assert!(improvements.iter().any(|i| i.contains("failed")));
 }
 

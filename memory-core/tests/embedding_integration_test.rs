@@ -46,7 +46,7 @@ async fn test_end_to_end_embedding_workflow() {
         .await
         .expect("Should generate embedding");
 
-    assert!(!embedding.is_empty());
+    assert_ne!(embedding.len(), 0);
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
 
     let episode_id = Uuid::new_v4();
@@ -86,7 +86,7 @@ async fn test_end_to_end_batch_embeddings() {
 
     assert_eq!(embeddings.len(), texts.len());
     for embedding in &embeddings {
-        assert!(!embedding.is_empty());
+        assert_ne!(embedding.len(), 0);
         assert_eq!(embedding.len(), service.provider.embedding_dimension());
     }
 }
@@ -145,7 +145,7 @@ async fn test_episode_embedding_workflow() {
         .retrieve_relevant_context("Build API endpoints".to_string(), search_context, 5)
         .await;
 
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
 }
 
 // Provider Fallback Chain Tests (3 tests)
@@ -326,7 +326,7 @@ async fn test_redb_storage_embeddings() {
     // Test basic episode creation
     let test_episode = create_test_episode_helper("Test episode", "test-domain");
     assert_eq!(test_episode.episode_id, test_episode.episode_id);
-    assert!(!test_episode.task_description.is_empty());
+    assert_ne!(test_episode.task_description.len(), 0);
 }
 
 #[tokio::test]
@@ -398,7 +398,7 @@ async fn test_concurrent_embedding_generation() {
 
     assert_eq!(embeddings.len(), 10);
     for embedding in &embeddings {
-        assert!(!embedding.is_empty());
+        assert_ne!(embedding.len(), 0);
         assert_eq!(embedding.len(), service.provider.embedding_dimension());
     }
 }
@@ -476,7 +476,7 @@ async fn test_episode_embedding_with_service() {
 
     assert!(result.is_ok());
     let embedding = result.unwrap();
-    assert!(!embedding.is_empty());
+    assert_ne!(embedding.len(), 0);
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
 }
 
@@ -493,7 +493,7 @@ async fn test_pattern_embedding_with_service() {
 
     assert!(result.is_ok());
     let embedding = result.unwrap();
-    assert!(!embedding.is_empty());
+    assert_ne!(embedding.len(), 0);
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
 }
 
@@ -539,7 +539,7 @@ async fn test_memory_semantic_retrieval() {
         .retrieve_relevant_context("Build HTTP endpoints".to_string(), context, 5)
         .await;
 
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
 }
 
 #[tokio::test]
@@ -560,7 +560,7 @@ async fn test_memory_fallback_to_keyword() {
         .retrieve_relevant_context("Build API".to_string(), context, 5)
         .await;
 
-    assert!(relevant.is_empty());
+    assert_eq!(relevant.len(), 0);
 }
 
 #[tokio::test]
@@ -609,7 +609,7 @@ async fn test_memory_with_multiple_episodes() {
         .retrieve_relevant_context("Build API".to_string(), query_context, 10)
         .await;
 
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
 }
 
 // Performance Benchmarks Tests (2 tests)
@@ -663,7 +663,7 @@ async fn test_empty_text_embedding() {
 
     let result = service.provider.embed_text("").await;
     match result {
-        Ok(embedding) => assert!(!embedding.is_empty()),
+        Ok(embedding) => assert_ne!(embedding.len(), 0),
         Err(_) => {}
     }
 }

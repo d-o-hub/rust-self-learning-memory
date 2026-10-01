@@ -154,17 +154,18 @@ async fn storage_backend_default_methods_return_empty_success() {
     let procedural = sample_procedural();
 
     // Defaults with real bodies (Codecov targets)
-    assert!(backend.get_all_patterns().await.unwrap().is_empty());
+    assert_eq!(backend.get_all_patterns().await.unwrap().len(), 0);
     backend.store_relationship(&rel).await.unwrap();
     backend.remove_relationship(rel.id).await.unwrap();
-    assert!(
+    assert_eq!(
         backend
             .get_relationships(id, Direction::Both)
             .await
             .unwrap()
-            .is_empty()
+            .len(),
+        0
     );
-    assert!(backend.get_all_relationships().await.unwrap().is_empty());
+    assert_eq!(backend.get_all_relationships().await.unwrap().len(), 0);
     assert!(
         backend
             .get_relationship_by_id(rel.id)
@@ -182,14 +183,15 @@ async fn storage_backend_default_methods_return_empty_success() {
         .store_episode_pattern_relationship(&pattern_rel)
         .await
         .unwrap();
-    assert!(
+    assert_eq!(
         backend
             .get_episode_pattern_relationships(id)
             .await
             .unwrap()
-            .is_empty()
+            .len(),
+        0
     );
-    assert!(backend.get_weighted_neighbors(id).await.unwrap().is_empty());
+    assert_eq!(backend.get_weighted_neighbors(id).await.unwrap().len(), 0);
 
     backend
         .store_recommendation_session(&session)
@@ -235,7 +237,7 @@ async fn storage_backend_default_methods_return_empty_success() {
             .is_none()
     );
     backend.delete_procedural(procedural.id).await.unwrap();
-    assert!(backend.query_procedural(Some(10)).await.unwrap().is_empty());
+    assert_eq!(backend.query_procedural(Some(10)).await.unwrap().len(), 0);
 
     // Keep Episode/TaskType referenced so stub stays honest for required path
     let _ep = Episode::new("stub".into(), TaskContext::default(), TaskType::Testing);

@@ -976,7 +976,7 @@ mod agent_metrics_tests {
     fn test_agent_metrics_default() {
         let metrics = AgentMetrics::default();
 
-        assert!(metrics.agent_name.is_empty());
+        assert_eq!(metrics.agent_name.len(), 0);
         assert_eq!(metrics.agent_type, AgentType::Other);
         assert_eq!(metrics.total_executions, 0);
         assert_eq!(metrics.successful_executions, 0);
@@ -1085,7 +1085,7 @@ mod task_metrics_tests {
     fn test_task_metrics_default() {
         let metrics = TaskMetrics::default();
 
-        assert!(metrics.task_type.is_empty());
+        assert_eq!(metrics.task_type.len(), 0);
         assert_eq!(metrics.total_tasks, 0);
         assert_eq!(metrics.completed_tasks, 0);
         assert_eq!(metrics.avg_completion_time, Duration::ZERO);

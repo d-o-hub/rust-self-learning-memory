@@ -174,8 +174,8 @@ mod tests {
 
     #[test]
     fn test_error_messages_not_empty() {
-        assert!(!errors::EPISODE_NOT_FOUND.is_empty());
-        assert!(!errors::PATTERN_NOT_FOUND.is_empty());
-        assert!(!errors::STORAGE_CONNECTION_FAILED.is_empty());
+        assert_ne!(errors::EPISODE_NOT_FOUND.len(), 0);
+        assert_ne!(errors::PATTERN_NOT_FOUND.len(), 0);
+        assert_ne!(errors::STORAGE_CONNECTION_FAILED.len(), 0);
     }
 }

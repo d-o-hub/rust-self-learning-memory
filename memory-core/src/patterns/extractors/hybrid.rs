@@ -182,7 +182,7 @@ mod tests {
         let patterns = extractor.extract_patterns(&episode).await.unwrap();
 
         // Should extract at least tool sequence and context pattern
-        assert!(!patterns.is_empty());
+        assert_ne!(patterns.len(), 0);
         assert!(patterns.len() >= 2);
     }
 
@@ -268,7 +268,7 @@ mod tests {
         let patterns = extractor.extract_patterns(&episode).await.unwrap();
 
         // Should have deduplicated patterns
-        assert!(!patterns.is_empty());
+        assert_ne!(patterns.len(), 0);
 
         // Check that patterns are sorted by success rate
         for i in 0..patterns.len().saturating_sub(1) {
@@ -287,7 +287,7 @@ mod tests {
         let patterns = extractor.extract_patterns(&episode).await.unwrap();
 
         // Should still extract patterns
-        assert!(!patterns.is_empty());
+        assert_ne!(patterns.len(), 0);
     }
 
     #[tokio::test]
@@ -333,7 +333,7 @@ mod tests {
         let patterns = extractor.extract_patterns(&episode).await.unwrap();
         let duration = start.elapsed();
 
-        assert!(!patterns.is_empty());
+        assert_ne!(patterns.len(), 0);
         assert!(
             duration.as_millis() < 1000,
             "Extraction took {}ms, expected < 1000ms",

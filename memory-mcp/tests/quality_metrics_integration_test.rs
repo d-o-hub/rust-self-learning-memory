@@ -137,7 +137,7 @@ async fn test_quality_metrics_tool_basic() {
     assert_eq!(metrics.episodes_accepted, 0);
     assert_eq!(metrics.episodes_rejected, 0);
     assert_eq!(metrics.noise_reduction_rate, 0.0);
-    assert!(!metrics.recommendations.is_empty());
+    assert_ne!(metrics.recommendations.len(), 0);
 }
 
 #[tokio::test]
@@ -168,7 +168,7 @@ async fn test_quality_metrics_with_episodes() {
     // Verify metrics structure
     assert_eq!(metrics.quality_score_distribution.len(), 5);
     assert_eq!(metrics.quality_threshold, 0.7);
-    assert!(!metrics.recommendations.is_empty());
+    assert_ne!(metrics.recommendations.len(), 0);
 }
 
 #[tokio::test]
@@ -227,7 +227,7 @@ async fn test_quality_metrics_tool_definition() {
     let tool_def = QualityMetricsTool::tool_definition();
 
     assert_eq!(tool_def.name, "quality_metrics");
-    assert!(!tool_def.description.is_empty());
+    assert_ne!(tool_def.description.len(), 0);
     assert!(
         tool_def
             .description

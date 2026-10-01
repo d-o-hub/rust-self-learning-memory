@@ -22,7 +22,7 @@ async fn test_add_relationship_success() {
 
     let output = result.unwrap();
     assert!(output.success);
-    assert!(!output.relationship_id.is_empty());
+    assert_ne!(output.relationship_id.len(), 0);
     assert_eq!(output.from_episode_id, ep1.to_string());
     assert_eq!(output.to_episode_id, ep2.to_string());
     assert_eq!(output.relationship_type, "depends_on");

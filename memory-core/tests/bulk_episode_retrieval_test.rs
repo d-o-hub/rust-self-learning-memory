@@ -282,6 +282,6 @@ async fn test_bulk_retrieval_preserves_episode_data() {
     for episode in episodes {
         assert!(episode.context.language.is_some());
         assert!(episode.context.framework.is_some());
-        assert!(!episode.context.tags.is_empty());
+        assert_ne!(episode.context.tags.len(), 0);
     }
 }

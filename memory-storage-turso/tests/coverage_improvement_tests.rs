@@ -30,7 +30,7 @@ mod transport_tests {
         assert!(response.is_success());
         assert_eq!(response.status, 200);
         assert_eq!(response.body, body);
-        assert!(response.headers.is_empty());
+        assert_eq!(response.headers.len(), 0);
     }
 
     #[test]
@@ -433,8 +433,8 @@ mod metrics_export_tests {
         assert_eq!(metric.name, "test_metric");
         assert_eq!(metric.metric_type, MetricType::Counter);
         assert_eq!(metric.value, MetricValue::Integer(100));
-        assert!(metric.labels.is_empty());
-        assert!(metric.help.is_empty());
+        assert_eq!(metric.labels.len(), 0);
+        assert_eq!(metric.help.len(), 0);
         assert!(metric.timestamp.is_none());
     }
 

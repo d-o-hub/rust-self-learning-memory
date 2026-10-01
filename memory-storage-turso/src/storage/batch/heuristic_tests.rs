@@ -180,7 +180,7 @@ mod tests {
         assert_eq!(result.succeeded, 10);
         assert_eq!(result.failed, 0);
         assert!(result.all_succeeded);
-        assert!(result.errors.is_empty());
+        assert_eq!(result.errors.len(), 0);
     }
 
     #[tokio::test]

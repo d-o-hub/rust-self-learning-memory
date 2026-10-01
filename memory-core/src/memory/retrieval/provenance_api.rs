@@ -102,7 +102,7 @@ mod tests {
             !debug.contains("password") && !debug.contains(&secret),
             "provenance must not embed raw query: {debug}"
         );
-        assert!(!result.provenance.fingerprint.is_empty());
+        assert_ne!(result.provenance.fingerprint.len(), 0);
         assert!(result.latency_ms < 60_000);
         let _ = TaskType::Testing; // keep import surface stable if used later
     }
@@ -120,7 +120,7 @@ mod tests {
             .await;
         // Empty corpus still caches empty results when eligible — either hit or miss is ok;
         // identity fields must remain stable.
-        assert!(!second.provenance.fingerprint.is_empty());
+        assert_ne!(second.provenance.fingerprint.len(), 0);
         assert_eq!(
             second.provenance.ranking_config_version,
             RANKING_CONFIG_VERSION

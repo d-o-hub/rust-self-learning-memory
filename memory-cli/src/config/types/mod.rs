@@ -89,7 +89,7 @@ mod simple_config_tests {
         assert!(config.database.redb_path.is_some() || config.database.turso_url.is_some());
         assert!(config.storage.max_episodes_cache > 0);
         assert!(config.storage.pool_size > 0);
-        assert!(!config.cli.default_format.is_empty());
+        assert_ne!(config.cli.default_format.len(), 0);
     }
 
     #[tokio::test]

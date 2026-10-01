@@ -51,10 +51,10 @@ async fn test_extractors_incomplete_episode() {
     let episode = create_test_episode(); // Not completed
 
     let dp_extractor = DecisionPointExtractor::new();
-    assert!(dp_extractor.extract(&episode).await.unwrap().is_empty());
+    assert_eq!(dp_extractor.extract(&episode).await.unwrap().len(), 0);
 
     let ts_extractor = ToolSequenceExtractor::new();
-    assert!(ts_extractor.extract(&episode).await.unwrap().is_empty());
+    assert_eq!(ts_extractor.extract(&episode).await.unwrap().len(), 0);
 }
 
 #[tokio::test]
@@ -80,5 +80,5 @@ async fn test_tool_sequence_success_rate_threshold() {
     complete_episode(&mut episode);
 
     let patterns = extractor.extract(&episode).await.unwrap();
-    assert!(patterns.is_empty());
+    assert_eq!(patterns.len(), 0);
 }

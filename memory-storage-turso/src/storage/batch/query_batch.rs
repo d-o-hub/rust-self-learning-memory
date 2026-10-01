@@ -299,7 +299,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         let result = storage.get_episodes_batch(&[]).await.unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result.len(), 0);
     }
 
     #[tokio::test]
@@ -343,7 +343,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         let result = storage.get_patterns_batch(&[]).await.unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result.len(), 0);
     }
 
     #[tokio::test]
@@ -414,7 +414,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         let result = storage.get_heuristics_batch(&[]).await.unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result.len(), 0);
     }
 
     #[tokio::test]

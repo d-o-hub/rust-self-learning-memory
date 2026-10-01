@@ -347,12 +347,12 @@ async fn test_salient_features_storage_in_cache() {
     let features = episode.salient_features.unwrap();
 
     // Verify individual feature types are extractable
-    assert!(!features.critical_decisions.is_empty());
+    assert_ne!(features.critical_decisions.len(), 0);
     for decision in &features.critical_decisions {
         assert!(!decision.is_empty(), "Decision should have content");
     }
 
-    assert!(!features.tool_combinations.is_empty());
+    assert_ne!(features.tool_combinations.len(), 0);
     for combo in &features.tool_combinations {
         assert!(
             combo.len() >= 2,
@@ -360,7 +360,7 @@ async fn test_salient_features_storage_in_cache() {
         );
     }
 
-    assert!(!features.error_recovery_patterns.is_empty());
+    assert_ne!(features.error_recovery_patterns.len(), 0);
     for pattern in &features.error_recovery_patterns {
         assert!(
             pattern.contains("->"),

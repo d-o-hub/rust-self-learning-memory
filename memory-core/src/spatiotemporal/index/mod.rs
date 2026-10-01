@@ -260,7 +260,7 @@ mod tests {
 
         // Query non-existent domain
         let results = index.query("nonexistent", None, None, None, 10);
-        assert!(results.is_empty());
+        assert_eq!(results.len(), 0);
     }
 
     #[test]

@@ -107,7 +107,7 @@ async fn test_compact_handoff_pack_default_budget() {
     assert!(pack.payload_bytes() <= HandoffBudget::default().max_bytes);
     assert_eq!(pack.evidence_excerpts.len(), 5);
     assert_eq!(pack.omitted.omitted_steps, 0);
-    assert!(!pack.verified_findings.is_empty());
+    assert_ne!(pack.verified_findings.len(), 0);
 }
 
 #[tokio::test]

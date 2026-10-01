@@ -238,7 +238,7 @@ mod tests {
 
         let query = EpisodeQuery::default();
         let result = storage.query_episodes(&query).await.unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result.len(), 0);
     }
 
     #[tokio::test]

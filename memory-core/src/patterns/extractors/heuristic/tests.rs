@@ -72,8 +72,8 @@ async fn test_extract_from_complete_successful_episode() {
     for heuristic in &heuristics {
         assert!(heuristic.confidence >= extractor.config.min_confidence);
         assert!(heuristic.evidence.sample_size >= extractor.config.min_sample_size);
-        assert!(!heuristic.condition.is_empty());
-        assert!(!heuristic.action.is_empty());
+        assert_ne!(heuristic.condition.len(), 0);
+        assert_ne!(heuristic.action.len(), 0);
     }
 }
 
@@ -339,7 +339,7 @@ async fn test_partial_success_lower_confidence() {
 
     let heuristics = extractor.extract(&episode).await.unwrap();
 
-    assert!(!heuristics.is_empty());
+    assert_ne!(heuristics.len(), 0);
 
     // For partial success with 4 samples: confidence = 0.5 × √4 = 1.0
     let heuristic = &heuristics[0];

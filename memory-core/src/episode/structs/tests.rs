@@ -328,7 +328,7 @@ fn test_get_tags_on_empty_episode() {
     let episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
     let tags = episode.get_tags();
-    assert!(tags.is_empty());
+    assert_eq!(tags.len(), 0);
     assert_eq!(tags.len(), 0);
 }
 

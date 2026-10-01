@@ -104,7 +104,7 @@ async fn test_mcp_tag_full_chain() {
         .await
         .expect("list_episodes_by_tags failed");
 
-    assert!(!search_results.is_empty());
+    assert_ne!(search_results.len(), 0);
     let result_ids: Vec<Uuid> = search_results.iter().map(|e| e.episode_id).collect();
     assert!(result_ids.contains(&episode_id));
 
@@ -342,7 +342,7 @@ async fn test_mcp_tag_empty_handling() {
 
     // Episode should have no tags initially
     let tags = memory.get_episode_tags(episode_id).await.unwrap();
-    assert!(tags.is_empty());
+    assert_eq!(tags.len(), 0);
 
     // Add empty string tag (should be rejected or normalized)
     let _result = memory

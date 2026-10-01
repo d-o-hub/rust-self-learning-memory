@@ -119,7 +119,7 @@ fn test_task_context_default() {
     // TaskContext should have default values
     assert_eq!(context.domain, "general");
     assert_eq!(context.complexity, ComplexityLevel::Moderate);
-    assert!(context.tags.is_empty());
+    assert_eq!(context.tags.len(), 0);
     assert!(context.language.is_none());
     assert!(context.framework.is_none());
 }

@@ -316,7 +316,7 @@ mod tests {
         let results = StorageBackend::query_episodes_since(&cached, since, Some(10))
             .await
             .unwrap();
-        assert!(!results.is_empty());
+        assert_ne!(results.len(), 0);
 
         let _ =
             StorageBackend::query_episodes_by_metadata(&cached, "domain", "test", Some(10)).await;

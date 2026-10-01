@@ -65,7 +65,7 @@ proptest! {
             domain: domain.clone(),
             ..TaskContext::default()
         };
-        assert!(!ctx.domain.is_empty());
+        assert_ne!(ctx.domain.len(), 0);
         assert_eq!(ctx.domain, domain);
     }
 
@@ -133,11 +133,11 @@ proptest! {
 #[test]
 fn test_empty_context_has_defaults() {
     let ctx = TaskContext::default();
-    assert!(!ctx.domain.is_empty());
+    assert_ne!(ctx.domain.len(), 0);
     assert!(ctx.language.is_none());
     assert!(ctx.framework.is_none());
     assert_eq!(ctx.complexity, ComplexityLevel::Moderate);
-    assert!(ctx.tags.is_empty());
+    assert_eq!(ctx.tags.len(), 0);
 }
 
 /// Test that complexity default is Moderate

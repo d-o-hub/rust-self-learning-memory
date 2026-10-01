@@ -139,7 +139,7 @@ mod tests {
             recommended_playbook_ids: vec![Uuid::new_v4()],
         };
 
-        assert!(!session.recommended_pattern_ids.is_empty());
+        assert_ne!(session.recommended_pattern_ids.len(), 0);
     }
 
     #[test]

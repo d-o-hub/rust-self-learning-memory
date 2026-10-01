@@ -617,7 +617,7 @@ mod cache_tests {
             !debug.contains("secret user query"),
             "provenance must not embed raw query text: {debug}"
         );
-        assert!(!prov.fingerprint.is_empty());
+        assert_ne!(prov.fingerprint.len(), 0);
     }
 
     #[test]

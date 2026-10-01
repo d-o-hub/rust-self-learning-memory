@@ -373,7 +373,7 @@ fn test_temporal_decay_very_recent() {
 
     let result = router.route(&filter, &[meta]);
     // Very recent should have high score (neutral baseline + full temporal decay)
-    assert!(!result.scores.is_empty());
+    assert_ne!(result.scores.len(), 0);
     assert!(result.scores[0] >= 0.4); // 0.5 neutral base * 1.0 decay = 0.5
 }
 
@@ -388,7 +388,7 @@ fn test_temporal_decay_stale() {
 
     let result = router.route(&filter, &[meta]);
     // Stale should have lower score
-    assert!(!result.scores.is_empty());
+    assert_ne!(result.scores.len(), 0);
     assert!(result.scores[0] < 0.5);
 }
 

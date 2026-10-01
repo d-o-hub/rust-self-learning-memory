@@ -41,12 +41,7 @@ fn reset_clears_every_series() {
     metrics.record_fallback(FallbackReason::NoLocalResults);
     metrics.reset();
 
-    assert!(
-        metrics.snapshot()["requests"]
-            .as_array()
-            .unwrap()
-            .is_empty()
-    );
+    assert_eq!(metrics.snapshot()["requests"].as_array().unwrap().len(), 0);
     assert!(!metrics.export_prometheus().contains("tier=\"bm25\""));
 }
 

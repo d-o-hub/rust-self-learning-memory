@@ -162,7 +162,7 @@ mod tests {
 
         // Take from empty buffer
         let steps = buffer.take_steps();
-        assert!(steps.is_empty());
+        assert_eq!(steps.len(), 0);
 
         // Buffer should still be empty
         assert!(buffer.is_empty());

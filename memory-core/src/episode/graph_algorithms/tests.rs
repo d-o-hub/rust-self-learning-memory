@@ -230,7 +230,7 @@ fn test_topological_sort_empty() {
     let graph: HashMap<Uuid, Vec<EpisodeRelationship>> = HashMap::new();
 
     let result = topological_sort(&graph).unwrap();
-    assert!(result.is_empty());
+    assert_eq!(result.len(), 0);
 }
 
 #[test]
@@ -348,7 +348,7 @@ fn test_find_all_cycles_no_cycles() {
     graph.insert(b, vec![create_rel(b, c)]);
 
     let cycles = find_all_cycles_from_node(&graph, a).unwrap();
-    assert!(cycles.is_empty());
+    assert_eq!(cycles.len(), 0);
 }
 
 #[test]

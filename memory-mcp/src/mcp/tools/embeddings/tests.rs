@@ -20,7 +20,7 @@ use crate::mcp::tools::embeddings::types::{
 fn test_configure_embeddings_tool_definition() {
     let tool = configure_embeddings_tool();
     assert_eq!(tool.name, "configure_embeddings");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Verify required fields
@@ -43,7 +43,7 @@ fn test_configure_embeddings_tool_definition() {
 fn test_query_semantic_memory_tool_definition() {
     let tool = query_semantic_memory_tool();
     assert_eq!(tool.name, "query_semantic_memory");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Verify required fields
@@ -57,7 +57,7 @@ fn test_query_semantic_memory_tool_definition() {
 fn test_test_embeddings_tool_definition() {
     let tool = test_embeddings_tool();
     assert_eq!(tool.name, "test_embeddings");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Should have no required properties
@@ -190,7 +190,7 @@ async fn test_test_embeddings() {
     assert!(!output.available); // Not configured by default
     // When no semantic service is configured, sample_embedding is empty
     assert_eq!(output.sample_embedding.len(), 0);
-    assert!(!output.message.is_empty());
+    assert_ne!(output.message.len(), 0);
     assert!(output.message.contains("not yet configured"));
 }
 
@@ -226,7 +226,7 @@ async fn test_configure_embeddings_azure_rejected() {
 fn test_generate_embedding_tool_definition() {
     let tool = generate_embedding_tool();
     assert_eq!(tool.name, "generate_embedding");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Verify required fields
@@ -245,7 +245,7 @@ fn test_generate_embedding_tool_definition() {
 fn test_search_by_embedding_tool_definition() {
     let tool = search_by_embedding_tool();
     assert_eq!(tool.name, "search_by_embedding");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Verify required fields
@@ -265,7 +265,7 @@ fn test_search_by_embedding_tool_definition() {
 fn test_embedding_provider_status_tool_definition() {
     let tool = embedding_provider_status_tool();
     assert_eq!(tool.name, "embedding_provider_status");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 
     // Should have no required properties
@@ -337,7 +337,7 @@ async fn test_embedding_provider_status_not_configured() {
     assert!(!output.configured);
     assert!(!output.available);
     assert_eq!(output.provider, "not-configured");
-    assert!(!output.warnings.is_empty());
+    assert_ne!(output.warnings.len(), 0);
 }
 
 #[tokio::test]

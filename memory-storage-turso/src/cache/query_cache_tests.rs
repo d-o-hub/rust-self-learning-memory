@@ -7,7 +7,7 @@ fn test_query_key_creation() {
     let key = QueryKey::new(sql, &[&"test_domain"]);
 
     assert_eq!(key.query_type, QueryType::Episode);
-    assert!(!key.param_hashes.is_empty());
+    assert_ne!(key.param_hashes.len(), 0);
 }
 
 #[test]

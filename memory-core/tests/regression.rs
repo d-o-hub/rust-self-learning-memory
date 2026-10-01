@@ -517,7 +517,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         .await;
 
     // Then: Should return results
-    assert!(!results.is_empty());
+    assert_ne!(results.len(), 0);
 
     // Then: At least 50% of results should match the queried domain
     let web_api_count = results

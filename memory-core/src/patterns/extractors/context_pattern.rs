@@ -183,7 +183,7 @@ mod tests {
         });
 
         let patterns = extractor.extract(&episode).await.unwrap();
-        assert!(patterns.is_empty());
+        assert_eq!(patterns.len(), 0);
     }
 
     #[tokio::test]

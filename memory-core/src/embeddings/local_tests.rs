@@ -280,7 +280,7 @@ fn test_utils_list_models() {
     assert!(!models.is_empty());
 
     for model in models {
-        assert!(!model.model_name.is_empty());
+        assert_ne!(model.model_name.len(), 0);
         assert!(model.embedding_dimension > 0);
     }
 }

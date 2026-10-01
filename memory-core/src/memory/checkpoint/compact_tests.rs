@@ -208,11 +208,11 @@ fn compact_sub_floor_budget_returns_best_effort_skeleton() {
 
     // Below the ~1 KB floor compliance is impossible (skeleton + receipts);
     // everything droppable is dropped and omissions stay exact.
-    assert!(pack.verified_findings.is_empty());
-    assert!(pack.decisions.is_empty());
-    assert!(pack.pending_actions.is_empty());
-    assert!(pack.evidence_excerpts.is_empty());
-    assert!(pack.current_goal.is_empty());
+    assert_eq!(pack.verified_findings.len(), 0);
+    assert_eq!(pack.decisions.len(), 0);
+    assert_eq!(pack.pending_actions.len(), 0);
+    assert_eq!(pack.evidence_excerpts.len(), 0);
+    assert_eq!(pack.current_goal.len(), 0);
     assert_eq!(pack.omitted.omitted_steps, 20);
     assert_eq!(pack.omitted.omitted_findings, 3);
     assert_eq!(pack.omitted.omitted_decisions, 1);

@@ -84,7 +84,7 @@ fn test_extract_critical_decisions() {
     });
 
     let features = extractor.extract(&episode);
-    assert!(!features.critical_decisions.is_empty());
+    assert_ne!(features.critical_decisions.len(), 0);
     assert!(
         features
             .critical_decisions
@@ -114,7 +114,7 @@ fn test_extract_tool_combinations() {
     }
 
     let features = extractor.extract(&episode);
-    assert!(!features.tool_combinations.is_empty());
+    assert_ne!(features.tool_combinations.len(), 0);
     assert_eq!(features.tool_combinations[0].len(), 4);
     assert_eq!(features.tool_combinations[0][0], "tool_0");
     assert_eq!(features.tool_combinations[0][3], "tool_3");
@@ -181,7 +181,7 @@ fn test_extract_error_recovery_patterns() {
     episode.add_step(recovery_step);
 
     let features = extractor.extract(&episode);
-    assert!(!features.error_recovery_patterns.is_empty());
+    assert_ne!(features.error_recovery_patterns.len(), 0);
     assert!(features.error_recovery_patterns[0].contains("Connection timeout"));
     assert!(features.error_recovery_patterns[0].contains("Retry with backoff"));
 }
@@ -209,7 +209,7 @@ fn test_extract_multi_step_error_recovery() {
     }
 
     let features = extractor.extract(&episode);
-    assert!(!features.error_recovery_patterns.is_empty());
+    assert_ne!(features.error_recovery_patterns.len(), 0);
     // Should capture multi-step recovery
     assert!(
         features
@@ -238,7 +238,7 @@ fn test_extract_key_insights_from_reflection() {
     });
 
     let features = extractor.extract(&episode);
-    assert!(!features.key_insights.is_empty());
+    assert_ne!(features.key_insights.len(), 0);
     assert!(
         features
             .key_insights
@@ -264,7 +264,7 @@ fn test_extract_key_insights_from_outcome() {
     });
 
     let features = extractor.extract(&episode);
-    assert!(!features.key_insights.is_empty());
+    assert_ne!(features.key_insights.len(), 0);
     assert!(
         features
             .key_insights
@@ -333,10 +333,10 @@ fn test_extract_comprehensive_features() {
     let features = extractor.extract(&episode);
 
     // Should have extracted features in all categories
-    assert!(!features.critical_decisions.is_empty());
-    assert!(!features.tool_combinations.is_empty());
-    assert!(!features.error_recovery_patterns.is_empty());
-    assert!(!features.key_insights.is_empty());
+    assert_ne!(features.critical_decisions.len(), 0);
+    assert_ne!(features.tool_combinations.len(), 0);
+    assert_ne!(features.error_recovery_patterns.len(), 0);
+    assert_ne!(features.key_insights.len(), 0);
 
     assert!(features.count() > 5);
 }
@@ -353,7 +353,7 @@ fn test_extract_handles_partial_success() {
     });
 
     let features = extractor.extract(&episode);
-    assert!(!features.critical_decisions.is_empty());
+    assert_ne!(features.critical_decisions.len(), 0);
     assert!(
         features
             .critical_decisions
@@ -373,7 +373,7 @@ fn test_extract_handles_failure() {
     });
 
     let features = extractor.extract(&episode);
-    assert!(!features.critical_decisions.is_empty());
+    assert_ne!(features.critical_decisions.len(), 0);
     assert!(
         features
             .critical_decisions
@@ -395,7 +395,7 @@ fn test_no_tool_combinations_for_short_sequences() {
     episode.add_step(step);
 
     let features = extractor.extract(&episode);
-    assert!(features.tool_combinations.is_empty());
+    assert_eq!(features.tool_combinations.len(), 0);
 }
 
 #[test]
@@ -417,6 +417,6 @@ fn test_timeout_error_recovery() {
     episode.add_step(recovery_step);
 
     let features = extractor.extract(&episode);
-    assert!(!features.error_recovery_patterns.is_empty());
+    assert_ne!(features.error_recovery_patterns.len(), 0);
     assert!(features.error_recovery_patterns[0].contains("Timeout"));
 }

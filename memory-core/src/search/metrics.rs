@@ -355,7 +355,7 @@ mod tests {
         let fused = reciprocal_rank_fusion(&[list1, list2], 60);
 
         // Both lists have "a" and "c" high, they should rank well
-        assert!(!fused.is_empty());
+        assert_ne!(fused.len(), 0);
         assert!(fused.iter().any(|(item, _)| *item == "a"));
         assert!(fused.iter().any(|(item, _)| *item == "c"));
     }

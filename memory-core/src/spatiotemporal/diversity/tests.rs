@@ -35,7 +35,7 @@ fn test_invalid_lambda_negative() {
 fn test_empty_candidates() {
     let maximizer = DiversityMaximizer::default();
     let result = maximizer.maximize_diversity(vec![], 5);
-    assert!(result.is_empty());
+    assert_eq!(result.len(), 0);
 }
 
 #[test]
@@ -43,7 +43,7 @@ fn test_zero_limit() {
     let maximizer = DiversityMaximizer::default();
     let candidates = vec![create_test_episode("ep1", 0.9, vec![1.0, 0.0])];
     let result = maximizer.maximize_diversity(candidates, 0);
-    assert!(result.is_empty());
+    assert_eq!(result.len(), 0);
 }
 
 #[test]

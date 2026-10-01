@@ -80,8 +80,8 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
 
     // Check reflection
     let reflection = completed_episode.reflection.unwrap();
-    assert!(!reflection.successes.is_empty());
-    assert!(!reflection.insights.is_empty());
+    assert_ne!(reflection.successes.len(), 0);
+    assert_ne!(reflection.insights.len(), 0);
 
     // When: We retrieve context for a similar task
     let similar_context = TaskContext {
@@ -101,13 +101,13 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
         .await;
 
     // Then: The system should return relevant past episodes and patterns
-    assert!(!relevant.is_empty());
+    assert_ne!(relevant.len(), 0);
     assert_eq!(relevant[0].episode_id, episode_id);
 
     let patterns = memory
         .retrieve_relevant_patterns(&similar_context, 10)
         .await;
-    assert!(!patterns.is_empty());
+    assert_ne!(patterns.len(), 0);
 }
 
 #[tokio::test]
@@ -216,7 +216,7 @@ async fn should_learn_from_failed_episodes_with_improvement_insights() {
     assert!((reward.base - 0.0).abs() < f32::EPSILON); // Failure
 
     let reflection = episode.reflection.unwrap();
-    assert!(!reflection.improvements.is_empty());
+    assert_ne!(reflection.improvements.len(), 0);
     assert!(
         reflection
             .improvements

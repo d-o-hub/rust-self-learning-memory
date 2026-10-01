@@ -280,7 +280,7 @@ async fn s14b_partial_eviction_failure_is_reconcilable() {
         .await
         .expect("reconcile");
     assert!(remaining.is_empty(), "reconcile should clear failures");
-    assert!(memory.pending_eviction_failures().await.is_empty());
+    assert_eq!(memory.pending_eviction_failures().await.len(), 0);
     assert!(
         durable.deleted.lock().unwrap().contains(&ep1),
         "reconcile must delete the previously failed episode"

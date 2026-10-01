@@ -14,7 +14,7 @@ use super::types::AnalysisType;
 async fn test_tool_definition() {
     let tool = AdvancedPatternAnalysisTool::tool_definition();
     assert_eq!(tool.name, "advanced_pattern_analysis");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
     assert!(tool.input_schema.is_object());
 }
 

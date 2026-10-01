@@ -43,7 +43,7 @@ async fn test_get_tool() {
 
     let tool = tool.unwrap();
     assert_eq!(tool.name, "query_memory");
-    assert!(!tool.description.is_empty());
+    assert_ne!(tool.description.len(), 0);
 }
 
 #[tokio::test]

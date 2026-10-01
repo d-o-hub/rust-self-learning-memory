@@ -30,7 +30,7 @@ async fn test_get_relationships_empty() {
         .await
         .unwrap();
 
-    assert!(result.is_empty());
+    assert_eq!(result.len(), 0);
 }
 
 #[tokio::test]
@@ -43,7 +43,7 @@ async fn test_find_related_empty() {
         .await
         .unwrap();
 
-    assert!(result.is_empty());
+    assert_eq!(result.len(), 0);
 }
 
 #[tokio::test]
@@ -64,7 +64,7 @@ async fn test_get_dependencies_empty() {
     let episode_id = Uuid::new_v4();
 
     let deps = memory.get_episode_dependencies(episode_id).await.unwrap();
-    assert!(deps.is_empty());
+    assert_eq!(deps.len(), 0);
 }
 
 #[tokio::test]
@@ -73,7 +73,7 @@ async fn test_get_dependents_empty() {
     let episode_id = Uuid::new_v4();
 
     let deps = memory.get_episode_dependents(episode_id).await.unwrap();
-    assert!(deps.is_empty());
+    assert_eq!(deps.len(), 0);
 }
 
 #[tokio::test]
@@ -118,7 +118,7 @@ async fn test_get_episode_with_relationships() {
         .unwrap();
 
     assert_eq!(result.episode.episode_id, episode_id);
-    assert!(result.outgoing.is_empty());
-    assert!(result.incoming.is_empty());
+    assert_eq!(result.outgoing.len(), 0);
+    assert_eq!(result.incoming.len(), 0);
     assert_eq!(result.total_relationships(), 0);
 }

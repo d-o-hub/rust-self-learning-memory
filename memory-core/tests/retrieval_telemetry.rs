@@ -78,12 +78,12 @@ async fn query_path_records_miss_then_cache_hit() {
     let first = memory
         .retrieve_relevant_context("telemetry query task".into(), context.clone(), 5)
         .await;
-    assert!(!first.is_empty());
+    assert_ne!(first.len(), 0);
     // Second identical call is served from the query cache.
     let second = memory
         .retrieve_relevant_context("telemetry query task".into(), context, 5)
         .await;
-    assert!(!second.is_empty());
+    assert_ne!(second.len(), 0);
 
     let (requests_after, _, _) = counters();
     assert_eq!(requests_after - requests_before, 2);

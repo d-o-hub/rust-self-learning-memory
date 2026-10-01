@@ -25,7 +25,7 @@ fn test_identify_successes_full_success() {
     let episode = create_test_episode("Success test", TaskType::Testing, steps, Some(outcome));
     let successes = success_analyzer::identify_successes(&episode, 5);
 
-    assert!(!successes.is_empty());
+    assert_ne!(successes.len(), 0);
     assert!(
         successes
             .iter()
@@ -47,7 +47,7 @@ fn test_identify_successes_partial_success() {
     let episode = create_test_episode("Partial test", TaskType::Testing, steps, Some(outcome));
     let successes = success_analyzer::identify_successes(&episode, 5);
 
-    assert!(!successes.is_empty());
+    assert_ne!(successes.len(), 0);
     assert!(successes.iter().any(|s| s.contains("Partial success")));
 }
 
@@ -124,7 +124,7 @@ fn test_analyze_success_patterns_tool_combination() {
     let episode = create_test_episode("Tool combo", TaskType::Testing, steps, Some(outcome));
     let patterns = success_analyzer::analyze_success_patterns(&episode);
 
-    assert!(!patterns.is_empty());
+    assert_ne!(patterns.len(), 0);
     assert!(patterns.iter().any(|p| p.contains("tool strategy")));
 }
 
@@ -221,5 +221,5 @@ fn test_analyze_success_patterns_failed_episode() {
     let episode = create_test_episode("Failed", TaskType::Testing, steps, Some(outcome));
     let patterns = success_analyzer::analyze_success_patterns(&episode);
 
-    assert!(patterns.is_empty());
+    assert_eq!(patterns.len(), 0);
 }

@@ -164,7 +164,7 @@ mod tests {
         assert_eq!(metric.name, "test_metric");
         assert_eq!(metric.metric_type, MetricType::Counter);
         assert_eq!(metric.value, MetricValue::Integer(100));
-        assert!(metric.labels.is_empty());
+        assert_eq!(metric.labels.len(), 0);
     }
 
     #[test]

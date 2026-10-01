@@ -243,7 +243,7 @@ async fn test_compressed_transport_metadata() {
 
     // CompressedTransport should report compression support
     assert!(metadata.supports_compression);
-    assert!(!metadata.name.is_empty());
+    assert_ne!(metadata.name.len(), 0);
 }
 
 // ============================================================================

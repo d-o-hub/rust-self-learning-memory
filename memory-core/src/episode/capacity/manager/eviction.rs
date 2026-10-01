@@ -116,7 +116,7 @@ mod tests {
             .collect();
 
         let to_evict = evict_if_needed(&episodes, 10, EvictionPolicy::LRU);
-        assert!(to_evict.is_empty());
+        assert_eq!(to_evict.len(), 0);
     }
 
     #[test]

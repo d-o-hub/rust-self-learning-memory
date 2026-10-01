@@ -238,7 +238,7 @@ pub async fn test_empty_embeddings_batch() {
 
     // Get empty batch
     let results = storage.get_embeddings_batch(&[]).await.unwrap();
-    assert!(results.is_empty());
+    assert_eq!(results.len(), 0);
 }
 
 #[tokio::test]

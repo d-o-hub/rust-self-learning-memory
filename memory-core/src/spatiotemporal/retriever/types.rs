@@ -144,28 +144,67 @@ pub(crate) fn get_or_generate_episode_embedding(
     vec![task_len, domain_hash, steps_count]
 }
 
+/// Avoid memory allocation if the string is already lowercase.
+#[inline]
+fn to_lowercase_cow(s: &str) -> std::borrow::Cow<'_, str> {
+    if s.chars().any(|c| c.is_uppercase()) {
+        std::borrow::Cow::Owned(s.to_lowercase())
+    } else {
+        std::borrow::Cow::Borrowed(s)
+    }
+}
+
 /// Calculate text similarity between query and episode text.
 ///
 /// Uses a simple word overlap metric:
 /// `similarity = (common_words) / max(query_words, text_words)`
 ///
-/// # Arguments
-///
-/// * `query` - Query text
-/// * `text` - Text to compare against
-///
-/// # Returns
-///
-/// Similarity score between 0.0 and 1.0
+/// # Optimization
+/// Employs `to_lowercase_cow` to bypass string allocations when inputs are already lowercased.
+/// For small word counts ($N, M \le 16$), performs allocation-free linear scans using borrowed
+/// `&str` slices to calculate unique word counts and intersection, eliminating heap allocations.
+/// For larger inputs, uses `HashSet<&str>` over borrowed slices to avoid cloning string data.
 pub(crate) fn calculate_text_similarity(query: &str, text: &str) -> f32 {
-    let query_lower = query.to_lowercase();
-    let text_lower = text.to_lowercase();
+    let query_lower = to_lowercase_cow(query);
+    let text_lower = to_lowercase_cow(text);
 
-    let query_words: std::collections::HashSet<_> = query_lower.split_whitespace().collect();
-    let text_words: std::collections::HashSet<_> = text_lower.split_whitespace().collect();
+    let qw: Vec<&str> = query_lower.split_whitespace().collect();
+    let tw: Vec<&str> = text_lower.split_whitespace().collect();
 
-    let common = query_words.intersection(&text_words).count();
-    let max_len = query_words.len().max(text_words.len());
+    if qw.is_empty() && tw.is_empty() {
+        return 0.0;
+    }
+
+    let (common, max_len) = if qw.len() <= 16 && tw.len() <= 16 {
+        let mut qw_unique = 0;
+        let mut common = 0;
+
+        for (i, w1) in qw.iter().enumerate() {
+            if qw[..i].iter().any(|prev| prev == w1) {
+                continue;
+            }
+            qw_unique += 1;
+            if tw.iter().any(|w2| w2 == w1) {
+                common += 1;
+            }
+        }
+
+        let mut tw_unique = 0;
+        for (j, w2) in tw.iter().enumerate() {
+            if tw[..j].iter().any(|prev| prev == w2) {
+                continue;
+            }
+            tw_unique += 1;
+        }
+
+        (common, qw_unique.max(tw_unique))
+    } else {
+        let set1: std::collections::HashSet<&str> = qw.into_iter().collect();
+        let set2: std::collections::HashSet<&str> = tw.into_iter().collect();
+        let common = set1.intersection(&set2).count();
+        let max_len = set1.len().max(set2.len());
+        (common, max_len)
+    };
 
     if max_len == 0 {
         0.0

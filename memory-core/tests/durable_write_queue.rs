@@ -12,8 +12,8 @@ use chrono::Utc;
 use do_memory_core::episode::PatternId;
 use do_memory_core::storage::StorageBackend;
 use do_memory_core::{
-    Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory, TaskContext,
-    TaskOutcome, TaskType, WriteQueueConfig,
+    Episode, EpisodeDurability, Error, Heuristic, MemoryConfig, Pattern, Result,
+    SelfLearningMemory, TaskContext, TaskOutcome, TaskType, WriteQueueConfig,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -244,13 +244,19 @@ async fn flush_surfaces_permanent_remote_failure_but_keeps_local_state() {
     memory.start_durable_workers();
     let flush_result = memory.flush_durable_writes(Duration::from_secs(10)).await;
 
-    // Assert: flush names the permanent failure...
+    // Assert: flush names the permanent failure and the affected episode...
     let err = flush_result.expect_err("flush must surface parked failures");
     match err {
-        Error::Storage(msg) => assert!(
-            msg.contains("permanent failure"),
-            "unexpected message: {msg}"
-        ),
+        Error::Storage(msg) => {
+            assert!(
+                msg.contains("permanent failure"),
+                "unexpected message: {msg}"
+            );
+            assert!(
+                msg.contains(&episode_id.to_string()),
+                "flush error must name the failed episode: {msg}"
+            );
+        }
         other => panic!("expected Error::Storage, got {other:?}"),
     }
     // ...the failure is observable in stats...
@@ -435,16 +441,113 @@ async fn queue_without_turso_backend_stays_synchronous() {
 
     // Act.
     let episode_id = start_episode(&memory, "local only").await;
-    memory
-        .complete_episode(episode_id, success_outcome())
+    let receipt = memory
+        .complete_episode_checked(episode_id, success_outcome())
         .await
         .expect("local completion must succeed");
 
-    // Assert: no queue was wired, flush is a no-op success.
+    // Assert: no queue was wired, the receipt reports local durability only,
+    // and flush is a no-op success.
+    assert_eq!(receipt.episode_id, episode_id);
+    assert_eq!(receipt.durability, EpisodeDurability::Local);
+    assert_eq!(receipt.queue_depth, 0);
     assert!(memory.durable_write_stats().await.is_none());
     memory
         .flush_durable_writes(Duration::from_secs(1))
         .await
         .expect("flush without queue must succeed");
     assert!(memory.get_episode(episode_id).await.is_ok());
+}
+
+#[tokio::test]
+async fn checked_completion_reports_committed_on_synchronous_durable_path() {
+    // Arrange: durable backend configured, queue disabled → synchronous write.
+    let cache = Arc::new(MockBackend::new());
+    let turso = Arc::new(MockBackend::new());
+    let mut config = test_config();
+    config.durable_write_queue = None;
+    let memory = SelfLearningMemory::with_storage(
+        config,
+        Arc::clone(&turso) as Arc<dyn StorageBackend>,
+        Arc::clone(&cache) as Arc<dyn StorageBackend>,
+    );
+    let episode_id = start_episode(&memory, "sync durable").await;
+    let calls_before = turso.store_calls.load(Ordering::SeqCst);
+
+    // Act.
+    let receipt = memory
+        .complete_episode_checked(episode_id, success_outcome())
+        .await
+        .expect("synchronous completion must succeed");
+    let calls_after = turso.store_calls.load(Ordering::SeqCst);
+
+    // Assert: the receipt claims commit only because the write already landed.
+    assert_eq!(receipt.episode_id, episode_id);
+    assert_eq!(receipt.durability, EpisodeDurability::Committed);
+    assert_eq!(receipt.queue_depth, 0);
+    assert!(
+        calls_after > calls_before,
+        "synchronous completion must write to the durable backend before returning \
+         (store_calls {calls_before} -> {calls_after})"
+    );
+    assert_eq!(turso.stored_count().await, 1);
+}
+
+#[tokio::test]
+async fn checked_completion_reports_pending_queue_state() {
+    // Arrange: queue enabled, slow remote, workers NOT started → the write
+    // cannot have committed when the completion returns.
+    let cache = Arc::new(MockBackend::new());
+    let turso = Arc::new(MockBackend::slow(1500));
+    let memory = SelfLearningMemory::with_storage(
+        test_config(),
+        Arc::clone(&turso) as Arc<dyn StorageBackend>,
+        Arc::clone(&cache) as Arc<dyn StorageBackend>,
+    );
+    let episode_id = start_episode(&memory, "queued pending").await;
+
+    // Act.
+    let receipt = memory
+        .complete_episode_checked(episode_id, success_outcome())
+        .await
+        .expect("queued completion must succeed");
+
+    // Assert: queued is reported as pending, never as durable commit.
+    // (The start path persists the episode synchronously by design, so the
+    // queue-specific evidence is that the worker never wrote it: workers are
+    // stopped, `total_written` stays 0, and the write is still waiting.)
+    assert_eq!(receipt.episode_id, episode_id);
+    assert_eq!(receipt.durability, EpisodeDurability::Queued);
+    assert!(
+        receipt.queue_depth >= 1,
+        "pending receipt must expose the waiting write: {}",
+        receipt.queue_depth
+    );
+    let stats = memory
+        .durable_write_stats()
+        .await
+        .expect("queue must be wired");
+    assert_eq!(
+        stats.total_written, 0,
+        "no queue write may commit while the workers are stopped"
+    );
+    assert!(
+        stats.current_depth >= 1,
+        "the completion write must still be waiting: {stats:?}"
+    );
+
+    // ...and the drain is what provides the remote durability guarantee.
+    memory.start_durable_workers();
+    memory
+        .flush_durable_writes(Duration::from_secs(10))
+        .await
+        .expect("flush must commit the queued write");
+    let stats = memory
+        .durable_write_stats()
+        .await
+        .expect("queue must be wired");
+    assert!(
+        stats.total_written >= 1,
+        "flush must have committed the queued write: {stats:?}"
+    );
 }

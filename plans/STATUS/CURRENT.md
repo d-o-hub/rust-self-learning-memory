@@ -1,18 +1,25 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-09-30
-**Released Version**: v0.1.43 (release pending tag)
-**Workspace Version**: 0.1.43 (matches release)
+**Last Updated**: 2026-10-01
+**Released Version**: v0.1.43 (latest tag)
+**Workspace Version**: 0.1.44 (post-v0.1.43 bump)
 **Edition**: Rust 2024  
-**Active plan**: none in flight — this PR prepares v0.1.43; merged since v0.1.42: MCP OAuth 2.1 enforcement (#1101 → #1082), rate-limit identity from a trusted principal (#1101 → #1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe storage pools (#1095 → #1060-#1062) and the MCP fail-closed docs reconciliation (#1099); release drift is tracked by #1098; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `8faab97b` (PR #1101 merged 2026-09-30)
+**Active plan**: none in flight — v0.1.43 shipped 2026-10-01 (MCP OAuth 2.1 enforcement #1101 → #1082 and trusted rate-limit identity #1101 → #1084, redb fail-closed schema handling #1096 → #1069, atomic provider-identity embedding activation #1097 → #1072, full `tools/list` registry #1100 → #1083, ownership-safe storage pools #1095 → #1060-#1062, MCP fail-closed docs reconciliation #1099, LOC-ceiling split with a CI gate #1103); the workspace moved to 0.1.44 post-release; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `a0078d0a` (PR #1103 merged 2026-10-01; v0.1.43 tagged on this commit)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — the release-drift issue for this tag tracks the release until it lands |
+| Open issues | run `gh issue list --state open` — the previous release-drift issue closed with the tag |
+
+## Recent completed (2026-10-01 — v0.1.43 shipped)
+
+| Wave | Result |
+|------|--------|
+| v0.1.43 release | ✅ tag `v0.1.43` on `a0078d0a`; GitHub Release with dist artifacts for five targets; drift issue #1098 auto-closed by the tag-triggered check; workspace bumped to 0.1.44 |
+| LOC ceiling regression (#1103) | ✅ the oversized `server_impl` test modules split into sibling `*_tests.rs` files (source files back under the ceiling) and `check-loc.sh` now runs in the File Structure Validation workflow, so PR CI enforces what previously only the pre-commit sensor and the release gate caught |
 
 ## Recent completed (2026-09-30 — v0.1.43 prepared)
 

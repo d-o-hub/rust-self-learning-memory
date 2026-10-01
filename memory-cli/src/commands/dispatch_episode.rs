@@ -151,9 +151,32 @@ pub async fn handle_episode_command(
         EpisodeCommands::Complete {
             episode_id,
             outcome,
-        } => complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
-        EpisodeCommands::Fail { episode_id } => {
-            fail_episode(episode_id, memory, config, format, dry_run).await
+            durable_timeout_secs,
+        } => {
+            complete_episode(
+                episode_id,
+                outcome,
+                memory,
+                config,
+                format,
+                dry_run,
+                durable_timeout_secs,
+            )
+            .await
+        }
+        EpisodeCommands::Fail {
+            episode_id,
+            durable_timeout_secs,
+        } => {
+            fail_episode(
+                episode_id,
+                memory,
+                config,
+                format,
+                dry_run,
+                durable_timeout_secs,
+            )
+            .await
         }
         EpisodeCommands::Delete { episode_id } => {
             delete_episode(episode_id, memory, config, format, dry_run).await

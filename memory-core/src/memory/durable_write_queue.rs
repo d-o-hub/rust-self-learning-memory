@@ -400,8 +400,8 @@ impl DurableWriteQueue {
     /// Used by CLI shutdown, tests, and operators that need the remote
     /// durability guarantee on demand (the D1 split). Permanent
     /// failures recorded during the drain surface as
-    /// [`Error::Storage`]; inspect the
-    /// operation journal and [`get_stats`](Self::get_stats) for the IDs.
+    /// [`Error::Storage`] naming the affected episode IDs; inspect the
+    /// operation journal and [`get_stats`](Self::get_stats) for the rest.
     ///
     /// # Errors
     ///
@@ -415,11 +415,20 @@ impl DurableWriteQueue {
                 "durable write queue did not drain within {timeout:?} ({depth} waiting)"
             )));
         }
-        let failed_now = self.get_stats().await.total_failed;
-        if failed_now > baseline_failed {
+        let stats = self.get_stats().await;
+        if stats.total_failed > baseline_failed {
+            // Newest failures sit at the tail (`retain_failure` appends);
+            // name them so the operator can repair and re-complete precisely.
+            let newly_failed = (stats.total_failed - baseline_failed) as usize;
+            let first_new = stats.failed_episode_ids.len().saturating_sub(newly_failed);
+            let ids: Vec<String> = stats.failed_episode_ids[first_new..]
+                .iter()
+                .map(Uuid::to_string)
+                .collect();
             return Err(Error::Storage(format!(
-                "durable write queue drained with {} permanent failure(s); see operation journal",
-                failed_now - baseline_failed
+                "durable write queue drained with {newly_failed} permanent failure(s) for episode(s) {}; \
+                 inspect the operation journal and re-complete the episode(s) after repairing the durable backend",
+                ids.join(", ")
             )));
         }
         Ok(())

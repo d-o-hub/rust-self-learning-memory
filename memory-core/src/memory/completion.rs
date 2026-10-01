@@ -10,6 +10,46 @@ use uuid::Uuid;
 use super::SelfLearningMemory;
 use crate::Episode;
 
+/// Durability reached by a completion when it returned (issue #1080).
+///
+/// The receipt that carries this value is sourced from live durable-write
+/// queue statistics, so [`EpisodeDurability::Queued`] can never be mistaken
+/// for a committed remote write. See ADR-075 (D2 follow-up).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EpisodeDurability {
+    /// No durable backend is configured: the episode is committed to the
+    /// local backends only.
+    Local,
+    /// Every configured backend (including the durable one) committed the
+    /// episode before the call returned — the synchronous path, or the
+    /// durable write queue is disabled.
+    Committed,
+    /// Local state committed; the durable backend accepted the episode into
+    /// the bounded background write queue and it has not committed yet.
+    ///
+    /// Callers that require remote durability must drain the queue with
+    /// [`flush_durable_writes`](SelfLearningMemory::flush_durable_writes)
+    /// (or [`complete_episode`](SelfLearningMemory::complete_episode) after
+    /// draining) and treat drain errors as failed completions.
+    Queued,
+}
+
+/// Receipt for a completed episode, reporting the durability reached when
+/// the completion returned (issue #1080).
+///
+/// Issued by
+/// [`complete_episode_checked`](SelfLearningMemory::complete_episode_checked).
+#[derive(Debug, Clone)]
+pub struct EpisodeCompletionReceipt {
+    /// The completed episode.
+    pub episode_id: Uuid,
+    /// Durability state at return time.
+    pub durability: EpisodeDurability,
+    /// Waiting durable writes after this completion; `0` unless
+    /// [`EpisodeDurability::Queued`].
+    pub queue_depth: usize,
+}
+
 impl SelfLearningMemory {
     /// Persist one episode to the Turso backend.
     ///
@@ -103,8 +143,41 @@ impl SelfLearningMemory {
     /// # Ok(())
     /// # }
     /// ```
-    #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
+    ///
+    /// # Compatibility policy (ADR-075 D2, issue #1080)
+    ///
+    /// This legacy signature returns `Ok(())` and discards the receipt from
+    /// [`complete_episode_checked`](Self::complete_episode_checked). Its
+    /// enqueue-versus-commit behaviour is unchanged: with the durable write
+    /// queue enabled it returns after the enqueue, so remote durability
+    /// requires an explicit call to
+    /// [`flush_durable_writes`](SelfLearningMemory::flush_durable_writes).
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
+        self.complete_episode_checked(episode_id, outcome)
+            .await
+            .map(|_| ())
+    }
+
+    /// Complete an episode and report the durability it reached.
+    ///
+    /// Runs the same learning cycle as
+    /// [`complete_episode`](Self::complete_episode) and returns an
+    /// [`EpisodeCompletionReceipt`] sourced from live durable-write queue
+    /// statistics (issue #1080): `Committed`/`Local` mean every configured
+    /// backend persisted before returning; `Queued` means the durable write
+    /// is still pending in the queue and must be drained for the remote
+    /// durability guarantee.
+    ///
+    /// # Errors
+    ///
+    /// Same as [`complete_episode`](Self::complete_episode), including queue
+    /// backpressure ([`Error::QuotaExceeded`]).
+    #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
+    pub async fn complete_episode_checked(
+        &self,
+        episode_id: Uuid,
+        outcome: TaskOutcome,
+    ) -> Result<EpisodeCompletionReceipt> {
         // Flush any buffered steps before completing the episode
         // This ensures all steps are persisted and available for analysis
         if self.batch_config().is_some() {
@@ -487,6 +560,22 @@ impl SelfLearningMemory {
                 .unwrap_or(0),
         });
 
-        Ok(())
+        // Issue #1080: report durability from live queue state, not from a
+        // best-effort boolean. `Queued` means the durable write is accepted
+        // but not committed; callers drain the queue for that guarantee.
+        let (durability, queue_depth) = match (&self.turso_storage, &self.durable_write_queue) {
+            (Some(_), Some(queue)) => (
+                EpisodeDurability::Queued,
+                queue.get_stats().await.current_depth,
+            ),
+            (Some(_), None) => (EpisodeDurability::Committed, 0),
+            (None, _) => (EpisodeDurability::Local, 0),
+        };
+
+        Ok(EpisodeCompletionReceipt {
+            episode_id,
+            durability,
+            queue_depth,
+        })
     }
 }

@@ -1,9 +1,9 @@
 # Plans Directory
 
-**Workspace**: `v0.1.43` (post-v0.1.42 bump) · **Released tag**: `v0.1.42` · **Main baseline**: `47a07a0bb61e8dd0ec44599dd51f0d96d5ce26c8` (v0.1.42 tagged 2026-09-27)
-**Active plan**: merged #947 (2026-08-12) — ADR-079/080/081 closure landed; no in-flight code plan; post-release repairs (docs audit #1044, harness clippy sensor, skill routing) merge next
-**Last Updated**: 2026-09-27
-**Open PRs**: docs audit repair #1044 · **Open issues**: none blocking (#1048 release drift closed by v0.1.42)
+**Workspace**: `v0.1.44` (post-v0.1.43 bump) · **Released tag**: `v0.1.43` · **Main baseline**: `a0078d0ab6534dff22e2f7dd1742a2ecf00d66ea` (v0.1.43 tagged 2026-10-01)
+**Active plan**: none in flight — v0.1.43 shipped 2026-10-01 (MCP OAuth 2.1 enforcement #1101, redb fail-closed #1096, atomic embedding activation #1097, full `tools/list` #1100, pool ownership #1095, docs reconciliation #1099, LOC split + CI gate #1103); workspace bumped to 0.1.44 post-release
+**Last Updated**: 2026-10-01
+**Open PRs**: run `gh pr list --state open` · **Open issues**: run `gh issue list --state open` (the previous release-drift issue closed with the tag)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

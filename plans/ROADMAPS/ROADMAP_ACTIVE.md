@@ -1,13 +1,13 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-09-30
-**Released Version**: v0.1.43 (release pending tag)
-**Workspace Version**: 0.1.43 (matches release)
-**Active Sprint**: v0.1.43 prepared 2026-09-30 — MCP OAuth 2.1 enforcement + trusted rate-limit identity (#1101 → #1082/#1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe pools (#1095 → #1060-#1062), MCP fail-closed docs reconciliation (#1099) and repo chores (skills #1057, harness clippy sensor #1056, dependabot #1058/#1059); drift tracked by #1098
-**Plan**: #1082/#1084 landed via PR #1101, #1069 via #1096, #1072 via #1097, #1083 via #1100, #1060-#1062 via #1095; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `8faab97b` (PR #1101 merged 2026-09-30)
+**Last Updated**: 2026-10-01
+**Released Version**: v0.1.43 (latest tag)
+**Workspace Version**: 0.1.44 (post-v0.1.43 bump)
+**Active Sprint**: v0.1.43 shipped 2026-10-01 (tag on `a0078d0a`) — MCP OAuth 2.1 enforcement + trusted rate-limit identity (#1101 → #1082/#1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe pools (#1095 → #1060-#1062), MCP fail-closed docs reconciliation (#1099) and the LOC-ceiling split with a CI gate (#1103); workspace bumped to 0.1.44 post-release
+**Plan**: #1082/#1084 landed via PR #1101, #1069 via #1096, #1072 via #1097, #1083 via #1100, #1060-#1062 via #1095, LOC split via #1103; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
+**Branch**: main @ `a0078d0a` (PR #1103 merged 2026-10-01; v0.1.43 tagged on this commit)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: run `gh issue list --state open` — the release-drift issue for this tag tracks the release until it lands
+**Open issues**: run `gh issue list --state open` — the previous release-drift issue closed with the tag
 
 ## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)
 
@@ -20,6 +20,8 @@
 | P2 | MCP | #1083 `tools/list` enumerates the full registry by default | ✅ Merged (#1100) |
 | P2 | Storage | #1060-#1062 adaptive/caching/keep-alive pool ownership without raw pointers or `unsafe` | ✅ Merged (#1095) |
 | P2 | Docs | MCP fail-closed claims reconciled across docs, skills and doc-integrity checks | ✅ Merged (#1099) |
+| P0 | Release | v0.1.43 shipped — tag `v0.1.43` on `a0078d0a`, GitHub Release with dist artifacts, drift issue closed by the tag-triggered check | ✅ 2026-10-01 |
+| P1 | Tooling | LOC ceiling regression fixed: oversized `server_impl` test modules split; `check-loc.sh` now runs in File Structure Validation | ✅ Merged (#1103) |
 
 ## Sprint 2026-09-24 — Retrieval judgment + rerank
 

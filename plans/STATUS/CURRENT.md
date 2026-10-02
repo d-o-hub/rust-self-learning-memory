@@ -1,27 +1,18 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-02
+**Last Updated**: 2026-10-01
 **Released Version**: v0.1.43 (latest tag)
 **Workspace Version**: 0.1.44 (post-v0.1.43 bump)
 **Edition**: Rust 2024  
-**Active plan**: none in flight — the v0.1.43-post-release wave merged 2026-10-01/02: checked episode completion receipts (#1080 → #1107), CLI drain-and-verify adoption (#1081 → #1112), the clippy 1.99 `assert_is_empty` migration (#1108, floating `stable` bump), and the release-pipeline best-practice proposal (#1109, open); automatically generated PRs #1110 (architecture refresh), #1111 (coverage floor) and #1113 (pattern-search clamp) are in review; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `580c32db` (PR #1112 merged 2026-10-02)
+**Active plan**: none in flight — v0.1.43 shipped 2026-10-01 (MCP OAuth 2.1 enforcement #1101 → #1082 and trusted rate-limit identity #1101 → #1084, redb fail-closed schema handling #1096 → #1069, atomic provider-identity embedding activation #1097 → #1072, full `tools/list` registry #1100 → #1083, ownership-safe storage pools #1095 → #1060-#1062, MCP fail-closed docs reconciliation #1099, LOC-ceiling split with a CI gate #1103); the workspace moved to 0.1.44 post-release; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `a0078d0a` (PR #1103 merged 2026-10-01; v0.1.43 tagged on this commit)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work |
-
-## Recent completed (2026-10-02 — durability receipts + toolchain hygiene)
-
-| Wave | Result |
-|------|--------|
-| Checked completion receipts (#1080 → #1107) | ✅ `complete_episode_checked` returns `Local`/`Committed`/`Queued` sourced from live queue stats; legacy `complete_episode` unchanged (ADR-075 D2); `flush` errors name the permanently failed episode IDs; patch coverage raised 76.8% → 94.8% with embedding happy-path and provider-failure tests |
-| CLI durable drain (#1081 → #1112) | ✅ `episode complete|fail` drain a `Queued` write with bounded `--durable-timeout-secs` (default 30) before any success output, exit non-zero naming the episode on timeout/permanent failure, and report the final `durability` (`committed`/`local`) in human/JSON/YAML |
-| Clippy 1.99 migration (#1108) | ✅ the floating `stable` bump added `clippy::assert_is_empty`; ~100 pre-existing sites migrated (`assert_eq!`/`assert_ne!` on `.len()`), LESSON-029 records the trap |
-| Release-pipeline proposal (#1109) | 📋 issue opened: OIDC trusted publishing without the token fallback, artifact + SBOM attestations, draft-first immutable releases, Pages boundary documented, publish-job de-duplication |
+| Open issues | run `gh issue list --state open` — the previous release-drift issue closed with the tag |
 
 ## Recent completed (2026-10-01 — v0.1.43 shipped)
 

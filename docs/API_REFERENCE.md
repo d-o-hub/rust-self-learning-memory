@@ -1,7 +1,7 @@
 # API Reference
 
-**Version**: v0.1.44 (current workspace release)
-**Last Updated**: 2026-10-01
+**Version**: v0.1.38 (current workspace release)
+**Last Updated**: 2026-08-07
 **Protocol**: MCP over JSON-RPC 2.0 (protocol negotiation supports `2025-11-25` and `2024-11-05`)
 
 ---
@@ -137,7 +137,7 @@ Receipt states and restart implications:
 derives a per-pattern learned weight (the Wilson lower-bound success rate at
 `z = 1.96` on success-after-application, over `(applied, succeeded)` evidence) and
 the recommendation path re-ranks its candidate pool by base relevance plus that
-weight. Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces the cost of key evaluation from O(N log N) to O(N) scoring calls while the overall comparison sort remains O(N log N). This affects `recommend_patterns` only; generic search, discovery, and
+weight. Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces complexity from O(N log N) to O(N) scoring calls. This affects `recommend_patterns` only; generic search, discovery, and
 retrieval are unchanged, and `get_recommendation_stats` remains exact attribution
 capture. The learned weight is a deterministic reduction of the in-process tracker
 plus capability-gated durable history — the tracker is authoritative for

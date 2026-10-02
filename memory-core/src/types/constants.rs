@@ -27,5 +27,5 @@ pub const MAX_OBSERVATION_LEN: usize = 10_000;
 /// Maximum size for serialized episode data (10MB).
 ///
 /// Prevents `DoS` attacks via unbounded episode serialization that could
-/// exhaust memory during encoding/decoding operations.
+/// exhaust memory during bincode encoding/decoding operations.
 pub const MAX_EPISODE_SIZE: usize = 10_000_000;

@@ -234,7 +234,7 @@ All operations meet or exceed performance targets:
 | Memory Retrieval | < 100ms | ~721 µs | 138x faster |
 
 ### Pattern Ranking Optimization
-Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) to pre-calculate expensive sorting keys (such as `HashSet` allocations and `Utc::now()` timestamps). This reduces the cost of key evaluation from O(N log N) to O(N) scoring calls while the overall comparison sort remains O(N log N), significantly improving pattern retrieval performance under heavy load. For further details on how this integrates into quality checks, see `docs/QUALITY_METRICS_TOOL.md`.
+Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) to pre-calculate expensive sorting keys (such as `HashSet` allocations and `Utc::now()` timestamps). This reduces complexity from O(N log N) to O(N) scoring calls, significantly improving pattern retrieval performance under heavy load. For further details on how this integrates into quality checks, see `docs/QUALITY_METRICS_TOOL.md`.
 
 ## Quality Metrics
 

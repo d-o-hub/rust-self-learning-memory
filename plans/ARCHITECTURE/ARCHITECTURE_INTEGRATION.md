@@ -1,8 +1,8 @@
 # Current Architecture - Integration & Systems
 
-**Last Updated**: 2026-10-01
-**Workspace Version**: v0.1.44 (Released tag: v0.1.43)
-**Baseline SHA**: `64b5a33c75d9901bd9216eaa81ca50038ef66c96`
+**Last Updated**: 2025-12-21
+**Version**: 0.1.7
+**Branch**: feat/embeddings-refactor
 
 ---
 
@@ -568,5 +568,5 @@ full = ["turso", "redb"]
 
 ---
 
-*Last Updated: 2026-10-01*
-*Architecture Score: 5.0/5*
+*Last Updated: 2025-12-21*
+*Architecture Score: 4.5/5*

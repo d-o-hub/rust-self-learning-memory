@@ -1,15 +1,125 @@
-# Gap Analysis — 2026-10-01 (Architecture & Status Refresh)
+# Gap Analysis — 2026-08-11 (closure PR refresh)
 
-**Generated**: 2026-10-01
-**Audit Commit**: `64b5a33c75d9901bd9216eaa81ca50038ef66c96` (`main` baseline)
-**Workspace Version**: `0.1.44` · **Released Tag**: `v0.1.43`
-**Active Focus**: DOC02 architecture and status evidence synchronization
+**Generated**: 2026-08-11
+**Audit commit**: `5a943c98a98d3807fbcf7d644024c55451c7d702` (`main` baseline) · working tree `fix/ci-attribution-truth-closure`
+**Workspace**: `0.1.40` · **Tag**: `v0.1.39`
+**Active plan**: closure PR from branch `fix/ci-attribution-truth-closure` (PR number / head SHA recorded by the controller after creation)
 
-## Closed Gaps & Maintenance Waves
+## Closed this wave (2026-08-11 — closure PR)
 
-| Gap / Area | Resolution |
-|------------|------------|
-| Architecture document drift (DOC02) | ✅ Refreshed `plans/ARCHITECTURE/*.md` to v0.1.44 / v0.1.43 state, 9 workspace member crates, Postcard serialization, fail-closed Wasmtime/sandbox references |
-| Storage serialization docs | ✅ Corrected redb storage and constants documentation (`memory-storage-redb/src/lib.rs`, `memory-core/src/types/constants.rs`) to refer to Postcard / neutral serialization |
-| Performance claim accuracy | ✅ Clarified Schwartzian Transform claims in `docs/API_REFERENCE.md` and `docs/QUALITY_METRICS_TOOL.md` (O(N) key evaluations vs O(N log N) comparison sort) |
-| Canonical status staleness | ✅ Archived August 2026 snapshots under `plans/STATUS/archive/2026/` and updated `_LATEST.md` files to active baseline `64b5a33c75d9901bd9216eaa81ca50038ef66c96` |
+| Gap | Resolution |
+|-----|------------|
+| G-P0-12 `main-protection` requires no first-party build/test context; echo anchor unused | ✅ Live ruleset `9591004` requires `[Codacy Static Code Analysis, CI / Required]`; `pr-check-anchor.yml` + `quick-check.yml` deleted and cross-workflow waiters removed (ADR-079 stage 5) |
+| G-P0-13 waiters accept cancelled/skipped/missing fast-gate results | ✅ superseded by the same-run `commitlint` + `fast-gate` jobs in `ci.yml`; `scripts/ci-required-evaluate.sh` accepts only `success` and fails closed on `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown |
+| G-P1-11 attribution sessions require manual creation; playbooks record nil/unsafe | ✅ closure PR — `AttributedPlaybookRequest`, fallible `try_retrieve_playbooks`, episode-existence validation on both attributed entry points, checked manual session/feedback receipts |
+| G-P1-12 feedback integrity states | ✅ closure PR — cold-restart Turso-only/redb-only tests, checked manual receipt matrix, generator-error → no session (unit seam), valid-empty → empty session |
+| G-P1-13 Dependabot excluded from substantive assertions | ✅ CIT-A2 (2026-08-10) — actor parity + validator fixtures |
+| G-P1-14 gate-contract parity presence-only | ✅ closure PR — `validate-gate-contract.sh --ci-parity` requires the same-run jobs/commands/dependencies/evaluator and the absence of the waiter/anchor topology; `test-workflow-guards.sh --required-aggregate` fixtures added |
+| G-P1-16 attribution capability asserted, not advertised | ✅ ADR-081 §2 (2026-08-10) + closure PR capability tests for `TursoStorage`, `ResilientStorage`, `CachedTursoStorage`, and compiled `RedbStorage` |
+| G-P2-8 ranking adaptation (capture only) | ✅ explicit non-goal — documented as deferred in code/docs/plans; nothing in the closure PR changes ranking |
+
+## Closed this wave (2026-08-12 — ranking adaptation PR)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P2-8 feedback does not idempotently update later recommendation ranking | ✅ code-side — ADR-082: derived per-pattern Wilson weight from attributed feedback; capability-gated `list_recommendation_*` read surface (Turso + redb); recommendation path re-ranks (overfetch → boost → truncate); e2e tests (`ranking_adaptation_e2e.rs`) + backend contract tests |
+| G-P1-8 historical ADR number reuse on disk | ✅ registry unique — ADR-025/054 alias files moved to `plans/adr/_aliases/`; `validate-plans.sh --identifiers` now sees 51 unique ADR numbers |
+
+## Method
+
+- Read active planning authority and ADR-039/044/077 constraints.
+- Traced recommendation generation through core, MCP, CLI, Turso, and redb.
+- Inspected feature-disabled cascade behavior, storage-stat output, evaluation
+  command dispatch, and embedding-provider activation boundaries.
+- Audited checked-in workflows, local gate scripts, recent Actions runs, and the
+  active GitHub repository ruleset through `gh`/REST evidence.
+- Kept intentional fail-closed code execution and deferred batch tools as non-gaps.
+- Ranked observable false-success behavior above additive provider work.
+- Prior wave (2026-07-28): all P0 ship items closed; R-F8/R-F9 merged (#893);
+  6 skills added (40 total); R-F1…R-F7 + R-F10 GO spike artifacts validated.
+
+## Closed this wave (2026-08-06)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P0-13 five waiters accept cancelled/skipped/missing + ignore commit lint | ✅ CIT-A2 — `allowed-conclusions: success`, `fail-on-no-checks: true`, new `Commit Message Lint` wait in all five waiters |
+| G-P1-15 release manual dispatch broken | ✅ CIT-A4 — `workflow_dispatch` removed from release.yml; publish uses `--locked`, bounded polling, and dependency-closure failure semantics |
+| G-P1-15 fuzz evidence silent green | ✅ CIT-A5 — fuzz artifacts upload with `always()`, status report fails the informational job on crashes/timeouts/startup failures |
+| G-P1-14 gate-contract parity presence-only | ✅ CIT-A3 — semantic validator + negative fixtures for cancelled-acceptance, missing aggregate, release dispatch, and `sleep 30` |
+| G-P2-1/7 R-F10 OIDC (ACT-325) | ✅ Already shipped (`id-token: write` + OIDC exchange); trackers refreshed |
+| G-P2-1/7 R-F4 SIMD cosine (ACT-326) | ✅ Already shipped (`cosine_similarity_simd` + simd bench variant); trackers refreshed |
+
+## Closed this wave (prior)
+
+| Gap | Resolution |
+|-----|------------|
+| G-P0-1 v0.1.36 unreleased | ✅ Tag + GitHub Release 2026-07-22 |
+| G-P0-4 / G-P0-5 release docs / rust-major | ✅ #880 / #877 |
+| G-P1-7 medium-risk eval depth | ✅ R-E2 #883 |
+| Docs integrity ship blocker | ✅ #885 |
+| Post-tag version lag | ✅ workspace `0.1.37` #886 |
+| G-P1-10 open hygiene/perf PRs | ✅ #887, #888, #889, #891, #893 all merged |
+| R-F8 relationship show polish (GO spike) | ✅ #893 — box-drawing panel + unit tests |
+| R-F9 HNSW persistence + eviction (GO spike) | ✅ #893 — file_dump/load + capacity eviction |
+| Skill count 34, 6 domain skills untracked | ✅ 40 skills, all routed (#894) |
+| ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) — exact-provider factory + atomic runtime seam + MCP end-to-end |
+| ADR-077 A6 validate / document / gate | ✅ #897 merged — activation docs + concurrency + zero-unsafe credential-redaction regression tests |
+| G-P2-1…7 R-F* spike artifacts | ✅ GO artifacts for R-F1…R-F7 + R-F10 (plans/STATUS/spikes/, 2026-07-28) |
+
+## Open gaps (current)
+
+### P0
+
+| ID | Gap | Evidence | Track |
+|----|-----|----------|-------|
+| G-P0-12 | `main-protection` requires no first-party build/test context; the echo anchor is unused and non-substantive | Ruleset `9591004`, `pr-check-anchor.yml` | ✅ closed 2026-08-11 — ruleset requires `[Codacy Static Code Analysis, CI / Required]`; anchor + waiter topology deleted |
+| G-P0-13 | Five waiters permit cancelled/skipped/missing format/Clippy and ignore commit lint | waiter workflows; PR #914 | ✅ closed — same-run `commitlint` + `fast-gate` replace the waiters; evaluator rejects non-success |
+| G-P0-10 | Cascade retrieval without `csm` returns a successful empty result, indistinguishable from no matches | `memory-core/src/retrieval/cascade/mod.rs` | ✅ PTA-A1 closed — typed `CascadeError::CapabilityUnavailable` |
+| G-P0-11 | CLI storage stats and connection status expose estimates/unknowns as measured values | `memory-cli/src/commands/storage/commands.rs`, `types.rs` | ✅ PTA-A2 closed — `MetricValue` provenance |
+
+### P1
+
+| ID | Gap | Evidence | Track |
+|----|-----|----------|-------|
+| G-P1-8 | Historical ADR number reuse on disk | Dual 025/054 filenames; aliases in `plans/adr/README.md` | ✅ closed 2026-08-12 — aliases moved to `plans/adr/_aliases/`; registry unique |
+| G-P1-9 | Transitive Dependabot advisories | Upstream chains (libsql/openssl/webpki) | security hygiene |
+| G-P1-10 | `eval set-threshold` is advertised but always fails; suggested `eval show` command does not exist | `memory-cli/src/commands/eval.rs` | ✅ PTA-A3 closed — command removed |
+| G-P1-11 | Pattern recommendations require manual session creation; playbooks record `Uuid::nil()` in memory only | core/MCP/CLI attribution paths | ✅ closed 2026-08-11 — attributed pattern + playbook ops with validated episodes and checked receipts |
+| G-P1-12 | Feedback accepts integrity states that can corrupt attribution statistics | tracker/API/persistence paths | ✅ closed 2026-08-11 — integrity + cold-restart + receipt-matrix evidence in closure PR |
+| G-P1-13 | Dependabot is excluded from most substantive code/test/security assertions | actor conditions across CI/coverage/security/file/benchmark workflows | ✅ CIT-A2 (2026-08-10) |
+| G-P1-14 | Gate contract claims parity while tests, Clippy, LOC, and quality-bundle semantics differ; validator is presence-only | `GATE_CONTRACT.md`, `ci.yml`, `quick-check.yml`, `validate-gate-contract.sh` | ✅ closed 2026-08-11 — same-run topology + `--ci-parity`/`--required-aggregate` semantic fixtures; `GATE_CONTRACT.md` scope recorded by its owner |
+| G-P1-16 | Attribution capability asserted, not advertised: default no-op `store_recommendation_session` counted as a durable write, so a non-persisting configured backend yielded `Persisted` | `persistence.rs` `persist_session_checked`, `backend.rs` trait defaults | ✅ ADR-081 §2 — `supports_recommendation_attribution` default `false`, Turso/redb advertise `true`, capability-gated receipts (2026-08-10) |
+| G-P1-15 | Release manual dispatch is broken; publish selection and fuzz evidence have silent skip/green paths | release run `30301797956`, publish/fuzz workflow conditions | ✅ CIT-A4/A5 closed 2026-08-06 |
+
+### P2 (product / research)
+
+| ID | Gap | Notes | Track |
+|----|-----|-------|--------|
+| G-P2-1…7 | R-F1…R-F7, R-F10 epics | R-F4 (ACT-326) and R-F10 (ACT-325) implemented; R-F1…R-F3/R-F5…R-F7 deferred | R-F* |
+| G-P2-8 | Feedback does not idempotently update later recommendation ranking | ADR-080 captures data only | ✅ closed code-side 2026-08-12 — ADR-082 (Proposed): derived Wilson weight + recommend re-rank + e2e |
+| G-P2-9 | Azure/Custom/Cohere runtime embedding adapters absent | Honest rejection required by ADR-077 | Provider-specific ADR if prioritized |
+
+## Explicit non-gaps
+
+| Claim | Verdict |
+|-------|---------|
+| Working `execute_agent_code` backend | Intentional fail-closed |
+| Batch MCP tools | Deferred product decision |
+| Production LOC >500 | Closed |
+| Medium-risk skill presence-only evals | Closed |
+| Release lag / commit_limit on tag | Closed by v0.1.37 ship and 0.1.38 post-bump |
+| R-F8 relationship show polish | ✅ #893 |
+| R-F9 HNSW persistence | ✅ #893 |
+| Unsupported embedding adapters | Honest ADR-077 rejection; additive P2 work |
+| Automatic attribution changes ranking | ✅ now true code-side (ADR-082, Proposed) — attributed feedback derives the learned weight and re-ranks `recommend_patterns_for_task`; lifecycle = maintainer |
+| `Required Check Anchor` protects merges | **False** — not in the live ruleset and only echoes |
+| Green first-party workflow means merge-required | **False** — live ruleset does not require those contexts |
+
+## Exit criteria for this register
+
+- ADR-079 CIT-A1…A5 exits are implemented, including live aggregate protection. ✅ code-side — same-run aggregate required live (ruleset `9591004`); the deliberate live fault-injection merge-block proof (stage 4) remains external maintainer evidence.
+- PTA-A1…A3 have code and feature-matrix tests. ✅ (2026-08-01)
+- ADR-080 acceptance criteria and RAT-A1…A7 are implemented with evidence. ✅ code-side — closure PR evidence landed; ADR-080/081 lifecycle stays `Proposed` until maintainer acceptance.
+- Ranking adaptation is closed code-side (ADR-082, Proposed): attributed feedback derives a durable per-pattern Wilson weight and re-ranks recommendations; lifecycle stays `Proposed` until maintainer acceptance.
+- G-P1-8 closed 2026-08-12 (registry unique); G-P1-9 remains monitor-only (no code action required).
+- P2 GO spike gate cleared 2026-07-28; next gate is ADR draft + implementation PR per epic.

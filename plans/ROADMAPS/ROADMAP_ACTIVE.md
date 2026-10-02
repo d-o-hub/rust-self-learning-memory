@@ -1,22 +1,13 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-02
+**Last Updated**: 2026-10-01
 **Released Version**: v0.1.43 (latest tag)
 **Workspace Version**: 0.1.44 (post-v0.1.43 bump)
-**Active Sprint**: post-v0.1.43 wave merged 2026-10-01/02 — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), clippy 1.99 `assert_is_empty` migration (#1108), LOC-gate/LOC split (#1103); the release-pipeline best-practice proposal (#1109) is open and the automated PRs #1110/#1111/#1113 are in review
-**Plan**: #1080 via #1107, #1081 via #1112, the 1.99 lint migration via #1108, LOC gate via #1103; v0.1.43 contents via #1101/#1096/#1097/#1100/#1095/#1099 (#1102/#1106 release tooling); prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `580c32db` (PR #1112 merged 2026-10-02)
+**Active Sprint**: v0.1.43 shipped 2026-10-01 (tag on `a0078d0a`) — MCP OAuth 2.1 enforcement + trusted rate-limit identity (#1101 → #1082/#1084), redb fail-closed schema handling (#1096 → #1069), atomic provider-identity embedding activation (#1097 → #1072), full `tools/list` registry (#1100 → #1083), ownership-safe pools (#1095 → #1060-#1062), MCP fail-closed docs reconciliation (#1099) and the LOC-ceiling split with a CI gate (#1103); workspace bumped to 0.1.44 post-release
+**Plan**: #1082/#1084 landed via PR #1101, #1069 via #1096, #1072 via #1097, #1083 via #1100, #1060-#1062 via #1095, LOC split via #1103; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
+**Branch**: main @ `a0078d0a` (PR #1103 merged 2026-10-01; v0.1.43 tagged on this commit)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work
-
-## Sprint 2026-10-02 — Durability receipts + toolchain hygiene
-
-| Prio | Area | Item | Status |
-|------|------|------|--------|
-| P1 | Core | #1080 checked episode completion receipt (`Local`/`Committed`/`Queued`) + failed-episode IDs in `flush` errors | ✅ Merged (#1107) |
-| P1 | CLI | #1081 `episode complete|fail` drain the durable queue with `--durable-timeout-secs` before success output; report `durability` | ✅ Merged (#1112) |
-| P1 | Tooling | clippy 1.99 `assert_is_empty` migration across the workspace (floating `stable` bump) | ✅ Merged (#1108) |
-| P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 📋 Issue opened (#1109) |
+**Open issues**: run `gh issue list --state open` — the previous release-drift issue closed with the tag
 
 ## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)
 

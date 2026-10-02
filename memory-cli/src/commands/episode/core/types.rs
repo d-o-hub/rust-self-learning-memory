@@ -101,26 +101,16 @@ pub enum EpisodeCommands {
         /// Task outcome
         #[arg(value_enum)]
         outcome: TaskOutcome,
-
-        /// Seconds to wait for the durable write queue to commit before
-        /// printing success (ADR-075; no-op without a durable backend)
-        #[arg(long, value_name = "SECS", default_value_t = 30)]
-        durable_timeout_secs: u64,
     },
 
     /// Force-fail an abandoned in-progress episode (ADR-075)
     ///
     /// Completes the episode with `TaskOutcome::Failure` using the same
-    /// durable-drain and verify-after-write rules as `episode complete`.
+    /// verify-after-write durability rules as `episode complete`.
     Fail {
         /// Episode ID
         #[arg(value_name = "EPISODE_ID")]
         episode_id: String,
-
-        /// Seconds to wait for the durable write queue to commit before
-        /// printing success (ADR-075; no-op without a durable backend)
-        #[arg(long, value_name = "SECS", default_value_t = 30)]
-        durable_timeout_secs: u64,
     },
 
     /// Delete an episode

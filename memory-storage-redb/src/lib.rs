@@ -39,7 +39,7 @@
 //! - Zero-copy reads for fast retrieval
 //! - Async wrappers for synchronous redb operations
 //! - Episode and pattern caching
-//! - Postcard serialization for efficient storage
+//! - Bincode serialization for efficient storage
 //!
 //! ## Example
 //!
@@ -100,7 +100,7 @@ pub use storage::RedbQuery;
 
 /// Maximum size for episode deserialization (10MB).
 ///
-/// Prevents OOM attacks from maliciously large serialized payloads.
+/// Prevents OOM attacks from maliciously large bincode payloads.
 pub const MAX_EPISODE_SIZE: u64 = 10_000_000;
 
 /// Maximum size for pattern deserialization (1MB).

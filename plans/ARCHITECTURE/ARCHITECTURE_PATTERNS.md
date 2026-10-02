@@ -1,8 +1,8 @@
 # Current Architecture - Patterns & Best Practices
 
-**Last Updated**: 2025-12-21
-**Version**: 0.1.7
-**Branch**: feat/embeddings-refactor
+**Last Updated**: 2026-10-01
+**Workspace Version**: v0.1.44 (Released tag: v0.1.43)
+**Baseline SHA**: `64b5a33c75d9901bd9216eaa81ca50038ef66c96`
 
 ---
 
@@ -437,8 +437,8 @@ mod proptests {
         #[test]
         fn prop_episode_roundtrip(episode in any::<Episode>()) {
             // Property: Episode serialization is lossless
-            let serialized = bincode::serialize(&episode).unwrap();
-            let deserialized: Episode = bincode::deserialize(&serialized).unwrap();
+            let serialized = postcard::to_allocvec(&episode).unwrap();
+            let deserialized: Episode = postcard::from_bytes(&serialized).unwrap();
             prop_assert_eq!(episode, deserialized);
         }
 
@@ -633,5 +633,5 @@ pub struct SelfLearningMemory {
 
 ---
 
-*Last Updated: 2025-12-21*
-*Architecture Score: 4.5/5*
+*Last Updated: 2026-10-01*
+*Architecture Score: 5.0/5*

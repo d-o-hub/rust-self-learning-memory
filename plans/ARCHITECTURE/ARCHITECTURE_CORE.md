@@ -1,15 +1,15 @@
 # Current Architecture - Core Components
 
-**Last Updated**: 2026-01-31
-**Version**: v0.1.14
-**Branch**: feat-episode-tagging
+**Last Updated**: 2026-10-01
+**Workspace Version**: v0.1.44 (Released tag: v0.1.43)
+**Baseline SHA**: `64b5a33c75d9901bd9216eaa81ca50038ef66c96`
 **Production Readiness**: 100% ✅
 
 ---
 
 ## Executive Summary
 
-The Self-Learning Memory System is a production-ready Rust-based episodic learning platform with dual storage backends, semantic embeddings, and MCP protocol integration. The system demonstrates excellent architectural design with clear separation of concerns across 8 workspace crates. **Phase 3 storage optimization is complete** with relationship module, batch operations, caching, and prepared statements.
+The Self-Learning Memory System is a production-ready Rust 2024 episodic learning platform with dual storage backends (durable Turso/libSQL + embedded redb cache with Postcard serialization), semantic embeddings, CSM retrieval cascade, and MCP protocol integration. The system demonstrates clear separation of concerns across 9 workspace crates.
 
 **Key Characteristics**:
 - **Modular Architecture**: 5/5 stars - Clean crate boundaries with well-defined interfaces
@@ -22,18 +22,21 @@ The Self-Learning Memory System is a production-ready Rust-based episodic learni
 
 ## Workspace Structure
 
-### Crate Overview (8 Total)
+### Crate Overview (9 Total)
+
+All member packages are at workspace version **0.1.44** (matching `cargo metadata`).
 
 | Crate | Purpose | Dependencies | Status |
 |-------|---------|--------------|--------|
-| **do-memory-core** | Core episodic learning system | tokio, serde, anyhow | ✅ Stable |
-| **do-memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio | ✅ Stable |
-| **do-memory-storage-redb** | High-speed cache (embedded) | redb, tokio | ✅ Stable |
-| **do-memory-mcp** | MCP protocol server | tokio, serde | ✅ Stable |
+| **do-memory-core** | Core episodic learning system | tokio, serde, anyhow, csm | ✅ Stable |
+| **do-memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio, serde_json | ✅ Stable |
+| **do-memory-storage-redb** | High-speed cache (embedded) | redb, postcard, tokio | ✅ Stable |
+| **do-memory-mcp** | MCP protocol server | tokio, serde, rmcp | ✅ Stable |
 | **do-memory-cli** | CLI for operations | clap, dialoguer | ✅ Stable |
 | **do-memory-test-utils** | Shared test utilities | tokio-test | ✅ Stable |
-| **benches** | Performance benchmarks | criterion | ✅ Stable |
-| **examples** | Integration examples | - | ✅ Stable |
+| **do-memory-benches** | Performance benchmarks | criterion | ✅ Stable |
+| **e2e-tests** | Workspace end-to-end integration tests | tokio, async-trait | ✅ Stable |
+| **do-memory-examples** | Integration examples | - | ✅ Stable |
 
 ---
 

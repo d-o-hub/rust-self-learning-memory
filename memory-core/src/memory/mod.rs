@@ -50,6 +50,8 @@ pub mod api;
 pub mod attribution;
 pub mod checkpoint;
 mod completion;
+mod completion_embedding;
+mod completion_receipt;
 pub mod durable_write_queue;
 pub mod embedding_activation;
 mod episode;
@@ -82,7 +84,8 @@ use crate::embeddings::SemanticService;
 use crate::types::MemoryConfig;
 use std::sync::Arc;
 
-// Re-export pattern search types for public API
+// Re-export completion receipts and durable-write queue types for the public API
+pub use completion_receipt::{EpisodeCompletionReceipt, EpisodeDurability};
 pub use durable_write_queue::{DurableWriteQueue, WriteQueueConfig, WriteQueueStats};
 pub use eviction::{EvictionBackend, EvictionBackendFailure, EvictionOutcome};
 pub use op_journal::{

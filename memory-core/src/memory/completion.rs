@@ -8,24 +8,9 @@ use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
-use crate::Episode;
+use super::completion_receipt::EpisodeCompletionReceipt;
 
 impl SelfLearningMemory {
-    /// Persist one episode to the Turso backend.
-    ///
-    /// Routes through the bounded background queue when it is enabled
-    /// (#967, returning after the enqueue rather than the remote commit)
-    /// and stores synchronously otherwise. Resolves to `Ok(())` when no
-    /// Turso backend is configured. Queue backpressure surfaces as an
-    /// explicit error, never a silent drop.
-    pub(super) async fn store_episode_durable(&self, episode: &Episode) -> Result<()> {
-        match (&self.turso_storage, &self.durable_write_queue) {
-            (Some(_), Some(write_queue)) => write_queue.enqueue_episode(episode.clone()).await,
-            (Some(turso), None) => turso.store_episode(episode).await,
-            (None, _) => Ok(()),
-        }
-    }
-
     /// Complete an episode and trigger learning analysis.
     ///
     /// Finalizes the episode by recording the outcome, then performs the learning
@@ -103,8 +88,41 @@ impl SelfLearningMemory {
     /// # Ok(())
     /// # }
     /// ```
-    #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
+    ///
+    /// # Compatibility policy (ADR-075 D2, issue #1080)
+    ///
+    /// This legacy signature returns `Ok(())` and discards the receipt from
+    /// [`complete_episode_checked`](Self::complete_episode_checked). Its
+    /// enqueue-versus-commit behaviour is unchanged: with the durable write
+    /// queue enabled it returns after the enqueue, so remote durability
+    /// requires an explicit call to
+    /// [`flush_durable_writes`](SelfLearningMemory::flush_durable_writes).
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
+        self.complete_episode_checked(episode_id, outcome)
+            .await
+            .map(|_| ())
+    }
+
+    /// Complete an episode and report the durability it reached.
+    ///
+    /// Runs the same learning cycle as
+    /// [`complete_episode`](Self::complete_episode) and returns an
+    /// [`EpisodeCompletionReceipt`] sourced from live durable-write queue
+    /// statistics (issue #1080): `Committed`/`Local` mean every configured
+    /// backend persisted before returning; `Queued` means the durable write
+    /// is still pending in the queue and must be drained for the remote
+    /// durability guarantee.
+    ///
+    /// # Errors
+    ///
+    /// Same as [`complete_episode`](Self::complete_episode), including queue
+    /// backpressure ([`Error::QuotaExceeded`]).
+    #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
+    pub async fn complete_episode_checked(
+        &self,
+        episode_id: Uuid,
+        outcome: TaskOutcome,
+    ) -> Result<EpisodeCompletionReceipt> {
         // Flush any buffered steps before completing the episode
         // This ensures all steps are persisted and available for analysis
         if self.batch_config().is_some() {
@@ -338,15 +356,16 @@ impl SelfLearningMemory {
             }
         }
 
-        if self.turso_storage.is_some() {
-            if let Err(e) = self.store_episode_durable(episode_ref).await {
-                warn!(
-                    episode_id = %episode_id,
-                    error = %e,
-                    "Failed to persist completed episode to Turso"
-                );
-                store_failures.push(format!("turso: {e}"));
-            }
+        // `store_episode_durable` is a no-op when no durable backend is
+        // configured, so the call is unconditional (its no-backend arm is
+        // part of the contract).
+        if let Err(e) = self.store_episode_durable(episode_ref).await {
+            warn!(
+                episode_id = %episode_id,
+                error = %e,
+                "Failed to persist completed episode to Turso"
+            );
+            store_failures.push(format!("turso: {e}"));
         }
 
         if !store_failures.is_empty() {
@@ -397,33 +416,10 @@ impl SelfLearningMemory {
         // ============================================================================
         // Semantic Search - Generate and store embedding
 
-        // Generate and store embedding for semantic search
-        // Uses the live provider snapshot so episodes are embedded with the
+        // Generate and store embedding for semantic search. Uses the live
+        // provider snapshot so episodes are embedded with the
         // runtime-activated provider (issue #1072).
-        if let Some(semantic) = self.live_semantic_service().await {
-            if let Err(e) = semantic.embed_episode(episode_ref).await {
-                warn!(
-                    episode_id = %episode_id,
-                    error = %e,
-                    "Failed to generate embedding for episode. Continuing without embedding."
-                );
-                // Don't fail entire operation on embedding error
-            } else {
-                debug!(
-                    episode_id = %episode_id,
-                    "Successfully generated embedding for episode"
-                );
-
-                // Update ANN index for hybrid search (v0.1.34)
-                if let Some(retriever) = &self.semantic_retriever {
-                    if let Ok(embeddings) = semantic.get_embeddings_batch(&[episode_id]).await {
-                        if let Some(Some(embedding)) = embeddings.first() {
-                            let _ = retriever.upsert(&episode_id.to_string(), embedding.clone());
-                        }
-                    }
-                }
-            }
-        }
+        self.update_completion_embeddings(episode_ref).await;
 
         // v0.1.12: Invalidate Query Cache
         // ============================================================================
@@ -487,6 +483,9 @@ impl SelfLearningMemory {
                 .unwrap_or(0),
         });
 
-        Ok(())
+        // Issue #1080: report durability from live queue state, not from a
+        // best-effort boolean. `Queued` means the durable write is accepted
+        // but not committed; callers drain the queue for that guarantee.
+        Ok(self.completion_receipt(episode_id).await)
     }
 }

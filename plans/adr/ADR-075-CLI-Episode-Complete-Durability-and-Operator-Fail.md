@@ -91,8 +91,35 @@ No separate “skip quality” flag is required while CLI threshold remains `0.0
 3. E2E under `tests/e2e/` or CLI integration: cross-process complete of zero-step episode.
 4. Update CHANGELOG and CLI help.
 
+## Follow-up D2 — checked completion receipts (2026-10-01, issue #1080)
+
+Decision 1 ("all-or-nothing for configured backends") is unchanged for the
+synchronous path, but with the opt-in durable write queue (D1 split, #967) a
+successful `complete_episode` can mean "enqueued", not "committed". To keep the
+contract observable:
+
+- `SelfLearningMemory::complete_episode_checked` returns an
+  `EpisodeCompletionReceipt` whose `durability` is sourced from live queue
+  statistics: `Local` (no durable backend configured), `Committed` (every
+  configured backend persisted before the call returned), `Queued` (the durable
+  write is pending in the bounded queue).
+- The legacy `complete_episode` keeps its signature and enqueue-then-return
+  behaviour and discards the receipt; it does not become synchronously durable.
+- `DurableWriteQueue::flush` remains the remote-durability guarantee and now
+  names the permanently failed episode IDs in its error so operators can repair
+  and re-complete precisely.
+- CLI adoption (issue #1081): `episode complete|fail` consume the checked
+  receipt, drain a `Queued` write through `flush_durable_writes` with the
+  bounded `--durable-timeout-secs` budget before any success output, exit
+  non-zero on drain timeout/permanent failure (naming the episode), keep the
+  re-read verification, and report the final `durability` in the human/JSON/YAML
+  result. The CLI's config currently leaves `durable_write_queue` disabled, so
+  the drain is a no-op until the queue is enabled for a deployment.
+
 ## References
 
 - Issue #847
+- Issue #1080 (D2 follow-up above)
+- Issue #1081 (CLI adoption)
 - Related path bugs: #830 (db-path), #831 (pattern durability)
 - GOAP plan: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`

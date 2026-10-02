@@ -50,7 +50,7 @@ merge-required** by the ruleset.
 | Doctests | `cargo test --doc` | required before commit (AGENTS) | same-run `fast-gate` invokes `scripts/check-doctests.sh` | No | all pass | `cargo test --doc` / `scripts/check-doctests.sh` |
 | Docs links | `cargo doc --no-deps` | required before commit | same-run `fast-gate` invokes `scripts/check-doctests.sh` with warnings denied | No | 0 broken | `cargo doc --no-deps --document-private-items` |
 | LOC ≤500 | quality-gates source-size check | required in quality-gates | No equivalent production LOC job; File Structure validates locations | No | 0 prod files >500 | `./scripts/quality-gates.sh` LOC check |
-| Coverage | `cargo llvm-cov` | **default floor 70%** via `QUALITY_GATE_COVERAGE_THRESHOLD`; AGENTS text still says 90% | Coverage and CI quality jobs run overlapping commands; Codecov upload may soft-fail | No | **90%** (AGENTS + ADR-042 ratchet) | `QUALITY_GATE_COVERAGE_THRESHOLD` + Codecov |
+| Coverage | `cargo llvm-cov` | **default floor 70%** via `QUALITY_GATE_COVERAGE_THRESHOLD` | Coverage and CI quality jobs run overlapping commands; Codecov upload may soft-fail | No | **90%** (aspirational target) | `QUALITY_GATE_COVERAGE_THRESHOLD` + Codecov |
 | Security advisories | `cargo deny check advisories` | blocking (W2.2) | Security, Supply Chain, and CI quality jobs overlap | No | clean advisories | `cargo deny` (not soft-pass audit) |
 | Cargo audit | `cargo audit` | informational if deny is blocking | optional structured reporting | No | no ignored vulns without justification | prefer deny for gating |
 | Semver | cargo-semver-checks | CI-only informational | `continue-on-error: true` and Dependabot excluded | No | no accidental breaks | CI Semver Check |

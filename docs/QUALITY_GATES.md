@@ -10,7 +10,7 @@ Quality gates are automated tests that enforce minimum standards across the code
 
 | Gate | Threshold | Description |
 |------|-----------|-------------|
-| **Test Coverage** | > 70% | Line coverage across all crates |
+| **Test Coverage** | > 70% | Line coverage floor across all crates (90% aspirational target) |
 | **Pattern Accuracy** | > 70% | Pattern recognition accuracy (aspirational, baseline: 25%) |
 | **Code Complexity** | Avg < 10 | Average cyclomatic complexity |
 | **Security** | 0 vulns | Zero critical/high/medium vulnerabilities |
@@ -59,12 +59,14 @@ cargo test --test quality_gates quality_gates_summary -- --nocapture
 Quality gates can be configured via environment variables:
 
 ```bash
-export QUALITY_GATE_COVERAGE_THRESHOLD=70          # Minimum coverage %
+export QUALITY_GATE_COVERAGE_THRESHOLD=70          # Minimum blocking coverage % (floor)
 export QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD=70   # Minimum pattern accuracy %
 export QUALITY_GATE_COMPLEXITY_THRESHOLD=10         # Maximum average complexity
 export QUALITY_GATE_SECURITY_THRESHOLD=0            # Maximum vulnerabilities
-export QUALITY_GATE_SKIP_OPTIONAL=false             # Skip optional gates
+export QUALITY_GATE_SKIP_OPTIONAL=true              # Skip optional gates requiring external tools (default: true)
 ```
+
+**Note on Optional Gates**: `QUALITY_GATE_SKIP_OPTIONAL` defaults to `true` locally and in `quality-gates.sh`/`release-manager.sh` to allow local gate execution without requiring `cargo-llvm-cov` or `cargo-audit`. In CI or release readiness checks where full tool verification is required, set `QUALITY_GATE_SKIP_OPTIONAL=false`.
 
 ### Example: Lowering Thresholds for Development
 

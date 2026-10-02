@@ -13,7 +13,7 @@
 cargo nextest run --all
 cargo test --doc
 
-# 3) Full quality gates (coverage threshold defaults to 90%)
+# 3) Full quality gates (coverage threshold defaults to 70% floor, 90% target)
 ./scripts/quality-gates.sh
 ```
 
@@ -97,7 +97,7 @@ cargo llvm-cov --all-features --workspace --html --output-dir coverage
 ```
 
 ### Coverage Targets (Enforced)
-- **Line coverage**: >=90% target
+- **Line coverage**: >=70% blocking floor (90% aspirational target)
 - **Branch coverage**: >85%
 - All public APIs must be tested
 - Test pass rate: >99% target
@@ -244,7 +244,7 @@ The CI pipeline runs:
 2. **Linting**: `./scripts/code-quality.sh clippy --workspace` (or equivalent cargo clippy invocation)
 3. **Tests**: `cargo nextest run --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils`
 4. **Doctests**: `cargo test --doc`
-5. **Code coverage**: `cargo llvm-cov --html` (threshold: >=90%)
+5. **Code coverage**: `cargo llvm-cov --html` (threshold: >=70% floor, 90% target)
 6. **Security audit**: `cargo audit`
 7. **Benchmarks**: Run on PRs for performance regression detection
 
@@ -300,7 +300,7 @@ cargo bench -p do-memory-benches -- --save-baseline main
 7. **Use do-memory-test-utils**: Leverage shared test helpers
 8. **Async tests**: Use `#[tokio::test]` for async code
 9. **Error testing**: Test both success and failure cases
-10. **Coverage**: Maintain >=90% coverage
+10. **Coverage**: Maintain >=70% coverage floor (target 90%)
 
 ## Testing Commands Summary
 

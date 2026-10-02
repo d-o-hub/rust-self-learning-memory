@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.44] - 2026-10-02
+
 ### Added
 
 - Episode completion can now report its durability (#1080):
@@ -25,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   timeouts or permanent failures exit non-zero naming the episode, and the
   human/JSON/YAML result reports the final `durability` (`committed`/`local`).
   No-op for memories without a durable backend.
+
+### Fixed
+
+- `search_patterns` and `recommend_patterns` clamp caller-supplied `limit` and
+  `min_relevance` and truncate oversized `query`/`task_description`/`domain`/`tags`
+  with the shared constants, closing a resource-exhaustion gap (CWE-770)
+  (#1113).
 
 ## [0.1.43] - 2026-09-30
 

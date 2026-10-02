@@ -1,13 +1,13 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-10-02
-**Released Version**: v0.1.43 (latest tag)
-**Workspace Version**: 0.1.44 (post-v0.1.43 bump)
-**Active Sprint**: post-v0.1.43 wave merged 2026-10-01/02 — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), clippy 1.99 `assert_is_empty` migration (#1108), LOC-gate/LOC split (#1103); the release-pipeline best-practice proposal (#1109) is open and the automated PRs #1110/#1111/#1113 are in review
-**Plan**: #1080 via #1107, #1081 via #1112, the 1.99 lint migration via #1108, LOC gate via #1103; v0.1.43 contents via #1101/#1096/#1097/#1100/#1095/#1099 (#1102/#1106 release tooling); prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `580c32db` (PR #1112 merged 2026-10-02)
+**Released Version**: v0.1.44 (release pending tag)
+**Workspace Version**: 0.1.44 (matches release)
+**Active Sprint**: v0.1.44 prepared 2026-10-02 — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); drift tracked by #1116, pipeline proposal open in #1109
+**Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
+**Branch**: main @ `1fc97118` (PR #1117 merged 2026-10-02)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work
+**Open issues**: run `gh issue list --state open` — drift is tracked by the open release-drift issue and the pipeline proposal by its own issue
 
 ## Sprint 2026-10-02 — Durability receipts + toolchain hygiene
 
@@ -15,7 +15,11 @@
 |------|------|------|--------|
 | P1 | Core | #1080 checked episode completion receipt (`Local`/`Committed`/`Queued`) + failed-episode IDs in `flush` errors | ✅ Merged (#1107) |
 | P1 | CLI | #1081 `episode complete|fail` drain the durable queue with `--durable-timeout-secs` before success output; report `durability` | ✅ Merged (#1112) |
+| P1 | MCP | #1113 `search_patterns`/`recommend_patterns` clamp `limit`/`min_relevance` and truncate oversized inputs (CWE-770) | ✅ Merged (#1113) |
 | P1 | Tooling | clippy 1.99 `assert_is_empty` migration across the workspace (floating `stable` bump) | ✅ Merged (#1108) |
+| P1 | Docs | Architecture/serialization/status evidence refreshed for v0.1.44 (#1094) | ✅ Merged (#1110) |
+| P1 | Tooling | Coverage floor reconciled: 70% blocking, 90% aspirational (#1090) | ✅ Merged (#1117) |
+| P0 | Release | v0.1.44 prepared (this PR) — changelog + version docs; tag via release-guard | ⏳ Prepared |
 | P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 📋 Issue opened (#1109) |
 
 ## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)

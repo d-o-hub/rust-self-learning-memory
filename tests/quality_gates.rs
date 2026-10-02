@@ -240,6 +240,19 @@ TOTAL 250 20 92.00% 50 2 96.00%
     }
 
     #[test]
+    fn coverage_below_threshold_fails_gate() {
+        let result = check_coverage_against_threshold(65.0, 70.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Coverage gate FAILED"));
+    }
+
+    #[test]
+    fn coverage_at_or_above_threshold_passes_gate() {
+        assert!(check_coverage_against_threshold(70.0, 70.0).is_ok());
+        assert!(check_coverage_against_threshold(85.0, 70.0).is_ok());
+    }
+
+    #[test]
     fn subprocess_success_allows_parse() {
         let status = Command::new("true").status().expect("spawn true");
         let out = require_successful_output("cargo test", status, "Quality Score: 0.80", "")
@@ -361,11 +374,22 @@ fn quality_gate_test_coverage() {
     println!("Current Coverage: {coverage:.2}%");
     println!("Required: {threshold:.2}%");
 
-    if coverage < threshold {
-        panic!("❌ Coverage gate FAILED: {coverage:.2}% < {threshold:.2}% threshold");
+    if let Err(msg) = check_coverage_against_threshold(coverage, threshold) {
+        panic!("{msg}");
     }
 
     println!("✅ Coverage gate PASSED: {coverage:.2}% >= {threshold:.2}%");
+}
+
+/// Helper function to validate coverage against threshold
+fn check_coverage_against_threshold(coverage: f64, threshold: f64) -> Result<(), String> {
+    if coverage < threshold {
+        Err(format!(
+            "❌ Coverage gate FAILED: {coverage:.2}% < {threshold:.2}% threshold"
+        ))
+    } else {
+        Ok(())
+    }
 }
 
 /// Parse coverage percentage from cargo llvm-cov output

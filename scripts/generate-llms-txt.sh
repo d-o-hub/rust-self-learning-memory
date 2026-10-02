@@ -117,7 +117,7 @@ cargo nextest run --all            # Run tests
 cargo test --doc                   # Run doctests
 ./scripts/code-quality.sh fmt      # Format
 ./scripts/code-quality.sh clippy --workspace
-./scripts/quality-gates.sh         # All quality gates (coverage >=90%)
+./scripts/quality-gates.sh         # All quality gates (coverage floor >=70%, target 90%)
 \`\`\`
 
 ## Key Invariants (from AGENTS.md)

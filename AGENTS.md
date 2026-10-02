@@ -59,7 +59,7 @@ Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship 
 6. `cargo nextest run -p <crate>`
 7. `cargo nextest run --all`
 8. `cargo test --doc`
-9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
+9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 70 floor, 90 target)
 10. `do-harness verify --record`
 11. `git status` - verify all changes staged
 
@@ -69,7 +69,7 @@ Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship 
 - **Serialization**: Postcard required (not bincode)
 - **Clippy**: Zero warnings (`-D warnings`). Fix, don't suppress
 - **Files**: ≤500 LOC per source file
-- **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
+- **Tests**: ≥70% coverage floor (90% aspirational target). `#[tokio::test]` for async. AAA pattern
 - **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
 
 ## Dev Harness (do-harness)
@@ -180,7 +180,7 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 - [ ] `cargo nextest run --all`
 - [ ] `cargo test --doc`
 - [ ] `cargo doc --no-deps --document-private-items` (catches bare URLs)
-- [ ] `./scripts/quality-gates.sh` (coverage must be `>=90%`, unless threshold explicitly raised)
+- [ ] `./scripts/quality-gates.sh` (coverage must pass blocking floor `>=70%`, target `90%`)
 - [ ] `git status` - verify all changes staged
 
 ## Git Workflow

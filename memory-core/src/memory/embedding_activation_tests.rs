@@ -463,3 +463,126 @@ async fn test_effective_provider_identity_prefers_activated_provider() {
 
     assert_eq!(memory.effective_provider_identity(), "local:model-a:4");
 }
+
+/// Completion must embed the episode and register it in the ANN index
+/// (`update_completion_embeddings`, issue #1080).
+#[tokio::test]
+async fn test_completion_embeds_episode_and_updates_ann_index() {
+    use crate::episode::ExecutionStep;
+    use crate::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
+
+    let memory = SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0,
+        enable_summarization: false,
+        enable_embeddings: false,
+        batch_config: None,
+        ..MemoryConfig::default()
+    });
+    let svc = make_service("model-embed");
+    memory
+        .activate_semantic_service(Arc::clone(&svc), "local:model-embed:4".to_string())
+        .await;
+
+    let episode_id = memory
+        .start_episode(
+            "embed after completion".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+        .await;
+    memory
+        .log_step(
+            episode_id,
+            ExecutionStep::new(1, "tool".to_string(), "act".to_string()),
+        )
+        .await;
+
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "done".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .expect("completion must succeed with a live semantic service");
+
+    let embeddings = svc
+        .get_embeddings_batch(&[episode_id])
+        .await
+        .expect("batch lookup must succeed");
+    match embeddings.first() {
+        Some(Some(vector)) => assert_eq!(vector.len(), 4, "mock provider dimension"),
+        other => panic!("completion must embed the episode, got {other:?}"),
+    }
+}
+
+/// A failing embedding provider must not fail the completion itself — the
+/// semantic layer is best-effort (the pre-existing behaviour this refactor
+/// moved into `completion_embedding.rs`).
+#[tokio::test]
+async fn test_completion_survives_embedding_provider_failure() {
+    use crate::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
+
+    struct FailingProvider;
+
+    #[async_trait::async_trait]
+    impl crate::embeddings::EmbeddingProvider for FailingProvider {
+        async fn embed_text(&self, _text: &str) -> anyhow::Result<Vec<f32>> {
+            Err(anyhow::anyhow!("provider unavailable"))
+        }
+
+        fn embedding_dimension(&self) -> usize {
+            4
+        }
+
+        fn model_name(&self) -> &'static str {
+            "failing-provider"
+        }
+    }
+
+    let memory = SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0,
+        enable_summarization: false,
+        enable_embeddings: false,
+        batch_config: None,
+        ..MemoryConfig::default()
+    });
+    let svc = Arc::new(SemanticService::new(
+        Box::new(FailingProvider),
+        Box::new(InMemoryEmbeddingStorage::new()),
+        EmbeddingConfig::default(),
+    ));
+    memory
+        .activate_semantic_service(Arc::clone(&svc), "local:failing:4".to_string())
+        .await;
+
+    let episode_id = memory
+        .start_episode(
+            "embedding failure tolerated".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+        .await;
+
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "done".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .expect("completion must survive a failing embedding provider");
+
+    let embeddings = svc
+        .get_embeddings_batch(&[episode_id])
+        .await
+        .expect("batch lookup must succeed");
+    assert!(
+        matches!(embeddings.first(), Some(None)),
+        "no embedding may be stored when the provider fails"
+    );
+}

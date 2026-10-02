@@ -400,8 +400,8 @@ impl DurableWriteQueue {
     /// Used by CLI shutdown, tests, and operators that need the remote
     /// durability guarantee on demand (the D1 split). Permanent
     /// failures recorded during the drain surface as
-    /// [`Error::Storage`]; inspect the
-    /// operation journal and [`get_stats`](Self::get_stats) for the IDs.
+    /// [`Error::Storage`] naming the affected episode IDs; inspect the
+    /// operation journal and [`get_stats`](Self::get_stats) for the rest.
     ///
     /// # Errors
     ///
@@ -415,14 +415,40 @@ impl DurableWriteQueue {
                 "durable write queue did not drain within {timeout:?} ({depth} waiting)"
             )));
         }
-        let failed_now = self.get_stats().await.total_failed;
-        if failed_now > baseline_failed {
+        let stats = self.get_stats().await;
+        if stats.total_failed > baseline_failed {
+            // Newest failures sit at the tail (`retain_failure` appends);
+            // name them so the operator can repair and re-complete precisely.
+            let newly_failed = (stats.total_failed - baseline_failed) as usize;
+            let first_new = stats.failed_episode_ids.len().saturating_sub(newly_failed);
+            let ids: Vec<String> = stats.failed_episode_ids[first_new..]
+                .iter()
+                .map(Uuid::to_string)
+                .collect();
             return Err(Error::Storage(format!(
-                "durable write queue drained with {} permanent failure(s); see operation journal",
-                failed_now - baseline_failed
+                "durable write queue drained with {newly_failed} permanent failure(s) for episode(s) {}; \
+                 inspect the operation journal and re-complete the episode(s) after repairing the durable backend",
+                ids.join(", ")
             )));
         }
         Ok(())
+    }
+}
+
+impl super::SelfLearningMemory {
+    /// Persist one episode to the Turso backend.
+    ///
+    /// Routes through the bounded background queue when it is enabled
+    /// (#967, returning after the enqueue rather than the remote commit)
+    /// and stores synchronously otherwise. Resolves to `Ok(())` when no
+    /// Turso backend is configured. Queue backpressure surfaces as an
+    /// explicit error, never a silent drop.
+    pub(super) async fn store_episode_durable(&self, episode: &crate::Episode) -> Result<()> {
+        match (&self.turso_storage, &self.durable_write_queue) {
+            (Some(_), Some(write_queue)) => write_queue.enqueue_episode(episode.clone()).await,
+            (Some(turso), None) => turso.store_episode(episode).await,
+            (None, _) => Ok(()),
+        }
     }
 }
 

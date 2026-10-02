@@ -219,7 +219,7 @@ do-memory-cli/src/commands/pattern_v2/pattern/search.rs  # CLI commands
 - **With embeddings**: < 50ms for 100 patterns
 - **Fallback**: Works without embeddings using keyword matching
 
-Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces complexity from O(N log N) to O(N) scoring calls.
+Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) and pre-calculates expensive keys (like `HashSet` allocations and `Utc::now()` calls). This reduces the cost of key evaluation from O(N log N) to O(N) scoring calls while the overall comparison sort remains O(N log N).
 
 ## Testing
 

@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   receipt. `DurableWriteQueue::flush` errors now name the permanently failed
   episode IDs plus repair guidance.
 
+### Changed
+
+- `do-memory-cli episode complete|fail` now act on the checked completion
+  receipt (#1081): a queued durable write is drained with a bounded
+  `--durable-timeout-secs` (default 30) before any success output, drain
+  timeouts or permanent failures exit non-zero naming the episode, and the
+  human/JSON/YAML result reports the final `durability` (`committed`/`local`).
+  No-op for memories without a durable backend.
+
 ## [0.1.43] - 2026-09-30
 
 ### Fixed

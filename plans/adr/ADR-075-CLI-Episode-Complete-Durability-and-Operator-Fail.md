@@ -108,12 +108,18 @@ contract observable:
 - `DurableWriteQueue::flush` remains the remote-durability guarantee and now
   names the permanently failed episode IDs in its error so operators can repair
   and re-complete precisely.
-- CLI adoption (bounded drain plus re-read verification before printing success)
-  is tracked by issue #1081.
+- CLI adoption (issue #1081): `episode complete|fail` consume the checked
+  receipt, drain a `Queued` write through `flush_durable_writes` with the
+  bounded `--durable-timeout-secs` budget before any success output, exit
+  non-zero on drain timeout/permanent failure (naming the episode), keep the
+  re-read verification, and report the final `durability` in the human/JSON/YAML
+  result. The CLI's config currently leaves `durable_write_queue` disabled, so
+  the drain is a no-op until the queue is enabled for a deployment.
 
 ## References
 
 - Issue #847
 - Issue #1080 (D2 follow-up above)
+- Issue #1081 (CLI adoption)
 - Related path bugs: #830 (db-path), #831 (pattern durability)
 - GOAP plan: `plans/GOAP_OPEN_ISSUES_ANALYSIS_2026-07-17.md`

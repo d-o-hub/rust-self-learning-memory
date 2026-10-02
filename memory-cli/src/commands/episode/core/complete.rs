@@ -46,7 +46,14 @@ pub(crate) fn outcome_kind_matches(expected: TaskOutcome, actual: &CoreTaskOutco
     )
 }
 
-/// Complete an episode and verify durability before printing success (ADR-075).
+/// Complete an episode, drain the durable write queue, and verify before
+/// printing success (ADR-075, issue #1081).
+///
+/// A `Queued` receipt from
+/// [`complete_episode_checked`](do_memory_core::SelfLearningMemory::complete_episode_checked)
+/// means the durable backend accepted the write but has not committed it; the
+/// command drains the queue with the bounded `durable_timeout_secs` budget
+/// before any success output, then re-fetches and verifies the episode.
 pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
@@ -54,7 +61,9 @@ pub async fn complete_episode(
     _config: &Config,
     format: OutputFormat,
     dry_run: bool,
+    durable_timeout_secs: u64,
 ) -> anyhow::Result<()> {
+    use do_memory_core::EpisodeDurability;
     use uuid::Uuid;
 
     if dry_run {
@@ -77,10 +86,26 @@ pub async fn complete_episode(
         .await
         .map_err(|e| anyhow::anyhow!("Episode not found {}: {}", episode_id, e))?;
 
-    memory
-        .complete_episode(episode_uuid, core_outcome)
+    let receipt = memory
+        .complete_episode_checked(episode_uuid, core_outcome)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to complete episode {}: {}", episode_id, e))?;
+
+    // Durable-completion gate (#1081): a queued write is not a commit. Drain
+    // the bounded queue — naming any permanently failed episodes — before any
+    // success output, so "completed" means the configured backends persisted
+    // the episode (ADR-075 decision 1).
+    if receipt.durability == EpisodeDurability::Queued {
+        let timeout = std::time::Duration::from_secs(durable_timeout_secs.max(1));
+        memory.flush_durable_writes(timeout).await.map_err(|e| {
+            anyhow::anyhow!(
+                "Episode {} did not reach durable completion within {}s: {}",
+                episode_id,
+                durable_timeout_secs.max(1),
+                e
+            )
+        })?;
+    }
 
     // Verify-after-write (ADR-075): re-fetch and assert durable completion.
     // Do not print success unless the re-read confirms is_complete().
@@ -121,19 +146,26 @@ pub async fn complete_episode(
         }
     }
 
-    print_complete_success(&episode_id, outcome, format)
+    // `Queued` was drained above, so the printed state is the committed one.
+    let durability = match receipt.durability {
+        EpisodeDurability::Local => "local",
+        EpisodeDurability::Committed | EpisodeDurability::Queued => "committed",
+    };
+
+    print_complete_success(&episode_id, outcome, durability, format)
 }
 
 /// Operator path: force-fail an abandoned in-progress episode (ADR-075).
 ///
-/// Equivalent to `episode complete <id> failure` with the same verify-after-write
-/// durability rules.
+/// Equivalent to `episode complete <id> failure` with the same durable-drain
+/// and verify-after-write rules.
 pub async fn fail_episode(
     episode_id: String,
     memory: &SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
+    durable_timeout_secs: u64,
 ) -> anyhow::Result<()> {
     complete_episode(
         episode_id,
@@ -142,6 +174,7 @@ pub async fn fail_episode(
         config,
         format,
         dry_run,
+        durable_timeout_secs,
     )
     .await
 }
@@ -149,6 +182,7 @@ pub async fn fail_episode(
 fn print_complete_success(
     episode_id: &str,
     outcome: TaskOutcome,
+    durability: &str,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     let outcome_str = format!("{:?}", outcome);
@@ -160,6 +194,7 @@ fn print_complete_success(
             episode_id: String,
             status: String,
             outcome: String,
+            durability: String,
         }
 
         impl Output for CompleteResult {
@@ -169,6 +204,7 @@ fn print_complete_success(
                 writeln!(writer, "Episode: {}", self.episode_id.dimmed())?;
                 writeln!(writer, "Status: {}", self.status.green())?;
                 writeln!(writer, "Outcome: {}", self.outcome)?;
+                writeln!(writer, "Durability: {}", self.durability)?;
                 Ok(())
             }
         }
@@ -177,6 +213,7 @@ fn print_complete_success(
             episode_id: episode_id.to_string(),
             status: "completed".to_string(),
             outcome: outcome_str,
+            durability: durability.to_string(),
         };
 
         format.print_output(&result)
@@ -190,6 +227,7 @@ fn print_complete_success(
                     "episode_id": episode_id,
                     "status": "completed",
                     "outcome": outcome_str,
+                    "durability": durability,
                 });
                 println!("{}", serde_json::to_string_pretty(&result)?);
             }
@@ -198,6 +236,7 @@ fn print_complete_success(
                     "episode_id": episode_id,
                     "status": "completed",
                     "outcome": outcome_str,
+                    "durability": durability,
                 });
                 println!("{}", serde_yaml::to_string(&result)?);
             }
@@ -205,6 +244,7 @@ fn print_complete_success(
                 println!("Episode completed: {}", episode_id);
                 println!("Status: completed");
                 println!("Outcome: {}", outcome_str);
+                println!("Durability: {}", durability);
             }
         }
 
@@ -213,253 +253,5 @@ fn print_complete_success(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::Config;
-    use crate::output::OutputFormat;
-    use do_memory_core::TaskOutcome as CoreTaskOutcome;
-    use do_memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskType};
-
-    fn test_memory() -> SelfLearningMemory {
-        // Match CLI config: quality_threshold 0.0 so minimal episodes complete.
-        let config = MemoryConfig {
-            quality_threshold: 0.0,
-            pattern_extraction_threshold: 1.0,
-            enable_summarization: false,
-            enable_embeddings: false,
-            ..Default::default()
-        };
-        SelfLearningMemory::with_config(config)
-    }
-
-    async fn start_test_episode(memory: &SelfLearningMemory, task: &str) -> uuid::Uuid {
-        memory
-            .start_episode(task.to_string(), TaskContext::default(), TaskType::Testing)
-            .await
-    }
-
-    #[test]
-    fn map_cli_outcome_success() {
-        let mapped = map_cli_outcome(TaskOutcome::Success);
-        assert!(matches!(mapped, CoreTaskOutcome::Success { .. }));
-    }
-
-    #[test]
-    fn map_cli_outcome_partial() {
-        let mapped = map_cli_outcome(TaskOutcome::PartialSuccess);
-        assert!(matches!(mapped, CoreTaskOutcome::PartialSuccess { .. }));
-    }
-
-    #[test]
-    fn map_cli_outcome_failure() {
-        let mapped = map_cli_outcome(TaskOutcome::Failure);
-        assert!(matches!(mapped, CoreTaskOutcome::Failure { .. }));
-    }
-
-    #[test]
-    fn outcome_kind_matches_success() {
-        let actual = CoreTaskOutcome::Success {
-            verdict: "ok".into(),
-            artifacts: vec![],
-        };
-        assert!(outcome_kind_matches(TaskOutcome::Success, &actual));
-        assert!(!outcome_kind_matches(TaskOutcome::Failure, &actual));
-    }
-
-    #[test]
-    fn outcome_kind_matches_failure() {
-        let actual = CoreTaskOutcome::Failure {
-            reason: "boom".into(),
-            error_details: None,
-        };
-        assert!(outcome_kind_matches(TaskOutcome::Failure, &actual));
-        assert!(!outcome_kind_matches(TaskOutcome::Success, &actual));
-        assert!(!outcome_kind_matches(TaskOutcome::PartialSuccess, &actual));
-    }
-
-    #[test]
-    fn outcome_kind_matches_partial() {
-        let actual = CoreTaskOutcome::PartialSuccess {
-            verdict: "half".into(),
-            completed: vec![],
-            failed: vec![],
-        };
-        assert!(outcome_kind_matches(TaskOutcome::PartialSuccess, &actual));
-        assert!(!outcome_kind_matches(TaskOutcome::Success, &actual));
-    }
-
-    #[test]
-    fn fail_maps_to_failure_outcome() {
-        // episode fail reuses complete_episode with TaskOutcome::Failure
-        let mapped = map_cli_outcome(TaskOutcome::Failure);
-        assert!(matches!(
-            mapped,
-            CoreTaskOutcome::Failure {
-                reason,
-                error_details: Some(_)
-            } if reason.contains("CLI")
-        ));
-    }
-
-    // --- print_complete_success formats (default features = not turso) ---
-
-    #[test]
-    fn print_complete_success_json() {
-        let result = print_complete_success("ep-json", TaskOutcome::Success, OutputFormat::Json);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn print_complete_success_yaml() {
-        let result =
-            print_complete_success("ep-yaml", TaskOutcome::PartialSuccess, OutputFormat::Yaml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn print_complete_success_human() {
-        let result = print_complete_success("ep-human", TaskOutcome::Failure, OutputFormat::Human);
-        assert!(result.is_ok());
-    }
-
-    // --- async complete / fail paths with real SelfLearningMemory ---
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn complete_episode_success_happy_path() {
-        let memory = test_memory();
-        let config = Config::default();
-        let episode_id = start_test_episode(&memory, "CLI complete success").await;
-
-        let result = complete_episode(
-            episode_id.to_string(),
-            TaskOutcome::Success,
-            &memory,
-            &config,
-            OutputFormat::Human,
-            false,
-        )
-        .await;
-        assert!(result.is_ok(), "{result:?}");
-
-        let episode = memory.get_episode(episode_id).await.unwrap();
-        assert!(episode.is_complete());
-        assert!(matches!(
-            episode.outcome,
-            Some(CoreTaskOutcome::Success { .. })
-        ));
-    }
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn complete_episode_partial_success_json() {
-        let memory = test_memory();
-        let config = Config::default();
-        let episode_id = start_test_episode(&memory, "CLI complete partial").await;
-
-        let result = complete_episode(
-            episode_id.to_string(),
-            TaskOutcome::PartialSuccess,
-            &memory,
-            &config,
-            OutputFormat::Json,
-            false,
-        )
-        .await;
-        assert!(result.is_ok(), "{result:?}");
-
-        let episode = memory.get_episode(episode_id).await.unwrap();
-        assert!(episode.is_complete());
-        assert!(matches!(
-            episode.outcome,
-            Some(CoreTaskOutcome::PartialSuccess { .. })
-        ));
-    }
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn fail_episode_happy_path() {
-        let memory = test_memory();
-        let config = Config::default();
-        let episode_id = start_test_episode(&memory, "CLI fail episode").await;
-
-        let result = fail_episode(
-            episode_id.to_string(),
-            &memory,
-            &config,
-            OutputFormat::Yaml,
-            false,
-        )
-        .await;
-        assert!(result.is_ok(), "{result:?}");
-
-        let episode = memory.get_episode(episode_id).await.unwrap();
-        assert!(episode.is_complete());
-        assert!(matches!(
-            episode.outcome,
-            Some(CoreTaskOutcome::Failure { .. })
-        ));
-    }
-
-    #[tokio::test]
-    async fn complete_episode_dry_run_skips_write() {
-        let memory = test_memory();
-        let config = Config::default();
-        let result = complete_episode(
-            "00000000-0000-0000-0000-000000000001".to_string(),
-            TaskOutcome::Success,
-            &memory,
-            &config,
-            OutputFormat::Human,
-            true,
-        )
-        .await;
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn complete_episode_invalid_uuid() {
-        let memory = test_memory();
-        let config = Config::default();
-        let err = complete_episode(
-            "not-a-uuid".to_string(),
-            TaskOutcome::Success,
-            &memory,
-            &config,
-            OutputFormat::Human,
-            false,
-        )
-        .await
-        .expect_err("invalid uuid");
-        assert!(err.to_string().contains("Invalid episode ID"));
-    }
-
-    #[tokio::test]
-    async fn complete_episode_not_found() {
-        let memory = test_memory();
-        let config = Config::default();
-        let err = complete_episode(
-            "00000000-0000-0000-0000-000000000099".to_string(),
-            TaskOutcome::Failure,
-            &memory,
-            &config,
-            OutputFormat::Json,
-            false,
-        )
-        .await
-        .expect_err("missing episode");
-        assert!(err.to_string().contains("Episode not found"));
-    }
-
-    #[tokio::test]
-    async fn fail_episode_dry_run() {
-        let memory = test_memory();
-        let config = Config::default();
-        let result = fail_episode(
-            "00000000-0000-0000-0000-000000000002".to_string(),
-            &memory,
-            &config,
-            OutputFormat::Human,
-            true,
-        )
-        .await;
-        assert!(result.is_ok());
-    }
-}
+#[path = "complete_tests.rs"]
+mod tests;

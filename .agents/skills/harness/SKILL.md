@@ -51,3 +51,41 @@ signature in `.do-harness/agent_state.db`, and surface a diagnostic.
 - Never trust LLM self-assessment over a computational sensor's exit code.
 - Fix the sensor that fired; do not refactor unrelated code in the same pass.
 - An empty sensor suite passes vacuously; that is not evidence.
+
+## Steering Loop
+
+The steering loop turns repeated sensor violations into harness improvements
+instead of one-off fixes. The protocol:
+
+1. **Trigger** — any computational sensor fires more than **2 times in one
+   sprint** (across PRs/commits).
+2. **Classify** — maintainability, architecture, behaviour, or security.
+3. **Locate or create the guide** — find the feedforward guide in `HARNESS.md`;
+   if none covers the pattern, scaffold a skill with
+   `.agents/skills/skill-creator/` in `.agents/skills/<category>/`. The skill
+   must *prevent* the violation, not just describe it.
+4. **Update the sensor table** — point the sensor row in `HARNESS.md` at the
+   guide.
+5. **Log it** — add the entry to `CHANGELOG.md` under the current sprint.
+
+### Metrics events (audit trail)
+
+Every resolved sensor firing writes a structured event:
+
+Path: `.agents/events/YYYY/MM/DD/<sensor>-<timestamp>.json`
+
+```json
+{
+  "timestamp": "2026-07-18T12:00:00Z",
+  "sensor": "clippy::too_many_arguments",
+  "category": "maintainability",
+  "violation_count": 3,
+  "root_cause": "Function signatures grown beyond manageable parameter count",
+  "guide_updated": "HARNESS.md#feedforward-guides",
+  "skill_created": false,
+  "resolution": "Refactored to use config struct"
+}
+```
+
+`.agents/events/` is committed on purpose — it is the searchable record future
+agents use to avoid repeating known violations.

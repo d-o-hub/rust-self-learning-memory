@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
+  `release: published` event does not create a workflow run when the release is
+  published with the repository `GITHUB_TOKEN` (as the draft-first release flow
+  does), so `publish-crates.yml` had not run for a release since April 2026 and
+  crates.io was stale at 0.1.34 while the workspace moved to 0.1.45. The
+  tag-push release job now dispatches the publish on the tag once the release
+  is published, which is also what makes the trusted-publisher environment
+  restriction (tags only) usable.
+
 ### Changed
 
 - crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every

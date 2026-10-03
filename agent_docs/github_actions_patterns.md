@@ -200,6 +200,13 @@ crates.io publishing (`publish-crates.yml`, trigger `release: [published]` or
   polling (≤ 20 × 15s) replaces `sleep 30` (LESSON-014, ADR-079 CIT-A4).
 - Semver check output surfaced in `$GITHUB_STEP_SUMMARY`; it stays informational
   while the workspace is pre-1.0 (make it blocking at 1.0).
+- **Trigger truth**: `release: published` does **not** create a run when the
+  release is published with the repository `GITHUB_TOKEN` (the draft-first flow
+  does exactly that — see `release.yml`), so `release.yml`'s `dispatch-publish`
+  job calls `gh workflow run publish-crates.yml --ref <tag>` after publishing
+  the release (`actions: write`). The dispatch API is a documented exception to
+  the token-suppression rule; the `release: published` trigger remains as a
+  safety net and re-runs no-op on already-published versions.
 
 **Prerequisite (one-time per crate, manual)**: register a trusted publisher on
 crates.io for each crate with repository `d-o-hub/rust-self-learning-memory`,

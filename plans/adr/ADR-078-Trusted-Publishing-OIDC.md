@@ -171,6 +171,17 @@ prerequisite stands.
    `workflow_dispatch` are supported; `pull_request_target` and `workflow_run`
    are rejected. The exchanged token is single-use, expires after 30 minutes,
    and each job performs its own exchange (no per-run cap).
+5. **Release trigger truth (found while migrating).** `release: published` runs
+   are suppressed when the release is published with the repository
+   `GITHUB_TOKEN`, and the draft-first flow does exactly that — so
+   `publish-crates.yml` had not run on a release since 2026-04-22 and crates.io
+   was stale at 0.1.34 (`do-memory-mcp`: 0.1.31) while the workspace moved to
+   0.1.45. `release.yml` now dispatches the publish on the release tag after the
+   release is published (`gh workflow run` with `actions: write`; the dispatch
+   API is a documented exception to the suppression rule). The `release:
+   published` trigger stays as a safety net for releases published by a user
+   token, and re-runs are harmless because every job skips a version that
+   already exists.
 
 ## Alternatives considered
 

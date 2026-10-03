@@ -434,9 +434,40 @@ jobs:
       - name: Publish the draft release
         # Publishing is what fires `release: published` (publish-crates.yml)
         # and, once repository immutability is enabled, locks assets + tag.
+        # NOTE: when this release is published with the repository
+        # GITHUB_TOKEN, Actions suppress the `release` event and
+        # publish-crates.yml would never run - see `dispatch-publish` below.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release edit "${{ needs.plan.outputs.tag }}" --draft=false
+
+  # `release: published` cannot trigger publish-crates.yml when the release is
+  # published with the repository GITHUB_TOKEN (events raised by that token do
+  # not create workflow runs). The Actions dispatch API (`gh workflow run`) is
+  # one of the documented exceptions, so dispatch the crates.io publish on the
+  # tag explicitly.
+  dispatch-publish:
+    needs:
+      - plan
+      - host
+    if: >-
+      ${{ needs.host.result == 'success' &&
+         needs.plan.outputs.publishing == 'true' }}
+    permissions:
+      actions: write
+      contents: read
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: Dispatch crates.io publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh workflow run publish-crates.yml \
+            -R "${{ github.repository }}" \
+            --ref "${{ needs.plan.outputs.tag }}" \
+            -f dry-run=false
+          echo "Dispatched publish-crates.yml on ${{ needs.plan.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
 
   announce:
     needs:

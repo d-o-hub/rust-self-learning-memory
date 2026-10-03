@@ -1,6 +1,8 @@
 # ADR-078: OIDC Trusted Publishing for crates.io
 
 - **Status**: Accepted
+- **Amendment**: 2026-10-03 — official `crates-io-auth-action`, no token
+  fallback, shared `publish-crate` action (see §Amendment)
 - **Date**: 2026-07-28
 - **Deciders**: Project maintainers
 - **Spike**: [`../STATUS/spikes/R-F10.json`](../STATUS/spikes/R-F10.json)
@@ -104,9 +106,12 @@ performed by a crate owner in the crates.io dashboard.
 
 - Static token rotations are eliminated; the exchanged token is single-use and
   expires automatically.
-- Every publish is bound to a specific repository, workflow file, ref, and
-  environment via the OIDC subject claim (`repo:d-o-hub/rust-self-learning-memory:environment:crates.io`),
-  creating an auditable, unforgeable publish trail.
+- Every publish is bound to a specific repository, workflow file, and
+  environment via the OIDC claims (`repo:d-o-hub/rust-self-learning-memory:environment:crates.io`),
+  creating an auditable publish trail. crates.io does **not** validate the git
+  ref (see §Amendment item 4), so ref discipline comes from the environment
+  deployment rule (tag refs only) plus the workflow's own tag guard (§Amendment
+  item 6).
 - A leaked copy of the environment secret can no longer be used to publish
   outside the registered workflow and environment context.
 - No Rust code changes are required; the change is isolated to CI/CD YAML.
@@ -130,6 +135,72 @@ performed by a crate owner in the crates.io dashboard.
   workflow level to limit the blast radius of the elevated permission.
 - Document the trusted publisher registration step in the release runbook so it
   is not forgotten when new crates are added to the workspace.
+
+## Amendment (2026-10-03): official action, no fallback, shared publish action
+
+Status: implemented on `publish-crates.yml` (issue #1109 C1/C2). Supersedes
+§1’s hand-rolled exchange and §2’s retained fallback; §4’s registration
+prerequisite stands.
+
+1. **Official action replaces the hand-rolled exchange.** The `curl` + `python3`
+   exchange and `cargo login` are replaced by the pinned
+   `rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18`
+   (v1.0.5) in each publish job; `CARGO_REGISTRY_TOKEN` is set from
+   `steps.auth.outputs.token` and exists only on that step. Every
+   `secrets.CARGO_REGISTRY_TOKEN` reference and the
+   `env.CARGO_REGISTRY_TOKEN == ''` conditions are gone, so the repository
+   secret can be deleted (one-time manual step).
+2. **One shared implementation.** The per-crate gates (semver-checks,
+   propagation wait, metadata verify, version-exists check, dispatch dependency
+   closure, dry-run, publish) live in the `.github/actions/publish-crate`
+   composite action; the workflow keeps four jobs parameterised by crate. A
+   composite action was chosen over a reusable workflow because crates.io
+   matches the OIDC `workflow_ref` claim — the **calling** workflow filename —
+   and does not read `job_workflow_ref`, so the registered filename stays
+   `publish-crates.yml`; it also avoids the reusable-workflow permission ceiling
+   (`id-token: write` for a called workflow must be granted by the caller).
+3. **Single-crate dispatch is no longer silently skipped.** The previous
+   `needs:` chain without `always()` meant a dispatch that selected
+   `do-memory-storage-redb`, `-turso` or `-mcp` skipped its prerequisites and
+   therefore the requested job itself. Jobs now gate with `always()` plus
+   explicit `needs.<job>.result == 'success' || 'skipped'`, so the selected
+   crate runs and the ADR-079 CIT-A4 dependency-closure gate decides: publish,
+   prove already-present, or fail with a named reason.
+4. **Registration facts (verified against crates.io sources, 2026-10-03).** The
+   config is per crate (crate page → Settings → Trusted Publishing) with
+   fields: repository owner, repository name, workflow filename, environment
+   (optional, compared case-insensitively; must equal the job’s environment when
+   set) — max 5 GitHub configs per crate. `release: [published]` and
+   `workflow_dispatch` are supported; `pull_request_target` and `workflow_run`
+   are rejected. The exchanged token is single-use, expires after 30 minutes,
+   and each job performs its own exchange (no per-run cap).
+5. **Release trigger truth (found while migrating).** `release: published` runs
+   are suppressed when the release is published with the repository
+   `GITHUB_TOKEN`, and the draft-first flow does exactly that — so
+   `publish-crates.yml` had not run on a release since 2026-04-22 and crates.io
+   was stale at 0.1.34 (`do-memory-mcp`: 0.1.31) while the workspace moved to
+   0.1.45. `release.yml` now dispatches the publish on the release tag after the
+   release is published (`gh workflow run` with `actions: write`; the dispatch
+   API is a documented exception to the suppression rule). The `release:
+   published` trigger stays as a safety net for releases published by a user
+   token, and re-runs are harmless because every job skips a version that
+   already exists.
+6. **Hardening added with the migration.**
+   - Real publishes are tag-ref only (`inputs.dry-run == true ||
+     github.ref_type == 'tag'`) because crates.io does not validate the ref; the
+     tag must equal the manifest version before publishing starts.
+   - Packaging is verified in a token-less step ("Dry Run Publish"), and the
+     authenticated publish runs with `--no-verify`, so the live crates.io token
+     never enters the environment of a build script.
+   - `cargo-semver-checks` is version-pinned instead of tracking latest.
+   - A `crates-io-publish` concurrency group serialises runs (the version-exists
+     check is a check-then-act against crates.io).
+   - Dependent jobs list **every** upstream publish job in `needs` and gate on
+     explicit `result` values, so a failed crate cannot be laundered into a
+     "skipped" prerequisite that still allows a later crate to publish.
+   - The publish fixtures and the gate-contract validator fail if the static
+     token secret returns, if `id-token: write` disappears, or if the auth
+     action loses its SHA pin.
 
 ## Alternatives considered
 

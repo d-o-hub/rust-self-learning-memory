@@ -46,21 +46,36 @@ check_release_authority() {
 }
 
 check_publish_fixtures() {
-  local wf=".github/workflows/publish-crates.yml"
-  if [[ -f "$wf" ]]; then
+  # The publish gates live in the workflow and in the `publish-crate` composite
+  # action it calls; assert them over the union of the two files.
+  local publish_files=()
+  local publish_file
+  for publish_file in .github/workflows/publish-crates.yml .github/actions/publish-crate/action.yml; do
+    [[ -f "$publish_file" ]] && publish_files+=("$publish_file")
+  done
+  if (( ${#publish_files[@]} > 0 )); then
     # LESSON-014 / AGENTS.md publish pipeline: reproducible locked publish
-    rg -q -- '--locked' "$wf" || fail "publish-crates.yml should use cargo publish --locked"
+    rg -q -- '--locked' "${publish_files[@]}" || fail "publish workflow/action should use cargo publish --locked"
     # CIT-A4 / LESSON-014: bounded propagation polling, never a fixed sleep
-    if rg -q 'run: sleep 30' "$wf"; then
-      fail "publish-crates.yml must not use fixed 'run: sleep 30' (bounded polling required)"
+    if rg -q 'run: sleep 30' "${publish_files[@]}"; then
+      fail "publish workflow/action must not use fixed 'run: sleep 30' (bounded polling required)"
     fi
-    rg -q 'Wait for crates.io propagation' "$wf" || fail "publish-crates.yml missing propagation wait step"
-    rg -q 'seq 1 20' "$wf" || fail "publish-crates.yml propagation polling must be bounded (seq 1 20)"
+    rg -q 'Wait for crates.io propagation' "${publish_files[@]}" || fail "publish workflow/action missing propagation wait step"
+    rg -q 'seq 1 20' "${publish_files[@]}" || fail "publish propagation polling must be bounded (seq 1 20)"
     # CIT-A4 / ADR-079 §6: single-crate dispatch must verify the non-dev
     # workspace dependency closure and fail with a named reason - no silent skip.
-    rg -q 'Verify dependency closure' "$wf" || fail "publish-crates.yml missing dependency-closure verification step"
-    rg -q "inputs.crate != ''" "$wf" || fail "dependency-closure step must gate on single-crate dispatch (inputs.crate != '')"
-    rg -q '::error::Cannot publish' "$wf" || fail "dependency-closure step must fail with a named ::error:: reason"
+    rg -q 'Verify dependency closure' "${publish_files[@]}" || fail "publish workflow/action missing dependency-closure verification step"
+    rg -q "inputs.crate != ''" .github/workflows/publish-crates.yml || fail "the workflow must gate single-crate dispatch with inputs.crate != ''"
+    rg -q '::error::Cannot publish' "${publish_files[@]}" || fail "dependency-closure step must fail with a named ::error:: reason"
+    # Issue #1109 C1 / ADR-078: OIDC-only publishing - the static token secret
+    # must not come back, the auth action must stay SHA-pinned, and the publish
+    # command itself must keep --locked.
+    if rg -q 'secrets\.CARGO_REGISTRY_TOKEN' "${publish_files[@]}"; then
+      fail "publish workflow/action must not read the CARGO_REGISTRY_TOKEN secret (OIDC-only)"
+    fi
+    rg -q 'id-token: write' .github/workflows/publish-crates.yml || fail "publish jobs must grant 'id-token: write'"
+    rg -q 'crates-io-auth-action@[0-9a-f]{40}' .github/actions/publish-crate/action.yml || fail "publish action must call the SHA-pinned crates-io-auth-action"
+    rg -q -- 'cargo publish --package .*--locked' .github/actions/publish-crate/action.yml || fail "the publish command itself must use cargo publish --locked"
   else
     echo "NOTE: publish-crates.yml not present; skipping publish fixture checks"
   fi

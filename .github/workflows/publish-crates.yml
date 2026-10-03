@@ -1,4 +1,12 @@
 ---
+# Ordered crates.io publish chain: core -> redb -> turso -> mcp.
+# The per-crate gates and the OIDC-authenticated publish live in the
+# `.github/actions/publish-crate` composite action.
+#
+# Authentication is crates.io Trusted Publishing: no long-lived token is read
+# from repository secrets. crates.io validates the workflow filename
+# (`publish-crates.yml`) and the job `environment` (`crates.io`), so every
+# trusted-publisher config must use exactly those values.
 name: Publish to crates.io
 
 on:
@@ -19,6 +27,12 @@ on:
 permissions:
   contents: read
 
+# Serialise publishes: the version-exists check is a check-then-act against
+# crates.io, so overlapping runs for the same version must not race.
+concurrency:
+  group: crates-io-publish-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   # Publish do-memory-core first - other crates depend on it
   publish-core:
@@ -28,7 +42,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
+    # Real publishes only from tag refs (ADR-072 tag-only release authority);
+    # a branch dispatch may rehearse with dry-run: true and nothing else.
+    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -39,121 +55,28 @@ jobs:
         with:
           job-name: setup
 
-
-      - name: Install cargo-semver-checks
-        run: cargo install --locked cargo-semver-checks
-
-      - name: Semver Check
-        run: |
-          set +e
-          cargo semver-checks --package do-memory-core 2>&1 | tee "$RUNNER_TEMP/semver-core.log"
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            echo "OK: cargo-semver-checks reports no breaking changes for do-memory-core" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "WARN: cargo-semver-checks reported findings for do-memory-core (informational; pre-1.0)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          exit 0
-        continue-on-error: true  # Pre-1.0 may have breaking changes
-
-      - name: Verify metadata
-        run: |
-          cargo metadata --format-version 1 --no-deps | \
-          jq -e ".packages[] | select(.name == \"do-memory-core\") | .description" > /dev/null
-
-      - name: Check if version exists
-        id: check-version
-        run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-core") | .version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Local version: $VERSION"
-          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -r '.versions[0].num // empty')
-          echo "Crates.io latest: $EXISTING"
-          if [ "$EXISTING" = "$VERSION" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "::notice::do-memory-core@$VERSION already exists on crates.io, skipping"
-            echo "Version exists on crates.io, will skip publish"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Version not on crates.io, will publish"
-          fi
-
-      - name: Verify dependency closure (single-crate dispatch)
-        # ADR-079 CIT-A4: a requested crate must publish, prove already-present,
-        # or fail with a reason. When one crate is selected by dispatch, its
-        # workspace dependency closure must already exist on crates.io - a
-        # skipped prerequisite must never turn into a doomed or silent skip.
-        if: ${{ inputs.crate != '' }}
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-core"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          MISSING=""
-          while IFS= read -r DEP; do
-            [ -n "$DEP" ] || continue
-            DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
-            EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-              "https://crates.io/api/v1/crates/$DEP/versions" | \
-              jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
-            if [ "$EXISTING" = "true" ]; then
-              echo "OK: dependency $DEP@$DEP_VER already on crates.io"
-            else
-              echo "::error::Cannot publish $CRATE@$VERSION: workspace dependency $DEP@$DEP_VER is not on crates.io. Select it in the same dispatch or publish it first."
-              MISSING="$MISSING $DEP"
-            fi
-          done < <(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u)
-          if [ -n "$MISSING" ]; then
-            echo "::error::Missing workspace dependencies on crates.io:$MISSING"
-            exit 1
-          fi
-          echo "OK: dependency closure verified for $CRATE@$VERSION"
-
-      - name: Dry Run Publish
-        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-core --dry-run --locked
-
-      - name: Authenticate to crates.io (OIDC)
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
-        run: |
-          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          cargo login --registry crates-io "$TOKEN"
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Publish to crates.io
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-core --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
+      - name: Publish crate
+        uses: ./.github/actions/publish-crate
+        with:
+          crate: do-memory-core
+          dry-run: ${{ inputs.dry-run == true }}
+          single-crate-dispatch: ${{ inputs.crate != '' }}
 
   # Publish do-memory-storage-redb after core (no internal dependencies)
   publish-redb:
     name: Publish do-memory-storage-redb
     runs-on: ubuntu-latest
     environment: crates.io
-    needs: [publish-core]
     permissions:
       id-token: write
       contents: read
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') }}
+    needs: [publish-core]
+    # always() + explicit result checks: a dispatch that selects one crate
+    # skips the other jobs, and a skipped prerequisite must not silently skip
+    # the requested crate - the composite's dependency-closure gate decides.
+    # 'failure'/'cancelled' upstream still skip this job (fail closed), and the
+    # tag guard keeps real publishes on tag refs (ADR-072 tag-only authority).
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -164,161 +87,25 @@ jobs:
         with:
           job-name: setup
 
-
-      - name: Install cargo-semver-checks
-        run: cargo install --locked cargo-semver-checks
-
-      - name: Wait for crates.io propagation
-        # Bounded sparse-index/API polling (LESSON-014, ADR-079 CIT-A4): a fixed
-        # sleep 30 is fragile under crates.io load. Poll up to 20 x 15s = 5min.
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-storage-redb"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          # Wait for the workspace dependencies published earlier in this run
-          # (core before redb) to propagate - not this crate, which is only
-          # published after this wait. Same non-dev closure as the dispatch
-          # dependency check. 20 x 15s = 5min budget per dependency.
-          for DEP in $(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u); do
-            echo "Waiting for dependency $DEP@$VERSION to propagate to crates.io..."
-            FOUND="false"
-            for i in $(seq 1 20); do
-              EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-                "https://crates.io/api/v1/crates/$DEP/versions" | \
-                jq -r --arg v "$VERSION" '[(.versions // [])[].num] | index($v) != null')
-              if [ "$EXISTING" = "true" ]; then
-                echo "OK: dependency $DEP@$VERSION visible on crates.io (attempt $i)"
-                FOUND="true"
-                break
-              fi
-              sleep 15
-            done
-            if [ "$FOUND" != "true" ]; then
-              echo "::error::dependency $DEP@$VERSION did not appear on crates.io within 300s (20 x 15s)"
-              exit 1
-            fi
-          done
-          echo "OK: all workspace dependencies of $CRATE@$VERSION visible on crates.io"
-
-      - name: Semver Check
-        run: |
-          set +e
-          cargo semver-checks --package do-memory-storage-redb 2>&1 | tee "$RUNNER_TEMP/semver-redb.log"
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            echo "OK: cargo-semver-checks reports no breaking changes for do-memory-storage-redb" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "WARN: cargo-semver-checks reported findings for do-memory-storage-redb (informational; pre-1.0)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          exit 0
-        continue-on-error: true  # Pre-1.0 may have breaking changes
-
-      - name: Verify metadata
-        run: |
-          cargo metadata --format-version 1 --no-deps | \
-          jq -e ".packages[] | select(.name == \"do-memory-storage-redb\") | .description" > /dev/null
-
-      - name: Check if version exists
-        id: check-version
-        run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-redb") | .version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Local version: $VERSION"
-          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -r '.versions[0].num // empty')
-          echo "Crates.io latest: $EXISTING"
-          if [ "$EXISTING" = "$VERSION" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "::notice::do-memory-storage-redb@$VERSION already exists on crates.io, skipping"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Verify dependency closure (single-crate dispatch)
-        # ADR-079 CIT-A4: a requested crate must publish, prove already-present,
-        # or fail with a reason. When one crate is selected by dispatch, its
-        # workspace dependency closure must already exist on crates.io - a
-        # skipped prerequisite must never turn into a doomed or silent skip.
-        if: ${{ inputs.crate != '' }}
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-storage-redb"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          MISSING=""
-          while IFS= read -r DEP; do
-            [ -n "$DEP" ] || continue
-            DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
-            EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-              "https://crates.io/api/v1/crates/$DEP/versions" | \
-              jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
-            if [ "$EXISTING" = "true" ]; then
-              echo "OK: dependency $DEP@$DEP_VER already on crates.io"
-            else
-              echo "::error::Cannot publish $CRATE@$VERSION: workspace dependency $DEP@$DEP_VER is not on crates.io. Select it in the same dispatch or publish it first."
-              MISSING="$MISSING $DEP"
-            fi
-          done < <(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u)
-          if [ -n "$MISSING" ]; then
-            echo "::error::Missing workspace dependencies on crates.io:$MISSING"
-            exit 1
-          fi
-          echo "OK: dependency closure verified for $CRATE@$VERSION"
-
-      - name: Dry Run Publish
-        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-redb --dry-run --locked
-
-      - name: Authenticate to crates.io (OIDC)
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
-        run: |
-          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          cargo login --registry crates-io "$TOKEN"
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Publish to crates.io
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-redb --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
+      - name: Publish crate
+        uses: ./.github/actions/publish-crate
+        with:
+          crate: do-memory-storage-redb
+          dry-run: ${{ inputs.dry-run == true }}
+          single-crate-dispatch: ${{ inputs.crate != '' }}
 
   # Publish do-memory-storage-turso after redb (depends on redb)
   publish-turso:
     name: Publish do-memory-storage-turso
     runs-on: ubuntu-latest
     environment: crates.io
-    needs: [publish-redb]
     permissions:
       id-token: write
       contents: read
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
+    # publish-core stays in `needs` so a core failure (which skips redb) cannot
+    # be laundered into a runnable turso through redb's 'skipped' result.
+    needs: [publish-core, publish-redb]
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -329,161 +116,23 @@ jobs:
         with:
           job-name: setup
 
+      - name: Publish crate
+        uses: ./.github/actions/publish-crate
+        with:
+          crate: do-memory-storage-turso
+          dry-run: ${{ inputs.dry-run == true }}
+          single-crate-dispatch: ${{ inputs.crate != '' }}
 
-      - name: Install cargo-semver-checks
-        run: cargo install --locked cargo-semver-checks
-
-      - name: Wait for crates.io propagation
-        # Bounded sparse-index/API polling (LESSON-014, ADR-079 CIT-A4): a fixed
-        # sleep 30 is fragile under crates.io load. Poll up to 20 x 15s = 5min.
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-storage-turso"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          # Wait for the workspace dependencies published earlier in this run
-          # (core, then redb) to propagate - not this crate, which is only
-          # published after this wait. Same non-dev closure as the dispatch
-          # dependency check. 20 x 15s = 5min budget per dependency.
-          for DEP in $(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u); do
-            echo "Waiting for dependency $DEP@$VERSION to propagate to crates.io..."
-            FOUND="false"
-            for i in $(seq 1 20); do
-              EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-                "https://crates.io/api/v1/crates/$DEP/versions" | \
-                jq -r --arg v "$VERSION" '[(.versions // [])[].num] | index($v) != null')
-              if [ "$EXISTING" = "true" ]; then
-                echo "OK: dependency $DEP@$VERSION visible on crates.io (attempt $i)"
-                FOUND="true"
-                break
-              fi
-              sleep 15
-            done
-            if [ "$FOUND" != "true" ]; then
-              echo "::error::dependency $DEP@$VERSION did not appear on crates.io within 300s (20 x 15s)"
-              exit 1
-            fi
-          done
-          echo "OK: all workspace dependencies of $CRATE@$VERSION visible on crates.io"
-
-      - name: Semver Check
-        run: |
-          set +e
-          cargo semver-checks --package do-memory-storage-turso 2>&1 | tee "$RUNNER_TEMP/semver-turso.log"
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            echo "OK: cargo-semver-checks reports no breaking changes for do-memory-storage-turso" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "WARN: cargo-semver-checks reported findings for do-memory-storage-turso (informational; pre-1.0)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          exit 0
-        continue-on-error: true  # Pre-1.0 may have breaking changes
-
-      - name: Verify metadata
-        run: |
-          cargo metadata --format-version 1 --no-deps | \
-          jq -e ".packages[] | select(.name == \"do-memory-storage-turso\") | .description" > /dev/null
-
-      - name: Check if version exists
-        id: check-version
-        run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-turso") | .version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Local version: $VERSION"
-          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -r '.versions[0].num // empty')
-          echo "Crates.io latest: $EXISTING"
-          if [ "$EXISTING" = "$VERSION" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "::notice::do-memory-storage-turso@$VERSION already exists on crates.io, skipping"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Verify dependency closure (single-crate dispatch)
-        # ADR-079 CIT-A4: a requested crate must publish, prove already-present,
-        # or fail with a reason. When one crate is selected by dispatch, its
-        # workspace dependency closure must already exist on crates.io - a
-        # skipped prerequisite must never turn into a doomed or silent skip.
-        if: ${{ inputs.crate != '' }}
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-storage-turso"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          MISSING=""
-          while IFS= read -r DEP; do
-            [ -n "$DEP" ] || continue
-            DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
-            EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-              "https://crates.io/api/v1/crates/$DEP/versions" | \
-              jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
-            if [ "$EXISTING" = "true" ]; then
-              echo "OK: dependency $DEP@$DEP_VER already on crates.io"
-            else
-              echo "::error::Cannot publish $CRATE@$VERSION: workspace dependency $DEP@$DEP_VER is not on crates.io. Select it in the same dispatch or publish it first."
-              MISSING="$MISSING $DEP"
-            fi
-          done < <(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u)
-          if [ -n "$MISSING" ]; then
-            echo "::error::Missing workspace dependencies on crates.io:$MISSING"
-            exit 1
-          fi
-          echo "OK: dependency closure verified for $CRATE@$VERSION"
-
-      - name: Dry Run Publish
-        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-turso --dry-run --locked
-
-      - name: Authenticate to crates.io (OIDC)
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
-        run: |
-          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          cargo login --registry crates-io "$TOKEN"
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Publish to crates.io
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-storage-turso --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
-
-  # Publish MCP crate after all storage crates
+  # Publish do-memory-mcp after turso (depends on redb + turso)
   publish-mcp:
     name: Publish do-memory-mcp
     runs-on: ubuntu-latest
     environment: crates.io
-    needs: [publish-redb, publish-turso]
     permissions:
       id-token: write
       contents: read
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') }}
+    needs: [publish-core, publish-redb, publish-turso]
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') && (needs.publish-turso.result == 'success' || needs.publish-turso.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -494,147 +143,9 @@ jobs:
         with:
           job-name: setup
 
-
-      - name: Install cargo-semver-checks
-        run: cargo install --locked cargo-semver-checks
-
-      - name: Wait for crates.io propagation
-        # Bounded sparse-index/API polling (LESSON-014, ADR-079 CIT-A4): a fixed
-        # sleep 30 is fragile under crates.io load. Poll up to 20 x 15s = 5min.
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-mcp"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          # Wait for the workspace dependencies published earlier in this run
-          # (core, redb, then turso) to propagate - not this crate, which is
-          # only published after this wait. Same non-dev closure as the
-          # dispatch dependency check. 20 x 15s = 5min budget per dependency.
-          for DEP in $(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u); do
-            echo "Waiting for dependency $DEP@$VERSION to propagate to crates.io..."
-            FOUND="false"
-            for i in $(seq 1 20); do
-              EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-                "https://crates.io/api/v1/crates/$DEP/versions" | \
-                jq -r --arg v "$VERSION" '[(.versions // [])[].num] | index($v) != null')
-              if [ "$EXISTING" = "true" ]; then
-                echo "OK: dependency $DEP@$VERSION visible on crates.io (attempt $i)"
-                FOUND="true"
-                break
-              fi
-              sleep 15
-            done
-            if [ "$FOUND" != "true" ]; then
-              echo "::error::dependency $DEP@$VERSION did not appear on crates.io within 300s (20 x 15s)"
-              exit 1
-            fi
-          done
-          echo "OK: all workspace dependencies of $CRATE@$VERSION visible on crates.io"
-
-      - name: Semver Check
-        run: |
-          set +e
-          cargo semver-checks --package do-memory-mcp 2>&1 | tee "$RUNNER_TEMP/semver-mcp.log"
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            echo "OK: cargo-semver-checks reports no breaking changes for do-memory-mcp" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "WARN: cargo-semver-checks reported findings for do-memory-mcp (informational; pre-1.0)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          exit 0
-        continue-on-error: true  # Pre-1.0 may have breaking changes
-
-      - name: Verify metadata
-        run: |
-          cargo metadata --format-version 1 --no-deps | \
-          jq -e ".packages[] | select(.name == \"do-memory-mcp\") | .description" > /dev/null
-
-      - name: Check if version exists
-        id: check-version
-        run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-mcp") | .version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Local version: $VERSION"
-          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -r '.versions[0].num // empty')
-          echo "Crates.io latest: $EXISTING"
-          if [ "$EXISTING" = "$VERSION" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "::notice::do-memory-mcp@$VERSION already exists on crates.io, skipping"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Verify dependency closure (single-crate dispatch)
-        # ADR-079 CIT-A4: a requested crate must publish, prove already-present,
-        # or fail with a reason. When one crate is selected by dispatch, its
-        # workspace dependency closure must already exist on crates.io - a
-        # skipped prerequisite must never turn into a doomed or silent skip.
-        if: ${{ inputs.crate != '' }}
-        run: |
-          set -euo pipefail
-          CRATE="do-memory-mcp"
-          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
-          MISSING=""
-          while IFS= read -r DEP; do
-            [ -n "$DEP" ] || continue
-            DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
-            EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
-              "https://crates.io/api/v1/crates/$DEP/versions" | \
-              jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
-            if [ "$EXISTING" = "true" ]; then
-              echo "OK: dependency $DEP@$DEP_VER already on crates.io"
-            else
-              echo "::error::Cannot publish $CRATE@$VERSION: workspace dependency $DEP@$DEP_VER is not on crates.io. Select it in the same dispatch or publish it first."
-              MISSING="$MISSING $DEP"
-            fi
-          done < <(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
-            . as $meta |
-            ($meta.workspace_members | map(
-              if contains("#") then split("#")[1] | split("@")[0]
-              else split(" ")[0]
-              end
-            )) as $members |
-            $meta.packages[] | select(.name == $c) | .dependencies[] |
-            select(.kind != "dev") |
-            select(.name as $n | $members | index($n) != null) | .name
-          ' | sort -u)
-          if [ -n "$MISSING" ]; then
-            echo "::error::Missing workspace dependencies on crates.io:$MISSING"
-            exit 1
-          fi
-          echo "OK: dependency closure verified for $CRATE@$VERSION"
-
-      - name: Dry Run Publish
-        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-mcp --dry-run --locked
-
-      - name: Authenticate to crates.io (OIDC)
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' && env.CARGO_REGISTRY_TOKEN == '' }}
-        run: |
-          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=crates.io" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          cargo login --registry crates-io "$TOKEN"
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Publish to crates.io
-        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
-        run: |
-          echo "exists output: ${{ steps.check-version.outputs.exists }}"
-          cargo publish --package do-memory-mcp --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # fallback; OIDC login above takes precedence if token empty
+      - name: Publish crate
+        uses: ./.github/actions/publish-crate
+        with:
+          crate: do-memory-mcp
+          dry-run: ${{ inputs.dry-run == true }}
+          single-crate-dispatch: ${{ inputs.crate != '' }}

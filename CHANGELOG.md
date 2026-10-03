@@ -7,8 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
+  `release: published` event does not create a workflow run when the release is
+  published with the repository `GITHUB_TOKEN` (as the draft-first release flow
+  does), so `publish-crates.yml` had not run for a release since April 2026 and
+  crates.io was stale at 0.1.34 while the workspace moved to 0.1.45. The
+  tag-push release job now dispatches the publish on the tag once the release
+  is published, which is also what makes the trusted-publisher environment
+  restriction (tags only) usable.
+
 ### Changed
 
+- crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every
+  publish job authenticates with the pinned `rust-lang/crates-io-auth-action`
+  (no `CARGO_REGISTRY_TOKEN` secret, no hand-rolled exchange), the per-crate
+  gates and publish move into the `.github/actions/publish-crate` composite
+  action, and the `needs` chain no longer silently skips a crate requested by
+  `workflow_dispatch` (skipped prerequisites are tolerated and the
+  dependency-closure gate decides).
+- Publish hardening (#1109): real publishes are tag-ref only
+  (`github.ref_type == 'tag'`, matching ADR-072 authority — crates.io does not
+  validate the ref), the tag must equal the manifest version, packaging is
+  verified before the token exists and the authenticated publish uses
+  `--no-verify` (the token never enters a build-script environment),
+  `cargo-semver-checks` is version-pinned, runs are serialised by a
+  `crates-io-publish` concurrency group, and dependent jobs list every upstream
+  crate in `needs` so a failure cannot cascade into a runnable later crate.
 - Release publishing is now draft-first and attested (#1109): the tag workflow
   creates a draft GitHub Release, attaches the dist artifacts plus the
   CycloneDX SBOMs, generates build-provenance and SBOM attestations

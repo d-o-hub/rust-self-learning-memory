@@ -1,0 +1,206 @@
+---
+# Publish one workspace crate to crates.io with Trusted Publishing (OIDC).
+#
+# Kept as a composite action (not a reusable workflow) on purpose: crates.io
+# matches the CALLER workflow filename (`workflow_ref`) and the job
+# `environment`, so registering `publish-crates.yml` + `crates.io` covers every
+# job that runs these steps.
+name: Publish crate
+description: "Semver/metadata gates plus OIDC-authenticated cargo publish for one crate."
+
+inputs:
+  crate:
+    description: "Workspace crate to publish"
+    required: true
+  dry-run:
+    description: "'true' to validate packaging without publishing"
+    required: false
+    default: "false"
+  single-crate-dispatch:
+    description: "'true' when a manual dispatch selected one crate (enables the dependency-closure gate)"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install cargo-semver-checks
+      shell: bash
+      run: cargo install --locked cargo-semver-checks --version 0.50.0
+
+    - name: Wait for crates.io propagation
+      # Only for the ordered release chain: in a single-crate dispatch nothing
+      # was published earlier in this run, and the dependency-closure step below
+      # is the authority (ADR-079 CIT-A4) - polling here would just burn the
+      # 5-minute budget before that named failure.
+      #
+      # Bounded sparse-index/API polling (LESSON-014, ADR-079 CIT-A4): a fixed
+      # sleep 30 is fragile under crates.io load. Poll up to 20 x 15s = 5min.
+      #
+      # Waits for this crate's non-dev workspace dependencies (published
+      # earlier in this run) to propagate. The workspace is versioned in
+      # lockstep, so every dependency carries the same version.
+      if: ${{ inputs.single-crate-dispatch != 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        CRATE="${{ inputs.crate }}"
+        VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
+        for DEP in $(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
+          . as $meta |
+          ($meta.workspace_members | map(
+            if contains("#") then split("#")[1] | split("@")[0]
+            else split(" ")[0]
+            end
+          )) as $members |
+          $meta.packages[] | select(.name == $c) | .dependencies[] |
+          select(.kind != "dev") |
+          select(.name as $n | $members | index($n) != null) | .name
+        ' | sort -u); do
+          DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
+          echo "Waiting for dependency $DEP@$DEP_VER to propagate to crates.io..."
+          FOUND="false"
+          for i in $(seq 1 20); do
+            EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+              "https://crates.io/api/v1/crates/$DEP/versions" | \
+              jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
+            if [ "$EXISTING" = "true" ]; then
+              echo "OK: dependency $DEP@$DEP_VER visible on crates.io (attempt $i)"
+              FOUND="true"
+              break
+            fi
+            sleep 15
+          done
+          if [ "$FOUND" != "true" ]; then
+            echo "::error::dependency $DEP@$DEP_VER did not appear on crates.io within 300s (20 x 15s)"
+            exit 1
+          fi
+        done
+        echo "OK: all workspace dependencies of $CRATE@$VERSION visible on crates.io"
+
+    - name: Semver Check
+      # Informational only (pre-1.0 may have breaking changes): the body always
+      # exits 0, so this step never fails the job. Make it blocking when the
+      # workspace reaches 1.0 (issue #1109 C2): drop `exit 0` and the
+      # set +e/set -e wrapper.
+      shell: bash
+      run: |
+        set +e
+        cargo semver-checks --package ${{ inputs.crate }} 2>&1 | tee "$RUNNER_TEMP/semver-${{ inputs.crate }}.log"
+        rc=${PIPESTATUS[0]}
+        set -e
+        if [ "$rc" -eq 0 ]; then
+          echo "OK: cargo-semver-checks reports no breaking changes for ${{ inputs.crate }}" >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "WARN: cargo-semver-checks reported findings for ${{ inputs.crate }} (informational; pre-1.0)" >> "$GITHUB_STEP_SUMMARY"
+        fi
+        exit 0
+
+    - name: Verify metadata
+      shell: bash
+      run: |
+        cargo metadata --format-version 1 --no-deps | \
+        jq -e ".packages[] | select(.name == \"${{ inputs.crate }}\") | .description" > /dev/null
+
+    - name: Check if version exists
+      id: check-version
+      shell: bash
+      run: |
+        VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "${{ inputs.crate }}") | .version')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Local version: $VERSION"
+        EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/${{ inputs.crate }}/versions" | jq -r '.versions[0].num // empty')
+        echo "Crates.io latest: $EXISTING"
+        if [ "$EXISTING" = "$VERSION" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "::notice::${{ inputs.crate }}@$VERSION already exists on crates.io, skipping"
+          echo "Version exists on crates.io, will skip publish"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Version not on crates.io, will publish"
+        fi
+
+    - name: Verify dependency closure (single-crate dispatch)
+      # ADR-079 CIT-A4: a requested crate must publish, prove already-present,
+      # or fail with a reason. When one crate is selected by dispatch, its
+      # workspace dependency closure must already exist on crates.io - a
+      # skipped prerequisite must never turn into a doomed or silent skip.
+      if: ${{ inputs.single-crate-dispatch == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        CRATE="${{ inputs.crate }}"
+        VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$CRATE" '.packages[] | select(.name == $c) | .version')
+        MISSING=""
+        while IFS= read -r DEP; do
+          [ -n "$DEP" ] || continue
+          DEP_VER=$(cargo metadata --format-version 1 --no-deps | jq -r --arg d "$DEP" '.packages[] | select(.name == $d) | .version')
+          EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+            "https://crates.io/api/v1/crates/$DEP/versions" | \
+            jq -r --arg v "$DEP_VER" '[(.versions // [])[].num] | index($v) != null')
+          if [ "$EXISTING" = "true" ]; then
+            echo "OK: dependency $DEP@$DEP_VER already on crates.io"
+          else
+            echo "::error::Cannot publish $CRATE@$VERSION: workspace dependency $DEP@$DEP_VER is not on crates.io. Select it in the same dispatch or publish it first."
+            MISSING="$MISSING $DEP"
+          fi
+        done < <(cargo metadata --format-version 1 | jq -r --arg c "$CRATE" '
+          . as $meta |
+          ($meta.workspace_members | map(
+            if contains("#") then split("#")[1] | split("@")[0]
+            else split(" ")[0]
+            end
+          )) as $members |
+          $meta.packages[] | select(.name == $c) | .dependencies[] |
+          select(.kind != "dev") |
+          select(.name as $n | $members | index($n) != null) | .name
+        ' | sort -u)
+        if [ -n "$MISSING" ]; then
+          echo "::error::Missing workspace dependencies on crates.io:$MISSING"
+          exit 1
+        fi
+        echo "OK: dependency closure verified for $CRATE@$VERSION"
+
+    - name: Verify tag matches version
+      # Real publishes are tag-ref only (the workflow job gate); bind the tag to
+      # the manifest version so a ref cannot publish an unrelated version.
+      if: ${{ github.ref_type == 'tag' && inputs.dry-run != 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "${{ inputs.crate }}") | .version')
+        TAG="${GITHUB_REF_NAME#v}"
+        if [ "$TAG" != "$VERSION" ]; then
+          echo "::error::tag $GITHUB_REF_NAME does not match ${{ inputs.crate }} version $VERSION - refusing to publish"
+          exit 1
+        fi
+        echo "OK: tag $GITHUB_REF_NAME matches ${{ inputs.crate }}@$VERSION"
+
+    - name: Dry Run Publish
+      # Verify packaging before any token exists (the crates.io token is only
+      # minted below), so the verified build never sees publish credentials.
+      if: ${{ steps.check-version.outputs.exists != 'true' }}
+      shell: bash
+      run: |
+        echo "exists output: ${{ steps.check-version.outputs.exists }}"
+        cargo publish --package ${{ inputs.crate }} --dry-run --locked
+
+    - name: Authenticate to crates.io (trusted publishing)
+      # OIDC exchange via the official action; the token is scoped to the
+      # trusted-publisher configs matching this workflow/environment and is
+      # revoked by the action's post step.
+      if: ${{ inputs.dry-run != 'true' && steps.check-version.outputs.exists != 'true' }}
+      id: auth
+      uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+
+    - name: Publish to crates.io
+      if: ${{ !inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
+      shell: bash
+      run: |
+        echo "exists output: ${{ steps.check-version.outputs.exists }}"
+        # --no-verify: packaging was already verified in the token-less
+        # "Dry Run Publish" step above, so the live token never enters the
+        # environment of a build script.
+        cargo publish --package ${{ inputs.crate }} --locked --no-verify
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

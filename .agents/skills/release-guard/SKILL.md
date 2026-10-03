@@ -110,6 +110,15 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
   SBOM **attestations** (`actions/attest`), then publishes. Publishing is what
   fires `release: published` (publish-crates.yml) and, once repository
   immutability is enabled, locks the tag and assets.
+- **crates.io publish authentication is OIDC-only** (ADR-078 amendment): each
+  publish job uses the pinned `rust-lang/crates-io-auth-action`; there is no
+  `CARGO_REGISTRY_TOKEN` secret to rotate. One-time prerequisite **per crate**:
+  register a trusted publisher (crate → Settings → Trusted Publishing) with
+  repository `d-o-hub/rust-self-learning-memory`, workflow filename
+  `publish-crates.yml`, environment `crates.io` — crates.io matches the calling
+  workflow and environment only, so restrict that environment to **`v*` tag
+  refs** and rely on the workflow's own tag guard (real publishes run only from
+  tag refs; branch dispatches can only dry-run).
 - Verify attestations on a **downloaded** asset (the digest binding is only
   meaningful for the file you actually hold):
 

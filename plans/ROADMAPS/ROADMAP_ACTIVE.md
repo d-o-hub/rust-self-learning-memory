@@ -20,7 +20,7 @@
 | P1 | Docs | Architecture/serialization/status evidence refreshed for v0.1.44 (#1094) | ✅ Merged (#1110) |
 | P1 | Tooling | Coverage floor reconciled: 70% blocking, 90% aspirational (#1090) | ✅ Merged (#1117) |
 | P0 | Release | v0.1.44 shipped — tag `v0.1.44` on `4f4f4ba8`, GitHub Release with dist artifacts, drift issue closed by the tag; workspace bumped to 0.1.45 | ✅ 2026-10-02 |
-| P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 🚧 C3/C4 landed (#1121: draft-first + attestations); C1/C2 in review (#1109) |
+| P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 🚧 C3/C4 landed (#1121); C1/C2 in review (#1123) |
 
 ## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)
 

@@ -1,14 +1,14 @@
 # GOAP Actions Backlog
 
 - **Last Updated**: 2026-10-03
-- **Active plan**: release pipeline hardening (issue #1109): C3/C4 landed (draft-first release with attestations, PR #1121); C1/C2 (OIDC-only publish, one shared publish implementation, honest single-crate dispatch gating) in review. See ADR-078 amendment.
+- **Active plan**: release pipeline hardening (issue #1109): C3/C4 landed (draft-first release with attestations, PR #1121); C1/C2 (OIDC-only publish, one shared publish implementation, honest single-crate dispatch gating, dead-trigger fix) in review as PR #1123. See ADR-078 amendment.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
 ## Active actions (2026-10-03 — release pipeline hardening, issue #1109)
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-366 | OIDC-only crates.io publish: official `crates-io-auth-action`, shared `.github/actions/publish-crate` action, skipped-tolerant `needs` chain (single-crate dispatch no longer silently skipped), `release.yml` dispatch on the tag (bot-published releases never fired `release: published`; crates.io was stale at 0.1.34), and hardening (tag-ref-only publishes, tag↔version binding, verify-then-`--no-verify`, pinned semver-checks, concurrency, fail-closed `needs`) | #1109 C1/C2 | ⏳ PR open (`ci/publish-oidc-collapse`) |
+| ACT-366 | OIDC-only crates.io publish: official `crates-io-auth-action`, shared `.github/actions/publish-crate` action, skipped-tolerant `needs` chain (single-crate dispatch no longer silently skipped), `release.yml` dispatch on the tag (bot-published releases never fired `release: published`; crates.io was stale at 0.1.34), and hardening (tag-ref-only publishes, tag↔version binding, verify-then-`--no-verify`, pinned semver-checks, concurrency, fail-closed `needs`) | #1109 C1/C2 | ⏳ PR #1123 |
 
 ## Completed actions (2026-09-24 — retrieval judgment + rerank + merge tooling)
 

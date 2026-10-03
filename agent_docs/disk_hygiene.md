@@ -62,3 +62,14 @@ Coverage runs can leave substantial artifacts. `standard` and `full` cleanup mod
 2. Before large branch switches or low-disk warnings: `./scripts/clean-artifacts.sh standard`
 3. Before deep rebuild/debug reset: `./scripts/clean-artifacts.sh full`
 4. If JS tooling is not needed locally: rerun with `--node-modules`
+
+## Rules
+
+- **No temporary files in the repository root** — no logs, trial outputs, or
+  one-off scripts (`.py`, `.sh`, …). Use `plans/` for design notes, `target/`
+  for build/test artifacts, `scripts/` for reusable tooling.
+- Dev profile: `debug = "line-tables-only"`, dependency `debug = false`.
+- Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set).
+- To offload builds to another disk, set `CARGO_TARGET_DIR`
+  (e.g. `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`) — and remember each git
+  worktree gets its own target directory.

@@ -144,3 +144,49 @@ while IFS= read -r f; do ... done < <(find dir -name "*.json")
 ## Pre-Flight Validation
 1. Check action versions: `gh api repos/<owner>/<action>/releases/latest --jq .tag_name`
 2. Validate syntax: `actionlint .github/workflows/*.yml`
+
+## CI Optimization (2026-04-28)
+
+PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
+
+| Job | Time | Trigger |
+|-----|------|---------|
+| Quick Check | ~7–20 min (cold) | All PRs |
+| Tests | ~12 min | All PRs |
+| MCP Build | ~10 min | All PRs |
+| Multi-Platform | ~12-15 min | All PRs |
+| Run Benchmarks | ~54 min | **Only perf-critical paths** |
+
+**Quick Check wait gates (2026-07-18 / LESSON-021)**: Never use
+`timeout-minutes: 15` on `Check Quick Check Status`. Wait jobs need **40m**;
+Quick Check job **25m**. **Do not gate yaml-lint** on Quick Check — run it
+immediately.
+
+**Perf-critical paths** (trigger benchmarks): `memory-core/src/**/*.rs`,
+`memory-storage-turso/src/**/*.rs`, `memory-storage-redb/src/**/*.rs`,
+`memory-mcp/src/**/*.rs`, `benches/**`, `Cargo.toml`, `Cargo.lock`,
+`.github/workflows/benchmarks.yml`.
+
+**Skip benchmarks manually**: add the `skip-benchmarks` label to the PR (the
+workflow checks it at job start, so the label must be present in the event —
+add it, then push). **Main branch** always runs benchmarks with regression
+detection.
+
+**Key insight**: GitHub Actions does not support `paths` + `paths-ignore` at the
+same trigger level — use `paths` only.
+
+Related skills: `.agents/skills/github-workflows/SKILL.md`,
+`.agents/skills/ci-fix/SKILL.md`. Full plan (archived):
+`plans/archive/2026-07-consolidation/ci-remediation/GOAP_CI_OPTIMIZATION_2026-04-28.md`.
+
+## Publish Pipeline (2026-07-08)
+
+crates.io publishing improvements (PR #789):
+
+- `cargo publish --locked` for reproducibility
+- Sparse-index polling (max 5 min) replaces `sleep 30`
+- Explicit `needs` chain: core → redb → turso → cli
+- Semver check output surfaced in `$GITHUB_STEP_SUMMARY`
+- Triggered by `release: [published]`; OIDC is the primary path, with
+  `CARGO_REGISTRY_TOKEN` as a documented fallback (see issue #1109 for the
+  migration to OIDC-only trusted publishing)

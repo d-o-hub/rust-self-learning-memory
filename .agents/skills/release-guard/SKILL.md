@@ -105,6 +105,23 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 ## After ship
 
 - Confirm: `gh release view vX.Y.Z`
+- The tag workflow publishes **draft-first**: it creates a draft release, attaches
+  the dist artifacts plus the CycloneDX SBOMs, generates build-provenance and
+  SBOM **attestations** (`actions/attest`), then publishes. Publishing is what
+  fires `release: published` (publish-crates.yml) and, once repository
+  immutability is enabled, locks the tag and assets.
+- Verify attestations on a **downloaded** asset (the digest binding is only
+  meaningful for the file you actually hold):
+
+  ```bash
+  for app in do-memory-cli do-memory-mcp do-memory-examples; do
+    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory
+    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory \
+      --predicate-type https://cyclonedx.org/bom
+  done
+  gh release verify vX.Y.Z   # release attestation (immutable releases)
+  ```
+
 - Drift issue (#849-style) should close when tag matches workspace version
 - Bump workspace to next patch for development in a **follow-up PR** (optional)
 
@@ -117,6 +134,8 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | ci-check failed | Fix main CI first |
 | Tag already on remote | Do not retag; inspect `gh release view` |
 | release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
+| Release left **unpublished draft** (workflow died between draft creation and publish) | Re-run the failed tag workflow run (`gh run rerun <id>`) — the draft-create step is idempotent and publishing stays inside `release.yml`; never create a release by hand. This recovery only applies while the release is a **draft**; a published immutable release cannot be amended (delete it — and the tag, after review — before shipping a corrected one) |
+| Attestation missing for an asset | Check the `Attest …` steps of the tag workflow run; `gh attestation verify` locally; re-run the run if the step failed |
 | GitHub Release body empty / no notes | Duplicate `## [X.Y.Z]` in CHANGELOG (parse-changelog fails). Make versions unique; `gh release edit` to restore notes; keep gate in verify-release-state |
 | Want crates.io | Use publish workflow / team process after GitHub Release |
 

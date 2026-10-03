@@ -1,14 +1,14 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-01
-- **Version**: workspace `0.1.44` · latest tag `v0.1.43`
-- **Branch**: main @ `a0078d0a` (PR #1103 merged 2026-10-01; v0.1.43 tagged on this commit)
+- **Last Updated**: 2026-10-03
+- **Version**: workspace `0.1.45` · latest tag `v0.1.44`
+- **Branch**: main @ `4f4f4ba8` (PR #1118 merged 2026-10-02; v0.1.44 tagged on this commit)
 - **Open PRs**: run `gh pr list --state open` (this header no longer pins counts; the tracker-drift check guards it)
 - **Open issues**: run `gh issue list --state open` — the previous release-drift issue closed with the tag
-- **Active plan**: none in flight — v0.1.43 shipped 2026-10-01 (MCP OAuth 2.1 enforcement + trusted rate-limit identity #1101, redb fail-closed schema #1096, atomic embedding activation #1097, full `tools/list` #1100, pool ownership #1095, MCP fail-closed docs #1099, LOC split + CI gate #1103); workspace bumped to 0.1.44 post-release; ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
+- **Active plan**: none in flight — v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage floor #1117); workspace bumped to 0.1.45 post-release; ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
 - **Note**: retrieval judgment + rerank merged 2026-09-24; 8 harness-friction issues filed upstream (`d-o-hub/do-harness` #238–#245).
 - **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.43` tagged on `a0078d0a` and shipped (workspace bumped to `0.1.44` post-release)
+- **Release**: ✅ `v0.1.44` tagged on `4f4f4ba8` and shipped (workspace bumped to `0.1.45` post-release)
 
 ---
 

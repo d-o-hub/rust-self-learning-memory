@@ -1,27 +1,27 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-02
-**Released Version**: v0.1.44 (release pending tag)
-**Workspace Version**: 0.1.44 (matches release)
+**Last Updated**: 2026-10-03
+**Released Version**: v0.1.44 (latest tag)
+**Workspace Version**: 0.1.45 (post-v0.1.44 bump)
 **Edition**: Rust 2024  
-**Active plan**: v0.1.44 prepared 2026-10-02 — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 migration (#1108), architecture/status refresh (#1094 → #1110), coverage-floor reconciliation (#1090 → #1117); drift tracked by the open release-drift issue and the release-pipeline proposal (#1109) is open; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `1fc97118` (PR #1117 merged 2026-10-02)
+**Active plan**: v0.1.44 shipped — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 migration (#1108), architecture/status refresh (#1094 → #1110), coverage-floor reconciliation (#1090 → #1117); the release-pipeline proposal (#1109) stays open; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `4f4f4ba8` (v0.1.44 tagged on this commit; PR #1118 merged 2026-10-02)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — drift is tracked by the open release-drift issue and the pipeline proposal by its own issue |
+| Open issues | run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work |
 
-## Recent completed (2026-10-02 — v0.1.44 prepared)
+## Recent completed (2026-10-02 — v0.1.44 shipped)
 
 | Wave | Result |
 |------|--------|
 | Pattern-search input bounds (#1113) | ✅ `search_patterns`/`recommend_patterns` clamp `limit`/`min_relevance` and truncate oversized `query`/`task_description`/`domain`/`tags` (CWE-770) |
 | Architecture refresh (#1094 → #1110) | ✅ architecture/serialization/status evidence aligned with v0.1.44; bincode references corrected to postcard |
 | Coverage floor (#1090 → #1117) | ✅ 70% is the blocking floor, 90% the aspirational target, across AGENTS.md, GATE_CONTRACT, skills and docs, with comparator unit tests |
-| v0.1.44 release | ⏳ prepared in this PR — changelog `[0.1.44]` + version docs; ship via release-guard after main CI is green |
+| v0.1.44 release | ✅ tag `v0.1.44` on `4f4f4ba8`; GitHub Release with dist artifacts; the drift issue auto-closed by the tag-triggered check; workspace bumped to 0.1.45 |
 
 ## Recent completed (2026-10-02 — durability receipts + toolchain hygiene)
 

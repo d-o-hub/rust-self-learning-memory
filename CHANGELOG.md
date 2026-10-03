@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Release publishing is now draft-first and attested (#1109): the tag workflow
+  creates a draft GitHub Release, attaches the dist artifacts plus the
+  CycloneDX SBOMs, generates build-provenance and SBOM attestations
+  (`actions/attest`), and only then publishes — compatible with enabling
+  immutable releases, and verifiable with `gh attestation verify`.
+
 ## [0.1.44] - 2026-10-02
 
 ### Added

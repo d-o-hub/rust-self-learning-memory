@@ -15,8 +15,10 @@
 # title/body based on your changelogs.
 
 name: Release
+# Least privilege at the workflow level; the `host` job raises its own scopes
+# (contents/id-token/attestations) for the release + attestation steps.
 permissions:
-  "contents": "write"
+  "contents": "read"
 
 # This task will run whenever you push a git tag that looks like a version
 # like "1.0.0", "v0.1.0-prerelease.1", "my-app/0.1.0", "releases/v1.0.0", etc.
@@ -282,8 +284,14 @@ jobs:
           needs.build-global-artifacts.result == 'success') &&
          (needs.build-local-artifacts.result == 'skipped' ||
           needs.build-local-artifacts.result == 'success') }}
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Repo addition (issue #1109): provenance/SBOM attestations need the
+    # Sigstore OIDC token (`id-token`) and the attestation store
+    # (`attestations`). Scoped to this job so `pull_request` runs of this
+    # workflow never receive them.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     runs-on: "ubuntu-22.04"
     outputs:
       val: ${{ steps.host.outputs.manifest }}
@@ -307,6 +315,10 @@ jobs:
           merge-multiple: true
       - id: host
         shell: bash
+        env:
+          # Token only on the steps that talk to the GitHub API; the SBOM and
+          # attestation steps below run without repository-write credentials.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # shellcheck disable=SC2086,SC2129
         run: |
           dist host ${{ needs.plan.outputs.tag-flag }} --steps=upload --steps=release --output-format=json > dist-manifest.json
@@ -331,8 +343,43 @@ jobs:
         run: |
           # Remove the granular manifests
           rm -f artifacts/*-dist-manifest.json
-      - name: Create GitHub Release
+      # ------------------------------------------------------------------
+      # Repo addition (issue #1109): SBOMs, attestations, draft-first publish.
+      # These steps are hand-maintained; `dist-workspace.toml` sets
+      # `allow-dirty = ["ci"]`, so `dist` does not regenerate/check this file.
+      # ------------------------------------------------------------------
+      - name: Setup Rust (SBOM generation)
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: release-sbom
+      - name: Generate SBOMs (CycloneDX, one per crate)
+        run: |
+          cargo install --locked cargo-cyclonedx --version 0.5.9
+          cargo cyclonedx --target all --format json
+      - name: Stage SBOMs as release assets
+        run: |
+          cp memory-cli/do-memory-cli.cdx.json artifacts/
+          cp memory-mcp/do-memory-mcp.cdx.json artifacts/
+          cp examples/do-memory-examples.cdx.json artifacts/
+      - name: Verify staged artifacts (fail early on a silent mismatch)
+        # A zero-match glob would otherwise silently attest nothing.
+        run: |
+          missing=0
+          for app in do-memory-cli do-memory-mcp do-memory-examples; do
+            # shellcheck disable=SC2086
+            if ! compgen -G "artifacts/${app}-*" > /dev/null; then
+              echo "::error::no release artifacts matched 'artifacts/${app}-*'; check the dist app names"
+              missing=1
+            fi
+            if ! compgen -G "artifacts/${app}.cdx.json" > /dev/null; then
+              echo "::error::SBOM 'artifacts/${app}.cdx.json' was not staged"
+              missing=1
+            fi
+          done
+          exit "$missing"
+      - name: Create draft GitHub Release
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE_FLAG: "${{ fromJson(steps.host.outputs.manifest).announcement_is_prerelease && '--prerelease' || '' }}"
           ANNOUNCEMENT_TITLE: "${{ fromJson(steps.host.outputs.manifest).announcement_title }}"
           ANNOUNCEMENT_BODY: "${{ fromJson(steps.host.outputs.manifest).announcement_github_body }}"
@@ -340,9 +387,56 @@ jobs:
         # shellcheck disable=SC2086
         run: |
           # Write and read notes from a file to avoid quoting breaking things
-          echo "$ANNOUNCEMENT_BODY" > $RUNNER_TEMP/notes.txt
+          echo "$ANNOUNCEMENT_BODY" > "$RUNNER_TEMP/notes.txt"
 
-          gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
+          # Idempotent: a re-run after a failure between create and publish must
+          # update the existing draft instead of failing with "already exists".
+          if gh release view "${{ needs.plan.outputs.tag }}" >/dev/null 2>&1; then
+            echo "release ${{ needs.plan.outputs.tag }} already exists; refreshing notes (draft state untouched)"
+            gh release edit "${{ needs.plan.outputs.tag }}" --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt"
+          else
+            gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" --draft $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt"
+          fi
+      - name: Attach release assets
+        # `--clobber` keeps re-runs idempotent while the release is a draft
+        # (immutable releases lock assets only after publication); `--` ends the
+        # flag list so an artifact named like a flag can never be parsed as one.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ needs.plan.outputs.tag }}" --clobber -- artifacts/*
+      - name: Attest build provenance for release archives
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            artifacts/*.tar.xz
+            artifacts/*.zip
+      - name: Attest do-memory-cli SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            artifacts/do-memory-cli-*.tar.xz
+            artifacts/do-memory-cli-*.zip
+          sbom-path: 'memory-cli/do-memory-cli.cdx.json'
+      - name: Attest do-memory-mcp SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            artifacts/do-memory-mcp-*.tar.xz
+            artifacts/do-memory-mcp-*.zip
+          sbom-path: 'memory-mcp/do-memory-mcp.cdx.json'
+      - name: Attest do-memory-examples SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            artifacts/do-memory-examples-*.tar.xz
+            artifacts/do-memory-examples-*.zip
+          sbom-path: 'examples/do-memory-examples.cdx.json'
+      - name: Publish the draft release
+        # Publishing is what fires `release: published` (publish-crates.yml)
+        # and, once repository immutability is enabled, locks assets + tag.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ needs.plan.outputs.tag }}" --draft=false
 
   announce:
     needs:

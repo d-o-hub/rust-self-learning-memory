@@ -67,6 +67,15 @@ check_publish_fixtures() {
     rg -q 'Verify dependency closure' "${publish_files[@]}" || fail "publish workflow/action missing dependency-closure verification step"
     rg -q "inputs.crate != ''" .github/workflows/publish-crates.yml || fail "the workflow must gate single-crate dispatch with inputs.crate != ''"
     rg -q '::error::Cannot publish' "${publish_files[@]}" || fail "dependency-closure step must fail with a named ::error:: reason"
+    # Issue #1109 C1 / ADR-078: OIDC-only publishing - the static token secret
+    # must not come back, the auth action must stay SHA-pinned, and the publish
+    # command itself must keep --locked.
+    if rg -q 'secrets\.CARGO_REGISTRY_TOKEN' "${publish_files[@]}"; then
+      fail "publish workflow/action must not read the CARGO_REGISTRY_TOKEN secret (OIDC-only)"
+    fi
+    rg -q 'id-token: write' .github/workflows/publish-crates.yml || fail "publish jobs must grant 'id-token: write'"
+    rg -q 'crates-io-auth-action@[0-9a-f]{40}' .github/actions/publish-crate/action.yml || fail "publish action must call the SHA-pinned crates-io-auth-action"
+    rg -q -- 'cargo publish --package .*--locked' .github/actions/publish-crate/action.yml || fail "the publish command itself must use cargo publish --locked"
   else
     echo "NOTE: publish-crates.yml not present; skipping publish fixture checks"
   fi

@@ -251,6 +251,13 @@ if [[ "$CI_PARITY" == true ]]; then
     if grep -q 'run: sleep 30' "${publish_files[@]}"; then
       fail "publish-crates.yml must not use fixed 'run: sleep 30' (bounded polling required)"
     fi
+    # Issue #1109 C1 / ADR-078 amendment: OIDC-only publishing.
+    if grep -q 'secrets\.CARGO_REGISTRY_TOKEN' "${publish_files[@]}"; then
+      fail "publish workflow must not read the CARGO_REGISTRY_TOKEN secret (OIDC-only, ADR-078)"
+    fi
+    if ! grep -q 'id-token: write' "$WF_DIR/publish-crates.yml"; then
+      fail "publish-crates.yml jobs must grant 'id-token: write' (trusted publishing)"
+    fi
   fi
 fi
 

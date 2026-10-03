@@ -207,6 +207,13 @@ crates.io publishing (`publish-crates.yml`, trigger `release: [published]` or
   the release (`actions: write`). The dispatch API is a documented exception to
   the token-suppression rule; the `release: published` trigger remains as a
   safety net and re-runs no-op on already-published versions.
+- **Hardening**: real publishes are tag-ref only (`inputs.dry-run == true ||
+  github.ref_type == 'tag'`, matching ADR-072 authority, since crates.io does
+  not validate the ref); the tag must equal the manifest version; packaging is
+  verified in a token-less step and the authenticated publish uses
+  `--no-verify` so the token never reaches a build script; `cargo-semver-checks`
+  is version-pinned; and a `crates-io-publish` concurrency group serialises the
+  check-then-act version probe.
 
 **Prerequisite (one-time per crate, manual)**: register a trusted publisher on
 crates.io for each crate with repository `d-o-hub/rust-self-learning-memory`,

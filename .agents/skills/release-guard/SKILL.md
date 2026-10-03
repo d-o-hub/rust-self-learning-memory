@@ -116,8 +116,9 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
   register a trusted publisher (crate → Settings → Trusted Publishing) with
   repository `d-o-hub/rust-self-learning-memory`, workflow filename
   `publish-crates.yml`, environment `crates.io` — crates.io matches the calling
-  workflow, and the `crates.io` environment should be restricted to `v*` tags
-  (plus `main` for dry-run rehearsals).
+  workflow and environment only, so restrict that environment to **`v*` tag
+  refs** and rely on the workflow's own tag guard (real publishes run only from
+  tag refs; branch dispatches can only dry-run).
 - Verify attestations on a **downloaded** asset (the digest binding is only
   meaningful for the file you actually hold):
 

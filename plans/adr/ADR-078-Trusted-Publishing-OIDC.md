@@ -106,9 +106,12 @@ performed by a crate owner in the crates.io dashboard.
 
 - Static token rotations are eliminated; the exchanged token is single-use and
   expires automatically.
-- Every publish is bound to a specific repository, workflow file, ref, and
-  environment via the OIDC subject claim (`repo:d-o-hub/rust-self-learning-memory:environment:crates.io`),
-  creating an auditable, unforgeable publish trail.
+- Every publish is bound to a specific repository, workflow file, and
+  environment via the OIDC claims (`repo:d-o-hub/rust-self-learning-memory:environment:crates.io`),
+  creating an auditable publish trail. crates.io does **not** validate the git
+  ref (see §Amendment item 4), so ref discipline comes from the environment
+  deployment rule (tag refs only) plus the workflow's own tag guard (§Amendment
+  item 6).
 - A leaked copy of the environment secret can no longer be used to publish
   outside the registered workflow and environment context.
 - No Rust code changes are required; the change is isolated to CI/CD YAML.
@@ -182,6 +185,22 @@ prerequisite stands.
    published` trigger stays as a safety net for releases published by a user
    token, and re-runs are harmless because every job skips a version that
    already exists.
+6. **Hardening added with the migration.**
+   - Real publishes are tag-ref only (`inputs.dry-run == true ||
+     github.ref_type == 'tag'`) because crates.io does not validate the ref; the
+     tag must equal the manifest version before publishing starts.
+   - Packaging is verified in a token-less step ("Dry Run Publish"), and the
+     authenticated publish runs with `--no-verify`, so the live crates.io token
+     never enters the environment of a build script.
+   - `cargo-semver-checks` is version-pinned instead of tracking latest.
+   - A `crates-io-publish` concurrency group serialises runs (the version-exists
+     check is a check-then-act against crates.io).
+   - Dependent jobs list **every** upstream publish job in `needs` and gate on
+     explicit `result` values, so a failed crate cannot be laundered into a
+     "skipped" prerequisite that still allows a later crate to publish.
+   - The publish fixtures and the gate-contract validator fail if the static
+     token secret returns, if `id-token: write` disappears, or if the auth
+     action loses its SHA pin.
 
 ## Alternatives considered
 

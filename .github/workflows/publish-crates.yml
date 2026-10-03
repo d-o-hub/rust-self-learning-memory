@@ -27,6 +27,12 @@ on:
 permissions:
   contents: read
 
+# Serialise publishes: the version-exists check is a check-then-act against
+# crates.io, so overlapping runs for the same version must not race.
+concurrency:
+  group: crates-io-publish-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   # Publish do-memory-core first - other crates depend on it
   publish-core:
@@ -36,7 +42,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
+    # Real publishes only from tag refs (ADR-072 tag-only release authority);
+    # a branch dispatch may rehearse with dry-run: true and nothing else.
+    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-core') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -66,7 +74,9 @@ jobs:
     # always() + explicit result checks: a dispatch that selects one crate
     # skips the other jobs, and a skipped prerequisite must not silently skip
     # the requested crate - the composite's dependency-closure gate decides.
-    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') }}
+    # 'failure'/'cancelled' upstream still skip this job (fail closed), and the
+    # tag guard keeps real publishes on tag refs (ADR-072 tag-only authority).
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -92,8 +102,10 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    needs: [publish-redb]
-    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') }}
+    # publish-core stays in `needs` so a core failure (which skips redb) cannot
+    # be laundered into a runnable turso through redb's 'skipped' result.
+    needs: [publish-core, publish-redb]
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -119,8 +131,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    needs: [publish-redb, publish-turso]
-    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') && (needs.publish-turso.result == 'success' || needs.publish-turso.result == 'skipped') }}
+    needs: [publish-core, publish-redb, publish-turso]
+    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.dry-run == true || github.ref_type == 'tag') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') && (needs.publish-redb.result == 'success' || needs.publish-redb.result == 'skipped') && (needs.publish-turso.result == 'success' || needs.publish-turso.result == 'skipped') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:

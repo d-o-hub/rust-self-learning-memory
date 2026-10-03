@@ -8,7 +8,7 @@
 
 | ID | Action | Rec | Status |
 |----|--------|-----|--------|
-| ACT-366 | OIDC-only crates.io publish: official `crates-io-auth-action`, shared `.github/actions/publish-crate` action, skipped-tolerant `needs` chain (single-crate dispatch no longer silently skipped), and `release.yml` dispatch on the tag (bot-published releases never fired `release: published`; crates.io was stale at 0.1.34) | #1109 C1/C2 | ⏳ PR open (`ci/publish-oidc-collapse`) |
+| ACT-366 | OIDC-only crates.io publish: official `crates-io-auth-action`, shared `.github/actions/publish-crate` action, skipped-tolerant `needs` chain (single-crate dispatch no longer silently skipped), `release.yml` dispatch on the tag (bot-published releases never fired `release: published`; crates.io was stale at 0.1.34), and hardening (tag-ref-only publishes, tag↔version binding, verify-then-`--no-verify`, pinned semver-checks, concurrency, fail-closed `needs`) | #1109 C1/C2 | ⏳ PR open (`ci/publish-oidc-collapse`) |
 
 ## Completed actions (2026-09-24 — retrieval judgment + rerank + merge tooling)
 

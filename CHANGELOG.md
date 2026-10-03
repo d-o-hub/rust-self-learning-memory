@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   action, and the `needs` chain no longer silently skips a crate requested by
   `workflow_dispatch` (skipped prerequisites are tolerated and the
   dependency-closure gate decides).
+- Publish hardening (#1109): real publishes are tag-ref only
+  (`github.ref_type == 'tag'`, matching ADR-072 authority — crates.io does not
+  validate the ref), the tag must equal the manifest version, packaging is
+  verified before the token exists and the authenticated publish uses
+  `--no-verify` (the token never enters a build-script environment),
+  `cargo-semver-checks` is version-pinned, runs are serialised by a
+  `crates-io-publish` concurrency group, and dependent jobs list every upstream
+  crate in `needs` so a failure cannot cascade into a runnable later crate.
 - Release publishing is now draft-first and attested (#1109): the tag workflow
   creates a draft GitHub Release, attaches the dist artifacts plus the
   CycloneDX SBOMs, generates build-provenance and SBOM attestations

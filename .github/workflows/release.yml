@@ -371,7 +371,7 @@ jobs:
               echo "::error::no release artifacts matched 'artifacts/${app}-*'; check the dist app names"
               missing=1
             fi
-            if ! compgen -G "artifacts/${app}.cdx.json" > /dev/null; then
+            if [[ ! -f "artifacts/${app}.cdx.json" ]]; then
               echo "::error::SBOM 'artifacts/${app}.cdx.json' was not staged"
               missing=1
             fi

@@ -111,6 +111,16 @@ Located in `.claude/settings.json`, hooks enforce security at development time:
 - Separate for Cargo and GitHub Actions
 - Auto-labels with "dependencies" and "security"
 
+#### crates.io publishing (`.github/workflows/publish-crates.yml`)
+- Publishing authenticates with **crates.io Trusted Publishing (OIDC)** via the
+  pinned `rust-lang/crates-io-auth-action`; no long-lived `CARGO_REGISTRY_TOKEN`
+  repository secret is stored or read by the workflow (ADR-078 amendment).
+- crates.io validates the calling workflow filename (`publish-crates.yml`) and
+  the `crates.io` environment, and issues a single-use, 30-minute token per
+  publish job.
+- The `crates.io` environment should be restricted to `v*` tags (plus `main`
+  for dry-run rehearsals) so branch dispatches cannot publish by accident.
+
 ## Hook Scripts
 
 ### `protect-secrets.sh`

@@ -239,10 +239,16 @@ if [[ "$CI_PARITY" == true ]]; then
     fail "release.yml must not expose workflow_dispatch (tag-only release under ADR-072)"
   fi
   if [[ -f "$WF_DIR/publish-crates.yml" ]]; then
-    if ! grep -q -- '--locked' "$WF_DIR/publish-crates.yml"; then
+    # Gates live in the workflow plus the `publish-crate` composite action it
+    # calls; check the union so moving steps cannot drop them silently.
+    publish_files=("$WF_DIR/publish-crates.yml")
+    if [[ -f "$WF_DIR/../actions/publish-crate/action.yml" ]]; then
+      publish_files+=("$WF_DIR/../actions/publish-crate/action.yml")
+    fi
+    if ! grep -q -- '--locked' "${publish_files[@]}"; then
       fail "publish-crates.yml must use cargo publish --locked"
     fi
-    if grep -q 'run: sleep 30' "$WF_DIR/publish-crates.yml"; then
+    if grep -q 'run: sleep 30' "${publish_files[@]}"; then
       fail "publish-crates.yml must not use fixed 'run: sleep 30' (bounded polling required)"
     fi
   fi

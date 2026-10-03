@@ -20,7 +20,7 @@
 | P1 | Docs | Architecture/serialization/status evidence refreshed for v0.1.44 (#1094) | ✅ Merged (#1110) |
 | P1 | Tooling | Coverage floor reconciled: 70% blocking, 90% aspirational (#1090) | ✅ Merged (#1117) |
 | P0 | Release | v0.1.44 shipped — tag `v0.1.44` on `4f4f4ba8`, GitHub Release with dist artifacts, drift issue closed by the tag; workspace bumped to 0.1.45 | ✅ 2026-10-02 |
-| P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 📋 Issue opened (#1109) |
+| P2 | Tooling | Release-pipeline best-practice proposal (OIDC publish, attestations, immutable releases, Pages boundary) | 🚧 C3/C4 landed (#1121: draft-first + attestations); C1/C2 in review (#1109) |
 
 ## Sprint 2026-09-30 — Security + durability fixes (v0.1.43)
 
@@ -102,7 +102,7 @@
 |----------|-------|-------|--------|
 | P2 | Research | WG-108 / WG-110 / WG-125 / WG-135 | ⏸ DEFER |
 | P2 | Vision | Distributed sync, multi-tenancy, OTel | Future |
-| P2 | Release eng | Trusted Publishing (OIDC) for crates.io | ✅ ACT-325 (2026-08-06 confirmed) |
+| P2 | Release eng | Trusted Publishing (OIDC) for crates.io | ✅ ACT-325 + ACT-366 (official action, no token fallback; 2026-10-03) |
 | P2 | CI cost | Reusable workflows/artifact handoff after required-gate correctness | Blocked by CIT-A1…A3 |
 | P2 | Security | Transitive Dependabot advisories | Monitor |
 | P2 | CLI | ADR-076 §5 `pattern extract` error-arm coverage | ✅ Done (#891) |

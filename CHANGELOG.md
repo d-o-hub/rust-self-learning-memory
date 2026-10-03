@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every
+  publish job authenticates with the pinned `rust-lang/crates-io-auth-action`
+  (no `CARGO_REGISTRY_TOKEN` secret, no hand-rolled exchange), the per-crate
+  gates and publish move into the `.github/actions/publish-crate` composite
+  action, and the `needs` chain no longer silently skips a crate requested by
+  `workflow_dispatch` (skipped prerequisites are tolerated and the
+  dependency-closure gate decides).
 - Release publishing is now draft-first and attested (#1109): the tag workflow
   creates a draft GitHub Release, attaches the dist artifacts plus the
   CycloneDX SBOMs, generates build-provenance and SBOM attestations

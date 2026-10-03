@@ -1,8 +1,14 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-09-24
-- **Active plan**: no in-flight code plan — #1030/#1031 landed via PRs #1041/#1042 (2026-09-24); tooling in review (#1046); next candidate is evidence-aware passage classification (#1032). See ADR-079 stage 4 / ADR-080/081/082 lifecycle (maintainer-external). Prior waves (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`) are historical completed slices. Upstream: `plans/archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`.
+- **Last Updated**: 2026-10-03
+- **Active plan**: release pipeline hardening (issue #1109): C3/C4 landed (draft-first release with attestations, PR #1121); C1/C2 (OIDC-only publish, one shared publish implementation, honest single-crate dispatch gating) in review. See ADR-078 amendment.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Active actions (2026-10-03 — release pipeline hardening, issue #1109)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-366 | OIDC-only crates.io publish: official `crates-io-auth-action`, shared `.github/actions/publish-crate` action, skipped-tolerant `needs` chain (single-crate dispatch no longer silently skipped) | #1109 C1/C2 | ⏳ PR open (`ci/publish-oidc-collapse`) |
 
 ## Completed actions (2026-09-24 — retrieval judgment + rerank + merge tooling)
 

@@ -179,14 +179,30 @@ Related skills: `.agents/skills/github-workflows/SKILL.md`,
 `.agents/skills/ci-fix/SKILL.md`. Full plan (archived):
 `plans/archive/2026-07-consolidation/ci-remediation/GOAP_CI_OPTIMIZATION_2026-04-28.md`.
 
-## Publish Pipeline (2026-07-08)
+## Publish Pipeline (2026-10-03)
 
-crates.io publishing improvements (PR #789):
+crates.io publishing (`publish-crates.yml`, trigger `release: [published]` or
+`workflow_dispatch`):
 
-- `cargo publish --locked` for reproducibility
-- Sparse-index polling (max 5 min) replaces `sleep 30`
-- Explicit `needs` chain: core → redb → turso → cli
-- Semver check output surfaced in `$GITHUB_STEP_SUMMARY`
-- Triggered by `release: [published]`; OIDC is the primary path, with
-  `CARGO_REGISTRY_TOKEN` as a documented fallback (see issue #1109 for the
-  migration to OIDC-only trusted publishing)
+- **OIDC trusted publishing only** — each publish job authenticates with the
+  pinned `rust-lang/crates-io-auth-action`; there is no
+  `CARGO_REGISTRY_TOKEN` secret and no hand-rolled token exchange (ADR-078
+  amendment, issue #1109 C1).
+- **One implementation** — the gates (semver-checks, propagation wait, metadata
+  verify, version-exists check, dispatch dependency closure, dry-run, publish)
+  live in the `.github/actions/publish-crate` composite action; the workflow has
+  four thin jobs parameterised by crate (issue #1109 C2).
+- **Ordered `needs` chain**: core → redb → turso → mcp, with a skipped-tolerant
+  gate (`always()` + explicit `result` checks) so a single-crate dispatch still
+  reaches its job and fails (or passes) on the dependency-closure gate instead
+  of silently skipping.
+- `cargo publish --locked` for reproducibility; bounded sparse-index/API
+  polling (≤ 20 × 15s) replaces `sleep 30` (LESSON-014, ADR-079 CIT-A4).
+- Semver check output surfaced in `$GITHUB_STEP_SUMMARY`; it stays informational
+  while the workspace is pre-1.0 (make it blocking at 1.0).
+
+**Prerequisite (one-time per crate, manual)**: register a trusted publisher on
+crates.io for each crate with repository `d-o-hub/rust-self-learning-memory`,
+workflow filename `publish-crates.yml`, environment `crates.io`. crates.io
+matches the **calling** workflow (`workflow_ref`), so moving the steps into a
+composite action or reusable workflow does not change the registered filename.

@@ -1,6 +1,8 @@
 # ADR-078: OIDC Trusted Publishing for crates.io
 
 - **Status**: Accepted
+- **Amendment**: 2026-10-03 — official `crates-io-auth-action`, no token
+  fallback, shared `publish-crate` action (see §Amendment)
 - **Date**: 2026-07-28
 - **Deciders**: Project maintainers
 - **Spike**: [`../STATUS/spikes/R-F10.json`](../STATUS/spikes/R-F10.json)
@@ -130,6 +132,45 @@ performed by a crate owner in the crates.io dashboard.
   workflow level to limit the blast radius of the elevated permission.
 - Document the trusted publisher registration step in the release runbook so it
   is not forgotten when new crates are added to the workspace.
+
+## Amendment (2026-10-03): official action, no fallback, shared publish action
+
+Status: implemented on `publish-crates.yml` (issue #1109 C1/C2). Supersedes
+§1’s hand-rolled exchange and §2’s retained fallback; §4’s registration
+prerequisite stands.
+
+1. **Official action replaces the hand-rolled exchange.** The `curl` + `python3`
+   exchange and `cargo login` are replaced by the pinned
+   `rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18`
+   (v1.0.5) in each publish job; `CARGO_REGISTRY_TOKEN` is set from
+   `steps.auth.outputs.token` and exists only on that step. Every
+   `secrets.CARGO_REGISTRY_TOKEN` reference and the
+   `env.CARGO_REGISTRY_TOKEN == ''` conditions are gone, so the repository
+   secret can be deleted (one-time manual step).
+2. **One shared implementation.** The per-crate gates (semver-checks,
+   propagation wait, metadata verify, version-exists check, dispatch dependency
+   closure, dry-run, publish) live in the `.github/actions/publish-crate`
+   composite action; the workflow keeps four jobs parameterised by crate. A
+   composite action was chosen over a reusable workflow because crates.io
+   matches the OIDC `workflow_ref` claim — the **calling** workflow filename —
+   and does not read `job_workflow_ref`, so the registered filename stays
+   `publish-crates.yml`; it also avoids the reusable-workflow permission ceiling
+   (`id-token: write` for a called workflow must be granted by the caller).
+3. **Single-crate dispatch is no longer silently skipped.** The previous
+   `needs:` chain without `always()` meant a dispatch that selected
+   `do-memory-storage-redb`, `-turso` or `-mcp` skipped its prerequisites and
+   therefore the requested job itself. Jobs now gate with `always()` plus
+   explicit `needs.<job>.result == 'success' || 'skipped'`, so the selected
+   crate runs and the ADR-079 CIT-A4 dependency-closure gate decides: publish,
+   prove already-present, or fail with a named reason.
+4. **Registration facts (verified against crates.io sources, 2026-10-03).** The
+   config is per crate (crate page → Settings → Trusted Publishing) with
+   fields: repository owner, repository name, workflow filename, environment
+   (optional, compared case-insensitively; must equal the job’s environment when
+   set) — max 5 GitHub configs per crate. `release: [published]` and
+   `workflow_dispatch` are supported; `pull_request_target` and `workflow_run`
+   are rejected. The exchanged token is single-use, expires after 30 minutes,
+   and each job performs its own exchange (no per-run cap).
 
 ## Alternatives considered
 

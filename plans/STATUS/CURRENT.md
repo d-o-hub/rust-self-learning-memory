@@ -30,7 +30,7 @@
 | Checked completion receipts (#1080 → #1107) | ✅ `complete_episode_checked` returns `Local`/`Committed`/`Queued` sourced from live queue stats; legacy `complete_episode` unchanged (ADR-075 D2); `flush` errors name the permanently failed episode IDs; patch coverage raised 76.8% → 94.8% with embedding happy-path and provider-failure tests |
 | CLI durable drain (#1081 → #1112) | ✅ `episode complete|fail` drain a `Queued` write with bounded `--durable-timeout-secs` (default 30) before any success output, exit non-zero naming the episode on timeout/permanent failure, and report the final `durability` (`committed`/`local`) in human/JSON/YAML |
 | Clippy 1.99 migration (#1108) | ✅ the floating `stable` bump added `clippy::assert_is_empty`; ~100 pre-existing sites migrated (`assert_eq!`/`assert_ne!` on `.len()`), LESSON-029 records the trap |
-| Release-pipeline proposal (#1109) | 📋 issue opened: OIDC trusted publishing without the token fallback, artifact + SBOM attestations, draft-first immutable releases, Pages boundary documented, publish-job de-duplication |
+| Release-pipeline proposal (#1109) | 🚧 C3/C4 landed (#1121: draft-first release with build-provenance + SBOM attestations); C1/C2 in review (OIDC-only publish via the official action, shared `publish-crate` action, skipped-tolerant `needs` chain); C5–C7 outstanding |
 
 ## Recent completed (2026-10-01 — v0.1.43 shipped)
 

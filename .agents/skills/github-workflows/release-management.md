@@ -256,6 +256,9 @@ jobs:
     name: Publish to crates.io
     needs: [validate, create-release]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for crates.io trusted publishing (OIDC)
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
@@ -285,9 +288,16 @@ jobs:
           done
 
       - name: Publish to crates.io
-        run: cargo publish --all-features --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        # Trusted publishing (OIDC): no CARGO_REGISTRY_TOKEN secret. The job
+        # needs `permissions: id-token: write` and its environment/workflow
+        # filename must match the crates.io trusted-publisher config.
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+        id: auth
+
+      - name: cargo publish
+        run: cargo publish --all-features --locked
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
       - name: Verify publication
         run: |

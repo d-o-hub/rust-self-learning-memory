@@ -339,3 +339,25 @@ let result = {
 4. Run `./scripts/code-quality.sh clippy --workspace`
 5. Run `cargo nextest run --all`
 6. Run `./scripts/quality-gates.sh`
+
+## Security
+
+- Use env vars (never hardcode secrets)
+- Parameterized SQL only
+- **OAuth/JWT**: always `jsonwebtoken` with signature verification; mandatory
+  `MCP_OAUTH_TOKEN_SECRET` for production HMAC verification
+- Clippy `-D warnings`, no `unsafe` without an audited, documented reason
+
+Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
+`OPENAI_API_KEY`, `RUST_LOG`, `MCP_OAUTH_TOKEN_SECRET`.
+Local dev: `TURSO_DATABASE_URL="http://127.0.0.1:8080"` with an empty
+`TURSO_AUTH_TOKEN` when using `turso dev`.
+
+## Performance Targets
+
+- Episode Creation: < 50 ms | Step Logging: < 20 ms
+- Episode Completion: < 500 ms | Memory Retrieval: < 100 ms
+
+Treat these as budgets: measure the changed path (`benches/`, `quality-gates.sh`,
+the retrieval eval harness) rather than assuming a micro-optimization lands
+inside them.

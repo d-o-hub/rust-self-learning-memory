@@ -1,485 +1,130 @@
 # Agent Coding Guidelines
 
-**Skills Location**: Skills are at `.agents/skills/` (canonical path).
+Entrypoint for coding agents. **Complete workflow:** [`agent_docs/coding_workflow.md`](agent_docs/coding_workflow.md) — **Docs index:** [`agent_docs/README.md`](agent_docs/README.md) — **Skills:** `.agents/skills/` (routed by `.agents/skills/skill-rules.json`; full inventory `.agents/SKILLS.md`).
+
+Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`, `do-memory-test-utils`, `benches`. Storage: Turso + redb + embeddings (OpenAI/Cohere/Ollama/local).
 
 ## Quick Reference
-- **Build**: `./scripts/build-rust.sh dev|release|check|clean`
-- **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
-- **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
-- **Quality Gates**: `./scripts/quality-gates.sh`
-- **PR Readiness**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
-- **Merge (gated)**: `./scripts/merge-pr.sh <PR> [--accept-codecov-waiver] --execute` (dry run without `--execute`)
-- **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
-- **Release Cadence**: `release-cadence-manager` | `./scripts/release-cadence-manager.sh`
 
-Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
-Crates: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
+| Task | Command |
+|---|---|
+| Build | `./scripts/build-rust.sh dev\|release\|check\|clean` |
+| Format / lint | `./scripts/code-quality.sh fmt` · `./scripts/code-quality.sh clippy --workspace` |
+| Tests | `cargo nextest run --all` + `cargo test --doc` |
+| Quality gates | `./scripts/quality-gates.sh` |
+| PR readiness | `./scripts/check-pr-readiness.sh [PR]` |
+| Merge (gated) | `./scripts/merge-pr.sh <PR> [--accept-codecov-waiver] --execute` |
+| Release | `./scripts/release-manager.sh ship --execute` |
+| Release cadence | `./scripts/release-cadence-manager.sh` |
+| Disk cleanup | `./scripts/clean-artifacts.sh [quick\|standard\|full]` |
+| Harness | `do-harness verify --record` · `do-harness doctor` |
 
 ## Skill + CLI Pattern (CRITICAL)
-Always use Skill + CLI first for high-frequency ops:
+
+Route every operation: **skill? → script? → Skill + CLI? → task tool.**
+
 | Operation | Skill | CLI |
-|-----------|-------|-----|
+|---|---|---|
 | Build | `build-rust` | `./scripts/build-rust.sh` |
-| Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
+| Format / lint | `code-quality` | `./scripts/code-quality.sh` |
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
-| Debug | `debug-troubleshoot` | - |
+| Debug failures | `debug-troubleshoot` | — |
 | PR merge readiness | `pr-readiness` | `./scripts/check-pr-readiness.sh` |
-| PR merge (gated) | `pr-readiness` | `./scripts/merge-pr.sh <PR> --execute` |
-| Wait for CI | `ci-poll` | `gh pr checks` / Actions |
+| Wait for CI | `ci-poll` | `gh pr checks --watch` |
 | Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
-| Release Cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
-| Agent Harness | `harness` | `do-harness verify --record` / `do-harness doctor` |
-| Complex multi-step | `goap-agent` | - |
+| Release cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
+| Harness sensors | `harness` | `do-harness verify --record` |
+| Complex multi-step | `goap-agent` | — |
+| Parallel workers | `agent-coordination` | — |
 
-Full skill inventory: [`.agents/SKILLS.md`](.agents/SKILLS.md).  
-Before task tool: skill? → script? → Skill+CLI? → task tool?
+`gh skill install cli/cli gh --scope user --agent <host>` adds the official cross-repo `gh` patterns (not a substitute for this repo's skills). Ship releases **only** through `release-guard` + `./scripts/release-manager.sh ship --execute`; **NEVER** `gh release create` for shipping.
 
-### GitHub CLI agent skills (user scope — R-H1/H2/H7)
+## Complete Coding Workflow
 
-Install official patterns once per machine (not a substitute for this repo’s domain skills):
+0. **Prime** — route skills, read the trackers and `plans/adr/`.
+1. **Scope** — acceptance criteria first; one atomic change per PR.
+2. **Branch** — never on `main`; worktree per PR (`git worktree add -b <branch>`).
+3. **Research** — reuse existing patterns; `xd://lsp` references before symbol changes; official docs for external APIs.
+4. **Design** — boring > clever; ADR for architectural decisions.
+5. **Implement** — small conventional commits; tests with the change.
+6. **Verify** — run the changed path, then all gates in [Required Checks](#required-checks-before-commit).
+7. **Document** — CHANGELOG, docs, ADR follow-ups, trackers together.
+8. **PR** — `check-pr-readiness.sh`; address **all** comments (bots included).
+9. **Roast** — independent review for risky changes; verify each finding with primary evidence.
+10. **Merge** — `merge-pr.sh <PR> --execute` only (never `--admin`).
+11. **Release** — see [Release Process](#release-process).
+12. **Cleanup** — remove worktrees/scaffolds; record lessons.
 
-```bash
-gh skill install cli/cli gh --scope user --agent <host>        # how to use gh
-gh skill install cli/cli gh-skill --scope user --agent <host>  # manage skills
-```
-
-| Layout | Path | Purpose |
-|--------|------|---------|
-| **User** | `~/.…/skills/gh` via `gh skill install` | Cross-repo `gh` JSON/pagination/API patterns |
-| **Project** | `.agents/skills/*` | Domain: release-guard, pr-readiness, memory, etc. |
-
-Ship releases **only** via `release-guard` + `./scripts/release-manager.sh ship --execute` (tag → `release.yml`). Never `gh release create` for shipping.
-
-## Change Workflow
-1. Identify owner crate + module
-2. Read existing patterns
-3. Add/update tests
-4. `./scripts/code-quality.sh fmt`
-5. `./scripts/code-quality.sh clippy --workspace`
-6. `cargo nextest run -p <crate>`
-7. `cargo nextest run --all`
-8. `cargo test --doc`
-9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 70 floor, 90 target)
-10. `do-harness verify --record`
-11. `git status` - verify all changes staged
+Details, evidence requirements, blocked protocol, definition of done: [`agent_docs/coding_workflow.md`](agent_docs/coding_workflow.md).
 
 ## Core Invariants (Never Break)
-- **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)
-- **Storage**: Parameterized SQL only. Short transactions. No locks across `.await`
-- **Serialization**: Postcard required (not bincode)
-- **Clippy**: Zero warnings (`-D warnings`). Fix, don't suppress
-- **Files**: ≤500 LOC per source file
-- **Tests**: ≥70% coverage floor (90% aspirational target). `#[tokio::test]` for async. AAA pattern
-- **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
+
+- **Async**: Tokio everywhere. No blocking in async (use `spawn_blocking`).
+- **Storage**: parameterized SQL only; short transactions; no locks across `.await`.
+- **Serialization**: Postcard required (not bincode).
+- **Clippy**: zero warnings (`-D warnings`). Fix, don't suppress.
+- **Files**: ≤500 LOC per source file (enforced in CI).
+- **Tests**: ≥70% coverage floor (90% target); `#[tokio::test]` for async; AAA pattern.
+- **Docs**: URLs wrapped in `<...>`; new public types re-exported from `lib.rs`.
 
 ## Dev Harness (do-harness)
 
-Computational sensor runner + local agent state DB (`.do-harness/agent_state.db`, gitignored).
-Sensors are defined in `do-harness.toml` (fmt, check, clippy, test, deny, loc — mirroring the
-gates above); `HARNESS.md` maps them to feedforward guides.
+Sensors live in `do-harness.toml` (fmt, check, clippy, test, deny, loc) and map to guides in `HARNESS.md`. `do-harness verify --record` runs the suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Sensor fired? Fix that sensor first, then commit.
 
-- `do-harness verify --record` — run the sensor suite and persist beats (Change Workflow step 10)
-- `do-harness verify --only <sensor>` — targeted re-run after a failure
-- `do-harness task done <id>` — task gate; refuses until its sensor passed via `verify --record`
-- `do-harness doctor` — after upgrading the binary (checks hook/DB migration skew)
-- Sensor fired? Fix the firing sensor first (`verify --only <name>`), then commit. Same
-  self-correction protocol as HARNESS.md; beats recorded by `--record` feed `do-harness metrics`.
-- Do NOT run `do-harness hook install` — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit`
-  and runs the cheap sensor subset for you (fmt via cargo, loc via `scripts/check-loc.sh`).
-- `do-harness init` re-scaffolds skills; never let it inject `.agents/skills/skill-creator/scripts/`
-  or ignore `.agents/events/` (this repo commits those).
-
-## Steering Loop
-
-The steering loop is the mechanism by which repeated sensor violations improve the harness rather than just being fixed in isolation.
-
-### Protocol
-
-When any computational sensor fires more than 2 times in a single sprint (across different PRs or commits):
-
-1. Identify root cause category: Is this a maintainability, architecture, behaviour, or security issue?
-2. Locate or create the guide: Find the corresponding feedforward guide in HARNESS.md. If no guide covers this pattern, proceed to step 3.
-3. Create a new skill: Use .agents/skills/skill-creator/ to scaffold a new skill in .agents/skills/<category>/. The skill should prevent the violation, not just describe it.
-4. Update the sensor table: Add or update the sensor row in HARNESS.md with the correct fix hint pointing to the new guide.
-5. Log the update: Add an entry to CHANGELOG.md under the current sprint.
-
-### Metrics Events
-
-Every time a sensor fires and is resolved, write a structured event log:
-
-Path: `.agents/events/YYYY/MM/DD/<sensor>-<timestamp>.json`
-
-Example JSON structure:
-```json
-{
-  "timestamp": "2026-07-18T12:00:00Z",
-  "sensor": "clippy::too_many_arguments",
-  "category": "maintainability",
-  "violation_count": 3,
-  "root_cause": "Function signatures grown beyond manageable parameter count",
-  "guide_updated": "AGENTS.md#function-signatures",
-  "skill_created": false,
-  "resolution": "Refactored to use config struct"
-}
-```
-
-This creates a searchable audit trail that future agents can use to avoid repeating known violations.
-
-## Documentation Rules
-- Wrap URLs in angle brackets, re-export new public types from `lib.rs`, and run `cargo doc --no-deps --document-private-items` before commit
-
-## Common Pitfalls
-
-- **Coderabbitai review loops**: Always `read_files` on the target file before acting on a finding. Trust current code, not conversation summaries or cached search results. Fix history may not match current tree.
-- **Feature-gated imports in tests**: When adding `#[cfg(feature = "X")]` tests, also gate ALL imports, structs, and impls used exclusively by those tests. CI runs clippy without features and will reject ungated dead code. One ungated import in `tests/` blocks all PRs.
-- Read patterns first; roadmap and status docs can lag real repo state.
-- Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
-- Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.
-- For CPU/token work, use `goap-agent` first, then `agent-coordination`, then the implementation/validation skills.
-- **Audit file accounting**: After opening an existing audit log, seed size tracking from file metadata (never reset to 0) or rotation will not fire until the new-write sum alone exceeds max size.
-- **Skill / gate CI**: After changing skills or `GATE_CONTRACT.md`, run `./scripts/run-evals.sh --fixtures` and `./scripts/validate-gate-contract.sh --ci-parity` locally; Skill Evals workflow enforces both on PRs.
-- **Post-release version**: After tagging `vX.Y.Z`, immediately bump workspace to the next patch before more `feat`/`fix` commits land. Equal workspace+tag with unreleased commits fails Release Drift as `version_not_advanced`.
-
-Before implementing: Read 3+ source files, check ADRs
-
-## Planning & Decisions
-- **Use `goap-agent` skill** for complex tasks - decomposes into atomic goals
-- **Use `agent-coordination`** when CPU/token or release/doc work can run in parallel
-- **Check `plans/adr/`** for Architecture Decision Records before changes
-- **Update `plans/ROADMAPS/ROADMAP_ACTIVE.md`** with progress
-- **Keep `agent_docs/LESSONS.md` + `AGENTS.md` aligned** when recording non-obvious workflow learnings
-
-## Tool Selection Enforcement
-
-Target Bash:Grep ratio of 2:1 (current: 17:1)
-
-**Use Grep for**:
-- Finding files: `Grep pattern="*.rs"`
-- Searching content: `Grep pattern="fn name"`
-- Finding definitions: `Grep pattern="struct Name"`
-- Checking usage: `Grep pattern="use crate"`
-
-**Use Bash for**:
-- File operations: `cp`, `mv`, `rm`
-- Git commands: `git status`, `git diff`
-- Running scripts: `./scripts/*.sh`
-- Running workspace tests: `cargo nextest run --all`, `cargo test --doc`
-
-**Before Bash**: Consider if Grep would be more efficient.
-
-## Atomic Change Rules
-1. **One change per commit** - message describes exactly what changed
-2. **Workflow**: make change → test → quality check → verify → commit
-3. **Format**: `feat(module): description`, `fix(module): description`
-4. Never batch incomplete work
+**Do NOT run `do-harness hook install`** — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit` (cheap sensor subset: fmt + loc). `do-harness init` must never inject the skill-creator scripts or ignore `.agents/events/`. Steering loop, metrics events and the fired-sensor runbook: [`.agents/skills/harness/SKILL.md`](.agents/skills/harness/SKILL.md).
 
 ## Required Checks Before Commit
+
 - [ ] `./scripts/code-quality.sh fmt`
 - [ ] `./scripts/code-quality.sh clippy --workspace`
 - [ ] `./scripts/build-rust.sh check`
 - [ ] `cargo nextest run --all`
 - [ ] `cargo test --doc`
-- [ ] `cargo doc --no-deps --document-private-items` (catches bare URLs)
-- [ ] `./scripts/quality-gates.sh` (coverage must pass blocking floor `>=70%`, target `90%`)
-- [ ] `git status` - verify all changes staged
+- [ ] `cargo doc --no-deps --document-private-items`
+- [ ] `./scripts/quality-gates.sh`
+- [ ] `do-harness verify --record`
+- [ ] `git status` — only intended changes staged
 
-## Git Workflow
-- **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
-- See `agent_docs/git_workflow.md` for details.
+## PR Health Check
 
-## PR Health Check (MANDATORY before recommending merge)
-
-**Skill**: `.agents/skills/pr-readiness/SKILL.md`  
-**CLI**: `./scripts/check-pr-readiness.sh [--fix] [PR_NUMBER]`
-
-When analyzing open PRs, reviewing a PR, or recommending merge, you MUST check **all** of the following — not just CI status:
-
-1. Merge state (`mergeable`, `mergeStateStatus`)
-2. CI / status checks (including CANCELLED)
-3. **All PR comments and reviews** (human + bots) — and **address** actionable feedback
-
-### Step 1: Full PR State Query
-```bash
-gh pr view {n} --json number,title,mergeable,mergeStateStatus,statusCheckRollup,headRefOid
-# or all open:
-gh pr list --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup
-```
-
-### Step 2: Interpret Merge State (CRITICAL)
-| `mergeStateStatus` | `mergeable` | Meaning | Action Required |
-|--------------------|-------------|---------|-----------------|
-| `CLEAN` | `MERGEABLE` | Merge state OK | Still verify CI **and** comments |
-| `BEHIND` | `MERGEABLE` | Branch behind main, no conflicts | Update branch: `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT` |
-| `BLOCKED` | `MERGEABLE` | Required checks still pending | Wait for CI to complete |
-| `UNSTABLE` | `MERGEABLE` | Non-required checks failing | Check if failures are pre-existing/non-blocking |
-| `DIRTY` | `CONFLICTING` | **Merge conflicts** | Checkout branch, merge main, resolve conflicts, push |
-| `HAS_HOOKS` | varies | Pre-receive hooks blocking | Investigate hook failures |
-
-### Step 3: CI Check Interpretation
-- **`SUCCESS`** → ✅ Pass
-- **`SKIPPED`** → ✅ Expected (e.g., Release workflow on PRs)
-- **`CANCELLED`** → ⚠️ Investigate: may be dependent on a failed/cancelled prerequisite. Re-run if stale.
-- **`FAILURE`** → ❌ Must fix before merge
-- **`pending`** → ⏳ Wait for completion (do NOT recommend merge while pending)
-
-### Step 4: Fetch and Address ALL PR Comments (MANDATORY)
-
-**Never skip this step.** "No human reviews" does **not** mean nothing to do — bots (Codecov, Codacy, CodeRabbit, etc.) post actionable conversation comments.
-
-```bash
-OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-# Inline file/line review comments
-gh api "repos/${OWNER_REPO}/pulls/{n}/comments" --paginate
-# Submitted reviews (APPROVED / CHANGES_REQUESTED / COMMENTED)
-gh api "repos/${OWNER_REPO}/pulls/{n}/reviews" --paginate
-# Issue conversation (Codecov, Codacy, humans)
-gh api "repos/${OWNER_REPO}/issues/{n}/comments" --paginate
-```
-
-| Feedback type | Action |
-|---------------|--------|
-| Human inline / `CHANGES_REQUESTED` | **Fix code** (or get re-approval after evidence waiver) |
-| Codecov low patch / missing lines | Add tests for listed files; push; reply on PR |
-| Codacy new issues | Fix cited lints/complexity |
-| Stale / incorrect comment | Reply with commit SHA or counter-evidence |
-| Informational bot only (e.g. bench dump) | Note in report; no code change required |
-
-**Address** means: implement + test + push, then reply on the thread — not just acknowledge.
-
-### Step 5: Fix Everything
-A PR is NOT ready to merge unless ALL of:
-1. `mergeable` = `MERGEABLE` (no conflicts)
-2. `mergeStateStatus` = `CLEAN` (not BEHIND, DIRTY, BLOCKED, or UNSTABLE)
-3. All **required** checks = `SUCCESS`
-4. No `CANCELLED` checks that should have run (re-trigger if needed)
-5. No pre-existing failures inherited from base branch
-6. **All actionable PR comments addressed** (or waived with evidence on the thread)
-
-### Step 6: Fix Procedures
-| Problem | Fix |
-|---------|-----|
-| Branch behind (`BEHIND`) | `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge` |
-| Merge conflicts (`DIRTY`/`CONFLICTING`) | `gh pr checkout {n}` → `git merge origin/main` → resolve → `git push` |
-| Cancelled CI | Re-run: `gh run rerun {run_id}` or push empty commit to re-trigger |
-| Failed check | Diagnose with `gh run view {run_id} --log-failed`, fix code, push |
-| Review / bot comments | See Step 4 — fix code, push, reply on PR |
-
-### Common Mistake (NEVER DO THIS)
-❌ "CI is green, ready to merge" — **WRONG** if `mergeStateStatus` ≠ `CLEAN` **or** comments remain unaddressed  
-✅ "CI green, merge CLEAN, all review/bot feedback addressed → ready to merge" — **CORRECT**
-
-CI checks run against the branch HEAD, not against the merge result. A PR can have green CI but be unmergeable due to conflicts with main. Codecov/Codacy conversation comments often require tests or code fixes even when required checks are green.
-
-### Hard Blockers (NEVER BYPASS)
-
-These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass mechanism:
-
-1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete. `UNSTABLE` means non-required checks are failing/pending. Investigate before merging.
-2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state (`SUCCESS`, `FAILURE`, `SKIPPED`).
-3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Branch protection exists for a reason. If checks fail, fix the code, don't bypass the gate.
-4. **NEVER merge a PR you haven't personally verified** — Run the full PR readiness check (`gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup`) and confirm ALL conditions before merging.
-5. **NEVER skip the `pr-readiness` skill** — Load `.agents/skills/pr-readiness/SKILL.md` before any merge recommendation. The skill defines the exact verification procedure.
-6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue comments; address actionable feedback (including Codecov/Codacy) before declaring ready.
-
-### Mandatory Pre-Merge Checklist
-
-Before ANY merge action, ALL of these must be true:
-
-```
-□ Loaded pr-readiness skill
-□ Ran: gh pr view {n} --json mergeable,mergeStateStatus,statusCheckRollup
-□ mergeable = MERGEABLE
-□ mergeStateStatus = CLEAN
-□ All required checks = SUCCESS (not pending, not FAILURE)
-□ No CANCELLED checks that should have run
-□ No pre-existing failures from base branch
-□ Fetched PR comments: pulls/{n}/comments + pulls/{n}/reviews + issues/{n}/comments
-□ Actionable feedback addressed (code + tests pushed) or waived with evidence on thread
-□ No open CHANGES_REQUESTED without re-approval
-□ Verified locally: cargo nextest run --all passes
-□ Verified locally: cargo clippy --workspace -- -D warnings passes
-```
-
-## Release Process (MANDATORY — one path only)
-
-**Skill:** `.agents/skills/release-guard/SKILL.md`  
-**CLI:** `./scripts/release-manager.sh ship --execute`  
-**GitHub Release:** tag push → `.github/workflows/release.yml` (never `gh release create`)
-
-```bash
-# After version + CHANGELOG + Released Version docs are on main and main CI is green:
-git checkout main && git pull --ff-only
-./scripts/release-manager.sh status
-./scripts/release-manager.sh ship --execute
-./scripts/release-manager.sh wait-release   # optional poll
-```
-
-**NEVER** manually `gh release create`, tag off main, or `--admin` merge.  
-**Tag format:** `v` + workspace `Cargo.toml` version (must match).
-
-## Release Cadence Management (MANDATORY when drift detected)
-
-**Skill:** `.agents/skills/release-cadence-manager/SKILL.md`  
-**CLI:** `./scripts/release-cadence-manager.sh`
-
-### When to Use
-- Release drift detected (`version_not_advanced`, `commit_limit`, `age_limit`)
-- PRs need `release-preparation` label
-- Automated release coordination required
-- Manual intervention needed for critical drift
-
-### Workflow
-1. **Detect drift**: `./scripts/release-cadence-manager.sh detect`
-2. **Resolve drift**: `./scripts/release-cadence-manager.sh resolve --pr {n}`
-3. **Validate**: `./scripts/release-cadence-manager.sh validate`
-
-### Swarm Agents
-- **Drift Detector Agent**: Monitors release cadence and detects drift
-- **Label Manager Agent**: Manages the `release-preparation` label
-- **Release Coordinator Agent**: Coordinates the release process
-- **Validation Agent**: Validates that all steps are completed correctly
-
-### Integration
-- Works with `release-guard` for release execution
-- Works with `analysis-swarm` for strategy selection
-- Works with `goap-agent` for orchestration
-- Works with `agent-coordination` for swarm management
-
-### Critical Conditions
-- `version_not_advanced`: Version in Cargo.toml matches latest tag
-- `tag_not_ancestor`: Latest tag is not an ancestor of HEAD
-- `invalid_next_version`: Version doesn't follow semver rules
-- `commit_limit`: Unreleased commits >= 30
-- `age_limit`: Release age >= 14 days
-- `no_release_tag`: No release tags found
-
-Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
-
-## CSM Integration
-
-Enable CPU-local cascading retrieval with the `csm` feature flag:
-```bash
-cargo build --features csm
-```
-
-**Available types when enabled:**
-- `Bm25Index` - First-tier keyword search (no API calls)
-- `HVec10240` - 10,240-bit HDC vectors for similarity
-- `ConceptGraph` - Ontology expansion for synonym matching
-- `CascadeRetriever` - Tier escalation orchestration
-
-**Docs**: `agent_docs/csm_integration.md` for full cascade pipeline (WG-128 through WG-131).
+Before recommending or performing a merge, verify **all** of: `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`, every required check terminal and green, and every conversation/review thread (human **and** bot — Codacy/Codecov included) addressed or waived with evidence on the thread. Use the `pr-readiness` skill + `./scripts/check-pr-readiness.sh`; merge only via `./scripts/merge-pr.sh <PR> --execute`. **Never** `--admin`, `--force`, or any bypass.
 
 ## Release Process
 
-Same as **Release Process (MANDATORY — one path only)** above: skill `release-guard`, CLI `./scripts/release-manager.sh ship --execute`, GitHub `release.yml` on tag push.
+One path only: skill `release-guard`, CLI `./scripts/release-manager.sh ship --execute` (tag `v` + workspace version → `.github/workflows/release.yml` publishes draft-first with attestations). **NEVER** manual `gh release create`, tagging off `main`, or `--admin` merges. Version + CHANGELOG + `Released Version` docs land on `main` (green CI) first; post-release, bump the workspace in a follow-up PR.
 
-**Future (2026)**: Migrate to Trusted Publishing (OIDC) to eliminate `CARGO_REGISTRY_TOKEN` secret.
-See <https://crates.io/docs/trusted-publishing> for setup.
+## Release Cadence Management
 
-## Security
-- Use env vars (never hardcode)
-- Parameterized SQL
-- **OAuth/JWT**: Always use `jsonwebtoken` with signature verification. Mandatory `MCP_OAUTH_TOKEN_SECRET` for production HMAC verification.
+Skill `release-cadence-manager`, CLI `./scripts/release-cadence-manager.sh`: `detect` → `resolve --pr <n>` → `validate`. Critical reasons: `version_not_advanced`, `tag_not_ancestor`, `invalid_next_version`, `commit_limit` (≥30 unreleased commits), `age_limit` (≥14 days), `no_release_tag`.
 
-Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`, `MCP_OAUTH_TOKEN_SECRET`
-Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUTH_TOKEN` empty when using `turso dev`.
+## Tool Selection Enforcement
 
-## Performance Targets
-- Episode Creation: < 50ms | Step Logging: < 20ms
-- Episode Completion: < 500ms | Memory Retrieval: < 100ms
+Search with `grep`/`glob`/`find`, read with `read`; `bash` is for binaries and short pipelines, never for file edits or paged output. Target Bash:Grep ratio 2:1 — think "would a search tool answer this better?" first. Details: [`agent_docs/token_efficiency.md`](agent_docs/token_efficiency.md), [`agent_docs/common_friction_points.md`](agent_docs/common_friction_points.md).
 
-## CI Optimization (2026-04-28)
+## Monitoring
 
-PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
-
-| Job | Time | Trigger |
-|-----|------|---------|
-| Quick Check | ~7–20 min (cold) | All PRs |
-
-**Quick Check wait gates (2026-07-18 / LESSON-021)**: Never use `timeout-minutes: 15` on `Check Quick Check Status`. Wait jobs need **40m**; Quick Check job **25m**. **Do not gate yaml-lint** on Quick Check — run it immediately. See `agent_docs/github_actions_patterns.md`.
-| Tests | ~12 min | All PRs |
-| MCP Build | ~10 min | All PRs |
-| Multi-Platform | ~12-15 min | All PRs |
-| Run Benchmarks | ~54 min | **Only perf-critical paths** |
-
-**Perf-critical paths** (trigger benchmarks):
-- `memory-core/src/**/*.rs`
-- `memory-storage-turso/src/**/*.rs`
-- `memory-storage-redb/src/**/*.rs`
-- `memory-mcp/src/**/*.rs`
-- `benches/**`
-- `Cargo.toml`, `Cargo.lock`
-- `.github/workflows/benchmarks.yml`
-
-**Skip benchmarks manually**: Add `skip-benchmarks` label to PR.
-
-**Manual trigger**: Use `workflow_dispatch` in Actions UI.
-
-**Main branch**: Benchmarks always run with regression detection.
-
-**Key insight**: GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` only.
-
-**Related skills**:
-- `.agents/skills/github-workflows/SKILL.md` - Workflow patterns and troubleshooting
-- `.agents/skills/ci-fix/SKILL.md` - CI failure diagnosis
-
-See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
-
-### Publish Pipeline (2026-07-08)
-
-Publish improvements (PR #789):
-- `cargo publish --locked` for reproducibility
-- Sparse-index polling (max 5 min) replaces `sleep 30`
-- Explicit `needs` chain: core → redb → turso → cli
-- Semver check output surfaced in `$GITHUB_STEP_SUMMARY`
+MCP observability (`get_metrics`, `health_check`) and MCP tool contracts: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) + [`.agents/skills/do-memory-mcp/SKILL.md`](.agents/skills/do-memory-mcp/SKILL.md).
 
 ## Cross-References
+
 | Topic | Document |
-|-------|----------|
+|---|---|
+| Complete workflow | [`agent_docs/coding_workflow.md`](agent_docs/coding_workflow.md) |
 | Build | `agent_docs/building_the_project.md` |
-| Tests | `agent_docs/running_tests.md` |
-| Code style | `agent_docs/code_conventions.md` |
+| Tests / coverage | `agent_docs/running_tests.md` |
+| Code style, security, perf budgets | `agent_docs/code_conventions.md` |
 | Git workflow | `agent_docs/git_workflow.md` |
 | CI guidance | `agent_docs/ci_guidance.md` |
+| GH Actions patterns, CI optimization, publish | `agent_docs/github_actions_patterns.md` |
 | Dependencies | `agent_docs/dependency_upgrades.md` |
-| GH Actions | `agent_docs/github_actions_patterns.md` |
 | Architecture | `agent_docs/service_architecture.md` |
 | Database | `agent_docs/database_schema.md` |
-| Patterns | `agent_docs/service_communication_patterns.md` |
 | Friction points | `agent_docs/common_friction_points.md` |
-| Disk hygiene | `agent_docs/disk_hygiene.md` |
+| CSM cascade retrieval | `agent_docs/csm_integration.md` |
+| Coverage waivers | `.agents/skills/coverage-waivers/SKILL.md` |
 | Token efficiency | `agent_docs/token_efficiency.md` |
+| Disk hygiene | `agent_docs/disk_hygiene.md` |
 | Lessons log | `agent_docs/LESSONS.md` |
 | Planning | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
 | GOAP state | `plans/GOAP_STATE.md` |
 | ADRs | `plans/adr/` |
-| Trusted Publishing | `plans/adr/` (future ADR) |
-
-## Disk Space
-- **No Temporary Files in Root**: Never create temporary files, logs, trial outputs, or one-off scripts (`.py`, `.sh`, etc.) in the repository root. Use `plans/` for design-related notes, `target/` for build/test artifacts, or `scripts/` for reusable tooling.
-- Dev profile: `debug = "line-tables-only"`, deps `debug = false`
-- Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set)
-- For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
-- Use `./scripts/clean-artifacts.sh standard` for routine cleanup
-- Use `./scripts/clean-artifacts.sh standard --node-modules` only when JS dependencies are not needed locally
-
-## MCP Server Interaction Patterns
-- The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
-- The MCP server exposes episodic memory functionality through the Model Context Protocol, including querying past experiences, analyzing patterns, statistical analysis, and monitoring metrics.
-- Note: `execute_agent_code` is unavailable / fail-closed (WASM sandbox removed; no working execution backend).
-- The server exposes a suite of tools defined in `docs/API_REFERENCE.md`, including:
-  - **Core and Monitoring**: `query_memory`, `analyze_patterns`, `health_check`, `get_metrics`
-  - **Pattern / Recommendation / Explainability**: `advanced_pattern_analysis`, `quality_metrics`, `search_patterns`, `recommend_patterns`, `recommend_playbook`, `explain_pattern`
-  - **Recommendation Attribution / Feedback**: `record_recommendation_session`, `record_recommendation_feedback`, `get_recommendation_stats`
-  - **Playbook / Checkpoint / Handoff**: `checkpoint_episode`, `get_handoff_pack`, `resume_from_handoff`
-  - **Episode Lifecycle**: `bulk_episodes`, `create_episode`, `add_episode_step`, `complete_episode`, `get_episode`, `delete_episode`, `update_episode`, `get_episode_timeline`
-  - **Episode Tags**: `add_episode_tags`, `remove_episode_tags`, `set_episode_tags`, `get_episode_tags`, `search_episodes_by_tags`
-  - **Episode Relationships**: `add_episode_relationship`, `remove_episode_relationship`, `get_episode_relationships`, `find_related_episodes`, `check_relationship_exists`, `get_dependency_graph`, `validate_no_cycles`, `get_topological_order`
-  - **Embeddings**: `configure_embeddings`, `query_semantic_memory`, `test_embeddings`, `generate_embedding`, `search_by_embedding`, `embedding_provider_status`
-  - **Unavailable / fail-closed**: `execute_agent_code` (WASM sandbox removed; calls fail closed and the tool is not a working execution backend).
-- Note: Batch tools (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`) are intentionally absent/deferred and will not resolve.
-
-## Storage Optimization (Batch Eviction)
-- Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.
-- Multi-dimensional embeddings must be cleared via 'delete_embeddings_batch_dimension_aware' to ensure all sharded tables are purged.

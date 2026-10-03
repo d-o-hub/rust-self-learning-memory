@@ -6,20 +6,24 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 
 | # | Document | Purpose |
 |---|----------|---------|
-| 1 | `building_the_project.md` | Build commands, feature flags, prerequisites, troubleshooting |
-| 2 | `code_conventions.md` | Rust idioms, formatting, naming, error handling, serialization |
-| 3 | `running_tests.md` | Test categories, coverage, benchmarks, debugging tests |
-| 4 | `service_architecture.md` | System design, crate responsibilities, module breakdown |
-| 5 | `database_schema.md` | Turso + redb schemas, tables, indexes, relationships |
-| 6 | `service_communication_patterns.md` | Inter-service communication, MCP protocol, async patterns |
-| 7 | `common_friction_points.md` | Friction patterns from session analysis, prevention strategies |
-| 8 | `disk_hygiene.md` | Disk cleanup workflow, `CARGO_TARGET_DIR`, and coverage artifact hygiene |
-| 9 | `token_efficiency.md` | Prompt/token budget guidance for tool and context selection |
-| 10 | `ci_guidance.md` | CI triage, required checks, and local parity expectations |
-| 11 | `external_signals.md` | External-signal integration and current implementation caveats |
-| 12 | `dependency_upgrades.md` | Upgrade workflow and dependency-risk handling |
-| 13 | `session_state_preservation.md` | Preserve context across long multi-step sessions |
-| 14 | `LESSONS.md` | Verbose workflow learnings paired with distilled AGENTS notes |
+| 1 | `coding_workflow.md` | **Complete end-to-end coding workflow** (scope → branch → research → design → implement → verify → PR → roast → merge → release → cleanup), evidence requirements, blocked protocol, definition of done |
+| 2 | `building_the_project.md` | Build commands, feature flags, prerequisites, troubleshooting |
+| 3 | `code_conventions.md` | Rust idioms, formatting, naming, error handling, serialization, security, performance budgets |
+| 4 | `running_tests.md` | Test categories, coverage, benchmarks, debugging tests |
+| 5 | `git_workflow.md` | Branches, commits, PRs, post-change verification |
+| 6 | `service_architecture.md` | System design, crate responsibilities, module breakdown |
+| 7 | `database_schema.md` | Turso + redb schemas, tables, indexes, relationships |
+| 8 | `service_communication_patterns.md` | Inter-service communication, MCP protocol, async patterns |
+| 9 | `csm_integration.md` | Chaotic Semantic Memory cascade retrieval (BM25 → HDC → ConceptGraph) |
+| 10 | `common_friction_points.md` | Friction patterns from session analysis, prevention strategies |
+| 11 | `disk_hygiene.md` | Disk cleanup workflow, `CARGO_TARGET_DIR`, and coverage artifact hygiene |
+| 12 | `token_efficiency.md` | Prompt/token budget guidance for tool and context selection |
+| 13 | `ci_guidance.md` | CI triage, required checks, and local parity expectations |
+| 14 | `github_actions_patterns.md` | Workflow patterns, CI optimization, publish pipeline |
+| 15 | `external_signals.md` | External-signal integration and current implementation caveats |
+| 16 | `dependency_upgrades.md` | Upgrade workflow and dependency-risk handling |
+| 17 | `session_state_preservation.md` | Preserve context across long multi-step sessions |
+| 18 | `LESSONS.md` | Verbose workflow learnings paired with distilled AGENTS notes |
 
 ## Quick Links
 

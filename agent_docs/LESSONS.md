@@ -387,3 +387,56 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   that is a policy choice, not a code fix.
 - References: `rust-toolchain.toml`, `.github/workflows/ci.yml`
   (`./scripts/code-quality.sh clippy --workspace`), PR #1107.
+
+## LESSON-030: `GITHUB_TOKEN`-published releases never fire `release: published` (2026-10-03)
+
+- Issue: the draft-first release flow publishes the GitHub Release with the
+  repository `GITHUB_TOKEN`. Events raised by that token do **not** create
+  workflow runs (only `workflow_dispatch` and `repository_dispatch` are
+  exceptions), so `publish-crates.yml` — which listens to `release: published` —
+  had not run for a release since 2026-04-22 (the last release published by the
+  user account). crates.io sat at `0.1.34` (`do-memory-mcp`: `0.1.31`) while the
+  workspace moved to `0.1.45`, and no check noticed.
+- Impact: five months of releases were never published to crates.io, and every
+  user-visible "release" claim was true for GitHub Releases but false for the
+  registry.
+- Detection: `gh release view <tag> --json author` → `github-actions[bot]` means
+  the event was suppressed; compare `curl -s https://crates.io/api/v1/crates/<crate> | jq -r .crate.max_version`
+  with the workspace version; `gh run list --workflow=publish-crates.yml --event=release`
+  shows the last run that actually fired.
+- Fix: `release.yml`'s `dispatch-publish` job (needs `actions: write`) calls
+  `gh workflow run publish-crates.yml --ref <tag> -f dry-run=false` after the
+  release is published; the `release: published` trigger stays as a safety net
+  for user-published releases, and re-runs no-op on already-published versions.
+- Prevention: never rely on a token-raised event to start a second workflow —
+  dispatch it explicitly (documented exception), or use an App/PAT token. When
+  an event-triggered workflow "does not run", check the *author* of the
+  triggering object before debugging the workflow file.
+- References: `.github/workflows/release.yml`, `.github/workflows/publish-crates.yml`,
+  `agent_docs/github_actions_patterns.md`, PR #1123.
+
+## LESSON-031: crates.io trusted publishing matches the CALLING workflow, never the ref (2026-10-03)
+
+- Issue: the trusted-publisher config stores owner + repository + **workflow
+  filename** + environment. crates.io reads the OIDC `workflow_ref` claim — for a
+  job defined in a *called* reusable workflow that is the caller's filename
+  (`job_workflow_ref` is not read at all) — and it does not validate the git ref
+  or tag. Two traps follow: (a) moving publish steps into `x.yml` while the
+  registration says `publish-crates.yml` fails the exchange; (b) a workflow
+  dispatch with `dry-run=false` from a branch can publish for real unless the
+  environment and the workflow itself restrict refs.
+- Impact: a refactor can silently break publishing at release time, and a
+  write-access collaborator could publish an arbitrary version from a branch.
+- Fix: keep the auth step inside the registered workflow file (a composite
+  action keeps `workflow_ref` = `publish-crates.yml`; a reusable workflow would
+  also need the caller's filename registered and cannot elevate
+  `id-token: write`), register all four crates once (crate → Settings → Trusted
+  Publishing), restrict the `crates.io` environment to `v*` tags, and gate real
+  publishes in-workflow on `github.ref_type == 'tag'` with a tag↔version check.
+- Prevention: treat the trusted-publisher config as part of the workflow's
+  interface; pin the exchange action by SHA (`rust-lang/crates-io-auth-action`);
+  remember the token is single-use with a 30-minute lifetime and that each job
+  performs its own exchange. `pull_request_target`/`workflow_run` triggers are
+  rejected by crates.io.
+- References: `plans/adr/ADR-078-Trusted-Publishing-OIDC.md` (amendment),
+  `.github/actions/publish-crate/action.yml`, `SECURITY.md`, PR #1123.

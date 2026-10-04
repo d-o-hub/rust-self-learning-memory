@@ -4,12 +4,10 @@
 //! only secure protocols are used for database connections.
 
 #![allow(clippy::doc_markdown)]
-#![allow(clippy::ignore_without_reason)]
 
 use do_memory_storage_turso::TursoStorage;
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_insecure_http_protocol() {
     let result = TursoStorage::new("http://insecure.example.com", "token").await;
     assert!(result.is_err(), "Should reject HTTP protocol");
@@ -23,7 +21,6 @@ async fn test_rejects_insecure_http_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_insecure_https_protocol() {
     let result = TursoStorage::new("https://insecure.example.com", "token").await;
     assert!(
@@ -40,7 +37,6 @@ async fn test_rejects_insecure_https_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_empty_token_for_remote() {
     let result = TursoStorage::new("libsql://example.com", "").await;
     assert!(result.is_err(), "Should reject empty token");
@@ -54,7 +50,6 @@ async fn test_rejects_empty_token_for_remote() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_whitespace_only_token() {
     let result = TursoStorage::new("libsql://example.com", "   ").await;
     assert!(result.is_err(), "Should reject whitespace-only token");
@@ -68,7 +63,6 @@ async fn test_rejects_whitespace_only_token() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_allows_file_protocol() {
     let result = TursoStorage::new("file:test.db", "").await;
     // File protocol should be allowed (may fail for other reasons but not security check)
@@ -82,7 +76,6 @@ async fn test_allows_file_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_allows_memory_database() {
     let result = TursoStorage::new(":memory:", "").await;
     // Memory database should be allowed
@@ -96,7 +89,6 @@ async fn test_allows_memory_database() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_allows_valid_libsql_with_token() {
     // This may fail due to network, but should pass security validation
     let result = TursoStorage::new("libsql://example.turso.io", "valid_token_here").await;
@@ -110,7 +102,6 @@ async fn test_allows_valid_libsql_with_token() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_ftp_protocol() {
     let result = TursoStorage::new("ftp://insecure.example.com", "token").await;
     assert!(result.is_err(), "Should reject FTP protocol");
@@ -124,7 +115,6 @@ async fn test_rejects_ftp_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_ws_protocol() {
     let result = TursoStorage::new("ws://insecure.example.com", "token").await;
     assert!(result.is_err(), "Should reject WebSocket protocol");
@@ -138,7 +128,6 @@ async fn test_rejects_ws_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_postgres_protocol() {
     let result = TursoStorage::new("postgresql://localhost/db", "token").await;
     assert!(result.is_err(), "Should reject PostgreSQL protocol");
@@ -152,7 +141,6 @@ async fn test_rejects_postgres_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_rejects_mysql_protocol() {
     let result = TursoStorage::new("mysql://localhost/db", "token").await;
     assert!(result.is_err(), "Should reject MySQL protocol");
@@ -166,7 +154,6 @@ async fn test_rejects_mysql_protocol() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_security_error_type() {
     let result = TursoStorage::new("http://bad.com", "token").await;
     assert!(result.is_err());
@@ -180,7 +167,6 @@ async fn test_security_error_type() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_file_protocol_variations() {
     // Test various valid file: protocol formats
     let test_cases = vec!["file:test.db", "file:./test.db", "file:/tmp/test.db"];
@@ -199,7 +185,6 @@ async fn test_file_protocol_variations() {
 }
 
 #[tokio::test]
-#[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_case_sensitive_protocol_check() {
     // Protocol checks should be case-sensitive (lowercase required)
     let result = TursoStorage::new("LIBSQL://example.turso.io", "token").await;

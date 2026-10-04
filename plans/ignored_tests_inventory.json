@@ -1,0 +1,1592 @@
+[
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/lib.rs",
+    "line": 248,
+    "test": "test_with_local_storage",
+    "reason": "flaky in full suite: libsql concurrent connection race (ADR-027); passes in isolation",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/search/episodes.rs",
+    "line": 394,
+    "test": "test_find_similar_episodes_brute_force_direct",
+    "reason": "libsql memory corruption bug - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/search/episodes.rs",
+    "line": 428,
+    "test": "test_find_similar_episodes_brute_force_multiple",
+    "reason": "libsql memory corruption bug - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/search/patterns.rs",
+    "line": 379,
+    "test": "test_find_similar_patterns_brute_force_direct",
+    "reason": "libsql memory corruption bug - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/episodes/crud.rs",
+    "line": 226,
+    "test": "test_store_and_get_episode",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/episodes/crud.rs",
+    "line": 249,
+    "test": "test_delete_episode",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/episodes/crud.rs",
+    "line": 268,
+    "test": "test_store_and_get_summary",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/cache_integration_test.rs",
+    "line": 24,
+    "test": "test_cached_storage_episode_operations",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/cache_integration_test.rs",
+    "line": 66,
+    "test": "test_cached_storage_pattern_operations",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/cache_integration_test.rs",
+    "line": 108,
+    "test": "test_prepared_statement_cache",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/cache_integration_test.rs",
+    "line": 135,
+    "test": "test_batch_operations_integration",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 89,
+    "test": "test_store_and_retrieve_episode_summary",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 116,
+    "test": "test_capacity_enforcement_lru",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 155,
+    "test": "test_capacity_enforcement_basic",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 173,
+    "test": "test_summary_cascade_deletion",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 199,
+    "test": "test_capacity_count_accuracy",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 233,
+    "test": "test_batch_eviction",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 269,
+    "test": "test_no_eviction_under_capacity",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/capacity_enforcement_test.rs",
+    "line": 287,
+    "test": "test_summary_without_embedding",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration.rs",
+    "line": 100,
+    "test": "test_compression_enabled_by_default",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration.rs",
+    "line": 120,
+    "test": "test_small_embedding_not_compressed",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration.rs",
+    "line": 149,
+    "test": "test_large_embedding_compressed",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration.rs",
+    "line": 191,
+    "test": "test_compression_ratio_calculation",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration.rs",
+    "line": 226,
+    "test": "test_reset_compression_statistics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration_test.rs",
+    "line": 97,
+    "test": "test_compression_large_episodes",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration_test.rs",
+    "line": 123,
+    "test": "test_compression_small_episodes",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration_test.rs",
+    "line": 149,
+    "test": "test_multiple_episodes_compression",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/compression_integration_test.rs",
+    "line": 190,
+    "test": "test_storage_without_compression_feature",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/integration_test.rs",
+    "line": 25,
+    "test": "test_store_and_retrieve_episode",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/integration_test.rs",
+    "line": 45,
+    "test": "test_query_episodes",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/integration_test.rs",
+    "line": 67,
+    "test": "test_delete_episode",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/integration_test.rs",
+    "line": 84,
+    "test": "test_storage_statistics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/keepalive_pool_integration_test.rs",
+    "line": 38,
+    "test": "test_keepalive_reduces_connection_overhead",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/keepalive_pool_integration_test.rs",
+    "line": 54,
+    "test": "test_keepalive_config_applied",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/keepalive_pool_integration_test.rs",
+    "line": 71,
+    "test": "test_keepalive_with_health_check",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/keepalive_pool_integration_test.rs",
+    "line": 90,
+    "test": "test_keepalive_statistics_updated",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/keepalive_pool_integration_test.rs",
+    "line": 109,
+    "test": "test_keepalive_disabled",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 107,
+    "test": "test_store_execution_record_success",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 124,
+    "test": "test_store_execution_record_failure",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 140,
+    "test": "test_store_execution_record_all_agent_types",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 170,
+    "test": "test_load_execution_records_by_agent",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 189,
+    "test": "test_load_execution_records_all_agents",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 211,
+    "test": "test_load_execution_records_empty_result",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 231,
+    "test": "test_load_execution_records_with_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 253,
+    "test": "test_store_agent_metrics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 269,
+    "test": "test_load_agent_metrics_existing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 291,
+    "test": "test_load_agent_metrics_nonexistent",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 306,
+    "test": "test_store_agent_metrics_all_types",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 335,
+    "test": "test_update_agent_metrics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 374,
+    "test": "test_store_task_metrics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 390,
+    "test": "test_load_task_metrics_existing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 412,
+    "test": "test_load_task_metrics_nonexistent",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 430,
+    "test": "test_update_task_metrics",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 463,
+    "test": "test_store_execution_record_with_empty_description",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 486,
+    "test": "test_store_execution_record_with_zero_duration",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 509,
+    "test": "test_store_agent_metrics_with_zero_executions",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 525,
+    "test": "test_store_task_metrics_with_zero_tasks",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 549,
+    "test": "test_get_capacity_statistics_empty",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 579,
+    "test": "test_get_capacity_statistics_with_episodes",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 598,
+    "test": "test_get_capacity_statistics_with_monitoring_data",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 632,
+    "test": "test_store_episode_with_capacity_under_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 654,
+    "test": "test_store_episode_with_capacity_at_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 679,
+    "test": "test_store_episode_with_capacity_exceeds_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 704,
+    "test": "test_store_episode_with_capacity_large_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 729,
+    "test": "test_store_episode_with_capacity_single_episode_limit",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 800,
+    "test": "test_capacity_statistics_reflects_all_tables",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/monitoring_capacity_tests.rs",
+    "line": 831,
+    "test": "test_eviction_preserves_monitoring_data",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 34,
+    "test": "test_384_dimension_routing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 59,
+    "test": "test_1536_dimension_routing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 83,
+    "test": "test_unsupported_dimension_routing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 107,
+    "test": "test_mixed_dimension_routing",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 137,
+    "test": "test_backward_compatibility_embedding_retrieval",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/multi_dimension_routing.rs",
+    "line": 186,
+    "test": "test_vector_search_across_dimensions",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 56,
+    "test": "test_cache_first_read_strategy",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 128,
+    "test": "test_batch_operations",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 187,
+    "test": "test_query_result_caching",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 217,
+    "test": "test_query_cache_expiration",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 242,
+    "test": "test_metadata_query_optimization",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/phase1_optimization_test.rs",
+    "line": 291,
+    "test": "test_end_to_end_optimization",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/prepared_cache_integration_test.rs",
+    "line": 17,
+    "test": "test_prepared_statement_cache_integration",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 603,
+    "test": "test_find_similar_episodes_empty_database",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 623,
+    "test": "test_find_similar_episodes_with_embeddings",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 658,
+    "test": "test_find_similar_episodes_threshold_filtering",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 706,
+    "test": "test_find_similar_episodes_limit",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 738,
+    "test": "test_find_similar_episodes_sorted_by_similarity",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 786,
+    "test": "test_find_similar_episodes_metadata_correct",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 1182,
+    "test": "test_full_recommendation_workflow",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/recommendations_and_search_tests.rs",
+    "line": 1236,
+    "test": "test_search_with_recommendation_data",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/resilient_keepalive_coverage_tests.rs",
+    "line": 266,
+    "test": "test_resilient_embedding_operations",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/resilient_keepalive_coverage_tests.rs",
+    "line": 296,
+    "test": "test_resilient_embedding_batch_operations",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/resilient_keepalive_coverage_tests.rs",
+    "line": 598,
+    "test": "test_keepalive_connection_into_connection",
+    "reason": "ADR-027: libsql memory corruption bug in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 40,
+    "test": "test_sql_injection_in_task_description",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 62,
+    "test": "test_sql_injection_with_union_select",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 79,
+    "test": "test_sql_injection_with_or_condition",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 96,
+    "test": "test_sql_injection_with_comment_bypass",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 113,
+    "test": "test_sql_injection_in_metadata",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 136,
+    "test": "test_multiple_sql_injection_attempts",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 167,
+    "test": "test_table_integrity_after_injection_attempts",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 195,
+    "test": "test_sql_injection_in_execution_steps",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 222,
+    "test": "test_sql_injection_in_outcome",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/sql_injection_tests.rs",
+    "line": 252,
+    "test": "test_sql_injection_in_context",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/vector_search_test.rs",
+    "line": 26,
+    "test": "test_store_and_retrieve_embedding",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/vector_search_test.rs",
+    "line": 47,
+    "test": "test_vector_search",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/tests/vector_search_test.rs",
+    "line": 110,
+    "test": "test_vector_search_threshold",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/src/embeddings/local_tests.rs",
+    "line": 74,
+    "test": "test_real_embedding_generation",
+    "reason": "Requires local-embeddings feature with ONNX models - blocked by ort crate Send trait issue",
+    "upstream_tracker": "https://github.com/pykeio/ort/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/async_extraction.rs",
+    "line": 303,
+    "test": "should_scale_processing_with_different_worker_counts",
+    "reason": "slow integration test - runs for >60s, run explicitly with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/compliance.rs",
+    "line": 422,
+    "test": "should_execute_typescript_code_in_secure_sandbox",
+    "reason": "Requires MCP server implementation",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/compliance.rs",
+    "line": 434,
+    "test": "should_generate_mcp_tools_from_memory_patterns",
+    "reason": "Requires MCP server implementation",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 65,
+    "test": "test_heuristic_extraction_from_episode",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 176,
+    "test": "test_heuristic_storage_in_learning_cycle",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 227,
+    "test": "test_heuristic_retrieval_by_context",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 299,
+    "test": "test_heuristic_confidence_updates",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 426,
+    "test": "test_heuristic_filtering_by_confidence",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 514,
+    "test": "test_end_to_end_heuristic_learning",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 644,
+    "test": "test_no_heuristic_extraction_from_failed_episode",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/heuristic_learning.rs",
+    "line": 687,
+    "test": "test_heuristic_edge_cases",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/input_validation.rs",
+    "line": 32,
+    "test": "should_handle_large_inputs_without_data_loss",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/input_validation.rs",
+    "line": 212,
+    "test": "should_handle_special_characters_and_edge_cases_gracefully",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/learning_cycle.rs",
+    "line": 18,
+    "test": "should_execute_complete_learning_cycle_end_to_end",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/learning_cycle.rs",
+    "line": 114,
+    "test": "should_learn_from_multiple_episodes_in_same_domain",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/learning_cycle.rs",
+    "line": 169,
+    "test": "should_learn_from_failed_episodes_with_improvement_insights",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/learning_cycle.rs",
+    "line": 229,
+    "test": "should_handle_concurrent_episode_operations_safely",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/learning_cycle.rs",
+    "line": 287,
+    "test": "should_extract_patterns_accurately_from_error_recovery_episodes",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 189,
+    "test": "should_retrieve_episodes_under_100ms_p95_with_10k_episodes",
+    "reason": "Long-running test - run with --include-ignored for full validation",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 312,
+    "test": "should_store_10000_episodes_without_performance_degradation",
+    "reason": "Long-running test - run with --include-ignored for full validation",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 402,
+    "test": "should_achieve_70_percent_pattern_recognition_accuracy",
+    "reason": "Requires pattern accuracy measurement infrastructure",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 552,
+    "test": "should_cleanup_cache_when_exceeding_limits",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 639,
+    "test": "should_complete_episodes_concurrently_without_conflicts",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 689,
+    "test": "should_handle_concurrent_retrievals_efficiently",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/performance.rs",
+    "line": 762,
+    "test": "should_complete_episodes_quickly_with_pattern_extraction",
+    "reason": "slow integration test - run with --ignored or in release CI",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/regression.rs",
+    "line": 321,
+    "test": "should_maintain_pattern_extraction_accuracy_over_time",
+    "reason": "Non-deterministic pattern extraction - may fail intermittently",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/regression.rs",
+    "line": 426,
+    "test": "should_maintain_fast_retrieval_with_large_dataset",
+    "reason": "Long-running performance test - run with --include-ignored for full validation",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/relationship_integration.rs",
+    "line": 434,
+    "test": "test_relationships_with_storage",
+    "reason": "Requires real storage backends",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 49,
+    "test": "test_add_episode_tags",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 75,
+    "test": "test_add_duplicate_tags",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 106,
+    "test": "test_remove_episode_tags",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 139,
+    "test": "test_set_episode_tags",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 170,
+    "test": "test_list_episodes_by_tags_or",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 208,
+    "test": "test_list_episodes_by_tags_and",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 249,
+    "test": "test_get_all_tags",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 282,
+    "test": "test_tag_statistics",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-core",
+    "file": "memory-core/tests/tag_operations_test.rs",
+    "line": 327,
+    "test": "test_tag_validation",
+    "reason": "slow integration test - run with --ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "memory-cli",
+    "file": "memory-cli/tests/config_property_tests.rs",
+    "line": 297,
+    "test": "preset_configs_always_valid",
+    "reason": "slow: ConfigPreset::create_config() does I/O, can timeout with default proptest cases",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "memory-cli",
+    "file": "memory-cli/tests/episode_update_test.rs",
+    "line": 245,
+    "test": "test_update_persists_to_storage",
+    "reason": "requires external Turso database configuration",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 10,
+    "test": "benchmark_dbscan_scalability",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 45,
+    "test": "benchmark_bocpd_scalability",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 81,
+    "test": "benchmark_kdtree_performance",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 121,
+    "test": "benchmark_pattern_extraction",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 160,
+    "test": "benchmark_compatibility_assessment",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 250,
+    "test": "benchmark_memory_usage",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 297,
+    "test": "benchmark_streaming_performance",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 346,
+    "test": "benchmark_concurrent_analysis",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 381,
+    "test": "benchmark_real_world_workload",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/patterns/benchmarks/performance_benchmarks.rs",
+    "line": 425,
+    "test": "benchmark_accuracy_performance_tradeoff",
+    "reason": "performance benchmark - run with --run-ignored",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-mcp",
+    "file": "memory-mcp/src/bin/server_impl/storage.rs",
+    "line": 293,
+    "test": "test_initialize_turso_local_succeeds",
+    "reason": "upstream libsql memory corruption SIGSEGV (ADR-027)",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "e2e-tests",
+    "file": "tests/quality_gates.rs",
+    "line": 692,
+    "test": "quality_gate_no_clippy_warnings",
+    "reason": "runs full cargo clippy internally; covered by CI quick-check workflow",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "e2e-tests",
+    "file": "tests/quality_gates.rs",
+    "line": 761,
+    "test": "quality_gate_performance_regression",
+    "reason": "runs full cargo test subprocess (>120s), covered by Performance Benchmarks CI workflow",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "e2e-tests",
+    "file": "tests/soak/stability_test.rs",
+    "line": 534,
+    "test": "test_24_hour_stability",
+    "reason": "Intentionally slow soak test; run manually with --ignored or nightly soak workflow",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "e2e-tests",
+    "file": "tests/e2e/mcp_integration.rs",
+    "line": 777,
+    "test": "test_mcp_server_lifecycle",
+    "reason": "Process-based test - run manually",
+    "upstream_tracker": null,
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  }
+]

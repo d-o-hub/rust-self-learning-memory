@@ -48,7 +48,10 @@ Actions:
 Options:
   --tag <tag>             Tag for rollback (e.g. v0.1.35)
   --execute               Perform real git tag/push (default is dry-run)
-  --skip-local-tests      Skip nextest/clippy/quality-gates (docs-only emergency)
+  --skip-local-tests      EMERGENCY only. Skips the local gates in validate and
+                          prepare (nextest/clippy/quality-gates), so before
+                          tagging you MUST have a green ci-check on the exact
+                          release commit (full ship already runs ci-check)
   --skip-ci-check         Skip GitHub Actions green check (NOT for production)
   -h, --help              Show this help
 
@@ -228,6 +231,8 @@ do_validate() {
   ./scripts/verify-release-state.sh --check-unreleased
   echo ""
   if [[ "$SKIP_LOCAL_TESTS" == "true" ]]; then
+    # EMERGENCY path: skips the local gates in validate/prepare. The caller MUST
+    # have a green ci-check on the exact release commit before tagging.
     echo "═══ Phase 1: Code quality (SKIPPED via --skip-local-tests) ═══"
     return 0
   fi

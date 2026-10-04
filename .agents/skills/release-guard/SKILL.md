@@ -35,6 +35,7 @@ description: "Canonical release workflow for this repo. One path every time: mai
 | Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
 | `--admin` / force merge | Branch protection exists for a reason |
 | Ship while main CI pending/failed | Broken release |
+| `--skip-local-tests` without `ci-check` parity | Skips the local `validate`/`prepare` gates; only acceptable when a `ci-check` on the **exact** release commit is green (full `ship` already runs it) |
 | Multiple competing “release procedures” | This skill + `release-manager.sh` only |
 
 ## Agent checklist (every release)
@@ -124,11 +125,13 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
   ```bash
   for app in do-memory-cli do-memory-mcp do-memory-examples; do
-    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory
     gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory \
+      --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml
+    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory \
+      --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml \
       --predicate-type https://cyclonedx.org/bom
   done
-  gh release verify vX.Y.Z   # release attestation (immutable releases)
+  gh release verify vX.Y.Z -R d-o-hub/rust-self-learning-memory   # immutable releases only
   ```
 
 - Drift issue (#849-style) should close when tag matches workspace version

@@ -18,11 +18,33 @@ All third-party actions MUST be pinned to immutable SHAs to prevent supply-chain
 - **Rule**: Use `@<SHA>` instead of `@vX`.
 - **Exception**: Local actions (e.g., `uses: ./.github/actions/setup-rust`) do not require SHAs.
 - **Maintenance**: Use Dependabot to manage SHA updates while preserving major version comments.
+- **Publish path**: every `actions/checkout` in the publish/release path sets
+  `persist-credentials: false` — the checkout token is never needed to push, so
+  it must not be left in `.git/config` (ADR-045, issue #1109 C7).
 
 Example:
 ```yaml
 - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 ```
+
+## Release Workflow Trigger & Pages Boundary (2026-10-04)
+
+- **`release.yml` PR trigger is path-gated** to `.github/workflows/release.yml`
+  + `dist-workspace.toml`. The `pull_request` run exists only for the `dist
+  plan` smoke test; the real release is tag-only (ADR-072/ADR-079 §6). Skipping
+  is safe because path-filtered workflows leave status checks "pending" only for
+  **required** contexts, and release.yml's PR checks are non-required (the
+  ruleset requires only `Codacy Static Code Analysis` + `CI / Required`) — so a
+  filtered skip cannot block a merge. GitHub "Skipping workflow runs":
+  <https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs>.
+- **Tag glob is `v[0-9]+.[0-9]+.[0-9]+*`** — ADR-072 mandates `v<version>` tags
+  (`release-manager.sh` pushes `v$version`; preflight expects
+  `v${CARGO_VERSION}`). The dist default dropped the `v`, so a stray `0.1.46`
+  tag ran the whole release path only to fail preflight. Prereleases such as
+  `v0.1.44-rc.1` still match.
+- **Pages is independent of releases**: `pages.yml` deploys from `book/**`
+  pushes on `main`; no release job depends on it, and the release notes only
+  *link* the published `verify-a-release.html` page (issue #1109 C5).
 
 ## Job Dependency (CRITICAL)
 When a job has `needs: [upstream-job]` and upstream is conditionally skipped:

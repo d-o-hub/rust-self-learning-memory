@@ -129,6 +129,34 @@ Located in `.claude/settings.json`, hooks enforce security at development time:
   reintroduced, if `id-token: write` disappears, or if the auth action loses
   its SHA pin.
 
+#### Verifying a release
+
+Consumers should verify a downloaded release before use. See the book's
+[Verify a Release](<https://d-o-hub.github.io/rust-self-learning-memory/verify-a-release.html>)
+page for the full walkthrough.
+
+```bash
+# 1. Checksum — verify the archive against its .sha256 sidecar
+sha256sum -c do-memory-cli-x86_64-unknown-linux-gnu.tar.xz.sha256
+
+# 2. Build provenance (run on the DOWNLOADED file; needs gh >= 2.49)
+gh attestation verify do-memory-cli-x86_64-unknown-linux-gnu.tar.xz \
+  -R d-o-hub/rust-self-learning-memory
+
+# 3. SBOM attestation (CycloneDX predicate)
+gh attestation verify do-memory-cli-x86_64-unknown-linux-gnu.tar.xz \
+  -R d-o-hub/rust-self-learning-memory \
+  --predicate-type https://cyclonedx.org/bom
+
+# 4. Immutable release (only once repository immutability is enabled; needs gh >= 2.81)
+gh release verify vX.Y.Z
+```
+
+A release whose checksum or attestation fails verification **must not be used**;
+report it through the repository's security policy (see
+[`.github/SECURITY.md`](./.github/SECURITY.md) — use a private security advisory,
+not a public issue).
+
 ## Hook Scripts
 
 ### `protect-secrets.sh`

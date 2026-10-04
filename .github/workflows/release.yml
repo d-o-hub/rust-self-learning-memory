@@ -13,6 +13,9 @@
 #
 # Note that the GitHub Release will be created with a generated
 # title/body based on your changelogs.
+#
+# Documentation deployment is intentionally NOT part of the release: pages.yml
+# deploys independently from `book/**` pushes on main (issue #1109 C5).
 
 name: Release
 # Least privilege at the workflow level; the `host` job raises its own scopes
@@ -42,10 +45,26 @@ permissions:
 # If there's a prerelease-style suffix to the version, then the release(s)
 # will be marked as a prerelease.
 'on':
+  # PR runs exist ONLY for the `dist plan` smoke test (the plan/build-* jobs);
+  # the real release is tag-only (ADR-072, ADR-079 §6). Gate them to the files
+  # that can change what that plan does, so unrelated PRs skip this workflow.
+  #
+  # Safe to skip: path-filtered workflows leave checks "pending" only for
+  # *required* status contexts. release.yml's PR checks are non-required (the
+  # ruleset requires `Codacy Static Code Analysis` + `CI / Required`), so a
+  # filtered skip cannot block a merge. GitHub docs, "Skipping workflow runs":
+  # <https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs>
   pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'dist-workspace.toml'
   push:
     tags:
-      - '**[0-9]+.[0-9]+.[0-9]+*'
+      # ADR-072 mandates `v<version>` tags (release-manager.sh pushes v$version;
+      # preflight expects v${CARGO_VERSION}). The dist default glob without the
+      # `v` let a stray `0.1.46` tag run the whole path only to fail preflight.
+      # Prereleases such as v0.1.44-rc.1 still match.
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
   # Run 'dist plan' (or host) to determine what tasks we need to do
@@ -386,8 +405,16 @@ jobs:
           RELEASE_COMMIT: "${{ github.sha }}"
         # shellcheck disable=SC2086
         run: |
-          # Write and read notes from a file to avoid quoting breaking things
+          # Write and read notes from a file to avoid quoting breaking things.
+          # Prepend a link to the published "Verify a release" page (issue #1109
+          # C5) while keeping the changelog body file-based.
           echo "$ANNOUNCEMENT_BODY" > "$RUNNER_TEMP/notes.txt"
+          {
+            echo "Verify this release: <https://d-o-hub.github.io/rust-self-learning-memory/verify-a-release.html>"
+            echo ""
+            cat "$RUNNER_TEMP/notes.txt"
+          } > "$RUNNER_TEMP/notes.with-link.txt"
+          mv "$RUNNER_TEMP/notes.with-link.txt" "$RUNNER_TEMP/notes.txt"
 
           # Idempotent: a re-run after a failure between create and publish must
           # update the existing draft instead of failing with "already exists".

@@ -2,6 +2,7 @@
 
 - [Introduction](./introduction.md)
 - [Getting Started](./getting-started.md)
+- [Verify a Release](./verify-a-release.md)
 - [Architecture](#architecture) <!-- TODO: create book/src/architecture.md -->
 - [Episodes](#episodes) <!-- TODO: create book/src/episodes.md -->
 - [Patterns](#patterns) <!-- TODO: create book/src/patterns.md -->

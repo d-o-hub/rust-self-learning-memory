@@ -35,6 +35,7 @@ description: "Canonical release workflow for this repo. One path every time: mai
 | Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
 | `--admin` / force merge | Branch protection exists for a reason |
 | Ship while main CI pending/failed | Broken release |
+| `--skip-local-tests` without `ci-check` parity | Skips the local `validate`/`prepare` gates; only acceptable when a `ci-check` on the **exact** release commit is green (full `ship` already runs it) |
 | Multiple competing “release procedures” | This skill + `release-manager.sh` only |
 
 ## Agent checklist (every release)

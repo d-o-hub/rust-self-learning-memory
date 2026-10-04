@@ -440,3 +440,58 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   rejected by crates.io.
 - References: `plans/adr/ADR-078-Trusted-Publishing-OIDC.md` (amendment),
   `.github/actions/publish-crate/action.yml`, `SECURITY.md`, PR #1123.
+
+## LESSON-032: A skipped dependency makes every downstream job skip (2026-10-04)
+
+- Issue: `release.yml` kept a `pull_request` trigger for a "dist plan smoke
+  test". `preflight` is gated on `!github.event.pull_request`, and `plan`
+  declares `needs: [preflight]` without `always()`, so on every PR the whole
+  workflow ran preflight(skipped) → plan(skipped) → build-*(skipped) →
+  host/announce(skipped). The PR run executed nothing, yet it appeared in every
+  PR's check list and its comments claimed a smoke test that never ran.
+- Impact: a no-op required-looking run; misleading rationale; a path filter
+  "optimised" something that did nothing. Nothing was validated by it, so
+  removing it changed no coverage.
+- Detection: on any PR, look at the run's jobs — if the first job is `skipped`,
+  all dependents are skipped unless they use `always()`. Compare the check names
+  a workflow actually produces (`gh pr checks`).
+- Fix: drop the trigger and state the truth in the workflow comment (release
+  validation happens at tag time; code PR coverage lives in `ci.yml`). See
+  PR #1125.
+- Prevention: before adding or gating a trigger, run it once and confirm at
+  least one job executes; `needs:` without `always()` propagates skips.
+- References: `.github/workflows/release.yml`,
+  `plans/GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, PR #1125.
+
+## LESSON-033: mdBook `create-missing` turns `#anchor` placeholders into files (2026-10-04)
+
+- Issue: `book/src/SUMMARY.md` listed un-written chapters as anchor links
+  (`- [Architecture](#architecture) <!-- TODO -->`). With `create-missing = true`
+  in `book/book.toml`, `mdbook build` treated the anchor as a path and created
+  one-line files literally named `book/src/#architecture`, `#patterns`, …; a
+  `git add -A` then committed nine of them.
+- Impact: stray files in the repo, pages rendered as `#architecture.html` that
+  cannot be navigated to, and diffs polluted by build artifacts.
+- Fix: remove the files and use mdBook draft chapters (`- [Title]()`), which
+  create nothing; rebuild and confirm the tree is clean.
+- Prevention: after any `mdbook build`, check `git status` before `git add -A`;
+  keep TODO chapters as `[]()` drafts, never as `#anchor` links.
+- References: `book/src/SUMMARY.md`, `book/book.toml`, PR #1125.
+
+## LESSON-034: `gh attestation verify` without `--signer-workflow` under-binds (2026-10-04)
+
+- Issue: the new docs told users `gh attestation verify <file> -R <owner/repo>`
+  while the prose claimed the artifact "was built by this repository's
+  workflow". The default policy checks the repository/owner identity only, so
+  any workflow in the repository that can request an attestation satisfies it.
+- Impact: a documented verification weaker than it reads, on a page whose whole
+  purpose is trust.
+- Fix: add `--signer-workflow <owner>/<repo>/.github/workflows/release.yml`
+  (GitHub CLI manual: "Ideally, the path of the signer workflow is also
+  validated using `--signer-workflow`"), plus `--source-ref refs/tags/vX.Y.Z`
+  for tag-pinned verification. Applied to the book page, `SECURITY.md` and the
+  `release-guard` skill.
+- Prevention: when documenting attestation verification, always pin the signer
+  (workflow or certificate identity), not just the repository.
+- References: `book/src/verify-a-release.md`, `SECURITY.md`,
+  `.agents/skills/release-guard/SKILL.md`, PR #1125.

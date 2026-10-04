@@ -103,6 +103,6 @@ attribution_capability_truth      = true  (ADR-081 §2 — StorageBackend capabi
 feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930 + #947 checked manual receipt matrix + cold-restart tests, merged 2026-08-12)
 feedback_updates_ranking          = true  (ADR-082 — code-side: derived Wilson weight + capability-gated list methods + recommend re-rank + e2e; lifecycle Proposed noted)
 r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
-r_f10_oidc_publishing             = true  (ACT-325 + ACT-366 — official crates-io-auth-action, no CARGO_REGISTRY_TOKEN fallback, shared publish-crate action, skipped-tolerant chain)
+r_f10_oidc_publishing             = true  (ACT-325 + ACT-368 — official crates-io-auth-action, no CARGO_REGISTRY_TOKEN fallback, shared publish-crate action, skipped-tolerant chain; ACT-369 — verify-a-release docs, truthful release triggers, publish-path hygiene)
 r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)
 ```

@@ -136,20 +136,24 @@ Consumers should verify a downloaded release before use. See the book's
 page for the full walkthrough.
 
 ```bash
-# 1. Checksum — verify the archive against its .sha256 sidecar
+# 1. Checksum — verifies integrity in transit only (the sidecar ships beside
+#    the archive); authenticity comes from the attestations below
 sha256sum -c do-memory-cli-x86_64-unknown-linux-gnu.tar.xz.sha256
 
-# 2. Build provenance (run on the DOWNLOADED file; needs gh >= 2.49)
+# 2. Build provenance (run on the DOWNLOADED file; needs gh >= 2.49).
+#    --signer-workflow pins the producer, not just the repository.
 gh attestation verify do-memory-cli-x86_64-unknown-linux-gnu.tar.xz \
-  -R d-o-hub/rust-self-learning-memory
+  -R d-o-hub/rust-self-learning-memory \
+  --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml
 
 # 3. SBOM attestation (CycloneDX predicate)
 gh attestation verify do-memory-cli-x86_64-unknown-linux-gnu.tar.xz \
   -R d-o-hub/rust-self-learning-memory \
+  --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml \
   --predicate-type https://cyclonedx.org/bom
 
 # 4. Immutable release (only once repository immutability is enabled; needs gh >= 2.81)
-gh release verify vX.Y.Z
+gh release verify vX.Y.Z -R d-o-hub/rust-self-learning-memory
 ```
 
 A release whose checksum or attestation fails verification **must not be used**;

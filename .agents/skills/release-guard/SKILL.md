@@ -125,11 +125,13 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
   ```bash
   for app in do-memory-cli do-memory-mcp do-memory-examples; do
-    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory
     gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory \
+      --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml
+    gh attestation verify ${app}-x86_64-unknown-linux-gnu.tar.xz -R d-o-hub/rust-self-learning-memory \
+      --signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml \
       --predicate-type https://cyclonedx.org/bom
   done
-  gh release verify vX.Y.Z   # release attestation (immutable releases)
+  gh release verify vX.Y.Z -R d-o-hub/rust-self-learning-memory   # immutable releases only
   ```
 
 - Drift issue (#849-style) should close when tag matches workspace version

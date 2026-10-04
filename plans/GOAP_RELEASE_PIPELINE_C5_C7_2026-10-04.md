@@ -52,13 +52,38 @@
 
 ## Decisions
 
+- **Release PR trigger (revised after adversarial review)**: the `pull_request` trigger was
+  **removed** rather than path-gated. Review proved the PR run executed nothing: `preflight` is
+  gated on `!github.event.pull_request` and `plan` needs `preflight` without `always()`, so every
+  job (plan, build-\\*, host, dispatch-publish, announce) was skipped — the path filter only
+  reduced noise, it did not run a `dist plan` smoke test. Release validation happens at tag time;
+  code PR coverage lives in `ci.yml`. The requirements-check rationale (only *required* contexts
+  block on filtered/skipped workflows — GitHub, "Skipping workflow runs") is recorded in the
+  workflow comment.
+- **Attestation verification pins the signer**: the book page, `SECURITY.md` and the
+  `release-guard` skill now pass
+  `--signer-workflow d-o-hub/rust-self-learning-memory/.github/workflows/release.yml`
+  (the CLI manual: "Ideally, the path of the signer workflow is also validated using
+  `--signer-workflow`"), instead of a repo-only lookup that any workflow in the repository
+  could satisfy.
+- **`host` job OIDC scope**: the SBOM steps (which compile third-party code) blank
+  `ACTIONS_ID_TOKEN_REQUEST_URL/TOKEN` so they cannot mint an attestation identity; a job split
+  remains the follow-up if the SBOM step set grows. Recorded as accepted residual: the rest of
+  `host` keeps `id-token: write` for `actions/attest`.
+- **cargo-dist installer (`curl | sh`, version-tagged)**: accepted residual (dist-generated in
+  `plan` and the matrix jobs; no hash available upstream) — recorded here rather than patched in
+  generated code.
 - **Versioned docs (C5 optional)**: deferred. A per-tag `vX.Y.Z/` snapshot needs a book build on
   tag pushes plus artifact merging in `pages.yml`; no acceptance criterion requires it, and the
   "verify a release" page covers the user-facing need. Recorded as a follow-up candidate.
 - **Tag glob tightening**: `push.tags: ['**[0-9]+.[0-9]+.[0-9]+*']` (dist default) does not
   require the `v` prefix that ADR-072 and `release-manager.sh` mandate, so a stray `0.1.46` tag
-  runs the whole release path only to fail preflight. Tighten to `'v[0-9]+.[0-9]+.[0-9]+*'` with
-  a comment (prereleases like `v0.1.44-rc.1` still match).
+  runs the whole release path only to fail preflight. Tightened to `'v[0-9]+.[0-9]+.[0-9]+*'`.
+  Prerelease-style tags still match the glob but cannot pass preflight, which parses only a bare
+  `X.Y.Z` workspace version.
+- **`book/src/SUMMARY.md` placeholders**: the nine `#anchor` TODO stubs made mdBook's
+  `create-missing` emit `#`-named files in `book/src/`; they are now proper draft chapters
+  (`- [Title]()`), so builds stay clean.
 - **C7 permissions**: `release.yml` already keeps workflow-level `contents: read` and raises
   write scopes inside `host` (contents/id-token/attestations) and `dispatch-publish` (actions);
   no change needed — the PR records this as evidence instead of churn.

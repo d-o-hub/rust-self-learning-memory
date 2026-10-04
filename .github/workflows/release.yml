@@ -45,25 +45,19 @@ permissions:
 # If there's a prerelease-style suffix to the version, then the release(s)
 # will be marked as a prerelease.
 'on':
-  # PR runs exist ONLY for the `dist plan` smoke test (the plan/build-* jobs);
-  # the real release is tag-only (ADR-072, ADR-079 §6). Gate them to the files
-  # that can change what that plan does, so unrelated PRs skip this workflow.
-  #
-  # Safe to skip: path-filtered workflows leave checks "pending" only for
-  # *required* status contexts. release.yml's PR checks are non-required (the
-  # ruleset requires `Codacy Static Code Analysis` + `CI / Required`), so a
-  # filtered skip cannot block a merge. GitHub docs, "Skipping workflow runs":
-  # <https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs>
-  pull_request:
-    paths:
-      - '.github/workflows/release.yml'
-      - 'dist-workspace.toml'
+  # Releases are tag-only (ADR-072, ADR-079 §6). There is deliberately no
+  # `pull_request` trigger: PR runs produced only skipped jobs (preflight is
+  # gated on `!github.event.pull_request` and `plan` needs preflight without
+  # `always()`), so they exercised nothing while adding runs to every PR.
+  # release.yml changes are validated by the tag-time preflight; PR coverage
+  # for code lives in ci.yml.
   push:
     tags:
       # ADR-072 mandates `v<version>` tags (release-manager.sh pushes v$version;
       # preflight expects v${CARGO_VERSION}). The dist default glob without the
       # `v` let a stray `0.1.46` tag run the whole path only to fail preflight.
-      # Prereleases such as v0.1.44-rc.1 still match.
+      # Note: prerelease-style tags (v0.1.44-rc.1) match this glob but cannot
+      # pass preflight, which parses only a bare X.Y.Z workspace version.
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
@@ -372,6 +366,14 @@ jobs:
         with:
           job-name: release-sbom
       - name: Generate SBOMs (CycloneDX, one per crate)
+        # `id-token: write` is job-scoped, so the OIDC request vars are ambient
+        # for every step of `host`. These two steps compile and execute
+        # third-party code (cargo-cyclonedx + workspace build scripts), so blank
+        # the vars here: they must never be able to mint an attestation
+        # identity. Keep this pattern for any future step that runs builds.
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_URL: ""
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ""
         run: |
           cargo install --locked cargo-cyclonedx --version 0.5.9
           cargo cyclonedx --target all --format json

@@ -4,7 +4,9 @@
 - **Orchestrator**: goap-agent skill (ANALYZE → DECOMPOSE → STRATEGIZE → COORDINATE → EXECUTE → SYNTHESIZE)
 - **Scope**: issue #1109 §3 C5 (Pages boundary + "Verify a release" page), C6 (slim the
   release path), C7 (secret/permission hygiene). C1–C4 landed in #1123/#1121.
-- **Status**: executing (parallel slices).
+- **Status**: ✅ landed in PR #1125 (merge commit `4fb0e20f`, 2026-10-04) — verified by the repo
+  validators, `mdbook build`, two adversarial review passes (correctness + security, all findings
+  fixed in `a224eb8d`) and green CI (32 checks).
 
 ## ANALYZE — constraints from the affected ADRs
 

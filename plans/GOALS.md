@@ -1,10 +1,51 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-09-24
-- **Status**: retrieval judgment (#1030 → #1041) and semantic shortlist rerank (#1031 → #1042) merged 2026-09-24; v0.1.41 shipped, workspace bumped to 0.1.42; merge/coverage tooling in review (#1046); ADR-080/081/082 remain `Proposed` pending maintainer acceptance; ADR-079 stage 4 live fault-inject proof is external maintainer evidence
-- **Workspace**: `0.1.42` · **Tag**: `v0.1.41`
-- **Plan**: no in-flight code plan; next candidate #1032 (evidence-aware passage classification) and tracker hygiene (#1046)
+- **Last Updated**: 2026-10-04
+- **Status**: **audit-backlog wave in flight** — 22 open code issues (#1063–#1092) were filed at `9f50c607`, never
+  registered in these trackers, and re-validation at `74a44a15` found **0 fixed** (20 OPEN, 2 PARTIAL). Wave goals
+  G-A1…G-A6 below. The earlier campaign claims still hold but are campaign-scoped: retrieval judgment (#1030 → #1041)
+  and rerank (#1031 → #1042) merged 2026-09-24; ADR-080/081/082 remain `Proposed` pending maintainer acceptance;
+  ADR-079 stage 4 live fault-inject proof is external maintainer evidence
+- **Workspace**: `0.1.45` · **Tag**: `v0.1.44`
+- **Plan**: `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (W1–W6); next candidate chains are ACT-376…ACT-385
 - **Archive**: `plans/archive/2026-07-consolidation/`
+
+## Active goals (2026-10-04 — audit-backlog wave)
+
+| Goal | Rec | Priority | Status |
+|------|-----|----------|--------|
+| G-A1 no lock held across `.await` in the recommendation path | #1077 / R06 | P1 | 🔄 W1 — restores an AGENTS.md core invariant |
+| G-A2 sub-second MCP latency is real, not truncated to 0 | #1086 / M05 | P2 | 🔄 W2 |
+| G-A3 a failed tag transaction cannot leave partial state | #1088 / M07 | P2 | 🔄 W3 |
+| G-A4 the redb episode→session index follows recency, not write order | #1066 / S07 | P1 | 🔄 W4 |
+| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 W5 |
+| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 W6 — includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
+| G-A7 trackers match `gh issue list` | governance | P0 | ✅ this commit — `GAP_ANALYSIS_LATEST.md` is now the repo-wide register; "0 open gaps" is scoped to its campaign |
+
+### Why this wave and not the higher-effort chains
+
+Selection criterion was: fixes a real defect, touches no `StorageBackend` trait signature (22 implementations —
+escalation E5), needs no schema migration, and is independently revertable. The watermark chain
+(#1067→#1068→#1089) and the embedding-identity chain (#1073→#1074→#1076) are the highest-value structural
+fixes but each requires a migration plus coordinated backend key changes, so they are queued as ACT-376…ACT-381
+with their rationale recorded rather than folded into a hygiene wave.
+
+### Escalations found by validation (changed priorities; no issue body states them)
+
+| ID | Finding | Consequence |
+|---|---|---|
+| E1 | health output interpolates the raw `TURSO_DATABASE_URL` | #1085 became a security fix, not just observability |
+| E2 | `semantic_service` is `None` on every production path, and both scoring fallbacks return the constant `0.5` | production pattern search/recommendation ignores the query text; #1075 + #1074 are coupled and #1076 must not land first |
+| E3 | `episodes.created_at` is absent from the Turso INSERT column list | it is not a creation stamp; constrains #1067 |
+| E4 | adaptive pool cooldown compares against a fresh `Instant` (≈0 ns) and `adaptive_tests.rs:140-146` asserts the broken value | a green suite is not evidence here; #1063's fix must change that test |
+| E5 | `query_episodes_since` is required, not defaulted (22 impls) | #1067 must add a defaulted method instead of changing the signature |
+
+## Closed this wave (2026-10-04 — release pipeline C5–C7)
+
+| Goal | Status |
+|------|--------|
+| R-F10 C5/C6/C7 (verify-a-release page, trigger slimming, secret/permission hygiene) | ✅ merged in PR #1125 (`4fb0e20f`) |
+| ADR-079 / CIT-A1…A5, PTA-A1…A3, RAT-A1…A7, ADR-082 ranking adaptation | ✅ code-side closed (see 2026-08/09 sections) — **campaign-scoped only**, not repo-wide gap freedom |
 
 ## Closed this wave (2026-09-24)
 

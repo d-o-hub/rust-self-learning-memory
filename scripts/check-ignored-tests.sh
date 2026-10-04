@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-ignored-tests.sh — W2.5b ignored-test ceiling ratchet
+# check-ignored-tests.sh — W2.5b ignored-test ceiling ratchet and inventory validation
 #
 # Usage:
 #   ./scripts/check-ignored-tests.sh
@@ -12,6 +12,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 CEILING="${QUALITY_GATE_IGNORED_TEST_CEILING:-200}"
+INVENTORY_FILE="plans/ignored_tests_inventory.json"
 MODE=""
 
 while [[ $# -gt 0 ]]; do
@@ -77,3 +78,70 @@ if (( COUNT > CEILING )); then
 fi
 
 echo "OK: ignored-test count within ceiling"
+
+# Validate inventory file exists and matches #[ignore] count and schema
+if [[ ! -f "$INVENTORY_FILE" ]]; then
+  echo "HARNESS VIOLATION: Ignored test inventory file '$INVENTORY_FILE' missing!" >&2
+  exit 1
+fi
+
+python3 -c "
+import os, re, json, sys
+
+inventory_file = '$INVENTORY_FILE'
+try:
+    with open(inventory_file, 'r', encoding='utf-8') as f:
+        inventory = json.load(f)
+except Exception as e:
+    print(f'HARNESS VIOLATION: Failed to parse {inventory_file}: {e}', file=sys.stderr)
+    sys.exit(1)
+
+# Schema validation
+required_fields = ['crate', 'file', 'line', 'test', 'reason', 'upstream_tracker', 'owner', 'revalidation_date']
+for idx, entry in enumerate(inventory):
+    for field in required_fields:
+        if field not in entry:
+            print(f'HARNESS VIOLATION: Inventory entry #{idx} missing field \"{field}\"', file=sys.stderr)
+            sys.exit(1)
+
+# Scan codebase for #[ignore] attributes
+fn_pattern = re.compile(r'fn\s+([a-zA-Z0-9_]+)')
+codebase_ignores = []
+
+for root, dirs, files in os.walk('.'):
+    if 'target' in root or '.git' in root:
+        continue
+    for f in sorted(files):
+        if f.endswith('.rs'):
+            path = os.path.join(root, f)
+            rel_path = os.path.relpath(path, '.')
+            with open(path, 'r', encoding='utf-8', errors='ignore') as file:
+                lines = file.readlines()
+            for line_idx, line in enumerate(lines):
+                if '#[ignore' in line and not line.strip().startswith('//'):
+                    fn_name = 'unknown'
+                    for j in range(line_idx + 1, min(line_idx + 20, len(lines))):
+                        m_fn = fn_pattern.search(lines[j])
+                        if m_fn:
+                            fn_name = m_fn.group(1)
+                            break
+                    codebase_ignores.append((rel_path, fn_name))
+
+inv_keys = set((item['file'], item['test']) for item in inventory)
+missing_in_inv = []
+for file_path, test_name in codebase_ignores:
+    if (file_path, test_name) not in inv_keys:
+        missing_in_inv.append((file_path, test_name))
+
+if missing_in_inv:
+    print('HARNESS VIOLATION: Found undocumented #[ignore] tests in codebase:', file=sys.stderr)
+    for file_path, test_name in missing_in_inv:
+        print(f'  - {file_path} :: {test_name}', file=sys.stderr)
+    sys.exit(1)
+
+if len(inventory) != len(codebase_ignores):
+    print(f'HARNESS VIOLATION: Inventory count ({len(inventory)}) does not match codebase #[ignore] count ({len(codebase_ignores)})', file=sys.stderr)
+    sys.exit(1)
+
+print(f'OK: Ignored test inventory valid and complete ({len(inventory)} items matched).')
+"

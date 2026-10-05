@@ -31,15 +31,57 @@ impl Default for MonitoringConfig {
     }
 }
 
+/// Per-backend liveness as observed by a bounded probe.
+///
+/// The variants describe what the *probe* saw, which is deliberately not the same thing as
+/// what was configured: an unreachable database reports [`BackendStatus::Unavailable`] even
+/// though a URL is present (`#1085`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackendStatus {
+    /// The probe was answered.
+    Healthy,
+    /// The probe was issued but did not answer within the budget.
+    Degraded,
+    /// The probe answered with a failure.
+    Unavailable,
+    /// Nothing was probed because the backend is not configured.
+    NotConfigured,
+}
+
+impl BackendStatus {
+    /// Whether a backend can currently be used, as opposed to merely configured.
+    #[must_use]
+    pub fn connected(self) -> bool {
+        matches!(self, Self::Healthy)
+    }
+
+    /// Fixed summary. Health output must stay secret-free, so this never interpolates a URL,
+    /// filesystem path or driver message.
+    #[must_use]
+    pub fn detail(self) -> &'static str {
+        match self {
+            Self::Healthy => "probe answered",
+            Self::Degraded => "probe timed out",
+            Self::Unavailable => "probe failed",
+            Self::NotConfigured => "backend not configured",
+        }
+    }
+}
+
 /// Storage health information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageHealth {
     /// Turso connection status
     pub turso_connected: bool,
+    /// Turso probe outcome
+    pub turso_status: BackendStatus,
     /// Turso connection details
     pub turso_details: Option<String>,
     /// redb cache status
     pub redb_connected: bool,
+    /// redb cache probe outcome
+    pub redb_status: BackendStatus,
     /// redb cache details
     pub redb_details: Option<String>,
 }

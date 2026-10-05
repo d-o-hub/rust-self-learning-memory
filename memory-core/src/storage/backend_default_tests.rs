@@ -242,3 +242,14 @@ async fn storage_backend_default_methods_return_empty_success() {
     // Keep Episode/TaskType referenced so stub stays honest for required path
     let _ep = Episode::new("stub".into(), TaskContext::default(), TaskType::Testing);
 }
+
+/// The default liveness probe runs through the backend's own reads, so a backend that answers
+/// `get_episode` is healthy and one that does not is not (`#1085`).
+#[tokio::test]
+async fn storage_backend_default_health_check_reads_through_the_backend() {
+    let backend = StubBackend;
+    backend
+        .health_check()
+        .await
+        .expect("a backend whose required read succeeds must pass the default probe");
+}

@@ -1,9 +1,9 @@
 //! End-to-end probes for the health surface (`#1085`).
 //!
 //! The handler these tests exercise used to answer from the environment: a Turso URL present
-//! in the process meant "connected" and a redb path that existed meant "connected". Each test
-//! below sets those variables to values that *contradict* the attached backends, so the old
-//! inference cannot pass.
+//! in the process meant "connected" and a redb path that existed meant "connected". Health is
+//! now derived only from the backends attached to the running server, so every test below
+//! controls that attachment directly instead of mutating the process environment.
 
 use async_trait::async_trait;
 use do_memory_core::episode::PatternId;
@@ -98,24 +98,12 @@ async fn redb_backend(dir: &tempfile::TempDir, name: &str) -> Arc<dyn StorageBac
 }
 
 /// Point every variable the removed inference used at something that is not a connection.
-#[allow(unsafe_code)]
-fn configure_dead_environment(dir: &tempfile::TempDir) -> String {
-    let missing_redb = dir.path().join("never-created.redb").display().to_string();
-    // SAFETY: test-only env var manipulation; nextest runs each test in its own process.
-    unsafe {
-        std::env::set_var("TURSO_DATABASE_URL", format!("libsql://{DEAD_HOST}:5001"));
-        std::env::set_var("TURSO_AUTH_TOKEN", SECRET_TOKEN);
-        std::env::set_var("REDB_CACHE_PATH", &missing_redb);
-    }
-    missing_redb
-}
-
 #[tokio::test]
-async fn configured_environment_without_a_backend_is_not_a_connection() {
+async fn unattached_backends_are_not_configured_and_never_connected() {
     let dir = tempfile::TempDir::new().unwrap();
-    let missing_redb = configure_dead_environment(&dir);
+    let unused_cache_path = dir.path().join("never-created.redb").display().to_string();
 
-    // Nothing is attached, so there is nothing to probe — regardless of the environment.
+    // Nothing is attached, so there is nothing to probe.
     let memory = SelfLearningMemory::new();
     let cache = Arc::new(QueryCache::new());
     let monitoring = MonitoringSystem::new(MonitoringConfig::default());
@@ -129,7 +117,7 @@ async fn configured_environment_without_a_backend_is_not_a_connection() {
     );
     assert!(
         !response.storage.turso_connected,
-        "TURSO_DATABASE_URL is configuration, not connectivity"
+        "a URL in a config file is not connectivity"
     );
     assert!(
         !response.storage.redb_connected,
@@ -138,7 +126,7 @@ async fn configured_environment_without_a_backend_is_not_a_connection() {
     assert_eq!(response.status, "degraded");
 
     let rendered = serde_json::to_string(&response).unwrap();
-    for secret in [SECRET_TOKEN, DEAD_HOST, "libsql", &missing_redb] {
+    for secret in [SECRET_TOKEN, DEAD_HOST, "libsql", &unused_cache_path] {
         assert!(
             !rendered.contains(secret),
             "health output leaked {secret:?}: {rendered}"
@@ -147,14 +135,13 @@ async fn configured_environment_without_a_backend_is_not_a_connection() {
 }
 
 #[tokio::test]
-async fn attached_backends_are_measured_even_when_the_environment_points_elsewhere() {
+async fn attached_backends_are_measured_and_report_live_counters() {
     let dir = tempfile::TempDir::new().unwrap();
-    let missing_redb = configure_dead_environment(&dir);
 
     // Both slots hold real, reachable databases: the durable path production wires when no
     // Turso is available (`server_impl/storage.rs`), the cache slot a redb file. The old
     // handler would have answered `redb_connected: false` here, because it only looked at
-    // whether `REDB_CACHE_PATH` existed.
+    // whether a configured cache path existed.
     let memory = SelfLearningMemory::with_storage(
         MemoryConfig::default(),
         redb_backend(&dir, "durable.redb").await,
@@ -181,7 +168,7 @@ async fn attached_backends_are_measured_even_when_the_environment_points_elsewhe
     );
     assert!(
         response.storage.redb_connected,
-        "an attached cache backend must outrank a missing REDB_CACHE_PATH"
+        "an attached cache backend must be measured, not inferred from a path"
     );
     assert_eq!(response.storage.redb_status, BackendStatus::Healthy);
     assert_eq!(response.storage.turso_status, BackendStatus::Healthy);
@@ -200,7 +187,12 @@ async fn attached_backends_are_measured_even_when_the_environment_points_elsewhe
     );
 
     let rendered = serde_json::to_string(&response).unwrap();
-    for secret in [SECRET_TOKEN, DEAD_HOST, "libsql", &missing_redb] {
+    for secret in [
+        SECRET_TOKEN,
+        DEAD_HOST,
+        "libsql",
+        &dir.path().display().to_string(),
+    ] {
         assert!(
             !rendered.contains(secret),
             "health output leaked {secret:?}: {rendered}"
@@ -225,7 +217,6 @@ async fn unreachable_turso_url_cannot_be_constructed_into_a_connection() {
 #[tokio::test]
 async fn attached_but_failing_backend_is_unavailable_and_stays_redacted() {
     let dir = tempfile::TempDir::new().unwrap();
-    configure_dead_environment(&dir);
 
     let memory = SelfLearningMemory::with_storage(
         MemoryConfig::default(),

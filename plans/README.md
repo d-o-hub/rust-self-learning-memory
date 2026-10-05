@@ -1,9 +1,10 @@
 # Plans Directory
 
-**Workspace**: `v0.1.45` (post-v0.1.44 bump) · **Released tag**: `v0.1.44` · **Main baseline**: `4f4f4ba8d06a82429a2e539c65c3cb37624291e9` (v0.1.44 tagged 2026-10-02)
-**Active plan**: none in flight — v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage floor #1117); workspace bumped to 0.1.45 post-release
-**Last Updated**: 2026-10-03
-**Open PRs**: run `gh pr list --state open` · **Open issues**: run `gh issue list --state open` (the previous release-drift issue closed with the tag)
+**Workspace**: `v0.1.45` (post-v0.1.44 bump) · **Released tag**: `v0.1.44` · **Main baseline**: `74a44a15` (v0.1.44 tagged on `4f4f4ba8` 2026-10-02)
+**Active plan**: **audit-backlog wave** — [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) (slices W1–W6, ACT-370…375). 22 open code issues (#1063–#1092) were filed at `9f50c607`, absent from every tracker, and re-validation at `74a44a15` found **0 fixed** — the per-issue register is [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
+**Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage floor #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
+**Last Updated**: 2026-10-04
+**Open PRs**: run `gh pr list --state open` · **Open issues**: run `gh issue list --state open` (**23** — the 22-issue audit backlog + #1109, code complete with manual crates.io steps)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

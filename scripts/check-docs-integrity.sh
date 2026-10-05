@@ -7,34 +7,43 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 CHECK_URLS="false"
+SCAN_ROOT="$PROJECT_ROOT"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--check-urls]
+Usage: $(basename "$0") [--check-urls] [--root DIR]
 
 Options:
   --check-urls   Also verify external https links with HEAD requests (slow)
+  --root DIR     Scan DIR (a git repo) instead of the project root (used by
+                 ./scripts/test-docs-integrity.sh fixtures)
 EOF
 }
 
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --check-urls)
       CHECK_URLS="true"
+      ;;
+    --root)
+      [[ $# -ge 2 ]] || { echo "--root needs a directory" >&2; exit 1; }
+      SCAN_ROOT="$2"
+      shift
       ;;
     -h|--help)
       usage
       exit 0
       ;;
     *)
-      echo "Unknown option: $arg" >&2
+      echo "Unknown option: $1" >&2
       usage >&2
       exit 1
       ;;
   esac
+  shift
 done
 
-cd "$PROJECT_ROOT"
+cd "$SCAN_ROOT"
 
 if [[ ! -f "Cargo.toml" ]]; then
   echo "Cargo.toml not found at repository root" >&2
@@ -48,7 +57,10 @@ fc_failures=0
 
 echo "[docs-integrity] Checking markdown links..."
 
-python3 - <<'PY'
+link_status=0
+# `|| link_status=$?` matters: under `set -e` a bare failing heredoc aborted the
+# script, so the script-reference, version-sync and fail-closed checks never ran.
+python3 - <<'PY' || link_status=$?
 import os
 import re
 import subprocess
@@ -56,6 +68,7 @@ import sys
 
 repo = os.getcwd()
 link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+code_span_re = re.compile(r"`[^`]*`")
 
 # Skip historical archives: links rot intentionally after consolidation (ADR-039).
 SKIP_PREFIXES = (
@@ -85,14 +98,18 @@ for rel_path in files:
                     continue
                 if in_code_block:
                     continue
-                for raw_target in link_re.findall(line):
+                # A backtick span is quoted literal markdown, not a live link.
+                for raw_target in link_re.findall(code_span_re.sub("", line)):
                     target = raw_target.strip()
+                    # AGENTS.md mandates <...> around URLs, so the angle brackets
+                    # must come off before the external-scheme skip, or every
+                    # compliant URL is misread as a broken relative path.
+                    if target.startswith("<") and target.endswith(">"):
+                        target = target[1:-1].strip()
                     if not target:
                         continue
                     if target.startswith(("http://", "https://", "mailto:", "#")):
                         continue
-                    if target.startswith("<") and target.endswith(">"):
-                        target = target[1:-1].strip()
                     target = target.split("#", 1)[0]
                     if not target:
                         continue
@@ -110,55 +127,8 @@ if broken:
 
 print("OK")
 PY
-link_status=$?
 if [[ $link_status -ne 0 ]]; then
   link_failures=1
-  python3 - <<'PY'
-import os
-import re
-import subprocess
-
-repo = os.getcwd()
-link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-SKIP_PREFIXES = (
-    "plans/archive/",
-    "plans/STATUS/archive/",
-)
-files = [
-    p
-    for p in subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
-    if not p.startswith(SKIP_PREFIXES)
-]
-for rel_path in files:
-    abs_path = os.path.join(repo, rel_path)
-    if not os.path.exists(abs_path):
-        continue
-    base_dir = os.path.dirname(abs_path)
-    try:
-        with open(abs_path, "r", encoding="utf-8") as f:
-            in_code_block = False
-            for idx, line in enumerate(f, start=1):
-                stripped = line.strip()
-                if stripped.startswith("```"):
-                    in_code_block = not in_code_block
-                    continue
-                if in_code_block:
-                    continue
-                for raw_target in link_re.findall(line):
-                    target = raw_target.strip()
-                    if not target or target.startswith(("http://", "https://", "mailto:", "#")):
-                        continue
-                    if target.startswith("<") and target.endswith(">"):
-                        target = target[1:-1].strip()
-                    target = target.split("#", 1)[0]
-                    if not target:
-                        continue
-                    resolved = os.path.normpath(os.path.join(base_dir, target))
-                    if not os.path.exists(resolved):
-                        print(f"  - {rel_path}:{idx} -> {raw_target}")
-    except UnicodeDecodeError:
-        continue
-PY
 else
   echo "[docs-integrity] Markdown link check passed"
 fi

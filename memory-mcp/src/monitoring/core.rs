@@ -21,8 +21,8 @@ pub struct MonitoringSystem {
     performance: Arc<RwLock<PerformanceMetrics>>,
     /// Start time for uptime calculation
     start_time: Instant,
-    /// Active request tracking
-    active_requests: Arc<Mutex<HashMap<String, RequestMetrics>>>,
+    /// Active requests, paired with the monotonic instant each began (`RequestMetrics` is `Serialize`).
+    active_requests: Arc<Mutex<HashMap<String, (RequestMetrics, Instant)>>>,
 }
 
 impl MonitoringSystem {
@@ -67,6 +67,7 @@ impl MonitoringSystem {
             return request_id.clone();
         }
 
+        let start_instant = Instant::now();
         let start_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -83,7 +84,7 @@ impl MonitoringSystem {
         };
 
         let mut active = self.active_requests.lock().await;
-        active.insert(request_id.clone(), metrics);
+        active.insert(request_id.clone(), (metrics, start_instant));
 
         debug!("Started tracking request: {}", request_id);
         request_id
@@ -106,12 +107,12 @@ impl MonitoringSystem {
             .as_secs();
 
         let mut active = self.active_requests.lock().await;
-        if let Some(mut metrics) = active.remove(request_id) {
+        if let Some((mut metrics, start_instant)) = active.remove(request_id) {
             metrics.end_time = end_time;
             metrics.success = success;
-            // Avoid underflow if system clock moved backwards; use saturating operations
-            let elapsed_secs = end_time.saturating_sub(metrics.start_time);
-            metrics.response_time_ms = elapsed_secs.saturating_mul(1000); // Convert to ms
+            // Monotonic elapsed: `as_secs()` on both ends rounded every sub-second request to 0ms.
+            let elapsed_ms = start_instant.elapsed().as_millis();
+            metrics.response_time_ms = u64::try_from(elapsed_ms).unwrap_or(u64::MAX);
             metrics.error_message = error_message;
 
             // Update stats

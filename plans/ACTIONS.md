@@ -1,8 +1,40 @@
 # GOAP Actions Backlog
 
 - **Last Updated**: 2026-10-04
-- **Active plan**: release pipeline hardening (issue #1109) — **complete**: C1/C2 (#1123), C3/C4 (#1121, #1110), C5–C7 (#1125). Remaining manual steps for crates.io: four trusted-publisher registrations, `CARGO_REGISTRY_TOKEN` deletion, and restricting the `crates.io` environment to `v*` tags. See ADR-078 amendment + LESSON-030…034.
+- **Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`. 22 open code issues (#1063–#1092)
+  were filed at `9f50c607`, never entered in these trackers, and re-validation at `74a44a15` found **0 of them fixed**.
+  Wave slices ACT-370…ACT-375 below; queued chains ACT-376…ACT-383.
+- **Previous plan**: release pipeline hardening (issue #1109) — **code complete**: C1/C2 (#1123), C3/C4 (#1121, #1110),
+  C5–C7 (#1125). Remaining manual steps for crates.io: four trusted-publisher registrations, `CARGO_REGISTRY_TOKEN`
+  deletion, and restricting the `crates.io` environment to `v*` tags. See ADR-078 amendment + LESSON-030…034.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
+
+## Active actions (2026-10-04 — audit-backlog wave W1…W6)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-370 | Drop the ranking read guard before `.await` in `recommend_patterns_for_task`; clone the snapshot instead of holding `ranking_index.read()` across `get_all_patterns()` and the recommendation pipeline; add a contention test proving a concurrent `refresh_ranking_index()` is not stalled | #1077 (R06) | 🔄 W1 |
+| ACT-371 | Measure MCP request latency from a monotonic `Instant` (`as_millis()`), keeping epoch seconds only for event timestamps; regression test that a 1–50 ms operation reports non-zero and that min/max/avg/export stay valid | #1086 (M05) | 🔄 W2 |
+| ACT-372 | Roll back the Turso tag transaction on every failure path in `save_episode_tags` (and make `delete_episode_tags` atomic); failure-injection/deterministic test that fails after the deletes and proves the prior tag set survives and the connection stays usable | #1088 (M07) | 🔄 W3 |
+| ACT-373 | Compare `(timestamp, session_id)` inside the same redb transaction before overwriting the episode→session recommendation index, so write order stops beating recency; keep `TableDefinition<&str,&str>` to stay compatible with the fail-closed schema check | #1066 (S07) | 🔄 W4 |
+| ACT-374 | Replace the constant `0.5` in `calculate_keyword_similarity` with a bounded deterministic query-aware lexical score; thread query text through `calculate_pattern_score`; tests for matching-vs-unrelated ordering, case/punctuation/repeated terms/empty query, and a guard against re-introducing the constant | #1075 (R04) | 🔄 W5 |
+| ACT-375 | Make MCP health probes real: use configured handles with bounded per-backend `health_check`, report `healthy`/`degraded`/`unavailable` independently, wire live query-cache metrics + synchronizer state + process uptime, and **redact `TURSO_DATABASE_URL`, paths and raw backend errors** (escalation E1) | #1085 (M04) | 🔄 W6 |
+
+## Queued actions (2026-10-04 — validated backlog, sequenced)
+
+| ID | Action | Rec | Depends on |
+|----|--------|-----|-----------|
+| ACT-376 | Modification watermark: `Episode.updated_at` + Turso column + redb `SCHEMA_VERSION` 4→5, keyset pages on `(updated_at, episode_id)`, cursor through the sync loop; add a defaulted `query_episodes_modified_since` rather than changing the required method (E5: 22 implementations) | #1067 (S08) | — |
+| ACT-377 | Revision-aware merge: one helper used by both `get_all_episodes` and retrieval backfill; wire the existing orphan `resolve_episode_conflict`; document the missing-revision policy | #1068 (S09) | ACT-376 |
+| ACT-378 | Single-transaction redb `store_episodes_batch` override, then batch the synchronizer and honor the dead `SyncConfig.batch_size` | #1089 (M08) | ACT-376 |
+| ACT-379 | Identity-scoped `EmbeddingStorageBackend` adapter over `Arc<dyn StorageBackend>`, namespaces + `kind:model:dims`/revision in the key, truthful ephemeral mode; keep `find_similar_*` working through the key-shape change | #1073 (R02) | — |
+| ACT-380 | Route the 5 remaining pattern/management call sites through `live_semantic_service()` — closes escalation E2 (production pattern search currently ignores the query) | #1074 (R03) | ACT-374, before ACT-381 |
+| ACT-381 | Reuse stored pattern vectors and batch only the misses; extend coalescing to key on full provider identity/revision | #1076 (R05) | ACT-379, ACT-380 |
+| ACT-382 | Capability truth for the 23 faking `StorageBackend` defaults — **split into 4 PRs**: cleanup pair (+ delete the dead `redb_cache.rs` impl), procedural ×4, relationships ×9, inventory doc + lint so new defaults can't be added silently | #1087 (M06) | — |
+| ACT-383 | Ignored-test integrity — **split into 3 PRs**: inventory artifact + ADR-027 truth, un-ignore the ~11 validation-only `security_tests.rs` cases, isolated nightly Turso job with a non-green crash/timeout signal (today 118 ignored Turso tests run nowhere) | #1091 (Q02) | — |
+| ACT-384 | Lint-suppression integrity — **split into 4 PRs**: turso `unsafe_code` peel to its sites, `#![allow]` ceiling ratchet in `ci.yml` (the `allow_attributes = "deny"` sensor is currently inert), per-crate `#![expect]` conversion, then re-enable `unwrap_used`/`expect_used` | #1092 (Q03) | — |
+| ACT-385 | Remaining validated P1s: #1063 adaptive pool monitor/permits/cooldown (E4 — `adaptive_tests.rs:140-146` asserts the broken value), #1064 scoped `with_connection` + 85-site migration, #1070 capacity eviction atomic-or-repairable, #1071 strict row decode (+ raw-query partial success), #1065 millisecond recommendation timestamps + deterministic tie-break, #1078 incremental ranking + benches, #1079 execution-backed provenance | see GAP file | — |
+| ACT-368 | OIDC-only crates.io publish — manual steps: 4 crates.io registrations, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` env to `v*` | #1109 C1/C2 | ⏸ maintainer |
 
 ## Active actions (2026-10-03 — release pipeline hardening, issue #1109)
 

@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791197343965,
+  "lastUpdate": 1791204398237,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -46839,6 +46839,732 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 48766.48,
             "range": "± 240.78",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7225630d284373cf5b85bd716f83666f11d343d7",
+          "message": "ci(hooks): activate the 12 declared local sensors that never ran (#1133)\n\n* ci(hooks): install the declared local sensors and make the commit stage cheap\n\n.pre-commit-config.yaml declares 12 sensors but .git/hooks holds only\n.sample files, so none of them ever ran — and because git worktrees share\nthe common hooks dir, one absence disabled them in all nine.\n\nTwo reasons it stays inert even after the documented bootstrap: plain\n`pre-commit install` never creates the commit-msg hook that commitlint\ndeclares, and the commit stage runs two clippy passes (minutes per commit),\nwhich contradicts the \"cheap fmt + loc subset\" AGENTS.md claims.\n\nAdds scripts/install-hooks.sh, which installs both hook types and offers\n--verify so an inert sensor fails loudly instead of silently, and moves\nclippy-lib/clippy-tests to stages: manual to make the commit stage the cheap\nsubset. scripts/test-install-hooks.sh F1 asserts that plain\n`pre-commit install` leaves commit-msg missing, so the fixture fails if this\nfix is reverted.\n\nFixes #1132\n\n* docs(agents): state how the git hooks are actually installed\n\nAGENTS.md asserted that .pre-commit-config.yaml \"owns .git/hooks/pre-commit\",\nwhich is the claim that let 12 declared sensors stay inert unnoticed. Replace\nit with the real contract: a fresh clone installs nothing, the commit stage is\nthe cheap subset, clippy is manual-only, and commitlint needs the commit-msg\nhook type.\n\nFixes #1132",
+          "timestamp": "2026-10-05T13:45:53+02:00",
+          "tree_id": "2d58eaad93498fd0fbed3433ecfa63117cb9b9f0",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/7225630d284373cf5b85bd716f83666f11d343d7"
+        },
+        "date": 1791204397671,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "broadcast_fan_out_fan_out_10_receivers",
+            "value": 62938.68,
+            "range": "± 580.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_1_receivers",
+            "value": 22783.18,
+            "range": "± 272.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_50_receivers",
+            "value": 238377.13,
+            "range": "± 8586.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_5_receivers",
+            "value": 40476.17,
+            "range": "± 1109.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_single_receiver_send_1000_events",
+            "value": 200062.69,
+            "range": "± 2759.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 57124842.7,
+            "range": "± 821424.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 471583827.25,
+            "range": "± 5004117.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 237949739.07,
+            "range": "± 5290922.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 476988631.9,
+            "range": "± 6431440.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 105509117.27,
+            "range": "± 3695185.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 33482586.73,
+            "range": "± 524493.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 177.92,
+            "range": "± 1.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 328.63,
+            "range": "± 1376.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_all",
+            "value": 30.98,
+            "range": "± 0.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_connection",
+            "value": 36.05,
+            "range": "± 0.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_concurrent_concurrent_access",
+            "value": 2433227.87,
+            "range": "± 33412.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 3763852.87,
+            "range": "± 24092.95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 566.54,
+            "range": "± 58.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 3542.97,
+            "range": "± 38.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 186.22,
+            "range": "± 1.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 297.34,
+            "range": "± 1.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 421.27,
+            "range": "± 2.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 235.71,
+            "range": "± 1.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 4487.2,
+            "range": "± 23.53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 48853.98,
+            "range": "± 312.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 504990.17,
+            "range": "± 6053.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 2494938.54,
+            "range": "± 34378.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 197.27,
+            "range": "± 1.4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 11673.35,
+            "range": "± 190.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 1105.97,
+            "range": "± 11.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 394.33,
+            "range": "± 17.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 501.27,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 617.99,
+            "range": "± 47.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 440.92,
+            "range": "± 20.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_parameterized_queries",
+            "value": 550.55,
+            "range": "± 6.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 738.33,
+            "range": "± 10.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_statistics_stats_calculation",
+            "value": 20.46,
+            "range": "± 0.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 46.89,
+            "range": "± 0.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_500",
+            "value": 47.15,
+            "range": "± 0.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 2734.69,
+            "range": "± 25.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 77372.55,
+            "range": "± 1335.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 274.67,
+            "range": "± 2.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 7822.06,
+            "range": "± 55.88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 1423.34,
+            "range": "± 14.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 38883.3,
+            "range": "± 255.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 12878047.83,
+            "range": "± 361673.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 13366144.9,
+            "range": "± 1515282.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 6.33,
+            "range": "± 0.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 6.34,
+            "range": "± 0.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 6.35,
+            "range": "± 0.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 6.35,
+            "range": "± 0.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 6.35,
+            "range": "± 0.06",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.33,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.33,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.33,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.33,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.33,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 112800.29,
+            "range": "± 1973.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 27945.53,
+            "range": "± 2021.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 32534.73,
+            "range": "± 1701.91",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 29807.86,
+            "range": "± 2703.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 73161.86,
+            "range": "± 630.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_latest_concurrency_1_read_latest@1",
+            "value": 4859273662.6,
+            "range": "± 23366319.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 5546524151.5,
+            "range": "± 45419089.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 4857896366.6,
+            "range": "± 36625483.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 5100489837.3,
+            "range": "± 109868483.85",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 5228943712.5,
+            "range": "± 57638623.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_16_read_only@16",
+            "value": 5185578117.8,
+            "range": "± 30471963.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 4854690188.7,
+            "range": "± 41068480.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 4937457985.7,
+            "range": "± 37052153.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 5071492974.3,
+            "range": "± 55083027.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 8716252395.8,
+            "range": "± 100572955.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 5089525649.5,
+            "range": "± 34957852.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 5823043133,
+            "range": "± 41658980.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 6789053477.3,
+            "range": "± 84979999.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 24014.2,
+            "range": "± 206.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 24087.07,
+            "range": "± 563.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 657585.49,
+            "range": "± 10619.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 22544.61,
+            "range": "± 4895.1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 63558.12,
+            "range": "± 7646.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 128964.62,
+            "range": "± 17087.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 183214.06,
+            "range": "± 12652.61",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 311.87,
+            "range": "± 2.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 2680.31,
+            "range": "± 7.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 1429.46,
+            "range": "± 11.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 7714.68,
+            "range": "± 87.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 76138.72,
+            "range": "± 289.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 38163.99,
+            "range": "± 151.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 22780.12,
+            "range": "± 316.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 62764.85,
+            "range": "± 11760.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 65970.06,
+            "range": "± 9007.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 20.7,
+            "range": "± 0.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 1339.43,
+            "range": "± 4.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 1331.19,
+            "range": "± 6.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 1206.62,
+            "range": "± 12.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 729.41,
+            "range": "± 30.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 561.51,
+            "range": "± 19.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 7983412.84,
+            "range": "± 329726.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 3890940.57,
+            "range": "± 193691.77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 14156.09,
+            "range": "± 291.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 1231.56,
+            "range": "± 1.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 26490.11,
+            "range": "± 524.83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 11907.47,
+            "range": "± 402.98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 54938.12,
+            "range": "± 872.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 2298398.9,
+            "range": "± 100226.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 2204258.33,
+            "range": "± 81512.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 2219369.71,
+            "range": "± 61918.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 2280620.66,
+            "range": "± 87380.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 2202438.1,
+            "range": "± 147089.68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 2244314.82,
+            "range": "± 104991.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 7733.38,
+            "range": "± 97.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 5225.57,
+            "range": "± 55.91",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 14126.92,
+            "range": "± 107.05",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 3374.68,
+            "range": "± 32.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 29294.24,
+            "range": "± 264",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 283193.45,
+            "range": "± 3346.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 61603.82,
+            "range": "± 785.14",
             "unit": "ns/iter"
           }
         ]

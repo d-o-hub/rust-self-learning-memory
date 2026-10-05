@@ -97,6 +97,20 @@ async fn redb_backend(dir: &tempfile::TempDir, name: &str) -> Arc<dyn StorageBac
     Arc::new(storage)
 }
 
+/// Assert that health output stayed free of the given fixture material.
+///
+/// The panic message names the fixture's label rather than interpolating its value: a leak
+/// check that prints the material it is guarding is the same `rust/cleartext-logging` defect
+/// it is testing for. The rendered response is included, so a failure is still diagnosable.
+fn assert_no_fixture_leak(rendered: &str, fixtures: &[(&str, &str)]) {
+    for (label, fixture) in fixtures {
+        assert!(
+            !rendered.contains(fixture),
+            "health output leaked the {label} fixture: {rendered}"
+        );
+    }
+}
+
 /// Point every variable the removed inference used at something that is not a connection.
 #[tokio::test]
 async fn unattached_backends_are_not_configured_and_never_connected() {
@@ -126,12 +140,15 @@ async fn unattached_backends_are_not_configured_and_never_connected() {
     assert_eq!(response.status, "degraded");
 
     let rendered = serde_json::to_string(&response).unwrap();
-    for secret in [SECRET_TOKEN, DEAD_HOST, "libsql", &unused_cache_path] {
-        assert!(
-            !rendered.contains(secret),
-            "health output leaked {secret:?}: {rendered}"
-        );
-    }
+    assert_no_fixture_leak(
+        &rendered,
+        &[
+            ("token", SECRET_TOKEN),
+            ("dead host", DEAD_HOST),
+            ("url scheme", "libsql"),
+            ("cache path", &unused_cache_path),
+        ],
+    );
 }
 
 #[tokio::test]
@@ -187,17 +204,16 @@ async fn attached_backends_are_measured_and_report_live_counters() {
     );
 
     let rendered = serde_json::to_string(&response).unwrap();
-    for secret in [
-        SECRET_TOKEN,
-        DEAD_HOST,
-        "libsql",
-        &dir.path().display().to_string(),
-    ] {
-        assert!(
-            !rendered.contains(secret),
-            "health output leaked {secret:?}: {rendered}"
-        );
-    }
+    let cache_path = dir.path().display().to_string();
+    assert_no_fixture_leak(
+        &rendered,
+        &[
+            ("token", SECRET_TOKEN),
+            ("dead host", DEAD_HOST),
+            ("url scheme", "libsql"),
+            ("cache path", &cache_path),
+        ],
+    );
 }
 
 /// A remote URL that cannot be reached never becomes a usable handle, which is precisely why
@@ -246,10 +262,12 @@ async fn attached_but_failing_backend_is_unavailable_and_stays_redacted() {
     assert_eq!(response.status, "degraded");
 
     let rendered = serde_json::to_string(&response).unwrap();
-    for secret in [SECRET_DRIVER_DETAIL, "pa55w0rd", "db.internal"] {
-        assert!(
-            !rendered.contains(secret),
-            "health output repeated a backend error: {rendered}"
-        );
-    }
+    assert_no_fixture_leak(
+        &rendered,
+        &[
+            ("driver detail", SECRET_DRIVER_DETAIL),
+            ("password", "pa55w0rd"),
+            ("internal host", "db.internal"),
+        ],
+    );
 }

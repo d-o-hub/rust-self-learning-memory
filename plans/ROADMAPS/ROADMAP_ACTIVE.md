@@ -1,13 +1,25 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-03
+**Last Updated**: 2026-10-04
 **Released Version**: v0.1.44 (latest tag)
 **Workspace Version**: 0.1.45 (post-v0.1.44 bump)
-**Active Sprint**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); drift issue closed by the tag, pipeline proposal open in #1109
-**Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, merged #947, #952)
-**Branch**: main @ `4f4f4ba8` (v0.1.44 tagged on this commit; PR #1118 merged 2026-10-02)
+**Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (W1–W6). Trigger: 22 open code issues (#1063–#1092) were filed at audit baseline `9f50c607` and had been absent from every tracker; re-validation at `74a44a15` confirmed **none of them were fixed** by the intervening releases.
+**Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
+**Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
+**Branch**: main @ `74a44a15` (v0.1.44 tagged on `4f4f4ba8`; PR #1126 merged 2026-10-04)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
-**Open issues**: run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work
+**Open issues**: run `gh issue list --state open` — the open set is a registered audit backlog, not free work: per-issue verdicts and evidence live in `STATUS/GAP_ANALYSIS_LATEST.md`
+
+## Sprint 2026-10-04 — audit-backlog wave W1–W6
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | Core | #1077 (R06) ranking read guard held across `get_all_patterns().await` and the recommendation await — AGENTS.md invariant violation | 🔄 W1 |
+| P2 | MCP | #1086 (M05) latency computed from `as_secs()` → every sub-second request records 0 ms | 🔄 W2 |
+| P2 | Storage | #1088 (M07) `save_episode_tags` `BEGIN`/`COMMIT` with `?` early returns and no `ROLLBACK` | 🔄 W3 |
+| P1 | Storage | #1066 (S07) redb episode→session index overwritten by write order, not by `(timestamp, session_id)` | 🔄 W4 |
+| P1 | Retrieval | #1075 (R04) `calculate_keyword_similarity` returns the constant `0.5`, ignoring query and pattern | 🔄 W5 |
+| P1 | MCP | #1085 (M04) health infers connectivity from env-var existence, hard-codes cache metrics to zero, reports `uptime 0` — **and leaks `TURSO_DATABASE_URL` into the response** | 🔄 W6 |
 
 ## Sprint 2026-10-02 — Durability receipts + toolchain hygiene
 

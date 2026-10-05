@@ -1,18 +1,33 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-03
+**Last Updated**: 2026-10-04
 **Released Version**: v0.1.44 (latest tag)
 **Workspace Version**: 0.1.45 (post-v0.1.44 bump)
 **Edition**: Rust 2024  
-**Active plan**: v0.1.44 shipped — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 migration (#1108), architecture/status refresh (#1094 → #1110), coverage-floor reconciliation (#1090 → #1117); the release-pipeline proposal (#1109) stays open; ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
-**Branch**: main @ `4f4f4ba8` (v0.1.44 tagged on this commit; PR #1118 merged 2026-10-02)
+**Active plan**: **audit-backlog wave** (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`, slices W1–W6). The 22 open code issues #1063–#1092 were filed at audit baseline `9f50c607`, were missing from every tracker, and re-validation at `74a44a15` confirmed **none had been fixed**. Prior wave (2026-10-02/04): v0.1.44 shipped, checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 migration (#1108), architecture/status refresh (#1094 → #1110), coverage-floor reconciliation (#1090 → #1117), release pipeline C1–C7 (#1121/#1123/#1125); ADR-080/081/082 lifecycle acceptance remains an external-maintainer item
+**Branch**: main @ `74a44a15` (v0.1.44 tagged on `4f4f4ba8`; PR #1126 merged 2026-10-04)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
 | Open PRs | run `gh pr list --state open` (counts deliberately not pinned; `validate-plans.sh --tracker-drift` guards this header) |
-| Open issues | run `gh issue list --state open` — the release-pipeline proposal tracks the next pipeline work |
+| Open issues | run `gh issue list --state open` — per-issue verdicts, evidence and queue position live in `STATUS/GAP_ANALYSIS_LATEST.md` |
+
+## Corrected claim (2026-10-04)
+
+The "P0 plan gaps: **0 open code-side**" line below describes the **CI-trust / attribution** campaign (ADR-079,
+CIT-A1…A5, PTA, RAT) and is still true for that campaign. It was never true of the repository as a whole: the
+22-issue audit backlog was open the entire time and absent from the trackers, which is how "0 open gaps" got
+restated at each refresh. Read the P0 row as campaign-scoped; the repo-wide register is
+`STATUS/GAP_ANALYSIS_LATEST.md`.
+
+## Recent completed (2026-10-04 — release pipeline C5–C7)
+
+| Wave | Result |
+|------|--------|
+| Release pipeline C5–C7 (#1109) | ✅ PR #1125 (`4fb0e20f`) — "Verify a release" book page + SECURITY.md signer-pinned attestation commands, `release.yml` PR trigger removed (it ran only skipped jobs), `v`-prefixed tag glob, publish-path `persist-credentials: false`, `host` OIDC blanked on SBOM build steps |
+| Audit-backlog reconciliation | 🔄 this commit — 22 issues re-validated at `74a44a15`, registered in `GAP_ANALYSIS_LATEST.md`, wave slices W1–W6 queued in `ACTIONS.md` (ACT-370…375) |
 
 ## Recent completed (2026-10-02 — v0.1.44 shipped)
 
@@ -131,7 +146,8 @@
 | MCP provenance (`with_provenance`) | ✅ |
 | First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict policy); the required aggregate is causally same-run (merged #947 2026-08-11→12) |
 | CI fast-gate topology | ✅ **Same-run** — `commitlint` + `fast-gate` inside `ci.yml`; `ci-required-evaluate.sh` accepts only `success`, rejects `skipped`/`cancelled`/`timed_out`; waiter/anchor topology deleted (ADR-079 stage 5) |
-| P0 plan gaps | **0 open code-side** — live ruleset required aggregate in place; remaining P0 evidence (ADR-079 stage 4 live fault-inject proof) is maintainer-external |
+| P0 plan gaps (campaign-scoped: ADR-079 / CIT / PTA / RAT) | **0 open code-side** — live ruleset required aggregate in place; remaining P0 evidence (ADR-079 stage 4 live fault-inject proof) is maintainer-external |
+| Repo-wide open gaps | **22 issues** (#1063–#1092): 16 P1 / 7 P2, re-validated 2026-10-04 at `74a44a15` — see `STATUS/GAP_ANALYSIS_LATEST.md` |
 | ADR-079 CI control plane | **Accepted** — stage 3 live (ruleset requires `CI / Required`); stage 5 cleanup merged in #947 (2026-08-12); stage 4 fault-injection merge-block proof remains external maintainer evidence |
 | ADR-080 automatic attribution | ✅ #927 merged + #930 test extension + #947 evidence (episode validation, checked receipts, cold-restart tests) |
 | ADR-081 §2 capability truth | ✅ capability advertisement + capability-gated receipts (2026-08-10); #947 adds capability tests for all concrete backends |
@@ -140,6 +156,10 @@
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
+| P1 | Audit-backlog wave W1–W6: #1077 lock-across-await, #1086 sub-second latency, #1088 tag-tx rollback, #1066 redb index ordering, #1075 lexical fallback, #1085 MCP health probes + URL redaction | ACT-370…375 | 🔄 in flight |
+| P1 | Modification-watermark chain: #1067 → #1068 → #1089 (episode `updated_at` + Turso column + redb `SCHEMA_VERSION` bump, keyset pages, revision-aware merge, redb batch writer) | S08/S09/M08 | ⏳ next wave |
+| P1 | Identity-scoped embedding persistence chain: #1073 → #1074 (pattern APIs) → #1076 | R02/R03/R05 | ⏳ next wave (production pattern search ignores the query today — see E2) |
+| P1 | `StorageBackend` capability truth — 23 of 25 value-returning defaults can fake durable success | #1087 / M06 | ⏳ split into 4 atomic PRs |
 | P0 | Same-run required aggregate + skip-hardening (ADR-079 stage 5) | ADR-079 / CIT-A1 | ✅ #947 — fast gate + commitlint same-run; evaluator rejects skipped; waiter/anchor removed |
 | P0 | Deliver live fault-injection merge-block proof | ADR-079 stage 4 | ⏸ external maintainer evidence — deliberately NOT performed in #947 |
 | P0 | Fail closed and restore Dependabot/fork assertion parity | CIT-A2 | ✅ waiters fail closed + downstream actor parity (2026-08-10) |

@@ -27,6 +27,21 @@ impl SelfLearningMemory {
         self.ranking_loaded.store(true, Ordering::Release);
     }
 
+    /// Take an owned snapshot of the derived ranking index (read-then-release).
+    ///
+    /// The guard is confined to this call, so it never crosses an `.await` and
+    /// cannot starve a concurrent [`refresh_ranking_index`](Self::refresh_ranking_index)
+    /// writer (AGENTS.md: no locks held across `.await`). Callers that need
+    /// learned weights around an await point must use this instead of holding
+    /// `ranking_index.read()` themselves. The snapshot is a
+    /// `HashMap<String, PatternRankingState>` copy, cheap relative to the
+    /// provider/storage work a recommendation call does afterwards.
+    pub(crate) async fn ranking_index_snapshot(&self) -> RankingIndex {
+        // The read guard is dropped at the end of this statement, before the
+        // temporary is returned to the caller.
+        self.ranking_index.read().await.clone()
+    }
+
     /// Rebuild `ranking_index` from the in-process tracker and every capable
     /// durable backend's recommendation history.
     ///

@@ -131,7 +131,10 @@ impl SelfLearningMemory {
         // ADR-082: recommendations are re-ranked by base relevance plus a learned
         // Wilson weight derived from attributed feedback.
         self.ensure_ranking_index_loaded().await;
-        let index = self.ranking_index.read().await;
+        // Read-then-release: snapshot the learned weights so the guard is dropped
+        // before the awaits below. Holding it across `get_all_patterns()` and the
+        // re-ranking call starves the `refresh_ranking_index` writer.
+        let index = self.ranking_index_snapshot().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::recommend_patterns_for_task(
             task_description,

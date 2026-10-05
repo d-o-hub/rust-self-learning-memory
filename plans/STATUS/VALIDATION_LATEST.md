@@ -1,16 +1,51 @@
-# Validation Latest — 2026-10-02 (Architecture & Status Refresh)
+# Validation Latest — 2026-10-04 (audit-backlog reconciliation)
 
-**Goal**: Refresh canonical architecture files, API reference documents, storage serialization terminology, and active status reports to reflect the current workspace version (`0.1.45`), released tag (`v0.1.44`), and main baseline commit (`4f4f4ba8d06a82429a2e539c65c3cb37624291e9`).
+**Goal**: establish a truthful repo-wide gap register before writing code — determine which of the 22 open
+issues (#1063–#1092, #1109) are still real at current `main`, and which were silently fixed by the
+intervening release waves.
 
-**Workspace**: `0.1.45` · **Branch**: `main` @ `4f4f4ba8d06a82429a2e539c65c3cb37624291e9`
+**Workspace**: `0.1.45` · **Branch**: `plans/audit-wave-2026-10-04` @ base `74a44a15` · **Tag**: `v0.1.44`
 
-## Evidence (working tree state)
+## Method
+
+Five read-only validation agents ran in parallel, partitioned by domain (turso pool/tx · sync/merge ·
+embeddings/retrieval · ranking/observability · capability/quality). Each was instructed to read whole functions
+rather than excerpts, to quote the decisive lines, and to classify every finding
+`OPEN | FIXED | PARTIAL | UNCERTAIN`. No agent built or tested code (the workspace had no `target/` at wave
+start); fixes were verified against source plus `git log --oneline 9f50c607..HEAD -- <path>` to detect later
+resolutions.
+
+## Result
+
+| Bucket | Count | Notes |
+|---|---|---|
+| OPEN | 20 | all cited regions byte-identical to the audited baseline, or the defect is provable by reading |
+| PARTIAL | 2 | #1074 (fixed for completion+retrieval by #1097, still open for pattern APIs), #1091 (count ratchet exists, coverage still lost) |
+| FIXED | 0 | no commit in `9f50c607..HEAD` references any of the 22 numbers |
+| Escalations | 5 | E1–E5 in `GAP_ANALYSIS_LATEST.md`; E1 and E2 change wave priorities |
+| Needed a runtime experiment | 0 | the adaptive-pool cooldown (E4) is provable statically: `now.elapsed()` off a fresh `Instant` is ≈0 ns |
+
+## Evidence (this commit)
 
 | Check | Command | Result |
 |-------|---------|--------|
-| Plan Validation | `./scripts/validate-plans.sh --all` | ✅ Exit 0 — active-set present, version cargo=0.1.45 / tag=v0.1.44 |
-| Code Quality | `./scripts/code-quality.sh fmt` | ✅ Exit 0 — code formatted cleanly |
-| Cargo Metadata | `cargo metadata --format-version 1 --no-deps` | ✅ 9 workspace crates at version 0.1.45 |
-| Architecture Files | `plans/ARCHITECTURE/*.md` | ✅ Updated workspace tables, SHA/date headers, and Postcard serialization references |
-| API & Metrics Docs | `docs/API_REFERENCE.md`, `docs/QUALITY_METRICS_TOOL.md` | ✅ Updated version markers and corrected Schwartzian Transform complexity claims |
-| Historical Snapshots | `plans/STATUS/archive/2026/` | ✅ Stale August 2026 status reports archived |
+| Plan Validation | `./scripts/validate-plans.sh --all` | ⏳ run in CI / pre-merge |
+| Tracker drift | `./scripts/validate-plans.sh --tracker-drift` | ⏳ — headers now say "run gh …", never a pinned count |
+| Links | `./scripts/check-docs-integrity.sh` | ⏳ |
+| LOC gate | `./scripts/check-loc.sh` | n/a — markdown only |
+| Live tracker state | `gh issue list --state open` / `gh pr list --state open` | 23 open issues (22 code + #1109), 0 open PRs at time of writing |
+
+## Carry-forward (PR monitoring guardrail)
+
+Each of W1–W6 must record its `statusCheckRollup` on the head SHA here before merge. An empty required-check
+rollup is a blocker, not a pass.
+
+| Slice | PR | Head SHA | Required rollup | Merge evidence |
+|---|---|---|---|---|
+| W0 trackers | ⏳ | — | — | — |
+| W1 #1077 | ⏳ | — | — | — |
+| W2 #1086 | ⏳ | — | — | — |
+| W3 #1088 | ⏳ | — | — | — |
+| W4 #1066 | ⏳ | — | — | — |
+| W5 #1075 | ⏳ | — | — | — |
+| W6 #1085 | ⏳ | — | — | — |

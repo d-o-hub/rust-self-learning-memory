@@ -1,14 +1,39 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-03
+- **Last Updated**: 2026-10-04
 - **Version**: workspace `0.1.45` · latest tag `v0.1.44`
-- **Branch**: main @ `4f4f4ba8` (PR #1118 merged 2026-10-02; v0.1.44 tagged on this commit)
+- **Branch**: main @ `74a44a15` (v0.1.44 tagged on `4f4f4ba8`; PR #1126 merged 2026-10-04)
 - **Open PRs**: run `gh pr list --state open` (this header no longer pins counts; the tracker-drift check guards it)
-- **Open issues**: run `gh issue list --state open` — the previous release-drift issue closed with the tag
-- **Active plan**: none in flight — v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage floor #1117); workspace bumped to 0.1.45 post-release; ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
+- **Open issues**: run `gh issue list --state open` — **23**: the 22-issue audit backlog (#1063–#1092) plus #1109
+  (code complete, manual crates.io steps). Register: `STATUS/GAP_ANALYSIS_LATEST.md`
+- **Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (slices W1–W6, ACT-370…375).
+  The 22 issues were filed at audit baseline `9f50c607`, never entered in these trackers, and re-validation at
+  `74a44a15` found **0 of them fixed** (20 OPEN / 2 PARTIAL). Prior wave: v0.1.44 shipped 2026-10-02 + release
+  pipeline C1–C7 (#1121/#1123/#1125); ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
+- **Campaign scope correction**: the "0 open code-side gaps" line in `STATUS/CURRENT.md` and the closed flags below
+  describe the CI-trust / attribution campaign (ADR-079, CIT-A1…A5, PTA, RAT). They were never true repo-wide.
 - **Note**: retrieval judgment + rerank merged 2026-09-24; 8 harness-friction issues filed upstream (`d-o-hub/do-harness` #238–#245).
 - **Archive**: `plans/archive/2026-07-consolidation/`  
 - **Release**: ✅ `v0.1.44` tagged on `4f4f4ba8` and shipped (workspace bumped to `0.1.45` post-release)
+
+---
+
+## Phase: Execute — audit-backlog wave (2026-10-04)
+
+| Slice | Goal | Issue | Key | Status |
+|---|---|---|---|---|
+| W0 | trackers match `gh issue list` | governance | — | 🔄 this PR |
+| W1 | no ranking read guard across `.await` | #1077 | R06 | 🔄 ACT-370 |
+| W2 | real sub-second MCP latency | #1086 | M05 | 🔄 ACT-371 |
+| W3 | tag transaction rolls back on every failure | #1088 | M07 | 🔄 ACT-372 |
+| W4 | redb recommendation index follows recency | #1066 | S07 | 🔄 ACT-373 |
+| W5 | query-aware lexical fallback | #1075 | R04 | 🔄 ACT-374 |
+| W6 | real MCP health probes + URL redaction | #1085 | M04 | 🔄 ACT-375 |
+
+Queued chains (validated, sequenced, not started): ACT-376 watermark #1067 → ACT-377 merge #1068 → ACT-378 batch
+#1089 · ACT-379 adapter #1073 → ACT-380 pattern snapshot #1074 → ACT-381 vector reuse #1076 · ACT-382 capability
+truth #1087 (4 PRs) · ACT-383 ignored tests #1091 (3 PRs) · ACT-384 lint suppressions #1092 (4 PRs) · ACT-385 the
+remaining validated P1s (#1063, #1064, #1070, #1071, #1065, #1078, #1079).
 
 ---
 
@@ -61,9 +86,27 @@ Details: `plans/archive/2026-07-consolidation/completed-sprints/`.
 
 ---
 
-## Goal-state flags (2026-07-24)
+## Goal-state flags (2026-07-24; audit-backlog flags appended 2026-10-04)
 
 ```text
+audit_backlog_registered          = false  (→ true once W0 merges: 22 issues in GAP_ANALYSIS_LATEST.md)
+trackers_match_issue_list         = false  (→ true once W0 merges; was silently false since 2026-09-29)
+no_lock_across_await_recommend    = false  (#1077 / W1 — AGENTS.md invariant currently violated)
+mcp_latency_subsecond_real        = false  (#1086 / W2 — as_secs() truncation)
+turso_tag_tx_rollback             = false  (#1088 / W3 — BEGIN/COMMIT with no ROLLBACK)
+redb_rec_index_follows_recency    = false  (#1066 / W4 — write order beats timestamp)
+pattern_lexical_fallback_discriminates = false  (#1075 / W5 — constant 0.5)
+mcp_health_probes_backends        = false  (#1085 / W6 — env-var existence, zeroed cache, uptime 0)
+mcp_health_output_redacted        = false  (escalation E1 — raw TURSO_DATABASE_URL in response)
+episode_modification_watermark    = false  (#1067 — no updated_at; E3: created_at re-defaults every write)
+storage_merge_revision_aware      = false  (#1068 — or_insert_with visit order lets stale cache win)
+sync_batch_writes                 = false  (#1089 — redb has no store_episodes_batch override)
+embedding_storage_identity_scoped = false  (#1073 — MCP always builds InMemoryEmbeddingStorage)
+one_provider_snapshot_all_paths   = partial  (#1074 — fixed for completion/retrieval by #1097, open for pattern APIs)
+pattern_search_respects_query     = false  (escalation E2 — semantic_service None on all production paths + both fallbacks 0.5)
+storagebackend_defaults_cannot_fake_success = false  (#1087 — 23 of 25 value-returning defaults)
+ignored_tests_inventory_and_ci    = false  (#1091 — 173 ignores, 118 turso ones execute nowhere)
+lint_suppressions_narrow          = false  (#1092 — 395 crate-root allows; allow_attributes=deny is inert)
 truth_reconciled                  = true  (full plans refresh 2026-07-24; no open PRs)
 sandbox_capability_boundary       = true
 retrieval_identity_complete       = true  (ADR-074 Accepted/Implemented)

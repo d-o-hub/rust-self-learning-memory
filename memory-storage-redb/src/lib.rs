@@ -74,6 +74,7 @@ mod heuristics;
 mod patterns;
 mod persistence;
 mod procedural;
+mod recommendation_index;
 mod recommendations;
 mod relationships;
 mod statistics;

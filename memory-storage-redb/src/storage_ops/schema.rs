@@ -166,6 +166,13 @@ impl RedbStorage {
             self.store_schema_version().await?;
         }
 
+        // The episode index stores no ordering key, so rows left by the pre-#1066
+        // last-write-wins path are reconciled against the session rows on every open.
+        let repaired = self.repair_recommendation_index().await?;
+        if repaired > 0 {
+            info!("Reconciled {repaired} recommendation episode index entries");
+        }
+
         info!("Initialized redb tables");
         Ok(())
     }

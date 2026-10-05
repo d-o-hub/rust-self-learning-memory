@@ -11,6 +11,7 @@ use do_memory_core::{Error, Result};
 use redb::{ReadableDatabase, ReadableTable, TableDefinition};
 use serde::de::DeserializeOwned;
 use std::sync::Arc;
+use tracing::debug;
 use uuid::Uuid;
 
 impl RedbStorage {
@@ -24,13 +25,37 @@ impl RedbStorage {
         })?;
         let session_key = session.session_id.to_string();
         let episode_key = session.episode_id.to_string();
+        // Computed outside the closure: the rank is the only ordering the index may consult.
+        let new_rank = super::recommendation_index::session_rank(session);
 
         with_db_timeout(move || {
             let write_txn = db
                 .begin_write()
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
 
-            {
+            // The episode's current winner is read in this same transaction, so two sessions
+            // for one episode cannot interleave and write order decides nothing.
+            let indexed_session_key = {
+                let episode_index = write_txn
+                    .open_table(RECOMMENDATION_EPISODE_INDEX_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation episode index: {}",
+                            e
+                        ))
+                    })?;
+                episode_index
+                    .get(episode_key.as_str())
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to read recommendation episode index: {}",
+                            e
+                        ))
+                    })?
+                    .map(|value| value.value().to_string())
+            };
+
+            let take_index = {
                 let mut session_table = write_txn
                     .open_table(RECOMMENDATION_SESSIONS_TABLE)
                     .map_err(|e| {
@@ -39,14 +64,36 @@ impl RedbStorage {
                             e
                         ))
                     })?;
+                let incumbent_rank = indexed_session_key
+                    .as_deref()
+                    .and_then(|key| session_table.get(key).ok().flatten())
+                    .and_then(|guard| {
+                        postcard::from_bytes::<RecommendationSession>(guard.value())
+                            .ok()
+                            .map(|session| super::recommendation_index::session_rank(&session))
+                    });
                 session_table
                     .insert(session_key.as_str(), session_bytes.as_slice())
                     .map_err(|e| {
                         Error::Storage(format!("Failed to insert recommendation session: {}", e))
                     })?;
-            }
 
-            {
+                match incumbent_rank {
+                    Some(rank) if rank >= new_rank => {
+                        // A newer session already owns the episode: store the row, leave the
+                        // index pointing at it.
+                        debug!(
+                            episode = %episode_key,
+                            session = %session_key,
+                            "older recommendation session stored without taking the index"
+                        );
+                        false
+                    }
+                    _ => true,
+                }
+            };
+
+            if take_index {
                 let mut episode_index = write_txn
                     .open_table(RECOMMENDATION_EPISODE_INDEX_TABLE)
                     .map_err(|e| {

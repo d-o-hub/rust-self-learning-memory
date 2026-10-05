@@ -125,7 +125,7 @@ fn rebuild_episode_index(
 impl RedbStorage {
     /// Rebuild the recommendation episode index from the session rows it points at.
     ///
-    /// Each episode ends up indexed by the session with the greatest [`session_rank`], which
+    /// Each episode ends up indexed by the session with the greatest `session_rank`, which
     /// corrects what the pre-#1066 write path left behind: last write won, so an older session
     /// stored after a newer one could own the entry indefinitely. Index entries whose session
     /// row is gone are dropped and episodes with sessions but no entry are added. Session and

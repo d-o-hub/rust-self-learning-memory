@@ -71,7 +71,7 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 
 Sensors live in `do-harness.toml` (fmt, check, clippy, test, deny, loc) and map to guides in `HARNESS.md`. `do-harness verify --record` runs the suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Sensor fired? Fix that sensor first, then commit.
 
-**Do NOT run `do-harness hook install`** — `.pre-commit-config.yaml` owns `.git/hooks/pre-commit` (cheap sensor subset: fmt + loc). `do-harness init` must never inject the skill-creator scripts or ignore `.agents/events/`. Steering loop, metrics events and the fired-sensor runbook: [`.agents/skills/harness/SKILL.md`](.agents/skills/harness/SKILL.md).
+**Do NOT run `do-harness hook install`** — `.pre-commit-config.yaml` owns the git hooks, installed via `./scripts/install-hooks.sh`. A fresh clone has none installed (`.git/hooks` holds only `.sample` files), so every declared sensor is inert until that script runs; `./scripts/install-hooks.sh --verify` reports which are missing. The commit stage is the cheap subset (fmt, loc, file hygiene, shellcheck, yamllint) — clippy is `stages: [manual]` (`pre-commit run --hook-stage manual --all-files`), and `commitlint` needs the **commit-msg** hook type, which plain `pre-commit install` does not create. Worktrees share the common hooks dir, so one install covers them all. `do-harness init` must never inject the skill-creator scripts or ignore `.agents/events/`. Steering loop, metrics events and the fired-sensor runbook: [`.agents/skills/harness/SKILL.md`](.agents/skills/harness/SKILL.md).
 
 ## Required Checks Before Commit
 

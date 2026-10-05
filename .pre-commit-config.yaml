@@ -1,6 +1,8 @@
 # Pre-commit hooks for CI parity
-# Install: pip install pre-commit && pre-commit install
+# Install: ./scripts/install-hooks.sh   (equivalently: pip install pre-commit, then
+#          pre-commit install --hook-type pre-commit --hook-type commit-msg)
 # Run manually: pre-commit run --all-files
+# Run the opt-in heavy hooks: pre-commit run --hook-stage manual --all-files
 
 repos:
   - repo: local
@@ -20,18 +22,24 @@ repos:
         language: system
         pass_filenames: false
 
-      # Clippy on lib + tests - matches CI quick-check.yml
+      # Clippy on lib + tests - matches CI quick-check.yml.
+      # Kept in the manual stage: two workspace clippy passes per commit is minutes of
+      # latency, which is why these hooks went uninstalled and AGENTS.md described the
+      # commit subset as "fmt + loc". Run them explicitly with
+      # `pre-commit run --hook-stage manual --all-files`, or via ./scripts/code-quality.sh.
       - id: clippy-lib
         name: Clippy (lib)
         entry: cargo clippy --lib -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
         language: system
         pass_filenames: false
+        stages: [manual]
 
       - id: clippy-tests
         name: Clippy (tests)
         entry: cargo clippy --tests -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
         language: system
         pass_filenames: false
+        stages: [manual]
 
   # Optional: Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks

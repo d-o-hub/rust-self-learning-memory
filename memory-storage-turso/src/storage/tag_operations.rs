@@ -3,6 +3,7 @@
 //! Provides functions for managing episode tags including CRUD operations,
 //! tag-based queries, and tag statistics.
 
+use crate::storage::transaction_scope::transactional;
 use crate::{Error, Result};
 use do_memory_core::apply_query_limit;
 use libsql::Connection;
@@ -28,7 +29,15 @@ pub struct TagStats {
 /// 2. Inserts new tags
 /// 3. Updates tag metadata (usage counts, timestamps)
 ///
-/// All operations are performed in a transaction for atomicity.
+/// All statements run inside a single transaction scope
+/// (`crate::storage::transaction_scope::transactional`): they are committed together,
+/// and any failing statement - or any `?` early return - rolls the whole replacement
+/// back so the previous tag set stays intact and the connection is left with no open
+/// transaction.
+///
+/// Note: a duplicated tag in `tags` violates the `episode_tags` primary key and fails
+/// the whole replacement; callers pass the tag set of one episode, so duplicates are
+/// treated as invalid input rather than silently deduplicated.
 pub async fn save_episode_tags(
     conn: &Connection,
     episode_id: &Uuid,
@@ -36,51 +45,44 @@ pub async fn save_episode_tags(
 ) -> Result<()> {
     let episode_id_str = episode_id.to_string();
 
-    // Start transaction
-    conn.execute("BEGIN", ())
+    transactional(conn, async {
+        // Delete existing tags
+        conn.execute(
+            "DELETE FROM episode_tags WHERE episode_id = ?",
+            libsql::params![episode_id_str.clone()],
+        )
         .await
-        .map_err(|e| Error::Storage(format!("Failed to begin transaction: {}", e)))?;
+        .map_err(|e| Error::Storage(format!("Failed to delete existing tags: {}", e)))?;
 
-    // Delete existing tags
-    conn.execute(
-        "DELETE FROM episode_tags WHERE episode_id = ?",
-        libsql::params![episode_id_str.clone()],
-    )
+        // Insert new tags and update metadata
+        let now = chrono::Utc::now().timestamp();
+        for tag in tags {
+            // Insert tag association
+            conn.execute(
+                "INSERT INTO episode_tags (episode_id, tag, created_at) VALUES (?, ?, ?)",
+                libsql::params![episode_id_str.clone(), tag.clone(), now],
+            )
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to insert tag: {}", e)))?;
+
+            // Update tag metadata (insert or update)
+            conn.execute(
+                r#"
+                    INSERT INTO tag_metadata (tag, usage_count, first_used, last_used)
+                    VALUES (?, 1, ?, ?)
+                    ON CONFLICT(tag) DO UPDATE SET
+                        usage_count = usage_count + 1,
+                        last_used = ?
+                    "#,
+                libsql::params![tag.clone(), now, now, now],
+            )
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to update tag metadata: {}", e)))?;
+        }
+
+        Ok(())
+    })
     .await
-    .map_err(|e| Error::Storage(format!("Failed to delete existing tags: {}", e)))?;
-
-    // Insert new tags and update metadata
-    let now = chrono::Utc::now().timestamp();
-    for tag in tags {
-        // Insert tag association
-        conn.execute(
-            "INSERT INTO episode_tags (episode_id, tag, created_at) VALUES (?, ?, ?)",
-            libsql::params![episode_id_str.clone(), tag.clone(), now],
-        )
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to insert tag: {}", e)))?;
-
-        // Update tag metadata (insert or update)
-        conn.execute(
-            r#"
-            INSERT INTO tag_metadata (tag, usage_count, first_used, last_used)
-            VALUES (?, 1, ?, ?)
-            ON CONFLICT(tag) DO UPDATE SET
-                usage_count = usage_count + 1,
-                last_used = ?
-            "#,
-            libsql::params![tag.clone(), now, now, now],
-        )
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to update tag metadata: {}", e)))?;
-    }
-
-    // Commit transaction
-    conn.execute("COMMIT", ())
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
-
-    Ok(())
 }
 
 /// Get all tags for an episode
@@ -113,6 +115,12 @@ pub async fn get_episode_tags(conn: &Connection, episode_id: &Uuid) -> Result<Ve
 }
 
 /// Delete specific tags from an episode
+///
+/// Runs in its own transaction scope, so a failing statement can neither remove part of
+/// the requested tag set nor leave the connection in an open transaction.
+///
+/// The caller must not hold an open transaction on `conn` (SQLite rejects the nested
+/// `BEGIN`), which matches every call site in this crate.
 pub async fn delete_episode_tags(
     conn: &Connection,
     episode_id: &Uuid,
@@ -135,13 +143,16 @@ pub async fn delete_episode_tags(
     let mut params: Vec<libsql::Value> = vec![episode_id_str.into()];
     params.extend(tags.iter().map(|t| t.clone().into()));
 
-    conn.execute(&query, libsql::params_from_iter(params))
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to delete tags: {}", e)))?;
+    transactional(conn, async move {
+        conn.execute(&query, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to delete tags: {}", e)))?;
 
-    // Note: We don't decrement usage_count in tag_metadata to keep historical stats
+        // Note: We don't decrement usage_count in tag_metadata to keep historical stats
 
-    Ok(())
+        Ok(())
+    })
+    .await
 }
 
 /// Find episodes that have any of the specified tags (OR logic)

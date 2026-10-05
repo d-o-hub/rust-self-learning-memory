@@ -26,6 +26,7 @@ pub mod procedural;
 pub mod recommendations;
 pub mod search;
 pub mod tag_operations;
+mod transaction_scope;
 
 // Multi-dimensional embedding storage (feature-gated)
 #[cfg(feature = "turso_multi_dimension")]

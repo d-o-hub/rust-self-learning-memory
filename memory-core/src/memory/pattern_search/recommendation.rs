@@ -432,4 +432,14 @@ mod tests {
             "the provider-error path must score like the no-provider path"
         );
     }
+
+    /// The outage fixture must stay a valid [`EmbeddingProvider`]: search ignores its vectors,
+    /// but anything that introspects the provider still has to see a coherent identity.
+    #[test]
+    fn outage_provider_still_advertises_its_identity() {
+        use crate::embeddings::EmbeddingProvider;
+
+        assert_eq!(OutageProvider.embedding_dimension(), 4);
+        assert_eq!(OutageProvider.model_name(), "outage-provider");
+    }
 }

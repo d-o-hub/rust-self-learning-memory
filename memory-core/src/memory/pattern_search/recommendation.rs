@@ -81,6 +81,7 @@ pub async fn search_patterns_semantic(
 
         // Calculate multi-signal score
         let score_breakdown = calculate_pattern_score(
+            query,
             &query_embedding,
             &pattern,
             context,
@@ -297,5 +298,138 @@ mod tests {
         .unwrap();
 
         assert!(!results.is_empty());
+    }
+
+    /// Ordering must follow the query, not just context/effectiveness — the regression that
+    /// let a constant `0.5` stand in for lexical relevance.
+    #[tokio::test]
+    async fn search_without_a_service_orders_by_query_terms() {
+        let mut relevant = create_test_pattern("web-api", 0.9);
+        if let Pattern::ToolSequence { tools, .. } = &mut relevant {
+            *tools = vec!["axum".to_string(), "tokio".to_string()];
+        }
+        let mut off_topic = create_test_pattern("web-api", 0.9);
+        if let Pattern::ToolSequence { tools, .. } = &mut off_topic {
+            *tools = vec!["ffmpeg".to_string(), "blender".to_string()];
+        }
+
+        let context = TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: ComplexityLevel::Moderate,
+            tags: vec!["axum".to_string(), "async".to_string()],
+        };
+
+        let results = search_patterns_semantic(
+            "build an async axum server",
+            vec![off_topic, relevant],
+            &context,
+            None,
+            SearchConfig::default(),
+            5,
+        )
+        .await
+        .unwrap();
+
+        assert!(
+            !results.is_empty(),
+            "the matching pattern must survive filtering"
+        );
+        let top = &results[0];
+        assert!(
+            matches!(
+                &top.pattern,
+                Pattern::ToolSequence { tools, .. } if tools.contains(&"axum".to_string())
+            ),
+            "the pattern naming the query's terms must rank first, got {:?}",
+            top.pattern
+        );
+        let top_semantic = top.score_breakdown.semantic_similarity;
+        for other in results.iter().skip(1) {
+            assert!(
+                top_semantic > other.score_breakdown.semantic_similarity,
+                "candidates must be scored on their own text, not a shared constant: \
+                 top {top_semantic:.3} vs {:.3}",
+                other.score_breakdown.semantic_similarity
+            );
+        }
+    }
+
+    /// Embedding generation fails exactly like a live provider outage.
+    struct OutageProvider;
+
+    #[async_trait::async_trait]
+    impl crate::embeddings::EmbeddingProvider for OutageProvider {
+        async fn embed_text(&self, _text: &str) -> anyhow::Result<Vec<f32>> {
+            Err(anyhow::anyhow!("provider unavailable"))
+        }
+
+        fn embedding_dimension(&self) -> usize {
+            4
+        }
+
+        fn model_name(&self) -> &'static str {
+            "outage-provider"
+        }
+    }
+
+    /// A provider error is swallowed into an empty query embedding, so the search must score
+    /// the candidates lexically rather than fall back to the old constant.
+    #[tokio::test]
+    async fn provider_errors_still_score_by_query_terms() {
+        use crate::embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage};
+
+        let service = Arc::new(SemanticService::new(
+            Box::new(OutageProvider),
+            Box::new(InMemoryEmbeddingStorage::new()),
+            EmbeddingConfig::default(),
+        ));
+
+        let mut relevant = create_test_pattern("web-api", 0.9);
+        if let Pattern::ToolSequence { tools, .. } = &mut relevant {
+            *tools = vec!["axum".to_string(), "tokio".to_string()];
+        }
+        let mut off_topic = create_test_pattern("web-api", 0.9);
+        if let Pattern::ToolSequence { tools, .. } = &mut off_topic {
+            *tools = vec!["ffmpeg".to_string(), "blender".to_string()];
+        }
+
+        let context = TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: ComplexityLevel::Moderate,
+            tags: vec!["axum".to_string(), "async".to_string()],
+        };
+        let query = "build an async axum server";
+
+        let results = search_patterns_semantic(
+            query,
+            vec![off_topic, relevant],
+            &context,
+            Some(&service),
+            SearchConfig::default(),
+            5,
+        )
+        .await
+        .unwrap();
+
+        let top = results
+            .first()
+            .expect("the query-matching pattern must clear min_relevance");
+        assert!(
+            matches!(
+                &top.pattern,
+                Pattern::ToolSequence { tools, .. } if tools.contains(&"axum".to_string())
+            ),
+            "a provider outage must not flatten the ranking, got {:?}",
+            top.pattern
+        );
+        assert_eq!(
+            top.score_breakdown.semantic_similarity,
+            super::super::lexical::calculate_keyword_similarity(query, &top.pattern, &context),
+            "the provider-error path must score like the no-provider path"
+        );
     }
 }

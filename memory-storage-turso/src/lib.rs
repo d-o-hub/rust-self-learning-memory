@@ -205,6 +205,10 @@ pub use storage::batch::episode_batch::BatchConfig;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;
 pub use storage::patterns::{PatternMetadata, PatternQuery};
+pub use storage::query_builder::{
+    EpisodeColumn, EpisodeQueryBuilder, FilterOp, PatternColumn, PatternQueryBuilder, QueryBuilder,
+    QueryColumn,
+};
 pub use trait_impls::StorageStatistics;
 
 // Compression exports (when compression feature is enabled)

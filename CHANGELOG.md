@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of being set to the result count, and `RetrievalProvenance` /
   `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
   `fallback`, and a `RetrievalExecution` report).
+- Turso episode/pattern row decoding no longer substitutes values for corrupt
+  data (#1071): required timestamps and JSON now return `Error::Storage` naming
+  the column, the result row, and the query surface; nullable fields stay
+  nullable; raw episode and pattern queries abort instead of returning a
+  partial result; a new allowlisted `QueryBuilder` offers the supported
+  parameterized path alongside `query_with_params`.
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

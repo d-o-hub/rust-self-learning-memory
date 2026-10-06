@@ -17,6 +17,11 @@ list. Five parallel read-only validation agents re-checked every finding against
 numbers, and `git log 9f50c607..HEAD -- <cited path>` shows the cited regions untouched. The prior "0 open
 gaps" claim was campaign-scoped (ADR-079 / CIT / PTA / RAT) and remains true only for that campaign.
 
+**Wave progress (2026-10-06)**: W1 #1077 ✅ #1131 · W2 #1086 ✅ #1135 · W3 #1088 ✅ #1134 · W4 #1066 ✅ #1139
+(issue awaiting close with evidence) · W5 #1075 🔄 #1138 · W6 #1085 🔄 #1140 (E1 redaction in review) ·
+Q02 #1091 🔄 #1130 (rescued to a clean branch — the jules tip had reverted W1–W4). Verdicts below remain the
+2026-10-04 audit snapshot; see `VALIDATION_LATEST.md` for the live state.
+
 ## Register — 22 open issues
 
 `Verdict` is the state at `74a44a15`. `Wave` is the queue position from `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`.
@@ -46,7 +51,7 @@ gaps" claim was campaign-scoped (ADR-079 / CIT / PTA / RAT) and remains true onl
 | #1091 | Q02 | P1 | OPEN — mitigated only by count ratchet | **173** `#[ignore]` attrs (turso 118 / core 38 / mcp 11 / cli 2); ADR-027 claims 121/71/37/9 (stale by 52) and omits `monitoring_capacity_tests.rs` (30); `nightly-tests.yml` `--run-ignored only` jobs both exclude `do-memory-storage-turso` → **118 ignored Turso tests run nowhere**; `check-ignored-tests.sh` is a ceiling-only ratchet (200) | un-ignore the ~11 validation-only `security_tests.rs` cases, machine-readable inventory artifact, isolated nightly turso job with non-green crash/timeout signal, refresh ADR-027 | S+M → **3 PRs** | later |
 | #1092 | Q03 | P2 | OPEN | 395 crate-root `#![allow(...)]` in `*/src` (cli 66 + `main.rs` 62, mcp 64, turso 57, redb 25, core 23), +76 inline; `memory-storage-turso/src/lib.rs:3` **allows `unsafe_code`** while the other four deny it; `Cargo.toml:113` sets `allow_attributes = "deny"` and `HARNESS.md:36` claims "No `#[allow(...)]`" — sensor inert; no suppression checker in `scripts/` | peel turso unsafe to sites, add a `#![allow]` ceiling ratchet to `ci.yml:93`, convert to `#![expect]` per crate, then re-enable `unwrap_used`/`expect_used` | L → **4 PRs** | later |
 | #1109 | R-F10 | P2 | **code complete**, manual steps open | C1/C2 #1123 (`68eda3d0`), C3/C4 #1121, C5–C7 #1125 (`4fb0e20f`) | crates.io: 4 trusted-publisher registrations, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` environment to `v*` tags; then enable immutable releases | manual | maintainer |
-| #1127 | DOC03 | P1 | **found by this wave**, fix in review | `check-docs-integrity.sh` exits 2 on clean `74a44a15` with 15 false positives; `quality-gates.sh:196-211` runs it non-blocking (ADR-037) so CI is green, but `release-manager.sh:240` runs it via `run_cmd` under `set -euo pipefail` | merge PR #1128, then confirm `ship --execute` clears the docs-integrity step on the next release | S | **W0 (in review)** |
+| #1127 | DOC03 | P1 | ✅ **fixed in #1128** (`b5c87ec1`) | `check-docs-integrity.sh` exits 2 on clean `74a44a15` with 15 false positives; `quality-gates.sh:196-211` runs it non-blocking (ADR-037) so CI is green, but `release-manager.sh:240` runs it via `run_cmd` under `set -euo pipefail` | confirmed by the #1128 merge; `ship --execute` clears the docs-integrity step on the next release | S | **W0 ✅** |
 
 ## Escalations found by validation (no issue body states these)
 

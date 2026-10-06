@@ -1,51 +1,42 @@
-# Validation Latest — 2026-10-04 (audit-backlog reconciliation)
+# Validation Latest — 2026-10-06 (audit-backlog wave progress)
 
-**Goal**: establish a truthful repo-wide gap register before writing code — determine which of the 22 open
-issues (#1063–#1092, #1109) are still real at current `main`, and which were silently fixed by the
-intervening release waves.
+**Goal**: record the verified state of the audit-backlog wave before the next implementation wave — which slices
+merged, which are in review, and the CI evidence attached to each head SHA (PR monitoring guardrail).
 
-**Workspace**: `0.1.45` · **Branch**: `plans/audit-wave-2026-10-04` @ base `74a44a15` · **Tag**: `v0.1.44`
+**Workspace**: `0.1.45` · **Branch**: `main` @ `0485bb66` · **Tag**: `v0.1.44`
 
 ## Method
 
-Five read-only validation agents ran in parallel, partitioned by domain (turso pool/tx · sync/merge ·
-embeddings/retrieval · ranking/observability · capability/quality). Each was instructed to read whole functions
-rather than excerpts, to quote the decisive lines, and to classify every finding
-`OPEN | FIXED | PARTIAL | UNCERTAIN`. No agent built or tested code (the workspace had no `target/` at wave
-start); fixes were verified against source plus `git log --oneline 9f50c607..HEAD -- <path>` to detect later
-resolutions.
+- Merged slices verified by commit/SHA on `main` (`git log`) and by issue state (`gh issue view`): #1077, #1086,
+  #1088 closed 2026-10-05; #1066 fix merged but issue still open (close with evidence).
+- In-review PRs verified per head SHA via `gh pr checks` / the check-runs API; cancelled-vs-failed classified from
+  the runs API — most 2026-10-05 jobs show `cancelled`, not `failed`.
+- Local evidence: `./scripts/check-ignored-tests.sh` on the clean #1130 branch → `ignored_test_attrs=159`,
+  `OK: Ignored test inventory valid and complete (159 items matched)` (2026-10-06).
 
 ## Result
 
-| Bucket | Count | Notes |
-|---|---|---|
-| OPEN | 20 | all cited regions byte-identical to the audited baseline, or the defect is provable by reading |
-| PARTIAL | 2 | #1074 (fixed for completion+retrieval by #1097, still open for pattern APIs), #1091 (count ratchet exists, coverage still lost) |
-| FIXED | 0 | no commit in `9f50c607..HEAD` references any of the 22 numbers |
-| Escalations | 5 | E1–E5 in `GAP_ANALYSIS_LATEST.md`; E1 and E2 change wave priorities |
-| Needed a runtime experiment | 0 | the adaptive-pool cooldown (E4) is provable statically: `now.elapsed()` off a fresh `Instant` is ≈0 ns |
-
-## Evidence (this commit)
-
-| Check | Command | Result |
-|-------|---------|--------|
-| Plan Validation | `./scripts/validate-plans.sh --all` | ⏳ run in CI / pre-merge |
-| Tracker drift | `./scripts/validate-plans.sh --tracker-drift` | ⏳ — headers now say "run gh …", never a pinned count |
-| Links | `./scripts/check-docs-integrity.sh` | ⏳ |
-| LOC gate | `./scripts/check-loc.sh` | n/a — markdown only |
-| Live tracker state | `gh issue list --state open` / `gh pr list --state open` | 23 open issues (22 code + #1109), 0 open PRs at time of writing |
-
-## Carry-forward (PR monitoring guardrail)
-
-Each of W1–W6 must record its `statusCheckRollup` on the head SHA here before merge. An empty required-check
-rollup is a blocker, not a pass.
-
 | Slice | PR | Head SHA | Required rollup | Merge evidence |
-|---|---|---|---|---|
-| W0 trackers | ⏳ | — | — | — |
-| W1 #1077 | ⏳ | — | — | — |
-| W2 #1086 | ⏳ | — | — | — |
-| W3 #1088 | ⏳ | — | — | — |
-| W4 #1066 | ⏳ | — | — | — |
-| W5 #1075 | ⏳ | — | — | — |
-| W6 #1085 | ⏳ | — | — | — |
+|-------|----|----------|-----------------|----------------|
+| W0 trackers | #1129 | `26b12fc8` | green | ✅ merged 2026-10-05 |
+| W1 #1077 | #1131 | `874df209` | green | ✅ merged 2026-10-05 |
+| W2 #1086 | #1135 | `75007b51` | green | ✅ merged 2026-10-05 |
+| W3 #1088 | #1134 | `347b3296` | green | ✅ merged 2026-10-05 |
+| W4 #1066 | #1139 | `f1c31699`, `0485bb66` | green | ✅ merged 2026-10-05 |
+| W5 #1075 | #1138 | `6155e37b` | `CI / Required` ✅, Codacy ✅; non-required workflows cancelled at 2026-10-05 19:39 → rerun 2026-10-06 | ⏳ |
+| W6 #1085 | #1140 | `4264f8aa` | aggregate failed closed on the cancelled set (correct behaviour); all cancelled workflows rerun 2026-10-06 | ⏳ |
+| Q02 #1091 | #1130 → clean branch | `da0c867c` (rejected) | commitlint failed (body line >100); the tip also reverted W1–W4 | ⏳ clean branch prepared |
+
+## Findings (2026-10-06)
+
+| Finding | Evidence |
+|---------|----------|
+| #1130's PR tip had reverted main | `git diff 810db30b da0c867c` deletes `transaction_scope.rs`, `recommendation_index*.rs`, `ranking_guard_tests.rs`, monitoring tests, plans docs, `install-hooks.sh` — a stale-branch clobber pushed as commit `0401fa9c`; the only real work is `b9331ce3` (5 files) |
+| #1130 shipped a silent-pass nightly job | `continue-on-error: true` + `\|\| true` on the isolated Turso job; removed on the clean branch — the job and `nightly-summary` are now fail-visible (issue #1091 acceptance: "native failures cannot silently pass as skipped/green") |
+| #1138/#1140 non-required workflows cancelled mid-run | runs API shows `conclusion=cancelled` per job (not `failed`); `gh run rerun --failed` triggered 2026-10-06; dynamic CodeQL runs cannot be rerun via API — they re-analyze on the next push |
+| Interactive rerun needed for the required aggregate | #1140's `CI / Required` correctly failed closed when the gated jobs were cancelled/abandoned (`ci-required-evaluate.sh` rejects unknown/`skipped`); rerunning the workflow restores a real aggregate |
+
+## Live tracker state
+
+`gh issue list --state open` = 21 (audit backlog minus #1077/#1086/#1088 closed, #1066 merged-awaiting-close; plus
+#1109 code-complete/manual and #1137 release drift) · `gh pr list --state open` = 3 (#1130, #1138, #1140).

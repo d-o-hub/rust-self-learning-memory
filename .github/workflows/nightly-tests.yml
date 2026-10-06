@@ -32,6 +32,49 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Isolated Turso Native Tests job — failures MUST be visible (no continue-on-error):
+  # libsql native crashes/timeouts have to produce a non-green signal, never a silent skip.
+  isolated-turso-native-tests:
+    name: Isolated Turso Native Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          job-name: nightly-turso-native
+          install-nextest: "true"
+          save-cache: "false"
+
+      - name: Run isolated Turso native ignored tests
+        id: turso_tests
+        run: |
+          mkdir -p target/turso-reports
+          echo "=== Running isolated Turso native tests ==="
+          status=0
+          nix develop --command cargo nextest run -p do-memory-storage-turso --test security_tests --run-ignored all \
+            --message-format libtest-json > target/turso-reports/security_tests_report.json || status=1
+          nix develop --command cargo nextest run -p do-memory-storage-turso --run-ignored only \
+            --message-format libtest-json > target/turso-reports/ignored_turso_report.json || status=1
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Isolated Turso native tests failed or timed out — inspect the uploaded report"
+          fi
+          exit "$status"
+
+      - name: Upload Turso test artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: isolated-turso-native-test-results
+          path: target/turso-reports/
+          if-no-files-found: warn
+          retention-days: 14
+
   # Run all tests including slow ones
   full-test-suite:
     name: Full Test Suite (including slow tests)
@@ -307,16 +350,17 @@ jobs:
   # Summary job
   nightly-summary:
     name: Nightly Summary
-    needs: [full-test-suite, cross-platform-slow-tests]
+    needs: [isolated-turso-native-tests, full-test-suite, cross-platform-slow-tests]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check results
         run: |
           if [ "${{ needs.full-test-suite.result }}" == "failure" ] || \
+             [ "${{ needs.isolated-turso-native-tests.result }}" == "failure" ] || \
              [ "${{ needs.cross-platform-slow-tests.result }}" == "failure" ]; then
             echo "❌ Some nightly tests failed"
             exit 1
           else
-            echo "✅ All nightly tests passed"
+            echo "✅ All required nightly tests passed"
           fi

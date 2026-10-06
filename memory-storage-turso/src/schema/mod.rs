@@ -330,6 +330,25 @@ CREATE TABLE IF NOT EXISTS metadata (
 )
 "#;
 
+// ======= Capacity Eviction Cleanup Outbox (issue #1070) =======
+
+/// SQL to create the durable capacity-eviction cleanup intent (outbox) table.
+///
+/// `enforce_capacity` writes one row per episode it is about to evict *before*
+/// deleting anything, so a failed dependent-embedding or episode delete can
+/// never lose the id list: the row survives (or is re-created on the next
+/// attempt) and `retry_pending_capacity_evictions` can replay the cleanup.
+pub const CREATE_CAPACITY_EVICTION_INTENTS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS capacity_eviction_intents (
+    episode_id TEXT PRIMARY KEY NOT NULL,
+    backend TEXT NOT NULL DEFAULT 'durable',
+    error TEXT NOT NULL DEFAULT '',
+    attempts INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
 // ======= Episode Tags Schema =======
 
 /// SQL to create the episode_tags table

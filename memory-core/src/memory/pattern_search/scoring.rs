@@ -17,7 +17,9 @@ pub use super::lexical::calculate_keyword_similarity;
 /// Detailed breakdown of relevance scoring
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScoreBreakdown {
-    /// Semantic similarity from embeddings (0.0 to 1.0)
+    /// Query-relevance score (0.0 to 1.0): cosine similarity when a usable query embedding
+    /// and the semantic service are both available, otherwise the bounded lexical fallback
+    /// over the raw query and the pattern text.
     pub semantic_similarity: f32,
     /// Context match score (0.0 to 1.0)
     pub context_match: f32,
@@ -45,8 +47,10 @@ pub async fn calculate_pattern_score(
 ) -> Result<ScoreBreakdown> {
     // 1. Semantic similarity
     let semantic_similarity = if query_embedding.is_empty() {
-        // Fallback: keyword-based similarity over the same text the provider would embed.
-        calculate_keyword_similarity(query, pattern, context)
+        // Fallback: bounded lexical similarity over the raw query (the string the provider
+        // path embeds) and the pattern text `embed_pattern` embeds. Context is scored
+        // separately by `calculate_context_match` and is deliberately excluded here.
+        calculate_keyword_similarity(query, pattern)
     } else if let Some(service) = semantic_service {
         // Generate embedding for pattern
         let pattern_embedding = service.embed_pattern(pattern).await?;
@@ -54,7 +58,7 @@ pub async fn calculate_pattern_score(
     } else {
         // A query embedding without a service cannot be compared against pattern embeddings,
         // so the lexical fallback answers here too rather than a constant.
-        calculate_keyword_similarity(query, pattern, context)
+        calculate_keyword_similarity(query, pattern)
     };
 
     // 2. Context match
@@ -196,7 +200,7 @@ impl SearchConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::super::lexical::{pattern_with, query_context};
+    use super::super::lexical::{NEUTRAL_SIMILARITY, pattern_with, query_context};
     use super::*;
     use crate::types::ComplexityLevel;
     use uuid::Uuid;
@@ -317,7 +321,9 @@ mod tests {
     }
 
     /// A non-empty embedding with no service cannot be compared, so the lexical fallback
-    /// answers instead of the old constant.
+    /// answers instead of the old constant. The expectation is concrete and independent of
+    /// `calculate_keyword_similarity`: the query has three tokens, the pattern mentions one
+    /// of them (`async`), and `rest`/`server` appear nowhere in the pattern text.
     #[tokio::test]
     async fn embedding_without_a_service_still_uses_the_lexical_fallback() {
         let pattern = pattern_with(&["axum", "tokio"], &["async"]);
@@ -334,10 +340,15 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(
-            breakdown.semantic_similarity,
-            calculate_keyword_similarity("async rest server", &pattern, &context),
-            "the no-service branch must not return a constant"
+        let expected = 1.0_f32 / 3.0_f32;
+        assert!(
+            (breakdown.semantic_similarity - expected).abs() < 1e-6,
+            "expected exactly one of three query terms to match ({expected}), got {}",
+            breakdown.semantic_similarity
+        );
+        assert_ne!(
+            breakdown.semantic_similarity, NEUTRAL_SIMILARITY,
+            "the no-service branch must not return the historical constant"
         );
     }
 

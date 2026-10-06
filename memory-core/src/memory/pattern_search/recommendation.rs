@@ -428,7 +428,7 @@ mod tests {
         );
         assert_eq!(
             top.score_breakdown.semantic_similarity,
-            super::super::lexical::calculate_keyword_similarity(query, &top.pattern, &context),
+            super::super::lexical::calculate_keyword_similarity(query, &top.pattern),
             "the provider-error path must score like the no-provider path"
         );
     }

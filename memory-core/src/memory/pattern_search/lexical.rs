@@ -6,22 +6,23 @@
 //! deterministic stand-in so the component keeps discriminating between patterns instead of
 //! collapsing to a constant.
 
-use crate::embeddings::semantic_text::{create_query_text, pattern_to_text};
+use crate::embeddings::semantic_text::pattern_to_text;
 use crate::patterns::Pattern;
+#[cfg(test)]
 use crate::types::TaskContext;
 use std::collections::HashSet;
 
 /// Neutral score returned when there is nothing to compare.
 ///
-/// Preserves the historical behaviour for degenerate input (blank query, context-free
-/// pattern) so such a pattern keeps its previous ranking instead of dropping out.
+/// Preserves the historical behaviour for degenerate input (blank query) so the pattern keeps
+/// its previous ranking instead of dropping out.
 pub(crate) const NEUTRAL_SIMILARITY: f32 = 0.5;
 
-/// Words the text builders emit as field labels rather than as content.
+/// Words the text builder emits as field labels rather than as content.
 ///
-/// [`pattern_to_text`] and [`create_query_text`] write `domain: …`, `language: …`,
-/// `framework: …`, `tags: …`, `complexity: …`. Counting those label tokens as matches
-/// would credit every pattern for text the caller never asked about.
+/// [`pattern_to_text`] writes `domain: …`, `language: …`, `framework: …`, `tags: …`,
+/// `complexity: …`. Counting those label tokens as matches would credit every pattern for
+/// text the caller never asked about.
 const STRUCTURAL_LABELS: [&str; 5] = ["domain", "language", "framework", "tags", "complexity"];
 
 /// Lowercase, split on any non-alphanumeric character, and drop the noise.
@@ -39,22 +40,23 @@ fn tokenize(text: &str) -> HashSet<String> {
 
 /// Fallback keyword-based similarity used when no usable query embedding exists.
 ///
-/// Scores the same two strings the provider would have been handed — `create_query_text`
-/// and `pattern_to_text` — so a pattern mentioning the query's terms outranks one that does
-/// not. Bounded and local: the fraction of the query's distinct terms the pattern mentions,
-/// `0.0..=1.0`. No corpus statistics are available per call, so this makes no IDF claim;
-/// context agreement stays the job of [`super::scoring::calculate_context_match`].
-pub fn calculate_keyword_similarity(query: &str, pattern: &Pattern, context: &TaskContext) -> f32 {
-    let query_tokens = tokenize(&create_query_text(query, context));
-    let pattern_tokens = tokenize(&pattern_to_text(pattern));
-
-    // Only terms the caller typed count as lexical evidence. `create_query_text` appends the
-    // context fields, so a blank query would otherwise credit every pattern sharing that
-    // context with a full match.
-    if tokenize(query).is_empty() || pattern_tokens.is_empty() {
+/// Scores the query the provider path embeds (the raw `query`, as
+/// `search_patterns_semantic` hands to `embed_text`) against [`pattern_to_text`], the text
+/// `embed_pattern` embeds for the cosine path — so a pattern mentioning the query's terms
+/// outranks one that does not, and both paths measure the same two strings.
+///
+/// Bounded and local: the fraction of the query's distinct terms the pattern mentions,
+/// `0.0..=1.0`. No corpus statistics are available per call, so this makes no IDF claim
+/// and deliberately does NOT consult the task context — context agreement stays the job of
+/// [`super::scoring::calculate_context_match`] and must not be double-counted here.
+pub fn calculate_keyword_similarity(query: &str, pattern: &Pattern) -> f32 {
+    let query_tokens = tokenize(query);
+    if query_tokens.is_empty() {
+        // No typed terms to match on: keep the historical neutral value.
         return NEUTRAL_SIMILARITY;
     }
 
+    let pattern_tokens = tokenize(&pattern_to_text(pattern));
     let common = query_tokens.intersection(&pattern_tokens).count();
 
     common as f32 / query_tokens.len() as f32
@@ -104,12 +106,10 @@ mod tests {
     fn keyword_similarity_prefers_the_pattern_matching_the_query() {
         let matching = pattern_with(&["axum", "tokio", "postgres"], &["async", "rest"]);
         let unrelated = pattern_with(&["ffmpeg", "blender"], &["media"]);
-        let context = query_context(&["async", "rest"]);
 
-        let matched =
-            calculate_keyword_similarity("wire up an async rest server", &matching, &context);
-        let unmatched =
-            calculate_keyword_similarity("wire up an async rest server", &unrelated, &context);
+        // Three query tokens; the matching pattern carries two of them (`async`, `rest`).
+        let matched = calculate_keyword_similarity("async rest server", &matching);
+        let unmatched = calculate_keyword_similarity("async rest server", &unrelated);
 
         assert!(
             matched > unmatched,
@@ -117,30 +117,47 @@ mod tests {
              got {matched} vs {unmatched}"
         );
         assert!(
-            matched >= 0.5,
-            "the pattern naming most of the query's terms should cover at least half of them, \
-             got {matched}"
-        );
-        assert!(
             matched - unmatched >= 0.2,
             "the gap has to be wide enough to reorder a result set, got {matched} vs {unmatched}"
         );
-        // The unrelated pattern still shares the context's domain and language, which is real
-        // but weak evidence — it must not land at the neutral constant the stub returned.
         assert!(
             unmatched < NEUTRAL_SIMILARITY,
-            "context-only overlap must not earn a neutral score, got {unmatched}"
+            "a query-agnostic pattern must not earn the neutral score, got {unmatched}"
+        );
+        assert_ne!(
+            matched, NEUTRAL_SIMILARITY,
+            "a matching pattern must not land on the historical constant"
+        );
+    }
+
+    /// Regression (PR #1138 roast): the first implementation folded `create_query_text`
+    /// (query + context fields) into the lexical numerator, so a pattern sharing only the
+    /// task context could outrank one carrying the query's own terms.
+    #[test]
+    fn keyword_similarity_ignores_the_task_context() {
+        let context_only = pattern_with(&["ffmpeg"], &["async"]);
+        let query_term = pattern_with(&["axum"], &[]);
+
+        let with_query_term = calculate_keyword_similarity("axum server", &query_term);
+        let with_context_only = calculate_keyword_similarity("axum server", &context_only);
+
+        assert_eq!(
+            with_context_only, 0.0,
+            "context overlap must not earn lexical credit"
+        );
+        assert!(
+            with_query_term > with_context_only,
+            "the pattern naming the query term must win: {with_query_term} vs {with_context_only}"
         );
     }
 
     #[test]
     fn keyword_similarity_is_case_and_punctuation_insensitive() {
         let pattern = pattern_with(&["axum", "tokio"], &["async"]);
-        let context = query_context(&["async"]);
 
         assert_eq!(
-            calculate_keyword_similarity("Async REST server", &pattern, &context),
-            calculate_keyword_similarity("async, rest. server!", &pattern, &context),
+            calculate_keyword_similarity("Async REST server", &pattern),
+            calculate_keyword_similarity("async, rest. server!", &pattern),
             "case and punctuation must not change the score"
         );
     }
@@ -148,11 +165,10 @@ mod tests {
     #[test]
     fn keyword_similarity_deduplicates_repeated_terms() {
         let pattern = pattern_with(&["axum", "tokio"], &["async"]);
-        let context = query_context(&["async"]);
 
         assert_eq!(
-            calculate_keyword_similarity("async async async axum", &pattern, &context),
-            calculate_keyword_similarity("async axum", &pattern, &context),
+            calculate_keyword_similarity("async async async axum", &pattern),
+            calculate_keyword_similarity("async axum", &pattern),
             "repeating a term must not inflate the score"
         );
     }
@@ -160,14 +176,17 @@ mod tests {
     #[test]
     fn keyword_similarity_is_bounded_and_deterministic() {
         let pattern = pattern_with(&["axum", "tokio", "postgres"], &["async", "rest"]);
-        let context = query_context(&["async"]);
 
-        let first =
-            calculate_keyword_similarity("async rest axum postgres server", &pattern, &context);
-        let second =
-            calculate_keyword_similarity("async rest axum postgres server", &pattern, &context);
+        let first = calculate_keyword_similarity("async rest axum postgres server", &pattern);
+        let second = calculate_keyword_similarity("async rest axum postgres server", &pattern);
 
         assert_eq!(first, second, "same inputs must give the same score");
+        // Four of the five query terms (`async`, `rest`, `axum`, `postgres`) appear in the
+        // pattern text; `server` does not.
+        assert!(
+            (first - 0.8).abs() < 1e-6,
+            "expected exactly 4/5 query terms to match, got {first}"
+        );
         assert!(
             (0.0..=1.0).contains(&first),
             "score {first} escaped the bounded 0.0..=1.0 range"
@@ -178,15 +197,14 @@ mod tests {
     #[test]
     fn empty_inputs_fall_back_to_the_neutral_constant() {
         let pattern = pattern_with(&["axum"], &["async"]);
-        let context = query_context(&["async"]);
 
         assert_eq!(
-            calculate_keyword_similarity("", &pattern, &context),
+            calculate_keyword_similarity("", &pattern),
             NEUTRAL_SIMILARITY,
-            "a blank query has no typed terms to match on, even with a rich context"
+            "a blank query has no typed terms to match on"
         );
         assert_eq!(
-            calculate_keyword_similarity("...  !!!", &pattern, &context),
+            calculate_keyword_similarity("...  !!!", &pattern),
             NEUTRAL_SIMILARITY,
             "punctuation-only input tokenises to nothing"
         );

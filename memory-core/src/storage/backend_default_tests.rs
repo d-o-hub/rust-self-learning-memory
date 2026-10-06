@@ -7,7 +7,9 @@ use crate::episode::{
 };
 use crate::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use crate::procedural::ProceduralMemory;
-use crate::{Episode, Heuristic, Pattern, PatternId, Result, TaskContext, TaskOutcome, TaskType};
+use crate::{
+    Episode, Error, Heuristic, Pattern, PatternId, Result, TaskContext, TaskOutcome, TaskType,
+};
 use async_trait::async_trait;
 use chrono::Utc;
 use uuid::Uuid;
@@ -224,9 +226,22 @@ async fn storage_backend_default_methods_return_empty_success() {
     );
     let _stats = backend.get_recommendation_stats().await.unwrap();
 
-    let cleanup = backend.cleanup_episodes(&policy).await.unwrap();
-    assert_eq!(cleanup.deleted, 0);
-    assert_eq!(backend.count_cleanup_candidates(&policy).await.unwrap(), 0);
+    // Slice 1 (#1087): unsupported cleanup is no longer a fake success. The
+    // default advertises no capability and returns a typed error for both
+    // operations instead of `Ok(CleanupResult::new())` / `Ok(0)`.
+    assert!(!backend.supports_episode_cleanup());
+    assert!(matches!(
+        backend.cleanup_episodes(&policy).await,
+        Err(Error::CapabilityUnavailable {
+            operation: "cleanup_episodes"
+        })
+    ));
+    assert!(matches!(
+        backend.count_cleanup_candidates(&policy).await,
+        Err(Error::CapabilityUnavailable {
+            operation: "count_cleanup_candidates"
+        })
+    ));
 
     backend.store_procedural(&procedural).await.unwrap();
     assert!(

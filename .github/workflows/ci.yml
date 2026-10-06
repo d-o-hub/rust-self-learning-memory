@@ -103,6 +103,11 @@ jobs:
           chmod +x scripts/check-ignored-tests.sh
           ./scripts/check-ignored-tests.sh
 
+      - name: Check crate-root lint suppressions (ratchet)
+        run: |
+          chmod +x scripts/check-lint-suppressions.sh
+          ./scripts/check-lint-suppressions.sh
+
   # Core testing - optimized for speed with proper timeouts
   test:
     name: Tests

@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Feedback-to-ranking refreshes are now incremental (#1078): an accepted
+  replacement updates only the changed session's pattern evidence via
+  `RankingIndex::apply_feedback`, so refresh cost no longer scales with total
+  history. `RankingIndex::from_history` remains the cold-start/canonical rebuild
+  and the fallback (unresolvable session or an inconsistent counter), the
+  tracker-authoritative latest-feedback-wins merge is unchanged, and a rebuild
+  whose history scan races an incremental update re-gathers instead of
+  clobbering it. New Criterion coverage (`benches/ranking_incremental.rs`)
+  compares rebuild vs. incremental latency at 1k/10k/100k entries.
 - crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every
   publish job authenticates with the pinned `rust-lang/crates-io-auth-action`
   (no `CARGO_REGISTRY_TOKEN` secret, no hand-rolled exchange), the per-crate

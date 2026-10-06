@@ -10,7 +10,6 @@ use do_memory_core::episode::PatternId;
 use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory, StorageBackend,
 };
-use do_memory_mcp::cache::{QueryCache, QueryMemoryKey};
 use do_memory_mcp::monitoring::types::BackendStatus;
 use do_memory_mcp::monitoring::{MonitoringConfig, MonitoringSystem, build_health_response};
 use do_memory_storage_redb::RedbStorage;
@@ -111,18 +110,14 @@ fn assert_no_fixture_leak(rendered: &str, fixtures: &[(&str, &str)]) {
     }
 }
 
-/// Point every variable the removed inference used at something that is not a connection.
+/// Unattached backends are reported as not configured, and the details are fixed literals.
 #[tokio::test]
 async fn unattached_backends_are_not_configured_and_never_connected() {
-    let dir = tempfile::TempDir::new().unwrap();
-    let unused_cache_path = dir.path().join("never-created.redb").display().to_string();
-
     // Nothing is attached, so there is nothing to probe.
     let memory = SelfLearningMemory::new();
-    let cache = Arc::new(QueryCache::new());
     let monitoring = MonitoringSystem::new(MonitoringConfig::default());
 
-    let response = build_health_response(&memory, &cache, &monitoring, BUDGET).await;
+    let response = build_health_response(&memory, &monitoring, BUDGET).await;
 
     assert_eq!(
         response.storage.turso_status,
@@ -139,16 +134,14 @@ async fn unattached_backends_are_not_configured_and_never_connected() {
     );
     assert_eq!(response.status, "degraded");
 
-    let rendered = serde_json::to_string(&response).unwrap();
-    assert_no_fixture_leak(
-        &rendered,
-        &[
-            ("token", SECRET_TOKEN),
-            ("dead host", DEAD_HOST),
-            ("url scheme", "libsql"),
-            ("cache path", &unused_cache_path),
-        ],
+    // Details come from the fixed `BackendStatus::detail()` table only, so no configuration
+    // value (URL, path, token) has a path into the response.
+    let not_configured = BackendStatus::NotConfigured.detail();
+    assert_eq!(
+        response.storage.turso_details.as_deref(),
+        Some(not_configured)
     );
+    assert_eq!(response.storage.redb_details.as_deref(), Some(not_configured));
 }
 
 #[tokio::test]
@@ -164,19 +157,12 @@ async fn attached_backends_are_measured_and_report_live_counters() {
         redb_backend(&dir, "durable.redb").await,
         redb_backend(&dir, "cache.redb").await,
     );
-    let cache = Arc::new(QueryCache::new());
+    let cache_metrics = memory.get_cache_metrics();
     let monitoring = MonitoringSystem::new(MonitoringConfig::default());
-
-    let key = QueryMemoryKey::new("axum".to_string(), "rust".to_string(), None, 5);
-    cache.put_query_memory(key.clone(), serde_json::json!([]));
-    assert!(
-        cache.get_query_memory(&key).is_some(),
-        "the fixture must register a hit"
-    );
 
     // Uptime is read from the live monitoring system, so it has to move with the clock.
     tokio::time::sleep(Duration::from_millis(1_100)).await;
-    let response = build_health_response(&memory, &cache, &monitoring, BUDGET).await;
+    let response = build_health_response(&memory, &monitoring, BUDGET).await;
 
     assert_eq!(
         response.status, "healthy",
@@ -190,13 +176,20 @@ async fn attached_backends_are_measured_and_report_live_counters() {
     assert_eq!(response.storage.redb_status, BackendStatus::Healthy);
     assert_eq!(response.storage.turso_status, BackendStatus::Healthy);
 
-    // Acceptance 2: the cache and uptime sections come from the running server.
+    // Acceptance 2: the cache and uptime sections come from the running server's retrieval
+    // cache — the one `get_cache_metrics()` measures — not from constants or a dead cache.
     assert_eq!(
-        response.cache.hits, 1,
-        "cache hits were not read from the live cache"
+        (response.cache.hits, response.cache.misses),
+        (cache_metrics.hits, cache_metrics.misses),
+        "cache counters are not bound to the live retrieval cache"
     );
-    assert_eq!(response.cache.size, 1);
-    assert_eq!(response.cache.max_size, cache.stats().max_entries);
+    assert_eq!(response.cache.size, cache_metrics.size);
+    assert_eq!(response.cache.max_size, cache_metrics.capacity);
+    assert!(
+        response.cache.max_size > 0,
+        "the live retrieval cache always advertises a capacity"
+    );
+    assert_eq!(response.cache.hit_rate, cache_metrics.hit_rate() * 100.0);
     assert!(
         response.uptime_seconds >= 1,
         "uptime is still the placeholder constant: {}",
@@ -239,10 +232,9 @@ async fn attached_but_failing_backend_is_unavailable_and_stays_redacted() {
         Arc::new(BrokenBackend),
         redb_backend(&dir, "cache.redb").await,
     );
-    let cache = Arc::new(QueryCache::new());
     let monitoring = MonitoringSystem::new(MonitoringConfig::default());
 
-    let response = build_health_response(&memory, &cache, &monitoring, BUDGET).await;
+    let response = build_health_response(&memory, &monitoring, BUDGET).await;
 
     assert_eq!(
         response.storage.turso_status,

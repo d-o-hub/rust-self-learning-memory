@@ -119,12 +119,12 @@ pub async fn handle_health_check(
     request.id.as_ref()?;
     debug!("Handling health check");
 
-    let (memory, cache, monitoring) = {
+    let (memory, monitoring) = {
         let server = mcp_server.lock().await;
-        (server.memory(), server.cache(), server.monitoring_system())
+        (server.memory(), server.monitoring_system())
     };
 
-    let health_response = build_health_response(&memory, &cache, &monitoring, PROBE_TIMEOUT).await;
+    let health_response = build_health_response(&memory, &monitoring, PROBE_TIMEOUT).await;
 
     Some(JsonRpcResponse {
         jsonrpc: "2.0".to_string(),

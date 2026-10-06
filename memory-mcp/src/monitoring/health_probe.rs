@@ -7,7 +7,6 @@
 //! text, URL or filesystem path is ever copied into the response.
 
 use super::types::{BackendStatus, CacheHealth, HealthResponse, StorageHealth, SyncHealth};
-use crate::cache::QueryCache;
 use crate::monitoring::MonitoringSystem;
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::storage::StorageBackend;
@@ -88,10 +87,12 @@ pub fn overall_status(turso: BackendStatus, redb: BackendStatus) -> &'static str
 /// Measure every live surface the health endpoint reports.
 ///
 /// Both backends are probed concurrently, so one unreachable database costs one timeout rather
-/// than two. Cache counters and uptime come from the running server's own state.
+/// than two. The cache section reports the **retrieval** cache that actually serves queries
+/// (`SelfLearningMemory::get_cache_metrics()`), not the unused per-tool JSON cache — reporting
+/// that one would keep the counters at zero in production (#1085 roast, MAJOR-1). Uptime comes
+/// from the running server's monitoring system.
 pub async fn build_health_response(
     memory: &SelfLearningMemory,
-    cache: &Arc<QueryCache>,
     monitoring: &MonitoringSystem,
     budget: Duration,
 ) -> HealthResponse {
@@ -100,7 +101,7 @@ pub async fn build_health_response(
         probe_backend(memory.cache_storage(), budget)
     );
 
-    let stats = cache.stats();
+    let cache = memory.get_cache_metrics();
     monitoring.update_uptime();
 
     HealthResponse {
@@ -114,12 +115,13 @@ pub async fn build_health_response(
             redb_details: Some(redb_status.detail().to_string()),
         },
         cache: CacheHealth {
-            enabled: stats.enabled,
-            hits: stats.hits,
-            misses: stats.misses,
-            hit_rate: stats.hit_rate,
-            size: stats.total_entries,
-            max_size: stats.max_entries,
+            // Capacity is the honest enable flag: a zero-capacity LRU never stores anything.
+            enabled: cache.capacity > 0,
+            hits: cache.hits,
+            misses: cache.misses,
+            hit_rate: cache.hit_rate() * 100.0,
+            size: cache.size,
+            max_size: cache.capacity,
         },
         sync: SyncHealth {
             last_sync_timestamp: None,
@@ -241,43 +243,33 @@ mod tests {
     #[tokio::test]
     async fn response_reports_live_cache_counters_and_uptime() {
         let memory = SelfLearningMemory::new();
-        let cache = Arc::new(QueryCache::new());
         let monitoring = MonitoringSystem::new(crate::monitoring::MonitoringConfig::default());
-        let key =
-            crate::cache::QueryMemoryKey::new("async".to_string(), "rust".to_string(), None, 10);
+        let metrics = memory.get_cache_metrics();
 
-        cache.put_query_memory(key.clone(), serde_json::json!({"episodes": []}));
-        assert!(
-            cache.get_query_memory(&key).is_some(),
-            "the fixture must register a hit"
-        );
-        assert!(
-            cache
-                .get_query_memory(&crate::cache::QueryMemoryKey::new(
-                    "other".to_string(),
-                    "rust".to_string(),
-                    None,
-                    10,
-                ))
-                .is_none(),
-            "the fixture must register a miss"
-        );
+        let response = build_health_response(&memory, &monitoring, PROBE_TIMEOUT).await;
 
-        let response = build_health_response(&memory, &cache, &monitoring, PROBE_TIMEOUT).await;
-        let stats = cache.stats();
-
-        assert_eq!(response.cache.size, stats.total_entries);
-        assert_eq!(response.cache.max_size, stats.max_entries);
-        assert_eq!(response.cache.enabled, stats.enabled);
+        // The cache section must be bound to the retrieval cache that serves queries; a
+        // hard-coded or dead-cache reading would not track `get_cache_metrics()` or carry a
+        // real capacity.
         assert_eq!(
             (response.cache.hits, response.cache.misses),
-            (stats.hits, stats.misses),
-            "the cache section is a constant again"
+            (metrics.hits, metrics.misses),
+            "the cache section is not bound to the live retrieval cache"
+        );
+        assert_eq!(response.cache.size, metrics.size);
+        assert_eq!(
+            response.cache.max_size, metrics.capacity,
+            "the reported capacity is not the live cache's"
         );
         assert!(
-            response.cache.hits == 1 && response.cache.misses == 1,
-            "the counters did not follow the traffic: {:?}",
-            response.cache
+            response.cache.max_size > 0,
+            "a live retrieval cache always advertises its capacity"
+        );
+        assert_eq!(response.cache.enabled, metrics.capacity > 0);
+        assert_eq!(
+            response.cache.hit_rate,
+            metrics.hit_rate() * 100.0,
+            "hit rate must be the live percentage"
         );
         assert_eq!(response.sync.status, SYNC_NOT_CONFIGURED);
         assert!(

@@ -86,16 +86,17 @@ pub struct StorageHealth {
     pub redb_details: Option<String>,
 }
 
-/// Cache health information
+/// Cache health information for the retrieval cache that actually serves queries
+/// (`SelfLearningMemory::get_cache_metrics()`), not the unused per-tool JSON cache.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheHealth {
-    /// Cache enabled status
+    /// Whether the cache can store entries (a zero-capacity cache never does)
     pub enabled: bool,
     /// Total cache hits
     pub hits: u64,
     /// Total cache misses
     pub misses: u64,
-    /// Cache hit rate (percentage)
+    /// Cache hit rate as a percentage (0.0 to 100.0)
     pub hit_rate: f64,
     /// Current cache size
     pub size: usize,
@@ -117,7 +118,8 @@ pub struct SyncHealth {
 /// Health response for /health endpoint
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthResponse {
-    /// Overall status (healthy, warning, unhealthy)
+    /// Overall status: `healthy` (every configured backend answered), `degraded` (at least one
+    /// answered, or nothing is configured), or `unhealthy` (every configured backend failed)
     pub status: String,
     /// Storage health information
     pub storage: StorageHealth,

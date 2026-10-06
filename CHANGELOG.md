@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The adaptive connection pool now has one coherent capacity model (#1063): the
+  configured monitor actually runs `check_and_scale` every `check_interval` and
+  is stopped by `shutdown`, resize decisions use a monotonic (pausable) Tokio
+  `Instant` so cooldowns are honored, and resizes adjust the semaphore permits
+  (`add_permits`/`forget_permits`) so scale-down reclaims only idle permits and
+  defers while work is active; utilization and the acquisition timeout report
+  the same effective target.
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

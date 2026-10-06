@@ -3,7 +3,10 @@ use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use do_memory_core::procedural::ProceduralMemory;
-use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use do_memory_core::{
+    Episode, Heuristic, Pattern, Result, StorageBackend, StorageBackendCapabilities,
+    episode::PatternId,
+};
 use uuid::Uuid;
 
 use crate::RedbStorage;
@@ -181,14 +184,6 @@ impl StorageBackend for RedbStorage {
         RedbStorage::list_recommendation_feedback(self).await
     }
 
-    fn supports_ranking_adaptation(&self) -> bool {
-        true
-    }
-
-    fn supports_recommendation_attribution(&self) -> bool {
-        true
-    }
-
     async fn store_procedural(&self, procedural: &ProceduralMemory) -> Result<()> {
         self.store_procedural(procedural).await
     }
@@ -203,5 +198,31 @@ impl StorageBackend for RedbStorage {
 
     async fn query_procedural(&self, limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
         self.query_procedural(limit).await
+    }
+}
+
+/// Capability matrix for the redb cache backend (ADR-081): the trait impl is
+/// split so one block states what this backend can actually honor.
+///
+/// redb persists episode↔episode relationships, episode↔pattern relationships,
+/// and procedural memory in its own tables (`src/relationships.rs`,
+/// `src/procedural.rs`), and stores recommendation-attribution history
+/// (`src/recommendations.rs`). Episode cleanup stays unsupported — there is no
+/// retention/GC implementation for redb.
+impl StorageBackendCapabilities for RedbStorage {
+    fn supports_recommendation_attribution(&self) -> bool {
+        true
+    }
+
+    fn supports_ranking_adaptation(&self) -> bool {
+        true
+    }
+
+    fn supports_relationship_persistence(&self) -> bool {
+        true
+    }
+
+    fn supports_procedural_memory(&self) -> bool {
+        true
     }
 }

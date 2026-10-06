@@ -9,6 +9,8 @@ use do_memory_core::memory::attribution::{
 };
 use do_memory_core::{Error, Result, StorageBackend};
 
+mod capabilities;
+
 /// Storage statistics
 #[derive(Debug, Clone)]
 pub struct StorageStatistics {
@@ -205,14 +207,6 @@ impl StorageBackend for super::TursoStorage {
 
     async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
         super::TursoStorage::list_recommendation_feedback(self).await
-    }
-
-    fn supports_ranking_adaptation(&self) -> bool {
-        true
-    }
-
-    fn supports_recommendation_attribution(&self) -> bool {
-        true
     }
 
     async fn store_procedural(

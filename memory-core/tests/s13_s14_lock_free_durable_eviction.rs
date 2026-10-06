@@ -5,7 +5,7 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use do_memory_core::episode::{EvictionPolicy, PatternId};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     Episode, ExecutionStep, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory,
     TaskContext, TaskOutcome, TaskType,
@@ -21,6 +21,8 @@ struct RecordingBackend {
     deleted: Mutex<HashSet<Uuid>>,
     stored: Mutex<HashSet<Uuid>>,
 }
+
+impl StorageBackendCapabilities for RecordingBackend {}
 
 #[async_trait]
 impl StorageBackend for RecordingBackend {
@@ -153,6 +155,8 @@ struct FlakyDurable {
     deleted: Mutex<HashSet<Uuid>>,
     stored: Mutex<HashSet<Uuid>>,
 }
+
+impl StorageBackendCapabilities for FlakyDurable {}
 
 #[async_trait]
 impl StorageBackend for FlakyDurable {

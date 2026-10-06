@@ -341,10 +341,9 @@ impl SelfLearningMemory {
             storage.store_procedural(&procedural).await?;
         }
 
-        // Store in cache
-        if let Some(storage) = &self.cache_storage {
-            let _ = storage.store_procedural(&procedural).await;
-        }
+        // Store in cache (best-effort; skipped unless the cache advertises
+        // procedural-memory persistence).
+        self.mirror_procedural_to_cache(&procedural).await;
 
         // Always store in fallback for in-memory access
         let mut procedural_fallback = self.procedural_fallback.write().await;
@@ -366,10 +365,8 @@ impl SelfLearningMemory {
         if let Some(storage) = &self.turso_storage {
             match storage.get_procedural(id).await {
                 Ok(Some(procedural)) => {
-                    // Update cache
-                    if let Some(cache) = &self.cache_storage {
-                        let _ = cache.store_procedural(&procedural).await;
-                    }
+                    // Refresh the cache (gated like the store path).
+                    self.mirror_procedural_to_cache(&procedural).await;
                     return Ok(Some(procedural));
                 }
                 Ok(None) => {}
@@ -389,10 +386,9 @@ impl SelfLearningMemory {
             storage.delete_procedural(id).await?;
         }
 
-        // Delete from cache
-        if let Some(storage) = &self.cache_storage {
-            let _ = storage.delete_procedural(id).await;
-        }
+        // Delete from cache (best-effort; skipped unless the cache advertises
+        // procedural-memory persistence).
+        self.drop_procedural_from_cache(id).await;
 
         // Delete from fallback
         let mut procedural_fallback = self.procedural_fallback.write().await;
@@ -426,5 +422,27 @@ impl SelfLearningMemory {
             results.truncate(l);
         }
         Ok(results)
+    }
+
+    /// Best-effort cache mirror of a procedural memory (#1087 slices 2-3).
+    ///
+    /// Gated on the cache advertising procedural-memory persistence: an
+    /// unsupported cache returns `Error::CapabilityUnavailable`, which must not
+    /// pass for a durable write, so the call is skipped instead.
+    async fn mirror_procedural_to_cache(&self, procedural: &ProceduralMemory) {
+        if let Some(cache) = &self.cache_storage {
+            if cache.supports_procedural_memory() {
+                let _ = cache.store_procedural(procedural).await;
+            }
+        }
+    }
+
+    /// Best-effort cache eviction, gated like [`Self::mirror_procedural_to_cache`].
+    async fn drop_procedural_from_cache(&self, id: uuid::Uuid) {
+        if let Some(cache) = &self.cache_storage {
+            if cache.supports_procedural_memory() {
+                let _ = cache.delete_procedural(id).await;
+            }
+        }
     }
 }

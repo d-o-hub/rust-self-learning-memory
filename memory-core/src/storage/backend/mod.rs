@@ -1,6 +1,16 @@
 //! Storage backend trait definitions.
 //!
 //! Unified async interface implemented by Turso, redb, and in-memory backends.
+//!
+//! Optional operations are gated by [`StorageBackendCapabilities`]: their
+//! default implementations return
+//! [`Error::CapabilityUnavailable`](crate::Error::CapabilityUnavailable)
+//! instead of a fabricated success, and callers can ask the capability
+//! predicate before invoking them.
+
+mod capabilities;
+
+pub use capabilities::StorageBackendCapabilities;
 
 use crate::episode::{
     CleanupResult, Direction, EpisodePatternRelationship, EpisodeRelationship,
@@ -18,8 +28,18 @@ use uuid::Uuid;
 ///
 /// Provides a common interface for different storage implementations.
 /// All operations are async to support both async (Turso) and sync (redb via `spawn_blocking`).
+///
+/// Operations that are not universally available are optional methods whose
+/// default returns [`Error::CapabilityUnavailable`] rather than a fabricated
+/// success. [`StorageBackendCapabilities`] advertises which of them a backend
+/// truly persists.
+///
+/// Implementing this trait therefore also requires
+/// [`StorageBackendCapabilities`]: the predicates default to `false`, so an
+/// implementor adds `impl StorageBackendCapabilities for T {}` and overrides
+/// `true` only for the domains it really persists.
 #[async_trait]
-pub trait StorageBackend: Send + Sync {
+pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
     /// Store an episode
     ///
     /// # Errors
@@ -218,100 +238,57 @@ pub trait StorageBackend: Send + Sync {
 
     // ========== Relationship Storage Methods ==========
 
-    /// Store a relationship between two episodes
-    ///
-    /// # Arguments
-    ///
-    /// * `relationship` - The relationship to store
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Store a relationship between two episodes.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
         let _ = relationship;
-        Ok(())
+        Err(Error::capability_unavailable("store_relationship"))
     }
 
-    /// Remove a relationship by ID
-    ///
-    /// # Arguments
-    ///
-    /// * `relationship_id` - The UUID of the relationship to remove
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Remove a relationship by ID.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
         let _ = relationship_id;
-        Ok(())
+        Err(Error::capability_unavailable("remove_relationship"))
     }
 
-    /// Get relationships for an episode
-    ///
-    /// # Arguments
-    ///
-    /// * `episode_id` - The episode to query
-    /// * `direction` - Which relationships to return (Outgoing, Incoming, or Both)
-    ///
-    /// # Returns
-    ///
-    /// Vector of relationships matching the query
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Get an episode's relationships filtered by `direction` (Outgoing,
+    /// Incoming, or Both).
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn get_relationships(
         &self,
         episode_id: Uuid,
         direction: Direction,
     ) -> Result<Vec<EpisodeRelationship>> {
         let _ = (episode_id, direction);
-        Ok(Vec::new())
+        Err(Error::capability_unavailable("get_relationships"))
     }
 
     /// Fetch every relationship across the entire store (WG-150 / WG-151, ADR-055).
-    ///
-    /// Default implementation returns an empty `Vec` for backends that do not
-    /// support relationship listing.
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
-        Ok(Vec::new())
+        Err(Error::capability_unavailable("get_all_relationships"))
     }
 
     /// Look up a single relationship by its ID (WG-150, ADR-055).
-    ///
-    /// Default implementation returns `None`. Backends that index by
-    /// relationship ID should override this for O(1)/O(log N) lookup.
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn get_relationship_by_id(
         &self,
         relationship_id: Uuid,
     ) -> Result<Option<EpisodeRelationship>> {
         let _ = relationship_id;
-        Ok(None)
+        Err(Error::capability_unavailable("get_relationship_by_id"))
     }
 
-    /// Check if a relationship exists
-    ///
-    /// # Arguments
-    ///
-    /// * `from_episode_id` - Source episode
-    /// * `to_episode_id` - Target episode  
-    /// * `relationship_type` - Type of relationship
-    ///
-    /// # Returns
-    ///
-    /// `true` if the relationship exists
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
+    /// Check whether a directed relationship of `relationship_type` exists
+    /// between two episodes.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn relationship_exists(
         &self,
         from_episode_id: Uuid,
@@ -319,42 +296,47 @@ pub trait StorageBackend: Send + Sync {
         relationship_type: RelationshipType,
     ) -> Result<bool> {
         let _ = (from_episode_id, to_episode_id, relationship_type);
-        Ok(false)
+        Err(Error::capability_unavailable("relationship_exists"))
     }
 
-    /// Store a relationship between an episode and a pattern
+    /// Store a relationship between an episode and a pattern.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn store_episode_pattern_relationship(
         &self,
         relationship: &EpisodePatternRelationship,
     ) -> Result<()> {
         let _ = relationship;
-        Ok(())
+        Err(Error::capability_unavailable(
+            "store_episode_pattern_relationship",
+        ))
     }
 
-    /// Get pattern relationships for an episode
+    /// Get pattern relationships for an episode.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn get_episode_pattern_relationships(
         &self,
         episode_id: Uuid,
     ) -> Result<Vec<EpisodePatternRelationship>> {
         let _ = episode_id;
-        Ok(Vec::new())
+        Err(Error::capability_unavailable(
+            "get_episode_pattern_relationships",
+        ))
     }
 
-    /// Get weighted neighbors (episodes and patterns) for an episode
-    ///
-    /// Returns a list of (target_id, weight, is_pattern)
+    /// Get weighted neighbors `(target_id, weight, is_pattern)` for an episode.
+    /// Optional: see [`StorageBackendCapabilities::supports_relationship_persistence`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn get_weighted_neighbors(&self, episode_id: Uuid) -> Result<Vec<(Uuid, f32, bool)>> {
         let _ = episode_id;
-        Ok(Vec::new())
-    }
-
-    /// Whether this backend actually persists recommendation attribution (ADR-081 §2).
-    /// Default `false`; override to `true` when the recommendation methods truly persist.
-    fn supports_recommendation_attribution(&self) -> bool {
-        false
+        Err(Error::capability_unavailable("get_weighted_neighbors"))
     }
 
     // ========== Recommendation Attribution (ADR-044) ==========
+
+    // Recommendation-attribution and ranking-adaptation capabilities are
+    // advertised through `StorageBackendCapabilities`.
 
     /// Persist a recommendation session for durability and analytics.
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
@@ -400,13 +382,6 @@ pub trait StorageBackend: Send + Sync {
         Ok(RecommendationStats::default())
     }
 
-    /// Whether this backend can serve durable recommendation history for the
-    /// feedback-to-ranking adaptation (ADR-082). Default `false`; override with
-    /// the `list_recommendation_*` methods that truly persist and return history.
-    fn supports_ranking_adaptation(&self) -> bool {
-        false
-    }
-
     /// List persisted `RecommendationSession` (ADR-082); empty by default so
     /// non-capable backends contribute nothing.
     async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
@@ -421,64 +396,54 @@ pub trait StorageBackend: Send + Sync {
 
     // ========== Episode GC/TTL (WG-075) ==========
 
-    /// Whether this backend can durably clean up expired episodes.
-    ///
-    /// Defaults to `false`. Backends that truly delete episodes must override
-    /// [`Self::cleanup_episodes`] / [`Self::count_cleanup_candidates`] and
-    /// return `true` here so callers can tell an unsupported operation apart
-    /// from an empty result (ADR-081 capability pattern).
-    fn supports_episode_cleanup(&self) -> bool {
-        false
-    }
-
     /// Clean up expired episodes based on `policy` (WG-075).
-    ///
-    /// # Errors
-    ///
-    /// The default implementation returns [`Error::CapabilityUnavailable`]:
-    /// a backend that cannot durably delete episodes must not report a
-    /// successful no-op. Override this method and advertise
-    /// [`Self::supports_episode_cleanup`] to provide real behavior.
+    /// Optional: see [`StorageBackendCapabilities::supports_episode_cleanup`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
         let _ = policy;
-        Err(Error::CapabilityUnavailable {
-            operation: "cleanup_episodes",
-        })
+        Err(Error::capability_unavailable("cleanup_episodes"))
     }
 
     /// Count episodes `policy` would clean up without deleting (dry run).
-    ///
-    /// # Errors
-    ///
-    /// The default implementation returns [`Error::CapabilityUnavailable`],
-    /// mirroring [`Self::cleanup_episodes`].
+    /// Optional: see [`StorageBackendCapabilities::supports_episode_cleanup`];
+    /// the default returns [`Error::CapabilityUnavailable`].
     async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
         let _ = policy;
-        Err(Error::CapabilityUnavailable {
-            operation: "count_cleanup_candidates",
-        })
+        Err(Error::capability_unavailable("count_cleanup_candidates"))
     }
 
     // ========== Procedural Memory Methods ==========
 
-    /// Store a procedural memory
-    async fn store_procedural(&self, _procedural: &ProceduralMemory) -> Result<()> {
-        Ok(())
+    /// Store a procedural memory.
+    /// Optional: see [`StorageBackendCapabilities::supports_procedural_memory`];
+    /// the default returns [`Error::CapabilityUnavailable`].
+    async fn store_procedural(&self, procedural: &ProceduralMemory) -> Result<()> {
+        let _ = procedural;
+        Err(Error::capability_unavailable("store_procedural"))
     }
 
-    /// Retrieve a procedural memory by ID
-    async fn get_procedural(&self, _id: Uuid) -> Result<Option<ProceduralMemory>> {
-        Ok(None)
+    /// Retrieve a procedural memory by ID.
+    /// Optional: see [`StorageBackendCapabilities::supports_procedural_memory`];
+    /// the default returns [`Error::CapabilityUnavailable`].
+    async fn get_procedural(&self, id: Uuid) -> Result<Option<ProceduralMemory>> {
+        let _ = id;
+        Err(Error::capability_unavailable("get_procedural"))
     }
 
-    /// Delete a procedural memory by ID
-    async fn delete_procedural(&self, _id: Uuid) -> Result<()> {
-        Ok(())
+    /// Delete a procedural memory by ID.
+    /// Optional: see [`StorageBackendCapabilities::supports_procedural_memory`];
+    /// the default returns [`Error::CapabilityUnavailable`].
+    async fn delete_procedural(&self, id: Uuid) -> Result<()> {
+        let _ = id;
+        Err(Error::capability_unavailable("delete_procedural"))
     }
 
-    /// Query procedural memories
-    async fn query_procedural(&self, _limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
-        Ok(Vec::new())
+    /// Query procedural memories.
+    /// Optional: see [`StorageBackendCapabilities::supports_procedural_memory`];
+    /// the default returns [`Error::CapabilityUnavailable`].
+    async fn query_procedural(&self, limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
+        let _ = limit;
+        Err(Error::capability_unavailable("query_procedural"))
     }
 }
 

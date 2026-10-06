@@ -1,151 +1,68 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-04
+- **Last Updated**: 2026-10-06
 - **Version**: workspace `0.1.45` · latest tag `v0.1.44`
-- **Branch**: main @ `74a44a15` (v0.1.44 tagged on `4f4f4ba8`; PR #1126 merged 2026-10-04)
-- **Open PRs**: run `gh pr list --state open` (this header no longer pins counts; the tracker-drift check guards it)
-- **Open issues**: run `gh issue list --state open` — **23**: the 22-issue audit backlog (#1063–#1092) plus #1109
-  (code complete, manual crates.io steps). Register: `STATUS/GAP_ANALYSIS_LATEST.md`
-- **Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (slices W1–W6, ACT-370…375).
-  The 22 issues were filed at audit baseline `9f50c607`, never entered in these trackers, and re-validation at
-  `74a44a15` found **0 of them fixed** (20 OPEN / 2 PARTIAL). Prior wave: v0.1.44 shipped 2026-10-02 + release
-  pipeline C1–C7 (#1121/#1123/#1125); ADR-079 stage 4 + ADR-080/081/082 lifecycle await maintainer
-- **Campaign scope correction**: the "0 open code-side gaps" line in `STATUS/CURRENT.md` and the closed flags below
-  describe the CI-trust / attribution campaign (ADR-079, CIT-A1…A5, PTA, RAT). They were never true repo-wide.
-- **Note**: retrieval judgment + rerank merged 2026-09-24; 8 harness-friction issues filed upstream (`d-o-hub/do-harness` #238–#245).
-- **Archive**: `plans/archive/2026-07-consolidation/`  
-- **Release**: ✅ `v0.1.44` tagged on `4f4f4ba8` and shipped (workspace bumped to `0.1.45` post-release)
+- **Branch**: main @ `0485bb66` (2026-10-05)
+- **Open PRs**: run `gh pr list --state open` (3 at 2026-10-06: #1138 W5, #1140 W6, #1130 Q02)
+- **Open issues**: run `gh issue list --state open` (21 at 2026-10-06 — audit backlog minus 4 closed, + #1109 code-complete/manual, + #1137 release drift)
+- **Active plan**: audit-backlog wave [`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) — W1–W4 merged 2026-10-05; W5/W6 in review; chains ACT-376…385 queued
+- **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
+- **Release**: ✅ `v0.1.44` shipped 2026-10-02 (`4f4f4ba8`); workspace bumped to `0.1.45`; next release pending (drift issue #1137)
+- **Archive**: `plans/archive/2026-07-consolidation/`
 
 ---
 
-## Phase: Execute — audit-backlog wave (2026-10-04)
+## Wave status — audit backlog (2026-10-05/06)
 
-| Slice | Goal | Issue | Key | Status |
-|---|---|---|---|---|
-| W0 | trackers match `gh issue list` | governance | — | 🔄 this PR |
-| W1 | no ranking read guard across `.await` | #1077 | R06 | 🔄 ACT-370 |
-| W2 | real sub-second MCP latency | #1086 | M05 | 🔄 ACT-371 |
-| W3 | tag transaction rolls back on every failure | #1088 | M07 | 🔄 ACT-372 |
-| W4 | redb recommendation index follows recency | #1066 | S07 | 🔄 ACT-373 |
-| W5 | query-aware lexical fallback | #1075 | R04 | 🔄 ACT-374 |
-| W6 | real MCP health probes + URL redaction | #1085 | M04 | 🔄 ACT-375 |
+| Slice | Issue | PR | Status |
+|-------|-------|-----|--------|
+| W0 | trackers + wave doc | #1129 (`26b12fc8`) | ✅ merged 2026-10-05 |
+| W1 | #1077 ranking guard across await | #1131 (`874df209`) | ✅ merged 2026-10-05 |
+| W2 | #1086 sub-second MCP latency | #1135 (`75007b51`) | ✅ merged 2026-10-05 |
+| W3 | #1088 Turso tag-tx rollback | #1134 (`347b3296`) | ✅ merged 2026-10-05 |
+| W4 | #1066 redb recommendation index order | #1139 (`f1c31699`, `0485bb66`) | ✅ merged 2026-10-05 |
+| W5 | #1075 query-aware lexical fallback | #1138 | 🔄 in review — required checks green; cancelled workflows re-running |
+| W6 | #1085 real MCP health probes + URL redaction (E1) | #1140 | 🔄 in review — cancelled workflows re-running; aggregate failed closed on the cancelled set |
+| Q02 | #1091 ignored-test inventory + isolation | #1130 (jules) | 🔄 rescued: the PR tip had reverted W1–W4; a clean branch re-applies only the real work and removes the `continue-on-error`/`|| true` silent-pass, then force-push |
 
-Queued chains (validated, sequenced, not started): ACT-376 watermark #1067 → ACT-377 merge #1068 → ACT-378 batch
-#1089 · ACT-379 adapter #1073 → ACT-380 pattern snapshot #1074 → ACT-381 vector reuse #1076 · ACT-382 capability
-truth #1087 (4 PRs) · ACT-383 ignored tests #1091 (3 PRs) · ACT-384 lint suppressions #1092 (4 PRs) · ACT-385 the
-remaining validated P1s (#1063, #1064, #1070, #1071, #1065, #1078, #1079).
+Adjacent merges in the same window: #1128 docs-integrity fix, #1133 local hook sensors, #1136 dependabot actions bump.
 
----
+## Next queue (ACT-376…ACT-385)
 
-## Phase: Analyze / decide — CI trust + product truth + attribution
+- **Watermark chain** (E3/E5): #1067 → #1068 → #1089.
+- **Embedding identity chain** (E2): #1073 → #1074 (remaining 5 pattern sites) → #1076.
+- **Independent**: #1063 (E4 — fix rewrites `adaptive_tests.rs:140-146`), #1064, #1070, #1071, #1078, #1079.
+- **Splits**: #1087 (4 PRs), #1092 (4 PRs), #1091 remainder (2 PRs after Q02).
+- **Release/closeout**: ship `v0.1.45` (#1137) once the wave is green; #1109 manual crates.io steps remain maintainer-external.
 
-| Package | Status |
-|---------|--------|
-| ADR-079 fail-closed required-check control plane | Accepted (P0) — stage 3 live (ruleset `9591004` requires `CI / Required`); stage 5 cleanup merged in #947 (2026-08-12); stage 4 live fault-inject proof = external maintainer evidence |
-| CIT-A1 required aggregate + staged ruleset migration | ✅ same-run fast gate + commitlint; `ci-required-evaluate.sh` accepts only `success`; ruleset requires the aggregate (merged in #947, 2026-08-12) |
-| CIT-A2 cancellation/actor fail-closed behavior | ✅ waiters fail closed + commit-lint wait + downstream Dependabot/fork actor parity (2026-08-10) |
-| CIT-A3 semantic gate-contract parity | ✅ validator + negative fixtures + actor-parity/ruleset-context fixtures (2026-08-10) |
-| CIT-A4 release/publish trigger truth | ✅ Done (2026-08-06) |
-| CIT-A5 durable informational evidence + deduplication | ✅ Done (fuzz evidence; dedup measurement is follow-up) |
-| PTA-A1 non-`csm` cascade capability truth | ✅ #916 merged (2026-08-02) | PTA-A1 |
-| PTA-A2 CLI storage metric truth | ✅ #916 merged (2026-08-02) | PTA-A2 |
-| PTA-A3 threshold command cleanup | ✅ #916 merged (2026-08-02) | PTA-A3 |
-| cargo-mutants CI sharding (reward/retrieval/retry/patterns) | ✅ #917 merged (2026-08-02) | CI |
-| ADR-080 automatic recommendation attribution | Proposed (code evidence merged in #947, 2026-08-12; lifecycle awaits maintainer acceptance) |
-| RAT-A1…A7 contract tests + implementation | ✅ code-side merged in #947 (2026-08-12) (episode validation, checked receipts, fallible playbooks, cold-restart/capability/postcard tests) |
-| Feedback-to-ranking adaptation | Deferred to separate ADR |
-| PR queue cleanup (GOAP swarm) | ✅ 5 PRs → 0 open (2026-07-27) |
-| cargo-mutants workspace fix #901 | ✅ Merged (fixes #898) |
-| Dependabot batch #902/#903/#904 | ✅ Merged |
-| R-A1 ship v0.1.36 | ✅ Released |
-| R-A2 post-bump 0.1.37 | ✅ #886 |
-| R-E2 medium-risk skill evals | ✅ #883 |
-| Docs integrity ship unblock | ✅ #885 |
-| Recommendations #878 | ✅ |
-| Plans progress refresh | ✅ #889 |
-| R-F8 CLI relationship show polish | ✅ #893 |
-| R-F9 HNSW persistence + hardening | ✅ #893 |
-| 6 new domain skills (40 total, all routed) | ✅ #894 |
-| ADR-077 runtime embedding activation (A1-A5) | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ADR-077 A6 validate / document / gate | ✅ #897 merged |
-| R-F* remaining product epics | ✅ GO spike artifacts: R-F1…R-F7, R-F10 (2026-07-28) |
+## Current truth flags (campaign-scoped)
 
----
+```text
+release_current                   = false (v0.1.44 tagged 2026-10-02; drift issue #1137 open — next release follows the wave)
+audit_backlog_registered          = true  (#1129 — every #1063–#1092 issue has a verdict in GAP_ANALYSIS_LATEST.md)
+w1_ranking_guard_released         = true  (#1131)
+w2_subsecond_latency_released     = true  (#1135)
+w3_turso_tag_tx_rollback          = true  (#1134)
+w4_redb_rec_index_ordering        = true  (#1139 — repair pass heals write-order winners without a schema bump)
+w5_lexical_fallback               = in_review (#1138)
+w6_mcp_health_truthful_and_redacted = in_review (#1140)
+ignored_test_inventory            = in_review (#1130 — 159 entries, script-validated, isolated nightly job made fail-visible)
+production_pattern_query_relevance = false until #1074 lands (E2 — semantic_service has no writer; both fallbacks constant)
+episodes_created_at_is_watermark  = false until #1067 lands (E3 — absent from the Turso INSERT column list)
+required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; same-run aggregate)
+release_dispatch_truthful         = true  (#1123/#1125 — OIDC-only publish chain, verify-a-release docs)
+```
 
 ## Closed campaigns (pointer)
 
 | Campaign | Result |
 |----------|--------|
-| PR queue cleanup (GOAP swarm orchestration) | ✅ 2026-07-27 |
+| Release-pipeline hardening #1109 C1–C7 | ✅ code-side merged (#1121, #1123, #1125); manual crates.io registrations + secret deletion remain maintainer-external |
+| ADR-079/CIT/PTA/RAT CI-trust + attribution | ✅ code-side closed (#947, 2026-08-12); ADR-079 stage 4 fault-inject proof + ADR-080/081/082 lifecycle = maintainer-external |
+| Retrieval judgment + rerank | ✅ #1041, #1042 (2026-09-24) |
+| Feedback-to-ranking adaptation (ADR-082) | ✅ #952 (2026-08-13); lifecycle `Proposed` |
+| v0.1.44 ship + post-bump | ✅ 2026-10-02 |
+| PR queue cleanup (GOAP swarm) | ✅ 2026-07-27 |
 | v0.1.36 ship + post-bump | ✅ 2026-07-22…23 |
-| Recommendations #878 | ✅ |
-| F4 remainder / missing tasks / harness | ✅ #873/#874/#870 family |
-| v0.1.35 release | ✅ |
 
 Details: `plans/archive/2026-07-consolidation/completed-sprints/`.
-
----
-
-## Goal-state flags (2026-07-24; audit-backlog flags appended 2026-10-04)
-
-```text
-audit_backlog_registered          = false  (→ true once W0 merges: 22 issues in GAP_ANALYSIS_LATEST.md)
-trackers_match_issue_list         = false  (→ true once W0 merges; was silently false since 2026-09-29)
-no_lock_across_await_recommend    = false  (#1077 / W1 — AGENTS.md invariant currently violated)
-mcp_latency_subsecond_real        = false  (#1086 / W2 — as_secs() truncation)
-turso_tag_tx_rollback             = false  (#1088 / W3 — BEGIN/COMMIT with no ROLLBACK)
-redb_rec_index_follows_recency    = false  (#1066 / W4 — write order beats timestamp)
-pattern_lexical_fallback_discriminates = false  (#1075 / W5 — constant 0.5)
-mcp_health_probes_backends        = false  (#1085 / W6 — env-var existence, zeroed cache, uptime 0)
-mcp_health_output_redacted        = false  (escalation E1 — raw TURSO_DATABASE_URL in response)
-episode_modification_watermark    = false  (#1067 — no updated_at; E3: created_at re-defaults every write)
-storage_merge_revision_aware      = false  (#1068 — or_insert_with visit order lets stale cache win)
-sync_batch_writes                 = false  (#1089 — redb has no store_episodes_batch override)
-embedding_storage_identity_scoped = false  (#1073 — MCP always builds InMemoryEmbeddingStorage)
-one_provider_snapshot_all_paths   = partial  (#1074 — fixed for completion/retrieval by #1097, open for pattern APIs)
-pattern_search_respects_query     = false  (escalation E2 — semantic_service None on all production paths + both fallbacks 0.5)
-storagebackend_defaults_cannot_fake_success = false  (#1087 — 23 of 25 value-returning defaults)
-ignored_tests_inventory_and_ci    = false  (#1091 — 173 ignores, 118 turso ones execute nowhere)
-lint_suppressions_narrow          = false  (#1092 — 395 crate-root allows; allow_attributes=deny is inert)
-truth_reconciled                  = true  (full plans refresh 2026-07-24; no open PRs)
-sandbox_capability_boundary       = true
-retrieval_identity_complete       = true  (ADR-074 Accepted/Implemented)
-storage_awaits_lock_free          = true
-durable_eviction                  = true
-embedding_health_truthful         = true
-retry_backpressure_effective      = true
-gates_match_policy                = true  (ADR-079 stage 3 — live ruleset now requires the `CI / Required` aggregate, 2026-08-10; same-run fast gate + fail-closed evaluator landed + merged in #947 2026-08-12)
-required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; aggregate is causally same-run and rejects skipped, 2026-08-11)
-ci_cancellation_fail_closed       = true  (five waiters fail closed + commit-lint wait; 2026-08-06)
-automation_actor_parity           = true  (CIT-A2 — Dependabot/fork run same substantive assertions; validator fixture 2026-08-10)
-fuzz_nightly_green                = true  (#934 — nightly toolchain + LTO-off; fuzz workflow success 2026-08-09)
-release_dispatch_truthful         = true  (release.yml has no manual dispatch; publish --locked + bounded polling, ACT-338)
-informational_ci_evidence_durable = true  (fuzz artifacts always() upload + visible non-green signal, ACT-339)
-skill_evals_executable            = true
-skill_routes_complete             = true
-skill_evals_medium_depth          = true
-docs_match_code                   = true
-plan_registry_unique              = true  (ADR 025/054 aliases moved to plans/adr/_aliases/ — registry now 51 unique numbers)
-feature_pilots_have_baselines     = true
-release_current                   = true  (v0.1.39)
-version_advanced_after_tag        = true  (workspace 0.1.40)
-adr074_provenance_envelope        = true  (RetrievalProvenance + CacheKey all fields)
-adr075_durable_complete           = true  (completion.rs hard-errors on backend failure)
-adr076_pattern_ux                 = true  (empty diagnostics + sync messaging + pattern extract)
-cosine_perf_merged                = true  (#888 merged — 8-way unrolled accumulators)
-pattern_extract_command           = true  (ADR-076 §5 — G-P1-12, #891)
-r_f8_relationship_show_polish     = true  (#893 — box-drawing panel + unit tests)
-r_f9_hnsw_persistence             = true  (#893 — file_dump/load + capacity eviction)
-skill_count_40_all_routed         = true  (checkpoint-handoff, embedding-ops, episode-relationships, episode-tags, playbook-ops, recommendation-feedback)
-runtime_embedding_activation      = true  (ADR-077 Implemented A1-A6 — configure_embeddings activates exact provider; A6 docs + concurrency/redaction regression tests #897 merged)
-cascade_capability_truthful       = true  (PTA-A1 — non-csm `retrieve` returns `Err(CascadeError::CapabilityUnavailable)`)
-storage_metrics_truthful          = true  (PTA-A2 — `MetricValue` provenance: measured/estimated/unavailable)
-unsupported_threshold_hidden      = true  (PTA-A3 — `eval set-threshold` removed from Clap + docs)
-automatic_attribution_capture     = true  (ADR-080 merged in #927 + #947: episode validation, checked manual receipts, fallible playbooks, merged 2026-08-12)
-attribution_capability_truth      = true  (ADR-081 §2 — StorageBackend capability advertisement + capability-gated persist_session_checked, 2026-08-10; concrete-backend capability tests in #947, merged 2026-08-12)
-feedback_integrity_checked        = true  (RAT-A4 receipt-matrix tests #930 + #947 checked manual receipt matrix + cold-restart tests, merged 2026-08-12)
-feedback_updates_ranking          = true  (ADR-082 — code-side: derived Wilson weight + capability-gated list methods + recommend re-rank + e2e; lifecycle Proposed noted)
-r_f_spikes_go                     = true  (R-F1…R-F7 + R-F10 GO spike artifacts written + validated 2026-07-28)
-r_f10_oidc_publishing             = true  (ACT-325 + ACT-368 — official crates-io-auth-action, no CARGO_REGISTRY_TOKEN fallback, shared publish-crate action, skipped-tolerant chain; ACT-369 — verify-a-release docs, truthful release triggers, publish-path hygiene)
-r_f4_simd_cosine                  = true  (ACT-326 — cosine_similarity_simd + simd bench variant)
-```

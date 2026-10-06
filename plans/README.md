@@ -1,10 +1,10 @@
 # Plans Directory
 
-**Workspace**: `v0.1.45` (post-v0.1.44 bump) · **Released tag**: `v0.1.44` · **Main baseline**: `74a44a15` (v0.1.44 tagged on `4f4f4ba8` 2026-10-02)
-**Active plan**: **audit-backlog wave** — [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) (slices W1–W6, ACT-370…375). 22 open code issues (#1063–#1092) were filed at `9f50c607`, absent from every tracker, and re-validation at `74a44a15` found **0 fixed** — the per-issue register is [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
-**Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage floor #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
-**Last Updated**: 2026-10-04
-**Open PRs**: run `gh pr list --state open` · **Open issues**: run `gh issue list --state open` (**23** — the 22-issue audit backlog + #1109, code complete with manual crates.io steps)
+**Workspace**: `v0.1.45` (post-v0.1.44 bump) · **Released tag**: `v0.1.44` · **Main baseline**: `0485bb66` (2026-10-05)
+**Active plan**: **audit-backlog wave** — [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) (slices W1–W6, ACT-370…375; queued ACT-376…385). Status: **W1–W4 merged 2026-10-05** (#1131, #1135, #1134, #1139); **W5/W6 + Q02 in review** (#1138, #1140, #1130). 22 open code issues (#1063–#1092) were filed at `9f50c607`, absent from every tracker, and re-validation at `74a44a15` found **0 fixed** — the per-issue register is [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
+**Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage-floor reconciliation #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
+**Last Updated**: 2026-10-06
+**Open PRs**: run `gh pr list --state open` (3 on 2026-10-06) · **Open issues**: run `gh issue list --state open` (**21** — audit backlog minus 4 closed, + #1109 code-complete with manual crates.io steps, + #1137 release drift)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

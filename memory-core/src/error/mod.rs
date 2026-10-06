@@ -95,6 +95,19 @@ pub enum Error {
         /// Human-readable explanation of why migration is required.
         detail: String,
     },
+
+    /// An optional capability was requested from a backend that does not
+    /// support it (ADR-081 pattern).
+    ///
+    /// Returned by optional [`crate::StorageBackend`] methods whose default
+    /// implementation cannot honor the request, so an unsupported operation
+    /// can never report durable success through `Ok(())`, `None`, or an empty
+    /// vector.
+    #[error("capability unavailable: {operation} is not supported by this storage backend")]
+    CapabilityUnavailable {
+        /// Name of the unsupported [`crate::StorageBackend`] operation.
+        operation: &'static str,
+    },
 }
 
 impl Error {
@@ -122,7 +135,8 @@ impl Error {
             | Error::QuotaExceeded(_)
             | Error::Configuration(_)
             | Error::RetryQueueTimeout
-            | Error::SchemaMigrationRequired { .. } => false,
+            | Error::SchemaMigrationRequired { .. }
+            | Error::CapabilityUnavailable { .. } => false,
             // Relationship errors - generally non-recoverable
             Error::Relationship(rel_err) => {
                 matches!(rel_err, RelationshipError::ValidationFailed { .. })
@@ -261,6 +275,18 @@ mod tests {
             episode_id: Uuid::new_v4(),
         });
         assert!(!self_ref_err.is_recoverable());
+    }
+
+    #[test]
+    fn test_capability_unavailable_is_not_recoverable() {
+        let err = Error::CapabilityUnavailable {
+            operation: "cleanup_episodes",
+        };
+        assert!(!err.is_recoverable());
+        assert_eq!(
+            err.to_string(),
+            "capability unavailable: cleanup_episodes is not supported by this storage backend"
+        );
     }
 
     #[test]

@@ -1,133 +1,51 @@
 # ADR-027: Strategy for Ignored Tests (WASI, Streaming, libsql)
 
-**Status**: Accepted (Amended 2026-03-11)
+**Status**: Accepted (Amended 2026-10-04)
 **Date**: 2026-02-13
 
 ## Context
 
-121 tests are `#[ignore]` across the workspace:
-- **do-memory-storage-turso**: 71 tests (libsql memory corruption bug)
-- **do-memory-core**: 37 tests (slow integration tests, real storage backends)
-- **do-memory-mcp**: 9 tests (WASI, streaming, binary data)
-- **tests/**: 4 tests (e2e tests)
+A total of 159 tests are `#[ignore]` across the workspace and documented in `plans/ignored_tests_inventory.json`:
+- **do-memory-storage-turso**: 91 tests (libsql native library memory corruption and concurrency race conditions)
+- **do-memory-core**: 48 tests (slow integration tests, ONNX/ort Send trait requirements, real storage backends)
+- **do-memory-mcp**: 11 tests (performance benchmarks and native storage initialization)
+- **memory-cli**: 2 tests (config property I/O timeout, external Turso setup)
+- **e2e-tests**: 7 tests (subproccess quality gates, soak tests, MCP process integration)
 
-### libsql Memory Corruption Bug (71 Tests)
+### Safe Security Tests Split and Isolation
 
-The majority of ignored tests (71/121) are in `do-memory-storage-turso` and are blocked by an upstream bug:
-- **Error**: `malloc_consolidate() unaligned fastbin chunk` in CI environment
-- **Root Cause**: libsql native library memory corruption
-- **Affected Files**: `sql_injection_tests.rs`, `multi_dimension_routing.rs`, `prepared_cache_integration_test.rs`, `security_tests.rs`
-- **Tracking**: Upstream libsql issue
+Previously, all security tests in `memory-storage-turso/tests/security_tests.rs` were ignored due to native libSQL memory corruption concerns.
+In October 2026 (Follow-up Q02), pure URL protocol validation, token enforcement, and security error handling tests (14 tests) were unignored so that parameterization and protocol security checks run in standard CI without invoking native C libSQL connections:
+- Command: `cargo test -p do-memory-storage-turso --test security_tests`
 
-These tests are **legitimately skipped** and cannot be fixed without upstream resolution.
+For native libSQL tests that require physical database handles or C-FFI interactions, tests run in an isolated subprocess/nightly CI step (`isolated-turso-native-tests` in `.github/workflows/nightly-tests.yml`) to prevent memory corruption crashes from failing standard CI runs silently.
 
-## Problem
+### Machine-Readable Inventory
 
-Ignored tests reduce:
-- Test coverage visibility
-- Regression detection capability
-- Technical debt tracking
+The machine-readable inventory is stored in `plans/ignored_tests_inventory.json`. It is validated continuously by `./scripts/check-ignored-tests.sh`.
+
+Each inventory entry contains:
+- `crate`: The workspace crate.
+- `file` / `line` / `test`: Location and name of the ignored test.
+- `reason`: Truthful explanation for why the test is ignored.
+- `upstream_tracker`: URL to upstream tracker issue (e.g. `https://github.com/tursodatabase/libsql/issues`).
+- `owner`: Responsible team or workgroup (e.g. `WG-008`).
+- `revalidation_date`: Scheduled date for revalidation.
 
 ## Decision
 
-**Feature-gate tests** with clear documentation and relaxed thresholds.
+1. **Unignore Safe Parameterization & Security Checks**:
+   Keep pure input/URL/token security validation tests enabled in normal CI (`memory-storage-turso/tests/security_tests.rs`).
 
-**For libsql-blocked tests**: Document with clear `#[ignore]` reason referencing upstream bug.
+2. **Isolate Native Turso Tests**:
+   Run native Turso integration tests in a separate, isolated nightly job with dedicated artifact collection and crash reporting (`cargo nextest run -p do-memory-storage-turso --test security_tests --run-ignored all`).
 
-## Amended Decision (2026-03-11)
-
-WG-008 target of ≤30 ignored tests is **not achievable** because:
-- 71 tests are blocked by upstream libsql memory corruption bug
-- 37 tests in do-memory-core are intentionally slow integration tests
-- Total unavoidable ignored tests: ~108
-
-**Revised target**: Document legitimate skips rather than reduce count.
-
-## libsql Memory Corruption - Affected Tests
-
-| File | Count | Reason |
-|------|-------|--------|
-| `sql_injection_tests.rs` | 11 | libsql memory corruption |
-| `multi_dimension_routing.rs` | 7 | libsql memory corruption |
-| `prepared_cache_integration_test.rs` | 1 | libsql memory corruption |
-| `security_tests.rs` | 15 | libsql memory corruption |
-| `compression.rs` | 1 | Flaky in CI |
-| **Total (Turso)** | **71** | Upstream bug |
-
-## Implementation
-
-### 1. Add feature gates to test attributes
-
-```rust
-#[cfg_attr(feature = "wasi-impl", ignore)]
-#[test]
-fn test_wasi_capture_with_timeout() {
-    // WASI timeout handling requires proper WASI implementation
-}
-
-#[cfg_attr(feature = "streaming-impl", ignore)]
-#[test]
-fn test_streaming_efficiency() {
-    // Streaming performance varies by environment
-}
-```
-
-### 2. Update Cargo.toml features
-
-```toml
-[features]
-wasi-impl = []       # Requires WASI sandbox completion
-streaming-impl = []   # Requires streaming feature maturity
-```
-
-### 3. Add ignore reason documentation
-
-```rust
-/// WASI stdin/stdout capture requires proper WASI implementation in sandbox
-/// Tracking issue: #XXX
-/// Enable with: cargo test --features wasi-impl
-#[test]
-#[ignore = "WASI implementation not complete - see tracking issue #XXX"]
-fn test_wasi_stdout_stderr_capture() {
-    // ...
-}
-```
+3. **Enforce Zero Undocumented Ignores**:
+   Enforce inventory validation in `./scripts/check-ignored-tests.sh` so that any new or undocumented `#[ignore]` attribute fails CI.
 
 ## Consequences
 
-- ✅ Clear visibility of missing features
-- ✅ Tests enable when features are ready
-- ⚠️ Still ignored by default
-
-## Test Inventory
-
-### do-memory-mcp (9 tests)
-
-| Test | File | Feature Gate | Priority |
-|------|------|--------------|----------|
-| test_wasi_capture_with_timeout | wasmtime_sandbox/tests.rs | wasi-impl | P3 |
-| test_wasi_stdout_stderr_capture | wasmtime_sandbox/tests.rs | wasi-impl | P3 |
-| test_unified_sandbox_wasm_backend | unified_sandbox/tests.rs | wasi-impl | P3 |
-| test_backend_update | unified_sandbox/tests.rs | streaming-impl | P3 |
-| benchmark_streaming_performance | benchmarks.rs | streaming-impl | P2 |
-| stability_test | tests/soak/stability_test.rs | soak-tests | P4 |
-
-### do-memory-core (37 tests)
-
-| Category | Count | Reason |
-|----------|-------|--------|
-| `tag_operations_test.rs` | 9 | Slow integration test |
-| `heuristic_learning.rs` | 7 | Slow integration test |
-| `relationship_integration.rs` | 1 | Requires real storage backends |
-| `regression.rs` | 2 | Non-deterministic / long-running |
-| `embeddings/local.rs` | 1 | Flaky with random mock embeddings |
-
-### do-memory-storage-turso (71 tests)
-
-All blocked by upstream libsql memory corruption bug.
-
-## Alternatives Considered
-
-- **Option A** (Implement missing features): 40-60h effort, not priority
-- **Option B** (Document and keep ignored): No feature gates
-- **Option C** (Remove dead tests): Loss of test specification
+- ✅ Pure URL/token security checks execute on every PR and standard CI run.
+- ✅ Machine-readable inventory `plans/ignored_tests_inventory.json` tracks 100% of ignored tests.
+- ✅ `./scripts/check-ignored-tests.sh` guarantees zero undocumented ignores.
+- ✅ Isolated execution isolates native C libSQL memory corruption from standard CI pipeline while ensuring nightly tracking.

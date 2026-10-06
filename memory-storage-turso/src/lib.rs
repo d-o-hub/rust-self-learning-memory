@@ -1,65 +1,138 @@
 #![deny(unsafe_code)]
-#![allow(clippy::expect_used)]
-// Intentional allows for memory-storage-turso
-#![allow(clippy::unwrap_used)] // Intentional .unwrap() on mutex locks
-#![allow(invalid_value)] // Intentional zero-initialization in connection pool
-#![allow(dead_code)] // Public API methods not used internally
-// Additional allows for complex code patterns
-#![allow(clippy::excessive_nesting)] // Complex control flow in cache logic
-#![allow(unused_mut)] // Variables used conditionally
-#![allow(unused_assignments)] // Variables assigned in loops
-#![allow(clippy::derivable_impls)] // Prefer explicit impls for clarity
-#![allow(clippy::should_implement_trait)] // Custom default methods
-#![allow(clippy::unnecessary_map_or)] // Explicit is better than implicit
-#![allow(clippy::useless_asref)] // Clarity in type conversions
+#![cfg_attr(
+    any(test, feature = "compression"),
+    expect(clippy::expect_used, reason = "expect in compression code and tests")
+)]
+// Intentional suppressions for memory-storage-turso
+#![expect(clippy::unwrap_used, reason = "Intentional .unwrap() on mutex locks")]
+#![expect(dead_code, reason = "Public API methods not used internally")]
+// Additional suppressions for complex code patterns
+#![expect(
+    clippy::excessive_nesting,
+    reason = "Complex control flow in cache logic"
+)]
+#![expect(unused_mut, reason = "Variables used conditionally")]
 // Cast-related: necessary for SQL storage metrics and statistics
-#![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_wrap)]
-#![allow(clippy::cast_lossless)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "precision loss accepted in metric math"
+)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "integer narrowing bounded by checks"
+)]
+#![expect(
+    clippy::cast_sign_loss,
+    reason = "non-negative values cast to unsigned"
+)]
+#![expect(
+    clippy::cast_possible_wrap,
+    reason = "range validated before wrapping cast"
+)]
+#![expect(
+    clippy::cast_lossless,
+    reason = "explicit widening casts document intent"
+)]
 // Documentation/pedantic: would require extensive rework
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::uninlined_format_args)]
+#![expect(
+    clippy::cognitive_complexity,
+    reason = "long-standing complex functions"
+)]
+#![expect(
+    clippy::missing_errors_doc,
+    reason = "error variants documented separately"
+)]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
+#![expect(
+    clippy::return_self_not_must_use,
+    reason = "constructors not marked must_use"
+)]
+#![expect(clippy::map_unwrap_or, reason = "explicit pattern clearer than map_or")]
+#![expect(
+    clippy::redundant_closure_for_method_calls,
+    reason = "explicit closures aid readability"
+)]
+#![expect(clippy::match_same_arms, reason = "explicit arms aid maintenance")]
+#![expect(clippy::uninlined_format_args, reason = "format args kept explicit")]
 // Format args: inlining not required for error message clarity
-#![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::unused_async)]
-#![allow(clippy::format_in_format_args)]
-#![allow(clippy::to_string_in_format_args)]
-#![allow(clippy::unreadable_literal)]
-#![allow(clippy::struct_excessive_bools)]
-#![allow(clippy::panic)]
-#![allow(clippy::float_cmp)]
-#![allow(clippy::items_after_statements)]
-#![allow(clippy::wildcard_imports)]
-#![allow(clippy::used_underscore_binding)]
-#![allow(clippy::used_underscore_items)]
-#![allow(clippy::ptr_as_ptr)]
-#![allow(clippy::ptr_cast_constness)]
-#![allow(clippy::format_push_string)]
-#![allow(clippy::implicit_clone)]
-#![allow(clippy::missing_fields_in_debug)]
-#![allow(clippy::needless_raw_string_hashes)]
-#![allow(clippy::default_trait_access)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::no_effect_underscore_binding)]
-#![allow(rust_2024_compatibility)]
-#![allow(tail_expr_drop_order)]
-#![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::unchecked_time_subtraction)]
-#![allow(clippy::semicolon_if_nothing_returned)]
-#![allow(missing_docs)]
-#![allow(unknown_lints)]
-#![allow(clippy::unknown_lints)]
+#![expect(
+    clippy::needless_pass_by_value,
+    reason = "owned params kept for ergonomics"
+)]
+#![expect(clippy::unused_self, reason = "method kept for API symmetry")]
+#![expect(clippy::unused_async, reason = "async kept for API symmetry")]
+#![cfg_attr(
+    test,
+    expect(
+        clippy::unreadable_literal,
+        reason = "literals kept verbatim for clarity"
+    )
+)]
+#![expect(
+    clippy::struct_excessive_bools,
+    reason = "config struct expressed as flags"
+)]
+#![cfg_attr(
+    test,
+    expect(clippy::panic, reason = "panic used for invariant violations")
+)]
+#![cfg_attr(
+    test,
+    expect(clippy::float_cmp, reason = "exact comparisons for known constants")
+)]
+#![expect(
+    clippy::items_after_statements,
+    reason = "helpers declared next to use"
+)]
+#![cfg_attr(
+    not(test),
+    expect(clippy::wildcard_imports, reason = "glob imports used for preludes")
+)]
+#![expect(
+    clippy::used_underscore_binding,
+    reason = "underscore-prefixed binding is read"
+)]
+#![expect(
+    clippy::used_underscore_items,
+    reason = "underscore-prefixed item is used"
+)]
+#![expect(
+    clippy::format_push_string,
+    reason = "push_str formatting kept explicit"
+)]
+#![expect(
+    clippy::missing_fields_in_debug,
+    reason = "Debug shows selected fields"
+)]
+#![expect(
+    clippy::needless_raw_string_hashes,
+    reason = "raw-string hashes kept for escaping"
+)]
+#![cfg_attr(
+    test,
+    expect(clippy::default_trait_access, reason = "explicit Default::default")
+)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "panic paths documented separately"
+)]
+#![expect(tail_expr_drop_order, reason = "drop-order change tracked separately")]
+#![expect(clippy::unnecessary_wraps, reason = "Result kept for API consistency")]
+#![expect(
+    clippy::unchecked_time_subtraction,
+    reason = "time subtraction guarded by callers"
+)]
+#![expect(
+    clippy::semicolon_if_nothing_returned,
+    reason = "semicolon kept for consistency"
+)]
+#![expect(missing_docs, reason = "public docs still incomplete")]
+#![expect(unknown_lints, reason = "unknown on older toolchains")]
+#![expect(clippy::unknown_lints, reason = "unknown on older toolchains")]
 
 //! # Memory Storage - Turso
 //!

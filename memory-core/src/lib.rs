@@ -29,29 +29,62 @@
 // - missing_docs: Documentation for all public items would require extensive rework
 // - cognitive_complexity: Complex functions exist; refactoring tracked as tech debt
 // - expect_used/unwrap_used: Required for infallible operations and test assertions
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_wrap)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::implicit_hasher)]
-#![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::ref_option)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::float_cmp)]
-#![allow(clippy::assigning_clones)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::expect_used)]
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::panic)]
-#![allow(missing_docs)]
+#![expect(
+    clippy::cognitive_complexity,
+    reason = "long-standing complex functions"
+)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "precision loss accepted in metric math"
+)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "integer narrowing bounded by checks"
+)]
+#![expect(
+    clippy::cast_sign_loss,
+    reason = "non-negative values cast to unsigned"
+)]
+#![expect(
+    clippy::cast_possible_wrap,
+    reason = "range validated before wrapping cast"
+)]
+#![expect(
+    clippy::missing_errors_doc,
+    reason = "error variants documented separately"
+)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "panic paths documented separately"
+)]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![expect(clippy::unused_self, reason = "method kept for API symmetry")]
+#![expect(clippy::implicit_hasher, reason = "concrete hash maps in public API")]
+#![expect(
+    clippy::needless_pass_by_value,
+    reason = "owned params kept for ergonomics"
+)]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
+#![expect(
+    clippy::redundant_closure_for_method_calls,
+    reason = "explicit closures aid readability"
+)]
+#![expect(clippy::ref_option, reason = "&Option kept for API consistency")]
+#![expect(clippy::match_same_arms, reason = "explicit arms aid maintenance")]
+#![expect(clippy::map_unwrap_or, reason = "explicit pattern clearer than map_or")]
+#![expect(clippy::float_cmp, reason = "exact comparisons for known constants")]
+#![expect(clippy::assigning_clones, reason = "clone_from not always clearer")]
+#![expect(clippy::similar_names, reason = "short names common in math code")]
+#![expect(clippy::expect_used, reason = "infallible expect in known-good paths")]
+#![expect(clippy::unwrap_used, reason = "infallible unwrap in known-good paths")]
+#![cfg_attr(
+    test,
+    expect(clippy::panic, reason = "panic used for invariant violations")
+)]
+#![expect(missing_docs, reason = "public docs still incomplete")]
 
 //! # Memory Core
 //!

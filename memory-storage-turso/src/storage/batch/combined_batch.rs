@@ -76,11 +76,19 @@ impl TursoStorage {
             #[cfg(feature = "compression")]
             let compression_threshold = self.config.compression_threshold;
             #[cfg(not(feature = "compression"))]
+            #[expect(
+                clippy::no_effect_underscore_binding,
+                reason = "placeholder while compression is disabled"
+            )]
             let _compression_threshold = 0;
 
             #[cfg(feature = "compression")]
             let should_compress = self.config.compress_episodes;
             #[cfg(not(feature = "compression"))]
+            #[expect(
+                clippy::no_effect_underscore_binding,
+                reason = "placeholder while compression is disabled"
+            )]
             let _should_compress = false;
 
             for episode in &episodes {

@@ -1,3 +1,3 @@
 # Crate-root #![allow(...)] ceiling baseline for scripts/check-lint-suppressions.sh
 # Regenerate with: ./scripts/check-lint-suppressions.sh --update
-317
+0

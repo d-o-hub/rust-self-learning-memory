@@ -1,16 +1,29 @@
 // Clippy suppressions for test utilities
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::panic)]
-#![allow(clippy::wildcard_imports)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::expect_used)]
-#![allow(clippy::uninlined_format_args)]
-#![allow(missing_docs)]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
+#![expect(
+    clippy::missing_errors_doc,
+    reason = "error variants documented separately"
+)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "panic paths documented separately"
+)]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![expect(clippy::panic, reason = "panic used for invariant violations")]
+#![cfg_attr(
+    not(test),
+    expect(clippy::wildcard_imports, reason = "glob imports used for preludes")
+)]
+#![expect(
+    clippy::redundant_closure_for_method_calls,
+    reason = "explicit closures aid readability"
+)]
+#![expect(clippy::expect_used, reason = "infallible expect in known-good paths")]
+#![expect(clippy::uninlined_format_args, reason = "format args kept explicit")]
+#![expect(missing_docs, reason = "public docs still incomplete")]
 
 //! # Test Utilities
 //!

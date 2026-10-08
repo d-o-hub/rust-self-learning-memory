@@ -129,8 +129,8 @@ impl super::HierarchicalRetriever {
                 } else {
                     // Fallback to text-based similarity
                     calculate_text_similarity(
-                        &query.query_text.to_lowercase(),
-                        &episode.task_description.to_lowercase(),
+                        &query.query_text,
+                        &episode.task_description,
                     )
                 };
 

@@ -144,6 +144,16 @@ pub(crate) fn get_or_generate_episode_embedding(
     vec![task_len, domain_hash, steps_count]
 }
 
+/// Avoid memory allocation if string is already lowercase.
+#[inline]
+fn to_lowercase_cow(s: &str) -> std::borrow::Cow<'_, str> {
+    if s.chars().any(|c| c.is_uppercase()) {
+        std::borrow::Cow::Owned(s.to_lowercase())
+    } else {
+        std::borrow::Cow::Borrowed(s)
+    }
+}
+
 /// Calculate text similarity between query and episode text.
 ///
 /// Uses a simple word overlap metric:
@@ -158,8 +168,8 @@ pub(crate) fn get_or_generate_episode_embedding(
 ///
 /// Similarity score between 0.0 and 1.0
 pub(crate) fn calculate_text_similarity(query: &str, text: &str) -> f32 {
-    let query_lower = query.to_lowercase();
-    let text_lower = text.to_lowercase();
+    let query_lower = to_lowercase_cow(query);
+    let text_lower = to_lowercase_cow(text);
 
     let query_words: std::collections::HashSet<_> = query_lower.split_whitespace().collect();
     let text_words: std::collections::HashSet<_> = text_lower.split_whitespace().collect();
@@ -171,5 +181,30 @@ pub(crate) fn calculate_text_similarity(query: &str, text: &str) -> f32 {
         0.0
     } else {
         common as f32 / max_len as f32
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_text_similarity_basic() {
+        assert_eq!(calculate_text_similarity("hello world", "hello world"), 1.0);
+        assert_eq!(calculate_text_similarity("hello world", "hello there"), 0.5);
+        assert_eq!(calculate_text_similarity("foo bar", "baz qux"), 0.0);
+    }
+
+    #[test]
+    fn test_calculate_text_similarity_case_insensitivity() {
+        assert_eq!(calculate_text_similarity("Hello World", "hello world"), 1.0);
+        assert_eq!(calculate_text_similarity("FAST PATH", "fast path"), 1.0);
+    }
+
+    #[test]
+    fn test_calculate_text_similarity_empty() {
+        assert_eq!(calculate_text_similarity("", ""), 0.0);
+        assert_eq!(calculate_text_similarity("  ", "   "), 0.0);
+        assert_eq!(calculate_text_similarity("hello", ""), 0.0);
     }
 }

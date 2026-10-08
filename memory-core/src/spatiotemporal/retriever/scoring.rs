@@ -128,10 +128,7 @@ impl super::HierarchicalRetriever {
                     (similarity + 1.0) / 2.0 // Normalize from [-1, 1] to [0, 1]
                 } else {
                     // Fallback to text-based similarity
-                    calculate_text_similarity(
-                        &query.query_text,
-                        &episode.task_description,
-                    )
+                    calculate_text_similarity(&query.query_text, &episode.task_description)
                 };
 
                 // Combined relevance score

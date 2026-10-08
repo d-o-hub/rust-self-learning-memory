@@ -92,8 +92,8 @@ pub use op_journal::{
     JournalEntry, JournalOpKind, JournalOutcome, OperationJournal, SharedJournal,
 };
 pub use pattern_search::{PatternSearchResult, ScoreBreakdown, SearchConfig};
-pub use retrieval::ProvenancedRetrieval;
 pub use retrieval::playbooks_attributed::AttributedPlaybookRequest;
+pub use retrieval::{ProvenancedRetrieval, RetrievalExecution};
 pub use types::SelfLearningMemory;
 
 impl Default for SelfLearningMemory {

@@ -242,6 +242,15 @@ pub struct RetrievalProvenance {
     pub candidate_count: Option<usize>,
     /// Final result count
     pub result_count: usize,
+    /// Whether the retrieval pipeline actually executed (`false` on a cache hit).
+    ///
+    /// Issue #1079: this is execution-backed, not inferred from `cache_hit`.
+    pub executed: bool,
+    /// Serving tier label that produced the result (`cache`, `hybrid`, `semantic`,
+    /// `hierarchical`, `keyword`, `none`, ...).
+    pub tier: String,
+    /// Whether a higher tier was attempted and this path is a fallback.
+    pub fallback: bool,
 }
 
 impl RetrievalProvenance {
@@ -263,6 +272,9 @@ impl RetrievalProvenance {
             ranking_config_version: key.ranking_config_version,
             candidate_count,
             result_count,
+            executed: !cache_hit,
+            tier: if cache_hit { "cache" } else { "unknown" }.to_string(),
+            fallback: false,
         }
     }
 }

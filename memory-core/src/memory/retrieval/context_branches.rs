@@ -28,7 +28,7 @@ impl SelfLearningMemory {
         cache_key: &crate::retrieval::CacheKey,
         completed_episodes: &[Arc<Episode>],
         query_start: std::time::Instant,
-    ) -> Option<Vec<Arc<Episode>>> {
+    ) -> Option<super::report::BranchOutcome> {
         if self.config.retrieval_mode != crate::types::RetrievalMode::Hybrid {
             return None;
         }
@@ -74,7 +74,13 @@ impl SelfLearningMemory {
                             hybrid_episodes.len(),
                             None,
                         );
-                        Some(hybrid_episodes)
+                        Some(super::report::BranchOutcome {
+                            episodes: hybrid_episodes,
+                            tier: crate::monitoring::metrics::RetrievalTier::Hybrid,
+                            // The ANN retriever applies the limit internally, so the
+                            // pre-truncation candidate count is not observable here.
+                            candidate_count: None,
+                        })
                     }
                     Err(e) => {
                         warn!(error = %e, "Hybrid retrieval failed, falling back");
@@ -102,7 +108,7 @@ impl SelfLearningMemory {
         limit: usize,
         cache_key: &crate::retrieval::CacheKey,
         query_start: std::time::Instant,
-    ) -> Option<Vec<Arc<Episode>>> {
+    ) -> Option<super::report::BranchOutcome> {
         match semantic
             .find_similar_episodes(task_description, context, limit)
             .await
@@ -135,7 +141,13 @@ impl SelfLearningMemory {
                     semantic_episodes.len(),
                     None,
                 );
-                Some(semantic_episodes)
+                Some(super::report::BranchOutcome {
+                    episodes: semantic_episodes,
+                    tier: crate::monitoring::metrics::RetrievalTier::Semantic,
+                    // The semantic provider is queried with `limit`, so the
+                    // pre-truncation candidate count is not observable here.
+                    candidate_count: None,
+                })
             }
             Err(e) => {
                 warn!(

@@ -305,6 +305,6 @@ mod tests {
 
         assert!(sql.contains("context_language IS NOT NULL"));
         assert!(sql.contains("ORDER BY occurrence_count DESC"));
-        assert!(params.is_empty());
+        assert_eq!(params.len(), 0, "filter_null must bind no parameters");
     }
 }

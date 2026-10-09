@@ -495,3 +495,76 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   (workflow or certificate identity), not just the repository.
 - References: `book/src/verify-a-release.md`, `SECURITY.md`,
   `.agents/skills/release-guard/SKILL.md`, PR #1125.
+
+## LESSON-035: Bot/agent PR branches can silently revert merged work (2026-10-06)
+
+- Issue: the PR #1130 tip (`da0c867c`, via clobber commit `0401fa9c`) contained a
+  full revert of already-merged main work — `transaction_scope.rs`,
+  `recommendation_index*.rs`, `ranking_guard_tests.rs`, monitoring tests, the
+  plans trackers and `install-hooks.sh` — pushed as a "stale branch" diff.
+  `mergeable=MERGEABLE` said nothing about it because GitHub compares against
+  the merge base, not the tree the branch actually carries.
+- Impact: merging it would have deleted four merged PRs' worth of code and
+  docs. The visible symptom was an unrelated commitlint failure hiding a
+  destructive diff.
+- Fix: rebuilt the branch from `origin/main` with only the real change
+  (`b9331ce3`'s five files) as one commit, force-pushed, and commented the
+  evidence on the PR.
+- Prevention: before merging a long-lived or bot-authored branch, run
+  `git diff <merge-base> <tip> --stat` (or `git diff 810db30b da0c867c`) and
+  reject any branch whose tip removes files it never touched; treat
+  `mergeable=MERGEABLE` as "no textual conflict", never as "no lost work".
+- References: PR #1130, `plans/STATUS/VALIDATION_LATEST.md`.
+
+## LESSON-036: `nextest --message-format libtest-json` needs the experimental flag (2026-10-09)
+
+- Issue: the new isolated Turso nightly job piped
+  `cargo nextest run … --message-format libtest-json > report.json`. Nextest
+  refuses that flag without `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`, so the job
+  failed during startup — both uploaded report files were 0 bytes and the
+  ignored tests never ran. The nightly was red for the wrong reason, which
+  looked identical to the libsql crash the job exists to expose.
+- Impact: three nightlies proved nothing about the ignored-test population
+  while appearing to.
+- Fix: set `NEXTEST_EXPERIMENTAL_LIBTEST_JSON: 1` on the step (PR #1159);
+  verified locally that JSON is emitted.
+- Prevention: when redirecting a tool's machine-readable output to a file,
+  assert the file is non-empty (or check the tool's version gate) before
+  treating a red job as a test failure; copy the env from the existing job that
+  already uses the flag.
+- References: `.github/workflows/nightly-tests.yml`, PR #1159, issue #1091.
+
+## LESSON-037: floating `stable` adds deny-by-default lints between releases (2026-10-09)
+
+- Issue: CI runs floating `stable` (1.99) while the local toolchain was 1.98, so
+  two new lints failed PR CI invisibly to local runs: clippy
+  `assert_is_empty` (`assert!(x.is_empty())` in new tests) and rustdoc
+  `redundant_explicit_links` (`[`X`](crate::X)` when the label already
+  resolves). Three PRs burned a CI cycle each.
+- Impact: "clippy clean locally" was not evidence; each failure needed a CI log
+  round trip.
+- Fix: `rustup update stable` (→ 1.99.0) and fix the lints at the source
+  (`assert_eq!(x.len(), 0)` and the bare label) — no `#[allow]`.
+- Prevention: before diagnosing a CI-only lint failure, check the toolchain
+  versions (`rustc --version` vs the CI log) and update local stable; treat a
+  green local clippy on a floating-toolchain repo as weakly informative, and
+  prefer the canonical `./scripts/code-quality.sh clippy --workspace` scope
+  (per-package clippy differs under feature unification).
+- References: PRs #1145, #1150, #1152, `scripts/code-quality.sh`.
+
+## LESSON-038: strict up-to-date checks make merges serial; shared target dirs make test failures flaky (2026-10-09)
+
+- Issue: ruleset `9591004` sets `strict_required_status_checks_policy`, so every
+  merge to `main` invalidates the other open PRs' required runs; the 17-PR
+  backlog needs one branch update + CI cycle per merge. Separately, several
+  worktrees sharing one `CARGO_TARGET_DIR` produced mass test failures
+  (including a pure cosine-similarity test) when a sibling build replaced test
+  binaries mid-run.
+- Impact: merge throughput is CI-bound, not work-bound; and an unisolated test
+  failure can look like a regression when it is target-dir thrash.
+- Fix/prevention: plan merges as a serial pipeline (update the next branch
+  immediately after each merge); before believing a mass failure, re-run the
+  failing test in isolation or in a fresh target dir, and prefer `-E` filters
+  over full-suite runs while siblings compile.
+- References: `.agents/skills/ci-poll/SKILL.md`, `scripts/merge-pr.sh`, PRs
+  #1150/#1154.

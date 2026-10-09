@@ -88,3 +88,7 @@ Maintainer-external items still open: ADR-079 stage 4 live fault-injection proof
 - Pre-existing repo-wide release drift blocks every PR: fix the root cause (ship the release), use the `release-preparation` label only as a documented deadlock breaker
 - Codecov patch coverage: dedupe duplicated rendering (removes uncovered lines from the denominator) AND add targeted tests for new core paths
 - Bot/agent PR branches can silently revert main: before merging any long-lived bot branch, diff the tip against `origin/main` and reject clobbers (PR #1130 tipped this)
+- Machine-readable test output can be empty: `--message-format libtest-json` needs `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`; assert report artifacts are non-empty before reading a red job as a test failure (PR #1159)
+- Floating `stable` adds deny-by-default lints between releases (1.99: clippy `assert_is_empty`, rustdoc `redundant_explicit_links`): `rustup update stable` before diagnosing CI-only lint failures; fix, never suppress (PRs #1145/#1150/#1152)
+- Strict up-to-date checks make merges serial; every merge invalidates the other PRs' runs — merge as a pipeline and update the next branch immediately (ruleset 9591004)
+- Shared `CARGO_TARGET_DIR` across worktrees can replace test binaries and fake mass failures — re-run the failing test in isolation before believing it

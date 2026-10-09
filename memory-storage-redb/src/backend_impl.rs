@@ -3,7 +3,9 @@ use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use do_memory_core::procedural::ProceduralMemory;
-use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use do_memory_core::{
+    Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId,
+};
 use uuid::Uuid;
 
 use crate::RedbStorage;
@@ -16,6 +18,19 @@ impl StorageBackend for RedbStorage {
 
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
         self.get_episode(id).await
+    }
+
+    /// A read transaction against the open database file: an unusable cache fails the probe
+    /// instead of reporting itself healthy because a path existed (#1085). The message is
+    /// fixed, so no filesystem detail reaches health output.
+    async fn health_check(&self) -> Result<()> {
+        if RedbStorage::health_check(self).await? {
+            Ok(())
+        } else {
+            Err(Error::Storage(
+                "redb health probe could not open a read".to_string(),
+            ))
+        }
     }
 
     async fn delete_episode(&self, id: Uuid) -> Result<()> {

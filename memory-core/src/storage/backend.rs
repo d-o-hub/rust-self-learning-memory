@@ -10,7 +10,7 @@ use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use crate::procedural::ProceduralMemory;
-use crate::{Episode, Heuristic, Pattern, Result};
+use crate::{Episode, Error, Heuristic, Pattern, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
 
@@ -53,6 +53,14 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// Returns `Some(Episode)` if found, `None` if not found.
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
+
+    /// Bounded liveness probe: one cheap read through the backend's real I/O path.
+    ///
+    /// Health reporting must not treat configuration as proof of connectivity (#1085).
+    /// The default reads a known-absent episode; backends with a native ping override it.
+    async fn health_check(&self) -> Result<()> {
+        self.get_episode(Uuid::nil()).await.map(|_| ())
+    }
 
     /// Delete an episode by ID
     ///
@@ -421,45 +429,42 @@ pub trait StorageBackend: Send + Sync {
 
     // ========== Episode GC/TTL (WG-075) ==========
 
-    /// Clean up expired episodes based on retention policy
+    /// Whether this backend can durably clean up expired episodes.
     ///
-    /// Implements garbage collection for episodes that exceed age limits,
-    /// have low reward scores, or are unreferenced by patterns/heuristics.
-    ///
-    /// # Arguments
-    ///
-    /// * `policy` - Retention policy specifying cleanup criteria
-    ///
-    /// # Returns
-    ///
-    /// `CleanupResult` with count of deleted episodes and any errors
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
-    async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
-        let _ = policy;
-        Ok(CleanupResult::new())
+    /// Defaults to `false`. Backends that truly delete episodes must override
+    /// [`Self::cleanup_episodes`] / [`Self::count_cleanup_candidates`] and
+    /// return `true` here so callers can tell an unsupported operation apart
+    /// from an empty result (ADR-081 capability pattern).
+    fn supports_episode_cleanup(&self) -> bool {
+        false
     }
 
-    /// Get count of episodes that would be cleaned up (dry run)
-    ///
-    /// Useful for monitoring and pre-cleanup analysis.
-    ///
-    /// # Arguments
-    ///
-    /// * `policy` - Retention policy specifying cleanup criteria
-    ///
-    /// # Returns
-    ///
-    /// Number of episodes eligible for cleanup
+    /// Clean up expired episodes based on `policy` (WG-075).
     ///
     /// # Errors
     ///
-    /// Returns error if storage operation fails
+    /// The default implementation returns [`Error::CapabilityUnavailable`]:
+    /// a backend that cannot durably delete episodes must not report a
+    /// successful no-op. Override this method and advertise
+    /// [`Self::supports_episode_cleanup`] to provide real behavior.
+    async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
+        let _ = policy;
+        Err(Error::CapabilityUnavailable {
+            operation: "cleanup_episodes",
+        })
+    }
+
+    /// Count episodes `policy` would clean up without deleting (dry run).
+    ///
+    /// # Errors
+    ///
+    /// The default implementation returns [`Error::CapabilityUnavailable`],
+    /// mirroring [`Self::cleanup_episodes`].
     async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
         let _ = policy;
-        Ok(0)
+        Err(Error::CapabilityUnavailable {
+            operation: "count_cleanup_candidates",
+        })
     }
 
     // ========== Procedural Memory Methods ==========

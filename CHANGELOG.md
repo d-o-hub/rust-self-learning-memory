@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Retrieval provenance is now execution-backed (#1079): the provenance path
+  performs exactly one query-cache lookup, so cache hit/miss telemetry is
+  counted once per operation, and it threads the serving tier, cache hit/miss,
+  fallback, and the measured pre-truncation candidate count from the single
+  execution that produced the results. Unknown candidate counts stay `None`
+  instead of being set to the result count, and `RetrievalProvenance` /
+  `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
+  `fallback`, and a `RetrievalExecution` report).
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

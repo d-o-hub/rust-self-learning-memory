@@ -1,6 +1,6 @@
+#![deny(unsafe_code)]
 #![allow(clippy::expect_used)]
 // Intentional allows for memory-storage-turso
-#![allow(unsafe_code)] // Intentional unsafe for performance in connection pooling
 #![allow(clippy::unwrap_used)] // Intentional .unwrap() on mutex locks
 #![allow(invalid_value)] // Intentional zero-initialization in connection pool
 #![allow(dead_code)] // Public API methods not used internally

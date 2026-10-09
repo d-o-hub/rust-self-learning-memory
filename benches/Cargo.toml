@@ -68,6 +68,12 @@ name = "query_cache_benchmark"
 path = "query_cache_benchmark.rs"
 harness = false
 
+# Issue #1079: execution-backed retrieval provenance hit/miss overhead.
+[[bench]]
+name = "retrieval_provenance_benchmark"
+path = "retrieval_provenance_benchmark.rs"
+harness = false
+
 [[bench]]
 name = "domain_cache_benchmark"
 path = "domain_cache_benchmark.rs"

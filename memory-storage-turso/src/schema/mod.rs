@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS heuristics (
 )
 "#;
 
-/// SQL to create recommendation sessions table (ADR-044)
+/// SQL to create recommendation sessions table (ADR-044); `timestamp` is epoch
+/// milliseconds used only for ordering, while `payload` keeps full precision (#1065).
 pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS recommendation_sessions (
     session_id TEXT PRIMARY KEY NOT NULL,
@@ -67,10 +68,24 @@ CREATE TABLE IF NOT EXISTS recommendation_sessions (
 )
 "#;
 
-/// Index to quickly find sessions by episode
+/// Index for the latest session per episode: `(episode_id, timestamp DESC,
+/// session_id DESC)` breaks millisecond ties by greatest UUID (#1065).
 pub const CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX: &str = r#"
-CREATE INDEX IF NOT EXISTS idx_recommendation_sessions_episode
-ON recommendation_sessions(episode_id, timestamp DESC)
+CREATE INDEX IF NOT EXISTS idx_recommendation_sessions_episode_ranked
+ON recommendation_sessions(episode_id, timestamp DESC, session_id DESC)
+"#;
+
+/// Drops the pre-#1065 `(episode_id, timestamp DESC)` episode index (#1065).
+pub const DROP_LEGACY_RECOMMENDATION_SESSIONS_EPISODE_INDEX: &str =
+    "DROP INDEX IF EXISTS idx_recommendation_sessions_episode";
+
+/// Backfills pre-#1065 session timestamps from whole seconds to epoch
+/// milliseconds. Threshold `100_000_000_000` separates the ranges (year 5138 as
+/// seconds vs 1973 as milliseconds), so ordering never mixes units. Idempotent.
+pub const BACKFILL_RECOMMENDATION_SESSION_TIMESTAMP_MILLIS: &str = r#"
+UPDATE recommendation_sessions
+SET timestamp = timestamp * 1000
+WHERE timestamp < 100000000000
 "#;
 
 /// SQL to create recommendation feedback table (ADR-044)

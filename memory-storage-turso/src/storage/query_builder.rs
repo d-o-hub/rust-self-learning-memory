@@ -8,10 +8,12 @@
 //! so generated statements cannot carry injected SQL.
 //!
 //! ```no_run
-//! use do_memory_storage_turso::storage::query_builder::{EpisodeColumn, QueryBuilder};
+//! use do_memory_storage_turso::storage::query_builder::{
+//!     EpisodeColumn, FilterOp, QueryBuilder,
+//! };
 //! # fn example() {
 //! let (sql, _params) = QueryBuilder::episodes()
-//!     .filter(EpisodeColumn::Domain, "=", "test-domain")
+//!     .filter(EpisodeColumn::Domain, FilterOp::Eq, "test-domain")
 //!     .order_by(EpisodeColumn::StartTime, true)
 //!     .limit(100)
 //!     .into_parts();

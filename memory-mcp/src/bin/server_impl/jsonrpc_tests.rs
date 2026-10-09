@@ -151,3 +151,99 @@ async fn test_handle_request_dispatches_when_oauth_disabled() -> anyhow::Result<
     );
     Ok(())
 }
+
+fn anonymous_auth() -> AuthContext {
+    AuthContext::new(
+        OAuthConfig::default(),
+        do_memory_mcp::server::rate_limiter::ClientId::process(),
+        None,
+    )
+}
+
+/// `health/check` must answer from the live server. With no backend attached there is nothing
+/// to probe, so it reports the absence instead of inferring a connection from configuration.
+#[tokio::test]
+async fn test_health_check_reports_probed_state() -> anyhow::Result<()> {
+    let server = test_server().await?;
+
+    let response = dispatch(&server, request("health/check", None), &anonymous_auth())
+        .await
+        .ok_or_else(|| anyhow::anyhow!("a request with an id must be answered"))?;
+    anyhow::ensure!(
+        response.error.is_none(),
+        "health/check errored: {:?}",
+        response.error
+    );
+
+    let result = response
+        .result
+        .ok_or_else(|| anyhow::anyhow!("health/check returned no result"))?;
+    assert_eq!(
+        result["storage"]["turso_status"], "not_configured",
+        "an unattached backend must not be reported as connected"
+    );
+    assert_eq!(result["storage"]["redb_status"], "not_configured");
+    assert_eq!(result["storage"]["turso_connected"], false);
+    assert_eq!(result["storage"]["redb_connected"], false);
+    assert_eq!(
+        result["status"], "degraded",
+        "a server with no durable backend cannot call itself healthy"
+    );
+    assert_eq!(result["cache"]["hits"], 0, "cache counters must be live");
+    assert_eq!(
+        result["sync"]["status"],
+        do_memory_mcp::monitoring::SYNC_NOT_CONFIGURED
+    );
+    assert!(result["sync"]["last_sync_timestamp"].is_null());
+
+    let rendered = result.to_string();
+    for marker in ["TURSO_DATABASE_URL", "REDB_CACHE_PATH"] {
+        assert!(
+            !rendered.contains(marker),
+            "health output must not echo environment names: {rendered}"
+        );
+    }
+    Ok(())
+}
+
+/// Attaching real backends flips the same request to healthy by probing them, which is the
+/// behaviour the old environment-derived handler could not express.
+#[tokio::test]
+async fn test_health_check_probes_attached_backends() -> anyhow::Result<()> {
+    let dir = tempfile::TempDir::new()?;
+    let durable: Arc<dyn do_memory_core::StorageBackend> =
+        Arc::new(do_memory_storage_turso::TursoStorage::new_in_memory().await?);
+    let cache: Arc<dyn do_memory_core::StorageBackend> =
+        Arc::new(do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb")).await?);
+
+    let memory = Arc::new(do_memory_core::SelfLearningMemory::with_storage(
+        do_memory_core::MemoryConfig::default(),
+        durable,
+        cache,
+    ));
+    let server = MemoryMCPServer::new(do_memory_mcp::SandboxConfig::restrictive(), memory).await?;
+    let server = Arc::new(Mutex::new(server));
+
+    let response = dispatch(&server, request("health/check", None), &anonymous_auth())
+        .await
+        .ok_or_else(|| anyhow::anyhow!("a request with an id must be answered"))?;
+    let result = response
+        .result
+        .ok_or_else(|| anyhow::anyhow!("health/check returned no result"))?;
+
+    assert_eq!(
+        result["storage"]["turso_status"], "healthy",
+        "the native Turso ping must be probed: {result}"
+    );
+    assert_eq!(result["storage"]["redb_status"], "healthy");
+    assert_eq!(result["storage"]["turso_connected"], true);
+    assert_eq!(
+        result["status"], "healthy",
+        "every configured backend answered: {result}"
+    );
+    assert_eq!(
+        result["cache"]["size"], 0,
+        "a fresh server has an empty query cache"
+    );
+    Ok(())
+}

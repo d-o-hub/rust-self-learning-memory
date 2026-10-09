@@ -27,6 +27,8 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_TABLE)
             .await?;
+        self.ensure_recommendation_session_timestamp_precision(&conn)
+            .await?;
         self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE)
             .await?;
 
@@ -56,6 +58,13 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
             .await?;
+        // Replace the pre-#1065 `(episode_id, timestamp DESC)` index with the
+        // deterministic `(episode_id, timestamp DESC, session_id DESC)` index.
+        self.execute_with_retry(
+            &conn,
+            schema::DROP_LEGACY_RECOMMENDATION_SESSIONS_EPISODE_INDEX,
+        )
+        .await?;
         self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX)
             .await?;
 
@@ -279,5 +288,23 @@ impl TursoStorage {
         }
 
         Ok(())
+    }
+
+    /// Backfill legacy second-resolution recommendation-session timestamps to
+    /// epoch milliseconds (#1065).
+    ///
+    /// Rows written before the millisecond write path stored
+    /// `DateTime::timestamp()` seconds; this converts them in place so the
+    /// `timestamp` ordering column never mixes units. Idempotent.
+    async fn ensure_recommendation_session_timestamp_precision(
+        &self,
+        conn: &libsql::Connection,
+    ) -> Result<()> {
+        debug!("Backfilling recommendation session timestamps to milliseconds");
+        self.execute_with_retry(
+            conn,
+            schema::BACKFILL_RECOMMENDATION_SESSION_TIMESTAMP_MILLIS,
+        )
+        .await
     }
 }

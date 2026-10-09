@@ -607,6 +607,9 @@ mod cache_tests {
         let prov = RetrievalProvenance::from_key(&key, true, Some(12), 5);
 
         assert!(prov.cache_hit);
+        assert!(!prov.executed);
+        assert_eq!(prov.tier, "cache");
+        assert!(!prov.fallback);
         assert_eq!(prov.index_generation, 3);
         assert_eq!(prov.retrieval_mode, "hybrid");
         assert_eq!(prov.provider_identity, "local:mini:384");

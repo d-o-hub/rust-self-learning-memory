@@ -10,6 +10,11 @@ use tracing::debug;
 use uuid::Uuid;
 
 impl TursoStorage {
+    /// Persist a recommendation session.
+    ///
+    /// The `timestamp` column stores epoch **milliseconds** (`timestamp_millis`)
+    /// and is used only for ordering; the full-precision `DateTime<Utc>` is kept
+    /// in the JSON payload (ADR-044, #1065).
     pub async fn store_recommendation_session(
         &self,
         session: &RecommendationSession,
@@ -38,7 +43,7 @@ impl TursoStorage {
         stmt.execute(params![
             session.session_id.to_string(),
             session.episode_id.to_string(),
-            session.timestamp.timestamp(),
+            session.timestamp.timestamp_millis(),
             payload,
         ])
         .await
@@ -90,7 +95,8 @@ impl TursoStorage {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
         let mut rows = conn
             .query(
-                "SELECT payload FROM recommendation_sessions WHERE episode_id = ? ORDER BY timestamp DESC LIMIT 1",
+                "SELECT payload FROM recommendation_sessions WHERE episode_id = ? \
+                 ORDER BY timestamp DESC, session_id DESC LIMIT 1",
                 params![episode_id.to_string()],
             )
             .await

@@ -13,3 +13,8 @@
 **Vulnerability:** `HierarchicalReranker::rerank_with_query` accepted an unbounded `top_k: usize` parameter which was passed directly to `Vec::with_capacity(top_k)` in `select_diverse`, leading to potential out-of-memory panics (DoS) when called with large `top_k` values like `usize::MAX`.
 **Learning:** Public retrieval APIs accepting limits/top_k parameters must bound user-provided values prior to vector allocations.
 **Prevention:** Clamp caller-provided `top_k` / `limit` parameters with existing constants like `crate::storage::MAX_QUERY_LIMIT` before allocation.
+
+## 2026-10-01 — Unbounded limit in SpatiotemporalIndex::query_range
+**Vulnerability:** `SpatiotemporalIndex::query_range` accepted an unbounded `limit: usize` parameter which caused full time hierarchy tree traversal and unbounded vector accumulation when passed large values like `usize::MAX`.
+**Learning:** Index range query functions must clamp `limit` before embarking on multi-node tree traversals to prevent high CPU and memory resource consumption.
+**Prevention:** Clamp caller-provided `limit` using `crate::storage::MAX_QUERY_LIMIT` at the entry point of query functions.

@@ -203,3 +203,29 @@ fn test_multiple_episodes_same_hour() {
     assert!(results.contains(&id1));
     assert!(results.contains(&id2));
 }
+
+#[test]
+fn test_query_range_clamps_unbounded_limit() {
+    let mut index = SpatiotemporalIndex::new();
+    let now = Utc::now();
+
+    // More episodes than the cap, so the assertion fails without the clamp.
+    let expected = crate::storage::MAX_QUERY_LIMIT + 2;
+    for i in 0..expected {
+        let episode = create_test_episode_with_time(
+            "test-domain",
+            TaskType::CodeGeneration,
+            now + Duration::seconds(i as i64),
+        );
+        index.insert(&episode);
+    }
+
+    let start = now - Duration::hours(1);
+    let results = index.query_range(start, now + Duration::hours(2), usize::MAX);
+
+    assert_eq!(
+        results.len(),
+        crate::storage::MAX_QUERY_LIMIT,
+        "an unbounded limit must be clamped to MAX_QUERY_LIMIT"
+    );
+}

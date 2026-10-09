@@ -16,7 +16,7 @@ use do_memory_core::Result;
 pub mod batch;
 pub mod capacity;
 mod capacity_cleanup;
-mod capacity_intents;
+pub(crate) mod capacity_intents;
 mod embedding_backend;
 mod embedding_tables;
 mod embeddings_internal;

@@ -94,8 +94,11 @@ impl TursoStorage {
             .await?;
 
         // Durable capacity-eviction cleanup outbox (issue #1070)
-        self.execute_with_retry(&conn, schema::CREATE_CAPACITY_EVICTION_INTENTS_TABLE)
-            .await?;
+        self.execute_with_retry(
+            &conn,
+            crate::storage::capacity_intents::CREATE_CAPACITY_EVICTION_INTENTS_TABLE,
+        )
+        .await?;
 
         // Create Episode Tags tables and indexes
         self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TABLE)

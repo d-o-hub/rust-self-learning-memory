@@ -13,6 +13,26 @@ use uuid::Uuid;
 
 use super::capacity_cleanup::run_capacity_cleanup;
 
+/// SQL to create the durable capacity-eviction cleanup intent (outbox) table.
+///
+/// `enforce_capacity` writes one row per episode it is about to evict *before*
+/// deleting anything, so a failed dependent-embedding or episode delete can
+/// never lose the id list: the row survives (or is re-created on the next
+/// attempt) and `retry_pending_capacity_evictions` can replay the cleanup.
+///
+/// Kept next to the code that owns the table so `schema/mod.rs` stays within
+/// the 500-LOC ceiling.
+pub const CREATE_CAPACITY_EVICTION_INTENTS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS capacity_eviction_intents (
+    episode_id TEXT PRIMARY KEY NOT NULL,
+    backend TEXT NOT NULL DEFAULT 'durable',
+    error TEXT NOT NULL DEFAULT '',
+    attempts INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
 /// A durable, retryable capacity-eviction cleanup intent.
 ///
 /// One row is written to `capacity_eviction_intents` *before* an episode is

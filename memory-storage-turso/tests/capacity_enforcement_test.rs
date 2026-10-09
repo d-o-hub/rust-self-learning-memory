@@ -521,7 +521,7 @@ async fn test_embedding_delete_failure_records_retryable_intent()
     assert_eq!(intents.len(), 1, "one episode needs reconciliation");
     assert_eq!(intents[0].episode_id, ids[0]);
     assert_eq!(intents[0].backend, EvictionBackend::EmbeddingDurable);
-    assert!(!intents[0].error.is_empty());
+    assert_ne!(intents[0].error, "");
 
     // `enforce_capacity` never reports success after a swallowed dependent delete.
     assert!(storage.enforce_capacity(2).await.is_err());

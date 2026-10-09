@@ -202,6 +202,221 @@ mod recommendations_tests {
     }
 
     #[tokio::test]
+    async fn test_same_millisecond_tie_breaks_by_greater_session_id() {
+        // Arrange
+        let (storage, _dir) = create_test_storage().await;
+        let episode = create_test_episode("Tie break task");
+        storage
+            .store_episode(&episode)
+            .await
+            .expect("store episode");
+
+        let shared_ts =
+            chrono::DateTime::<Utc>::from_timestamp(1_700_000_000, 0).expect("valid timestamp");
+        let greater_id = Uuid::from_u128(u128::MAX);
+        let lesser_id = Uuid::from_u128(1);
+
+        let mut greater = create_test_recommendation_session(episode.episode_id);
+        greater.session_id = greater_id;
+        greater.timestamp = shared_ts;
+        let mut lesser = create_test_recommendation_session(episode.episode_id);
+        lesser.session_id = lesser_id;
+        lesser.timestamp = shared_ts;
+
+        // Insert the winner first and the loser last so insertion order cannot
+        // accidentally decide the winner: only (timestamp, session_id) may.
+        storage
+            .store_recommendation_session(&greater)
+            .await
+            .expect("store greater session");
+        storage
+            .store_recommendation_session(&lesser)
+            .await
+            .expect("store lesser session");
+
+        // Act
+        let retrieved = storage
+            .get_recommendation_session_for_episode(episode.episode_id)
+            .await
+            .expect("lookup")
+            .expect("session exists");
+
+        // Assert
+        assert_eq!(
+            retrieved.session_id, greater_id,
+            "greater UUID must win the millisecond tie"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_millisecond_order_ignores_insertion_order() {
+        // Arrange
+        let (storage, _dir) = create_test_storage().await;
+        let episode = create_test_episode("Precision task");
+        storage
+            .store_episode(&episode)
+            .await
+            .expect("store episode");
+
+        let base =
+            chrono::DateTime::<Utc>::from_timestamp(1_700_000_000, 0).expect("valid timestamp");
+        // Both timestamps share one whole second, so the legacy second-resolution
+        // column would collapse them into a tie.
+        let newer_ts =
+            base + chrono::Duration::milliseconds(900) + chrono::Duration::microseconds(123);
+        let older_ts = base + chrono::Duration::milliseconds(100);
+        assert_eq!(
+            newer_ts.timestamp(),
+            older_ts.timestamp(),
+            "test precondition: both share one second"
+        );
+
+        let mut newer = create_test_recommendation_session(episode.episode_id);
+        newer.timestamp = newer_ts;
+        newer.recommended_pattern_ids = vec!["newer".to_string()];
+        let mut older = create_test_recommendation_session(episode.episode_id);
+        older.timestamp = older_ts;
+        older.recommended_pattern_ids = vec!["older".to_string()];
+
+        // Insert chronologically newer first, older last (reversed chronology).
+        storage
+            .store_recommendation_session(&newer)
+            .await
+            .expect("store newer session");
+        storage
+            .store_recommendation_session(&older)
+            .await
+            .expect("store older session");
+
+        // Act
+        let retrieved = storage
+            .get_recommendation_session_for_episode(episode.episode_id)
+            .await
+            .expect("lookup")
+            .expect("session exists");
+
+        // Assert
+        assert_eq!(
+            retrieved.session_id, newer.session_id,
+            "the truly newer millisecond timestamp must win"
+        );
+        assert_eq!(retrieved.recommended_pattern_ids, vec!["newer".to_string()]);
+        assert_eq!(
+            retrieved.timestamp, newer_ts,
+            "payload must retain sub-millisecond precision"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_legacy_second_timestamps_are_backfilled_and_ordered() {
+        // Arrange: a database written before #1065, with whole-second timestamps
+        // and the legacy `(episode_id, timestamp DESC)` index.
+        let dir = TempDir::new().expect("create temp dir");
+        let db_path = dir.path().join("legacy.db");
+        let db = Builder::new_local(&db_path)
+            .build()
+            .await
+            .expect("create local db");
+
+        let episode_id = Uuid::from_u128(0xE9_1500);
+        let legacy_newer_secs: i64 = 1_700_000_000;
+        let legacy_older_secs: i64 = 1_699_999_000;
+
+        let mut legacy_newer = create_test_recommendation_session(episode_id);
+        legacy_newer.timestamp =
+            chrono::DateTime::<Utc>::from_timestamp(legacy_newer_secs, 0).expect("valid timestamp");
+        let mut legacy_older = create_test_recommendation_session(episode_id);
+        legacy_older.timestamp =
+            chrono::DateTime::<Utc>::from_timestamp(legacy_older_secs, 0).expect("valid timestamp");
+
+        {
+            let conn = db.connect().expect("connect");
+            conn.execute(
+                "CREATE TABLE recommendation_sessions (\n\
+                 session_id TEXT PRIMARY KEY NOT NULL,\n\
+                 episode_id TEXT NOT NULL,\n\
+                 timestamp INTEGER NOT NULL,\n\
+                 payload TEXT NOT NULL\n\
+                 )",
+                (),
+            )
+            .await
+            .expect("create legacy table");
+            conn.execute(
+                "CREATE INDEX idx_recommendation_sessions_episode \
+                 ON recommendation_sessions(episode_id, timestamp DESC)",
+                (),
+            )
+            .await
+            .expect("create legacy index");
+
+            for (session, secs) in [
+                (&legacy_newer, legacy_newer_secs),
+                (&legacy_older, legacy_older_secs),
+            ] {
+                conn.execute(
+                    "INSERT INTO recommendation_sessions \
+                     (session_id, episode_id, timestamp, payload) VALUES (?1, ?2, ?3, ?4)",
+                    libsql::params![
+                        session.session_id.to_string(),
+                        session.episode_id.to_string(),
+                        secs,
+                        serde_json::to_string(session).expect("serialize legacy session"),
+                    ],
+                )
+                .await
+                .expect("insert legacy row");
+            }
+        }
+
+        // Act: opening the storage backfills seconds -> milliseconds and swaps
+        // in the deterministic index.
+        let storage = TursoStorage::from_database(db).expect("turso from db");
+        storage.initialize_schema().await.expect("init schema");
+
+        // A modern row that is chronologically *older* keeps a numerically
+        // larger raw value than a backfilled legacy row would have if left in
+        // seconds: only a real backfill makes the legacy newer row win.
+        let mut modern_older = create_test_recommendation_session(episode_id);
+        modern_older.timestamp =
+            chrono::DateTime::<Utc>::from_timestamp(legacy_older_secs - 1000, 0)
+                .expect("valid timestamp");
+        storage
+            .store_recommendation_session(&modern_older)
+            .await
+            .expect("store modern session");
+
+        let retrieved = storage
+            .get_recommendation_session_for_episode(episode_id)
+            .await
+            .expect("lookup")
+            .expect("session exists");
+
+        // Assert
+        assert_eq!(
+            retrieved.session_id, legacy_newer.session_id,
+            "the backfilled legacy row is the truly newest session"
+        );
+
+        // The legacy row stays readable, and the payload keeps its full value.
+        let read_back = storage
+            .get_recommendation_session(legacy_older.session_id)
+            .await
+            .expect("read legacy session")
+            .expect("legacy session exists");
+        assert_eq!(read_back.timestamp, legacy_older.timestamp);
+
+        // Re-running schema init is idempotent and keeps the same winner.
+        storage.initialize_schema().await.expect("re-init schema");
+        let again = storage
+            .get_recommendation_session_for_episode(episode_id)
+            .await
+            .expect("lookup")
+            .expect("session exists");
+        assert_eq!(again.session_id, legacy_newer.session_id);
+    }
+
+    #[tokio::test]
     async fn test_store_and_retrieve_recommendation_feedback() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;

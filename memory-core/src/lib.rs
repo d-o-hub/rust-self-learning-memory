@@ -276,7 +276,8 @@ pub use memory::step_buffer::BatchConfig;
 pub use memory::{
     DurableWriteQueue, EpisodeCompletionReceipt, EpisodeDurability, EvictionBackend,
     EvictionBackendFailure, EvictionOutcome, JournalEntry, JournalOpKind, JournalOutcome,
-    OperationJournal, ProvenancedRetrieval, SelfLearningMemory, WriteQueueConfig, WriteQueueStats,
+    OperationJournal, ProvenancedRetrieval, RetrievalExecution, SelfLearningMemory,
+    WriteQueueConfig, WriteQueueStats,
 };
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use patterns::{

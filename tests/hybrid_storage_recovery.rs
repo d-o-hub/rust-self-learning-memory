@@ -123,6 +123,11 @@ impl StorageBackend for FailingStorage {
     async fn count_cleanup_candidates(&self, _policy: &EpisodeRetentionPolicy) -> Result<usize> {
         Err(Error::Storage("Simulated failure".to_string()))
     }
+    // This backend models a *capable* backend that fails at runtime, so it
+    // advertises the capability it overrides (ADR-081 pattern, #1087 slice 1).
+    fn supports_episode_cleanup(&self) -> bool {
+        true
+    }
 }
 
 #[cfg(feature = "redb")]

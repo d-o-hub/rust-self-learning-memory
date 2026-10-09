@@ -3,6 +3,7 @@
 //! Provides intelligent pattern discovery using semantic embeddings,
 //! multi-signal ranking, and contextual filtering.
 
+mod lexical;
 pub mod recommendation;
 pub mod scoring;
 

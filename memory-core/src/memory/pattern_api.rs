@@ -54,12 +54,17 @@ impl SelfLearningMemory {
         context: TaskContext,
         limit: usize,
     ) -> Result<Vec<pattern_search::PatternSearchResult>> {
+        // Snapshot the live provider once, before any await, so the query
+        // embedding, per-pattern embeddings and reported provider metadata all
+        // come from one coherent activation revision (issue #1074). The
+        // activation lock is released before the first provider call.
+        let semantic_service = self.live_semantic_service().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::search_patterns_semantic(
             query,
             patterns,
             &context,
-            self.semantic_service.as_ref(),
+            semantic_service.as_ref(),
             pattern_search::SearchConfig::default(),
             limit,
         )
@@ -74,12 +79,14 @@ impl SelfLearningMemory {
         config: pattern_search::SearchConfig,
         limit: usize,
     ) -> Result<Vec<pattern_search::PatternSearchResult>> {
+        // One owned provider snapshot for the whole operation (issue #1074).
+        let semantic_service = self.live_semantic_service().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::search_patterns_semantic(
             query,
             patterns,
             &context,
-            self.semantic_service.as_ref(),
+            semantic_service.as_ref(),
             config,
             limit,
         )
@@ -135,12 +142,15 @@ impl SelfLearningMemory {
         // before the awaits below. Holding it across `get_all_patterns()` and the
         // re-ranking call starves the `refresh_ranking_index` writer.
         let index = self.ranking_index_snapshot().await;
+        // Snapshot the live provider before the embedding awaits so the query
+        // and pattern embeddings share one activation revision (issue #1074).
+        let semantic_service = self.live_semantic_service().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::recommend_patterns_for_task(
             task_description,
             context,
             patterns,
-            self.semantic_service.as_ref(),
+            semantic_service.as_ref(),
             limit,
             Some(&index),
         )
@@ -237,12 +247,14 @@ impl SelfLearningMemory {
         target_context: TaskContext,
         limit: usize,
     ) -> Result<Vec<pattern_search::PatternSearchResult>> {
+        // One owned provider snapshot for the whole operation (issue #1074).
+        let semantic_service = self.live_semantic_service().await;
         let patterns = self.get_all_patterns().await?;
         pattern_search::discover_analogous_patterns(
             source_domain,
             target_context,
             patterns,
-            self.semantic_service.as_ref(),
+            semantic_service.as_ref(),
             limit,
         )
         .await

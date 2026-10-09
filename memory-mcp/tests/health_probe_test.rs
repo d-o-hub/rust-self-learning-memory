@@ -141,7 +141,10 @@ async fn unattached_backends_are_not_configured_and_never_connected() {
         response.storage.turso_details.as_deref(),
         Some(not_configured)
     );
-    assert_eq!(response.storage.redb_details.as_deref(), Some(not_configured));
+    assert_eq!(
+        response.storage.redb_details.as_deref(),
+        Some(not_configured)
+    );
 }
 
 #[tokio::test]

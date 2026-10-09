@@ -17,9 +17,11 @@ list. Five parallel read-only validation agents re-checked every finding against
 numbers, and `git log 9f50c607..HEAD -- <cited path>` shows the cited regions untouched. The prior "0 open
 gaps" claim was campaign-scoped (ADR-079 / CIT / PTA / RAT) and remains true only for that campaign.
 
-**Wave progress (2026-10-06)**: W1 #1077 ✅ #1131 · W2 #1086 ✅ #1135 · W3 #1088 ✅ #1134 · W4 #1066 ✅ #1139
-(issue awaiting close with evidence) · W5 #1075 🔄 #1138 · W6 #1085 🔄 #1140 (E1 redaction in review) ·
-Q02 #1091 🔄 #1130 (rescued to a clean branch — the jules tip had reverted W1–W4). Verdicts below remain the
+**Wave progress (2026-10-09)**: W1 #1077 ✅ #1131 · W2 #1086 ✅ #1135 · W3 #1088 ✅ #1134 · W4 #1066 ✅ #1139
+· Q02 #1091 ✅ #1130 · #1065 ✅ #1142 · #1079 ✅ #1148 · #1092 slice 1 ✅ #1143.
+In review: W5 #1075 #1138 · W6 #1085 #1140 · #1063 #1146 · #1064 #1147 · #1067 #1149 · #1070 #1150 · #1071 #1145
+· #1073 #1151 · #1078 #1154 · #1087 #1144/#1152/#1158 · #1092 slice 2 #1153 · #1159.
+Waiting on merges: #1068/#1089 (after #1149), #1074 (in flight), #1076 (after #1074). Verdicts below remain the
 2026-10-04 audit snapshot; see `VALIDATION_LATEST.md` for the live state.
 
 ## Register — 22 open issues

@@ -18,10 +18,27 @@
 | G-A2 sub-second MCP latency is real, not truncated to 0 | #1086 / M05 | P2 | ✅ merged #1135 (`75007b51`) |
 | G-A3 a failed tag transaction cannot leave partial state | #1088 / M07 | P2 | ✅ merged #1134 (`347b3296`) |
 | G-A4 the redb episode→session index follows recency, not write order | #1066 / S07 | P1 | ✅ merged #1139 (`f1c31699` + repair pass) |
-| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 in review #1138 — required checks green, cancelled workflows re-running |
-| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 in review #1140 — includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
+| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 in review #1138 — roast MAJORs fixed (query-only tokens, context double-count), CI re-running |
+| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 in review #1140 — roast MAJOR fixed (live retrieval-cache metrics); includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
 | G-A7 trackers match `gh issue list` | governance | P0 | ✅ #1129 — `GAP_ANALYSIS_LATEST.md` is the repo-wide register |
-| G-A8 ignored-test inventory + fail-visible isolated native job | #1091 / Q02 | P1 | 🔄 in review #1130 — rescued to a clean branch (the PR tip had reverted W1–W4); `continue-on-error`/`\|\| true` silent-pass removed |
+| G-A8 ignored-test inventory + fail-visible isolated native job | #1091 / Q02 | P1 | ✅ merged #1130 (2026-10-06) — 159-entry inventory, 14 tests un-ignored, isolated job fail-visible (JSON flag follow-up #1159); issue closed with evidence |
+
+## Wave A goals (2026-10-06…09, in review)
+
+| Goal | Rec | PR | Status |
+|------|-----|----|--------|
+| Recommendation precision (ms + UUID tie-break + backfill) | #1065 / S06 | #1142 | ✅ merged 2026-10-08 (`5054c15a`) |
+| Execution-backed retrieval provenance | #1079 / R08 | #1148 | ✅ merged 2026-10-07 (`9fdbc765`) |
+| Lint suppressions slice 1 (turso unsafe peel + ratchet) | #1092 / Q03 | #1143 | ✅ merged 2026-10-06 (`cdb70594`); slice 2 #1153 in review |
+| Strict row decode + allowlisted query builder | #1071 / S12 | #1145 | 🔄 in review (doctest fixed, rebased) |
+| Capacity eviction atomic-or-repairable | #1070 / S11 | #1150 | 🔄 in review |
+| Adaptive pool capacity model (E4) | #1063 / S04 | #1146 | 🔄 in review |
+| Scoped pool checkout | #1064 / S05 | #1147 | 🔄 in review (roast BLOCKER fixed) |
+| Modification watermark + keyset pages | #1067 / S08 | #1149 | 🔄 in review (6 roast MAJORs fixed) |
+| Identity-scoped embedding adapter | #1073 / R02 | #1151 | 🔄 in review |
+| Incremental ranking index + benches | #1078 / R07 | #1154 | 🔄 in review |
+| Capability truth (cleanup / procedural+relationships / inventory) | #1087 / M06 | #1144, #1152, #1158 | 🔄 in review |
+| Nightly libtest-JSON flag fix (follow-up to #1130) | — | #1159 | 🔄 in review |
 
 ## Queued goals (sequenced)
 

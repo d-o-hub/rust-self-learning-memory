@@ -16,9 +16,27 @@
 | ACT-371 | Measure MCP request latency from a monotonic `Instant` (`as_millis()`), keeping epoch seconds only for event timestamps; sub-ms regression test | #1086 (M05) | ✅ merged #1135 (`75007b51`) |
 | ACT-372 | Roll back the Turso tag transaction on every failure path; failure-injection test proving the prior tag set survives | #1088 (M07) | ✅ merged #1134 (`347b3296`) |
 | ACT-373 | Compare `(timestamp, session_id)` inside the same redb transaction before overwriting the episode→session index; repair pass heals stale write-order winners on open | #1066 (S07) | ✅ merged #1139 (`f1c31699`, `0485bb66`) |
-| ACT-374 | Replace the constant `0.5` in `calculate_keyword_similarity` with a bounded deterministic query-aware lexical score; matching-vs-unrelated ordering tests | #1075 (R04) | 🔄 in review #1138 — required checks green; cancelled workflows re-running |
-| ACT-375 | Real MCP health probes: configured handles, bounded per-backend `health_check`, live cache/sync/uptime, **redact `TURSO_DATABASE_URL`/paths/raw errors** (E1) | #1085 (M04) | 🔄 in review #1140 |
-| ACT-383a | Ignored-test inventory + un-ignore the pure protocol/token security tests + isolated fail-visible nightly Turso job + ADR-027 truth | #1091 (Q02) | 🔄 in review #1130 — jules PR tip had reverted W1–W4; clean branch re-applies only the real work and removes `continue-on-error`/`\|\| true` |
+| ACT-374 | Replace the constant `0.5` in `calculate_keyword_similarity` with a bounded deterministic query-aware lexical score; matching-vs-unrelated ordering tests | #1075 (R04) | 🔄 in review #1138 — roast MAJORs fixed (raw-query tokens only) |
+| ACT-375 | Real MCP health probes: configured handles, bounded per-backend `health_check`, live cache/sync/uptime, **redact `TURSO_DATABASE_URL`/paths/raw errors** (E1) | #1085 (M04) | 🔄 in review #1140 — roast MAJOR fixed (retrieval-cache metrics) |
+| ACT-383a | Ignored-test inventory + un-ignore the pure protocol/token security tests + isolated fail-visible nightly Turso job + ADR-027 truth | #1091 (Q02) | ✅ merged #1130 (2026-10-06); nightly JSON-flag follow-up #1159 in review |
+
+## Wave A actions (2026-10-06…09, in review)
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-386 | Recommendation precision: ms ordering + UUID tie-break + legacy backfill + ranked index | #1065 (S06) | ✅ merged #1142 (`5054c15a`) |
+| ACT-387 | Execution-backed retrieval provenance (one lookup, real pre-truncation count) | #1079 (R08) | ✅ merged #1148 (`9fdbc765`) |
+| ACT-388 | Lint slice 1: turso denies `unsafe_code` + crate-root allow ratchet | #1092 (Q03) | ✅ merged #1143 (`cdb70594`) |
+| ACT-389 | Lint slice 2: crate-root allows → expects with reasons (317 → 0) | #1092 (Q03) | 🔄 in review #1153 |
+| ACT-390 | Strict row decode + allowlisted query builder | #1071 (S12) | 🔄 in review #1145 |
+| ACT-391 | Capacity eviction: durable outbox + single transaction + partial outcome | #1070 (S11) | 🔄 in review #1150 |
+| ACT-392 | Adaptive pool capacity model + monotonic cooldown (E4) | #1063 (S04) | 🔄 in review #1146 |
+| ACT-393 | Scoped pool checkout (`with_connection`) + call-site migration | #1064 (S05) | 🔄 in review #1147 |
+| ACT-394 | Watermark chain: revision table, keyset pages, durable watermark, Turso backfill | #1067 (S08) | 🔄 in review #1149 |
+| ACT-395 | Identity-scoped embedding adapter + truthful ephemeral mode | #1073 (R02) | 🔄 in review #1151 |
+| ACT-396 | Incremental ranking index + Criterion benches | #1078 (R07) | 🔄 in review #1154 |
+| ACT-397 | Capability truth: cleanup pair / procedural+relationships / inventory+lint | #1087 (M06) | 🔄 in review #1144, #1152, #1158 |
+| ACT-398 | Nightly libtest-JSON flag fix | #1091 follow-up | 🔄 in review #1159 |
 
 ## Queued actions (2026-10-04 — validated backlog, sequenced)
 

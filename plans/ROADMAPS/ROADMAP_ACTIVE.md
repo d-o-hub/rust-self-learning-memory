@@ -18,12 +18,28 @@
 | P2 | MCP | #1086 (M05) latency computed from `as_secs()` → every sub-second request records 0 ms | ✅ Merged (#1135) |
 | P2 | Storage | #1088 (M07) `save_episode_tags` `BEGIN`/`COMMIT` with `?` early returns and no `ROLLBACK` | ✅ Merged (#1134) |
 | P1 | Storage | #1066 (S07) redb episode→session index overwritten by write order, not by `(timestamp, session_id)` | ✅ Merged (#1139) |
-| P1 | Retrieval | #1075 (R04) `calculate_keyword_similarity` returns the constant `0.5`, ignoring query and pattern | 🔄 In review (#1138) |
-| P1 | MCP | #1085 (M04) health infers connectivity from env-var existence, hard-codes cache metrics to zero, reports `uptime 0` — **and leaks `TURSO_DATABASE_URL` into the response** | 🔄 In review (#1140) |
-| P1 | Tests | #1091 (Q02) ignored-test inventory + un-ignored protocol tests + isolated fail-visible nightly Turso job (159 entries; ADR-027 refreshed) | 🔄 In review (#1130) |
+| P1 | Retrieval | #1075 (R04) `calculate_keyword_similarity` returns the constant `0.5`, ignoring query and pattern | 🔄 In review (#1138) — roast-fixed |
+| P1 | MCP | #1085 (M04) health infers connectivity from env-var existence, hard-codes cache metrics to zero, reports `uptime 0` — **and leaks `TURSO_DATABASE_URL` into the response** | 🔄 In review (#1140) — roast-fixed |
+| P1 | Tests | #1091 (Q02) ignored-test inventory + un-ignored protocol tests + isolated fail-visible nightly Turso job (159 entries; ADR-027 refreshed) | ✅ Merged (#1130, 2026-10-06) |
 
-**Next queue** (ACT-376…ACT-385): #1067 → #1068 → #1089 (watermark chain), #1073 → #1074 → #1076 (embedding identity),
-#1063, #1064, #1070, #1071, #1078, #1079, #1087 (4 PRs), #1092 (4 PRs). Release `v0.1.45` follows the wave (#1137).
+## Sprint 2026-10-06 — wave A slices (in review)
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | Storage | #1065 (S06) recommendation timestamp precision + deterministic tie-break | ✅ Merged (#1142) |
+| P1 | Observability | #1079 (R08) execution-backed retrieval provenance | ✅ Merged (#1148) |
+| P2 | Quality | #1092 (Q03) lint suppressions — slice 1 turso `unsafe_code` peel + ratchet | ✅ Merged (#1143; slice 2 #1153 in review) |
+| P1 | Storage | #1067 (S08) modification watermark + bounded keyset pages (revision table, durable watermark, Turso backfill) | 🔄 In review (#1149) — 6 roast MAJORs fixed |
+| P1 | Storage | #1064 (S05) scoped pool checkout retaining permits; roast BLOCKER (nested checkout) fixed | 🔄 In review (#1147) |
+| P1 | Storage | #1070 (S11) capacity eviction: durable outbox + single transaction + partial outcome | 🔄 In review (#1150) |
+| P1 | Pool | #1063 (S04) adaptive pool capacity model + monotonic cooldown (E4 test replaced) | 🔄 In review (#1146) |
+| P1 | Storage | #1071 (S12) strict row decode + allowlisted query builder | 🔄 In review (#1145) |
+| P1 | Embeddings | #1073 (R02) identity-scoped embedding storage adapter | 🔄 In review (#1151) |
+| P2 | Ranking | #1078 (R07) incremental ranking index (100k: 222 ms → 0.84 µs) + benches | 🔄 In review (#1154) |
+| P1 | Storage | #1087 (M06) capability truth: cleanup pair / procedural+relationships / inventory+lint | 🔄 In review (#1144, #1152, #1158) |
+| P2 | CI | Nightly isolated-job libtest-JSON flag fix (follow-up to #1130) | 🔄 In review (#1159) |
+
+**Next queue**: #1068 + #1089 (after #1149 merges), #1074 (in flight), #1076 (after #1074). Release `v0.1.45` follows the wave (#1137).
 
 ## Sprint 2026-10-02 — Durability receipts + toolchain hygiene
 

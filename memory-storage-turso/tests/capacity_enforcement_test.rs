@@ -478,11 +478,10 @@ async fn test_capacity_eviction_atomic_cleanup_purges_embeddings()
         0,
         "evicted episode embedding must be deleted"
     );
-    assert!(
-        storage
-            .pending_capacity_eviction_intents()
-            .await?
-            .is_empty()
+    assert_eq!(
+        storage.pending_capacity_eviction_intents().await?.len(),
+        0,
+        "no pending eviction intents may remain"
     );
     Ok(())
 }
@@ -533,11 +532,10 @@ async fn test_embedding_delete_failure_records_retryable_intent()
     assert!(retry.is_complete());
     assert_eq!(storage.get_statistics().await?.episode_count, 2);
     assert_eq!(embedding_row_count(&storage, &ids[0].to_string()).await?, 0);
-    assert!(
-        storage
-            .pending_capacity_eviction_intents()
-            .await?
-            .is_empty()
+    assert_eq!(
+        storage.pending_capacity_eviction_intents().await?.len(),
+        0,
+        "no pending eviction intents may remain"
     );
     Ok(())
 }
@@ -583,11 +581,10 @@ async fn test_episode_delete_failure_is_observable_and_repairable()
     assert!(retry.is_complete());
     assert_eq!(storage.get_statistics().await?.episode_count, 2);
     assert_eq!(embedding_row_count(&storage, &ids[0].to_string()).await?, 0);
-    assert!(
-        storage
-            .pending_capacity_eviction_intents()
-            .await?
-            .is_empty()
+    assert_eq!(
+        storage.pending_capacity_eviction_intents().await?.len(),
+        0,
+        "no pending eviction intents may remain"
     );
     Ok(())
 }

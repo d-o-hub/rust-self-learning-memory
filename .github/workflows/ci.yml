@@ -108,6 +108,13 @@ jobs:
           chmod +x scripts/check-lint-suppressions.sh
           ./scripts/check-lint-suppressions.sh
 
+      - name: Check StorageBackend capability inventory
+        run: |
+          chmod +x scripts/check-storage-backend-capabilities.sh
+          chmod +x scripts/test-storage-backend-capabilities.sh
+          ./scripts/check-storage-backend-capabilities.sh --check
+          ./scripts/test-storage-backend-capabilities.sh --fixtures
+
   # Core testing - optimized for speed with proper timeouts
   test:
     name: Tests

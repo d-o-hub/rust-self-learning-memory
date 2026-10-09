@@ -42,10 +42,6 @@
     clippy::cast_possible_wrap,
     reason = "range validated before wrapping cast"
 )]
-#![cfg_attr(
-    test,
-    expect(clippy::float_cmp, reason = "exact comparisons for known constants")
-)]
 #![expect(
     clippy::unreadable_literal,
     reason = "literals kept verbatim for clarity"

@@ -3,8 +3,7 @@
 //! Unified async interface implemented by Turso, redb, and in-memory backends.
 //!
 //! Optional operations are gated by [`StorageBackendCapabilities`]: their
-//! default implementations return
-//! [`Error::CapabilityUnavailable`](crate::Error::CapabilityUnavailable)
+//! default implementations return [`Error::CapabilityUnavailable`]
 //! instead of a fabricated success, and callers can ask the capability
 //! predicate before invoking them.
 

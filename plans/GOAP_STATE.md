@@ -1,18 +1,18 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-06
+- **Last Updated**: 2026-10-09
 - **Version**: workspace `0.1.45` · latest tag `v0.1.44`
-- **Branch**: main @ `0485bb66` (2026-10-05)
-- **Open PRs**: run `gh pr list --state open` (3 at 2026-10-06: #1138 W5, #1140 W6, #1130 Q02)
-- **Open issues**: run `gh issue list --state open` (21 at 2026-10-06 — audit backlog minus 4 closed, + #1109 code-complete/manual, + #1137 release drift)
-- **Active plan**: audit-backlog wave [`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) — W1–W4 merged 2026-10-05; W5/W6 in review; chains ACT-376…385 queued
+- **Branch**: main @ `5054c15a` (2026-10-08; merges through #1142)
+- **Open PRs**: run `gh pr list --state open` (17 at 2026-10-09 — wave-A slices in review: #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1153, #1154, #1155, #1157, #1158, #1159 + plans #1141)
+- **Open issues**: run `gh issue list --state open` (16 at 2026-10-09: 1063, 1064, 1067, 1068, 1070, 1071, 1073, 1074, 1075, 1076, 1078, 1085, 1087, 1089, 1109, 1137)
+- **Active plan**: audit-backlog wave [`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) — W1–W4 + Q02 merged; the wave-A slices are in review; chains #1067→#1068→#1089 and #1073→#1074→#1076 in flight
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
 - **Release**: ✅ `v0.1.44` shipped 2026-10-02 (`4f4f4ba8`); workspace bumped to `0.1.45`; next release pending (drift issue #1137)
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ---
 
-## Wave status — audit backlog (2026-10-05/06)
+## Wave status — audit backlog (2026-10-09)
 
 | Slice | Issue | PR | Status |
 |-------|-------|-----|--------|
@@ -21,34 +21,54 @@
 | W2 | #1086 sub-second MCP latency | #1135 (`75007b51`) | ✅ merged 2026-10-05 |
 | W3 | #1088 Turso tag-tx rollback | #1134 (`347b3296`) | ✅ merged 2026-10-05 |
 | W4 | #1066 redb recommendation index order | #1139 (`f1c31699`, `0485bb66`) | ✅ merged 2026-10-05 |
-| W5 | #1075 query-aware lexical fallback | #1138 | 🔄 in review — required checks green; cancelled workflows re-running |
-| W6 | #1085 real MCP health probes + URL redaction (E1) | #1140 | 🔄 in review — cancelled workflows re-running; aggregate failed closed on the cancelled set |
-| Q02 | #1091 ignored-test inventory + isolation | #1130 (jules) | 🔄 rescued: the PR tip had reverted W1–W4; a clean branch re-applies only the real work and removes the `continue-on-error`/`|| true` silent-pass, then force-push |
+| W5 | #1075 query-aware lexical fallback | #1138 | 🔄 in review — roast MAJORs fixed (query-only tokens, context double-count), CI re-running |
+| W6 | #1085 real MCP health probes + URL redaction (E1) | #1140 | 🔄 in review — roast MAJOR fixed (live retrieval-cache metrics), rebased, CI re-running |
+| Q02 | #1091 ignored-test inventory + isolation | #1130 (`8a363505`) | ✅ merged 2026-10-06 — 159-entry inventory, 14 tests un-ignored, isolated fail-visible nightly job; issue closed with evidence |
 
-Adjacent merges in the same window: #1128 docs-integrity fix, #1133 local hook sensors, #1136 dependabot actions bump.
+### Wave A (2nd batch) in review
 
-## Next queue (ACT-376…ACT-385)
+| Issue | PR | Notes |
+|-------|----|-------|
+| #1065 recommendation precision | #1142 (`5054c15a`) | ✅ merged 2026-10-08 |
+| #1079 execution-backed provenance | #1148 (`9fdbc765`) | ✅ merged 2026-10-07 |
+| #1092 lint suppressions (slice 1) | #1143 (`cdb70594`) | ✅ merged 2026-10-06; slice 2 #1153 in review (317→0 crate-root allows) |
+| #1071 strict row decode + query builder | #1145 | 🔄 in review (doctest fixed, rebased) |
+| #1070 capacity eviction | #1150 | 🔄 in review (clippy fixes pushed) |
+| #1063 adaptive pool capacity | #1146 | 🔄 in review (E4 test replaced) |
+| #1064 scoped pool checkout | #1147 | 🔄 in review (roast BLOCKER fixed: no nested checkout) |
+| #1067 modification watermark | #1149 | 🔄 in review (6 roast MAJORs fixed: txn atomicity, monotonic revisions, durable watermark, loud default, Turso backfill) |
+| #1073 identity-scoped embedding adapter | #1151 | 🔄 in review (LOC decomposition done) |
+| #1078 incremental ranking index | #1154 | 🔄 in review (100k: 222 ms → 0.84 µs) |
+| #1087 capability truth | #1144, #1152, #1158 | 🔄 in review (cleanup pair; procedural+relationships; inventory + checker) |
+| #1074 live provider snapshot (pattern sites) | — | 🔄 in flight |
+| nightly JSON flag fix (follow-up to #1130) | #1159 | 🔄 in review |
 
-- **Watermark chain** (E3/E5): #1067 → #1068 → #1089.
-- **Embedding identity chain** (E2): #1073 → #1074 (remaining 5 pattern sites) → #1076.
-- **Independent**: #1063 (E4 — fix rewrites `adaptive_tests.rs:140-146`), #1064, #1070, #1071, #1078, #1079.
-- **Splits**: #1087 (4 PRs), #1092 (4 PRs), #1091 remainder (2 PRs after Q02).
+Adjacent merges: #1128 docs-integrity, #1133 local hook sensors, #1136 dependabot.
+
+## Next queue
+
+- **Watermark chain** (E3/E5): #1067 (#1149 in review) → #1068, #1089 (spawn after #1149 merges).
+- **Embedding identity chain** (E2): #1073 (#1151 in review) → #1074 (in flight) → #1076.
+- **Merge pipeline**: 17 PRs must merge serially (strict up-to-date policy re-runs required checks after every merge).
 - **Release/closeout**: ship `v0.1.45` (#1137) once the wave is green; #1109 manual crates.io steps remain maintainer-external.
 
-## Current truth flags (campaign-scoped)
+## Current truth flags
 
 ```text
-release_current                   = false (v0.1.44 tagged 2026-10-02; drift issue #1137 open — next release follows the wave)
+release_current                   = false (v0.1.44 tagged 2026-10-02; drift issue #1137 open — release follows the wave)
 audit_backlog_registered          = true  (#1129 — every #1063–#1092 issue has a verdict in GAP_ANALYSIS_LATEST.md)
 w1_ranking_guard_released         = true  (#1131)
 w2_subsecond_latency_released     = true  (#1135)
 w3_turso_tag_tx_rollback          = true  (#1134)
 w4_redb_rec_index_ordering        = true  (#1139 — repair pass heals write-order winners without a schema bump)
-w5_lexical_fallback               = in_review (#1138)
-w6_mcp_health_truthful_and_redacted = in_review (#1140)
-ignored_test_inventory            = in_review (#1130 — 159 entries, script-validated, isolated nightly job made fail-visible)
-production_pattern_query_relevance = false until #1074 lands (E2 — semantic_service has no writer; both fallbacks constant)
-episodes_created_at_is_watermark  = false until #1067 lands (E3 — absent from the Turso INSERT column list)
+w5_lexical_fallback               = in_review (#1138 — roast-fixed)
+w6_mcp_health_truthful_and_redacted = in_review (#1140 — roast-fixed)
+ignored_test_inventory            = true  (#1130; nightly job fail-visible, JSON flag follow-up in #1159)
+recommendation_precision          = true  (#1142 — ms ordering + UUID tie-break + backfill)
+retrieval_provenance_execution_backed = true (#1148)
+lint_crate_root_allows_zero       = in_review (#1143 merged slice 1; #1153 slice 2 drives crate-root allows to 0)
+production_pattern_query_relevance = pending #1074 (E2 — semantic_service has no writer; snapshot seam in flight)
+watermark_source_of_truth         = in_review (#1149 — revision table + keyset pages + durable watermark)
 required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; same-run aggregate)
 release_dispatch_truthful         = true  (#1123/#1125 — OIDC-only publish chain, verify-a-release docs)
 ```

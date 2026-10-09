@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pattern search, recommendations, attributed recommendations and the
+  management search API now use the runtime-activated embedding provider
+  (#1074): each pattern operation clones one owned provider snapshot before its
+  awaits, so the query embedding, the per-pattern embeddings and the reported
+  provider identity all come from the same activation revision instead of the
+  construction-time `semantic_service` field, which is `None` on every
+  production path. Without the snapshot the query embedding was always empty
+  and the semantic score collapsed to a constant.
 - Retrieval provenance is now execution-backed (#1079): the provenance path
   performs exactly one query-cache lookup, so cache hit/miss telemetry is
   counted once per operation, and it threads the serving tier, cache hit/miss,

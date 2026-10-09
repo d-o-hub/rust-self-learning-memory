@@ -356,12 +356,16 @@ impl SelfLearningMemory {
         context: &crate::types::TaskContext,
         config: super::pattern_search::SearchConfig,
     ) -> Result<Vec<super::pattern_search::PatternSearchResult>> {
+        // Snapshot the live provider before the embedding awaits so the
+        // management search path uses the runtime-activated provider rather
+        // than the construction-time field (issue #1074).
+        let semantic_service = self.live_semantic_service().await;
         let patterns = self.get_all_patterns().await?;
         super::pattern_search::search_patterns_semantic(
             query,
             patterns,
             context,
-            self.semantic_service.as_ref(),
+            semantic_service.as_ref(),
             config,
             10, // default limit
         )

@@ -29,6 +29,12 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use uuid::Uuid;
 
+#[path = "common/counting_provider.rs"]
+mod counting_provider;
+
+use counting_provider::counting_service;
+use std::sync::atomic::Ordering;
+
 // End-to-End Embedding Workflow Tests (3 tests)
 
 #[tokio::test]
@@ -723,4 +729,87 @@ fn create_test_pattern() -> Pattern {
         occurrence_count: 5,
         effectiveness: Default::default(),
     }
+}
+
+// ============================================================================
+// Runtime provider snapshot wiring (issue #1074)
+// ============================================================================
+
+/// Completion, hybrid retrieval and pattern search must all reach the provider
+/// installed through the runtime activation seam; none may keep reading the
+/// construction-time `semantic_service` field (which is `None` in production).
+#[tokio::test]
+async fn test_all_core_paths_follow_activated_provider() {
+    let mut config = do_memory_core::MemoryConfig::default();
+    config.quality_threshold = 0.2;
+    config.retrieval_mode = do_memory_core::types::RetrievalMode::Hybrid;
+    let memory = SelfLearningMemory::with_config(config);
+
+    let context = TaskContext {
+        language: Some("rust".to_string()),
+        framework: Some("axum".to_string()),
+        complexity: ComplexityLevel::Moderate,
+        domain: "web-api".to_string(),
+        tags: vec!["rest".to_string()],
+    };
+
+    let (service, calls) = counting_service("core-path-model");
+    memory
+        .activate_semantic_service(service, "local:core-path-model:4".to_string())
+        .await;
+
+    // 1) Completion embeds the episode (and updates the ANN index) through the
+    //    activated provider.
+    let episode_id = memory
+        .start_episode(
+            "Implement REST API endpoints".to_string(),
+            context.clone(),
+            TaskType::CodeGeneration,
+        )
+        .await;
+    for i in 1..=5 {
+        let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Action {}", i));
+        memory.log_step(episode_id, step).await;
+    }
+
+    let before_completion = calls.load(Ordering::SeqCst);
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "API implemented".to_string(),
+                artifacts: vec!["api.rs".to_string()],
+            },
+        )
+        .await
+        .expect("complete episode");
+    assert!(
+        calls.load(Ordering::SeqCst) > before_completion,
+        "completion must embed the episode via the activated provider"
+    );
+
+    // 2) Hybrid retrieval embeds the query through the same activated provider.
+    let before_retrieval = calls.load(Ordering::SeqCst);
+    let relevant = memory
+        .retrieve_relevant_context("Build HTTP endpoints".to_string(), context.clone(), 5)
+        .await;
+    assert!(
+        !relevant.is_empty(),
+        "the completed episode must remain retrievable"
+    );
+    assert!(
+        calls.load(Ordering::SeqCst) > before_retrieval,
+        "retrieval must embed the query via the activated provider"
+    );
+
+    // 3) Pattern search embeds the query through the same activated provider.
+    let before_patterns = calls.load(Ordering::SeqCst);
+    memory
+        .search_patterns_semantic("build a REST API", context, 5)
+        .await
+        .expect("pattern search");
+    assert!(
+        calls.load(Ordering::SeqCst) > before_patterns,
+        "pattern search must use the activated provider"
+    );
 }

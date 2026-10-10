@@ -18,10 +18,9 @@ impl TursoStorage {
     /// Query episodes with filters
     pub async fn query_episodes(&self, query: &EpisodeQuery) -> Result<Vec<Episode>> {
         debug!("Querying episodes with filters: {:?}", query);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        let mut sql = String::from(
-            r#"
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let mut sql = String::from(
+                r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics,
@@ -30,52 +29,54 @@ impl TursoStorage {
                    archived_at
             FROM episodes WHERE 1=1
         "#,
-        );
+            );
 
-        let mut params_vec: Vec<libsql::Value> = Vec::new();
+            let mut params_vec: Vec<libsql::Value> = Vec::new();
 
-        if let Some(ref task_type) = query.task_type {
-            sql.push_str(" AND task_type = ?");
-            params_vec.push(task_type.to_string().into());
-        }
+            if let Some(ref task_type) = query.task_type {
+                sql.push_str(" AND task_type = ?");
+                params_vec.push(task_type.to_string().into());
+            }
 
-        if let Some(ref domain) = query.domain {
-            sql.push_str(" AND domain = ?");
-            params_vec.push(domain.clone().into());
-        }
+            if let Some(ref domain) = query.domain {
+                sql.push_str(" AND domain = ?");
+                params_vec.push(domain.clone().into());
+            }
 
-        if let Some(ref language) = query.language {
-            sql.push_str(" AND language = ?");
-            params_vec.push(language.clone().into());
-        }
+            if let Some(ref language) = query.language {
+                sql.push_str(" AND language = ?");
+                params_vec.push(language.clone().into());
+            }
 
-        if query.completed_only {
-            sql.push_str(" AND end_time IS NOT NULL");
-        }
+            if query.completed_only {
+                sql.push_str(" AND end_time IS NOT NULL");
+            }
 
-        sql.push_str(" ORDER BY start_time DESC");
+            sql.push_str(" ORDER BY start_time DESC");
 
-        // Apply limit with defaults and bounds
-        let limit = apply_query_limit(query.limit);
-        sql.push_str(" LIMIT ?");
-        params_vec.push((limit as i64).into());
+            // Apply limit with defaults and bounds
+            let limit = apply_query_limit(query.limit);
+            sql.push_str(" LIMIT ?");
+            params_vec.push((limit as i64).into());
 
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params_vec))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params_vec))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
 
-        let mut episodes = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            episodes.push(self.row_to_episode(&row).await?);
-        }
+            let mut episodes = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+            {
+                episodes.push(self.row_to_episode(&row).await?);
+            }
 
-        info!("Found {} episodes matching query", episodes.len());
-        Ok(episodes)
+            info!("Found {} episodes matching query", episodes.len());
+            Ok(episodes)
+        })
+        .await
     }
 
     /// Query episodes modified since a given timestamp
@@ -95,9 +96,8 @@ impl TursoStorage {
             "Querying episodes since {} (limit: {})",
             since, effective_limit
         );
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics,
@@ -110,36 +110,38 @@ impl TursoStorage {
             LIMIT ?
         "#;
 
-        let since_timestamp = since.timestamp();
+            let since_timestamp = since.timestamp();
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![since_timestamp, effective_limit as i64])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![since_timestamp, effective_limit as i64])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
 
-        let mut episodes = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            episodes.push(self.row_to_episode(&row).await?);
-        }
+            let mut episodes = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+            {
+                episodes.push(self.row_to_episode(&row).await?);
+            }
 
-        info!(
-            "Found {} episodes since {} (limit: {})",
-            episodes.len(),
-            since,
-            effective_limit
-        );
-        Ok(episodes)
+            info!(
+                "Found {} episodes since {} (limit: {})",
+                episodes.len(),
+                since,
+                effective_limit
+            );
+            Ok(episodes)
+        })
+        .await
     }
 
     /// Query episodes by metadata key-value pair
@@ -164,11 +166,10 @@ impl TursoStorage {
             "Querying episodes by metadata {} = {} (limit: {})",
             key, value, effective_limit
         );
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        // Use json_extract for efficient JSON metadata querying
-        // We use parameterized queries to prevent SQL injection (Severity: High)
-        let sql = r#"
+        self.with_connection_with_id(async |conn, _conn_id| {
+            // Use json_extract for efficient JSON metadata querying
+            // We use parameterized queries to prevent SQL injection (Severity: High)
+            let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics,
@@ -181,33 +182,37 @@ impl TursoStorage {
             LIMIT ?
         "#;
 
-        let json_path = format!("$.{}", key);
+            let json_path = format!("$.{}", key);
 
-        let mut rows = conn
-            .query(
-                sql,
-                libsql::params![json_path, value, effective_limit as i64],
-            )
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episodes by metadata: {}", e)))?;
+            let mut rows = conn
+                .query(
+                    sql,
+                    libsql::params![json_path, value, effective_limit as i64],
+                )
+                .await
+                .map_err(|e| {
+                    Error::Storage(format!("Failed to query episodes by metadata: {}", e))
+                })?;
 
-        let mut episodes = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            episodes.push(self.row_to_episode(&row).await?);
-        }
+            let mut episodes = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+            {
+                episodes.push(self.row_to_episode(&row).await?);
+            }
 
-        info!(
-            "Found {} episodes with metadata {} = {} (limit: {})",
-            episodes.len(),
-            key,
-            value,
-            effective_limit
-        );
-        Ok(episodes)
+            info!(
+                "Found {} episodes with metadata {} = {} (limit: {})",
+                episodes.len(),
+                key,
+                value,
+                effective_limit
+            );
+            Ok(episodes)
+        })
+        .await
     }
 }
 

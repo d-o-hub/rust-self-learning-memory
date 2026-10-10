@@ -210,8 +210,9 @@ impl PreparedStatementCache {
     /// Get a prepared statement or prepare it if not cached
     ///
     /// This is a convenience method that generates a new connection ID for each call.
-    /// For proper connection-aware caching, use `get_connection_id()` and the
-    /// connection-specific methods instead.
+    /// For proper connection-aware caching, use
+    /// [`get_or_prepare_with_id`](Self::get_or_prepare_with_id) with the
+    /// connection ID of the checkout the statement belongs to.
     ///
     /// # Arguments
     ///
@@ -231,7 +232,35 @@ impl PreparedStatementCache {
         sql: &str,
     ) -> Result<libsql::Statement, libsql::Error> {
         let conn_id = self.get_connection_id();
+        self.get_or_prepare_with_id(conn_id, conn, sql).await
+    }
 
+    /// Get a prepared statement, tracking it under an explicit connection ID
+    ///
+    /// Unlike [`get_or_prepare`](Self::get_or_prepare), this records the statement
+    /// metadata under the caller's `conn_id`, so it can be released with
+    /// [`clear_connection`](Self::clear_connection) once the checkout that owns
+    /// that ID has finished its operation.
+    ///
+    /// # Arguments
+    ///
+    /// * `conn_id` - Connection ID of the checkout preparing the statement
+    /// * `conn` - Database connection to prepare on
+    /// * `sql` - SQL statement to prepare
+    ///
+    /// # Returns
+    ///
+    /// The prepared statement
+    ///
+    /// # Errors
+    ///
+    /// Returns error if statement preparation fails
+    pub async fn get_or_prepare_with_id(
+        &self,
+        conn_id: ConnectionId,
+        conn: &libsql::Connection,
+        sql: &str,
+    ) -> Result<libsql::Statement, libsql::Error> {
         // Check if this is a cache hit
         if self.is_cached(conn_id, sql) {
             self.record_hit(conn_id, sql);
@@ -290,16 +319,15 @@ impl PreparedStatementCache {
     /// Number of statements cleared
     pub fn clear_connection(&self, conn_id: ConnectionId) -> usize {
         let mut cache = self.cache.write();
-        let cleared = if let Some(conn_cache) = cache.remove(&conn_id) {
-            let count = conn_cache.len();
-            debug!(
-                "Cleared {} cached statements for connection {:?}",
-                count, conn_id
-            );
-            count
-        } else {
-            0
+        let Some(conn_cache) = cache.remove(&conn_id) else {
+            // Nothing tracked for this checkout: skip the O(connections) rescan.
+            return 0;
         };
+        let cleared = conn_cache.len();
+        debug!(
+            "Cleared {} cached statements for connection {:?}",
+            cleared, conn_id
+        );
 
         // Update stats - calculate size while still holding the write lock to avoid deadlock
         let total_size = cache.values().map(|c| c.len()).sum();

@@ -34,16 +34,13 @@ async fn setup_storage_with_embeddings() -> TursoStorage {
 
     let storage = TursoStorage::from_database(db).expect("Failed to create storage");
 
-    // Manually create embeddings table
-    let conn = storage
-        .get_connection()
-        .await
-        .expect("Failed to get connection");
-
-    // Create table
-    if let Err(e) = conn
-        .execute(
-            r#"
+    // Manually create embeddings table under a scoped checkout
+    storage
+        .with_connection(async |conn| {
+            // Create table
+            if let Err(e) = conn
+                .execute(
+                    r#"
 CREATE TABLE IF NOT EXISTS embeddings (
     embedding_id TEXT PRIMARY KEY NOT NULL,
     item_id TEXT NOT NULL,
@@ -54,44 +51,49 @@ CREATE TABLE IF NOT EXISTS embeddings (
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
 "#,
-            (),
-        )
-        .await
-    {
-        panic!("Failed to create embeddings table: {}", e);
-    }
+                    (),
+                )
+                .await
+            {
+                panic!("Failed to create embeddings table: {}", e);
+            }
 
-    // Create index
-    if let Err(e) = conn
-        .execute(
-            r#"
+            // Create index
+            if let Err(e) = conn
+                .execute(
+                    r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_item
 ON embeddings(item_id, item_type)
 "#,
-            (),
-        )
-        .await
-    {
-        panic!("Failed to create embeddings index: {}", e);
-    }
-
-    // Verify table exists
-    let check_result = conn
-        .query(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='embeddings'",
-            (),
-        )
-        .await;
-    match check_result {
-        Ok(mut rows) => {
-            if rows.next().await.transpose().is_none() {
-                panic!("Table 'embeddings' was not created!");
+                    (),
+                )
+                .await
+            {
+                panic!("Failed to create embeddings index: {}", e);
             }
-        }
-        Err(e) => {
-            panic!("Failed to verify table creation: {}", e);
-        }
-    }
+
+            // Verify table exists
+            let check_result = conn
+                .query(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='embeddings'",
+                    (),
+                )
+                .await;
+            match check_result {
+                Ok(mut rows) => {
+                    if rows.next().await.transpose().is_none() {
+                        panic!("Table 'embeddings' was not created!");
+                    }
+                }
+                Err(e) => {
+                    panic!("Failed to verify table creation: {}", e);
+                }
+            }
+
+            Ok(())
+        })
+        .await
+        .expect("Failed to initialize embeddings schema");
 
     storage
 }

@@ -51,30 +51,31 @@ impl<'a> RawPatternQuery<'a> {
     /// [`Self::query_built`] for parameterized execution.
     pub async fn query(&self, sql: &str) -> Result<Vec<Pattern>> {
         debug!("Executing raw pattern query: {}", sql);
-        let (conn, _conn_id) = self.storage.get_connection_with_id().await?;
+        self.storage
+            .with_connection_with_id(async |conn, _conn_id| {
+                let mut rows = conn.query(sql, params![]).await.map_err(|e| {
+                    Error::Storage(format!("Failed to execute pattern query: {}", e))
+                })?;
 
-        let mut rows = conn
-            .query(sql, params![])
+                let mut patterns = Vec::new();
+                let mut row_index = 0usize;
+                while let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+                {
+                    patterns.push(row_to_pattern_at(
+                        &row,
+                        "RawPatternQuery::query",
+                        row_index,
+                    )?);
+                    row_index += 1;
+                }
+
+                info!("Raw query returned {} patterns", patterns.len());
+                Ok(patterns)
+            })
             .await
-            .map_err(|e| Error::Storage(format!("Failed to execute pattern query: {}", e)))?;
-
-        let mut patterns = Vec::new();
-        let mut row_index = 0usize;
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            patterns.push(row_to_pattern_at(
-                &row,
-                "RawPatternQuery::query",
-                row_index,
-            )?);
-            row_index += 1;
-        }
-
-        info!("Raw query returned {} patterns", patterns.len());
-        Ok(patterns)
     }
 
     /// Execute a parameterized SQL query and parse patterns
@@ -99,30 +100,31 @@ impl<'a> RawPatternQuery<'a> {
         params: P,
     ) -> Result<Vec<Pattern>> {
         debug!("Executing parameterized pattern query: {}", sql);
-        let (conn, _conn_id) = self.storage.get_connection_with_id().await?;
+        self.storage
+            .with_connection_with_id(async |conn, _conn_id| {
+                let mut rows = conn.query(sql, params).await.map_err(|e| {
+                    Error::Storage(format!("Failed to execute pattern query: {}", e))
+                })?;
 
-        let mut rows = conn
-            .query(sql, params)
+                let mut patterns = Vec::new();
+                let mut row_index = 0usize;
+                while let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+                {
+                    patterns.push(row_to_pattern_at(
+                        &row,
+                        "RawPatternQuery::query_with_params",
+                        row_index,
+                    )?);
+                    row_index += 1;
+                }
+
+                info!("Parameterized query returned {} patterns", patterns.len());
+                Ok(patterns)
+            })
             .await
-            .map_err(|e| Error::Storage(format!("Failed to execute pattern query: {}", e)))?;
-
-        let mut patterns = Vec::new();
-        let mut row_index = 0usize;
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            patterns.push(row_to_pattern_at(
-                &row,
-                "RawPatternQuery::query_with_params",
-                row_index,
-            )?);
-            row_index += 1;
-        }
-
-        info!("Parameterized query returned {} patterns", patterns.len());
-        Ok(patterns)
     }
 
     /// Execute an allowlisted, parameterized query built via

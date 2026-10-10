@@ -52,30 +52,31 @@ impl<'a> RawEpisodeQuery<'a> {
     /// [`Self::query_built`] for parameterized execution.
     pub async fn query(&self, sql: &str) -> Result<Vec<Episode>> {
         debug!("Executing raw episode query: {}", sql);
-        let (conn, _conn_id) = self.storage.get_connection_with_id().await?;
+        self.storage
+            .with_connection_with_id(async |conn, _conn_id| {
+                let mut rows = conn.query(sql, params![]).await.map_err(|e| {
+                    Error::Storage(format!("Failed to execute episode query: {}", e))
+                })?;
 
-        let mut rows = conn
-            .query(sql, params![])
+                let mut episodes = Vec::new();
+                let mut row_index = 0usize;
+                while let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+                {
+                    episodes.push(row_to_episode_at(
+                        &row,
+                        "RawEpisodeQuery::query",
+                        row_index,
+                    )?);
+                    row_index += 1;
+                }
+
+                info!("Raw query returned {} episodes", episodes.len());
+                Ok(episodes)
+            })
             .await
-            .map_err(|e| Error::Storage(format!("Failed to execute episode query: {}", e)))?;
-
-        let mut episodes = Vec::new();
-        let mut row_index = 0usize;
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            episodes.push(row_to_episode_at(
-                &row,
-                "RawEpisodeQuery::query",
-                row_index,
-            )?);
-            row_index += 1;
-        }
-
-        info!("Raw query returned {} episodes", episodes.len());
-        Ok(episodes)
     }
 
     /// Execute a parameterized SQL query and parse episodes
@@ -115,30 +116,31 @@ impl<'a> RawEpisodeQuery<'a> {
         params: P,
     ) -> Result<Vec<Episode>> {
         debug!("Executing parameterized episode query: {}", sql);
-        let (conn, _conn_id) = self.storage.get_connection_with_id().await?;
+        self.storage
+            .with_connection_with_id(async |conn, _conn_id| {
+                let mut rows = conn.query(sql, params).await.map_err(|e| {
+                    Error::Storage(format!("Failed to execute episode query: {}", e))
+                })?;
 
-        let mut rows = conn
-            .query(sql, params)
+                let mut episodes = Vec::new();
+                let mut row_index = 0usize;
+                while let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+                {
+                    episodes.push(row_to_episode_at(
+                        &row,
+                        "RawEpisodeQuery::query_with_params",
+                        row_index,
+                    )?);
+                    row_index += 1;
+                }
+
+                info!("Parameterized query returned {} episodes", episodes.len());
+                Ok(episodes)
+            })
             .await
-            .map_err(|e| Error::Storage(format!("Failed to execute episode query: {}", e)))?;
-
-        let mut episodes = Vec::new();
-        let mut row_index = 0usize;
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            episodes.push(row_to_episode_at(
-                &row,
-                "RawEpisodeQuery::query_with_params",
-                row_index,
-            )?);
-            row_index += 1;
-        }
-
-        info!("Parameterized query returned {} episodes", episodes.len());
-        Ok(episodes)
     }
 
     /// Execute an allowlisted, parameterized query built via

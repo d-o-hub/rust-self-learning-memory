@@ -6,7 +6,7 @@ use libsql;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
 
-use super::capacity_cleanup::run_capacity_cleanup;
+use super::capacity_cleanup::{CleanupFailure, CleanupStage, run_capacity_cleanup};
 use super::capacity_intents::parse_episode_id;
 
 impl TursoStorage {
@@ -69,8 +69,11 @@ impl TursoStorage {
         &self,
         max_episodes: usize,
     ) -> Result<EvictionOutcome> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
+        // Phase 1: count and pick evictees inside one scoped checkout, so the
+        // permit is released when this closure returns - before any dependent
+        // deletion work (#1064).
+        let selected = self
+            .with_connection_with_id(async |conn, _conn_id| {
         // Count current episodes
         const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
 
@@ -93,7 +96,7 @@ impl TursoStorage {
         drop(count_rows);
 
         if current_count <= max_episodes {
-            return Ok(EvictionOutcome::default());
+            return Ok(None);
         }
 
         // Episodes exceed capacity - need to evict
@@ -127,10 +130,17 @@ impl TursoStorage {
             evicted.push(episode_id);
         }
 
-        // Drop the selection connection/rows before running the eviction
-        // transaction to avoid "database locked" errors in parallel tests.
+        // Drop the selection rows before returning: the checkout itself is
+        // released when the closure returns.
         drop(evict_rows);
-        drop(conn);
+
+                Ok(Some((current_count, evicted)))
+            })
+            .await?;
+
+        let Some((current_count, evicted)) = selected else {
+            return Ok(EvictionOutcome::default());
+        };
 
         if evicted.is_empty() {
             return Ok(EvictionOutcome::default());
@@ -141,9 +151,21 @@ impl TursoStorage {
         self.record_pending_capacity_eviction_intents(&evicted)
             .await?;
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let cleanup = run_capacity_cleanup(&conn, &evicted).await;
-        drop(conn);
+        // Phase 2: the cleanup transaction runs inside its own scoped checkout,
+        // so a failed checkout is attributed to the durable stage instead of
+        // silently skipping the transaction.
+        let cleanup = match self
+            .with_connection(async |conn| {
+                Ok::<_, do_memory_core::Error>(run_capacity_cleanup(conn, &evicted).await)
+            })
+            .await
+        {
+            Ok(cleanup) => cleanup,
+            Err(e) => Err(CleanupFailure {
+                stage: CleanupStage::Transaction,
+                error: format!("Failed to check out a connection for cleanup: {e}"),
+            }),
+        };
 
         match cleanup {
             Ok(()) => {
@@ -201,8 +223,7 @@ impl TursoStorage {
 
     /// Get storage statistics including capacity info
     pub async fn get_capacity_statistics(&self) -> Result<CapacityStatistics> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
+        self.with_connection(async |conn| {
         // Count records in each table
         let tables = [
             "episodes",
@@ -245,6 +266,8 @@ impl TursoStorage {
             agent_metrics_count: table_counts.get("agent_metrics").copied().unwrap_or(0),
             task_metrics_count: table_counts.get("task_metrics").copied().unwrap_or(0),
         })
+        })
+        .await
     }
 }
 

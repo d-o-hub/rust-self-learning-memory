@@ -4,7 +4,6 @@
 
 use do_memory_core::{Error, Result};
 use libsql::Connection;
-use std::time::Instant;
 use tracing::{debug, error, warn};
 
 use super::storage::TursoStorage;
@@ -36,48 +35,36 @@ impl TursoStorage {
         }
     }
 
-    /// Get a database connection
+    /// Get a raw database connection
     ///
-    /// If connection pooling is enabled, this will use a pooled connection.
-    /// If keep-alive pool is enabled, it will be used for reduced overhead.
-    /// If adaptive pool is enabled, it will be used for variable load optimization.
-    /// Otherwise, it creates a new connection each time.
+    /// This is only available in **direct-connection mode** (no pool configured),
+    /// where the returned `Connection` carries no pool permit. When any pool is
+    /// configured this returns an error: a raw connection cannot outlive its pool
+    /// guard, so pooled work must go through
+    /// [`with_connection`](Self::with_connection) or
+    /// [`with_connection_with_id`](Self::with_connection_with_id), which retain
+    /// the permit for the whole operation.
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn get_connection(&self) -> Result<Connection> {
-        // Check adaptive pool first (highest priority for variable load)
-        if let Some(ref adaptive_pool) = self.adaptive_pool {
-            let adaptive_conn = adaptive_pool.get().await?;
-            // Extract the connection from the pooled connection
-            if let Some(conn) = adaptive_conn.into_inner() {
-                return Ok(conn);
-            }
-            // Fallback if connection extraction fails
+        if self.has_connection_pool() {
             return Err(Error::Storage(
-                "Failed to extract connection from adaptive pool".to_string(),
+                "get_connection() is only available in direct-connection mode; use \
+                 with_connection()/with_connection_with_id() when a pool is configured"
+                    .to_string(),
             ));
         }
 
-        #[cfg(feature = "keepalive-pool")]
-        {
-            if let Some(ref keepalive_pool) = self.keepalive_pool {
-                // Use keep-alive pool for reduced connection overhead
-                let keepalive_conn = keepalive_pool.get().await?;
-                return keepalive_conn.into_connection();
-            }
-        }
-
-        if let Some(ref pool) = self.pool {
-            // Use connection pool
-            let pooled_conn = pool.get().await?;
-            Ok(pooled_conn.into_inner()?)
-        } else {
-            // Create direct connection (legacy mode)
-            self.db
-                .connect()
-                .map_err(|e| Error::Storage(format!("Failed to get connection: {}", e)))
-        }
+        // Create direct connection (legacy mode)
+        self.db
+            .connect()
+            .map_err(|e| Error::Storage(format!("Failed to get connection: {}", e)))
     }
 
-    /// Get a database connection with its cache ID
+    /// Get a direct database connection with its cache ID
+    ///
+    /// Like [`get_connection`](Self::get_connection), this is only available in
+    /// direct-connection mode; pooled callers must use
+    /// [`with_connection_with_id`](Self::with_connection_with_id).
     ///
     /// This method returns both the connection and a unique connection ID
     /// for use with the prepared statement cache. The ID should be passed
@@ -188,14 +175,14 @@ impl TursoStorage {
 
     /// Health check - verify database connectivity
     pub async fn health_check(&self) -> Result<bool> {
-        let conn = self.get_connection().await?;
-        match conn.query("SELECT 1", ()).await {
+        self.with_connection(async |conn| match conn.query("SELECT 1", ()).await {
             Ok(_) => Ok(true),
             Err(e) => {
                 error!("Health check failed: {}", e);
                 Ok(false)
             }
-        }
+        })
+        .await
     }
 
     /// Wrap this storage with a cache layer using default cache configuration
@@ -267,17 +254,18 @@ impl TursoStorage {
 
     /// Get database statistics
     pub async fn get_statistics(&self) -> Result<crate::trait_impls::StorageStatistics> {
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            let episode_count = self.get_count(conn, "episodes").await?;
+            let pattern_count = self.get_count(conn, "patterns").await?;
+            let heuristic_count = self.get_count(conn, "heuristics").await?;
 
-        let episode_count = self.get_count(&conn, "episodes").await?;
-        let pattern_count = self.get_count(&conn, "patterns").await?;
-        let heuristic_count = self.get_count(&conn, "heuristics").await?;
-
-        Ok(crate::trait_impls::StorageStatistics {
-            episode_count,
-            pattern_count,
-            heuristic_count,
+            Ok(crate::trait_impls::StorageStatistics {
+                episode_count,
+                pattern_count,
+                heuristic_count,
+            })
         })
+        .await
     }
 
     /// Get pool statistics if pooling is enabled
@@ -356,24 +344,12 @@ impl TursoStorage {
         conn: &Connection,
         sql: &str,
     ) -> Result<libsql::Statement> {
-        // Check if this is a cache hit
-        if self.prepared_cache.is_cached(conn_id, sql) {
-            self.prepared_cache.record_hit(conn_id, sql);
-        }
-
-        // Prepare the statement
-        let start = Instant::now();
-        let stmt = conn
-            .prepare(sql)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
-        let prepare_time_us = start.elapsed().as_micros() as u64;
-
-        // Record the miss (or re-record if it was a hit - tracks preparation time)
+        // Delegate to the connection-aware cache so the statement metadata is
+        // tracked under `conn_id` and released by `clear_prepared_cache`.
         self.prepared_cache
-            .record_miss(conn_id, sql, prepare_time_us);
-
-        Ok(stmt)
+            .get_or_prepare_with_id(conn_id, conn, sql)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))
     }
 
     /// Clear the prepared statement cache for a connection

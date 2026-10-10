@@ -17,12 +17,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of being set to the result count, and `RetrievalProvenance` /
   `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
   `fallback`, and a `RetrievalExecution` report).
+<<<<<<< HEAD
 - Turso episode/pattern row decoding no longer substitutes values for corrupt
   data (#1071): required timestamps and JSON now return `Error::Storage` naming
   the column, the result row, and the query surface; nullable fields stay
   nullable; raw episode and pattern queries abort instead of returning a
   partial result; a new allowlisted `QueryBuilder` offers the supported
   parameterized path alongside `query_with_params`.
+=======
+- Turso storage retains pool permits for the whole database operation (#1064):
+  `TursoStorage` gains scoped `with_connection`/`with_connection_with_id`
+  helpers that own the pool guard across the query, its row iteration, and any
+  dependent work, so a pool saturated by one slow operation rejects or waits for
+  the next checkout instead of reporting free capacity while the operation is
+  still in flight; the standard, adaptive, and keep-alive pools expose the same
+  scoped contract, and prepared-statement cache cleanup for a checkout now runs
+  after the operation returns. The similarity-search brute-force fallback reuses
+  the already-held connection instead of opening a nested checkout, so it works
+  on a fully saturated pool. `get_connection`/`get_connection_with_id` are now
+  direct-connection mode only and error when a pool is configured.
+- MCP health (`health/check`) reports measured state instead of configuration
+  (#1085, escalation E1): bounded per-backend probes answer
+  `healthy`/`degraded`/`unavailable`/not-configured, uptime is the real process
+  uptime, and the cache section now reads the retrieval cache's live counters
+  via `SelfLearningMemory::get_cache_metrics()` — the per-tool JSON cache that
+  no tool populated is no longer presented as cache telemetry. URLs, filesystem
+  paths, tokens and raw driver errors are redacted from the response (only fixed
+  literals are emitted).
+>>>>>>> fix/scoped-pool-checkout
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

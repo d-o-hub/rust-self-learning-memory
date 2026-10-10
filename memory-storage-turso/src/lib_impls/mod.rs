@@ -9,6 +9,7 @@ mod constructors_basic;
 mod constructors_pool;
 mod helpers;
 mod helpers_cache;
+mod scoped_checkout;
 mod storage;
 
 // Re-export public types

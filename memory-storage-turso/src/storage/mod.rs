@@ -96,42 +96,45 @@ impl TursoStorage {
     pub async fn migrate_embeddings_to_vector_format(&self) -> Result<usize> {
         use tracing::info;
         info!("Starting embedding vector migration...");
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        let sql = r#"
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let sql = r#"
             UPDATE embeddings
             SET embedding_vector = vector32(embedding_data)
             WHERE embedding_vector IS NULL AND embedding_data IS NOT NULL
         "#;
 
-        let result = conn.execute(sql, ()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to migrate embeddings: {}", e))
-        })?;
+            let result = conn.execute(sql, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to migrate embeddings: {}", e))
+            })?;
 
-        info!("Migrated {} embeddings to vector format", result);
-        Ok(result as usize)
+            info!("Migrated {} embeddings to vector format", result);
+            Ok(result as usize)
+        })
+        .await
     }
 
     /// Check if embedding vector column is populated for vector_top_k search
     pub async fn has_vector_embeddings(&self) -> Result<bool> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let sql = "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let sql = "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
 
-        let mut rows = conn.query(sql, ()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to check vector embeddings: {}", e))
-        })?;
+            let mut rows = conn.query(sql, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to check vector embeddings: {}", e))
+            })?;
 
-        if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let count: i64 = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            return Ok(count > 0);
-        }
+            if let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let count: i64 = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                return Ok(count > 0);
+            }
 
-        Ok(false)
+            Ok(false)
+        })
+        .await
     }
 }

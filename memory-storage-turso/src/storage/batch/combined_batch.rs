@@ -52,19 +52,18 @@ impl TursoStorage {
             episodes.len(),
             patterns.len()
         );
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            // Begin transaction
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for combined batch: {}",
+                    e
+                ))
+            })?;
 
-        // Begin transaction
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for combined batch: {}",
-                e
-            ))
-        })?;
-
-        // Store episodes first
-        if !episodes.is_empty() {
-            let episode_sql = r#"
+            // Store episodes first
+            if !episodes.is_empty() {
+                let episode_sql = r#"
                 INSERT OR REPLACE INTO episodes (
                     episode_id, task_type, task_description, context,
                     start_time, end_time, steps, outcome, reward,
@@ -73,145 +72,145 @@ impl TursoStorage {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#;
 
-            #[cfg(feature = "compression")]
-            let compression_threshold = self.config.compression_threshold;
-            #[cfg(not(feature = "compression"))]
-            let _compression_threshold = 0;
-
-            #[cfg(feature = "compression")]
-            let should_compress = self.config.compress_episodes;
-            #[cfg(not(feature = "compression"))]
-            let _should_compress = false;
-
-            for episode in &episodes {
-                let context_json =
-                    serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
-                let steps_json =
-                    serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
-                let outcome_json = episode
-                    .outcome
-                    .as_ref()
-                    .map(serde_json::to_string)
-                    .transpose()
-                    .map_err(Error::Serialization)?;
-                let reward_json = episode
-                    .reward
-                    .as_ref()
-                    .map(serde_json::to_string)
-                    .transpose()
-                    .map_err(Error::Serialization)?;
-                let reflection_json = episode
-                    .reflection
-                    .as_ref()
-                    .map(serde_json::to_string)
-                    .transpose()
-                    .map_err(Error::Serialization)?;
+                #[cfg(feature = "compression")]
+                let compression_threshold = self.config.compression_threshold;
+                #[cfg(not(feature = "compression"))]
+                let _compression_threshold = 0;
 
                 #[cfg(feature = "compression")]
-                let patterns_json = if should_compress {
-                    let data =
-                        serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-                    compress_json_field(data.as_bytes(), compression_threshold)?
-                } else {
-                    serde_json::to_string(&episode.patterns)
-                        .map_err(Error::Serialization)?
-                        .into_bytes()
-                };
-
+                let should_compress = self.config.compress_episodes;
                 #[cfg(not(feature = "compression"))]
-                let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
-                    .map_err(Error::Serialization)?
-                    .into_bytes();
+                let _should_compress = false;
 
-                #[cfg(feature = "compression")]
-                let heuristics_json = if should_compress {
-                    let data =
-                        serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-                    compress_json_field(data.as_bytes(), compression_threshold)?
-                } else {
-                    serde_json::to_string(&episode.heuristics)
+                for episode in &episodes {
+                    let context_json =
+                        serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
+                    let steps_json =
+                        serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
+                    let outcome_json = episode
+                        .outcome
+                        .as_ref()
+                        .map(serde_json::to_string)
+                        .transpose()
+                        .map_err(Error::Serialization)?;
+                    let reward_json = episode
+                        .reward
+                        .as_ref()
+                        .map(serde_json::to_string)
+                        .transpose()
+                        .map_err(Error::Serialization)?;
+                    let reflection_json = episode
+                        .reflection
+                        .as_ref()
+                        .map(serde_json::to_string)
+                        .transpose()
+                        .map_err(Error::Serialization)?;
+
+                    #[cfg(feature = "compression")]
+                    let patterns_json = if should_compress {
+                        let data = serde_json::to_string(&episode.patterns)
+                            .map_err(Error::Serialization)?;
+                        compress_json_field(data.as_bytes(), compression_threshold)?
+                    } else {
+                        serde_json::to_string(&episode.patterns)
+                            .map_err(Error::Serialization)?
+                            .into_bytes()
+                    };
+
+                    #[cfg(not(feature = "compression"))]
+                    let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
                         .map_err(Error::Serialization)?
-                        .into_bytes()
-                };
+                        .into_bytes();
 
-                #[cfg(not(feature = "compression"))]
-                let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
-                    .map_err(Error::Serialization)?
-                    .into_bytes();
+                    #[cfg(feature = "compression")]
+                    let heuristics_json = if should_compress {
+                        let data = serde_json::to_string(&episode.heuristics)
+                            .map_err(Error::Serialization)?;
+                        compress_json_field(data.as_bytes(), compression_threshold)?
+                    } else {
+                        serde_json::to_string(&episode.heuristics)
+                            .map_err(Error::Serialization)?
+                            .into_bytes()
+                    };
 
-                #[cfg(feature = "compression")]
-                let metadata_json = if should_compress {
-                    let data =
-                        serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-                    compress_json_field(data.as_bytes(), compression_threshold)?
-                } else {
-                    serde_json::to_string(&episode.metadata)
+                    #[cfg(not(feature = "compression"))]
+                    let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
                         .map_err(Error::Serialization)?
-                        .into_bytes()
-                };
+                        .into_bytes();
 
-                #[cfg(not(feature = "compression"))]
-                let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
-                    .map_err(Error::Serialization)?
-                    .into_bytes();
+                    #[cfg(feature = "compression")]
+                    let metadata_json = if should_compress {
+                        let data = serde_json::to_string(&episode.metadata)
+                            .map_err(Error::Serialization)?;
+                        compress_json_field(data.as_bytes(), compression_threshold)?
+                    } else {
+                        serde_json::to_string(&episode.metadata)
+                            .map_err(Error::Serialization)?
+                            .into_bytes()
+                    };
 
-                let checkpoints_json =
-                    serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+                    #[cfg(not(feature = "compression"))]
+                    let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
+                        .map_err(Error::Serialization)?
+                        .into_bytes();
 
-                let archived_at = episode
-                    .metadata
-                    .get("archived_at")
-                    .and_then(|v| v.parse::<i64>().ok());
+                    let checkpoints_json = serde_json::to_string(&episode.checkpoints)
+                        .map_err(Error::Serialization)?;
 
-                let patterns_str = String::from_utf8(patterns_json).map_err(|e| {
-                    Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e))
-                })?;
-                let heuristics_str = String::from_utf8(heuristics_json).map_err(|e| {
-                    Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e))
-                })?;
-                let metadata_str = String::from_utf8(metadata_json).map_err(|e| {
-                    Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e))
-                })?;
+                    let archived_at = episode
+                        .metadata
+                        .get("archived_at")
+                        .and_then(|v| v.parse::<i64>().ok());
 
-                if let Err(e) = conn
-                    .execute(
-                        episode_sql,
-                        libsql::params![
-                            episode.episode_id.to_string(),
-                            episode.task_type.to_string(),
-                            episode.task_description.clone(),
-                            context_json,
-                            episode.start_time.timestamp(),
-                            episode.end_time.map(|t| t.timestamp()),
-                            steps_json,
-                            outcome_json,
-                            reward_json,
-                            reflection_json,
-                            patterns_str,
-                            heuristics_str,
-                            checkpoints_json,
-                            metadata_str,
-                            episode.context.domain.clone(),
-                            episode.context.language.clone(),
-                            archived_at,
-                        ],
-                    )
-                    .await
-                {
-                    let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
-                        error!("Failed to rollback transaction: {}", rollback_err)
-                    });
-                    return Err(Error::Storage(format!(
-                        "Failed to store episode in combined batch: {}",
-                        e
-                    )));
+                    let patterns_str = String::from_utf8(patterns_json).map_err(|e| {
+                        Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e))
+                    })?;
+                    let heuristics_str = String::from_utf8(heuristics_json).map_err(|e| {
+                        Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e))
+                    })?;
+                    let metadata_str = String::from_utf8(metadata_json).map_err(|e| {
+                        Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e))
+                    })?;
+
+                    if let Err(e) = conn
+                        .execute(
+                            episode_sql,
+                            libsql::params![
+                                episode.episode_id.to_string(),
+                                episode.task_type.to_string(),
+                                episode.task_description.clone(),
+                                context_json,
+                                episode.start_time.timestamp(),
+                                episode.end_time.map(|t| t.timestamp()),
+                                steps_json,
+                                outcome_json,
+                                reward_json,
+                                reflection_json,
+                                patterns_str,
+                                heuristics_str,
+                                checkpoints_json,
+                                metadata_str,
+                                episode.context.domain.clone(),
+                                episode.context.language.clone(),
+                                archived_at,
+                            ],
+                        )
+                        .await
+                    {
+                        let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                            error!("Failed to rollback transaction: {}", rollback_err)
+                        });
+                        return Err(Error::Storage(format!(
+                            "Failed to store episode in combined batch: {}",
+                            e
+                        )));
+                    }
                 }
             }
-        }
 
-        // Store patterns
-        if !patterns.is_empty() {
-            let pattern_sql = r#"
+            // Store patterns
+            if !patterns.is_empty() {
+                let pattern_sql = r#"
                 INSERT OR REPLACE INTO patterns (
                     pattern_id, pattern_type, pattern_data, success_rate,
                     context_domain, context_language, context_tags, occurrence_count,
@@ -219,156 +218,158 @@ impl TursoStorage {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#;
 
-            for pattern in &patterns {
-                let (description, context, heuristic, success_rate, occurrence_count) =
-                    match &pattern {
-                        Pattern::ToolSequence {
-                            id: _,
-                            tools,
-                            context,
-                            success_rate,
-                            avg_latency: _,
-                            occurrence_count,
-                            effectiveness: _,
-                        } => {
-                            let tools_vec = tools.clone();
-                            let desc = format!("Tool sequence: {}", tools_vec.join(" -> "));
-                            let heur = do_memory_core::Heuristic::new(
-                                format!("When need tools: {}", tools_vec.join(", ")),
-                                format!("Use sequence: {}", tools_vec.join(" -> ")),
-                                *success_rate,
-                            );
-                            (
-                                desc,
-                                context.clone(),
-                                heur,
-                                *success_rate,
-                                *occurrence_count,
-                            )
-                        }
-                        Pattern::DecisionPoint {
-                            id: _,
-                            condition,
-                            action,
-                            outcome_stats,
-                            context,
-                            effectiveness: _,
-                        } => {
-                            let desc = format!("Decision: {} -> {}", condition, action);
-                            let heur = do_memory_core::Heuristic::new(
-                                condition.clone(),
-                                action.clone(),
-                                outcome_stats.success_rate(),
-                            );
-                            (
-                                desc,
-                                context.clone(),
-                                heur,
-                                outcome_stats.success_rate(),
-                                outcome_stats.total_count,
-                            )
-                        }
-                        Pattern::ErrorRecovery {
-                            id: _,
-                            error_type,
-                            recovery_steps,
-                            success_rate,
-                            context,
-                            effectiveness: _,
-                        } => {
-                            let desc = format!("Error recovery for: {}", error_type);
-                            let heur = do_memory_core::Heuristic::new(
-                                format!("Error: {}", error_type),
-                                format!("Recovery: {}", recovery_steps.join(" -> ")),
-                                *success_rate,
-                            );
-                            (
-                                desc,
-                                context.clone(),
-                                heur,
-                                *success_rate,
-                                recovery_steps.len(),
-                            )
-                        }
-                        Pattern::ContextPattern {
-                            id: _,
-                            context_features,
-                            recommended_approach,
-                            evidence: _,
-                            success_rate,
-                            effectiveness: _,
-                        } => {
-                            let desc = format!("Context pattern: {}", recommended_approach);
-                            let heur = do_memory_core::Heuristic::new(
-                                format!("Features: {}", context_features.join(", ")),
-                                recommended_approach.clone(),
-                                *success_rate,
-                            );
-                            (
-                                desc,
-                                do_memory_core::TaskContext::default(),
-                                heur,
-                                *success_rate,
-                                context_features.len(),
-                            )
-                        }
+                for pattern in &patterns {
+                    let (description, context, heuristic, success_rate, occurrence_count) =
+                        match &pattern {
+                            Pattern::ToolSequence {
+                                id: _,
+                                tools,
+                                context,
+                                success_rate,
+                                avg_latency: _,
+                                occurrence_count,
+                                effectiveness: _,
+                            } => {
+                                let tools_vec = tools.clone();
+                                let desc = format!("Tool sequence: {}", tools_vec.join(" -> "));
+                                let heur = do_memory_core::Heuristic::new(
+                                    format!("When need tools: {}", tools_vec.join(", ")),
+                                    format!("Use sequence: {}", tools_vec.join(" -> ")),
+                                    *success_rate,
+                                );
+                                (
+                                    desc,
+                                    context.clone(),
+                                    heur,
+                                    *success_rate,
+                                    *occurrence_count,
+                                )
+                            }
+                            Pattern::DecisionPoint {
+                                id: _,
+                                condition,
+                                action,
+                                outcome_stats,
+                                context,
+                                effectiveness: _,
+                            } => {
+                                let desc = format!("Decision: {} -> {}", condition, action);
+                                let heur = do_memory_core::Heuristic::new(
+                                    condition.clone(),
+                                    action.clone(),
+                                    outcome_stats.success_rate(),
+                                );
+                                (
+                                    desc,
+                                    context.clone(),
+                                    heur,
+                                    outcome_stats.success_rate(),
+                                    outcome_stats.total_count,
+                                )
+                            }
+                            Pattern::ErrorRecovery {
+                                id: _,
+                                error_type,
+                                recovery_steps,
+                                success_rate,
+                                context,
+                                effectiveness: _,
+                            } => {
+                                let desc = format!("Error recovery for: {}", error_type);
+                                let heur = do_memory_core::Heuristic::new(
+                                    format!("Error: {}", error_type),
+                                    format!("Recovery: {}", recovery_steps.join(" -> ")),
+                                    *success_rate,
+                                );
+                                (
+                                    desc,
+                                    context.clone(),
+                                    heur,
+                                    *success_rate,
+                                    recovery_steps.len(),
+                                )
+                            }
+                            Pattern::ContextPattern {
+                                id: _,
+                                context_features,
+                                recommended_approach,
+                                evidence: _,
+                                success_rate,
+                                effectiveness: _,
+                            } => {
+                                let desc = format!("Context pattern: {}", recommended_approach);
+                                let heur = do_memory_core::Heuristic::new(
+                                    format!("Features: {}", context_features.join(", ")),
+                                    recommended_approach.clone(),
+                                    *success_rate,
+                                );
+                                (
+                                    desc,
+                                    do_memory_core::TaskContext::default(),
+                                    heur,
+                                    *success_rate,
+                                    context_features.len(),
+                                )
+                            }
+                        };
+
+                    let pattern_data = crate::storage::patterns::PatternDataJson {
+                        description: description.clone(),
+                        context: context.clone(),
+                        heuristic: heuristic.clone(),
                     };
+                    let pattern_data_json =
+                        serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
 
-                let pattern_data = crate::storage::patterns::PatternDataJson {
-                    description: description.clone(),
-                    context: context.clone(),
-                    heuristic: heuristic.clone(),
-                };
-                let pattern_data_json =
-                    serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
+                    let context_tags_json =
+                        serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
 
-                let context_tags_json =
-                    serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
+                    let now = chrono::Utc::now();
 
-                let now = chrono::Utc::now();
-
-                if let Err(e) = conn
-                    .execute(
-                        pattern_sql,
-                        libsql::params![
-                            pattern.id().to_string(),
-                            format!("{:?}", pattern),
-                            pattern_data_json,
-                            success_rate,
-                            context.domain.clone(),
-                            context.language.clone(),
-                            context_tags_json,
-                            occurrence_count as i64,
-                            now.timestamp(),
-                            now.timestamp(),
-                        ],
-                    )
-                    .await
-                {
-                    let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
-                        error!("Failed to rollback transaction: {}", rollback_err)
-                    });
-                    return Err(Error::Storage(format!(
-                        "Failed to store pattern in combined batch: {}",
-                        e
-                    )));
+                    if let Err(e) = conn
+                        .execute(
+                            pattern_sql,
+                            libsql::params![
+                                pattern.id().to_string(),
+                                format!("{:?}", pattern),
+                                pattern_data_json,
+                                success_rate,
+                                context.domain.clone(),
+                                context.language.clone(),
+                                context_tags_json,
+                                occurrence_count as i64,
+                                now.timestamp(),
+                                now.timestamp(),
+                            ],
+                        )
+                        .await
+                    {
+                        let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                            error!("Failed to rollback transaction: {}", rollback_err)
+                        });
+                        return Err(Error::Storage(format!(
+                            "Failed to store pattern in combined batch: {}",
+                            e
+                        )));
+                    }
                 }
             }
-        }
 
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit combined batch transaction: {}",
-                e
-            ))
-        })?;
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit combined batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!(
-            "Successfully stored combined batch: {} episodes, {} patterns",
-            episodes.len(),
-            patterns.len()
-        );
-        Ok(())
+            info!(
+                "Successfully stored combined batch: {} episodes, {} patterns",
+                episodes.len(),
+                patterns.len()
+            );
+            Ok(())
+        })
+        .await
     }
 }
 

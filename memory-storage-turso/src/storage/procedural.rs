@@ -11,9 +11,8 @@ impl TursoStorage {
     /// Store a procedural memory
     pub async fn store_procedural_memory(&self, procedural: &ProceduralMemory) -> Result<()> {
         debug!("Storing procedural memory: {}", procedural.id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             INSERT OR REPLACE INTO procedural_memory (
                 procedural_id, name, description, context, steps,
                 effectiveness, source_episodes, source_patterns,
@@ -21,95 +20,100 @@ impl TursoStorage {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        let context_json =
-            serde_json::to_string(&procedural.context).map_err(Error::Serialization)?;
-        let steps_json = serde_json::to_string(&procedural.steps).map_err(Error::Serialization)?;
-        let effectiveness_json =
-            serde_json::to_string(&procedural.effectiveness).map_err(Error::Serialization)?;
-        let source_episodes_json =
-            serde_json::to_string(&procedural.source_episodes).map_err(Error::Serialization)?;
-        let source_patterns_json =
-            serde_json::to_string(&procedural.source_patterns).map_err(Error::Serialization)?;
+            let context_json =
+                serde_json::to_string(&procedural.context).map_err(Error::Serialization)?;
+            let steps_json =
+                serde_json::to_string(&procedural.steps).map_err(Error::Serialization)?;
+            let effectiveness_json =
+                serde_json::to_string(&procedural.effectiveness).map_err(Error::Serialization)?;
+            let source_episodes_json =
+                serde_json::to_string(&procedural.source_episodes).map_err(Error::Serialization)?;
+            let source_patterns_json =
+                serde_json::to_string(&procedural.source_patterns).map_err(Error::Serialization)?;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            stmt.execute(libsql::params![
+                procedural.id.to_string(),
+                procedural.name.clone(),
+                procedural.description.clone(),
+                context_json,
+                steps_json,
+                effectiveness_json,
+                source_episodes_json,
+                source_patterns_json,
+                procedural.created_at.timestamp(),
+                procedural.updated_at.timestamp(),
+            ])
             .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to store procedural memory: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            procedural.id.to_string(),
-            procedural.name.clone(),
-            procedural.description.clone(),
-            context_json,
-            steps_json,
-            effectiveness_json,
-            source_episodes_json,
-            source_patterns_json,
-            procedural.created_at.timestamp(),
-            procedural.updated_at.timestamp(),
-        ])
+            info!("Successfully stored procedural memory: {}", procedural.id);
+            Ok(())
+        })
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store procedural memory: {}", e)))?;
-
-        info!("Successfully stored procedural memory: {}", procedural.id);
-        Ok(())
     }
 
     /// Retrieve a procedural memory by ID
     pub async fn get_procedural_memory(&self, id: Uuid) -> Result<Option<ProceduralMemory>> {
         debug!("Retrieving procedural memory: {}", id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT procedural_id, name, description, context, steps,
                    effectiveness, source_episodes, source_patterns,
                    created_at, updated_at
             FROM procedural_memory WHERE procedural_id = ?
         "#;
 
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query procedural memory: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query procedural memory: {}", e)))?;
 
-        if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch procedural memory row: {}", e)))?
-        {
-            Ok(Some(row_to_procedural(&row)?))
-        } else {
-            Ok(None)
-        }
+            if let Some(row) = rows.next().await.map_err(|e| {
+                Error::Storage(format!("Failed to fetch procedural memory row: {}", e))
+            })? {
+                Ok(Some(row_to_procedural(&row)?))
+            } else {
+                Ok(None)
+            }
+        })
+        .await
     }
 
     /// Delete a procedural memory by ID
     pub async fn delete_procedural_memory(&self, id: Uuid) -> Result<()> {
         debug!("Deleting procedural memory: {}", id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = "DELETE FROM procedural_memory WHERE procedural_id = ?";
 
-        const SQL: &str = "DELETE FROM procedural_memory WHERE procedural_id = ?";
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            stmt.execute(libsql::params![id.to_string()])
+                .await
+                .map_err(|e| {
+                    Error::Storage(format!("Failed to delete procedural memory: {}", e))
+                })?;
 
-        stmt.execute(libsql::params![id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to delete procedural memory: {}", e)))?;
-
-        info!("Successfully deleted procedural memory: {}", id);
-        Ok(())
+            info!("Successfully deleted procedural memory: {}", id);
+            Ok(())
+        })
+        .await
     }
 
     /// Query procedural memories
@@ -118,11 +122,10 @@ impl TursoStorage {
         limit: Option<usize>,
     ) -> Result<Vec<ProceduralMemory>> {
         debug!("Querying procedural memories");
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
+            let limit = do_memory_core::apply_query_limit(limit);
 
-        let limit = do_memory_core::apply_query_limit(limit);
-
-        const SQL: &str = r#"
+            const SQL: &str = r#"
             SELECT procedural_id, name, description, context, steps,
                    effectiveness, source_episodes, source_patterns,
                    created_at, updated_at
@@ -131,27 +134,29 @@ impl TursoStorage {
             LIMIT ?
         "#;
 
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![limit as i64])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query procedural memories: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![limit as i64])
+                .await
+                .map_err(|e| {
+                    Error::Storage(format!("Failed to query procedural memories: {}", e))
+                })?;
 
-        let mut results = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch procedural memory row: {}", e)))?
-        {
-            results.push(row_to_procedural(&row)?);
-        }
+            let mut results = Vec::new();
+            while let Some(row) = rows.next().await.map_err(|e| {
+                Error::Storage(format!("Failed to fetch procedural memory row: {}", e))
+            })? {
+                results.push(row_to_procedural(&row)?);
+            }
 
-        Ok(results)
+            Ok(results)
+        })
+        .await
     }
 }
 

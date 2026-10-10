@@ -72,18 +72,17 @@ impl TursoStorage {
         }
 
         debug!("Storing episodes batch: {} items", episodes.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            // Begin transaction
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for episodes batch: {}",
+                    e
+                ))
+            })?;
 
-        // Begin transaction
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for episodes batch: {}",
-                e
-            ))
-        })?;
-
-        // SQL statement for episode insertion
-        let sql = r#"
+            // SQL statement for episode insertion
+            let sql = r#"
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
@@ -92,165 +91,168 @@ impl TursoStorage {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        // Prepare statement if supported by the connection
-        // Note: libsql-rs doesn't have explicit prepare, but we can still
-        // use the same SQL with transaction for batching
+            // Prepare statement if supported by the connection
+            // Note: libsql-rs doesn't have explicit prepare, but we can still
+            // use the same SQL with transaction for batching
 
-        // Get compression settings
-        #[cfg(feature = "compression")]
-        let compression_threshold = self.config.compression_threshold;
-        #[cfg(not(feature = "compression"))]
-        let _compression_threshold = 0;
-
-        #[cfg(feature = "compression")]
-        let should_compress = self.config.compress_episodes;
-        #[cfg(not(feature = "compression"))]
-        let _should_compress = false;
-
-        // Store all episodes in the transaction
-        for episode in &episodes {
-            // Serialize episode data
-            let context_json =
-                serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
-            let steps_json = serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
-            let outcome_json = episode
-                .outcome
-                .as_ref()
-                .map(serde_json::to_string)
-                .transpose()
-                .map_err(Error::Serialization)?;
-            let reward_json = episode
-                .reward
-                .as_ref()
-                .map(serde_json::to_string)
-                .transpose()
-                .map_err(Error::Serialization)?;
-            let reflection_json = episode
-                .reflection
-                .as_ref()
-                .map(serde_json::to_string)
-                .transpose()
-                .map_err(Error::Serialization)?;
-
-            // Compress patterns, heuristics, and metadata if needed
+            // Get compression settings
             #[cfg(feature = "compression")]
-            let patterns_json = if should_compress {
-                let data =
-                    serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-                compress_json_field(data.as_bytes(), compression_threshold)?
-            } else {
-                serde_json::to_string(&episode.patterns)
-                    .map_err(Error::Serialization)?
-                    .into_bytes()
-            };
-
+            let compression_threshold = self.config.compression_threshold;
             #[cfg(not(feature = "compression"))]
-            let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
-                .map_err(Error::Serialization)?
-                .into_bytes();
+            let _compression_threshold = 0;
 
             #[cfg(feature = "compression")]
-            let heuristics_json = if should_compress {
-                let data =
-                    serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-                compress_json_field(data.as_bytes(), compression_threshold)?
-            } else {
-                serde_json::to_string(&episode.heuristics)
-                    .map_err(Error::Serialization)?
-                    .into_bytes()
-            };
-
+            let should_compress = self.config.compress_episodes;
             #[cfg(not(feature = "compression"))]
-            let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
-                .map_err(Error::Serialization)?
-                .into_bytes();
+            let _should_compress = false;
 
-            #[cfg(feature = "compression")]
-            let metadata_json = if should_compress {
-                let data =
-                    serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-                compress_json_field(data.as_bytes(), compression_threshold)?
-            } else {
-                serde_json::to_string(&episode.metadata)
+            // Store all episodes in the transaction
+            for episode in &episodes {
+                // Serialize episode data
+                let context_json =
+                    serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
+                let steps_json =
+                    serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
+                let outcome_json = episode
+                    .outcome
+                    .as_ref()
+                    .map(serde_json::to_string)
+                    .transpose()
+                    .map_err(Error::Serialization)?;
+                let reward_json = episode
+                    .reward
+                    .as_ref()
+                    .map(serde_json::to_string)
+                    .transpose()
+                    .map_err(Error::Serialization)?;
+                let reflection_json = episode
+                    .reflection
+                    .as_ref()
+                    .map(serde_json::to_string)
+                    .transpose()
+                    .map_err(Error::Serialization)?;
+
+                // Compress patterns, heuristics, and metadata if needed
+                #[cfg(feature = "compression")]
+                let patterns_json = if should_compress {
+                    let data =
+                        serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
+                    compress_json_field(data.as_bytes(), compression_threshold)?
+                } else {
+                    serde_json::to_string(&episode.patterns)
+                        .map_err(Error::Serialization)?
+                        .into_bytes()
+                };
+
+                #[cfg(not(feature = "compression"))]
+                let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
                     .map_err(Error::Serialization)?
-                    .into_bytes()
-            };
+                    .into_bytes();
 
-            #[cfg(not(feature = "compression"))]
-            let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
-                .map_err(Error::Serialization)?
-                .into_bytes();
+                #[cfg(feature = "compression")]
+                let heuristics_json = if should_compress {
+                    let data =
+                        serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
+                    compress_json_field(data.as_bytes(), compression_threshold)?
+                } else {
+                    serde_json::to_string(&episode.heuristics)
+                        .map_err(Error::Serialization)?
+                        .into_bytes()
+                };
 
-            let checkpoints_json =
-                serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+                #[cfg(not(feature = "compression"))]
+                let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
+                    .map_err(Error::Serialization)?
+                    .into_bytes();
 
-            // Get archived_at from metadata if present
-            let archived_at = episode
-                .metadata
-                .get("archived_at")
-                .and_then(|v| v.parse::<i64>().ok());
+                #[cfg(feature = "compression")]
+                let metadata_json = if should_compress {
+                    let data =
+                        serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
+                    compress_json_field(data.as_bytes(), compression_threshold)?
+                } else {
+                    serde_json::to_string(&episode.metadata)
+                        .map_err(Error::Serialization)?
+                        .into_bytes()
+                };
 
-            // Convert bytes to String for SQL
-            let patterns_str = String::from_utf8(patterns_json).map_err(|e| {
-                Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e))
-            })?;
-            let heuristics_str = String::from_utf8(heuristics_json).map_err(|e| {
-                Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e))
-            })?;
-            let metadata_str = String::from_utf8(metadata_json).map_err(|e| {
-                Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e))
-            })?;
+                #[cfg(not(feature = "compression"))]
+                let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
+                    .map_err(Error::Serialization)?
+                    .into_bytes();
 
-            // Execute the insert
-            if let Err(e) = conn
-                .execute(
-                    sql,
-                    libsql::params![
-                        episode.episode_id.to_string(),
-                        episode.task_type.to_string(),
-                        episode.task_description.clone(),
-                        context_json,
-                        episode.start_time.timestamp(),
-                        episode.end_time.map(|t| t.timestamp()),
-                        steps_json,
-                        outcome_json,
-                        reward_json,
-                        reflection_json,
-                        patterns_str,
-                        heuristics_str,
-                        checkpoints_json,
-                        metadata_str,
-                        episode.context.domain.clone(),
-                        episode.context.language.clone(),
-                        archived_at,
-                    ],
-                )
-                .await
-            {
-                // Rollback on error
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                let checkpoints_json =
+                    serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+
+                // Get archived_at from metadata if present
+                let archived_at = episode
+                    .metadata
+                    .get("archived_at")
+                    .and_then(|v| v.parse::<i64>().ok());
+
+                // Convert bytes to String for SQL
+                let patterns_str = String::from_utf8(patterns_json).map_err(|e| {
+                    Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e))
+                })?;
+                let heuristics_str = String::from_utf8(heuristics_json).map_err(|e| {
+                    Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e))
+                })?;
+                let metadata_str = String::from_utf8(metadata_json).map_err(|e| {
+                    Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e))
+                })?;
+
+                // Execute the insert
+                if let Err(e) = conn
+                    .execute(
+                        sql,
+                        libsql::params![
+                            episode.episode_id.to_string(),
+                            episode.task_type.to_string(),
+                            episode.task_description.clone(),
+                            context_json,
+                            episode.start_time.timestamp(),
+                            episode.end_time.map(|t| t.timestamp()),
+                            steps_json,
+                            outcome_json,
+                            reward_json,
+                            reflection_json,
+                            patterns_str,
+                            heuristics_str,
+                            checkpoints_json,
+                            metadata_str,
+                            episode.context.domain.clone(),
+                            episode.context.language.clone(),
+                            archived_at,
+                        ],
+                    )
+                    .await
+                {
+                    // Rollback on error
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to store episode in batch: {}",
+                        e
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Failed to store episode in batch: {}",
-                    e
-                )));
             }
-        }
 
-        // Commit transaction
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit episodes batch transaction: {}",
-                e
-            ))
-        })?;
+            // Commit transaction
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit episodes batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!(
-            "Successfully stored episodes batch: {} items",
-            episodes.len()
-        );
-        Ok(())
+            info!(
+                "Successfully stored episodes batch: {} items",
+                episodes.len()
+            );
+            Ok(())
+        })
+        .await
     }
 }
 

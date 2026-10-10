@@ -66,7 +66,7 @@ impl TursoStorage {
 
             // Fall back to brute-force if vector_top_k not available
             debug!("Falling back to brute-force search for episodes");
-            self.find_similar_episodes_brute_force(query_embedding, limit, threshold)
+            self.find_similar_episodes_brute_force(conn, query_embedding, limit, threshold)
                 .await
         }
 
@@ -88,7 +88,7 @@ impl TursoStorage {
 
             // Fall back to brute-force
             debug!("Falling back to brute-force search for episodes");
-            self.find_similar_episodes_brute_force(query_embedding, limit, threshold)
+            self.find_similar_episodes_brute_force(conn, query_embedding, limit, threshold)
                 .await
         }
     }
@@ -227,8 +227,12 @@ impl TursoStorage {
     }
 
     /// Find similar episodes using brute-force search (fallback)
+    ///
+    /// Runs on the caller's already-checked-out `conn`: it never opens a second
+    /// pooled checkout, which would self-deadlock on a saturated pool.
     pub(crate) async fn find_similar_episodes_brute_force(
         &self,
+        conn: &Connection,
         query_embedding: &[f32],
         limit: usize,
         threshold: f32,
@@ -238,7 +242,6 @@ impl TursoStorage {
             limit, threshold
         );
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
         let mut matched_ids = Vec::new();
 
         #[cfg(feature = "turso_multi_dimension")]
@@ -408,7 +411,11 @@ mod tests {
             .await?;
 
         let results = storage
-            .find_similar_episodes_brute_force(&embedding, 10, 0.5)
+            .with_connection(async |conn| {
+                storage
+                    .find_similar_episodes_brute_force(conn, &embedding, 10, 0.5)
+                    .await
+            })
             .await?;
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].item.episode_id, episode.episode_id);
@@ -455,7 +462,11 @@ mod tests {
         query_embedding[0] = 0.1;
 
         let results = storage
-            .find_similar_episodes_brute_force(&query_embedding, 2, 0.0)
+            .with_connection(async |conn| {
+                storage
+                    .find_similar_episodes_brute_force(conn, &query_embedding, 2, 0.0)
+                    .await
+            })
             .await?;
 
         assert_eq!(results.len(), 2);

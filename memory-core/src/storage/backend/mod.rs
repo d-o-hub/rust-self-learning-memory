@@ -243,6 +243,25 @@ pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
     /// Returns error if storage operation fails
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>>;
 
+    /// List the ids of embeddings persisted through [`store_embedding`](Self::store_embedding).
+    ///
+    /// Backends that persist generic embeddings must override this so the
+    /// identity-scoped embedding adapter can enumerate persisted vectors. The
+    /// default reports "this backend cannot enumerate" instead of an empty
+    /// list: an empty list means "nothing is stored" and would make a similarity
+    /// search over a non-enumerating backend look like a successful empty
+    /// result.
+    ///
+    /// # Errors
+    ///
+    /// The default implementation returns [`Error::CapabilityUnavailable`].
+    /// Returns error if the backend cannot enumerate its embeddings.
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        Err(Error::CapabilityUnavailable {
+            operation: "list_embedding_ids",
+        })
+    }
+
     // ========== Relationship Storage Methods ==========
 
     /// Store a relationship between two episodes.

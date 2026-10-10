@@ -8,6 +8,75 @@ use crate::patterns::Pattern;
 use async_trait::async_trait;
 use uuid::Uuid;
 
+/// Logical namespace for episode vectors inside an [`EmbeddingStorageScope`].
+pub const EPISODE_NAMESPACE: &str = "episode";
+
+/// Logical namespace for pattern vectors inside an [`EmbeddingStorageScope`].
+pub const PATTERN_NAMESPACE: &str = "pattern";
+
+/// Schema version embedded in identity-scoped logical keys.
+///
+/// Bump this when the key layout or vector encoding changes so vectors written
+/// by an older layout can never be returned as current.
+pub const EMBEDDING_STORAGE_SCHEMA_VERSION: u32 = 1;
+
+/// Identity scope for embedding vectors.
+///
+/// Captures the active provider identity (`kind:model:dims`) together with a
+/// deterministic configuration revision. Both are embedded in every logical
+/// key, so vectors written under one scope are never returned under another —
+/// reconfiguring the provider, model, dimension or provider configuration
+/// cannot silently serve vectors produced by a different activation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EmbeddingStorageScope {
+    provider_identity: String,
+    config_revision: u64,
+}
+
+impl EmbeddingStorageScope {
+    /// Create a scope for a provider identity and configuration revision.
+    #[must_use]
+    pub fn new(provider_identity: impl Into<String>, config_revision: u64) -> Self {
+        Self {
+            provider_identity: provider_identity.into(),
+            config_revision,
+        }
+    }
+
+    /// The provider identity (`kind:model:dims`).
+    #[must_use]
+    pub fn provider_identity(&self) -> &str {
+        &self.provider_identity
+    }
+
+    /// Deterministic revision of the provider configuration.
+    #[must_use]
+    pub fn config_revision(&self) -> u64 {
+        self.config_revision
+    }
+
+    /// Stable logical key prefix shared by every vector in this scope.
+    #[must_use]
+    pub fn key_prefix(&self) -> String {
+        format!(
+            "emb_v{}:{}#r{}",
+            EMBEDDING_STORAGE_SCHEMA_VERSION, self.provider_identity, self.config_revision
+        )
+    }
+
+    /// Prefix of every entry in the given logical namespace.
+    #[must_use]
+    pub fn entry_prefix(&self, namespace: &str) -> String {
+        format!("{}:{}:", self.key_prefix(), namespace)
+    }
+
+    /// Full logical key for one namespace member.
+    #[must_use]
+    pub fn logical_key(&self, namespace: &str, id: &str) -> String {
+        format!("{}{}", self.entry_prefix(namespace), id)
+    }
+}
+
 /// Trait for embedding storage backends
 #[async_trait]
 pub trait EmbeddingStorageBackend: Send + Sync {
@@ -42,6 +111,22 @@ pub trait EmbeddingStorageBackend: Send + Sync {
         limit: usize,
         threshold: f32,
     ) -> Result<Vec<SimilaritySearchResult<Pattern>>>;
+
+    /// Identity scope of the vectors held by this backend, when known.
+    ///
+    /// Status/query paths use this to report which provider identity and
+    /// configuration revision the stored vectors belong to. Backends that do
+    /// not scope their keys return `None` by default.
+    fn storage_scope(&self) -> Option<EmbeddingStorageScope> {
+        None
+    }
+
+    /// Whether vectors survive a process restart.
+    ///
+    /// Defaults to `false` so an unknown backend never implies durability.
+    fn is_durable(&self) -> bool {
+        false
+    }
 }
 
 /// In-memory embedding storage for testing and fallback
@@ -256,119 +341,5 @@ impl EmbeddingStorageBackend for MockEmbeddingStorage {
         _threshold: f32,
     ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
         Ok(Vec::new())
-    }
-}
-
-/// Wrapper around existing storage backends to add embedding support
-pub struct EmbeddingStorage<T: crate::storage::StorageBackend + EmbeddingStorageBackend> {
-    storage: std::sync::Arc<T>,
-    fallback: InMemoryEmbeddingStorage,
-}
-
-impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorage<T> {
-    pub fn new(storage: std::sync::Arc<T>) -> Self {
-        Self {
-            storage,
-            fallback: InMemoryEmbeddingStorage::new(),
-        }
-    }
-}
-
-#[async_trait]
-impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorageBackend
-    for EmbeddingStorage<T>
-{
-    async fn store_episode_embedding(&self, episode_id: Uuid, embedding: Vec<f32>) -> Result<()> {
-        // Try to store in main storage, fall back to in-memory
-        if let Err(e) = self
-            .storage
-            .store_episode_embedding(episode_id, embedding.clone())
-            .await
-        {
-            tracing::warn!("Failed to store episode embedding in main storage: {}", e);
-            self.fallback
-                .store_episode_embedding(episode_id, embedding)
-                .await?;
-        }
-        Ok(())
-    }
-
-    async fn store_pattern_embedding(
-        &self,
-        pattern_id: PatternId,
-        embedding: Vec<f32>,
-    ) -> Result<()> {
-        // Try to store in main storage, fall back to in-memory
-        if let Err(e) = self
-            .storage
-            .store_pattern_embedding(pattern_id, embedding.clone())
-            .await
-        {
-            tracing::warn!("Failed to store pattern embedding in main storage: {}", e);
-            self.fallback
-                .store_pattern_embedding(pattern_id, embedding)
-                .await?;
-        }
-        Ok(())
-    }
-
-    async fn get_episode_embedding(&self, episode_id: Uuid) -> Result<Option<Vec<f32>>> {
-        // Try main storage first, then fallback
-        if let Ok(Some(embedding)) = self.storage.get_episode_embedding(episode_id).await {
-            return Ok(Some(embedding));
-        }
-
-        self.fallback.get_episode_embedding(episode_id).await
-    }
-
-    async fn get_pattern_embedding(&self, pattern_id: PatternId) -> Result<Option<Vec<f32>>> {
-        // Try main storage first, then fallback
-        if let Ok(Some(embedding)) = self.storage.get_pattern_embedding(pattern_id).await {
-            return Ok(Some(embedding));
-        }
-
-        self.fallback.get_pattern_embedding(pattern_id).await
-    }
-
-    async fn find_similar_episodes(
-        &self,
-        query_embedding: Vec<f32>,
-        limit: usize,
-        threshold: f32,
-    ) -> Result<Vec<SimilaritySearchResult<Episode>>> {
-        // Try main storage first
-        if let Ok(results) = self
-            .storage
-            .find_similar_episodes(query_embedding.clone(), limit, threshold)
-            .await
-        {
-            return Ok(results);
-        }
-
-        // Fall back to in-memory search
-        self.fallback
-            .find_similar_episodes(query_embedding, limit, threshold)
-            .await
-    }
-
-    async fn find_similar_patterns(
-        &self,
-        query_embedding: Vec<f32>,
-        limit: usize,
-        threshold: f32,
-    ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
-        // Try main storage first
-        if let Ok(results) = self
-            .storage
-            .find_similar_patterns(query_embedding.clone(), limit, threshold)
-            .await
-        {
-            return Ok(results);
-        }
-
-        // Fall back to in-memory search
-        self.fallback
-            .find_similar_patterns(query_embedding, limit, threshold)
-            .await
     }
 }

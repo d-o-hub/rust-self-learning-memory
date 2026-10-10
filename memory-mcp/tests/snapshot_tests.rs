@@ -289,6 +289,8 @@ fn test_embedding_provider_status_output() {
             "api_version": "v1",
             "rate_limit": "3000 per minute"
         }),
+        storage_mode: "durable".to_string(),
+        storage_scope: Some("emb_v1:openai:text-embedding-3-small:1536#r42".to_string()),
         test_result: Some(ProviderTestResult {
             success: true,
             duration_ms: 125,
@@ -358,6 +360,8 @@ fn test_configure_embeddings_output() {
         activation_revision: Some(1),
         reindex_required: false,
         provider_health: "active".to_string(),
+        storage_mode: "durable".to_string(),
+        storage_scope: "emb_v1:openai:text-embedding-3-small:1536#r42".to_string(),
     };
 
     assert_json_snapshot!(output);

@@ -96,6 +96,10 @@ impl StorageBackend for RedbStorage {
         self.get_embeddings_batch_impl(ids).await
     }
 
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        self.list_embedding_ids_impl().await
+    }
+
     async fn store_relationship(
         &self,
         relationship: &do_memory_core::episode::EpisodeRelationship,

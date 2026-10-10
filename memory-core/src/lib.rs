@@ -259,6 +259,10 @@ pub use sync::StorageSynchronizer;
 pub mod types;
 
 // Re-export commonly used types
+pub use embeddings::{
+    EmbeddingStorageAdapter, EmbeddingStorageMode, EmbeddingStorageScope,
+    EphemeralEmbeddingStorage, SelectedEmbeddingStorage,
+};
 pub use episode::{CapacityManager, Episode, EvictionPolicy, ExecutionStep, PatternId};
 pub use error::{CacheError, Error, RelationshipError, Result};
 pub use extraction::PatternExtractor;

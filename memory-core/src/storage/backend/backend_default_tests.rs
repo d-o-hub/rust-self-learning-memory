@@ -1,6 +1,6 @@
 //! Coverage for `StorageBackend` default method bodies (Codecov patch).
 
-use super::StorageBackend;
+use super::{StorageBackend, StorageBackendCapabilities};
 use crate::episode::{
     Direction, EpisodePatternRelationship, EpisodeRelationship, EpisodeRetentionPolicy,
     RelationshipMetadata, RelationshipType,
@@ -71,6 +71,9 @@ impl StorageBackend for StubBackend {
         Ok(vec![])
     }
 }
+
+/// The stub implements no optional operation, so every predicate stays `false`.
+impl StorageBackendCapabilities for StubBackend {}
 
 fn sample_relationship() -> EpisodeRelationship {
     EpisodeRelationship::new(
@@ -144,8 +147,20 @@ async fn storage_backend_default_episode_batch_loops_singles() {
     backend.store_episodes_batch(&episodes).await.unwrap();
 }
 
+/// Assert that an optional default returns the typed capability error naming
+/// `operation` (#1087: no default may report durable success).
+fn assert_capability_unavailable<T: std::fmt::Debug>(operation: &'static str, result: Result<T>) {
+    match result {
+        Err(Error::CapabilityUnavailable { operation: got }) => {
+            assert_eq!(got, operation, "wrong operation reported");
+        }
+        Err(other) => panic!("expected CapabilityUnavailable for {operation}, got {other}"),
+        Ok(value) => panic!("expected CapabilityUnavailable for {operation}, got {value:?}"),
+    }
+}
+
 #[tokio::test]
-async fn storage_backend_default_methods_return_empty_success() {
+async fn storage_backend_defaults_gate_optional_operations() {
     let backend = StubBackend;
     let id = Uuid::new_v4();
     let rel = sample_relationship();
@@ -155,46 +170,16 @@ async fn storage_backend_default_methods_return_empty_success() {
     let policy = EpisodeRetentionPolicy::default();
     let procedural = sample_procedural();
 
-    // Defaults with real bodies (Codecov targets)
-    assert_eq!(backend.get_all_patterns().await.unwrap().len(), 0);
-    backend.store_relationship(&rel).await.unwrap();
-    backend.remove_relationship(rel.id).await.unwrap();
-    assert_eq!(
-        backend
-            .get_relationships(id, Direction::Both)
-            .await
-            .unwrap()
-            .len(),
-        0
-    );
-    assert_eq!(backend.get_all_relationships().await.unwrap().len(), 0);
-    assert!(
-        backend
-            .get_relationship_by_id(rel.id)
-            .await
-            .unwrap()
-            .is_none()
-    );
-    assert!(
-        !backend
-            .relationship_exists(id, id, RelationshipType::RelatedTo)
-            .await
-            .unwrap()
-    );
-    backend
-        .store_episode_pattern_relationship(&pattern_rel)
-        .await
-        .unwrap();
-    assert_eq!(
-        backend
-            .get_episode_pattern_relationships(id)
-            .await
-            .unwrap()
-            .len(),
-        0
-    );
-    assert_eq!(backend.get_weighted_neighbors(id).await.unwrap().len(), 0);
+    // A backend that implements none of the optional operations advertises none.
+    assert!(!backend.supports_recommendation_attribution());
+    assert!(!backend.supports_ranking_adaptation());
+    assert!(!backend.supports_episode_cleanup());
+    assert!(!backend.supports_relationship_persistence());
+    assert!(!backend.supports_procedural_memory());
 
+    // Intentional, documented fallbacks: pattern listing and the ADR-081
+    // recommendation defaults (capability-gated by their callers).
+    assert_eq!(backend.get_all_patterns().await.unwrap().len(), 0);
     backend
         .store_recommendation_session(&session)
         .await
@@ -226,33 +211,64 @@ async fn storage_backend_default_methods_return_empty_success() {
     );
     let _stats = backend.get_recommendation_stats().await.unwrap();
 
-    // Slice 1 (#1087): unsupported cleanup is no longer a fake success. The
-    // default advertises no capability and returns a typed error for both
-    // operations instead of `Ok(CleanupResult::new())` / `Ok(0)`.
-    assert!(!backend.supports_episode_cleanup());
-    assert!(matches!(
-        backend.cleanup_episodes(&policy).await,
-        Err(Error::CapabilityUnavailable {
-            operation: "cleanup_episodes"
-        })
-    ));
-    assert!(matches!(
-        backend.count_cleanup_candidates(&policy).await,
-        Err(Error::CapabilityUnavailable {
-            operation: "count_cleanup_candidates"
-        })
-    ));
-
-    backend.store_procedural(&procedural).await.unwrap();
-    assert!(
-        backend
-            .get_procedural(procedural.id)
-            .await
-            .unwrap()
-            .is_none()
+    // #1087 slices 1-3: relationship, cleanup, and procedural defaults return
+    // `Error::CapabilityUnavailable` instead of `Ok(())`, `Ok(None)`, or
+    // empty vectors that could pass for durable success.
+    assert_capability_unavailable("store_relationship", backend.store_relationship(&rel).await);
+    assert_capability_unavailable(
+        "remove_relationship",
+        backend.remove_relationship(rel.id).await,
     );
-    backend.delete_procedural(procedural.id).await.unwrap();
-    assert_eq!(backend.query_procedural(Some(10)).await.unwrap().len(), 0);
+    assert_capability_unavailable(
+        "get_relationships",
+        backend.get_relationships(id, Direction::Both).await,
+    );
+    assert_capability_unavailable(
+        "get_all_relationships",
+        backend.get_all_relationships().await,
+    );
+    assert_capability_unavailable(
+        "get_relationship_by_id",
+        backend.get_relationship_by_id(rel.id).await,
+    );
+    assert_capability_unavailable(
+        "relationship_exists",
+        backend
+            .relationship_exists(id, id, RelationshipType::RelatedTo)
+            .await,
+    );
+    assert_capability_unavailable(
+        "store_episode_pattern_relationship",
+        backend
+            .store_episode_pattern_relationship(&pattern_rel)
+            .await,
+    );
+    assert_capability_unavailable(
+        "get_episode_pattern_relationships",
+        backend.get_episode_pattern_relationships(id).await,
+    );
+    assert_capability_unavailable(
+        "get_weighted_neighbors",
+        backend.get_weighted_neighbors(id).await,
+    );
+    assert_capability_unavailable("cleanup_episodes", backend.cleanup_episodes(&policy).await);
+    assert_capability_unavailable(
+        "count_cleanup_candidates",
+        backend.count_cleanup_candidates(&policy).await,
+    );
+    assert_capability_unavailable(
+        "store_procedural",
+        backend.store_procedural(&procedural).await,
+    );
+    assert_capability_unavailable(
+        "get_procedural",
+        backend.get_procedural(procedural.id).await,
+    );
+    assert_capability_unavailable(
+        "delete_procedural",
+        backend.delete_procedural(procedural.id).await,
+    );
+    assert_capability_unavailable("query_procedural", backend.query_procedural(Some(10)).await);
 
     // Keep Episode/TaskType referenced so stub stays honest for required path
     let _ep = Episode::new("stub".into(), TaskContext::default(), TaskType::Testing);

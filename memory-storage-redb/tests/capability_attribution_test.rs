@@ -9,9 +9,12 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use do_memory_core::StorageBackend;
+use do_memory_core::TaskContext;
 use do_memory_core::TaskOutcome;
+use do_memory_core::episode::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
+use do_memory_core::procedural::ProceduralMemory;
+use do_memory_core::{StorageBackend, StorageBackendCapabilities};
 use do_memory_storage_redb::RedbStorage;
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -92,4 +95,88 @@ async fn redb_lists_all_recommendation_history() {
     let mut want_feedback: Vec<_> = feedback.iter().map(|f| f.session_id).collect();
     want_feedback.sort();
     assert_eq!(got_feedback, want_feedback, "all feedback must be listed");
+}
+
+/// #1087 slices 2-3: the compiled redb backend persists relationships
+/// (episode↔episode and episode↔pattern) and procedural memory in its own
+/// tables, so it must advertise both capabilities — and must not claim the
+/// cleanup capability it does not implement.
+#[tokio::test]
+async fn redb_storage_advertises_optional_persistence_capabilities() {
+    let dir = TempDir::new().expect("create temp dir");
+    let db_path = dir.path().join("optional-capability.redb");
+    let storage = RedbStorage::new(&db_path).await.expect("create redb");
+
+    assert!(
+        storage.supports_relationship_persistence(),
+        "redb stores relationships in RELATIONSHIPS_TABLE"
+    );
+    assert!(
+        storage.supports_procedural_memory(),
+        "redb stores procedural memory in PROCEDURAL_TABLE"
+    );
+    assert!(
+        !storage.supports_episode_cleanup(),
+        "redb has no retention/GC implementation, so cleanup stays unavailable"
+    );
+}
+
+/// #1087: the advertised capabilities are backed by durable round-trips through
+/// the `StorageBackend` trait object, not by fabricated defaults.
+#[tokio::test]
+async fn redb_optional_operations_round_trip_through_trait_object() {
+    let dir = TempDir::new().expect("create temp dir");
+    let db_path = dir.path().join("optional-roundtrip.redb");
+    let storage = RedbStorage::new(&db_path).await.expect("create redb");
+    let backend: &dyn StorageBackend = &storage;
+
+    let from = Uuid::new_v4();
+    let to = Uuid::new_v4();
+    let relationship = EpisodeRelationship::new(
+        from,
+        to,
+        RelationshipType::RelatedTo,
+        RelationshipMetadata::default(),
+    );
+    backend.store_relationship(&relationship).await.unwrap();
+    assert!(
+        backend
+            .relationship_exists(from, to, RelationshipType::RelatedTo)
+            .await
+            .unwrap(),
+        "a stored relationship must be visible through the trait object"
+    );
+    assert_eq!(
+        backend
+            .get_relationship_by_id(relationship.id)
+            .await
+            .unwrap()
+            .map(|r| r.id),
+        Some(relationship.id)
+    );
+
+    let procedural = ProceduralMemory::new(
+        "skill".to_string(),
+        "round trip".to_string(),
+        TaskContext::default(),
+        Vec::new(),
+    );
+    backend.store_procedural(&procedural).await.unwrap();
+    assert_eq!(
+        backend
+            .get_procedural(procedural.id)
+            .await
+            .unwrap()
+            .map(|p| p.id),
+        Some(procedural.id)
+    );
+    backend.delete_procedural(procedural.id).await.unwrap();
+    assert!(
+        backend
+            .get_procedural(procedural.id)
+            .await
+            .unwrap()
+            .is_none(),
+        "deleted procedural memory must be gone"
+    );
 }

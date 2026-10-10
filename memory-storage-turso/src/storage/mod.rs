@@ -15,6 +15,8 @@ use do_memory_core::Result;
 // Re-export submodules
 pub mod batch;
 pub mod capacity;
+mod capacity_cleanup;
+pub(crate) mod capacity_intents;
 mod embedding_backend;
 mod embedding_tables;
 mod embeddings_internal;
@@ -23,6 +25,7 @@ pub mod heuristics;
 pub mod monitoring;
 pub mod patterns;
 pub mod procedural;
+pub mod query_builder;
 pub mod recommendations;
 pub mod search;
 pub mod tag_operations;
@@ -31,6 +34,9 @@ mod transaction_scope;
 // Multi-dimensional embedding storage (feature-gated)
 #[cfg(feature = "turso_multi_dimension")]
 mod embeddings_multi;
+
+// Capacity-eviction durable outbox type (issue #1070)
+pub use capacity_intents::CapacityEvictionIntent;
 
 pub use batch::episode_batch::BatchConfig;
 pub use episodes::EpisodeQuery;
@@ -41,6 +47,10 @@ pub use patterns::PATTERN_SELECT_COLUMNS;
 pub use patterns::PatternMetadata;
 pub use patterns::PatternQuery;
 pub use patterns::RawPatternQuery;
+pub use query_builder::{
+    EpisodeColumn, EpisodeQueryBuilder, FilterOp, PatternColumn, PatternQueryBuilder, QueryBuilder,
+    QueryColumn,
+};
 pub use tag_operations::TagStats;
 
 // Re-export dimension stats when multi-dimension feature is enabled

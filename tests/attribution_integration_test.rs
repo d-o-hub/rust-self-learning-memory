@@ -11,7 +11,7 @@ use chrono::Utc;
 use do_memory_core::episode::PatternId;
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use do_memory_core::{Episode, Heuristic, Pattern, PersistenceReceipt};
 use do_memory_storage_redb::RedbStorage;
@@ -26,6 +26,8 @@ use uuid::Uuid;
 /// inert companion in the Turso-only / redb-only cold-tracker tests.
 #[derive(Default)]
 struct InertBackend;
+
+impl StorageBackendCapabilities for InertBackend {}
 
 #[async_trait::async_trait]
 impl StorageBackend for InertBackend {

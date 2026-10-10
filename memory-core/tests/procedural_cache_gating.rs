@@ -11,15 +11,15 @@
 #![allow(clippy::expect_used)]
 
 use async_trait::async_trait;
-use do_memory_core::memory::SelfLearningMemory;
-use do_memory_core::procedural::{PatternEffectiveness, ProceduralMemory};
-use do_memory_core::{
-    Episode, Heuristic, MemoryConfig, Pattern, Result, StorageBackend, StorageBackendCapabilities,
-    TaskContext,
-};
 use do_memory_core::episode::PatternId;
-use std::collections::HashMap;
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::procedural::ProceduralMemory;
+use do_memory_core::{
+    Episode, Heuristic, MemoryConfig, Pattern, PatternEffectiveness, Result, StorageBackend,
+    StorageBackendCapabilities, TaskContext,
+};
 use parking_lot::Mutex;
+use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -65,7 +65,6 @@ impl StorageBackend for ProceduralCache {
         self.store_calls.lock().push(procedural.id);
         self.procedurals
             .lock()
-            .unwrap()
             .insert(procedural.id, procedural.clone());
         Ok(())
     }

@@ -67,6 +67,14 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 - **Tests**: ≥70% coverage floor (90% target); `#[tokio::test]` for async; AAA pattern.
 - **Docs**: URLs wrapped in `<...>`; new public types re-exported from `lib.rs`.
 
+## Workflow Traps (2026-10, read before merging)
+
+- **Bot/agent branches**: `mergeable=MERGEABLE` ≠ no lost work. Diff the tip against the merge base (`git diff <merge-base> <tip> --stat`) before merging a long-lived branch; PR #1130's tip silently reverted four merged PRs.
+- **Floating `stable`**: new deny-by-default lints appear between releases (clippy `assert_is_empty`, rustdoc `redundant_explicit_links` in 1.99). `rustup update stable` before diagnosing CI-only lint failures; fix the lint, never suppress.
+- **Shared `CARGO_TARGET_DIR`**: concurrent worktree builds can replace test binaries and fake mass failures — re-run the failing test in isolation before believing it.
+- **Strict up-to-date checks**: every merge invalidates the other PRs' required runs; merge as a serial pipeline (update the next branch immediately after each merge).
+- **Machine-readable output**: never trust a job whose report file is empty (e.g. `--message-format libtest-json` needs `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`); assert the artifact exists.
+
 ## Dev Harness (do-harness)
 
 Sensors live in `do-harness.toml` (fmt, check, clippy, test, deny, loc) and map to guides in `HARNESS.md`. `do-harness verify --record` runs the suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Sensor fired? Fix that sensor first, then commit.

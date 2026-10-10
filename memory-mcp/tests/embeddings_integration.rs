@@ -1,15 +1,26 @@
 //! Integration tests for embedding MCP tools
 #![allow(clippy::expect_used)]
 
-use do_memory_core::SelfLearningMemory;
+use do_memory_core::embeddings::{
+    EPISODE_NAMESPACE, EmbeddingConfig, EmbeddingStorageAdapter, EmbeddingStorageBackend,
+    EmbeddingStorageScope, EphemeralEmbeddingStorage, MockLocalModel, ProviderConfig,
+    SemanticService,
+};
+use do_memory_core::episode::PatternId;
+use do_memory_core::{
+    Episode, Heuristic, MemoryConfig, Pattern, SelfLearningMemory, StorageBackend,
+    StorageBackendCapabilities,
+};
 use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
     EmbeddingTools, QuerySemanticMemoryInput, configure_embeddings_tool,
-    query_semantic_memory_tool, test_embeddings_tool,
+    configured_embedding_storage, query_semantic_memory_tool, test_embeddings_tool,
 };
 use do_memory_mcp::server::MemoryMCPServer;
 use do_memory_mcp::types::SandboxConfig;
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 /// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
 #[allow(unsafe_code)]
@@ -671,6 +682,8 @@ async fn test_configure_embeddings_output_contract_has_no_credential_field() {
         activation_revision: Some(1),
         reindex_required: false,
         provider_health: "active".to_string(),
+        storage_mode: "durable".to_string(),
+        storage_scope: "emb_v1:openai:text-embedding-3-small:1536#r1".to_string(),
     };
 
     let json = serde_json::to_value(&output).expect("output must serialize");
@@ -689,6 +702,8 @@ async fn test_configure_embeddings_output_contract_has_no_credential_field() {
         "activation_revision",
         "reindex_required",
         "provider_health",
+        "storage_mode",
+        "storage_scope",
     ]
     .into_iter()
     .collect();
@@ -757,4 +772,339 @@ async fn test_configure_embeddings_credential_error_names_var_not_value() {
             "error must not contain credential material '{sentinel}': {msg}"
         );
     }
+}
+
+// ── REA-2026-07-26 / #1073: identity-scoped embedding storage ────────────────
+//
+// `configure_embeddings` selects its store through `configured_embedding_storage`.
+// These tests exercise that exact selection with a recording fake backend so the
+// durable path is covered without a live provider (CI has no model/key).
+
+/// Fake `StorageBackend` that records namespaced embedding stores/reads.
+#[derive(Default)]
+struct RecordingStorageBackend {
+    embeddings: Mutex<HashMap<String, Vec<f32>>>,
+    stores: Mutex<Vec<String>>,
+    reads: Mutex<Vec<String>>,
+    fail_store: AtomicBool,
+}
+
+impl RecordingStorageBackend {
+    fn new() -> Arc<Self> {
+        Arc::new(Self::default())
+    }
+
+    fn stored_keys(&self) -> Vec<String> {
+        self.stores.lock().expect("stores lock").clone()
+    }
+
+    fn read_keys(&self) -> Vec<String> {
+        self.reads.lock().expect("reads lock").clone()
+    }
+
+    fn set_fail_store(&self, fail: bool) {
+        self.fail_store.store(fail, Ordering::SeqCst);
+    }
+}
+
+impl StorageBackendCapabilities for RecordingStorageBackend {}
+
+#[async_trait::async_trait]
+impl StorageBackend for RecordingStorageBackend {
+    async fn store_episode(&self, _episode: &Episode) -> Result<(), do_memory_core::Error> {
+        Ok(())
+    }
+
+    async fn get_episode(&self, _id: uuid::Uuid) -> Result<Option<Episode>, do_memory_core::Error> {
+        Ok(None)
+    }
+
+    async fn delete_episode(&self, _id: uuid::Uuid) -> Result<(), do_memory_core::Error> {
+        Ok(())
+    }
+
+    async fn store_pattern(&self, _pattern: &Pattern) -> Result<(), do_memory_core::Error> {
+        Ok(())
+    }
+
+    async fn get_pattern(&self, _id: PatternId) -> Result<Option<Pattern>, do_memory_core::Error> {
+        Ok(None)
+    }
+
+    async fn store_heuristic(&self, _heuristic: &Heuristic) -> Result<(), do_memory_core::Error> {
+        Ok(())
+    }
+
+    async fn get_heuristic(
+        &self,
+        _id: uuid::Uuid,
+    ) -> Result<Option<Heuristic>, do_memory_core::Error> {
+        Ok(None)
+    }
+
+    async fn query_episodes_since(
+        &self,
+        _since: chrono::DateTime<chrono::Utc>,
+        _limit: Option<usize>,
+    ) -> Result<Vec<Episode>, do_memory_core::Error> {
+        Ok(Vec::new())
+    }
+
+    async fn query_episodes_by_metadata(
+        &self,
+        _key: &str,
+        _value: &str,
+        _limit: Option<usize>,
+    ) -> Result<Vec<Episode>, do_memory_core::Error> {
+        Ok(Vec::new())
+    }
+
+    async fn store_embedding(
+        &self,
+        id: &str,
+        embedding: Vec<f32>,
+    ) -> Result<(), do_memory_core::Error> {
+        if self.fail_store.load(Ordering::SeqCst) {
+            return Err(do_memory_core::Error::Storage(
+                "injected store failure".into(),
+            ));
+        }
+        self.stores
+            .lock()
+            .expect("stores lock")
+            .push(id.to_string());
+        self.embeddings
+            .lock()
+            .expect("embeddings lock")
+            .insert(id.to_string(), embedding);
+        Ok(())
+    }
+
+    async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>, do_memory_core::Error> {
+        self.reads.lock().expect("reads lock").push(id.to_string());
+        Ok(self
+            .embeddings
+            .lock()
+            .expect("embeddings lock")
+            .get(id)
+            .cloned())
+    }
+
+    async fn delete_embedding(&self, id: &str) -> Result<bool, do_memory_core::Error> {
+        Ok(self
+            .embeddings
+            .lock()
+            .expect("embeddings lock")
+            .remove(id)
+            .is_some())
+    }
+
+    async fn store_embeddings_batch(
+        &self,
+        embeddings: Vec<(String, Vec<f32>)>,
+    ) -> Result<(), do_memory_core::Error> {
+        for (id, embedding) in embeddings {
+            self.store_embedding(&id, embedding).await?;
+        }
+        Ok(())
+    }
+
+    async fn get_embeddings_batch(
+        &self,
+        ids: &[String],
+    ) -> Result<Vec<Option<Vec<f32>>>, do_memory_core::Error> {
+        let guard = self.embeddings.lock().expect("embeddings lock");
+        Ok(ids.iter().map(|id| guard.get(id).cloned()).collect())
+    }
+
+    async fn list_embedding_ids(&self) -> Result<Vec<String>, do_memory_core::Error> {
+        Ok(self
+            .embeddings
+            .lock()
+            .expect("embeddings lock")
+            .keys()
+            .cloned()
+            .collect())
+    }
+}
+
+fn test_scope(identity: &str, revision: u64) -> EmbeddingStorageScope {
+    EmbeddingStorageScope::new(identity, revision)
+}
+
+/// With storage configured, the MCP selection must produce a durable adapter
+/// that writes namespaced keys into the configured backend.
+#[tokio::test]
+async fn test_configured_embedding_storage_uses_configured_backend() {
+    let backend = RecordingStorageBackend::new();
+    let memory =
+        SelfLearningMemory::with_storage(MemoryConfig::default(), backend.clone(), backend.clone());
+    let provider = ProviderConfig::openai_3_small();
+
+    let selected = configured_embedding_storage(&memory, &provider);
+
+    assert!(
+        selected.mode.is_durable(),
+        "configured storage must be durable"
+    );
+    assert_eq!(selected.mode.label(), "durable");
+    assert_eq!(
+        selected.mode.scope().provider_identity(),
+        provider.cache_identity()
+    );
+    assert_eq!(
+        selected.mode.scope().config_revision(),
+        provider.config_revision()
+    );
+
+    let episode_id = uuid::Uuid::new_v4();
+    selected
+        .storage
+        .store_episode_embedding(episode_id, vec![1.0, 0.0])
+        .await
+        .expect("store through adapter");
+
+    let expected = selected
+        .mode
+        .scope()
+        .logical_key(EPISODE_NAMESPACE, &episode_id.to_string());
+    assert_eq!(backend.stored_keys(), vec![expected.clone()]);
+    assert!(
+        expected.starts_with("emb_v1:"),
+        "key must be schema-versioned"
+    );
+    assert!(
+        expected.contains("openai:text-embedding-3-small:1536"),
+        "key must carry the provider identity: {expected}"
+    );
+
+    assert_eq!(
+        selected
+            .storage
+            .get_episode_embedding(episode_id)
+            .await
+            .unwrap(),
+        Some(vec![1.0, 0.0])
+    );
+    assert!(backend.read_keys().contains(&expected));
+}
+
+/// Switching providers must produce a different scope, and the new provider
+/// must not be able to read vectors written under the old identity.
+#[tokio::test]
+async fn test_reconfiguration_cannot_read_previous_provider_vectors() {
+    let backend = RecordingStorageBackend::new();
+    let memory =
+        SelfLearningMemory::with_storage(MemoryConfig::default(), backend.clone(), backend.clone());
+
+    let episode_id = uuid::Uuid::new_v4();
+    let small = configured_embedding_storage(&memory, &ProviderConfig::openai_3_small());
+    small
+        .storage
+        .store_episode_embedding(episode_id, vec![1.0])
+        .await
+        .expect("store under first provider");
+
+    let large = configured_embedding_storage(&memory, &ProviderConfig::openai_3_large());
+    assert_ne!(
+        small.mode.scope().key_prefix(),
+        large.mode.scope().key_prefix(),
+        "provider switch must change the storage scope"
+    );
+    assert_eq!(
+        large
+            .storage
+            .get_episode_embedding(episode_id)
+            .await
+            .unwrap(),
+        None,
+        "a reconfigured provider must not read the previous provider's vectors"
+    );
+
+    // A bumped configuration revision under the same identity is also isolated.
+    let identity = "openai:text-embedding-3-small:1536";
+    let revision_one = EmbeddingStorageAdapter::new(backend.clone(), None, test_scope(identity, 1));
+    let revision_two = EmbeddingStorageAdapter::new(backend.clone(), None, test_scope(identity, 2));
+    let other = uuid::Uuid::new_v4();
+    revision_one
+        .store_episode_embedding(other, vec![0.5])
+        .await
+        .expect("store revision one");
+    assert_eq!(
+        revision_two.get_episode_embedding(other).await.unwrap(),
+        None,
+        "a new config revision must not read older vectors"
+    );
+}
+
+/// Without storage backends the MCP selection must be explicitly ephemeral.
+#[tokio::test]
+async fn test_configured_embedding_storage_without_backends_is_ephemeral() {
+    let memory = SelfLearningMemory::new();
+    let provider = ProviderConfig::mistral_embed();
+    let selected = configured_embedding_storage(&memory, &provider);
+
+    assert!(!selected.mode.is_durable());
+    assert_eq!(selected.mode.label(), "ephemeral");
+    assert!(!selected.storage.is_durable());
+    assert_eq!(
+        selected.storage.storage_scope(),
+        Some(selected.mode.scope().clone())
+    );
+}
+
+/// Status output must identify ephemeral storage and restart loss truthfully.
+#[tokio::test]
+async fn test_status_reports_ephemeral_scope_and_restart_loss() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let scope = test_scope("local:mini:384", 1);
+    let config = EmbeddingConfig::default();
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock-model".to_string(), 384)),
+        Box::new(EphemeralEmbeddingStorage::new(scope.clone())),
+        config,
+    );
+    memory
+        .activate_semantic_service(Arc::new(service), scope.provider_identity().to_string())
+        .await;
+
+    let tools = EmbeddingTools::new(Arc::clone(&memory));
+    let output = tools
+        .execute_embedding_provider_status(EmbeddingProviderStatusInput {
+            test_connectivity: false,
+        })
+        .await
+        .expect("status");
+
+    assert!(output.configured);
+    assert_eq!(output.storage_mode, "ephemeral");
+    assert_eq!(
+        output.storage_scope.as_deref(),
+        Some(scope.key_prefix().as_str())
+    );
+    assert!(
+        output
+            .warnings
+            .iter()
+            .any(|w| w.contains("lost on restart")),
+        "ephemeral status must warn about restart loss: {:?}",
+        output.warnings
+    );
+}
+
+/// A durable failure on the primary backend must surface, not be swallowed.
+#[tokio::test]
+async fn test_configured_embedding_storage_surfaces_primary_failure() {
+    let backend = RecordingStorageBackend::new();
+    let memory =
+        SelfLearningMemory::with_storage(MemoryConfig::default(), backend.clone(), backend.clone());
+    let selected = configured_embedding_storage(&memory, &ProviderConfig::openai_3_small());
+
+    backend.set_fail_store(true);
+    let error = selected
+        .storage
+        .store_episode_embedding(uuid::Uuid::new_v4(), vec![1.0])
+        .await
+        .expect_err("primary store failure must surface");
+    assert!(error.to_string().contains("injected store failure"));
 }

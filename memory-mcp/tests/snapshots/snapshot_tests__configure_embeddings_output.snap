@@ -11,5 +11,7 @@ expression: output
   "warnings": [],
   "activation_revision": 1,
   "reindex_required": false,
-  "provider_health": "active"
+  "provider_health": "active",
+  "storage_mode": "durable",
+  "storage_scope": "emb_v1:openai:text-embedding-3-small:1536#r42"
 }

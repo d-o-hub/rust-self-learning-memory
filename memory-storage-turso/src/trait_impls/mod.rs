@@ -111,6 +111,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_embeddings_batch_backend(self, ids).await
     }
 
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        super::TursoStorage::list_embedding_ids_backend(self).await
+    }
+
     // ========== Relationship Storage Methods ==========
 
     async fn store_relationship(

@@ -57,6 +57,7 @@ pub(crate) mod semantic_text;
 mod similarity;
 pub mod simple;
 mod storage;
+mod storage_adapter;
 mod utils;
 
 pub use activation::EmbeddingActivation;
@@ -85,7 +86,14 @@ pub use semantic_service::{DEFAULT_EMBEDDING_DIM, SemanticService};
 pub use similarity::{
     SimilarityMetadata, SimilaritySearchResult, cosine_similarity, cosine_similarity_simd,
 };
-pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
+pub use storage::{
+    EMBEDDING_STORAGE_SCHEMA_VERSION, EPISODE_NAMESPACE, EmbeddingStorageBackend,
+    EmbeddingStorageScope, InMemoryEmbeddingStorage, PATTERN_NAMESPACE,
+};
+pub use storage_adapter::{
+    EmbeddingStorageAdapter, EmbeddingStorageMode, EphemeralEmbeddingStorage,
+    SelectedEmbeddingStorage,
+};
 
 #[cfg(test)]
 mod coalescing_tests;

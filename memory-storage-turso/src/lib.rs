@@ -80,10 +80,6 @@
     test,
     expect(clippy::panic, reason = "panic used for invariant violations")
 )]
-#![cfg_attr(
-    test,
-    expect(clippy::float_cmp, reason = "exact comparisons for known constants")
-)]
 #![expect(
     clippy::items_after_statements,
     reason = "helpers declared next to use"

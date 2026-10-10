@@ -69,6 +69,7 @@ jsonwebtoken = { version = "11.0.0", features = ["rust_crypto"] }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
+async-trait = { workspace = true }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
 insta = { version = "1.47", features = ["json", "yaml"] }
 proptest = "1.11"

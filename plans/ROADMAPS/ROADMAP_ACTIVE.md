@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-04
+**Last Updated**: 2026-10-06
 **Released Version**: v0.1.44 (latest tag)
 **Workspace Version**: 0.1.45 (post-v0.1.44 bump)
-**Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (W1–W6). Trigger: 22 open code issues (#1063–#1092) were filed at audit baseline `9f50c607` and had been absent from every tracker; re-validation at `74a44a15` confirmed **none of them were fixed** by the intervening releases.
+**Active plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (W1–W6 + queued ACT-376…385). Status: **W1–W4 merged 2026-10-05** (#1131, #1135, #1134, #1139); **W5/W6 + Q02 in review** (#1138, #1140, #1130). Trigger: 22 open code issues (#1063–#1092) were filed at audit baseline `9f50c607` and had been absent from every tracker; re-validation at `74a44a15` confirmed none were fixed.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: main @ `74a44a15` (v0.1.44 tagged on `4f4f4ba8`; PR #1126 merged 2026-10-04)
+**Branch**: main @ `0485bb66` (v0.1.44 tagged on `4f4f4ba8`; audit-wave merges through 2026-10-05)
 **Open PRs**: run `gh pr list --state open` — counts are deliberately not pinned in this header; it rotted twice (`validate-plans.sh --tracker-drift` now guards it)
 **Open issues**: run `gh issue list --state open` — the open set is a registered audit backlog, not free work: per-issue verdicts and evidence live in `STATUS/GAP_ANALYSIS_LATEST.md`
 
@@ -14,12 +14,32 @@
 
 | Prio | Area | Item | Status |
 |------|------|------|--------|
-| P1 | Core | #1077 (R06) ranking read guard held across `get_all_patterns().await` and the recommendation await — AGENTS.md invariant violation | 🔄 W1 |
-| P2 | MCP | #1086 (M05) latency computed from `as_secs()` → every sub-second request records 0 ms | 🔄 W2 |
-| P2 | Storage | #1088 (M07) `save_episode_tags` `BEGIN`/`COMMIT` with `?` early returns and no `ROLLBACK` | 🔄 W3 |
-| P1 | Storage | #1066 (S07) redb episode→session index overwritten by write order, not by `(timestamp, session_id)` | 🔄 W4 |
-| P1 | Retrieval | #1075 (R04) `calculate_keyword_similarity` returns the constant `0.5`, ignoring query and pattern | 🔄 W5 |
-| P1 | MCP | #1085 (M04) health infers connectivity from env-var existence, hard-codes cache metrics to zero, reports `uptime 0` — **and leaks `TURSO_DATABASE_URL` into the response** | 🔄 W6 |
+| P1 | Core | #1077 (R06) ranking read guard held across `get_all_patterns().await` and the recommendation await — AGENTS.md invariant violation | ✅ Merged (#1131) |
+| P2 | MCP | #1086 (M05) latency computed from `as_secs()` → every sub-second request records 0 ms | ✅ Merged (#1135) |
+| P2 | Storage | #1088 (M07) `save_episode_tags` `BEGIN`/`COMMIT` with `?` early returns and no `ROLLBACK` | ✅ Merged (#1134) |
+| P1 | Storage | #1066 (S07) redb episode→session index overwritten by write order, not by `(timestamp, session_id)` | ✅ Merged (#1139) |
+| P1 | Retrieval | #1075 (R04) `calculate_keyword_similarity` returns the constant `0.5`, ignoring query and pattern | 🔄 In review (#1138) — roast-fixed |
+| P1 | MCP | #1085 (M04) health infers connectivity from env-var existence, hard-codes cache metrics to zero, reports `uptime 0` — **and leaks `TURSO_DATABASE_URL` into the response** | 🔄 In review (#1140) — roast-fixed |
+| P1 | Tests | #1091 (Q02) ignored-test inventory + un-ignored protocol tests + isolated fail-visible nightly Turso job (159 entries; ADR-027 refreshed) | ✅ Merged (#1130, 2026-10-06) |
+
+## Sprint 2026-10-06 — wave A slices (in review)
+
+| Prio | Area | Item | Status |
+|------|------|------|--------|
+| P1 | Storage | #1065 (S06) recommendation timestamp precision + deterministic tie-break | ✅ Merged (#1142) |
+| P1 | Observability | #1079 (R08) execution-backed retrieval provenance | ✅ Merged (#1148) |
+| P2 | Quality | #1092 (Q03) lint suppressions — slice 1 turso `unsafe_code` peel + ratchet | ✅ Merged (#1143; slice 2 #1153 in review) |
+| P1 | Storage | #1067 (S08) modification watermark + bounded keyset pages (revision table, durable watermark, Turso backfill) | 🔄 In review (#1149) — 6 roast MAJORs fixed |
+| P1 | Storage | #1064 (S05) scoped pool checkout retaining permits; roast BLOCKER (nested checkout) fixed | 🔄 In review (#1147) |
+| P1 | Storage | #1070 (S11) capacity eviction: durable outbox + single transaction + partial outcome | 🔄 In review (#1150) |
+| P1 | Pool | #1063 (S04) adaptive pool capacity model + monotonic cooldown (E4 test replaced) | 🔄 In review (#1146) |
+| P1 | Storage | #1071 (S12) strict row decode + allowlisted query builder | 🔄 In review (#1145) |
+| P1 | Embeddings | #1073 (R02) identity-scoped embedding storage adapter | 🔄 In review (#1151) |
+| P2 | Ranking | #1078 (R07) incremental ranking index (100k: 222 ms → 0.84 µs) + benches | 🔄 In review (#1154) |
+| P1 | Storage | #1087 (M06) capability truth: cleanup pair / procedural+relationships / inventory+lint | 🔄 In review (#1144, #1152, #1158) |
+| P2 | CI | Nightly isolated-job libtest-JSON flag fix (follow-up to #1130) | 🔄 In review (#1159) |
+
+**Next queue**: #1068 + #1089 (after #1149 merges), #1074 (in flight), #1076 (after #1074). Release `v0.1.45` follows the wave (#1137).
 
 ## Sprint 2026-10-02 — Durability receipts + toolchain hygiene
 

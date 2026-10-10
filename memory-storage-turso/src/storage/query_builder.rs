@@ -376,7 +376,7 @@ mod tests {
         assert!(!sql.contains("WHERE"));
         assert!(!sql.contains("ORDER BY"));
         assert!(!sql.contains("LIMIT"));
-        assert!(params.is_empty());
+        assert!(params.is_empty(), "a bare SELECT binds no parameters");
     }
 
     /// `filter_null(true)` renders `IS NULL` and ascending order renders `ASC`.
@@ -391,7 +391,7 @@ mod tests {
         assert!(sql.contains("end_time IS NULL"));
         assert!(sql.contains("ORDER BY start_time ASC"));
         assert!(sql.contains("LIMIT 7"));
-        assert!(params.is_empty());
+        assert!(params.is_empty(), "IS NULL and ORDER BY bind no parameters");
     }
 
     /// Several filters are conjoined and their values keep placeholder order.

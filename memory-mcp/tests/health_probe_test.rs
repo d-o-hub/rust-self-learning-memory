@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use do_memory_core::episode::PatternId;
 use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory, StorageBackend,
+    StorageBackendCapabilities,
 };
 use do_memory_mcp::monitoring::types::BackendStatus;
 use do_memory_mcp::monitoring::{MonitoringConfig, MonitoringSystem, build_health_response};
@@ -88,6 +89,11 @@ impl StorageBackend for BrokenBackend {
         Err(Error::Storage(SECRET_DRIVER_DETAIL.to_string()))
     }
 }
+
+/// A backend with no optional capabilities: liveness runs through the required-method
+/// [`health_check`](StorageBackend::health_check) default, and every optional operation stays
+/// unadvertised.
+impl StorageBackendCapabilities for BrokenBackend {}
 
 async fn redb_backend(dir: &tempfile::TempDir, name: &str) -> Arc<dyn StorageBackend> {
     let storage = RedbStorage::new(&dir.path().join(name))

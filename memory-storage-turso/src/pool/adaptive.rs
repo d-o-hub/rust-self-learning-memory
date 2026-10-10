@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::OwnedSemaphorePermit;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Unique identifier for a connection
 pub type ConnectionId = u64;
@@ -298,7 +298,9 @@ impl AdaptiveConnectionPool {
         let handle = self.monitor.lock().take();
         if let Some(handle) = handle {
             handle.shutdown.notify_one();
-            let _ = handle.task.await;
+            if let Err(error) = handle.task.await {
+                warn!("Adaptive connection pool monitor stopped abnormally: {error}");
+            }
         }
 
         info!("Adaptive connection pool shutdown complete");

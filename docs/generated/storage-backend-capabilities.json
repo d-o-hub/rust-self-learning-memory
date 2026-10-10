@@ -5,12 +5,12 @@
     "memory-core/src/storage/backend.rs"
   ],
   "summary": {
-    "methods_total": 42,
+    "methods_total": 43,
     "required": 14,
-    "defaulted": 28,
+    "defaulted": 29,
     "capability_gated": 10,
     "value_returning_with_typed_fallback": 14,
-    "genuinely_safe_default": 1,
+    "genuinely_safe_default": 2,
     "capability_declaration": 3
   },
   "methods": [
@@ -223,6 +223,16 @@
       "default_body": "empty-vec",
       "justification": "Typed empty-list fallback today; an unsupported backend looks like an isolated episode.",
       "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+    },
+    {
+      "name": "health_check",
+      "signature": "defaulted",
+      "classification": "genuinely-safe-default",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "delegate",
+      "justification": "Delegates to the required get_episode: a backend whose read path answers is alive, and the default stores or fabricates nothing.",
+      "pending": null
     },
     {
       "name": "list_recommendation_feedback",

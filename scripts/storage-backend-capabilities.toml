@@ -201,3 +201,13 @@ name = "query_procedural"
 classification = "value-returning-with-typed-fallback"
 justification = "Typed empty-list fallback today; an unsupported query looks like 'no records'."
 pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+# ---------------------------------------------------------------------------
+# Liveness (#1085 added this default after the overlay was written)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "health_check"
+classification = "genuinely-safe-default"
+justification = "Delegates to the required get_episode: a backend whose read path answers is alive, and the default stores or fabricates nothing."
+

@@ -8,11 +8,11 @@
 //! table untouched (issue #1069).
 
 use super::super::{
-    DATA_TABLE_NAMES, EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE,
-    HEURISTICS_TABLE, KNOWN_TABLE_NAMES, METADATA_TABLE, PATTERNS_TABLE, PROCEDURAL_TABLE,
-    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
-    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SCHEMA_VERSION, SCHEMA_VERSION_TABLE,
-    SUMMARIES_TABLE, with_db_timeout,
+    DATA_TABLE_NAMES, EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE,
+    EPISODE_REVISIONS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, KNOWN_TABLE_NAMES, METADATA_TABLE,
+    PATTERNS_TABLE, PROCEDURAL_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
+    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE,
+    SCHEMA_VERSION, SCHEMA_VERSION_TABLE, SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
 use do_memory_core::{Error, Result};
@@ -93,6 +93,10 @@ impl RedbStorage {
                 let _episodes = write_txn
                     .open_table(EPISODES_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
+                let _episode_revisions =
+                    write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                        Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                    })?;
                 let _patterns = write_txn
                     .open_table(PATTERNS_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open patterns table: {}", e)))?;
@@ -247,6 +251,25 @@ impl RedbStorage {
                     Err(e) => {
                         return Err(Error::Storage(format!(
                             "Failed to open recommendation_episode_index table: {}",
+                            e
+                        )));
+                    }
+                }
+            }
+
+            // Tables with non-byte values are probed with their own type.
+            if !has_data {
+                match read_txn.open_table(EPISODE_REVISIONS_TABLE) {
+                    Ok(table) => {
+                        let len = table.len().map_err(|e| {
+                            Error::Storage(format!("Failed to count episode_revisions rows: {}", e))
+                        })?;
+                        has_data = len > 0;
+                    }
+                    Err(TableError::TableDoesNotExist(_)) => {}
+                    Err(e) => {
+                        return Err(Error::Storage(format!(
+                            "Failed to open episode_revisions table: {}",
                             e
                         )));
                     }

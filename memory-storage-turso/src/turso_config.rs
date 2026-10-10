@@ -21,6 +21,10 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
             .await?;
         self.ensure_episodes_checkpoints_column(&conn).await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_REVISIONS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_REVISIONS_WATERMARK_INDEX)
+            .await?;
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_TABLE)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
@@ -92,6 +96,7 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
             .await?;
+        self.ensure_episode_revisions_backfill(&conn).await?;
 
         // Durable capacity-eviction cleanup outbox (issue #1070)
         self.execute_with_retry(
@@ -218,6 +223,39 @@ impl TursoStorage {
     #[allow(dead_code)] // Feature-gated stub: empty implementation when turso_multi_dimension disabled
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn initialize_vector_tables(&self, _conn: &libsql::Connection) -> Result<()> {
+        Ok(())
+    }
+
+    /// Backfill modification watermarks for episodes written before
+    /// `episode_revisions` existed.
+    ///
+    /// Without this, the sync query's INNER JOIN hides every pre-existing
+    /// episode from incremental sync until it is rewritten. Runs once, guarded
+    /// by a metadata flag so startup does not rescan the episodes table.
+    async fn ensure_episode_revisions_backfill(&self, conn: &libsql::Connection) -> Result<()> {
+        use crate::storage::metadata::{
+            EPISODE_REVISIONS_BACKFILL_KEY, get_metadata, store_metadata,
+        };
+
+        if get_metadata(conn, EPISODE_REVISIONS_BACKFILL_KEY)
+            .await?
+            .is_some()
+        {
+            return Ok(());
+        }
+
+        const BACKFILL: &str = r#"
+            INSERT OR IGNORE INTO episode_revisions (episode_id, modified_at_ms)
+            SELECT episode_id, start_time * 1000 FROM episodes
+        "#;
+
+        conn.execute(BACKFILL, ()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to backfill episode revisions: {e}"))
+        })?;
+
+        store_metadata(conn, EPISODE_REVISIONS_BACKFILL_KEY, "1").await?;
+
+        debug!("Backfilled episode_revisions for pre-existing episodes");
         Ok(())
     }
 

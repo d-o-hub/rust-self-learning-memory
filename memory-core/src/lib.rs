@@ -302,7 +302,7 @@ pub use security::audit::{
 };
 pub use storage::{
     DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, StorageBackendCapabilities,
-    apply_query_limit,
+    SyncWatermarkBackend, apply_query_limit,
 };
 pub use types::{
     CloudEvent, ComplexityLevel, ConcurrencyConfig, DualRewardScore, EventEmitter,

@@ -6,10 +6,10 @@
 //! schema-inspection path clears data any more (issue #1069).
 
 use super::super::{
-    EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE,
-    METADATA_TABLE, PATTERNS_TABLE, PROCEDURAL_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
-    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE,
-    SUMMARIES_TABLE, with_db_timeout,
+    EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, EPISODE_REVISIONS_TABLE, EPISODES_TABLE,
+    HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE, PROCEDURAL_TABLE,
+    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
 use do_memory_core::{Error, Result};
@@ -58,6 +58,27 @@ impl RedbStorage {
             {
                 // Clear each table by removing all entries
                 Self::clear_table_entries(&write_txn, EPISODES_TABLE, "episodes")?;
+                {
+                    // `episode_revisions` is `(&str, i64)`, so it needs its own
+                    // clearing pass rather than `clear_table_entries`.
+                    let mut revisions =
+                        write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                            Error::Storage(format!("Failed to open episode_revisions table: {}", e))
+                        })?;
+                    let keys: Vec<String> = revisions
+                        .iter()
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to iterate episode_revisions: {}", e))
+                        })?
+                        .filter_map(|item| item.ok())
+                        .map(|(k, _v)| k.value().to_string())
+                        .collect();
+                    for key in keys {
+                        revisions.remove(key.as_str()).map_err(|e| {
+                            Error::Storage(format!("Failed to remove episode_revisions key: {}", e))
+                        })?;
+                    }
+                }
                 Self::clear_table_entries(&write_txn, PATTERNS_TABLE, "patterns")?;
                 Self::clear_table_entries(&write_txn, HEURISTICS_TABLE, "heuristics")?;
                 Self::clear_table_entries(&write_txn, EMBEDDINGS_TABLE, "embeddings")?;

@@ -3,8 +3,18 @@
 use crate::TursoStorage;
 use crate::storage::tag_operations::{get_episode_tags, save_episode_tags};
 use do_memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 use uuid::Uuid;
+
+/// Best-effort rollback of an open Turso transaction.
+///
+/// The caller keeps the original error; a failed rollback is logged because the
+/// connection is about to be dropped, which also aborts the transaction.
+async fn rollback(conn: &libsql::Connection) {
+    if let Err(e) = conn.execute("ROLLBACK", ()).await {
+        error!("Failed to rollback episode transaction: {}", e);
+    }
+}
 
 impl TursoStorage {
     /// Store an episode
@@ -42,26 +52,54 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            episode.episode_id.to_string(),
-            episode.task_type.to_string(),
-            episode.task_description.clone(),
-            context_json,
-            episode.start_time.timestamp(),
-            episode.end_time.map(|t| t.timestamp()),
-            steps_json,
-            outcome_json,
-            reward_json,
-            reflection_json,
-            patterns_json,
-            heuristics_json,
-            checkpoints_json,
-            metadata_json,
-            episode.context.domain.clone(),
-            episode.context.language.clone(),
-        ])
+        // The episode row and its revision must commit together: the sync query
+        // INNER JOINs `episode_revisions`, so a revision-less episode would be
+        // invisible to incremental sync forever.
+        conn.execute("BEGIN TRANSACTION", ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to begin episode transaction: {}", e)))?;
+
+        if let Err(e) = stmt
+            .execute(libsql::params![
+                episode.episode_id.to_string(),
+                episode.task_type.to_string(),
+                episode.task_description.clone(),
+                context_json,
+                episode.start_time.timestamp(),
+                episode.end_time.map(|t| t.timestamp()),
+                steps_json,
+                outcome_json,
+                reward_json,
+                reflection_json,
+                patterns_json,
+                heuristics_json,
+                checkpoints_json,
+                metadata_json,
+                episode.context.domain.clone(),
+                episode.context.language.clone(),
+            ])
+            .await
+        {
+            rollback(&conn).await;
+            return Err(Error::Storage(format!("Failed to store episode: {}", e)));
+        }
+
+        // Refresh the modification watermark; this is what incremental sync
+        // observes, independently of the episode's (possibly old) start_time.
+        if let Err(e) = crate::storage::episodes::revision::record_episode_revision(
+            &conn,
+            &episode.episode_id.to_string(),
+            chrono::Utc::now().timestamp_millis(),
+        )
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
+        {
+            rollback(&conn).await;
+            return Err(e);
+        }
+
+        conn.execute("COMMIT", ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to commit episode transaction: {}", e)))?;
 
         // Store tags if any
         if !episode.tags.is_empty() {
@@ -120,9 +158,26 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        stmt.execute(libsql::params![id.to_string()])
+        conn.execute("BEGIN TRANSACTION", ())
             .await
-            .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to begin delete transaction: {}", e)))?;
+
+        if let Err(e) = stmt.execute(libsql::params![id.to_string()]).await {
+            rollback(&conn).await;
+            return Err(Error::Storage(format!("Failed to delete episode: {}", e)));
+        }
+
+        if let Err(e) =
+            crate::storage::episodes::revision::forget_episode_revision(&conn, &id.to_string())
+                .await
+        {
+            rollback(&conn).await;
+            return Err(e);
+        }
+
+        conn.execute("COMMIT", ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to commit delete transaction: {}", e)))?;
 
         info!("Successfully deleted episode: {}", id);
         Ok(())

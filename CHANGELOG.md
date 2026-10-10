@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   nullable; raw episode and pattern queries abort instead of returning a
   partial result; a new allowlisted `QueryBuilder` offers the supported
   parameterized path alongside `query_with_params`.
+- Incremental storage sync now tracks a real modification watermark (#1067).
+  A side table records the last write time of each episode in both Turso and
+  redb, and the synchronizer walks bounded `(modified_at, episode_id)` keyset
+  pages instead of `start_time`, so edits to old episodes are propagated and a
+  dataset larger than one page syncs without duplicates or omissions. Revision
+  values are allocated strictly monotonically, the Turso episode row and its
+  revision commit in one transaction, and pre-existing Turso episodes are
+  backfilled once at startup. The watermark is persisted durably and advances
+  only after a whole page succeeds, so a restart resumes instead of re-basing
+  the window and a failed page stays retryable from the last durable progress.
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

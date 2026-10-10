@@ -6,6 +6,7 @@ use super::EpisodeQuery;
 use crate::TursoStorage;
 use do_memory_core::{Episode, Error, Result, apply_query_limit as core_apply_limit};
 use tracing::{debug, info};
+use uuid::Uuid;
 
 /// Apply query limit with defaults and bounds checking.
 /// Uses core module's function but provides local alias for convenience.
@@ -142,6 +143,93 @@ impl TursoStorage {
         Ok(episodes)
     }
 
+    /// Query episodes modified at or after a watermark using keyset pagination.
+    ///
+    /// Orders by `(episode_revisions.modified_at_ms, episode_revisions.episode_id)`
+    /// ascending. When `cursor` is supplied the scan resumes strictly after that
+    /// tuple, so episodes sharing a timestamp are neither skipped nor
+    /// duplicated. This observes edits to episodes whose `start_time` is older
+    /// than the watermark, which [`query_episodes_since`](Self::query_episodes_since)
+    /// cannot.
+    ///
+    /// # Arguments
+    ///
+    /// * `since` - Inclusive modification watermark
+    /// * `cursor` - Last `(modified_at, episode_id)` of the previous page
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
+    pub async fn query_episodes_modified_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+        cursor: Option<(chrono::DateTime<chrono::Utc>, Uuid)>,
+        limit: Option<usize>,
+    ) -> Result<Vec<(Episode, chrono::DateTime<chrono::Utc>)>> {
+        let effective_limit = apply_query_limit(limit);
+        let since_ms = since.timestamp_millis();
+
+        let mut sql = String::from(
+            r#"
+            SELECT e.episode_id, e.task_type, e.task_description, e.context,
+                   e.start_time, e.end_time, e.steps, e.outcome, e.reward,
+                   e.reflection, e.patterns, e.heuristics,
+                   COALESCE(e.checkpoints, '[]') AS checkpoints,
+                   e.metadata, e.domain, e.language,
+                   e.archived_at, r.modified_at_ms
+            FROM episode_revisions r
+            JOIN episodes e ON e.episode_id = r.episode_id
+            WHERE r.modified_at_ms >= ?
+        "#,
+        );
+
+        let mut params_vec: Vec<libsql::Value> = vec![since_ms.into()];
+
+        if let Some((cursor_at, cursor_id)) = cursor {
+            let cursor_ms = cursor_at.timestamp_millis();
+            sql.push_str(
+                " AND (r.modified_at_ms > ? OR (r.modified_at_ms = ? AND r.episode_id > ?))",
+            );
+            params_vec.push(cursor_ms.into());
+            params_vec.push(cursor_ms.into());
+            params_vec.push(cursor_id.to_string().into());
+        }
+
+        sql.push_str(" ORDER BY r.modified_at_ms ASC, r.episode_id ASC LIMIT ?");
+        params_vec.push((effective_limit as i64).into());
+
+        debug!(
+            "Querying episodes modified since {} (limit: {}, cursor: {:?})",
+            since, effective_limit, cursor
+        );
+
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let mut rows = conn
+            .query(&sql, libsql::params_from_iter(params_vec))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query modified episodes: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+        {
+            let episode = self.row_to_episode(&row).await?;
+            let modified_at_ms: i64 = row.get(17).map_err(|e| {
+                Error::Storage(format!("Failed to read episode revision timestamp: {}", e))
+            })?;
+            let modified_at = chrono::DateTime::from_timestamp_millis(modified_at_ms)
+                .unwrap_or(episode.start_time);
+            episodes.push((episode, modified_at));
+        }
+
+        info!(
+            "Found {} episodes modified since {} (limit: {})",
+            episodes.len(),
+            since,
+            effective_limit
+        );
+        Ok(episodes)
+    }
+
     /// Query episodes by metadata key-value pair
     ///
     /// Uses json_extract for efficient querying of JSON metadata fields.
@@ -212,117 +300,5 @@ impl TursoStorage {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use do_memory_core::{Episode, TaskContext, TaskType};
-    use tempfile::TempDir;
-
-    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
-        let dir = TempDir::new().unwrap();
-        let db_path = dir.path().join("test.db");
-
-        let db = libsql::Builder::new_local(&db_path)
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
-
-        let storage = TursoStorage::from_database(db)?;
-        storage.initialize_schema().await?;
-
-        Ok((storage, dir))
-    }
-
-    #[tokio::test]
-    async fn test_query_episodes_empty() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let query = EpisodeQuery::default();
-        let result = storage.query_episodes(&query).await.unwrap();
-        assert_eq!(result.len(), 0);
-    }
-
-    #[tokio::test]
-    async fn test_query_episodes_with_limit() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        // Create multiple episodes
-        for i in 0..5 {
-            let episode = Episode::new(
-                format!("Task {}", i),
-                TaskContext::default(),
-                TaskType::CodeGeneration,
-            );
-            storage.store_episode(&episode).await.unwrap();
-        }
-
-        // Query with limit
-        let query = EpisodeQuery {
-            limit: Some(3),
-            ..Default::default()
-        };
-        let result = storage.query_episodes(&query).await.unwrap();
-        assert_eq!(result.len(), 3);
-    }
-
-    #[tokio::test]
-    async fn test_query_episodes_by_task_type() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        // Create episodes with different task types
-        for i in 0..3 {
-            let episode = Episode::new(
-                format!("Code task {}", i),
-                TaskContext::default(),
-                TaskType::CodeGeneration,
-            );
-            storage.store_episode(&episode).await.unwrap();
-        }
-
-        for i in 0..2 {
-            let episode = Episode::new(
-                format!("Debug task {}", i),
-                TaskContext::default(),
-                TaskType::Debugging,
-            );
-            storage.store_episode(&episode).await.unwrap();
-        }
-
-        // Query by task type
-        let query = EpisodeQuery {
-            task_type: Some(TaskType::CodeGeneration),
-            ..Default::default()
-        };
-        let result = storage.query_episodes(&query).await.unwrap();
-        assert_eq!(result.len(), 3);
-    }
-
-    #[tokio::test]
-    async fn test_query_episodes_by_metadata() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let mut episode1 = Episode::new(
-            "Task with tag".to_string(),
-            TaskContext::default(),
-            TaskType::Refactoring,
-        );
-        episode1
-            .metadata
-            .insert("tag".to_string(), "important".to_string());
-        storage.store_episode(&episode1).await.unwrap();
-
-        let episode2 = Episode::new(
-            "Task without tag".to_string(),
-            TaskContext::default(),
-            TaskType::Refactoring,
-        );
-        storage.store_episode(&episode2).await.unwrap();
-
-        // Query by metadata
-        let result = storage
-            .query_episodes_by_metadata("tag", "important", None)
-            .await
-            .unwrap();
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].task_description, "Task with tag");
-    }
-}
+#[path = "query_tests.rs"]
+mod tests;

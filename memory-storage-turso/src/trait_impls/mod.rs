@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use do_memory_core::{Error, Result, StorageBackend};
+use do_memory_core::{Error, Result, StorageBackend, SyncWatermarkBackend};
 
 mod capabilities;
 
@@ -304,5 +304,44 @@ impl do_memory_core::monitoring::storage::MonitoringStorageBackend for super::Tu
         super::TursoStorage::load_task_metrics(self, task_type)
             .await
             .map_err(|e| Error::Storage(format!("Storage error: {}", e)))
+    }
+}
+
+/// Implement the incremental-sync watermark capabilities for TursoStorage.
+#[async_trait]
+impl SyncWatermarkBackend for super::TursoStorage {
+    async fn query_episodes_modified_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+        cursor: Option<(chrono::DateTime<chrono::Utc>, uuid::Uuid)>,
+        limit: Option<usize>,
+    ) -> Result<Vec<(do_memory_core::Episode, chrono::DateTime<chrono::Utc>)>> {
+        super::TursoStorage::query_episodes_modified_since(self, since, cursor, limit).await
+    }
+
+    async fn load_sync_watermark(&self) -> Result<Option<chrono::DateTime<chrono::Utc>>> {
+        use crate::storage::metadata::{SYNC_WATERMARK_KEY, get_metadata};
+
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let Some(raw) = get_metadata(&conn, SYNC_WATERMARK_KEY).await? else {
+            return Ok(None);
+        };
+
+        let ms: i64 = raw
+            .parse()
+            .map_err(|e| Error::Storage(format!("Invalid persisted sync watermark {raw}: {e}")))?;
+        Ok(chrono::DateTime::from_timestamp_millis(ms))
+    }
+
+    async fn save_sync_watermark(&self, watermark: chrono::DateTime<chrono::Utc>) -> Result<()> {
+        use crate::storage::metadata::{SYNC_WATERMARK_KEY, store_metadata};
+
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        store_metadata(
+            &conn,
+            SYNC_WATERMARK_KEY,
+            &watermark.timestamp_millis().to_string(),
+        )
+        .await
     }
 }

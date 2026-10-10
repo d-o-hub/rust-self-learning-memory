@@ -111,6 +111,15 @@ pub enum Error {
 }
 
 impl Error {
+    /// Build a [`Error::CapabilityUnavailable`] for `operation`.
+    ///
+    /// Convenience constructor for the optional [`crate::StorageBackend`]
+    /// methods whose default implementation must not fabricate durable success.
+    #[must_use]
+    pub const fn capability_unavailable(operation: &'static str) -> Self {
+        Self::CapabilityUnavailable { operation }
+    }
+
     /// Check if this error is recoverable (can retry with backoff)
     #[must_use]
     pub fn is_recoverable(&self) -> bool {

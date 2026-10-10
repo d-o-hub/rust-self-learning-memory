@@ -187,14 +187,6 @@ impl StorageBackend for CachedTursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("List recommendation feedback error: {}", e)))
     }
-
-    fn supports_ranking_adaptation(&self) -> bool {
-        self.storage.supports_ranking_adaptation()
-    }
-
-    fn supports_recommendation_attribution(&self) -> bool {
-        self.storage.supports_recommendation_attribution()
-    }
 }
 
 #[cfg(test)]

@@ -21,7 +21,7 @@ use uuid::Uuid;
 
 use crate::memory::pattern_search::PatternSearchResult;
 use crate::patterns::{Pattern, PatternEffectiveness};
-use crate::storage::StorageBackend;
+use crate::storage::{StorageBackend, StorageBackendCapabilities};
 use crate::types::{ComplexityLevel, TaskContext};
 use crate::{Episode, MemoryConfig, Result, SelfLearningMemory};
 
@@ -77,6 +77,8 @@ struct ParkingPatternBackend {
     gate: Arc<Semaphore>,
     should_park: AtomicBool,
 }
+
+impl StorageBackendCapabilities for ParkingPatternBackend {}
 
 #[async_trait]
 impl StorageBackend for ParkingPatternBackend {

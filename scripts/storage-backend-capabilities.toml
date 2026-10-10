@@ -1,0 +1,213 @@
+# StorageBackend capability inventory — hand-maintained classification overlay.
+#
+# `scripts/check-storage-backend-capabilities.sh` parses the trait source and
+# requires every defaulted method to appear here, unless it is auto-classified
+# as a capability declaration (a `supports_*`/`can_*` method whose default is
+# `false`). A new defaulted method with no entry fails the check, so a faked
+# success cannot be added silently. `--check` also verifies this overlay against
+# the source bodies, so a declared classification cannot drift from the code.
+#
+# classification values:
+#   required                             - no default body; every backend must implement it
+#   capability-gated                     - gated by a declared capability predicate (`capability`)
+#   value-returning-with-typed-fallback  - default returns Ok(())/None/empty/0/false/default
+#   genuinely-safe-default               - default only delegates to a required method
+#
+# `gate_kind` (required for capability-gated):
+#   predicate - the default is a no-op that callers must gate on `capability` (ADR-081 style)
+#   error     - the default returns Error::CapabilityUnavailable (#1087 slices)
+#
+# `pending` records an in-flight slice that will move a method to capability-gated.
+# It is documentation only: coverage and coherence rules still apply.
+
+# ---------------------------------------------------------------------------
+# Batch writes
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "store_episodes_batch"
+classification = "genuinely-safe-default"
+justification = "Delegates every item to the required store_episode; it fabricates no result."
+
+# ---------------------------------------------------------------------------
+# Pattern listing
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "get_all_patterns"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback for single-pattern-only backends; durable backends override it."
+
+# ---------------------------------------------------------------------------
+# Relationships (slice 2 of #1087 gates these with supports_relationship_persistence)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "store_relationship"
+classification = "value-returning-with-typed-fallback"
+justification = "Silent no-op today: a backend without relationship storage reports durable success."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "remove_relationship"
+classification = "value-returning-with-typed-fallback"
+justification = "Silent no-op today: a missing relationship is indistinguishable from a removed one."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_relationships"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback today; unsupported backends look like they know no relationships."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_all_relationships"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback today; unsupported backends look like an empty graph."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_relationship_by_id"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed None fallback today; an unsupported lookup is indistinguishable from 'not found'."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "relationship_exists"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed false fallback today; an unsupported backend looks like 'no relationship'."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "store_episode_pattern_relationship"
+classification = "value-returning-with-typed-fallback"
+justification = "Silent no-op today: the episode->pattern link is dropped without an error."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_episode_pattern_relationships"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback today; the caller cannot tell 'none' from 'unsupported'."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_weighted_neighbors"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback today; an unsupported backend looks like an isolated episode."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+# ---------------------------------------------------------------------------
+# Recommendation attribution (ADR-081) and ranking adaptation (ADR-082)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "store_recommendation_session"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081 no-op default; the checked persistence path counts it only when the predicate is true."
+
+[[method]]
+name = "get_recommendation_session"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081: only callers that gated on the predicate may treat the None as an authoritative miss."
+
+[[method]]
+name = "get_recommendation_session_for_episode"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081: the no-op default is not durable history, so callers must gate on the predicate."
+
+[[method]]
+name = "store_recommendation_feedback"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081 no-op default; the checked persistence path counts it only when the predicate is true."
+
+[[method]]
+name = "get_recommendation_feedback"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081: the None default must not be read as durable absence without the predicate."
+
+[[method]]
+name = "get_recommendation_stats"
+classification = "capability-gated"
+capability = "supports_recommendation_attribution"
+gate_kind = "predicate"
+justification = "ADR-081: default stats are zeroed, not computed; the predicate gates their interpretation."
+
+[[method]]
+name = "list_recommendation_sessions"
+classification = "capability-gated"
+capability = "supports_ranking_adaptation"
+gate_kind = "predicate"
+justification = "ADR-082: the empty default contributes nothing; the ranking rebuild skips unadvertised backends."
+
+[[method]]
+name = "list_recommendation_feedback"
+classification = "capability-gated"
+capability = "supports_ranking_adaptation"
+gate_kind = "predicate"
+justification = "ADR-082: the empty default contributes nothing; the ranking rebuild skips unadvertised backends."
+
+# ---------------------------------------------------------------------------
+# Episode GC/TTL (gated by supports_episode_cleanup; slice 1 of #1087, PR #1144)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "cleanup_episodes"
+classification = "capability-gated"
+capability = "supports_episode_cleanup"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_episode_cleanup can sweep durably."
+
+[[method]]
+name = "count_cleanup_candidates"
+classification = "capability-gated"
+capability = "supports_episode_cleanup"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable, mirroring cleanup_episodes; an unsupported dry run cannot report zero."
+
+# ---------------------------------------------------------------------------
+# Procedural memory (slice 2 of #1087 gates these with supports_procedural_memory)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "store_procedural"
+classification = "value-returning-with-typed-fallback"
+justification = "Silent no-op today: procedural memory is dropped while the write reports success."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "get_procedural"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed None fallback today; an unsupported lookup looks like a missing record."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "delete_procedural"
+classification = "value-returning-with-typed-fallback"
+justification = "Silent no-op today: a retained record is indistinguishable from a deleted one."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+[[method]]
+name = "query_procedural"
+classification = "value-returning-with-typed-fallback"
+justification = "Typed empty-list fallback today; an unsupported query looks like 'no records'."
+pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+
+# ---------------------------------------------------------------------------
+# Liveness (#1085 added this default after the overlay was written)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "health_check"
+classification = "genuinely-safe-default"
+justification = "Delegates to the required get_episode: a backend whose read path answers is alive, and the default stores or fabricates nothing."
+

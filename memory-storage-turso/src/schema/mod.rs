@@ -1,32 +1,7 @@
 //! Database schema definitions for Turso storage
 
-/// SQL to create the episodes table
-pub const CREATE_EPISODES_TABLE: &str = r#"
-CREATE TABLE IF NOT EXISTS episodes (
-    episode_id TEXT PRIMARY KEY NOT NULL,
-    task_type TEXT NOT NULL,
-    task_description TEXT NOT NULL,
-    context TEXT NOT NULL,
-    start_time INTEGER NOT NULL,
-    end_time INTEGER,
-    steps TEXT NOT NULL,
-    outcome TEXT,
-    reward TEXT,
-    reflection TEXT,
-    patterns TEXT NOT NULL,
-    heuristics TEXT NOT NULL DEFAULT '[]',
-    checkpoints TEXT NOT NULL DEFAULT '[]',
-    metadata TEXT NOT NULL,
-    domain TEXT NOT NULL,
-    language TEXT,
-    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-    archived_at INTEGER
-)
-"#;
-
-/// Migration SQL to add checkpoints column to existing episodes table.
-pub const ADD_EPISODES_CHECKPOINTS_COLUMN: &str =
-    "ALTER TABLE episodes ADD COLUMN checkpoints TEXT NOT NULL DEFAULT '[]'";
+mod episodes;
+pub use episodes::*;
 
 /// SQL to create the patterns table
 pub const CREATE_PATTERNS_TABLE: &str = r#"

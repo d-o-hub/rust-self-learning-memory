@@ -1,6 +1,8 @@
 //! Episode summaries and capacity operations for redb cache
 
-use crate::{EPISODES_TABLE, METADATA_TABLE, RedbStorage, SUMMARIES_TABLE};
+use crate::{
+    EPISODE_REVISIONS_TABLE, EPISODES_TABLE, METADATA_TABLE, RedbStorage, SUMMARIES_TABLE,
+};
 use do_memory_core::episode::CapacityManager;
 use do_memory_core::semantic::EpisodeSummary;
 use do_memory_core::{Episode, Error, Result};
@@ -334,6 +336,11 @@ impl RedbStorage {
                     Error::Storage(format!("Failed to open summaries table: {}", e))
                 })?;
 
+                let mut revisions_table =
+                    write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                        Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                    })?;
+
                 for evicted_id in &evicted_ids {
                     let evicted_id_str = evicted_id.to_string();
 
@@ -342,8 +349,9 @@ impl RedbStorage {
                         .remove(evicted_id_str.as_str())
                         .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
 
-                    // Delete summary (if exists - no error if not found)
+                    // Delete summary and modification watermark (no error if absent)
                     let _ = summaries_table.remove(evicted_id_str.as_str());
+                    let _ = revisions_table.remove(evicted_id_str.as_str());
                 }
 
                 warn!("Evicted {} episodes to make room", evicted_ids.len());
@@ -362,6 +370,22 @@ impl RedbStorage {
                 episodes_table
                     .insert(episode_id.as_str(), episode_bytes.as_slice())
                     .map_err(|e| Error::Storage(format!("Failed to insert episode: {}", e)))?;
+
+                // Record the modification watermark in the same transaction so
+                // capacity-path writes are visible to incremental sync.
+                let seq = crate::episodes::allocate_revision_seq(
+                    &write_txn,
+                    chrono::Utc::now().timestamp_millis(),
+                )?;
+                let mut revisions_table =
+                    write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                        Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                    })?;
+                revisions_table
+                    .insert(episode_id.as_str(), seq)
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to record episode revision: {}", e))
+                    })?;
             }
 
             // 5. Insert summary if provided

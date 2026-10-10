@@ -8,7 +8,8 @@ use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use do_memory_core::{
-    Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId,
+    Episode, Error, Heuristic, Pattern, Result, StorageBackend, SyncWatermarkBackend,
+    episode::PatternId,
 };
 use uuid::Uuid;
 
@@ -186,6 +187,35 @@ impl StorageBackend for CachedTursoStorage {
             .list_recommendation_feedback()
             .await
             .map_err(|e| Error::Storage(format!("List recommendation feedback error: {}", e)))
+    }
+}
+
+#[async_trait]
+impl SyncWatermarkBackend for CachedTursoStorage {
+    async fn query_episodes_modified_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+        cursor: Option<(chrono::DateTime<chrono::Utc>, Uuid)>,
+        limit: Option<usize>,
+    ) -> Result<Vec<(Episode, chrono::DateTime<chrono::Utc>)>> {
+        self.storage
+            .query_episodes_modified_since(since, cursor, limit)
+            .await
+            .map_err(|e| Error::Storage(format!("Query error: {}", e)))
+    }
+
+    async fn load_sync_watermark(&self) -> Result<Option<chrono::DateTime<chrono::Utc>>> {
+        self.storage
+            .load_sync_watermark()
+            .await
+            .map_err(|e| Error::Storage(format!("Watermark load error: {}", e)))
+    }
+
+    async fn save_sync_watermark(&self, watermark: chrono::DateTime<chrono::Utc>) -> Result<()> {
+        self.storage
+            .save_sync_watermark(watermark)
+            .await
+            .map_err(|e| Error::Storage(format!("Watermark save error: {}", e)))
     }
 }
 

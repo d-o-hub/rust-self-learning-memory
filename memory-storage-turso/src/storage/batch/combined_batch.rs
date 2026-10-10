@@ -206,6 +206,20 @@ impl TursoStorage {
                         e
                     )));
                 }
+
+                // Episode row and its modification watermark commit together.
+                if let Err(e) = crate::storage::episodes::revision::record_episode_revision(
+                    &conn,
+                    &episode.episode_id.to_string(),
+                    chrono::Utc::now().timestamp_millis(),
+                )
+                .await
+                {
+                    let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                        error!("Failed to rollback transaction: {}", rollback_err)
+                    });
+                    return Err(e);
+                }
             }
         }
 

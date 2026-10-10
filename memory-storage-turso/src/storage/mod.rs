@@ -15,6 +15,8 @@ use do_memory_core::Result;
 // Re-export submodules
 pub mod batch;
 pub mod capacity;
+mod capacity_cleanup;
+pub(crate) mod capacity_intents;
 mod embedding_backend;
 mod embedding_tables;
 mod embeddings_internal;
@@ -31,6 +33,9 @@ mod transaction_scope;
 // Multi-dimensional embedding storage (feature-gated)
 #[cfg(feature = "turso_multi_dimension")]
 mod embeddings_multi;
+
+// Capacity-eviction durable outbox type (issue #1070)
+pub use capacity_intents::CapacityEvictionIntent;
 
 pub use batch::episode_batch::BatchConfig;
 pub use episodes::EpisodeQuery;

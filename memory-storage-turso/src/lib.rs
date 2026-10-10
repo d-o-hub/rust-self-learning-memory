@@ -201,6 +201,7 @@ pub use metrics::{
     ExportConfig, ExportFormat, ExportStats, ExportTarget, ExportedMetric, MetricType, MetricValue,
     MetricsCollector, MetricsHttpServer, PrometheusExporter, TursoMetrics,
 };
+pub use storage::CapacityEvictionIntent;
 pub use storage::batch::episode_batch::BatchConfig;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;

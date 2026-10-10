@@ -167,6 +167,18 @@ impl MemoryMCPServer {
         Arc::clone(&self.memory)
     }
 
+    /// Get a reference to the query cache
+    ///
+    /// Health reporting reads the cache's own counters through this handle rather than
+    /// inventing them.
+    ///
+    /// # Returns
+    ///
+    /// Returns a clone of the `Arc<QueryCache>`
+    pub fn cache(&self) -> Arc<QueryCache> {
+        Arc::clone(&self.cache)
+    }
+
     /// Get a reference to the audit logger
     ///
     /// # Returns

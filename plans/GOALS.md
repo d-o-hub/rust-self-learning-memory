@@ -1,142 +1,94 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-10-04
-- **Status**: **audit-backlog wave in flight** — 22 open code issues (#1063–#1092) were filed at `9f50c607`, never
-  registered in these trackers, and re-validation at `74a44a15` found **0 fixed** (20 OPEN, 2 PARTIAL). Wave goals
-  G-A1…G-A6 below. The earlier campaign claims still hold but are campaign-scoped: retrieval judgment (#1030 → #1041)
-  and rerank (#1031 → #1042) merged 2026-09-24; ADR-080/081/082 remain `Proposed` pending maintainer acceptance;
-  ADR-079 stage 4 live fault-inject proof is external maintainer evidence
-- **Workspace**: `0.1.45` · **Tag**: `v0.1.44`
-- **Plan**: `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md` (W1–W6); next candidate chains are ACT-376…ACT-385
+- **Last Updated**: 2026-10-06
+- **Status**: **audit-backlog wave — W1–W4 merged 2026-10-05, W5/W6 + Q02 in review.** 22 code issues (#1063–#1092) were filed
+  at `9f50c607`, never registered in these trackers, and re-validation at `74a44a15` found **0 fixed** (20 OPEN, 2 PARTIAL);
+  the wave closes them in dependency order. Earlier campaigns remain campaign-scoped: retrieval judgment (#1030 → #1041),
+  rerank (#1031 → #1042), ADR-082 ranking adaptation (#952) merged; ADR-080/081/082 lifecycle acceptance and ADR-079
+  stage 4 fault-inject proof remain maintainer-external
+- **Workspace**: `0.1.45` · **Tag**: `v0.1.44` · **Plan**: `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`
+- **Queued chains**: ACT-376…ACT-385 (watermark #1067→#1068→#1089; embedding identity #1073→#1074→#1076)
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals (2026-10-04 — audit-backlog wave)
+## Active goals — audit-backlog wave (2026-10-04…)
 
 | Goal | Rec | Priority | Status |
 |------|-----|----------|--------|
-| G-A1 no lock held across `.await` in the recommendation path | #1077 / R06 | P1 | 🔄 W1 — restores an AGENTS.md core invariant |
-| G-A2 sub-second MCP latency is real, not truncated to 0 | #1086 / M05 | P2 | 🔄 W2 |
-| G-A3 a failed tag transaction cannot leave partial state | #1088 / M07 | P2 | 🔄 W3 |
-| G-A4 the redb episode→session index follows recency, not write order | #1066 / S07 | P1 | 🔄 W4 |
-| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 W5 |
-| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 W6 — includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
-| G-A7 trackers match `gh issue list` | governance | P0 | ✅ this commit — `GAP_ANALYSIS_LATEST.md` is now the repo-wide register; "0 open gaps" is scoped to its campaign |
+| G-A1 no lock held across `.await` in the recommendation path | #1077 / R06 | P1 | ✅ merged #1131 (`874df209`) |
+| G-A2 sub-second MCP latency is real, not truncated to 0 | #1086 / M05 | P2 | ✅ merged #1135 (`75007b51`) |
+| G-A3 a failed tag transaction cannot leave partial state | #1088 / M07 | P2 | ✅ merged #1134 (`347b3296`) |
+| G-A4 the redb episode→session index follows recency, not write order | #1066 / S07 | P1 | ✅ merged #1139 (`f1c31699` + repair pass) |
+| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 in review #1138 — roast MAJORs fixed (query-only tokens, context double-count), CI re-running |
+| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 in review #1140 — roast MAJOR fixed (live retrieval-cache metrics); includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
+| G-A7 trackers match `gh issue list` | governance | P0 | ✅ #1129 — `GAP_ANALYSIS_LATEST.md` is the repo-wide register |
+| G-A8 ignored-test inventory + fail-visible isolated native job | #1091 / Q02 | P1 | ✅ merged #1130 (2026-10-06) — 159-entry inventory, 14 tests un-ignored, isolated job fail-visible (JSON flag follow-up #1159); issue closed with evidence |
+
+## Wave A goals (2026-10-06…09, in review)
+
+| Goal | Rec | PR | Status |
+|------|-----|----|--------|
+| Recommendation precision (ms + UUID tie-break + backfill) | #1065 / S06 | #1142 | ✅ merged 2026-10-08 (`5054c15a`) |
+| Execution-backed retrieval provenance | #1079 / R08 | #1148 | ✅ merged 2026-10-07 (`9fdbc765`) |
+| Lint suppressions slice 1 (turso unsafe peel + ratchet) | #1092 / Q03 | #1143 | ✅ merged 2026-10-06 (`cdb70594`); slice 2 #1153 in review |
+| Strict row decode + allowlisted query builder | #1071 / S12 | #1145 | 🔄 in review (doctest fixed, rebased) |
+| Capacity eviction atomic-or-repairable | #1070 / S11 | #1150 | 🔄 in review |
+| Adaptive pool capacity model (E4) | #1063 / S04 | #1146 | 🔄 in review |
+| Scoped pool checkout | #1064 / S05 | #1147 | 🔄 in review (roast BLOCKER fixed) |
+| Modification watermark + keyset pages | #1067 / S08 | #1149 | 🔄 in review (6 roast MAJORs fixed) |
+| Identity-scoped embedding adapter | #1073 / R02 | #1151 | 🔄 in review |
+| Incremental ranking index + benches | #1078 / R07 | #1154 | 🔄 in review |
+| Capability truth (cleanup / procedural+relationships / inventory) | #1087 / M06 | #1144, #1152, #1158 | 🔄 in review |
+| Nightly libtest-JSON flag fix (follow-up to #1130) | — | #1159 | 🔄 in review |
+
+## Queued goals (sequenced)
+
+| Goal | Rec | Depends on |
+|------|-----|------------|
+| Modification watermark + bounded keyset pages | #1067 / S08 | — (E3, E5 constraints) |
+| Revision-aware merge of redb + Turso | #1068 / S09 | #1067 |
+| Batch writes through redb + synchronizer | #1089 / M08 | #1067 |
+| Identity-scoped embedding storage adapter | #1073 / R02 | — |
+| One runtime provider snapshot across memory paths (remaining pattern sites) | #1074 / R03 | #1073 (E2) |
+| Reuse + batch pattern embeddings | #1076 / R05 | #1073, #1074 |
+| Adaptive pool capacity model (cooldown + permits) | #1063 / S04 | — (E4: fix rewrites `adaptive_tests.rs:140-146`) |
+| Scoped pool checkout (`with_connection`) | #1064 / S05 | — |
+| Capacity eviction atomic-or-repairable | #1070 / S11 | — |
+| Strict row decode + raw-query error surfacing | #1071 / S12 | — |
+| Incremental ranking index + benches | #1078 / R07 | — |
+| Execution-backed retrieval provenance | #1079 / R08 | — |
+| Capability truth for `StorageBackend` defaults | #1087 / M06 | — (4 PRs) |
+| Lint-suppression integrity | #1092 / Q03 | — (4 PRs) |
+| Ship `v0.1.45` to clear release drift | #1137 | wave green |
+| crates.io trusted-publisher registrations + secret deletion | #1109 C1 | maintainer-external |
 
 ### Why this wave and not the higher-effort chains
 
-Selection criterion was: fixes a real defect, touches no `StorageBackend` trait signature (22 implementations —
-escalation E5), needs no schema migration, and is independently revertable. The watermark chain
-(#1067→#1068→#1089) and the embedding-identity chain (#1073→#1074→#1076) are the highest-value structural
-fixes but each requires a migration plus coordinated backend key changes, so they are queued as ACT-376…ACT-381
-with their rationale recorded rather than folded into a hygiene wave.
+The wave criterion was: fixes a real defect, touches no `StorageBackend` trait signature (22 implementations — E5),
+needs no schema migration, and is independently revertable. The watermark chain (#1067→#1068→#1089) and the
+embedding-identity chain (#1073→#1074→#1076) are the highest-value structural fixes but each requires a migration plus
+coordinated backend key changes; they are queued as ACT-376…ACT-381 with their rationale recorded.
 
 ### Escalations found by validation (changed priorities; no issue body states them)
 
 | ID | Finding | Consequence |
 |---|---|---|
-| E1 | health output interpolates the raw `TURSO_DATABASE_URL` | #1085 became a security fix, not just observability |
-| E2 | `semantic_service` is `None` on every production path, and both scoring fallbacks return the constant `0.5` | production pattern search/recommendation ignores the query text; #1075 + #1074 are coupled and #1076 must not land first |
+| E1 | health output interpolates the raw `TURSO_DATABASE_URL` | #1085 is a security fix, not just observability (W6) |
+| E2 | `semantic_service` is `None` on every production path, and both scoring fallbacks return the constant `0.5` | production pattern search ignores the query text; #1075 + #1074 are coupled and #1076 must not land first |
 | E3 | `episodes.created_at` is absent from the Turso INSERT column list | it is not a creation stamp; constrains #1067 |
-| E4 | adaptive pool cooldown compares against a fresh `Instant` (≈0 ns) and `adaptive_tests.rs:140-146` asserts the broken value | a green suite is not evidence here; #1063's fix must change that test |
-| E5 | `query_episodes_since` is required, not defaulted (22 impls) | #1067 must add a defaulted method instead of changing the signature |
+| E4 | adaptive pool cooldown compares against a fresh `Instant` (≈0 ns) and `adaptive_tests.rs:140-146` asserts the broken value | #1063's fix must change that test |
+| E5 | `query_episodes_since` is required, not defaulted (22 impls) | #1067 adds a defaulted method instead of changing the signature |
+| E6 | docs-integrity `<...>` handling inverted the AGENTS.md rule and aborted the ship path | fixed in #1128 (b5c87ec1) |
 
-## Closed this wave (2026-10-04 — release pipeline C5–C7)
+## Closed campaigns (pointer)
 
-| Goal | Status |
-|------|--------|
-| R-F10 C5/C6/C7 (verify-a-release page, trigger slimming, secret/permission hygiene) | ✅ merged in PR #1125 (`4fb0e20f`) |
-| ADR-079 / CIT-A1…A5, PTA-A1…A3, RAT-A1…A7, ADR-082 ranking adaptation | ✅ code-side closed (see 2026-08/09 sections) — **campaign-scoped only**, not repo-wide gap freedom |
-
-## Closed this wave (2026-09-24)
-
-| Goal | Status |
-|------|--------|
-| Retrieval judgment interface (#1030) | ✅ Merged via PR #1041 (`RetrievalJudge`, typed atomic judgments, strict validation, bounded telemetry) |
-| Semantic shortlist rerank (#1031) | ✅ Merged via PR #1042 (opt-in config, deterministic fusion, single finalization path, offline `--rerank` comparison) |
-| Merge/coverage tooling | 🔄 PR #1046 (`merge-pr.sh`, `validate-plans.sh --tracker-drift`, `coverage-waivers` skill) |
-| Harness friction → upstream | ✅ 8 issues filed in `d-o-hub/do-harness` (#238–#245) |
-
-## Closed this wave (2026-08-09)
-
-| Goal | Status |
-|------|--------|
-| G1 fuzz_workflow_green (nightly toolchain + LTO-off) | ✅ fuzz workflow `success` on branch dispatch (#934) |
-| G2 pr_934_mergeable | ✅ #934 merged 2026-08-09 |
-
-## Closed this wave (2026-08-07)
-
-| Goal | Status |
-|------|--------|
-| Repair #928 commit messages (commitlint clean, no-op commits dropped) | ✅ pushed |
-| Unblock #927 pre-existing release drift (`release-preparation` deadlock breaker) | ✅ drift check green |
-| Raise #927 Codecov patch coverage (receipt matrix + MCP envelope tests + CLI dedup) | ✅ pushed; re-measuring |
-| Main cancelled CI runs re-run + plans/learnings refreshed | ✅ |
-
-## Active goals (2026-08-06)
-
-| Goal | Rec IDs | Priority | Status |
-|------|---------|----------|--------|
-| Make first-party validation causally merge-required | CIT-A1 / ADR-079 | P0 | ✅ same-run fast gate + `commitlint` in `ci.yml`; `ci-required-evaluate.sh` accepts only `success`; ruleset `9591004` requires `CI / Required` (closure PR); stage 4 fault-inject proof = external maintainer evidence |
-| Fail closed across cancellation, missing checks, commit lint, Dependabot, and forks | CIT-A2 | P0 | ✅ waiters fail closed + commit-lint wait + downstream actor parity (2026-08-10) |
-| Reconcile local/CI gate scope and semantic drift validation | CIT-A3 | P1 | ✅ semantic validator + negative fixtures + ruleset-context/Actor-parity fixtures (2026-08-10) + `--required-aggregate` fixtures (closure PR) |
-| Make release/publish/fuzz automation truthful and observable | CIT-A4/A5 | P1 | ✅ Implemented (2026-08-06) |
-| Make disabled cascade capability truthful | PTA-A1 | P0 | ✅ Implemented |
-| Make storage metrics provenance-truthful | PTA-A2 | P0 | ✅ Implemented |
-| Remove unsupported threshold command from CLI help | PTA-A3 | P1 | ✅ Implemented |
-| Capture episode-bound recommendation attribution automatically | RAT-A1…A7 / ADR-080 | P1 | ✅ code-side closed in closure PR (#927 + #930 + episode validation + checked receipts + cold-restart tests); ADR-080 stays Proposed pending maintainer acceptance |
-| Advertise and enforce attribution persistence capability | ADR-081 §2 | P1 | ✅ `StorageBackend::supports_recommendation_attribution` + capability-gated receipts (2026-08-10) + concrete-backend capability tests (closure PR) |
-| Design idempotent feedback-to-ranking updates | ADR-082 | P2 | ✅ merged in PR #952 (2026-08-13) — derived Wilson weight, capability-gated `list_recommendation_*` read surface, recommend re-rank, e2e tests (ADR-082 Proposed; lifecycle = maintainer) |
-| R-F10 OIDC trusted publishing (publish-crates.yml) + release-path hardening | R-F10 / #1109 | P2 | ✅ Implemented (ACT-325, ACT-368, ACT-369 — official action, no fallback, shared publish action, truthful triggers, verify-a-release docs) |
-| R-F4 SIMD cosine acceleration + benchmark variants | R-F4 | P2 | ✅ Implemented (ACT-326) |
-| Optional research/product spikes (R-F1…R-F3, R-F5…R-F7) | R-F* | P3 | ⏸ DEFER |
-
-The ranking-learning loop is now closed code-side (ADR-082, life cycle Proposed):
-attribution feedback derives a durable per-pattern learned weight (Wilson lower
-bound) and the recommendation path re-ranks its candidate pool by base relevance
-plus that weight; generic search/discovery/retrieval are unchanged. First-party CI
-is now causally merge-required (ruleset `9591004` requires `CI / Required`, and the
-aggregate is same-run fail-closed); ADR-079 stage 4 (deliberate live
-fault-injection merge-block proof) remains external maintainer evidence.
-R-F10 (ACT-325) and R-F4 (ACT-326) are implemented; CIT-A4/A5 (ACT-338/339)
-implemented 2026-08-06; PTA-A1/A2/A3 implemented.
-
-## Closed this wave (2026-08-06)
-
-| Goal | Status |
-|------|--------|
-| CIT-A4 release/publish trigger truth | ✅ (2026-08-06) |
-| CIT-A5 durable fuzz evidence + non-green signal | ✅ (2026-08-06) |
-| R-F10 OIDC trusted publishing (ACT-325) | ✅ (already shipped; plans refreshed) |
-| R-F4 SIMD cosine + bench variants (ACT-326) | ✅ (already shipped; plans refreshed) |
-
-## Closed this wave (2026-07-20…25)
-
-| Goal | Status |
-|------|--------|
-| Ship v0.1.36 (R-A1) | ✅ |
-| Post-release bump 0.1.37 (R-A2) | ✅ #886 |
-| R-E2 medium-risk skill evals | ✅ #883 |
-| Docs integrity ship gate | ✅ #885 |
-| Recommendations R-B/C/D/E/G/H | ✅ #878 |
-| Plans truth refresh | ✅ #889 |
-| Changelog hygiene | ✅ #887 |
-| Cosine perf (8-way unrolled) | ✅ #888 |
-| Gap tasks (ADR-074 docs, G-P1-12 pattern extract) | ✅ #891 |
-| R-F8 CLI relationship show polish + R-F9 HNSW persistence | ✅ #893 |
-| 6 new domain skills (40 total, all routed) | ✅ #894 |
-| ADR-077 runtime embedding activation A1-A5 | ✅ main (`9ef4b742`, `e0f7f712`) |
-| ADR-077 A6 validate / document / gate | ✅ #897 merged |
-| Full gap audit — 0 P0/P1 code gaps | ✅ 2026-07-25 |
-
-## Completed goal series (pointer only)
-
-| Series | Outcome | Archive |
-|--------|---------|---------|
-| Post-v0.1.36 sprint (all tasks) | ✅ Complete 2026-07-24 | — |
-| Recommendations #878 | Merged | — |
-| 2026-07-14 improvements S1/W2/K3/F4 | Implemented; S1.1c NO-GO | `archive/2026-07-consolidation/completed-sprints/` |
-| v0.1.35 CLI UX + ADR-075/076 | Released | same |
-| Harness + release-cadence-manager | Merged | same |
-| v0.1.36 release campaign | Shipped 2026-07-22 | — |
+| Campaign / series | Outcome |
+|---|---|
+| v0.1.44 ship + release-pipeline C1–C7 (#1109) | ✅ 2026-10-02/04 — #1121 draft-first + attestations, #1123 OIDC-only publish, #1125 verify-a-release + slimming; manual crates.io steps tracked in ACT-368 |
+| Retrieval judgment + rerank + merge tooling | ✅ #1041, #1042, #1046 (2026-09-24) |
+| Feedback-to-ranking (ADR-082) + ADR registry | ✅ #952 (2026-08-13); lifecycle `Proposed` |
+| ADR-079/CIT/PTA/RAT closure + capability truth | ✅ #916, #927, #930, #938, #940, #947 (2026-08-06…12); stage 4 proof maintainer-external |
+| fuzz nightly toolchain + LTO-off | ✅ #934 (2026-08-09) |
+| PR review & CI fix wave | ✅ 2026-08-07 |
+| v0.1.36–v0.1.43 ships, post-bumps, R-E2/R-F8/R-F9/skills | ✅ #878…#897, #1107/#1112/#1113/#1108/#1110/#1117 (2026-07…10) |
 
 Do not re-list completed WG tables here.

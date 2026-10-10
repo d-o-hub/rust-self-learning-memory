@@ -126,18 +126,6 @@ impl StorageBackend for MockStorage {
     ) -> Result<crate::memory::attribution::RecommendationStats> {
         Ok(crate::memory::attribution::RecommendationStats::default())
     }
-    async fn cleanup_episodes(
-        &self,
-        _: &crate::episode::EpisodeRetentionPolicy,
-    ) -> Result<crate::episode::CleanupResult> {
-        Ok(crate::episode::CleanupResult::new())
-    }
-    async fn count_cleanup_candidates(
-        &self,
-        _: &crate::episode::EpisodeRetentionPolicy,
-    ) -> Result<usize> {
-        Ok(0)
-    }
 }
 
 #[tokio::test]

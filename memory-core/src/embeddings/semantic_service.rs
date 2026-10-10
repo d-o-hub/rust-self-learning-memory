@@ -343,6 +343,62 @@ impl SemanticService {
         Ok(embedding)
     }
 
+    /// Generate and store embeddings for several patterns in one provider call.
+    ///
+    /// Pattern search reads the stored vectors of every candidate first and only
+    /// sends the misses here (issue #1076), so a search over an unchanged corpus
+    /// performs no provider call at all. Telemetry records one embedding sample
+    /// for the batch, and every computed vector is stored under its pattern id.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the provider or the storage fails.
+    pub async fn embed_patterns_batch(&self, patterns: &[Pattern]) -> Result<Vec<Vec<f32>>> {
+        if patterns.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let texts: Vec<String> = patterns
+            .iter()
+            .map(super::semantic_text::pattern_to_text)
+            .collect();
+        let start = std::time::Instant::now();
+        let outcome = self.provider.embed_batch(&texts).await;
+        let duration_ms = start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+        crate::monitoring::metrics::global_retrieval_metrics().record_embedding(
+            self.provider_label(),
+            match &outcome {
+                Ok(_) => crate::monitoring::metrics::EmbeddingOutcome::Ok,
+                Err(_) => crate::monitoring::metrics::EmbeddingOutcome::Error,
+            },
+            duration_ms,
+        );
+        let embeddings = outcome?;
+
+        for (pattern, embedding) in patterns.iter().zip(embeddings.iter()) {
+            self.storage
+                .store_pattern_embedding(pattern.id(), embedding.clone())
+                .await?;
+        }
+
+        Ok(embeddings)
+    }
+
+    /// Get stored embeddings for several patterns, in input order.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the storage lookup fails.
+    pub async fn get_pattern_embeddings_batch(
+        &self,
+        pattern_ids: &[crate::episode::PatternId],
+    ) -> Result<Vec<Option<Vec<f32>>>> {
+        self.storage
+            .get_pattern_embeddings_batch(pattern_ids)
+            .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
+    }
+
     /// Generate a query embedding with telemetry.
     ///
     /// Single choke point for query-time provider calls so per-query

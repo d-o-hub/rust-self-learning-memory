@@ -5,9 +5,11 @@
 
 use crate::Result;
 use crate::embeddings::SemanticService;
+use crate::episode::PatternId;
 use crate::patterns::Pattern;
 use crate::types::TaskContext;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::debug;
 
@@ -64,6 +66,39 @@ pub async fn search_patterns_semantic(
         vec![]
     };
 
+    // Prefetch the candidates' stored vectors once (issue #1076): scoring a
+    // candidate must not call the provider when its vector is already stored.
+    // Only the misses are embedded, in one batched provider call.
+    let pattern_embeddings: HashMap<PatternId, Vec<f32>> = match semantic_service {
+        Some(service) if !query_embedding.is_empty() => {
+            let ids: Vec<PatternId> = patterns.iter().map(Pattern::id).collect();
+            let stored = service.get_pattern_embeddings_batch(&ids).await?;
+
+            let mut by_id: HashMap<PatternId, Vec<f32>> = HashMap::with_capacity(patterns.len());
+            let mut missing: Vec<Pattern> = Vec::new();
+            for (pattern, maybe_embedding) in patterns.iter().zip(stored) {
+                match maybe_embedding {
+                    Some(embedding) => {
+                        by_id.insert(pattern.id(), embedding);
+                    }
+                    None => missing.push(pattern.clone()),
+                }
+            }
+
+            if !missing.is_empty() {
+                let computed = service.embed_patterns_batch(&missing).await?;
+                for (pattern, embedding) in missing.iter().zip(computed) {
+                    by_id.insert(pattern.id(), embedding);
+                }
+            }
+
+            by_id
+        }
+        // No provider, or no query vector to compare against: the lexical
+        // fallback answers inside the per-pattern scoring call.
+        _ => HashMap::new(),
+    };
+
     let mut results = Vec::new();
 
     for pattern in patterns {
@@ -79,16 +114,15 @@ pub async fn search_patterns_semantic(
         // Note: TaskContext doesn't have task_type field in current implementation
         // Filtering by task type would require changes to TaskContext struct
 
-        // Calculate multi-signal score
+        // Calculate multi-signal score from the prefetched candidate vector.
         let score_breakdown = calculate_pattern_score(
             query,
             &query_embedding,
+            pattern_embeddings.get(&pattern.id()).map(Vec::as_slice),
             &pattern,
             context,
-            semantic_service,
             &config,
-        )
-        .await?;
+        );
 
         let relevance_score = super::scoring::combine_scores(&score_breakdown, &config);
 
@@ -251,6 +285,7 @@ pub async fn discover_analogous_patterns(
 mod tests {
     use super::*;
     use crate::types::ComplexityLevel;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use uuid::Uuid;
 
     fn create_test_pattern(domain: &str, success_rate: f32) -> Pattern {
@@ -433,13 +468,153 @@ mod tests {
         );
     }
 
-    /// The outage fixture must stay a valid [`EmbeddingProvider`]: search ignores its vectors,
-    /// but anything that introspects the provider still has to see a coherent identity.
-    #[test]
-    fn outage_provider_still_advertises_its_identity() {
-        use crate::embeddings::EmbeddingProvider;
+    /// Counters shared with a provider double so a test can assert what the
+    /// search actually asked the provider to embed (issue #1076).
+    #[derive(Default)]
+    struct EmbeddingCalls {
+        embed_text: AtomicUsize,
+        embed_batch: AtomicUsize,
+        batch_sizes: parking_lot::Mutex<Vec<usize>>,
+    }
 
-        assert_eq!(OutageProvider.embedding_dimension(), 4);
-        assert_eq!(OutageProvider.model_name(), "outage-provider");
+    /// Provider that records its calls and otherwise behaves like the mock model.
+    struct CountingProvider {
+        inner: crate::embeddings::MockLocalModel,
+        calls: Arc<EmbeddingCalls>,
+    }
+
+    #[async_trait::async_trait]
+    impl crate::embeddings::EmbeddingProvider for CountingProvider {
+        async fn embed_text(&self, text: &str) -> anyhow::Result<Vec<f32>> {
+            self.calls.embed_text.fetch_add(1, Ordering::SeqCst);
+            self.inner.embed_text(text).await
+        }
+
+        async fn embed_batch(&self, texts: &[String]) -> anyhow::Result<Vec<Vec<f32>>> {
+            self.calls.embed_batch.fetch_add(1, Ordering::SeqCst);
+            self.calls.batch_sizes.lock().push(texts.len());
+            self.inner.embed_batch(texts).await
+        }
+
+        fn embedding_dimension(&self) -> usize {
+            self.inner.embedding_dimension()
+        }
+
+        fn model_name(&self) -> &str {
+            self.inner.model_name()
+        }
+    }
+
+    async fn counting_service() -> (Arc<SemanticService>, Arc<EmbeddingCalls>) {
+        let calls = Arc::new(EmbeddingCalls::default());
+        let provider = CountingProvider {
+            inner: crate::embeddings::MockLocalModel::new("counting-model".to_string(), 8),
+            calls: Arc::clone(&calls),
+        };
+        // Coalescing is disabled so the counters observe the search's own provider
+        // calls instead of the batching layer's flush schedule.
+        let config = crate::embeddings::EmbeddingConfig {
+            batch: crate::embeddings::BatchingConfig {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let service = Arc::new(SemanticService::new(
+            Box::new(provider),
+            Box::new(crate::embeddings::InMemoryEmbeddingStorage::new()),
+            config,
+        ));
+        (service, calls)
+    }
+
+    /// Stored candidate vectors are reused: only the query is embedded individually
+    /// and the single miss goes out as one batch call (issue #1076).
+    #[tokio::test]
+    async fn stored_pattern_vectors_are_reused_and_misses_are_batched() {
+        use super::super::lexical::{pattern_with, query_context};
+
+        let (service, calls) = counting_service().await;
+        let patterns = vec![
+            pattern_with(&["axum"], &["async"]),
+            pattern_with(&["tokio"], &["async"]),
+            pattern_with(&["hyper"], &["async"]),
+        ];
+
+        // Seed two vectors as an earlier search would have left them.
+        service.embed_pattern(&patterns[0]).await.unwrap();
+        service.embed_pattern(&patterns[1]).await.unwrap();
+        calls.embed_text.store(0, Ordering::SeqCst);
+
+        let context = query_context(&["async"]);
+        let results = search_patterns_semantic(
+            "axum tokio",
+            patterns,
+            &context,
+            Some(&service),
+            SearchConfig::default(),
+            5,
+        )
+        .await
+        .unwrap();
+
+        assert!(!results.is_empty(), "the search must still return matches");
+        assert_eq!(
+            calls.embed_text.load(Ordering::SeqCst),
+            1,
+            "only the query may be embedded individually"
+        );
+        assert_eq!(
+            calls.embed_batch.load(Ordering::SeqCst),
+            1,
+            "the misses must be embedded in one batch call"
+        );
+        assert_eq!(
+            calls.batch_sizes.lock().clone(),
+            vec![1],
+            "only the candidate without a stored vector may be embedded"
+        );
+    }
+
+    /// A warm corpus needs no pattern embedding call at all: the search reads every
+    /// candidate vector from storage (issue #1076).
+    #[tokio::test]
+    async fn warm_corpus_needs_no_pattern_embedding_call() {
+        use super::super::lexical::{pattern_with, query_context};
+
+        let (service, calls) = counting_service().await;
+        let patterns = vec![
+            pattern_with(&["axum"], &["async"]),
+            pattern_with(&["tokio"], &["async"]),
+        ];
+        for pattern in &patterns {
+            service.embed_pattern(pattern).await.unwrap();
+        }
+        calls.embed_text.store(0, Ordering::SeqCst);
+        calls.embed_batch.store(0, Ordering::SeqCst);
+
+        let context = query_context(&["async"]);
+        let results = search_patterns_semantic(
+            "axum tokio",
+            patterns,
+            &context,
+            Some(&service),
+            SearchConfig::default(),
+            5,
+        )
+        .await
+        .unwrap();
+
+        assert!(!results.is_empty());
+        assert_eq!(
+            calls.embed_text.load(Ordering::SeqCst),
+            1,
+            "the query embedding is the only individual call"
+        );
+        assert_eq!(
+            calls.embed_batch.load(Ordering::SeqCst),
+            0,
+            "a warm corpus must not trigger a pattern embedding batch"
+        );
     }
 }

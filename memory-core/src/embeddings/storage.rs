@@ -27,6 +27,26 @@ pub trait EmbeddingStorageBackend: Send + Sync {
     /// Get a pattern embedding
     async fn get_pattern_embedding(&self, pattern_id: PatternId) -> Result<Option<Vec<f32>>>;
 
+    /// Get embeddings for many patterns in one call, in input order.
+    ///
+    /// The default loops over [`get_pattern_embedding`](Self::get_pattern_embedding);
+    /// backends with a batch read override it so a pattern search does not pay a
+    /// round trip per candidate (issue #1076).
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the underlying lookup fails.
+    async fn get_pattern_embeddings_batch(
+        &self,
+        pattern_ids: &[PatternId],
+    ) -> Result<Vec<Option<Vec<f32>>>> {
+        let mut embeddings = Vec::with_capacity(pattern_ids.len());
+        for pattern_id in pattern_ids {
+            embeddings.push(self.get_pattern_embedding(*pattern_id).await?);
+        }
+        Ok(embeddings)
+    }
+
     /// Find similar episodes using vector similarity
     async fn find_similar_episodes(
         &self,

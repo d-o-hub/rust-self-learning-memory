@@ -5,8 +5,13 @@
 
 pub mod core;
 pub mod endpoints;
+pub mod health_probe;
 pub mod types;
 
 pub use core::MonitoringSystem;
 pub use endpoints::MonitoringEndpoints;
-pub use types::{EpisodeMetrics, HealthStatus, MonitoringConfig, MonitoringStats};
+pub use health_probe::{
+    PROBE_TIMEOUT, SYNC_NOT_CONFIGURED, build_health_response, overall_status, probe_backend,
+    probe_outcome,
+};
+pub use types::{BackendStatus, EpisodeMetrics, HealthStatus, MonitoringConfig, MonitoringStats};

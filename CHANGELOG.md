@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`add_permits`/`forget_permits`) so scale-down reclaims only idle permits and
   defers while work is active; utilization and the acquisition timeout report
   the same effective target.
+- Retrieval provenance is now execution-backed (#1079): the provenance path
+  performs exactly one query-cache lookup, so cache hit/miss telemetry is
+  counted once per operation, and it threads the serving tier, cache hit/miss,
+  fallback, and the measured pre-truncation candidate count from the single
+  execution that produced the results. Unknown candidate counts stay `None`
+  instead of being set to the result count, and `RetrievalProvenance` /
+  `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
+  `fallback`, and a `RetrievalExecution` report).
+- MCP health (`health/check`) reports measured state instead of configuration
+  (#1085, escalation E1): bounded per-backend probes answer
+  `healthy`/`degraded`/`unavailable`/not-configured, uptime is the real process
+  uptime, and the cache section now reads the retrieval cache's live counters
+  via `SelfLearningMemory::get_cache_metrics()` — the per-tool JSON cache that
+  no tool populated is no longer presented as cache telemetry. URLs, filesystem
+  paths, tokens and raw driver errors are redacted from the response (only fixed
+  literals are emitted).
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

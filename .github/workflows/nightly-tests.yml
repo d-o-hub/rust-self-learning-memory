@@ -53,6 +53,11 @@ jobs:
 
       - name: Run isolated Turso native ignored tests
         id: turso_tests
+        env:
+          # `--message-format libtest-json` is experimental and refuses to run
+          # without this flag, which would otherwise make the job fail before
+          # any test executes (as it did for the first three nightlies).
+          NEXTEST_EXPERIMENTAL_LIBTEST_JSON: 1
         run: |
           mkdir -p target/turso-reports
           echo "=== Running isolated Turso native tests ==="

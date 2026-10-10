@@ -129,11 +129,30 @@ Deliberately **out of this wave**, with reason recorded:
   then `./scripts/check-pr-readiness.sh <PR>`; merge only via `./scripts/merge-pr.sh <PR> --execute`.
 - Trackers are updated **only** by W0 and the closing refresh, so code PRs stay atomic and conflict-free.
 
+## STATUS — wave progress (2026-10-05/06)
+
+| Slice | Issue | PR | Status |
+|-------|-------|----|--------|
+| W0 | trackers + this doc | #1129 (`26b12fc8`) | ✅ merged 2026-10-05 |
+| W1 | #1077 | #1131 (`874df209`) | ✅ merged 2026-10-05 |
+| W2 | #1086 | #1135 (`75007b51`) | ✅ merged 2026-10-05 |
+| W3 | #1088 | #1134 (`347b3296`) | ✅ merged 2026-10-05 |
+| W4 | #1066 | #1139 (`f1c31699`, `0485bb66`) | ✅ merged 2026-10-05 — includes an open-time repair pass that heals stale write-order winners without a schema bump |
+| W5 | #1075 | #1138 | 🔄 in review — required checks green; cancelled non-required workflows re-running (2026-10-06) |
+| W6 | #1085 | #1140 | 🔄 in review — cancelled non-required workflows re-running; aggregate failed closed on the cancelled set, as designed |
+| Q02 | #1091 | #1130 (jules → clean branch) | 🔄 rescued: the PR tip (`da0c867c`) reverted W1–W4, plans and scripts; a clean branch re-applies only `b9331ce3`'s five files and removes the `continue-on-error`/`\|\| true` silent-pass before force-push |
+
+Adjacent merges in the same window: #1128 docs-integrity fix, #1133 local hook sensors, #1136 dependabot actions bump.
+
 ## SYNTHESIZE — success criteria
 
 1. `plans/` no longer contradicts `gh issue list`: every one of the 22 issues appears with a verdict, evidence
-   and a queue position.
-2. W1–W6 merge with green CI, each closing (or advancing) a numbered issue with test evidence.
-3. E1 (URL redaction) is fixed and regression-tested.
-4. The remaining chain order (#1067→#1068→#1089, #1073→#1076) is written down with its migration rationale, so
-   the next wave does not have to re-derive it.
+   and a queue position. ✅ (#1129 + this refresh)
+2. W1–W6 merge with green CI, each closing (or advancing) a numbered issue with test evidence. 🔄 W1–W4 done;
+   W5/W6/Q02 in review.
+3. E1 (URL redaction) is fixed and regression-tested. 🔄 in #1140.
+4. The remaining chain order (#1067→#1068→#1089, #1073→#1074→#1076) is written down with its migration rationale, so
+   the next wave does not have to re-derive it. ✅ (ACT-376…ACT-381).
+5. Next-wave execution follows this doc's queue: independent slices in parallel worktrees; watermark and
+   embedding chains sequenced; release `v0.1.45` (#1137) after the wave is green.
+

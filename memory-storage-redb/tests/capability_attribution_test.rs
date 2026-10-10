@@ -3,8 +3,9 @@
 //!
 //! The compiled `RedbStorage` implementation (`src/backend_impl.rs`) must
 //! advertise recommendation-attribution capability so the checked persistence
-//! path counts it as durable. The uncompiled duplicate in `src/redb_cache.rs`
-//! is intentionally untouched: `src/lib.rs` includes `backend_impl` only.
+//! path counts it as durable. The former uncompiled duplicate in
+//! `src/redb_cache.rs` was removed in #1087 slice 1; `src/lib.rs` includes
+//! `backend_impl` only.
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 

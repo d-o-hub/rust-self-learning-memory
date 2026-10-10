@@ -275,6 +275,14 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
         &self.config.model_name
     }
 
+    /// The local model path and dimension define this provider's vector space.
+    fn identity(&self) -> String {
+        format!(
+            "local:{}:{}",
+            self.config.model_name, self.config.embedding_dimension
+        )
+    }
+
     async fn is_available(&self) -> bool {
         self.health().await.is_production_ready()
     }

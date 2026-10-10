@@ -266,6 +266,16 @@ impl EmbeddingProvider for MistralEmbeddingProvider {
         self.config.model.model_name()
     }
 
+    /// Model, output dimension and dtype define this provider's vector space.
+    fn identity(&self) -> String {
+        format!(
+            "mistral:{}:{:?}:{:?}",
+            self.config.model.model_name(),
+            self.config.output_dimension,
+            self.config.output_dtype
+        )
+    }
+
     async fn is_available(&self) -> bool {
         self.embed_text("test").await.is_ok()
     }

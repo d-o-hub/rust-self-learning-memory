@@ -99,7 +99,10 @@ impl CoalescedEmbeddingProvider {
     }
 
     fn cache_key(&self, text: &str) -> String {
-        format!("{}:{}", self.inner.model_name(), text.trim())
+        // The identity separates vector spaces: two providers with the same
+        // model name but different configuration must not share cached
+        // vectors (issue #1076).
+        format!("{}:{}", self.inner.identity(), text.trim())
     }
 
     async fn run_batch_worker(

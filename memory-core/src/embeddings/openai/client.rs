@@ -249,6 +249,18 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         self.config.model.model_name()
     }
 
+    /// Model, endpoint, requested dimension and encoding define this
+    /// provider's vector space.
+    fn identity(&self) -> String {
+        format!(
+            "openai:{}:{}:{:?}:{:?}",
+            self.config.model.model_name(),
+            self.config.base_url,
+            self.config.dimensions,
+            self.config.encoding_format
+        )
+    }
+
     async fn is_available(&self) -> bool {
         self.embed_text("test").await.is_ok()
     }

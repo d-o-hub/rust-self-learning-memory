@@ -505,7 +505,7 @@ mod tests {
         }
     }
 
-    async fn counting_service() -> (Arc<SemanticService>, Arc<EmbeddingCalls>) {
+    fn counting_service() -> (Arc<SemanticService>, Arc<EmbeddingCalls>) {
         let calls = Arc::new(EmbeddingCalls::default());
         let provider = CountingProvider {
             inner: crate::embeddings::MockLocalModel::new("counting-model".to_string(), 8),
@@ -534,7 +534,7 @@ mod tests {
     async fn stored_pattern_vectors_are_reused_and_misses_are_batched() {
         use super::super::lexical::{pattern_with, query_context};
 
-        let (service, calls) = counting_service().await;
+        let (service, calls) = counting_service();
         let patterns = vec![
             pattern_with(&["axum"], &["async"]),
             pattern_with(&["tokio"], &["async"]),
@@ -582,7 +582,7 @@ mod tests {
     async fn warm_corpus_needs_no_pattern_embedding_call() {
         use super::super::lexical::{pattern_with, query_context};
 
-        let (service, calls) = counting_service().await;
+        let (service, calls) = counting_service();
         let patterns = vec![
             pattern_with(&["axum"], &["async"]),
             pattern_with(&["tokio"], &["async"]),

@@ -37,6 +37,32 @@ mod health_tests {
     }
 
     #[tokio::test]
+    async fn default_identity_separates_model_and_dimension() {
+        struct Fixed;
+
+        #[async_trait]
+        impl EmbeddingProvider for Fixed {
+            async fn embed_text(&self, _text: &str) -> Result<Vec<f32>> {
+                Ok(vec![0.0; 4])
+            }
+
+            fn embedding_dimension(&self) -> usize {
+                4
+            }
+
+            fn model_name(&self) -> &'static str {
+                "fixed"
+            }
+        }
+
+        assert_eq!(
+            Fixed.identity(),
+            "fixed:4",
+            "a cache keyed on the identity must not serve vectors from another dimension"
+        );
+    }
+
+    #[tokio::test]
     async fn default_health_uses_embed_probe() {
         struct AlwaysOk;
         #[async_trait]
@@ -168,6 +194,18 @@ pub trait EmbeddingProvider: Send + Sync {
 
     /// Get the model name/identifier
     fn model_name(&self) -> &str;
+
+    /// Stable identity of the vector space this provider produces.
+    ///
+    /// Caches that key on text alone would serve a vector computed under a
+    /// different model or configuration, which is invalid for cosine
+    /// comparison (issue #1076). The default identity is the model name and
+    /// dimension; providers whose configuration changes the vector space
+    /// (endpoint, dimensions, encoding) override this with a fingerprint of
+    /// that configuration.
+    fn identity(&self) -> String {
+        format!("{}:{}", self.model_name(), self.embedding_dimension())
+    }
 
     /// Check if the provider is available/configured for production use.
     ///

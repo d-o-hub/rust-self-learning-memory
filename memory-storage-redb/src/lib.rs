@@ -63,10 +63,6 @@
 )]
 #![cfg_attr(
     test,
-    expect(clippy::float_cmp, reason = "exact comparisons for known constants")
-)]
-#![cfg_attr(
-    test,
     expect(
         clippy::unreadable_literal,
         reason = "literals kept verbatim for clarity"

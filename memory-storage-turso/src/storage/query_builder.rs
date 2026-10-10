@@ -307,4 +307,102 @@ mod tests {
         assert!(sql.contains("ORDER BY occurrence_count DESC"));
         assert_eq!(params.len(), 0, "filter_null must bind no parameters");
     }
+
+    /// Every operator renders its own SQL text and binds exactly one value.
+    #[test]
+    fn test_all_filter_ops_emit_their_operator() {
+        for (op, expected) in [
+            (FilterOp::Eq, "="),
+            (FilterOp::Ne, "<>"),
+            (FilterOp::Lt, "<"),
+            (FilterOp::Le, "<="),
+            (FilterOp::Gt, ">"),
+            (FilterOp::Ge, ">="),
+            (FilterOp::Like, "LIKE"),
+        ] {
+            assert_eq!(op.as_sql(), expected);
+            let (sql, params) = EpisodeQueryBuilder::episodes()
+                .filter(EpisodeColumn::Domain, op, "value")
+                .into_parts();
+            assert!(
+                sql.contains(&format!("domain {expected} ?")),
+                "{op:?} must render '{expected}' with a placeholder: {sql}"
+            );
+            assert_eq!(params.len(), 1);
+        }
+    }
+
+    /// Every episode column maps to its exact allowlisted name.
+    #[test]
+    fn test_all_episode_columns_are_allowlisted_names() {
+        for (column, expected) in [
+            (EpisodeColumn::EpisodeId, "episode_id"),
+            (EpisodeColumn::TaskType, "task_type"),
+            (EpisodeColumn::Domain, "domain"),
+            (EpisodeColumn::Language, "language"),
+            (EpisodeColumn::StartTime, "start_time"),
+            (EpisodeColumn::EndTime, "end_time"),
+            (EpisodeColumn::CreatedAt, "created_at"),
+            (EpisodeColumn::ArchivedAt, "archived_at"),
+        ] {
+            assert_eq!(column.as_str(), expected);
+            assert_eq!(QueryColumn::column_sql(column), expected);
+        }
+    }
+
+    /// Every pattern column maps to its exact allowlisted name.
+    #[test]
+    fn test_all_pattern_columns_are_allowlisted_names() {
+        for (column, expected) in [
+            (PatternColumn::PatternId, "pattern_id"),
+            (PatternColumn::PatternType, "pattern_type"),
+            (PatternColumn::ContextDomain, "context_domain"),
+            (PatternColumn::ContextLanguage, "context_language"),
+            (PatternColumn::OccurrenceCount, "occurrence_count"),
+            (PatternColumn::CreatedAt, "created_at"),
+            (PatternColumn::UpdatedAt, "updated_at"),
+        ] {
+            assert_eq!(column.as_str(), expected);
+            assert_eq!(QueryColumn::column_sql(column), expected);
+        }
+    }
+
+    /// A builder with no clauses renders a bare `SELECT` and binds nothing.
+    #[test]
+    fn test_builder_without_clauses_has_no_where_order_or_limit() {
+        let (sql, params) = EpisodeQueryBuilder::episodes().into_parts();
+
+        assert!(sql.contains("FROM episodes"));
+        assert!(!sql.contains("WHERE"));
+        assert!(!sql.contains("ORDER BY"));
+        assert!(!sql.contains("LIMIT"));
+        assert!(params.is_empty());
+    }
+
+    /// `filter_null(true)` renders `IS NULL` and ascending order renders `ASC`.
+    #[test]
+    fn test_null_filter_and_ascending_order() {
+        let (sql, params) = EpisodeQueryBuilder::episodes()
+            .filter_null(EpisodeColumn::EndTime, true)
+            .order_by(EpisodeColumn::StartTime, false)
+            .limit(7)
+            .into_parts();
+
+        assert!(sql.contains("end_time IS NULL"));
+        assert!(sql.contains("ORDER BY start_time ASC"));
+        assert!(sql.contains("LIMIT 7"));
+        assert!(params.is_empty());
+    }
+
+    /// Several filters are conjoined and their values keep placeholder order.
+    #[test]
+    fn test_multiple_filters_join_with_and() {
+        let (sql, params) = EpisodeQueryBuilder::episodes()
+            .filter(EpisodeColumn::Domain, FilterOp::Eq, "d")
+            .filter(EpisodeColumn::Language, FilterOp::Like, "rust%")
+            .into_parts();
+
+        assert!(sql.contains("domain = ? AND language LIKE ?"), "{sql}");
+        assert_eq!(params.len(), 2);
+    }
 }

@@ -34,6 +34,19 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_episode(self, id).await
     }
 
+    /// The native `SELECT 1` ping: a configured-but-unreachable database must report a failed
+    /// probe rather than look connected (#1085). The message is fixed so no backend detail,
+    /// URL or driver error reaches health output.
+    async fn health_check(&self) -> Result<()> {
+        if super::TursoStorage::health_check(self).await? {
+            Ok(())
+        } else {
+            Err(Error::Storage(
+                "Turso health probe did not complete".to_string(),
+            ))
+        }
+    }
+
     async fn delete_episode(&self, id: uuid::Uuid) -> Result<()> {
         super::TursoStorage::delete_episode(self, id).await
     }

@@ -73,6 +73,14 @@ pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
     /// Returns `Some(Episode)` if found, `None` if not found.
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
 
+    /// Bounded liveness probe: one cheap read through the backend's real I/O path.
+    ///
+    /// Health reporting must not treat configuration as proof of connectivity (#1085).
+    /// The default reads a known-absent episode; backends with a native ping override it.
+    async fn health_check(&self) -> Result<()> {
+        self.get_episode(Uuid::nil()).await.map(|_| ())
+    }
+
     /// Delete an episode by ID
     ///
     /// # Errors

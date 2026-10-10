@@ -26,6 +26,7 @@
 //! - 20% better performance under variable load
 
 pub mod adaptive;
+mod adaptive_scale;
 pub mod caching_pool;
 mod config;
 pub mod connection_wrapper;

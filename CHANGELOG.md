@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The adaptive connection pool now has one coherent capacity model (#1063): the
+  configured monitor actually runs `check_and_scale` every `check_interval` and
+  is stopped by `shutdown`, resize decisions use a monotonic (pausable) Tokio
+  `Instant` so cooldowns are honored, and resizes adjust the semaphore permits
+  (`add_permits`/`forget_permits`) so scale-down reclaims only idle permits and
+  defers while work is active; utilization and the acquisition timeout report
+  the same effective target.
 - Retrieval provenance is now execution-backed (#1079): the provenance path
   performs exactly one query-cache lookup, so cache hit/miss telemetry is
   counted once per operation, and it threads the serving tier, cache hit/miss,

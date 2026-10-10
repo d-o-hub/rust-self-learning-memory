@@ -14,14 +14,14 @@ use do_memory_core::episode::PatternId;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use do_memory_core::storage::StorageBackend;
 use do_memory_core::{
-    ComplexityLevel, Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory,
-    TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, Episode, Error, Heuristic, MemoryConfig, Pattern, RankingIndex, Result,
+    SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
 use do_memory_storage_redb::RedbStorage;
 use parking_lot::Mutex;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use uuid::Uuid;
 
 fn create_test_pattern(id: Uuid, success_rate: f32) -> Pattern {
@@ -96,6 +96,21 @@ struct LegacyOnlyBackend {
     advertise_attribution: bool,
     /// Whether `supports_ranking_adaptation` reports true.
     advertise_ranking: bool,
+    /// `list_recommendation_sessions` call count: proves the warm incremental
+    /// update path performs no durable history scan.
+    list_session_calls: AtomicUsize,
+    /// `list_recommendation_feedback` call count.
+    list_feedback_calls: AtomicUsize,
+}
+
+impl LegacyOnlyBackend {
+    /// `(session list calls, feedback list calls)` observed so far.
+    fn history_scans(&self) -> (usize, usize) {
+        (
+            self.list_session_calls.load(Ordering::Relaxed),
+            self.list_feedback_calls.load(Ordering::Relaxed),
+        )
+    }
 }
 
 #[async_trait]
@@ -133,9 +148,11 @@ impl StorageBackend for LegacyOnlyBackend {
     // ADR-082 ranking surface: list history when the backend advertises
     // ranking adaptation, and report capability from the flags.
     async fn list_recommendation_sessions(&self) -> Result<Vec<RecommendationSession>> {
+        self.list_session_calls.fetch_add(1, Ordering::Relaxed);
         Ok(self.sessions.lock().values().cloned().collect())
     }
     async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
+        self.list_feedback_calls.fetch_add(1, Ordering::Relaxed);
         Ok(self.feedback.lock().values().cloned().collect())
     }
     fn supports_recommendation_attribution(&self) -> bool {
@@ -639,5 +656,320 @@ async fn in_process_feedback_lifts_live_but_durable_rows_ignored_after_restart()
         restarted_results[0].pattern.id(),
         p_high.id(),
         "restart: non-ranking-capable durable rows must be ignored"
+    );
+}
+
+/// Outcome constructor for the two poles used by the replacement tests.
+fn outcome(positive: bool) -> TaskOutcome {
+    if positive {
+        TaskOutcome::Success {
+            verdict: "done".to_string(),
+            artifacts: vec![],
+        }
+    } else {
+        TaskOutcome::Failure {
+            reason: "regressed".to_string(),
+            error_details: None,
+        }
+    }
+}
+
+/// Exact ranking comparison keyed by pattern id (order-independent).
+fn scores_by_pattern(
+    results: &[do_memory_core::memory::PatternSearchResult],
+) -> BTreeMap<String, f32> {
+    results
+        .iter()
+        .map(|r| (r.pattern.id().to_string(), r.relevance_score))
+        .collect()
+}
+
+/// Issue #1078 acceptance: replacement feedback applied through the incremental
+/// path must produce exactly the ranking of a full `from_history` rebuild over
+/// the same history, for both Success→Failure and Failure→Success.
+#[tokio::test]
+async fn incremental_replacements_match_full_rebuild_ranking() {
+    for first_positive in [true, false] {
+        let backend = Arc::new(LegacyOnlyBackend {
+            advertise_attribution: true,
+            advertise_ranking: true,
+            ..Default::default()
+        });
+        let p_high = create_test_pattern(Uuid::new_v4(), 0.9);
+        let p_low = create_test_pattern(Uuid::new_v4(), 0.1);
+
+        let memory = SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            Arc::clone(&backend) as Arc<dyn StorageBackend>,
+            Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        );
+        seed_patterns(&memory, &[p_high.clone(), p_low.clone()]).await;
+
+        let episode_id = memory
+            .start_episode(
+                "Build an async REST API".to_string(),
+                recommend_context(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+        let session = session_for(episode_id, &p_low);
+        let session_id = session.session_id;
+        memory
+            .record_recommendation_session_checked(session.clone())
+            .await;
+
+        // Accept the first outcome, then replace it with the opposite one.
+        memory
+            .record_recommendation_feedback(feedback_for(
+                session_id,
+                &p_low,
+                outcome(first_positive),
+            ))
+            .await
+            .unwrap();
+        memory
+            .record_recommendation_feedback(feedback_for(
+                session_id,
+                &p_low,
+                outcome(!first_positive),
+            ))
+            .await
+            .unwrap();
+
+        // Canonical rebuild over the same durable history, as a cold process would.
+        let rebuilt = SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            Arc::clone(&backend) as Arc<dyn StorageBackend>,
+            Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        );
+        seed_patterns(&rebuilt, &[p_high.clone(), p_low.clone()]).await;
+
+        let live = memory
+            .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+            .await
+            .unwrap();
+        let cold = rebuilt
+            .recommend_patterns_for_task("Build an async REST API", recommend_context(), 2)
+            .await
+            .unwrap();
+
+        assert!(!live.is_empty(), "recommendations must be produced");
+        // `relevance_score` carries base relevance only (the learned term reorders
+        // candidates), so the ranking order is the observable the incremental path
+        // must match.
+        assert_eq!(
+            scores_by_pattern(&live),
+            scores_by_pattern(&cold),
+            "first_positive={first_positive}: base scores must match a full rebuild"
+        );
+        assert_eq!(
+            live.iter().map(|r| r.pattern.id()).collect::<Vec<_>>(),
+            cold.iter().map(|r| r.pattern.id()).collect::<Vec<_>>(),
+            "first_positive={first_positive}: incremental ranking must equal a full rebuild"
+        );
+        let expected_leader = if first_positive {
+            p_high.id()
+        } else {
+            p_low.id()
+        };
+        assert_eq!(
+            live[0].pattern.id(),
+            expected_leader,
+            "first_positive={first_positive}: replacement feedback must decide the leader"
+        );
+    }
+}
+
+/// Issue #1078 acceptance: a warm single-record update must not rescan durable
+/// history, so refresh cost no longer scales with total history.
+#[tokio::test]
+async fn warm_feedback_update_skips_history_scan() {
+    let backend = Arc::new(LegacyOnlyBackend {
+        advertise_attribution: true,
+        advertise_ranking: true,
+        ..Default::default()
+    });
+    let p_high = create_test_pattern(Uuid::new_v4(), 0.9);
+    let p_low = create_test_pattern(Uuid::new_v4(), 0.1);
+
+    let memory = SelfLearningMemory::with_storage(
+        MemoryConfig::default(),
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+    );
+    seed_patterns(&memory, &[p_high.clone(), p_low.clone()]).await;
+
+    let session_one = session_for(Uuid::new_v4(), &p_low);
+    memory
+        .record_recommendation_session_checked(session_one.clone())
+        .await;
+    let session_two = session_for(Uuid::new_v4(), &p_low);
+    memory
+        .record_recommendation_session_checked(session_two.clone())
+        .await;
+
+    // First accepted feedback is the cold load: it scans durable history once.
+    memory
+        .record_recommendation_feedback(feedback_for(session_one.session_id, &p_low, outcome(true)))
+        .await
+        .unwrap();
+    let after_cold_load = backend.history_scans();
+    assert!(
+        after_cold_load.0 >= 1,
+        "the first update must load durable history: {after_cold_load:?}"
+    );
+
+    // Second accepted feedback for another session is warm: no history scan.
+    memory
+        .record_recommendation_feedback(feedback_for(
+            session_two.session_id,
+            &p_low,
+            outcome(false),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(
+        backend.history_scans(),
+        after_cold_load,
+        "a warm incremental update must not rescan durable history"
+    );
+}
+
+/// Issue #1078 acceptance: concurrent accepted feedback must not lose
+/// contributions; the live index must match a full rebuild and every pattern
+/// must retain its learned boost.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn concurrent_feedback_updates_keep_all_contributions() {
+    let backend = Arc::new(LegacyOnlyBackend {
+        advertise_attribution: true,
+        advertise_ranking: true,
+        ..Default::default()
+    });
+    let control = create_test_pattern(Uuid::new_v4(), 0.9);
+    let lows: Vec<Pattern> = (0..6)
+        .map(|_| create_test_pattern(Uuid::new_v4(), 0.1))
+        .collect();
+    let mut seeded = vec![control.clone()];
+    seeded.extend(lows.iter().cloned());
+
+    let memory = Arc::new(SelfLearningMemory::with_storage(
+        MemoryConfig::default(),
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+    ));
+    seed_patterns(&memory, &seeded).await;
+
+    // Un-boosted baseline: the learned term reorders candidates rather than
+    // changing `relevance_score`, so capture the base pool before any feedback.
+    let baseline = memory
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), seeded.len())
+        .await
+        .unwrap();
+    let base_scores = scores_by_pattern(&baseline);
+    assert_eq!(
+        base_scores.len(),
+        seeded.len(),
+        "all seeded patterns must be recommendable"
+    );
+
+    let mut sessions = Vec::new();
+    let mut feedbacks = Vec::new();
+    let mut handles = Vec::new();
+    for low in &lows {
+        let episode_id = memory
+            .start_episode(
+                "Build an async REST API".to_string(),
+                recommend_context(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+        let session = session_for(episode_id, low);
+        let session_id = session.session_id;
+        memory
+            .record_recommendation_session_checked(session.clone())
+            .await;
+        sessions.push(session);
+
+        let feedback = feedback_for(session_id, low, outcome(true));
+        feedbacks.push(feedback.clone());
+        let memory = Arc::clone(&memory);
+        handles.push(tokio::spawn(async move {
+            memory.record_recommendation_feedback(feedback).await
+        }));
+    }
+    for handle in handles {
+        handle.await.unwrap().unwrap();
+    }
+
+    let live = memory
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), seeded.len())
+        .await
+        .unwrap();
+
+    // Full rebuild over the same durable history.
+    let rebuilt = SelfLearningMemory::with_storage(
+        MemoryConfig::default(),
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+        Arc::clone(&backend) as Arc<dyn StorageBackend>,
+    );
+    seed_patterns(&rebuilt, &seeded).await;
+    let cold = rebuilt
+        .recommend_patterns_for_task("Build an async REST API", recommend_context(), seeded.len())
+        .await
+        .unwrap();
+
+    assert_eq!(
+        scores_by_pattern(&live),
+        base_scores,
+        "the learned term must not change reported base scores"
+    );
+    assert_eq!(scores_by_pattern(&cold), base_scores);
+
+    // Expected learned keys: base relevance plus the boost derived from exactly
+    // the history the concurrent updates wrote.
+    let expected_index = RankingIndex::from_history(&sessions, &feedbacks);
+    let learned_key = |result: &do_memory_core::memory::PatternSearchResult| {
+        let pid = result.pattern.id().to_string();
+        base_scores[&pid] + expected_index.boost(&pid)
+    };
+    assert!(
+        live.windows(2)
+            .all(|pair| learned_key(&pair[0]) >= learned_key(&pair[1])),
+        "the live ranking must follow base relevance plus the learned boost"
+    );
+    assert!(
+        cold.windows(2)
+            .all(|pair| learned_key(&pair[0]) >= learned_key(&pair[1])),
+        "the rebuild's ranking must follow the same learned keys"
+    );
+
+    // Decisive check: every one of the six boosted patterns outranks the
+    // un-boosted control, so the top six are exactly the boosted patterns. A lost
+    // concurrent contribution would drop that pattern back below the control.
+    for low in &lows {
+        assert!(
+            expected_index.boost(&low.id().to_string()) > 0.0,
+            "fixture: {} must carry learned evidence",
+            low.id()
+        );
+    }
+    let mut live_top: Vec<Uuid> = live
+        .iter()
+        .take(lows.len())
+        .map(|r| r.pattern.id())
+        .collect();
+    let mut boosted: Vec<Uuid> = lows.iter().map(do_memory_core::Pattern::id).collect();
+    live_top.sort();
+    boosted.sort();
+    assert_eq!(live_top, boosted, "a concurrent contribution was lost");
+    let mut cold_top: Vec<Uuid> = cold
+        .iter()
+        .take(lows.len())
+        .map(|r| r.pattern.id())
+        .collect();
+    cold_top.sort();
+    assert_eq!(
+        cold_top, boosted,
+        "the rebuild must rank the same boosted patterns"
     );
 }

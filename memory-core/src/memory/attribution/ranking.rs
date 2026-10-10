@@ -8,8 +8,15 @@
 //! latest-feedback-per-session), and rollback-safe (drop-and-rebuild, no
 //! destructive journal). After a cold restart the index is a pure function of
 //! durable history.
+//!
+//! [`RankingIndex::from_history`] is the canonical rebuild; a single accepted
+//! replacement is applied in place by [`RankingIndex::apply_feedback`], which
+//! subtracts the replaced session's recorded contribution and adds the new one
+//! so refresh cost no longer scales with total history.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+
+use uuid::Uuid;
 
 use crate::memory::attribution::types::{RecommendationFeedback, RecommendationSession};
 use crate::search::ranking::wilson_lower_bound;
@@ -43,12 +50,92 @@ impl PatternRankingState {
     }
 }
 
+/// Evidence one session's latest feedback contributed to the derived counters.
+///
+/// Retained per session so [`RankingIndex::apply_feedback`] can subtract exactly
+/// what a replaced record added — in O(applied pattern ids), independent of
+/// total history size — instead of rescanning every session. `applied_pattern_ids`
+/// mirrors the feedback verbatim (duplicates included) so add and remove stay
+/// symmetric.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SessionContribution {
+    applied_pattern_ids: Vec<String>,
+    positive: bool,
+}
+
+impl SessionContribution {
+    /// Reduce one feedback record to its index contribution.
+    fn from_feedback(feedback: &RecommendationFeedback) -> Self {
+        Self {
+            applied_pattern_ids: feedback.applied_pattern_ids.clone(),
+            positive: matches!(
+                feedback.outcome,
+                TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. }
+            ),
+        }
+    }
+
+    /// Add this contribution's evidence to `inner`.
+    fn add_to(&self, inner: &mut HashMap<String, PatternRankingState>) {
+        for pid in &self.applied_pattern_ids {
+            let state = inner.entry(pid.clone()).or_default();
+            state.applied += 1;
+            if self.positive {
+                state.succeeded += 1;
+            }
+        }
+    }
+
+    /// Whether this contribution can be subtracted from `inner`.
+    ///
+    /// Checked before any mutation, so a `false` result leaves `inner` untouched
+    /// and the caller can safely fall back to a full rebuild. Aborts on the
+    /// first counter that would underflow.
+    fn can_remove_from(&self, inner: &HashMap<String, PatternRankingState>) -> bool {
+        let mut required: HashMap<&str, u64> = HashMap::new();
+        for pid in &self.applied_pattern_ids {
+            *required.entry(pid.as_str()).or_default() += 1;
+        }
+        required.iter().all(|(pid, count)| {
+            inner.get(*pid).is_some_and(|state| {
+                state.applied >= *count && (!self.positive || state.succeeded >= *count)
+            })
+        })
+    }
+
+    /// Subtract this contribution's evidence from `inner`.
+    ///
+    /// Caller must have validated with [`Self::can_remove_from`]. A pattern whose
+    /// evidence drops to zero is removed, so the map matches a rebuild exactly
+    /// (a rebuild never materializes a zeroed entry).
+    fn remove_from(&self, inner: &mut HashMap<String, PatternRankingState>) {
+        for pid in &self.applied_pattern_ids {
+            if let Some(state) = inner.get_mut(pid) {
+                state.applied -= 1;
+                if self.positive {
+                    state.succeeded -= 1;
+                }
+                if state.applied == 0 {
+                    inner.remove(pid);
+                }
+            }
+        }
+    }
+}
+
 /// Derived index of learned pattern weights keyed by pattern id string.
 ///
 /// Keys match `Pattern::id().to_string()` and session `recommended_pattern_ids`.
 #[derive(Debug, Clone, Default)]
 pub struct RankingIndex {
     inner: HashMap<String, PatternRankingState>,
+    /// Latest contribution per session, powering the incremental
+    /// [`Self::apply_feedback`] path (ADR-082 latest-feedback-wins).
+    contributions: HashMap<Uuid, SessionContribution>,
+    /// Monotonic mutation counter. A rebuild only overwrites the index while
+    /// this is unchanged, so an incremental update racing the rebuild's history
+    /// scan is never clobbered by the rebuild's stale snapshot.
+    revision: u64,
 }
 
 impl RankingIndex {
@@ -57,40 +144,87 @@ impl RankingIndex {
     /// Feedback is reduced to the LATEST per session (map overwrite), so
     /// replacement feedback is naturally honored: storage upserts feedback by
     /// `session_id`, and this last-wins reduction mirrors it.
+    ///
+    /// This is the canonical cold-start/rebuild path; [`Self::apply_feedback`]
+    /// is its incremental counterpart for a single accepted replacement.
     #[must_use]
     pub fn from_history(
         sessions: &[RecommendationSession],
         feedback: &[RecommendationFeedback],
     ) -> Self {
-        let mut sessions_by_id: HashMap<uuid::Uuid, &RecommendationSession> = HashMap::new();
-        for s in sessions {
-            sessions_by_id.insert(s.session_id, s);
-        }
+        let sessions_by_id: HashSet<Uuid> = sessions.iter().map(|s| s.session_id).collect();
 
-        let mut fb_by_session: HashMap<uuid::Uuid, &RecommendationFeedback> = HashMap::new();
+        let mut fb_by_session: HashMap<Uuid, &RecommendationFeedback> = HashMap::new();
         for f in feedback {
             fb_by_session.insert(f.session_id, f);
         }
 
-        let mut inner: HashMap<String, PatternRankingState> = HashMap::new();
+        let mut index = Self::default();
         for f in fb_by_session.values() {
-            if !sessions_by_id.contains_key(&f.session_id) {
+            if !sessions_by_id.contains(&f.session_id) {
                 continue; // orphan feedback contributes nothing
             }
-            let positive = matches!(
-                f.outcome,
-                TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. }
-            );
-            for pid in &f.applied_pattern_ids {
-                let st = inner.entry(pid.clone()).or_default();
-                st.applied += 1;
-                if positive {
-                    st.succeeded += 1;
-                }
-            }
+            let contribution = SessionContribution::from_feedback(f);
+            contribution.add_to(&mut index.inner);
+            index.contributions.insert(f.session_id, contribution);
         }
+        index
+    }
 
-        Self { inner }
+    /// Apply one session's latest feedback in place (ADR-082 incremental path).
+    ///
+    /// Subtracts the session's previously indexed contribution (if any) and adds
+    /// the replacement, so update cost is independent of total history size. The
+    /// caller must have resolved `feedback.session_id` to a known session: an
+    /// unknown session contributes nothing in [`Self::from_history`] (orphan
+    /// filtering), so that case belongs on the rebuild fallback.
+    ///
+    /// Returns `false` when the recorded contribution cannot be subtracted
+    /// (index inconsistent); the caller must then rebuild from history. On
+    /// `false` the index is unchanged.
+    #[must_use]
+    pub fn apply_feedback(&mut self, feedback: &RecommendationFeedback) -> bool {
+        let replacement = SessionContribution::from_feedback(feedback);
+        if let Some(prior) = self.contributions.get(&feedback.session_id) {
+            if !prior.can_remove_from(&self.inner) {
+                return false;
+            }
+            prior.remove_from(&mut self.inner);
+        }
+        replacement.add_to(&mut self.inner);
+        self.contributions.insert(feedback.session_id, replacement);
+        self.revision = self.revision.wrapping_add(1);
+        true
+    }
+
+    /// Read-only snapshot of the learned pattern weights.
+    ///
+    /// Copies only the weight map, not the per-session incremental bookkeeping,
+    /// so a snapshot stays proportional to the pattern count rather than the
+    /// whole session history. The result is for reading ([`Self::boost`] /
+    /// [`Self::len`]); running it back through [`Self::apply_feedback`] would
+    /// silently restart from empty history, so only the memory layer's live
+    /// index is mutated.
+    #[must_use]
+    pub(crate) fn read_view(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+            ..Self::default()
+        }
+    }
+
+    /// Monotonic mutation counter (see the field documentation).
+    #[must_use]
+    pub(crate) fn revision(&self) -> u64 {
+        self.revision
+    }
+
+    /// Overwrite this index with a rebuild, carrying the mutation counter forward
+    /// so a concurrent incremental update is still detected afterwards.
+    pub(crate) fn replace_with(&mut self, rebuilt: Self) {
+        let revision = self.revision.wrapping_add(1);
+        *self = rebuilt;
+        self.revision = revision;
     }
 
     /// Learned boost in `[0,1] * LEARNED_BOOST_SCALE` for `pattern_id`; 0.0 when no evidence.
@@ -116,234 +250,4 @@ impl RankingIndex {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use chrono::Utc;
-    use uuid::Uuid;
-
-    fn session(ids: &[&str]) -> RecommendationSession {
-        RecommendationSession {
-            session_id: Uuid::new_v4(),
-            episode_id: Uuid::new_v4(),
-            timestamp: Utc::now(),
-            recommended_pattern_ids: ids.iter().map(|s| (*s).to_string()).collect(),
-            recommended_playbook_ids: vec![],
-        }
-    }
-
-    fn feedback(
-        session_id: Uuid,
-        applied: &[&str],
-        outcome: TaskOutcome,
-    ) -> RecommendationFeedback {
-        RecommendationFeedback {
-            session_id,
-            applied_pattern_ids: applied.iter().map(|s| (*s).to_string()).collect(),
-            consulted_episode_ids: vec![],
-            outcome,
-            agent_rating: None,
-        }
-    }
-
-    #[test]
-    fn zero_trials_weight_is_zero() {
-        let st = PatternRankingState::default();
-        assert_eq!(st.weight(RANKING_WILSON_Z), 0.0);
-    }
-
-    #[test]
-    fn wilson_is_conservative_at_low_trials() {
-        // 1/1 has a wide interval; 10/10 is tighter and bounds upward.
-        let one = PatternRankingState {
-            applied: 1,
-            succeeded: 1,
-        };
-        let ten = PatternRankingState {
-            applied: 10,
-            succeeded: 10,
-        };
-        let w1 = one.weight(RANKING_WILSON_Z);
-        let w10 = ten.weight(RANKING_WILSON_Z);
-        assert!(
-            w10 > w1,
-            "more evidence must raise the Wilson lower bound: {w1} vs {w10}"
-        );
-        assert!(w1 > 0.0 && w1 < 0.5);
-        assert!(w10 > 0.6);
-    }
-
-    #[test]
-    fn more_successes_raise_weight() {
-        let mixed = PatternRankingState {
-            applied: 3,
-            succeeded: 2,
-        };
-        let none = PatternRankingState {
-            applied: 3,
-            succeeded: 0,
-        };
-        assert!(
-            mixed.weight(RANKING_WILSON_Z) > none.weight(RANKING_WILSON_Z),
-            "2/3 success must outrank 0/3"
-        );
-    }
-
-    #[test]
-    fn from_history_counts_applied_and_succeeded_only() {
-        let s = session(&["p1", "p2"]);
-        let f = feedback(
-            s.session_id,
-            &["p1"],
-            TaskOutcome::Success {
-                verdict: "done".to_string(),
-                artifacts: vec![],
-            },
-        );
-        let idx = RankingIndex::from_history(&[s], &[f]);
-        let p1 = idx.inner.get("p1").copied().unwrap();
-        assert_eq!(
-            p1,
-            PatternRankingState {
-                applied: 1,
-                succeeded: 1
-            }
-        );
-        assert_eq!(
-            idx.inner.get("p2").copied(),
-            None,
-            "recommended-but-not-applied must carry no learned evidence"
-        );
-    }
-
-    #[test]
-    fn failure_feedback_does_not_increment_succeeded() {
-        let s = session(&["p1"]);
-        let f = feedback(
-            s.session_id,
-            &["p1"],
-            TaskOutcome::Failure {
-                reason: "nope".to_string(),
-                error_details: None,
-            },
-        );
-        let idx = RankingIndex::from_history(&[s], &[f]);
-        let p1 = idx.inner.get("p1").copied().unwrap();
-        assert_eq!(p1.succeeded, 0);
-        assert_eq!(p1.applied, 1);
-        assert_eq!(idx.boost("p1"), 0.0);
-    }
-
-    #[test]
-    fn two_feedbacks_for_one_session_last_wins() {
-        let s = session(&["p1"]);
-        let first = feedback(
-            s.session_id,
-            &["p1"],
-            TaskOutcome::Success {
-                verdict: "ok".to_string(),
-                artifacts: vec![],
-            },
-        );
-        let second = feedback(
-            s.session_id,
-            &["p1"],
-            TaskOutcome::Failure {
-                reason: "regressed".to_string(),
-                error_details: None,
-            },
-        );
-        let idx = RankingIndex::from_history(std::slice::from_ref(&s), &[first, second]);
-        let p1 = idx.inner.get("p1").copied().unwrap();
-        assert_eq!(
-            p1,
-            PatternRankingState {
-                applied: 1,
-                succeeded: 0
-            },
-            "replacement feedback must win"
-        );
-    }
-
-    #[test]
-    fn feedback_with_absent_session_is_skipped() {
-        let orphans = feedback(
-            Uuid::new_v4(),
-            &["ghost"],
-            TaskOutcome::Success {
-                verdict: "orphan".to_string(),
-                artifacts: vec![],
-            },
-        );
-        let idx = RankingIndex::from_history(&[], &[orphans]);
-        assert_eq!(idx.len(), 0);
-    }
-
-    #[test]
-    fn applied_id_not_in_recommended_counted_defensively() {
-        let s = session(&["p1"]);
-        let applied: Vec<&str> = vec!["p1", "extra"];
-        let mut f = feedback(
-            s.session_id,
-            &applied,
-            TaskOutcome::Success {
-                verdict: "ok".to_string(),
-                artifacts: vec![],
-            },
-        );
-        // Feedback validation normally rejects non-recommended applied IDs, but the
-        // derived index must not crash on them (defensive counting).
-        let _ = &mut f;
-        let idx = RankingIndex::from_history(&[s], &[f]);
-        let extra = idx.inner.get("extra").copied().unwrap();
-        assert_eq!(extra.applied, 1);
-        assert_eq!(extra.succeeded, 1);
-        assert!(idx.boost("extra") > 0.0);
-    }
-
-    #[test]
-    fn partial_success_counts_as_success() {
-        let s = session(&["p1"]);
-        let f = feedback(
-            s.session_id,
-            &["p1"],
-            TaskOutcome::PartialSuccess {
-                verdict: "partially done".to_string(),
-                completed: vec!["core".to_string()],
-                failed: vec![],
-            },
-        );
-        let idx = RankingIndex::from_history(&[s], &[f]);
-        let p1 = idx.inner.get("p1").copied().unwrap();
-        assert_eq!(
-            p1,
-            PatternRankingState {
-                applied: 1,
-                succeeded: 1
-            },
-            "PartialSuccess must count toward the success evidence"
-        );
-        assert!(idx.boost("p1") > 0.0);
-    }
-
-    /// Proportionality guard (calibration 2026-08-13): a single success must
-    /// overturn only a near-tie and never leapfrog a clearly-worse candidate.
-    /// The realistic base distribution (keyword scoring, 8 patterns) had a
-    /// top-2 gap ≈ 0.048 and non-tie gaps ≥ 0.059; at scale=0.25 the boost
-    /// (≈ 0.0516) flips the former but not the latter. Pins the envelope so a
-    /// change to `LEARNED_BOOST_SCALE` / `RANKING_WILSON_Z` is deliberate.
-    #[test]
-    fn single_success_boost_stays_in_calibrated_window() {
-        let single = PatternRankingState {
-            applied: 1,
-            succeeded: 1,
-        }
-        .weight(RANKING_WILSON_Z) as f32;
-        let boost = single * LEARNED_BOOST_SCALE;
-        // Too weak (<0.04) can't flip a 0.048 near-tie; too hot (>=0.06)
-        // leapfrogs a clearly-worse candidate (measured #3 gap ~0.059).
-        assert!(
-            (0.04..0.06).contains(&boost),
-            "single-success boost {boost} outside calibrated envelope"
-        );
-    }
-}
+mod tests;

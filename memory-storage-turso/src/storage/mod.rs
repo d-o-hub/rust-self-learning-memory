@@ -25,6 +25,7 @@ pub mod heuristics;
 pub mod monitoring;
 pub mod patterns;
 pub mod procedural;
+pub mod query_builder;
 pub mod recommendations;
 pub mod search;
 pub mod tag_operations;
@@ -46,6 +47,10 @@ pub use patterns::PATTERN_SELECT_COLUMNS;
 pub use patterns::PatternMetadata;
 pub use patterns::PatternQuery;
 pub use patterns::RawPatternQuery;
+pub use query_builder::{
+    EpisodeColumn, EpisodeQueryBuilder, FilterOp, PatternColumn, PatternQueryBuilder, QueryBuilder,
+    QueryColumn,
+};
 pub use tag_operations::TagStats;
 
 // Re-export dimension stats when multi-dimension feature is enabled

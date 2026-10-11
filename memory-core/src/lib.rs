@@ -300,7 +300,10 @@ pub use security::audit::{
     ActorType, AuditConfig, AuditContext, AuditEntry, AuditEventType, AuditLogLevel, AuditLogger,
     AuditOutput, AuditResult,
 };
-pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_query_limit};
+pub use storage::{
+    DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, StorageBackendCapabilities,
+    apply_query_limit,
+};
 pub use types::{
     CloudEvent, ComplexityLevel, ConcurrencyConfig, DualRewardScore, EventEmitter,
     EventEmitterMode, Evidence, ExecutionResult, LogEmitter, MemoryConfig, MemoryEventMapping,

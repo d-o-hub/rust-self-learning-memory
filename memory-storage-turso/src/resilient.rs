@@ -30,7 +30,7 @@ use crate::TursoStorage;
 /// - Failure statistics and monitoring
 pub struct ResilientStorage {
     /// Underlying Turso storage
-    storage: Arc<TursoStorage>,
+    pub(crate) storage: Arc<TursoStorage>,
     /// Circuit breaker for resilience
     circuit_breaker: Arc<CircuitBreaker>,
 }
@@ -300,14 +300,6 @@ impl StorageBackend for ResilientStorage {
     async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
         self.circuit_call(move |s| async move { s.list_recommendation_feedback().await })
             .await
-    }
-
-    fn supports_ranking_adaptation(&self) -> bool {
-        self.storage.supports_ranking_adaptation()
-    }
-
-    fn supports_recommendation_attribution(&self) -> bool {
-        self.storage.supports_recommendation_attribution()
     }
 }
 

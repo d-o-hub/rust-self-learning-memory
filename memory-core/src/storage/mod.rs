@@ -10,7 +10,7 @@
 mod backend;
 pub mod circuit_breaker;
 
-pub use backend::StorageBackend;
+pub use backend::{StorageBackend, StorageBackendCapabilities};
 
 /// Default limit for query operations (when not specified)
 pub const DEFAULT_QUERY_LIMIT: usize = 100;

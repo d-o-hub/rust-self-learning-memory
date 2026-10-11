@@ -11,7 +11,7 @@ use async_trait::async_trait;
 use chrono::Utc;
 use do_memory_core::episode::PatternId;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     Episode, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory, TaskOutcome,
 };
@@ -35,10 +35,6 @@ struct InertBackend;
 
 #[async_trait]
 impl StorageBackend for SessionStoringBackend {
-    fn supports_recommendation_attribution(&self) -> bool {
-        true
-    }
-
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         self.sessions
             .lock()
@@ -118,6 +114,16 @@ impl StorageBackend for SessionStoringBackend {
         Ok(vec![])
     }
 }
+
+/// Capability matrix (ADR-081): the session backend really stores attribution
+/// data; the inert backend advertises nothing and relies on the typed defaults.
+impl StorageBackendCapabilities for SessionStoringBackend {
+    fn supports_recommendation_attribution(&self) -> bool {
+        true
+    }
+}
+
+impl StorageBackendCapabilities for InertBackend {}
 
 #[async_trait]
 impl StorageBackend for InertBackend {

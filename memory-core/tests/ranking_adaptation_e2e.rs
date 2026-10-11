@@ -12,7 +12,7 @@ use async_trait::async_trait;
 use chrono::Utc;
 use do_memory_core::episode::PatternId;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     ComplexityLevel, Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory,
     TaskContext, TaskOutcome, TaskType,
@@ -98,6 +98,16 @@ struct LegacyOnlyBackend {
     advertise_ranking: bool,
 }
 
+/// Capability matrix (ADR-081): the flags let a test drive both answers.
+impl StorageBackendCapabilities for LegacyOnlyBackend {
+    fn supports_recommendation_attribution(&self) -> bool {
+        self.advertise_attribution
+    }
+    fn supports_ranking_adaptation(&self) -> bool {
+        self.advertise_ranking
+    }
+}
+
 #[async_trait]
 impl StorageBackend for LegacyOnlyBackend {
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
@@ -137,12 +147,6 @@ impl StorageBackend for LegacyOnlyBackend {
     }
     async fn list_recommendation_feedback(&self) -> Result<Vec<RecommendationFeedback>> {
         Ok(self.feedback.lock().values().cloned().collect())
-    }
-    fn supports_recommendation_attribution(&self) -> bool {
-        self.advertise_attribution
-    }
-    fn supports_ranking_adaptation(&self) -> bool {
-        self.advertise_ranking
     }
 
     async fn store_episode(&self, _episode: &Episode) -> Result<()> {

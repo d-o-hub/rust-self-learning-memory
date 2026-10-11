@@ -17,7 +17,9 @@ use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 #[cfg(feature = "redb")]
-use do_memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend};
+use do_memory_core::{
+    Episode, Error, Heuristic, Pattern, Result, StorageBackend, StorageBackendCapabilities,
+};
 #[cfg(any(feature = "turso", feature = "redb"))]
 use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 #[cfg(feature = "redb")]
@@ -123,8 +125,13 @@ impl StorageBackend for FailingStorage {
     async fn count_cleanup_candidates(&self, _policy: &EpisodeRetentionPolicy) -> Result<usize> {
         Err(Error::Storage("Simulated failure".to_string()))
     }
-    // This backend models a *capable* backend that fails at runtime, so it
-    // advertises the capability it overrides (ADR-081 pattern, #1087 slice 1).
+}
+
+/// Capability matrix (ADR-081): this backend models a *capable* backend that
+/// fails at runtime, so it advertises the capability it overrides (#1087
+/// slice 1).
+#[cfg(feature = "redb")]
+impl StorageBackendCapabilities for FailingStorage {
     fn supports_episode_cleanup(&self) -> bool {
         true
     }

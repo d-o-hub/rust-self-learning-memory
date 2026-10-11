@@ -10,7 +10,7 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use do_memory_core::episode::PatternId;
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     Episode, EpisodeDurability, Error, Heuristic, MemoryConfig, Pattern, Result,
     SelfLearningMemory, TaskContext, TaskOutcome, TaskType, WriteQueueConfig,
@@ -61,6 +61,8 @@ impl MockBackend {
         self.stored.lock().await.len()
     }
 }
+
+impl StorageBackendCapabilities for MockBackend {}
 
 #[async_trait]
 impl StorageBackend for MockBackend {

@@ -9,10 +9,13 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use do_memory_core::StorageBackend;
+use do_memory_core::TaskContext;
 use do_memory_core::TaskOutcome;
+use do_memory_core::episode::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
+use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+use do_memory_core::{Error, StorageBackend, StorageBackendCapabilities};
 use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, ResilientStorage, TursoStorage};
 use libsql::Builder;
 use tempfile::TempDir;
@@ -139,4 +142,79 @@ async fn cached_turso_storage_delegates_capability_to_inner_backend() {
         cached.supports_recommendation_attribution(),
         "CachedTursoStorage must delegate capability to its inner Turso backend"
     );
+}
+
+/// #1087 slices 2-3: relationship and procedural capabilities must be truthful
+/// per backend. `TursoStorage` persists both with SQL, so it advertises them;
+/// the resilient and cached wrappers do not route those methods, so they must
+/// not claim them and their inherited defaults must return the typed
+/// capability error instead of a silent success.
+#[tokio::test]
+async fn relationship_and_procedural_capability_is_truthful_per_backend() {
+    let (storage, _dir) = local_turso().await;
+    assert!(
+        storage.supports_relationship_persistence(),
+        "TursoStorage persists relationships in SQL"
+    );
+    assert!(
+        storage.supports_procedural_memory(),
+        "TursoStorage persists procedural memory in SQL"
+    );
+    assert!(
+        !storage.supports_episode_cleanup(),
+        "TursoStorage has no retention/GC implementation, so cleanup stays unavailable"
+    );
+
+    let (resilient_inner, _dir2) = local_turso().await;
+    let resilient = ResilientStorage::new(resilient_inner, CircuitBreakerConfig::default());
+    let (cached_inner, _dir3) = local_turso().await;
+    let cached = CachedTursoStorage::new(cached_inner, CacheConfig::default());
+
+    for backend in [
+        &resilient as &dyn StorageBackend,
+        &cached as &dyn StorageBackend,
+    ] {
+        assert!(
+            !backend.supports_relationship_persistence(),
+            "an unrouted wrapper must not advertise relationship persistence"
+        );
+        assert!(
+            !backend.supports_procedural_memory(),
+            "an unrouted wrapper must not advertise procedural memory"
+        );
+    }
+
+    let relationship = EpisodeRelationship::new(
+        Uuid::new_v4(),
+        Uuid::new_v4(),
+        RelationshipType::RelatedTo,
+        RelationshipMetadata::default(),
+    );
+    let err = resilient
+        .store_relationship(&relationship)
+        .await
+        .expect_err("an unrouted wrapper must not fake a relationship write");
+    assert!(matches!(
+        err,
+        Error::CapabilityUnavailable {
+            operation: "store_relationship"
+        }
+    ));
+
+    let procedural = ProceduralMemory::new(
+        "skill".to_string(),
+        "unrouted".to_string(),
+        TaskContext::default(),
+        Vec::new(),
+    );
+    let err = cached
+        .store_procedural(&procedural)
+        .await
+        .expect_err("an unrouted wrapper must not fake a procedural write");
+    assert!(matches!(
+        err,
+        Error::CapabilityUnavailable {
+            operation: "store_procedural"
+        }
+    ));
 }

@@ -224,48 +224,48 @@ impl TursoStorage {
     /// Get storage statistics including capacity info
     pub async fn get_capacity_statistics(&self) -> Result<CapacityStatistics> {
         self.with_connection(async |conn| {
-        // Count records in each table
-        let tables = [
-            "episodes",
-            "patterns",
-            "heuristics",
-            "embeddings",
-            "execution_records",
-            "agent_metrics",
-            "task_metrics",
-        ];
+            // Count records in each table
+            let tables = [
+                "episodes",
+                "patterns",
+                "heuristics",
+                "embeddings",
+                "execution_records",
+                "agent_metrics",
+                "task_metrics",
+            ];
 
-        let mut table_counts = HashMap::new();
-        for table in tables {
-            // SAFETY: Table names are hardcoded in the local `tables` array above.
-            // These are not user-controlled values, preventing SQL injection.
-            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
-            let sql = format!("SELECT COUNT(*) FROM {}", table);
-            let mut rows = conn.query(&sql, ()).await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
-            })?;
+            let mut table_counts = HashMap::new();
+            for table in tables {
+                // SAFETY: Table names are hardcoded in the local `tables` array above.
+                // These are not user-controlled values, preventing SQL injection.
+                // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+                let sql = format!("SELECT COUNT(*) FROM {}", table);
+                let mut rows = conn.query(&sql, ()).await.map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
+                })?;
 
-            if let Some(row) = rows
-                .next()
-                .await
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-            {
-                let count: i64 = row
-                    .get(0)
-                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-                table_counts.insert(table.to_string(), count as usize);
+                if let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+                {
+                    let count: i64 = row
+                        .get(0)
+                        .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                    table_counts.insert(table.to_string(), count as usize);
+                }
             }
-        }
 
-        Ok(CapacityStatistics {
-            episode_count: table_counts.get("episodes").copied().unwrap_or(0),
-            pattern_count: table_counts.get("patterns").copied().unwrap_or(0),
-            heuristic_count: table_counts.get("heuristics").copied().unwrap_or(0),
-            embedding_count: table_counts.get("embeddings").copied().unwrap_or(0),
-            execution_record_count: table_counts.get("execution_records").copied().unwrap_or(0),
-            agent_metrics_count: table_counts.get("agent_metrics").copied().unwrap_or(0),
-            task_metrics_count: table_counts.get("task_metrics").copied().unwrap_or(0),
-        })
+            Ok(CapacityStatistics {
+                episode_count: table_counts.get("episodes").copied().unwrap_or(0),
+                pattern_count: table_counts.get("patterns").copied().unwrap_or(0),
+                heuristic_count: table_counts.get("heuristics").copied().unwrap_or(0),
+                embedding_count: table_counts.get("embeddings").copied().unwrap_or(0),
+                execution_record_count: table_counts.get("execution_records").copied().unwrap_or(0),
+                agent_metrics_count: table_counts.get("agent_metrics").copied().unwrap_or(0),
+                task_metrics_count: table_counts.get("task_metrics").copied().unwrap_or(0),
+            })
         })
         .await
     }

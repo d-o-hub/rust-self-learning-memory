@@ -218,7 +218,7 @@ impl SelfLearningMemory {
             .record_feedback(feedback.clone())
             .await?;
         self.persist_recommendation_feedback(&feedback).await;
-        self.refresh_ranking_index().await;
+        self.apply_recommendation_feedback(&feedback).await;
         Ok(())
     }
 
@@ -260,7 +260,7 @@ impl SelfLearningMemory {
             .unwrap_or_else(uuid::Uuid::nil);
 
         let receipt = self.persist_feedback_checked(&feedback, episode_id).await;
-        self.refresh_ranking_index().await;
+        self.apply_recommendation_feedback(&feedback).await;
         Ok(receipt)
     }
 

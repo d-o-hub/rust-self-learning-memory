@@ -147,6 +147,12 @@ harness = false
 # path = "soak_tests.rs"
 # harness = false
 
+# Issue #1078: incremental vs. full-rebuild feedback ranking index.
+[[bench]]
+name = "ranking_incremental"
+path = "ranking_incremental.rs"
+harness = false
+
 [features]
 default = []
 full-soak = []

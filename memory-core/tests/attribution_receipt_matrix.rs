@@ -13,7 +13,7 @@ use async_trait::async_trait;
 use do_memory_core::AttributedPlaybookRequest;
 use do_memory_core::episode::PatternId;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     Episode, Heuristic, MemoryConfig, Pattern, PersistenceReceipt, Result, SelfLearningMemory,
     TaskContext, TaskOutcome, TaskType,
@@ -49,12 +49,15 @@ struct TestBackend {
     fail_writes: bool,
 }
 
-#[async_trait]
-impl StorageBackend for TestBackend {
+/// Capability matrix (ADR-081): the test backend stores attribution data.
+impl StorageBackendCapabilities for TestBackend {
     fn supports_recommendation_attribution(&self) -> bool {
         true
     }
+}
 
+#[async_trait]
+impl StorageBackend for TestBackend {
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         if self.fail_writes {
             return Err(do_memory_core::error::Error::Storage(
@@ -152,6 +155,8 @@ impl StorageBackend for TestBackend {
 /// Backend that relies entirely on the default (no-op) trait surface.
 #[derive(Default)]
 struct InertBackend;
+
+impl StorageBackendCapabilities for InertBackend {}
 
 #[async_trait]
 impl StorageBackend for InertBackend {

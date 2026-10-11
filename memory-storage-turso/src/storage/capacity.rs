@@ -1,10 +1,13 @@
 //! Capacity-constrained storage operations for Turso
 
 use crate::{Result, TursoStorage};
-use do_memory_core::Episode;
+use do_memory_core::{Episode, EvictionBackendFailure, EvictionOutcome};
 use libsql;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
+
+use super::capacity_cleanup::run_capacity_cleanup;
+use super::capacity_intents::parse_episode_id;
 
 impl TursoStorage {
     /// Store an episode with capacity management
@@ -34,7 +37,38 @@ impl TursoStorage {
     ///
     /// Uses the configured eviction policy to determine which episodes to remove
     /// when the capacity is exceeded.
+    ///
+    /// # Errors
+    /// Returns an error when the eviction partially failed: the dependent
+    /// embedding delete and the episode delete are atomic, so a failure rolls
+    /// both back, records a retryable intent, and is reported here instead of
+    /// being silently swallowed. Call
+    /// [`Self::retry_pending_capacity_evictions`] to reconcile.
     pub async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
+        let outcome = self.enforce_capacity_with_outcome(max_episodes).await?;
+
+        if outcome.needs_reconciliation() {
+            return Err(do_memory_core::Error::Storage(format!(
+                "Capacity eviction incomplete: {} dependent delete(s) failed and were recorded as \
+                 retryable intents; call retry_pending_capacity_evictions to reconcile",
+                outcome.failures.len()
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Enforce capacity and return the structured eviction outcome (issue #1070).
+    ///
+    /// The dependent embedding rows (every legacy/dimension table that exists)
+    /// and the episode rows are deleted in a single transaction. On failure the
+    /// transaction rolls back - leaving episode and embeddings mutually
+    /// consistent - and the episode ids are persisted as retryable intents
+    /// before this returns an [`EvictionOutcome`] with the failures.
+    pub async fn enforce_capacity_with_outcome(
+        &self,
+        max_episodes: usize,
+    ) -> Result<EvictionOutcome> {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Count current episodes
@@ -56,9 +90,10 @@ impl TursoStorage {
         } else {
             0
         };
+        drop(count_rows);
 
         if current_count <= max_episodes {
-            return Ok(());
+            return Ok(EvictionOutcome::default());
         }
 
         // Episodes exceed capacity - need to evict
@@ -92,41 +127,76 @@ impl TursoStorage {
             evicted.push(episode_id);
         }
 
-        // Drop the connection and query results before starting deletions
-        // to avoid "database locked" errors when running tests in parallel
+        // Drop the selection connection/rows before running the eviction
+        // transaction to avoid "database locked" errors in parallel tests.
         drop(evict_rows);
         drop(conn);
 
-        // Delete associated embeddings first in batch
-        let _ = self._delete_embeddings_batch_internal(&evicted).await;
+        if evicted.is_empty() {
+            return Ok(EvictionOutcome::default());
+        }
 
-        // Delete evicted episodes in batch
+        // Durable outbox BEFORE deletion: even if the process dies mid-cleanup
+        // (the transaction auto-rolls back), the id list survives for retry.
+        self.record_pending_capacity_eviction_intents(&evicted)
+            .await?;
+
         let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        // Build placeholders for IN clause
-        let placeholders = evicted.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        let sql = format!(
-            "DELETE FROM episodes WHERE episode_id IN ({})",
-            placeholders
-        );
-
-        // Build params
-        let params: Vec<libsql::Value> = evicted.iter().map(|id| id.clone().into()).collect();
-
-        conn.execute(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to delete episodes batch: {}", e))
-            })?;
+        let cleanup = run_capacity_cleanup(&conn, &evicted).await;
         drop(conn);
 
-        info!(
-            "Evicted {} episodes to enforce capacity limit of {}",
-            evicted.len(),
-            max_episodes
-        );
-
-        Ok(())
+        match cleanup {
+            Ok(()) => {
+                if let Err(e) = self.clear_capacity_eviction_intents(&evicted).await {
+                    // The deletes are committed and idempotent, so a leftover
+                    // intent is replayed harmlessly on the next retry.
+                    warn!(
+                        "Capacity eviction succeeded but clearing its intents failed: {}",
+                        e
+                    );
+                }
+                info!(
+                    "Evicted {} episodes to enforce capacity limit of {}",
+                    evicted.len(),
+                    max_episodes
+                );
+                Ok(EvictionOutcome {
+                    evicted_ids: evicted.iter().map(|id| parse_episode_id(id)).collect(),
+                    failures: Vec::new(),
+                })
+            }
+            Err(failure) => {
+                let backend = failure.stage.backend();
+                if let Err(e) = self
+                    .mark_capacity_eviction_intents_failed(&evicted, backend, &failure.error)
+                    .await
+                {
+                    warn!(
+                        "Failed to record capacity-eviction failure detail for {} episodes: {}",
+                        evicted.len(),
+                        e
+                    );
+                }
+                warn!(
+                    "Capacity eviction rolled back for {} episodes ({}): {}",
+                    evicted.len(),
+                    backend,
+                    failure.error
+                );
+                let failures = evicted
+                    .iter()
+                    .map(|id| EvictionBackendFailure {
+                        episode_id: parse_episode_id(id),
+                        backend,
+                        error: failure.error.clone(),
+                    })
+                    .collect();
+                Ok(EvictionOutcome {
+                    evicted_ids: Vec::new(),
+                    failures,
+                })
+            }
+        }
     }
 
     /// Get storage statistics including capacity info
@@ -181,12 +251,19 @@ impl TursoStorage {
 /// Storage statistics for capacity monitoring
 #[derive(Debug, Clone)]
 pub struct CapacityStatistics {
+    /// Number of stored episodes.
     pub episode_count: usize,
+    /// Number of stored patterns.
     pub pattern_count: usize,
+    /// Number of stored heuristics.
     pub heuristic_count: usize,
+    /// Number of stored embeddings.
     pub embedding_count: usize,
+    /// Number of stored execution records.
     pub execution_record_count: usize,
+    /// Number of stored agent metrics rows.
     pub agent_metrics_count: usize,
+    /// Number of stored task metrics rows.
     pub task_metrics_count: usize,
 }
 

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pattern search, recommendations, attributed recommendations and the
+  management search API now use the runtime-activated embedding provider
+  (#1074): each pattern operation clones one owned provider snapshot before its
+  awaits, so the query embedding, the per-pattern embeddings and the reported
+  provider identity all come from the same activation revision instead of the
+  construction-time `semantic_service` field, which is `None` on every
+  production path. Without the snapshot the query embedding was always empty
+  and the semantic score collapsed to a constant.
 - Retrieval provenance is now execution-backed (#1079): the provenance path
   performs exactly one query-cache lookup, so cache hit/miss telemetry is
   counted once per operation, and it threads the serving tier, cache hit/miss,
@@ -17,14 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of being set to the result count, and `RetrievalProvenance` /
   `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
   `fallback`, and a `RetrievalExecution` report).
-- MCP health (`health/check`) reports measured state instead of configuration
-  (#1085, escalation E1): bounded per-backend probes answer
-  `healthy`/`degraded`/`unavailable`/not-configured, uptime is the real process
-  uptime, and the cache section now reads the retrieval cache's live counters
-  via `SelfLearningMemory::get_cache_metrics()` — the per-tool JSON cache that
-  no tool populated is no longer presented as cache telemetry. URLs, filesystem
-  paths, tokens and raw driver errors are redacted from the response (only fixed
-  literals are emitted).
+- Turso episode/pattern row decoding no longer substitutes values for corrupt
+  data (#1071): required timestamps and JSON now return `Error::Storage` naming
+  the column, the result row, and the query surface; nullable fields stay
+  nullable; raw episode and pattern queries abort instead of returning a
+  partial result; a new allowlisted `QueryBuilder` offers the supported
+  parameterized path alongside `query_with_params`.
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

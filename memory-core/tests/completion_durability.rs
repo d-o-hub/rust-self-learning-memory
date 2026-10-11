@@ -5,7 +5,7 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use do_memory_core::episode::PatternId;
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{StorageBackend, StorageBackendCapabilities};
 use do_memory_core::{
     Episode, Error, Heuristic, MemoryConfig, Pattern, Result, SelfLearningMemory, TaskContext,
     TaskOutcome, TaskType,
@@ -43,6 +43,8 @@ impl OkStoreBackend {
         }
     }
 }
+
+impl StorageBackendCapabilities for FailingStoreBackend {}
 
 #[async_trait]
 impl StorageBackend for FailingStoreBackend {
@@ -102,6 +104,8 @@ impl StorageBackend for FailingStoreBackend {
         Ok(vec![])
     }
 }
+
+impl StorageBackendCapabilities for OkStoreBackend {}
 
 #[async_trait]
 impl StorageBackend for OkStoreBackend {

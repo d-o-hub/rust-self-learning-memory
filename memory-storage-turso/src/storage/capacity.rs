@@ -74,71 +74,71 @@ impl TursoStorage {
         // deletion work (#1064).
         let selected = self
             .with_connection_with_id(async |conn, _conn_id| {
-        // Count current episodes
-        const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
+            // Count current episodes
+            const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
 
-        let mut count_rows = conn.query(COUNT_SQL, ()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to count episodes: {}", e))
-        })?;
-
-        let current_count = if let Some(row) = count_rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let count: i64 = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            count as usize
-        } else {
-            0
-        };
-        drop(count_rows);
-
-        if current_count <= max_episodes {
-            return Ok(None);
-        }
-
-        // Episodes exceed capacity - need to evict
-        let to_remove = current_count - max_episodes;
-        warn!(
-            "Capacity exceeded: {} > {}, removing {} episodes",
-            current_count, max_episodes, to_remove
-        );
-
-        // Get episodes to evict (oldest first, using LRU)
-        // Order by start_time first, then by episode_id for deterministic tie-breaking
-        let evict_sql =
-            "SELECT episode_id FROM episodes ORDER BY start_time ASC, episode_id ASC LIMIT ?";
-
-        let mut evict_rows = conn
-            .query(evict_sql, libsql::params![to_remove as i64])
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+            let mut count_rows = conn.query(COUNT_SQL, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to count episodes: {}", e))
             })?;
 
-        let mut evicted = Vec::new();
-        while let Some(row) = evict_rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let episode_id: String = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            evicted.push(episode_id);
-        }
+            let current_count = if let Some(row) = count_rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let count: i64 = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                count as usize
+            } else {
+                0
+            };
+            drop(count_rows);
 
-        // Drop the selection rows before returning: the checkout itself is
-        // released when the closure returns.
-        drop(evict_rows);
+            if current_count <= max_episodes {
+                return Ok(None);
+            }
 
-                Ok(Some((current_count, evicted)))
+            // Episodes exceed capacity - need to evict
+            let to_remove = current_count - max_episodes;
+            warn!(
+                "Capacity exceeded: {} > {}, removing {} episodes",
+                current_count, max_episodes, to_remove
+            );
+
+            // Get episodes to evict (oldest first, using LRU)
+            // Order by start_time first, then by episode_id for deterministic tie-breaking
+            let evict_sql =
+                "SELECT episode_id FROM episodes ORDER BY start_time ASC, episode_id ASC LIMIT ?";
+
+            let mut evict_rows = conn
+                .query(evict_sql, libsql::params![to_remove as i64])
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+                })?;
+
+            let mut evicted = Vec::new();
+            while let Some(row) = evict_rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let episode_id: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                evicted.push(episode_id);
+            }
+
+            // Drop the selection rows before returning: the checkout itself is
+            // released when the closure returns.
+            drop(evict_rows);
+
+                    Ok(Some((current_count, evicted)))
             })
             .await?;
 
-        let Some((current_count, evicted)) = selected else {
+        let Some((_current_count, evicted)) = selected else {
             return Ok(EvictionOutcome::default());
         };
 

@@ -10,7 +10,7 @@ impl TursoStorage {
     /// Store a heuristic
     pub async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         debug!("Storing heuristic: {}", heuristic.heuristic_id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO heuristics (
@@ -24,7 +24,7 @@ impl TursoStorage {
         // Use prepared statement cache
         let stmt = self
             .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            .get_or_prepare_with_id(conn_id, conn, SQL)
             .await
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
@@ -42,12 +42,14 @@ impl TursoStorage {
 
         info!("Successfully stored heuristic: {}", heuristic.heuristic_id);
         Ok(())
+        })
+        .await
     }
 
     /// Retrieve a heuristic by ID
     pub async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
         debug!("Retrieving heuristic: {}", id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
@@ -57,7 +59,7 @@ impl TursoStorage {
         // Use prepared statement cache
         let stmt = self
             .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            .get_or_prepare_with_id(conn_id, conn, SQL)
             .await
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
@@ -76,12 +78,14 @@ impl TursoStorage {
         } else {
             Ok(None)
         }
+        })
+        .await
     }
 
     /// Get all heuristics
     pub async fn get_heuristics(&self) -> Result<Vec<Heuristic>> {
         debug!("Retrieving all heuristics");
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
@@ -91,7 +95,7 @@ impl TursoStorage {
         // Use prepared statement cache
         let stmt = self
             .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            .get_or_prepare_with_id(conn_id, conn, SQL)
             .await
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
@@ -111,28 +115,31 @@ impl TursoStorage {
 
         info!("Found {} heuristics", heuristics.len());
         Ok(heuristics)
+        })
+        .await
     }
 
     /// Delete a heuristic by ID
     pub async fn delete_heuristic(&self, id: Uuid) -> Result<()> {
         debug!("Deleting heuristic: {}", id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = "DELETE FROM heuristics WHERE heuristic_id = ?";
 
-        const SQL: &str = "DELETE FROM heuristics WHERE heuristic_id = ?";
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            stmt.execute(libsql::params![id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to delete heuristic: {}", e)))?;
 
-        stmt.execute(libsql::params![id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to delete heuristic: {}", e)))?;
-
-        info!("Successfully deleted heuristic: {}", id);
-        Ok(())
+            info!("Successfully deleted heuristic: {}", id);
+            Ok(())
+        })
+        .await
     }
 }
 

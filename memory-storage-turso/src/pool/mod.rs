@@ -30,6 +30,7 @@ pub mod caching_pool;
 mod config;
 pub mod connection_wrapper;
 pub mod keepalive;
+mod scoped;
 #[cfg(test)]
 mod tests;
 

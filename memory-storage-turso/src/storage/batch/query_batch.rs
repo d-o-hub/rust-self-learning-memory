@@ -48,12 +48,11 @@ impl TursoStorage {
         }
 
         debug!("Retrieving episodes batch: {} items", ids.len());
-        let conn = self.get_connection().await?;
-
-        // Build the IN clause with placeholders
-        let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
-        let sql = format!(
-            r#"
+        self.with_connection(async |conn| {
+            // Build the IN clause with placeholders
+            let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
+            let sql = format!(
+                r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics,
@@ -62,41 +61,43 @@ impl TursoStorage {
                    archived_at
             FROM episodes WHERE episode_id IN ({})
         "#,
-            placeholders.join(", ")
-        );
+                placeholders.join(", ")
+            );
 
-        // Convert UUIDs to strings for the query
-        let params: Vec<libsql::Value> = ids
-            .iter()
-            .map(|id| libsql::Value::Text(id.to_string()))
-            .collect();
+            // Convert UUIDs to strings for the query
+            let params: Vec<libsql::Value> = ids
+                .iter()
+                .map(|id| libsql::Value::Text(id.to_string()))
+                .collect();
 
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episodes batch: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query episodes batch: {}", e)))?;
 
-        // Create a map of episode_id -> Episode for efficient lookup
-        let mut episode_map = std::collections::HashMap::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            let episode = row_to_episode(&row)?;
-            episode_map.insert(episode.episode_id, episode);
-        }
+            // Create a map of episode_id -> Episode for efficient lookup
+            let mut episode_map = std::collections::HashMap::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+            {
+                let episode = row_to_episode(&row)?;
+                episode_map.insert(episode.episode_id, episode);
+            }
 
-        // Return episodes in the same order as the input IDs
-        let result: Vec<Option<Episode>> =
-            ids.iter().map(|id| episode_map.get(id).cloned()).collect();
+            // Return episodes in the same order as the input IDs
+            let result: Vec<Option<Episode>> =
+                ids.iter().map(|id| episode_map.get(id).cloned()).collect();
 
-        info!(
-            "Retrieved {} of {} requested episodes",
-            result.iter().filter(|e| e.is_some()).count(),
-            ids.len()
-        );
-        Ok(result)
+            info!(
+                "Retrieved {} of {} requested episodes",
+                result.iter().filter(|e| e.is_some()).count(),
+                ids.len()
+            );
+            Ok(result)
+        })
+        .await
     }
 
     /// Retrieve multiple patterns by IDs efficiently
@@ -137,52 +138,53 @@ impl TursoStorage {
         }
 
         debug!("Retrieving patterns batch: {} items", ids.len());
-        let conn = self.get_connection().await?;
-
-        // Build the IN clause with placeholders
-        let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
-        let sql = format!(
-            r#"
+        self.with_connection(async |conn| {
+            // Build the IN clause with placeholders
+            let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
+            let sql = format!(
+                r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns WHERE pattern_id IN ({})
         "#,
-            placeholders.join(", ")
-        );
+                placeholders.join(", ")
+            );
 
-        // Convert IDs to strings for the query
-        let params: Vec<libsql::Value> = ids
-            .iter()
-            .map(|id| libsql::Value::Text(id.to_string()))
-            .collect();
+            // Convert IDs to strings for the query
+            let params: Vec<libsql::Value> = ids
+                .iter()
+                .map(|id| libsql::Value::Text(id.to_string()))
+                .collect();
 
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query patterns batch: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query patterns batch: {}", e)))?;
 
-        // Create a map of pattern_id -> Pattern for efficient lookup
-        let mut pattern_map = std::collections::HashMap::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            let pattern = row_to_pattern(&row)?;
-            pattern_map.insert(pattern.id(), pattern);
-        }
+            // Create a map of pattern_id -> Pattern for efficient lookup
+            let mut pattern_map = std::collections::HashMap::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+            {
+                let pattern = row_to_pattern(&row)?;
+                pattern_map.insert(pattern.id(), pattern);
+            }
 
-        // Return patterns in the same order as the input IDs
-        let result: Vec<Option<Pattern>> =
-            ids.iter().map(|id| pattern_map.get(id).cloned()).collect();
+            // Return patterns in the same order as the input IDs
+            let result: Vec<Option<Pattern>> =
+                ids.iter().map(|id| pattern_map.get(id).cloned()).collect();
 
-        info!(
-            "Retrieved {} of {} requested patterns",
-            result.iter().filter(|e| e.is_some()).count(),
-            ids.len()
-        );
-        Ok(result)
+            info!(
+                "Retrieved {} of {} requested patterns",
+                result.iter().filter(|e| e.is_some()).count(),
+                ids.len()
+            );
+            Ok(result)
+        })
+        .await
     }
 
     /// Retrieve multiple heuristics by IDs efficiently
@@ -223,7 +225,7 @@ impl TursoStorage {
         }
 
         debug!("Retrieving heuristics batch: {} items", ids.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
 
         // Build the IN clause with placeholders
         let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
@@ -269,6 +271,8 @@ impl TursoStorage {
             ids.len()
         );
         Ok(result)
+        })
+        .await
     }
 }
 

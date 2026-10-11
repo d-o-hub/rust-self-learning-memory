@@ -21,7 +21,7 @@ impl TursoStorage {
         }
 
         debug!("Storing heuristics batch: {} items", heuristics.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
 
         conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
             Error::Storage(format!(
@@ -77,6 +77,8 @@ impl TursoStorage {
             heuristics.len()
         );
         Ok(())
+        })
+        .await
     }
 
     /// Update multiple heuristics in a single transaction
@@ -87,49 +89,48 @@ impl TursoStorage {
         }
 
         debug!("Updating heuristics batch: {} items", heuristics.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for heuristics update batch: {}",
+                    e
+                ))
+            })?;
 
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for heuristics update batch: {}",
-                e
-            ))
-        })?;
+            // Verify all heuristics exist
+            for heuristic in &heuristics {
+                let check_sql = "SELECT 1 FROM heuristics WHERE heuristic_id = ?";
+                let mut rows = conn
+                    .query(
+                        check_sql,
+                        libsql::params![heuristic.heuristic_id.to_string()],
+                    )
+                    .await
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to check heuristic existence in batch: {}",
+                            e
+                        ))
+                    })?;
 
-        // Verify all heuristics exist
-        for heuristic in &heuristics {
-            let check_sql = "SELECT 1 FROM heuristics WHERE heuristic_id = ?";
-            let mut rows = conn
-                .query(
-                    check_sql,
-                    libsql::params![heuristic.heuristic_id.to_string()],
-                )
-                .await
-                .map_err(|e| {
-                    Error::Storage(format!(
-                        "Failed to check heuristic existence in batch: {}",
-                        e
-                    ))
-                })?;
+                let exists = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+                    .is_some();
 
-            let exists = rows
-                .next()
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
-                .is_some();
-
-            if !exists {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                if !exists {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Heuristic {} does not exist for update",
+                        heuristic.heuristic_id
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Heuristic {} does not exist for update",
-                    heuristic.heuristic_id
-                )));
             }
-        }
 
-        let sql = r#"
+            let sql = r#"
             UPDATE heuristics SET
                 condition_text = ?,
                 action_text = ?,
@@ -139,48 +140,50 @@ impl TursoStorage {
             WHERE heuristic_id = ?
         "#;
 
-        for heuristic in &heuristics {
-            let evidence_json =
-                serde_json::to_string(&heuristic.evidence).map_err(Error::Serialization)?;
+            for heuristic in &heuristics {
+                let evidence_json =
+                    serde_json::to_string(&heuristic.evidence).map_err(Error::Serialization)?;
 
-            let now = chrono::Utc::now();
+                let now = chrono::Utc::now();
 
-            if let Err(e) = conn
-                .execute(
-                    sql,
-                    libsql::params![
-                        heuristic.condition.clone(),
-                        heuristic.action.clone(),
-                        heuristic.confidence,
-                        evidence_json,
-                        now.timestamp(),
-                        heuristic.heuristic_id.to_string(),
-                    ],
-                )
-                .await
-            {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                if let Err(e) = conn
+                    .execute(
+                        sql,
+                        libsql::params![
+                            heuristic.condition.clone(),
+                            heuristic.action.clone(),
+                            heuristic.confidence,
+                            evidence_json,
+                            now.timestamp(),
+                            heuristic.heuristic_id.to_string(),
+                        ],
+                    )
+                    .await
+                {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to update heuristic in batch: {}",
+                        e
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Failed to update heuristic in batch: {}",
-                    e
-                )));
             }
-        }
 
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit heuristics update batch transaction: {}",
-                e
-            ))
-        })?;
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit heuristics update batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!(
-            "Successfully updated heuristics batch: {} items",
-            heuristics.len()
-        );
-        Ok(())
+            info!(
+                "Successfully updated heuristics batch: {} items",
+                heuristics.len()
+            );
+            Ok(())
+        })
+        .await
     }
 
     /// Store heuristics in batches with progress tracking
@@ -353,38 +356,39 @@ impl TursoStorage {
         }
 
         debug!("Deleting heuristics batch: {} items", ids.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for heuristics delete batch: {}",
+                    e
+                ))
+            })?;
 
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for heuristics delete batch: {}",
-                e
-            ))
-        })?;
+            let sql = "DELETE FROM heuristics WHERE heuristic_id = ?";
 
-        let sql = "DELETE FROM heuristics WHERE heuristic_id = ?";
-
-        for id in &ids {
-            if let Err(e) = conn.execute(sql, libsql::params![id.to_string()]).await {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+            for id in &ids {
+                if let Err(e) = conn.execute(sql, libsql::params![id.to_string()]).await {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to delete heuristic {} in batch: {}",
+                        id, e
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Failed to delete heuristic {} in batch: {}",
-                    id, e
-                )));
             }
-        }
 
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit heuristics delete batch transaction: {}",
-                e
-            ))
-        })?;
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit heuristics delete batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!("Successfully deleted heuristics batch: {} items", ids.len());
-        Ok(())
+            info!("Successfully deleted heuristics batch: {} items", ids.len());
+            Ok(())
+        })
+        .await
     }
 
     /// Delete heuristics in batches with progress tracking

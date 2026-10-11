@@ -14,7 +14,10 @@ jobs:
   fuzz:
     runs-on: ubuntu-latest
     env:
-      RUSTUP_TOOLCHAIN: nightly  # Override rust-toolchain.toml (stable) for fuzz targets
+      # Pinned: a floating `nightly` breaks transitive dependencies without a
+      # code change (branches 0.4.5 stopped compiling when core::intrinsics::abort
+      # changed, failing every target as a startup failure). Bump deliberately.
+      RUSTUP_TOOLCHAIN: nightly-2026-09-26  # Override rust-toolchain.toml (stable) for fuzz targets
       CARGO_PROFILE_RELEASE_LTO: false  # .cargo/config.toml lto="fat" breaks sancov linking (cargo-fuzz#384)
       FUZZ_DURATION: ${{ github.event.inputs.duration || '300' }}
     steps:
@@ -23,7 +26,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-26
           components: llvm-tools
 
       - name: Cache cargo-fuzz

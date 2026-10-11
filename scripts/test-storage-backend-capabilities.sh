@@ -9,7 +9,8 @@
 #   F2 an edited justification makes the machine-readable inventory stale;
 #   F3 a capability-gated declaration whose body is not a capability error fails;
 #   F4 a `pending` method becoming capability-aware only warns (in-flight #1087);
-#   F5 a capability declaration defaulting to true fails.
+#   F5 a capability declaration defaulting to true fails;
+#   F6 a fail-closed declaration whose body is not a capability error fails.
 #
 # Usage:
 #   ./scripts/test-storage-backend-capabilities.sh --fixtures
@@ -191,6 +192,23 @@ injected = (
 path.write_text(text.replace(needle, injected + needle, 1))
 PY
 expect_fail "capability declaration must default false" "must default to false"
+restore
+
+# F6 — a fail-closed declaration whose default body is not a capability error
+# fails, so the class cannot be used to allowlist a fabricated success.
+backup
+python3 - "$OVERLAY" <<'PYEOF'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+old = 'name = "store_procedural"\nclassification = "value-returning-with-typed-fallback"'
+assert old in text, "fixture anchor missing"
+new = 'name = "store_procedural"\nclassification = "fail-closed"'
+path.write_text(text.replace(old, new, 1))
+PYEOF
+expect_fail "fail-closed with a fabricated body fails" "is declared fail-closed"
 restore
 
 echo "OK: storage-backend-capabilities fixtures"

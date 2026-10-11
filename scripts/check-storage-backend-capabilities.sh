@@ -71,6 +71,7 @@ DEFAULTED_CLASSIFICATIONS = (
     "capability-gated",
     "value-returning-with-typed-fallback",
     "genuinely-safe-default",
+    "fail-closed",
 )
 ALL_CLASSIFICATIONS = ("required",) + DEFAULTED_CLASSIFICATIONS + (
     "capability-declaration",
@@ -378,6 +379,14 @@ def check_coherence(methods, overlay) -> None:
                     f"'{name}' is declared genuinely-safe-default but its default body is "
                     f"{kind}, not a delegation"
                 )
+        elif classification == "fail-closed":
+            if kind != "capability-unavailable":
+                fail(
+                    f"'{name}' is declared fail-closed but its default body is {kind}, "
+                    "not a CapabilityUnavailable error"
+                )
+            if not str(entry.get("justification", "")).strip():
+                fail(f"fail-closed entry '{name}' needs a justification")
 
 
 # --------------------------------------------------------------------------

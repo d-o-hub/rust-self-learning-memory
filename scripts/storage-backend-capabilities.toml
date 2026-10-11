@@ -12,6 +12,9 @@
 #   capability-gated                     - gated by a declared capability predicate (`capability`)
 #   value-returning-with-typed-fallback  - default returns Ok(())/None/empty/0/false/default
 #   genuinely-safe-default               - default only delegates to a required method
+#   fail-closed                          - default returns Error::CapabilityUnavailable with
+#                                          no capability predicate to name (the operation is
+#                                          never silently faked; callers handle the error)
 #
 # `gate_kind` (required for capability-gated):
 #   predicate - the default is a no-op that callers must gate on `capability` (ADR-081 style)

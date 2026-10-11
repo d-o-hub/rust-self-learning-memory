@@ -23,17 +23,16 @@ impl TursoStorage {
         }
 
         debug!("Storing patterns batch: {} items", patterns.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            // Begin transaction
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for patterns batch: {}",
+                    e
+                ))
+            })?;
 
-        // Begin transaction
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for patterns batch: {}",
-                e
-            ))
-        })?;
-
-        let sql = r#"
+            let sql = r#"
             INSERT OR REPLACE INTO patterns (
                 pattern_id, pattern_type, pattern_data, success_rate,
                 context_domain, context_language, context_tags, occurrence_count,
@@ -41,63 +40,65 @@ impl TursoStorage {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        for pattern in &patterns {
-            let (description, context, heuristic, success_rate, occurrence_count) =
-                extract_pattern_data(pattern)?;
+            for pattern in &patterns {
+                let (description, context, heuristic, success_rate, occurrence_count) =
+                    extract_pattern_data(pattern)?;
 
-            let pattern_data = crate::storage::patterns::PatternDataJson {
-                description,
-                context: context.clone(),
-                heuristic,
-            };
-            let pattern_data_json =
-                serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
+                let pattern_data = crate::storage::patterns::PatternDataJson {
+                    description,
+                    context: context.clone(),
+                    heuristic,
+                };
+                let pattern_data_json =
+                    serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
 
-            let context_tags_json =
-                serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
+                let context_tags_json =
+                    serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
 
-            let now = chrono::Utc::now();
+                let now = chrono::Utc::now();
 
-            if let Err(e) = conn
-                .execute(
-                    sql,
-                    libsql::params![
-                        pattern.id().to_string(),
-                        format!("{:?}", pattern),
-                        pattern_data_json,
-                        success_rate,
-                        context.domain.clone(),
-                        context.language.clone(),
-                        context_tags_json,
-                        occurrence_count as i64,
-                        now.timestamp(),
-                        now.timestamp(),
-                    ],
-                )
-                .await
-            {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                if let Err(e) = conn
+                    .execute(
+                        sql,
+                        libsql::params![
+                            pattern.id().to_string(),
+                            format!("{:?}", pattern),
+                            pattern_data_json,
+                            success_rate,
+                            context.domain.clone(),
+                            context.language.clone(),
+                            context_tags_json,
+                            occurrence_count as i64,
+                            now.timestamp(),
+                            now.timestamp(),
+                        ],
+                    )
+                    .await
+                {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to store pattern in batch: {}",
+                        e
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Failed to store pattern in batch: {}",
-                    e
-                )));
             }
-        }
 
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit patterns batch transaction: {}",
-                e
-            ))
-        })?;
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit patterns batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!(
-            "Successfully stored patterns batch: {} items",
-            patterns.len()
-        );
-        Ok(())
+            info!(
+                "Successfully stored patterns batch: {} items",
+                patterns.len()
+            );
+            Ok(())
+        })
+        .await
     }
 
     /// Update multiple patterns in a single transaction
@@ -108,43 +109,42 @@ impl TursoStorage {
         }
 
         debug!("Updating patterns batch: {} items", patterns.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for patterns update batch: {}",
+                    e
+                ))
+            })?;
 
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for patterns update batch: {}",
-                e
-            ))
-        })?;
+            // Verify all patterns exist
+            for pattern in &patterns {
+                let check_sql = "SELECT 1 FROM patterns WHERE pattern_id = ?";
+                let mut rows = conn
+                    .query(check_sql, libsql::params![pattern.id().to_string()])
+                    .await
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to check pattern existence in batch: {}", e))
+                    })?;
 
-        // Verify all patterns exist
-        for pattern in &patterns {
-            let check_sql = "SELECT 1 FROM patterns WHERE pattern_id = ?";
-            let mut rows = conn
-                .query(check_sql, libsql::params![pattern.id().to_string()])
-                .await
-                .map_err(|e| {
-                    Error::Storage(format!("Failed to check pattern existence in batch: {}", e))
-                })?;
+                let exists = rows
+                    .next()
+                    .await
+                    .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+                    .is_some();
 
-            let exists = rows
-                .next()
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
-                .is_some();
-
-            if !exists {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                if !exists {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Pattern {} does not exist for update",
+                        pattern.id()
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Pattern {} does not exist for update",
-                    pattern.id()
-                )));
             }
-        }
 
-        let sql = r#"
+            let sql = r#"
             UPDATE patterns SET
                 pattern_type = ?,
                 pattern_data = ?,
@@ -157,62 +157,64 @@ impl TursoStorage {
             WHERE pattern_id = ?
         "#;
 
-        for pattern in &patterns {
-            let (description, context, heuristic, success_rate, occurrence_count) =
-                extract_pattern_data(pattern)?;
+            for pattern in &patterns {
+                let (description, context, heuristic, success_rate, occurrence_count) =
+                    extract_pattern_data(pattern)?;
 
-            let pattern_data = crate::storage::patterns::PatternDataJson {
-                description,
-                context: context.clone(),
-                heuristic,
-            };
-            let pattern_data_json =
-                serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
+                let pattern_data = crate::storage::patterns::PatternDataJson {
+                    description,
+                    context: context.clone(),
+                    heuristic,
+                };
+                let pattern_data_json =
+                    serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
 
-            let context_tags_json =
-                serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
+                let context_tags_json =
+                    serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
 
-            let now = chrono::Utc::now();
+                let now = chrono::Utc::now();
 
-            if let Err(e) = conn
-                .execute(
-                    sql,
-                    libsql::params![
-                        format!("{:?}", pattern),
-                        pattern_data_json,
-                        success_rate,
-                        context.domain.clone(),
-                        context.language.clone(),
-                        context_tags_json,
-                        occurrence_count as i64,
-                        now.timestamp(),
-                        pattern.id().to_string(),
-                    ],
-                )
-                .await
-            {
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
+                if let Err(e) = conn
+                    .execute(
+                        sql,
+                        libsql::params![
+                            format!("{:?}", pattern),
+                            pattern_data_json,
+                            success_rate,
+                            context.domain.clone(),
+                            context.language.clone(),
+                            context_tags_json,
+                            occurrence_count as i64,
+                            now.timestamp(),
+                            pattern.id().to_string(),
+                        ],
+                    )
+                    .await
+                {
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to update pattern in batch: {}",
+                        e
+                    )));
                 }
-                return Err(Error::Storage(format!(
-                    "Failed to update pattern in batch: {}",
-                    e
-                )));
             }
-        }
 
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit patterns update batch transaction: {}",
-                e
-            ))
-        })?;
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit patterns update batch transaction: {}",
+                    e
+                ))
+            })?;
 
-        info!(
-            "Successfully updated patterns batch: {} items",
-            patterns.len()
-        );
-        Ok(())
+            info!(
+                "Successfully updated patterns batch: {} items",
+                patterns.len()
+            );
+            Ok(())
+        })
+        .await
     }
 
     /// Store patterns in batches with progress tracking
@@ -324,51 +326,52 @@ impl TursoStorage {
         }
 
         debug!("Retrieving patterns batch: {} items", pattern_ids.len());
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            // Build IN clause with placeholders
+            let placeholders = pattern_ids
+                .iter()
+                .map(|_| "?")
+                .collect::<Vec<_>>()
+                .join(",");
 
-        // Build IN clause with placeholders
-        let placeholders = pattern_ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<_>>()
-            .join(",");
-
-        let sql = format!(
-            r#"
+            let sql = format!(
+                r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns WHERE pattern_id IN ({})
             ORDER BY success_rate DESC
         "#,
-            placeholders
-        );
+                placeholders
+            );
 
-        // Convert IDs to strings for libsql
-        let id_strings: Vec<String> = pattern_ids.iter().map(|id| id.to_string()).collect();
+            // Convert IDs to strings for libsql
+            let id_strings: Vec<String> = pattern_ids.iter().map(|id| id.to_string()).collect();
 
-        let params = libsql::params_from_iter(id_strings);
+            let params = libsql::params_from_iter(id_strings);
 
-        let mut rows = conn
-            .query(&sql, params)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query patterns batch: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, params)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query patterns batch: {}", e)))?;
 
-        let mut patterns = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            patterns.push(crate::storage::patterns::row_to_pattern(&row)?);
-        }
+            let mut patterns = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+            {
+                patterns.push(crate::storage::patterns::row_to_pattern(&row)?);
+            }
 
-        info!(
-            "Retrieved {} patterns from batch of {} requested",
-            patterns.len(),
-            pattern_ids.len()
-        );
-        Ok(patterns)
+            info!(
+                "Retrieved {} patterns from batch of {} requested",
+                patterns.len(),
+                pattern_ids.len()
+            );
+            Ok(patterns)
+        })
+        .await
     }
 
     /// Delete multiple patterns in a single transaction
@@ -409,61 +412,62 @@ impl TursoStorage {
         }
 
         debug!("Deleting patterns batch: {} items", pattern_ids.len());
-        let conn = self.get_connection().await?;
-
-        // Begin transaction
-        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to begin transaction for patterns deletion batch: {}",
-                e
-            ))
-        })?;
-
-        // Build IN clause with placeholders
-        let placeholders = pattern_ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<_>>()
-            .join(",");
-
-        let sql = format!(
-            "DELETE FROM patterns WHERE pattern_id IN ({})",
-            placeholders
-        );
-
-        // Convert IDs to strings for libsql
-        let id_strings: Vec<String> = pattern_ids.iter().map(|id| id.to_string()).collect();
-
-        let params = libsql::params_from_iter(id_strings);
-
-        let result = match conn.execute(&sql, params).await {
-            Ok(r) => r,
-            Err(e) => {
-                // Rollback on error
-                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                    error!("Failed to rollback transaction: {}", rollback_err);
-                }
-                return Err(Error::Storage(format!(
-                    "Failed to delete patterns batch: {}",
+        self.with_connection(async |conn| {
+            // Begin transaction
+            conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to begin transaction for patterns deletion batch: {}",
                     e
-                )));
-            }
-        };
+                ))
+            })?;
 
-        // Commit transaction
-        conn.execute("COMMIT", ()).await.map_err(|e| {
-            Error::Storage(format!(
-                "Failed to commit patterns deletion batch transaction: {}",
-                e
-            ))
-        })?;
+            // Build IN clause with placeholders
+            let placeholders = pattern_ids
+                .iter()
+                .map(|_| "?")
+                .collect::<Vec<_>>()
+                .join(",");
 
-        info!(
-            "Successfully deleted {} patterns from batch of {} requested",
-            result,
-            pattern_ids.len()
-        );
+            let sql = format!(
+                "DELETE FROM patterns WHERE pattern_id IN ({})",
+                placeholders
+            );
 
-        Ok(result.try_into().unwrap_or(0))
+            // Convert IDs to strings for libsql
+            let id_strings: Vec<String> = pattern_ids.iter().map(|id| id.to_string()).collect();
+
+            let params = libsql::params_from_iter(id_strings);
+
+            let result = match conn.execute(&sql, params).await {
+                Ok(r) => r,
+                Err(e) => {
+                    // Rollback on error
+                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                        error!("Failed to rollback transaction: {}", rollback_err);
+                    }
+                    return Err(Error::Storage(format!(
+                        "Failed to delete patterns batch: {}",
+                        e
+                    )));
+                }
+            };
+
+            // Commit transaction
+            conn.execute("COMMIT", ()).await.map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to commit patterns deletion batch transaction: {}",
+                    e
+                ))
+            })?;
+
+            info!(
+                "Successfully deleted {} patterns from batch of {} requested",
+                result,
+                pattern_ids.len()
+            );
+
+            Ok(result.try_into().unwrap_or(0))
+        })
+        .await
     }
 }

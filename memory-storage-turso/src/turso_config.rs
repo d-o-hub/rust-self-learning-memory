@@ -11,140 +11,142 @@ impl TursoStorage {
     /// Creates tables and indexes if they don't exist.
     /// Safe to call multiple times.
     pub async fn initialize_schema(&self) -> Result<()> {
-        info!("Initializing Turso database schema");
-        let conn = self.get_connection().await?;
+        self.with_connection(async |conn| {
+            info!("Initializing Turso database schema");
 
-        // Enable WAL mode for better concurrent access
-        let _ = self.execute_pragmas(&conn).await;
+            // Enable WAL mode for better concurrent access
+            let _ = self.execute_pragmas(conn).await;
 
-        // Create tables
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
-            .await?;
-        self.ensure_episodes_checkpoints_column(&conn).await?;
-        self.execute_with_retry(&conn, schema::CREATE_PATTERNS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_TABLE)
-            .await?;
-        self.ensure_recommendation_session_timestamp_precision(&conn)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE)
-            .await?;
-
-        // Create legacy embeddings table only when multi-dimension feature is NOT enabled
-        #[cfg(not(feature = "turso_multi_dimension"))]
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_TABLE)
-            .await?;
-
-        // Create monitoring tables
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_TASK_METRICS_TABLE)
-            .await?;
-
-        // Create indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TASK_TYPE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TIMESTAMP_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_DOMAIN_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_ARCHIVED_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
-            .await?;
-        // Replace the pre-#1065 `(episode_id, timestamp DESC)` index with the
-        // deterministic `(episode_id, timestamp DESC, session_id DESC)` index.
-        self.execute_with_retry(
-            &conn,
-            schema::DROP_LEGACY_RECOMMENDATION_SESSIONS_EPISODE_INDEX,
-        )
-        .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX)
-            .await?;
-
-        // Create legacy embeddings indexes
-        #[cfg(not(feature = "turso_multi_dimension"))]
-        {
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_ITEM_INDEX)
+            // Create tables
+            self.execute_with_retry(conn, schema::CREATE_EPISODES_TABLE)
                 .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_VECTOR_INDEX)
+            self.ensure_episodes_checkpoints_column(conn).await?;
+            self.execute_with_retry(conn, schema::CREATE_PATTERNS_TABLE)
                 .await?;
-        }
+            self.execute_with_retry(conn, schema::CREATE_HEURISTICS_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RECOMMENDATION_SESSIONS_TABLE)
+                .await?;
+            self.ensure_recommendation_session_timestamp_precision(conn)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE)
+                .await?;
 
-        // Create monitoring indexes
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TIME_INDEX)
+            // Create legacy embeddings table only when multi-dimension feature is NOT enabled
+            #[cfg(not(feature = "turso_multi_dimension"))]
+            self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_TABLE)
+                .await?;
+
+            // Create monitoring tables
+            self.execute_with_retry(conn, schema::CREATE_EXECUTION_RECORDS_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_AGENT_METRICS_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_TASK_METRICS_TABLE)
+                .await?;
+
+            // Create indexes
+            self.execute_with_retry(conn, schema::CREATE_EPISODES_TASK_TYPE_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODES_TIMESTAMP_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODES_DOMAIN_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODES_ARCHIVED_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
+                .await?;
+            // Replace the pre-#1065 `(episode_id, timestamp DESC)` index with the
+            // deterministic `(episode_id, timestamp DESC, session_id DESC)` index.
+            self.execute_with_retry(
+                conn,
+                schema::DROP_LEGACY_RECOMMENDATION_SESSIONS_EPISODE_INDEX,
+            )
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_AGENT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TYPE_INDEX)
+            self.execute_with_retry(conn, schema::CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX)
+                .await?;
+
+            // Create legacy embeddings indexes
+            #[cfg(not(feature = "turso_multi_dimension"))]
+            {
+                self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_ITEM_INDEX)
+                    .await?;
+                self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_VECTOR_INDEX)
+                    .await?;
+            }
+
+            // Create monitoring indexes
+            self.execute_with_retry(conn, schema::CREATE_EXECUTION_RECORDS_TIME_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EXECUTION_RECORDS_AGENT_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_AGENT_METRICS_TYPE_INDEX)
+                .await?;
+
+            // Create Phase 2 (GENESIS) tables and indexes
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_SUMMARIES_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_SUMMARIES_CREATED_AT_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_METADATA_TABLE)
+                .await?;
+
+            // Durable capacity-eviction cleanup outbox (issue #1070)
+            self.execute_with_retry(
+                conn,
+                crate::storage::capacity_intents::CREATE_CAPACITY_EVICTION_INTENTS_TABLE,
+            )
             .await?;
 
-        // Create Phase 2 (GENESIS) tables and indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_SUMMARIES_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_SUMMARIES_CREATED_AT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
-            .await?;
+            // Create Episode Tags tables and indexes
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_TAGS_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_TAGS_TAG_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_TAGS_EPISODE_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_TAG_METADATA_TABLE)
+                .await?;
 
-        // Durable capacity-eviction cleanup outbox (issue #1070)
-        self.execute_with_retry(
-            &conn,
-            crate::storage::capacity_intents::CREATE_CAPACITY_EVICTION_INTENTS_TABLE,
-        )
-        .await?;
+            // Create Episode Relationships table and indexes
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_RELATIONSHIPS_TABLE)
+                .await?;
+            self.ensure_relationships_weight_column(conn).await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_PATTERN_RELATIONSHIPS_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_PATTERN_REL_EPISODE_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_PROCEDURAL_MEMORY_TABLE)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_PROCEDURAL_MEMORY_NAME_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RELATIONSHIPS_TYPE_INDEX)
+                .await?;
+            self.execute_with_retry(conn, schema::CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX)
+                .await?;
 
-        // Create Episode Tags tables and indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TAG_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_EPISODE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_TAG_METADATA_TABLE)
-            .await?;
+            // Create FTS5 tables for hybrid search (feature-gated)
+            #[cfg(feature = "hybrid_search")]
+            self.initialize_fts5_schema(conn).await?;
 
-        // Create Episode Relationships table and indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_RELATIONSHIPS_TABLE)
-            .await?;
-        self.ensure_relationships_weight_column(&conn).await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_RELATIONSHIPS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_EPISODE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_PATTERN_REL_PATTERN_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_NAME_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PROCEDURAL_MEMORY_UPDATED_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TYPE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX)
-            .await?;
+            // Create dimension-specific vector tables (Phase 0)
+            #[cfg(feature = "turso_multi_dimension")]
+            self.initialize_vector_tables(conn).await?;
 
-        // Create FTS5 tables for hybrid search (feature-gated)
-        #[cfg(feature = "hybrid_search")]
-        self.initialize_fts5_schema(&conn).await?;
-
-        // Create dimension-specific vector tables (Phase 0)
-        #[cfg(feature = "turso_multi_dimension")]
-        self.initialize_vector_tables(&conn).await?;
-
-        info!("Schema initialization complete");
-        Ok(())
+            info!("Schema initialization complete");
+            Ok(())
+        })
+        .await
     }
 
     /// Initialize FTS5 schema for hybrid search

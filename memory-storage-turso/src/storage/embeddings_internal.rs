@@ -43,8 +43,7 @@ impl TursoStorage {
             item_type,
             embedding.len()
         );
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
+        self.with_connection_with_id(async |conn, conn_id| {
         #[cfg(feature = "compression")]
         let compression_threshold = self.config.compression_threshold;
         #[cfg(not(feature = "compression"))]
@@ -111,7 +110,7 @@ impl TursoStorage {
         let embedding_id = self.generate_embedding_id(item_id, item_type);
         let stmt = self
             .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            .get_or_prepare_with_id(conn_id, conn, SQL)
             .await
             .map_err(|e| {
                 do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
@@ -130,6 +129,8 @@ impl TursoStorage {
 
         info!("Successfully stored embedding: {}", item_id);
         Ok(())
+        })
+        .await
     }
 
     /// Get an embedding (internal implementation)
@@ -142,37 +143,38 @@ impl TursoStorage {
             "Retrieving embedding: item_id={}, item_type={}",
             item_id, item_type
         );
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str =
+                "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
 
-        const SQL: &str =
-            "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+            let mut rows = stmt
+                .query(libsql::params![item_id.to_string(), item_type.to_string()])
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
+                })?;
 
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-            })?;
-        let mut rows = stmt
-            .query(libsql::params![item_id.to_string(), item_type.to_string()])
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
-            })?;
+            if let Some(row) = rows.next().await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
+            })? {
+                let embedding_data: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
 
-        if let Some(row) = rows.next().await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
-        })? {
-            let embedding_data: String = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-
-            let embedding = self.decode_embedding_data(&embedding_data)?;
-            Ok(Some(embedding))
-        } else {
-            Ok(None)
-        }
+                let embedding = self.decode_embedding_data(&embedding_data)?;
+                Ok(Some(embedding))
+            } else {
+                Ok(None)
+            }
+        })
+        .await
     }
 
     /// Delete an embedding
@@ -184,22 +186,27 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            let (conn, _conn_id) = self.get_connection_with_id().await?;
-            const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare(&conn, SQL)
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-                })?;
-            let rows_affected = stmt
-                .execute(libsql::params![item_id.to_string()])
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
-                })?;
-            Ok(rows_affected > 0)
+            self.with_connection_with_id(async |conn, conn_id| {
+                const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
+                let stmt = self
+                    .prepared_cache
+                    .get_or_prepare_with_id(conn_id, conn, SQL)
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to prepare statement: {}",
+                            e
+                        ))
+                    })?;
+                let rows_affected = stmt
+                    .execute(libsql::params![item_id.to_string()])
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
+                    })?;
+                Ok(rows_affected > 0)
+            })
+            .await
         }
     }
 
@@ -219,26 +226,28 @@ impl TursoStorage {
 
         #[cfg(not(feature = "turso_multi_dimension"))]
         {
-            let (conn, _conn_id) = self.get_connection_with_id().await?;
+            self.with_connection_with_id(async |conn, _conn_id| {
+                // Build placeholders for IN clause
+                let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+                let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
 
-            // Build placeholders for IN clause
-            let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-            let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
+                // Build params
+                let params: Vec<libsql::Value> =
+                    item_ids.iter().map(|id| id.clone().into()).collect();
 
-            // Build params
-            let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
+                let rows_affected = conn
+                    .execute(&sql, libsql::params_from_iter(params))
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to delete embeddings batch: {}",
+                            e
+                        ))
+                    })?;
 
-            let rows_affected = conn
-                .execute(&sql, libsql::params_from_iter(params))
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!(
-                        "Failed to delete embeddings batch: {}",
-                        e
-                    ))
-                })?;
-
-            Ok(rows_affected as usize)
+                Ok(rows_affected as usize)
+            })
+            .await
         }
     }
 
@@ -247,7 +256,7 @@ impl TursoStorage {
         &self,
         embeddings: Vec<(String, Vec<f32>)>,
     ) -> Result<()> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
         const SQL: &str = r#"
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model)
             VALUES (?, ?, ?, ?, vector32(?), ?, ?)
@@ -258,7 +267,7 @@ impl TursoStorage {
             let embedding_id = self.generate_embedding_id(&item_id, "embedding");
             let stmt = self
                 .prepared_cache
-                .get_or_prepare(&conn, SQL)
+                .get_or_prepare_with_id(conn_id, conn, SQL)
                 .await
                 .map_err(|e| {
                     do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
@@ -276,6 +285,8 @@ impl TursoStorage {
             .map_err(|e| do_memory_core::Error::Storage(format!("Failed to store batch: {}", e)))?;
         }
         Ok(())
+        })
+        .await
     }
 
     /// Get embeddings in batch

@@ -18,112 +18,111 @@ impl TursoStorage {
     /// Store a pattern
     pub async fn store_pattern(&self, pattern: &CorePattern) -> Result<()> {
         debug!("Storing pattern: {}", pattern.id());
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, conn_id| {
+            // Extract data from Pattern enum
+            let (description, context, heuristic, success_rate, occurrence_count) = match pattern {
+                CorePattern::ToolSequence {
+                    id: _,
+                    tools,
+                    context,
+                    success_rate,
+                    avg_latency: _,
+                    occurrence_count,
+                    effectiveness: _,
+                } => {
+                    // Use tools directly without cloning - join() accepts IntoIterator
+                    let desc = format!("Tool sequence: {}", tools.join(" -> "));
+                    let heur = Heuristic::new(
+                        format!("When need tools: {}", tools.join(", ")),
+                        format!("Use sequence: {}", tools.join(" -> ")),
+                        *success_rate,
+                    );
+                    (
+                        desc,
+                        context.clone(),
+                        heur,
+                        *success_rate,
+                        *occurrence_count,
+                    )
+                }
+                CorePattern::DecisionPoint {
+                    id: _,
+                    condition,
+                    action,
+                    outcome_stats,
+                    context,
+                    effectiveness: _,
+                } => {
+                    let desc = format!("Decision: {} -> {}", condition, action);
+                    let heur = Heuristic::new(
+                        condition.clone(),
+                        action.clone(),
+                        outcome_stats.success_rate(),
+                    );
+                    (
+                        desc,
+                        context.clone(),
+                        heur,
+                        outcome_stats.success_rate(),
+                        outcome_stats.total_count,
+                    )
+                }
+                CorePattern::ErrorRecovery {
+                    id: _,
+                    error_type,
+                    recovery_steps,
+                    success_rate,
+                    context,
+                    effectiveness: _,
+                } => {
+                    let desc = format!("Error recovery for: {}", error_type);
+                    let heur = Heuristic::new(
+                        format!("Error: {}", error_type),
+                        format!("Recovery: {}", recovery_steps.join(" -> ")),
+                        *success_rate,
+                    );
+                    (
+                        desc,
+                        context.clone(),
+                        heur,
+                        *success_rate,
+                        recovery_steps.len(),
+                    )
+                }
+                CorePattern::ContextPattern {
+                    id: _,
+                    context_features,
+                    recommended_approach,
+                    evidence: _,
+                    success_rate,
+                    effectiveness: _,
+                } => {
+                    let desc = format!("Context pattern: {}", recommended_approach);
+                    let heur = Heuristic::new(
+                        format!("Features: {}", context_features.join(", ")),
+                        recommended_approach.clone(),
+                        *success_rate,
+                    );
+                    (
+                        desc,
+                        TaskContext::default(),
+                        heur,
+                        *success_rate,
+                        context_features.len(),
+                    )
+                }
+            };
 
-        // Extract data from Pattern enum
-        let (description, context, heuristic, success_rate, occurrence_count) = match pattern {
-            CorePattern::ToolSequence {
-                id: _,
-                tools,
-                context,
-                success_rate,
-                avg_latency: _,
-                occurrence_count,
-                effectiveness: _,
-            } => {
-                // Use tools directly without cloning - join() accepts IntoIterator
-                let desc = format!("Tool sequence: {}", tools.join(" -> "));
-                let heur = Heuristic::new(
-                    format!("When need tools: {}", tools.join(", ")),
-                    format!("Use sequence: {}", tools.join(" -> ")),
-                    *success_rate,
-                );
-                (
-                    desc,
-                    context.clone(),
-                    heur,
-                    *success_rate,
-                    *occurrence_count,
-                )
-            }
-            CorePattern::DecisionPoint {
-                id: _,
-                condition,
-                action,
-                outcome_stats,
-                context,
-                effectiveness: _,
-            } => {
-                let desc = format!("Decision: {} -> {}", condition, action);
-                let heur = Heuristic::new(
-                    condition.clone(),
-                    action.clone(),
-                    outcome_stats.success_rate(),
-                );
-                (
-                    desc,
-                    context.clone(),
-                    heur,
-                    outcome_stats.success_rate(),
-                    outcome_stats.total_count,
-                )
-            }
-            CorePattern::ErrorRecovery {
-                id: _,
-                error_type,
-                recovery_steps,
-                success_rate,
-                context,
-                effectiveness: _,
-            } => {
-                let desc = format!("Error recovery for: {}", error_type);
-                let heur = Heuristic::new(
-                    format!("Error: {}", error_type),
-                    format!("Recovery: {}", recovery_steps.join(" -> ")),
-                    *success_rate,
-                );
-                (
-                    desc,
-                    context.clone(),
-                    heur,
-                    *success_rate,
-                    recovery_steps.len(),
-                )
-            }
-            CorePattern::ContextPattern {
-                id: _,
-                context_features,
-                recommended_approach,
-                evidence: _,
-                success_rate,
-                effectiveness: _,
-            } => {
-                let desc = format!("Context pattern: {}", recommended_approach);
-                let heur = Heuristic::new(
-                    format!("Features: {}", context_features.join(", ")),
-                    recommended_approach.clone(),
-                    *success_rate,
-                );
-                (
-                    desc,
-                    TaskContext::default(),
-                    heur,
-                    *success_rate,
-                    context_features.len(),
-                )
-            }
-        };
+            // Create pattern_data JSON blob - clone context for JSON serialization
+            let pattern_data = PatternDataJson {
+                description,
+                context: context.clone(),
+                heuristic,
+            };
+            let pattern_data_json =
+                serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
 
-        // Create pattern_data JSON blob - clone context for JSON serialization
-        let pattern_data = PatternDataJson {
-            description,
-            context: context.clone(),
-            heuristic,
-        };
-        let pattern_data_json =
-            serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
-
-        const SQL: &str = r#"
+            const SQL: &str = r#"
             INSERT OR REPLACE INTO patterns (
                 pattern_id, pattern_type, pattern_data, success_rate,
                 context_domain, context_language, context_tags, occurrence_count,
@@ -131,35 +130,37 @@ impl TursoStorage {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        let context_tags_json =
-            serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
+            let context_tags_json =
+                serde_json::to_string(&context.tags).map_err(Error::Serialization)?;
 
-        let now = chrono::Utc::now();
+            let now = chrono::Utc::now();
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            stmt.execute(libsql::params![
+                pattern.id().to_string(),
+                format!("{:?}", pattern),
+                pattern_data_json,
+                success_rate,
+                context.domain.clone(),
+                context.language.clone(),
+                context_tags_json,
+                occurrence_count as i64,
+                now.timestamp(),
+                now.timestamp(),
+            ])
             .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to store pattern: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            pattern.id().to_string(),
-            format!("{:?}", pattern),
-            pattern_data_json,
-            success_rate,
-            context.domain.clone(),
-            context.language.clone(),
-            context_tags_json,
-            occurrence_count as i64,
-            now.timestamp(),
-            now.timestamp(),
-        ])
+            info!("Successfully stored pattern: {}", pattern.id());
+            Ok(())
+        })
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store pattern: {}", e)))?;
-
-        info!("Successfully stored pattern: {}", pattern.id());
-        Ok(())
     }
 
     /// Retrieve a pattern by ID
@@ -168,127 +169,130 @@ impl TursoStorage {
         pattern_id: do_memory_core::episode::PatternId,
     ) -> Result<Option<CorePattern>> {
         debug!("Retrieving pattern: {}", pattern_id);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns WHERE pattern_id = ?
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![pattern_id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query pattern: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![pattern_id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query pattern: {}", e)))?;
 
-        if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            let pattern = super::row::row_to_pattern(&row)?;
-            Ok(Some(pattern))
-        } else {
-            Ok(None)
-        }
+            if let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+            {
+                let pattern = super::row::row_to_pattern(&row)?;
+                Ok(Some(pattern))
+            } else {
+                Ok(None)
+            }
+        })
+        .await
     }
 
     /// Retrieve all patterns from Turso storage.
     pub async fn get_all_patterns(&self) -> Result<Vec<CorePattern>> {
         debug!("Retrieving all patterns from Turso storage");
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns
         "#;
 
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 
-        let mut patterns = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            patterns.push(super::row::row_to_pattern(&row)?);
-        }
+            let mut patterns = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+            {
+                patterns.push(super::row::row_to_pattern(&row)?);
+            }
 
-        Ok(patterns)
+            Ok(patterns)
+        })
+        .await
     }
 
     /// Query patterns with filters
     pub async fn query_patterns(&self, query: &super::PatternQuery) -> Result<Vec<CorePattern>> {
         debug!("Querying patterns with filters: {:?}", query);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        let mut sql = String::from(
-            r#"
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let mut sql = String::from(
+                r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns WHERE 1=1
         "#,
-        );
+            );
 
-        let mut params: Vec<libsql::Value> = Vec::new();
+            let mut params: Vec<libsql::Value> = Vec::new();
 
-        if let Some(ref domain) = query.domain {
-            sql.push_str(" AND context_domain = ?");
-            params.push(domain.clone().into());
-        }
+            if let Some(ref domain) = query.domain {
+                sql.push_str(" AND context_domain = ?");
+                params.push(domain.clone().into());
+            }
 
-        if let Some(ref language) = query.language {
-            sql.push_str(" AND context_language = ?");
-            params.push(language.clone().into());
-        }
+            if let Some(ref language) = query.language {
+                sql.push_str(" AND context_language = ?");
+                params.push(language.clone().into());
+            }
 
-        if let Some(min_rate) = query.min_success_rate {
-            sql.push_str(" AND success_rate >= ?");
-            params.push(min_rate.into());
-        }
+            if let Some(min_rate) = query.min_success_rate {
+                sql.push_str(" AND success_rate >= ?");
+                params.push(min_rate.into());
+            }
 
-        sql.push_str(" ORDER BY success_rate DESC");
+            sql.push_str(" ORDER BY success_rate DESC");
 
-        // Apply limit with defaults and bounds
-        let effective_limit = apply_query_limit(query.limit);
-        sql.push_str(" LIMIT ?");
-        params.push((effective_limit as i64).into());
+            // Apply limit with defaults and bounds
+            let effective_limit = apply_query_limit(query.limit);
+            sql.push_str(" LIMIT ?");
+            params.push((effective_limit as i64).into());
 
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 
-        let mut patterns = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
-        {
-            patterns.push(super::row::row_to_pattern(&row)?);
-        }
+            let mut patterns = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch pattern row: {}", e)))?
+            {
+                patterns.push(super::row::row_to_pattern(&row)?);
+            }
 
-        info!("Found {} patterns matching query", patterns.len());
-        Ok(patterns)
+            info!("Found {} patterns matching query", patterns.len());
+            Ok(patterns)
+        })
+        .await
     }
 }

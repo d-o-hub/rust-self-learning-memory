@@ -48,24 +48,25 @@ impl EmbeddingStorageBackend for TursoStorage {
             limit, threshold
         );
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, _conn_id| {
+            // Try to use native vector search if migration is applied
+            if let Ok(results) = self
+                .find_similar_episodes_native(conn, &query_embedding, limit, threshold)
+                .await
+            {
+                info!(
+                    "Found {} similar episodes using native vector search",
+                    results.len()
+                );
+                return Ok(results);
+            }
 
-        // Try to use native vector search if migration is applied
-        if let Ok(results) = self
-            .find_similar_episodes_native(&conn, &query_embedding, limit, threshold)
-            .await
-        {
-            info!(
-                "Found {} similar episodes using native vector search",
-                results.len()
-            );
-            return Ok(results);
-        }
-
-        // Fallback to brute-force search if migration not applied
-        debug!("Falling back to brute-force search (migration not applied)");
-        self.find_similar_episodes_brute_force(&query_embedding, limit, threshold)
-            .await
+            // Fallback to brute-force search if migration not applied
+            debug!("Falling back to brute-force search (migration not applied)");
+            self.find_similar_episodes_brute_force(conn, &query_embedding, limit, threshold)
+                .await
+        })
+        .await
     }
 
     async fn find_similar_patterns(
@@ -79,23 +80,24 @@ impl EmbeddingStorageBackend for TursoStorage {
             limit, threshold
         );
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection_with_id(async |conn, _conn_id| {
+            // Try to use native vector search if migration is applied
+            if let Ok(results) = self
+                .find_similar_patterns_native(conn, &query_embedding, limit, threshold)
+                .await
+            {
+                info!(
+                    "Found {} similar patterns using native vector search",
+                    results.len()
+                );
+                return Ok(results);
+            }
 
-        // Try to use native vector search if migration is applied
-        if let Ok(results) = self
-            .find_similar_patterns_native(&conn, &query_embedding, limit, threshold)
-            .await
-        {
-            info!(
-                "Found {} similar patterns using native vector search",
-                results.len()
-            );
-            return Ok(results);
-        }
-
-        // Fallback to brute-force search if migration not applied
-        debug!("Falling back to brute-force search (migration not applied)");
-        self.find_similar_patterns_brute_force(&query_embedding, limit, threshold)
-            .await
+            // Fallback to brute-force search if migration not applied
+            debug!("Falling back to brute-force search (migration not applied)");
+            self.find_similar_patterns_brute_force(conn, &query_embedding, limit, threshold)
+                .await
+        })
+        .await
     }
 }

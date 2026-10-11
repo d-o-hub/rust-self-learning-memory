@@ -12,140 +12,144 @@ impl TursoStorage {
     /// Store an execution record
     pub async fn store_execution_record(&self, record: &ExecutionRecord) -> Result<()> {
         debug!("Storing execution record for: {}", record.agent_name);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             INSERT OR REPLACE INTO execution_records (
                 agent_name, agent_type, task_description, success,
                 duration_ms, started_at, error_message
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            stmt.execute(libsql::params![
+                record.agent_name.clone(),
+                record.agent_type.to_string(),
+                record.task_description.as_deref().unwrap_or(""),
+                record.success,
+                record.duration.as_millis() as i64,
+                record.started_at.timestamp(),
+                record.error_message.as_deref().unwrap_or(""),
+            ])
             .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to store execution record: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            record.agent_name.clone(),
-            record.agent_type.to_string(),
-            record.task_description.as_deref().unwrap_or(""),
-            record.success,
-            record.duration.as_millis() as i64,
-            record.started_at.timestamp(),
-            record.error_message.as_deref().unwrap_or(""),
-        ])
+            info!(
+                "Successfully stored execution record for: {}",
+                record.agent_name
+            );
+            Ok(())
+        })
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store execution record: {}", e)))?;
-
-        info!(
-            "Successfully stored execution record for: {}",
-            record.agent_name
-        );
-        Ok(())
     }
 
     /// Store agent metrics
     pub async fn store_agent_metrics(&self, metrics: &AgentMetrics) -> Result<()> {
         debug!("Storing agent metrics: {}", metrics.agent_name);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             INSERT OR REPLACE INTO agent_metrics (
                 agent_name, agent_type, total_executions, successful_executions,
                 total_duration_ms, avg_duration_ms, last_execution_time
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            stmt.execute(libsql::params![
+                metrics.agent_name.clone(),
+                metrics.agent_type.to_string(),
+                metrics.total_executions as i64,
+                metrics.successful_executions as i64,
+                metrics.total_duration.as_millis() as i64,
+                metrics.avg_duration.as_secs_f64(),
+                metrics.last_execution.map(|t| t.timestamp()),
+            ])
             .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to store agent metrics: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            metrics.agent_name.clone(),
-            metrics.agent_type.to_string(),
-            metrics.total_executions as i64,
-            metrics.successful_executions as i64,
-            metrics.total_duration.as_millis() as i64,
-            metrics.avg_duration.as_secs_f64(),
-            metrics.last_execution.map(|t| t.timestamp()),
-        ])
+            info!("Successfully stored agent metrics: {}", metrics.agent_name);
+            Ok(())
+        })
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store agent metrics: {}", e)))?;
-
-        info!("Successfully stored agent metrics: {}", metrics.agent_name);
-        Ok(())
     }
 
     /// Store task metrics
     pub async fn store_task_metrics(&self, metrics: &TaskMetrics) -> Result<()> {
         debug!("Storing task metrics: {}", metrics.task_type);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             INSERT OR REPLACE INTO task_metrics (
                 task_type, total_tasks, completed_tasks, avg_completion_time
             ) VALUES (?, ?, ?, ?)
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            stmt.execute(libsql::params![
+                metrics.task_type.clone(),
+                metrics.total_tasks as i64,
+                metrics.completed_tasks as i64,
+                metrics.avg_completion_time.as_millis() as i64,
+            ])
             .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to store task metrics: {}", e)))?;
 
-        stmt.execute(libsql::params![
-            metrics.task_type.clone(),
-            metrics.total_tasks as i64,
-            metrics.completed_tasks as i64,
-            metrics.avg_completion_time.as_millis() as i64,
-        ])
+            info!("Successfully stored task metrics: {}", metrics.task_type);
+            Ok(())
+        })
         .await
-        .map_err(|e| Error::Storage(format!("Failed to store task metrics: {}", e)))?;
-
-        info!("Successfully stored task metrics: {}", metrics.task_type);
-        Ok(())
     }
 
     /// Load agent metrics
     pub async fn load_agent_metrics(&self, agent_name: &str) -> Result<Option<AgentMetrics>> {
         debug!("Loading agent metrics: {}", agent_name);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT agent_name, agent_type, total_executions, successful_executions,
                    total_duration_ms, avg_duration_ms, last_execution_time
             FROM agent_metrics WHERE agent_name = ?
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![agent_name])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query agent metrics: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![agent_name])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query agent metrics: {}", e)))?;
 
-        if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch metrics row: {}", e)))?
-        {
-            let metrics = self.row_to_agent_metrics(&row)?;
-            Ok(Some(metrics))
-        } else {
-            Ok(None)
-        }
+            if let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch metrics row: {}", e)))?
+            {
+                let metrics = self.row_to_agent_metrics(&row)?;
+                Ok(Some(metrics))
+            } else {
+                Ok(None)
+            }
+        })
+        .await
     }
 
     /// Load execution records
@@ -158,80 +162,82 @@ impl TursoStorage {
             "Loading execution records: agent={:?}, limit={}",
             agent_name, limit
         );
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        let mut sql = String::from(
-            r#"
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let mut sql = String::from(
+                r#"
             SELECT agent_name, agent_type, task_description, success,
                    duration_ms, started_at, error_message
             FROM execution_records
         "#,
-        );
+            );
 
-        let mut params: Vec<libsql::Value> = Vec::new();
+            let mut params: Vec<libsql::Value> = Vec::new();
 
-        if let Some(name) = agent_name {
-            sql.push_str(" WHERE agent_name = ?");
-            params.push(name.to_string().into());
-        }
+            if let Some(name) = agent_name {
+                sql.push_str(" WHERE agent_name = ?");
+                params.push(name.to_string().into());
+            }
 
-        sql.push_str(" ORDER BY started_at DESC");
+            sql.push_str(" ORDER BY started_at DESC");
 
-        // Apply limit with bounds
-        let effective_limit = apply_query_limit(Some(limit));
-        sql.push_str(" LIMIT ?");
-        params.push((effective_limit as i64).into());
+            // Apply limit with bounds
+            let effective_limit = apply_query_limit(Some(limit));
+            sql.push_str(" LIMIT ?");
+            params.push((effective_limit as i64).into());
 
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query execution records: {}", e)))?;
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query execution records: {}", e)))?;
 
-        let mut records = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch record row: {}", e)))?
-        {
-            records.push(self.row_to_execution_record(&row)?);
-        }
+            let mut records = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch record row: {}", e)))?
+            {
+                records.push(self.row_to_execution_record(&row)?);
+            }
 
-        info!("Found {} execution records", records.len());
-        Ok(records)
+            info!("Found {} execution records", records.len());
+            Ok(records)
+        })
+        .await
     }
 
     /// Load task metrics
     pub async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>> {
         debug!("Loading task metrics: {}", task_type);
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = r#"
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str = r#"
             SELECT task_type, total_tasks, completed_tasks, avg_completion_time
             FROM task_metrics WHERE task_type = ?
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
-        let mut rows = stmt
-            .query(libsql::params![task_type])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query task metrics: {}", e)))?;
+            let mut rows = stmt
+                .query(libsql::params![task_type])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query task metrics: {}", e)))?;
 
-        if let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch metrics row: {}", e)))?
-        {
-            let metrics = self.row_to_task_metrics(&row)?;
-            Ok(Some(metrics))
-        } else {
-            Ok(None)
-        }
+            if let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch metrics row: {}", e)))?
+            {
+                let metrics = self.row_to_task_metrics(&row)?;
+                Ok(Some(metrics))
+            } else {
+                Ok(None)
+            }
+        })
+        .await
     }
 }
 

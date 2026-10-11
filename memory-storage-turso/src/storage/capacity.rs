@@ -6,7 +6,7 @@ use libsql;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
 
-use super::capacity_cleanup::run_capacity_cleanup;
+use super::capacity_cleanup::{CleanupFailure, CleanupStage, run_capacity_cleanup};
 use super::capacity_intents::parse_episode_id;
 
 impl TursoStorage {
@@ -69,68 +69,78 @@ impl TursoStorage {
         &self,
         max_episodes: usize,
     ) -> Result<EvictionOutcome> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        // Phase 1: count and pick evictees inside one scoped checkout, so the
+        // permit is released when this closure returns - before any dependent
+        // deletion work (#1064).
+        let selected = self
+            .with_connection_with_id(async |conn, _conn_id| {
+            // Count current episodes
+            const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
 
-        // Count current episodes
-        const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
-
-        let mut count_rows = conn.query(COUNT_SQL, ()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to count episodes: {}", e))
-        })?;
-
-        let current_count = if let Some(row) = count_rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let count: i64 = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            count as usize
-        } else {
-            0
-        };
-        drop(count_rows);
-
-        if current_count <= max_episodes {
-            return Ok(EvictionOutcome::default());
-        }
-
-        // Episodes exceed capacity - need to evict
-        let to_remove = current_count - max_episodes;
-        warn!(
-            "Capacity exceeded: {} > {}, removing {} episodes",
-            current_count, max_episodes, to_remove
-        );
-
-        // Get episodes to evict (oldest first, using LRU)
-        // Order by start_time first, then by episode_id for deterministic tie-breaking
-        let evict_sql =
-            "SELECT episode_id FROM episodes ORDER BY start_time ASC, episode_id ASC LIMIT ?";
-
-        let mut evict_rows = conn
-            .query(evict_sql, libsql::params![to_remove as i64])
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+            let mut count_rows = conn.query(COUNT_SQL, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to count episodes: {}", e))
             })?;
 
-        let mut evicted = Vec::new();
-        while let Some(row) = evict_rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let episode_id: String = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            evicted.push(episode_id);
-        }
+            let current_count = if let Some(row) = count_rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let count: i64 = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                count as usize
+            } else {
+                0
+            };
+            drop(count_rows);
 
-        // Drop the selection connection/rows before running the eviction
-        // transaction to avoid "database locked" errors in parallel tests.
-        drop(evict_rows);
-        drop(conn);
+            if current_count <= max_episodes {
+                return Ok(None);
+            }
+
+            // Episodes exceed capacity - need to evict
+            let to_remove = current_count - max_episodes;
+            warn!(
+                "Capacity exceeded: {} > {}, removing {} episodes",
+                current_count, max_episodes, to_remove
+            );
+
+            // Get episodes to evict (oldest first, using LRU)
+            // Order by start_time first, then by episode_id for deterministic tie-breaking
+            let evict_sql =
+                "SELECT episode_id FROM episodes ORDER BY start_time ASC, episode_id ASC LIMIT ?";
+
+            let mut evict_rows = conn
+                .query(evict_sql, libsql::params![to_remove as i64])
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+                })?;
+
+            let mut evicted = Vec::new();
+            while let Some(row) = evict_rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let episode_id: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                evicted.push(episode_id);
+            }
+
+            // Drop the selection rows before returning: the checkout itself is
+            // released when the closure returns.
+            drop(evict_rows);
+
+                    Ok(Some((current_count, evicted)))
+            })
+            .await?;
+
+        let Some((_current_count, evicted)) = selected else {
+            return Ok(EvictionOutcome::default());
+        };
 
         if evicted.is_empty() {
             return Ok(EvictionOutcome::default());
@@ -141,9 +151,21 @@ impl TursoStorage {
         self.record_pending_capacity_eviction_intents(&evicted)
             .await?;
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let cleanup = run_capacity_cleanup(&conn, &evicted).await;
-        drop(conn);
+        // Phase 2: the cleanup transaction runs inside its own scoped checkout,
+        // so a failed checkout is attributed to the durable stage instead of
+        // silently skipping the transaction.
+        let cleanup = match self
+            .with_connection(async |conn| {
+                Ok::<_, do_memory_core::Error>(run_capacity_cleanup(conn, &evicted).await)
+            })
+            .await
+        {
+            Ok(cleanup) => cleanup,
+            Err(e) => Err(CleanupFailure {
+                stage: CleanupStage::Transaction,
+                error: format!("Failed to check out a connection for cleanup: {e}"),
+            }),
+        };
 
         match cleanup {
             Ok(()) => {
@@ -201,50 +223,51 @@ impl TursoStorage {
 
     /// Get storage statistics including capacity info
     pub async fn get_capacity_statistics(&self) -> Result<CapacityStatistics> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        self.with_connection(async |conn| {
+            // Count records in each table
+            let tables = [
+                "episodes",
+                "patterns",
+                "heuristics",
+                "embeddings",
+                "execution_records",
+                "agent_metrics",
+                "task_metrics",
+            ];
 
-        // Count records in each table
-        let tables = [
-            "episodes",
-            "patterns",
-            "heuristics",
-            "embeddings",
-            "execution_records",
-            "agent_metrics",
-            "task_metrics",
-        ];
+            let mut table_counts = HashMap::new();
+            for table in tables {
+                // SAFETY: Table names are hardcoded in the local `tables` array above.
+                // These are not user-controlled values, preventing SQL injection.
+                // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+                let sql = format!("SELECT COUNT(*) FROM {}", table);
+                let mut rows = conn.query(&sql, ()).await.map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
+                })?;
 
-        let mut table_counts = HashMap::new();
-        for table in tables {
-            // SAFETY: Table names are hardcoded in the local `tables` array above.
-            // These are not user-controlled values, preventing SQL injection.
-            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
-            let sql = format!("SELECT COUNT(*) FROM {}", table);
-            let mut rows = conn.query(&sql, ()).await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
-            })?;
-
-            if let Some(row) = rows
-                .next()
-                .await
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-            {
-                let count: i64 = row
-                    .get(0)
-                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-                table_counts.insert(table.to_string(), count as usize);
+                if let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+                {
+                    let count: i64 = row
+                        .get(0)
+                        .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                    table_counts.insert(table.to_string(), count as usize);
+                }
             }
-        }
 
-        Ok(CapacityStatistics {
-            episode_count: table_counts.get("episodes").copied().unwrap_or(0),
-            pattern_count: table_counts.get("patterns").copied().unwrap_or(0),
-            heuristic_count: table_counts.get("heuristics").copied().unwrap_or(0),
-            embedding_count: table_counts.get("embeddings").copied().unwrap_or(0),
-            execution_record_count: table_counts.get("execution_records").copied().unwrap_or(0),
-            agent_metrics_count: table_counts.get("agent_metrics").copied().unwrap_or(0),
-            task_metrics_count: table_counts.get("task_metrics").copied().unwrap_or(0),
+            Ok(CapacityStatistics {
+                episode_count: table_counts.get("episodes").copied().unwrap_or(0),
+                pattern_count: table_counts.get("patterns").copied().unwrap_or(0),
+                heuristic_count: table_counts.get("heuristics").copied().unwrap_or(0),
+                embedding_count: table_counts.get("embeddings").copied().unwrap_or(0),
+                execution_record_count: table_counts.get("execution_records").copied().unwrap_or(0),
+                agent_metrics_count: table_counts.get("agent_metrics").copied().unwrap_or(0),
+                task_metrics_count: table_counts.get("task_metrics").copied().unwrap_or(0),
+            })
         })
+        .await
     }
 }
 

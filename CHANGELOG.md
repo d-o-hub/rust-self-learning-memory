@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pattern search, recommendations, attributed recommendations and the
+  management search API now use the runtime-activated embedding provider
+  (#1074): each pattern operation clones one owned provider snapshot before its
+  awaits, so the query embedding, the per-pattern embeddings and the reported
+  provider identity all come from the same activation revision instead of the
+  construction-time `semantic_service` field, which is `None` on every
+  production path. Without the snapshot the query embedding was always empty
+  and the semantic score collapsed to a constant.
 - Retrieval provenance is now execution-backed (#1079): the provenance path
   performs exactly one query-cache lookup, so cache hit/miss telemetry is
   counted once per operation, and it threads the serving tier, cache hit/miss,
@@ -56,6 +64,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Feedback-to-ranking refreshes are now incremental (#1078): an accepted
+  replacement updates only the changed session's pattern evidence via
+  `RankingIndex::apply_feedback`, so refresh cost no longer scales with total
+  history. `RankingIndex::from_history` remains the cold-start/canonical rebuild
+  and the fallback (unresolvable session or an inconsistent counter), the
+  tracker-authoritative latest-feedback-wins merge is unchanged, and a rebuild
+  whose history scan races an incremental update re-gathers instead of
+  clobbering it. New Criterion coverage (`benches/ranking_incremental.rs`)
+  compares rebuild vs. incremental latency at 1k/10k/100k entries.
 - crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every
   publish job authenticates with the pinned `rust-lang/crates-io-auth-action`
   (no `CARGO_REGISTRY_TOKEN` secret, no hand-rolled exchange), the per-crate

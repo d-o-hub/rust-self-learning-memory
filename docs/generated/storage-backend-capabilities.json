@@ -7,13 +7,13 @@
     "memory-core/src/storage/backend/mod.rs"
   ],
   "summary": {
-    "methods_total": 45,
+    "methods_total": 46,
     "required": 14,
-    "defaulted": 31,
+    "defaulted": 32,
     "capability_gated": 23,
     "value_returning_with_typed_fallback": 1,
     "genuinely_safe_default": 2,
-    "fail_closed": 0,
+    "fail_closed": 1,
     "capability_declaration": 5
   },
   "methods": [
@@ -235,6 +235,16 @@
       "gate_kind": null,
       "default_body": "delegate",
       "justification": "Delegates to the required get_episode: a backend whose read path answers is alive, and the default stores or fabricates nothing.",
+      "pending": null
+    },
+    {
+      "name": "list_embedding_ids",
+      "signature": "defaulted",
+      "classification": "fail-closed",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "capability-unavailable",
+      "justification": "The default raises Error::CapabilityUnavailable instead of an empty list: empty means 'nothing stored' and would make similarity search over a non-enumerating backend look like a successful empty result.",
       "pending": null
     },
     {

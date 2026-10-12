@@ -219,6 +219,16 @@ gate_kind = "error"
 justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably."
 
 # ---------------------------------------------------------------------------
+# Embedding enumeration (#1151 adds list_embedding_ids so the identity-scoped
+# adapter can brute-force similarity search without a concrete backend type)
+# ---------------------------------------------------------------------------
+
+[[method]]
+name = "list_embedding_ids"
+classification = "fail-closed"
+justification = "The default raises Error::CapabilityUnavailable instead of an empty list: empty means 'nothing stored' and would make similarity search over a non-enumerating backend look like a successful empty result."
+
+# ---------------------------------------------------------------------------
 # Liveness (#1085 added this default after the overlay was written)
 # ---------------------------------------------------------------------------
 

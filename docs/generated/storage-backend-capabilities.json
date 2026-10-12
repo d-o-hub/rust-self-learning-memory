@@ -2,16 +2,19 @@
   "generated_by": "scripts/check-storage-backend-capabilities.sh --write",
   "trait": "StorageBackend",
   "source": [
-    "memory-core/src/storage/backend.rs"
+    "memory-core/src/storage/backend/backend_default_tests.rs",
+    "memory-core/src/storage/backend/capabilities.rs",
+    "memory-core/src/storage/backend/mod.rs"
   ],
   "summary": {
-    "methods_total": 43,
+    "methods_total": 45,
     "required": 14,
-    "defaulted": 29,
-    "capability_gated": 10,
-    "value_returning_with_typed_fallback": 14,
+    "defaulted": 31,
+    "capability_gated": 23,
+    "value_returning_with_typed_fallback": 1,
     "genuinely_safe_default": 2,
-    "capability_declaration": 3
+    "fail_closed": 0,
+    "capability_declaration": 5
   },
   "methods": [
     {
@@ -57,12 +60,12 @@
     {
       "name": "delete_procedural",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "unit",
-      "justification": "Silent no-op today: a retained record is indistinguishable from a deleted one.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
     },
     {
       "name": "get_all_patterns",
@@ -77,12 +80,12 @@
     {
       "name": "get_all_relationships",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "empty-vec",
-      "justification": "Typed empty-list fallback today; unsupported backends look like an empty graph.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "get_embedding",
@@ -117,12 +120,12 @@
     {
       "name": "get_episode_pattern_relationships",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "empty-vec",
-      "justification": "Typed empty-list fallback today; the caller cannot tell 'none' from 'unsupported'.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "get_heuristic",
@@ -147,12 +150,12 @@
     {
       "name": "get_procedural",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "none",
-      "justification": "Typed None fallback today; an unsupported lookup looks like a missing record.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
     },
     {
       "name": "get_recommendation_feedback",
@@ -197,32 +200,32 @@
     {
       "name": "get_relationship_by_id",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "none",
-      "justification": "Typed None fallback today; an unsupported lookup is indistinguishable from 'not found'.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "get_relationships",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "empty-vec",
-      "justification": "Typed empty-list fallback today; unsupported backends look like they know no relationships.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "get_weighted_neighbors",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "empty-vec",
-      "justification": "Typed empty-list fallback today; an unsupported backend looks like an isolated episode.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "health_check",
@@ -277,32 +280,32 @@
     {
       "name": "query_procedural",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "empty-vec",
-      "justification": "Typed empty-list fallback today; an unsupported query looks like 'no records'.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
     },
     {
       "name": "relationship_exists",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "bool-false",
-      "justification": "Typed false fallback today; an unsupported backend looks like 'no relationship'.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "remove_relationship",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "unit",
-      "justification": "Silent no-op today: a missing relationship is indistinguishable from a removed one.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "store_embedding",
@@ -337,12 +340,12 @@
     {
       "name": "store_episode_pattern_relationship",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "unit",
-      "justification": "Silent no-op today: the episode->pattern link is dropped without an error.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "store_episodes_batch",
@@ -377,12 +380,12 @@
     {
       "name": "store_procedural",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "unit",
-      "justification": "Silent no-op today: procedural memory is dropped while the write reports success.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
     },
     {
       "name": "store_recommendation_feedback",
@@ -407,15 +410,25 @@
     {
       "name": "store_relationship",
       "signature": "defaulted",
-      "classification": "value-returning-with-typed-fallback",
-      "capability": null,
-      "gate_kind": null,
-      "default_body": "unit",
-      "justification": "Silent no-op today: a backend without relationship storage reports durable success.",
-      "pending": "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
     },
     {
       "name": "supports_episode_cleanup",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_procedural_memory",
       "signature": "defaulted",
       "classification": "capability-declaration",
       "capability": null,
@@ -436,6 +449,16 @@
     },
     {
       "name": "supports_recommendation_attribution",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_relationship_persistence",
       "signature": "defaulted",
       "classification": "capability-declaration",
       "capability": null,

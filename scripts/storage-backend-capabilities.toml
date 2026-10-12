@@ -47,57 +47,66 @@ justification = "Typed empty-list fallback for single-pattern-only backends; dur
 
 [[method]]
 name = "store_relationship"
-classification = "value-returning-with-typed-fallback"
-justification = "Silent no-op today: a backend without relationship storage reports durable success."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "remove_relationship"
-classification = "value-returning-with-typed-fallback"
-justification = "Silent no-op today: a missing relationship is indistinguishable from a removed one."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "get_relationships"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed empty-list fallback today; unsupported backends look like they know no relationships."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "get_all_relationships"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed empty-list fallback today; unsupported backends look like an empty graph."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "get_relationship_by_id"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed None fallback today; an unsupported lookup is indistinguishable from 'not found'."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "relationship_exists"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed false fallback today; an unsupported backend looks like 'no relationship'."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "store_episode_pattern_relationship"
-classification = "value-returning-with-typed-fallback"
-justification = "Silent no-op today: the episode->pattern link is dropped without an error."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "get_episode_pattern_relationships"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed empty-list fallback today; the caller cannot tell 'none' from 'unsupported'."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 [[method]]
 name = "get_weighted_neighbors"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed empty-list fallback today; an unsupported backend looks like an isolated episode."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_relationship_persistence"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably."
 
 # ---------------------------------------------------------------------------
 # Recommendation attribution (ADR-081) and ranking adaptation (ADR-082)
@@ -183,27 +192,31 @@ justification = "The default body raises Error::CapabilityUnavailable, mirroring
 
 [[method]]
 name = "store_procedural"
-classification = "value-returning-with-typed-fallback"
-justification = "Silent no-op today: procedural memory is dropped while the write reports success."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_procedural_memory"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably."
 
 [[method]]
 name = "get_procedural"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed None fallback today; an unsupported lookup looks like a missing record."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_procedural_memory"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably."
 
 [[method]]
 name = "delete_procedural"
-classification = "value-returning-with-typed-fallback"
-justification = "Silent no-op today: a retained record is indistinguishable from a deleted one."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_procedural_memory"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably."
 
 [[method]]
 name = "query_procedural"
-classification = "value-returning-with-typed-fallback"
-justification = "Typed empty-list fallback today; an unsupported query looks like 'no records'."
-pending = "slice 2 of #1087 replaces the default body with Error::CapabilityUnavailable."
+classification = "capability-gated"
+capability = "supports_procedural_memory"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably."
 
 # ---------------------------------------------------------------------------
 # Liveness (#1085 added this default after the overlay was written)

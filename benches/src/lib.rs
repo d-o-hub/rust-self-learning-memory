@@ -1,13 +1,14 @@
 // Clippy suppressions for benchmark suite
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::expect_used)]
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::uninlined_format_args)]
-#![allow(missing_docs)]
-#![allow(unknown_lints)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "panic paths documented separately"
+)]
+#![expect(clippy::expect_used, reason = "infallible expect in known-good paths")]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
 
 //! Benchmark suite for the self-learning memory system
 

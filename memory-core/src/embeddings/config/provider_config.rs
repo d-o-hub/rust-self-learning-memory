@@ -87,6 +87,24 @@ impl ProviderConfig {
         )
     }
 
+    /// Deterministic revision of the full provider configuration.
+    ///
+    /// Used by the identity-scoped embedding storage adapter so vectors written
+    /// under one configuration can never be read under another. The value is
+    /// the big-endian first eight bytes of the SHA-256 over the canonical JSON
+    /// encoding of this configuration, so it is stable across processes and
+    /// builds for a given configuration without persisting a counter.
+    #[must_use]
+    pub fn config_revision(&self) -> u64 {
+        use sha2::{Digest, Sha256};
+
+        let encoded = serde_json::to_vec(self).unwrap_or_default();
+        let digest = Sha256::digest(encoded);
+        let mut bytes = [0_u8; 8];
+        bytes.copy_from_slice(&digest[..8]);
+        u64::from_be_bytes(bytes)
+    }
+
     /// Validate the configuration
     ///
     /// # Errors

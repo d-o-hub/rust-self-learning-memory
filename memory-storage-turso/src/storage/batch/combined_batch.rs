@@ -75,11 +75,19 @@ impl TursoStorage {
                 #[cfg(feature = "compression")]
                 let compression_threshold = self.config.compression_threshold;
                 #[cfg(not(feature = "compression"))]
+                #[expect(
+                    clippy::no_effect_underscore_binding,
+                    reason = "placeholder while compression is disabled"
+                )]
                 let _compression_threshold = 0;
 
                 #[cfg(feature = "compression")]
                 let should_compress = self.config.compress_episodes;
                 #[cfg(not(feature = "compression"))]
+                #[expect(
+                    clippy::no_effect_underscore_binding,
+                    reason = "placeholder while compression is disabled"
+                )]
                 let _should_compress = false;
 
                 for episode in &episodes {
@@ -204,6 +212,19 @@ impl TursoStorage {
                             "Failed to store episode in combined batch: {}",
                             e
                         )));
+                    }
+                    // Episode row and its modification watermark commit together.
+                    if let Err(e) = crate::storage::episodes::revision::record_episode_revision(
+                        conn,
+                        &episode.episode_id.to_string(),
+                        chrono::Utc::now().timestamp_millis(),
+                    )
+                    .await
+                    {
+                        let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                            error!("Failed to rollback transaction: {}", rollback_err)
+                        });
+                        return Err(e);
                     }
                 }
             }

@@ -5,7 +5,7 @@ use do_memory_core::memory::attribution::{
 use do_memory_core::procedural::ProceduralMemory;
 use do_memory_core::{
     Episode, Error, Heuristic, Pattern, Result, StorageBackend, StorageBackendCapabilities,
-    episode::PatternId,
+    SyncWatermarkBackend, episode::PatternId,
 };
 use uuid::Uuid;
 
@@ -94,6 +94,10 @@ impl StorageBackend for RedbStorage {
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         self.get_embeddings_batch_impl(ids).await
+    }
+
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        self.list_embedding_ids_impl().await
     }
 
     async fn store_relationship(
@@ -237,5 +241,37 @@ impl StorageBackendCapabilities for RedbStorage {
 
     fn supports_procedural_memory(&self) -> bool {
         true
+    }
+}
+
+#[async_trait]
+impl SyncWatermarkBackend for RedbStorage {
+    async fn query_episodes_modified_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+        cursor: Option<(chrono::DateTime<chrono::Utc>, Uuid)>,
+        limit: Option<usize>,
+    ) -> Result<Vec<(Episode, chrono::DateTime<chrono::Utc>)>> {
+        self.query_episodes_modified_since(since, cursor, limit)
+            .await
+    }
+
+    async fn load_sync_watermark(&self) -> Result<Option<chrono::DateTime<chrono::Utc>>> {
+        let Some(raw) = self.get_metadata(crate::SYNC_WATERMARK_KEY).await? else {
+            return Ok(None);
+        };
+
+        let ms: i64 = raw.parse().map_err(|e| {
+            do_memory_core::Error::Storage(format!("Invalid persisted sync watermark {raw}: {e}"))
+        })?;
+        Ok(chrono::DateTime::from_timestamp_millis(ms))
+    }
+
+    async fn save_sync_watermark(&self, watermark: chrono::DateTime<chrono::Utc>) -> Result<()> {
+        self.store_metadata(
+            crate::SYNC_WATERMARK_KEY,
+            &watermark.timestamp_millis().to_string(),
+        )
+        .await
     }
 }

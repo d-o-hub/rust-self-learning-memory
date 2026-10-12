@@ -54,6 +54,34 @@ cargo test --test quality_gates quality_gate_performance_regression -- --nocaptu
 cargo test --test quality_gates quality_gates_summary -- --nocapture
 ```
 
+## Storage Backend Capability Truth
+
+`StorageBackend` carries optional methods whose default bodies return `Ok(())`,
+`None`, empty vectors, `0`, or `false`. A new default added without thought can
+make an unsupported operation look successful. `#1087` closes that gap with a
+static guard that runs in the `fast-gate` CI job and fails closed:
+
+- `scripts/storage-backend-capabilities.toml` classifies every defaulted
+  `StorageBackend` method (`capability-gated`,
+  `value-returning-with-typed-fallback`, `genuinely-safe-default`) and carries
+  the justification for each allowlisted fallback.
+- `docs/generated/storage-backend-capabilities.json` is the machine-readable
+  inventory generated from the trait source plus the overlay.
+- `scripts/check-storage-backend-capabilities.sh --check` parses the trait and
+  fails when a defaulted method is unclassified, when a declared classification
+  contradicts the default body, or when the inventory is stale.
+
+```bash
+# Blocking gate (wired into .github/workflows/ci.yml)
+./scripts/check-storage-backend-capabilities.sh --check
+
+# Regenerate the machine-readable inventory after a trait change
+./scripts/check-storage-backend-capabilities.sh --write
+
+# Fixtures for the checker's own failure modes
+./scripts/test-storage-backend-capabilities.sh --fixtures
+```
+
 ## Configuration
 
 Quality gates can be configured via environment variables:

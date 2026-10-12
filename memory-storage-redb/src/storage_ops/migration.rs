@@ -6,8 +6,8 @@
 //! a typed error (issue #1069).
 
 use super::super::{
-    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_SESSIONS_TABLE, SCHEMA_VERSION,
-    with_db_timeout,
+    EPISODE_REVISIONS_TABLE, EPISODES_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, SCHEMA_VERSION, with_db_timeout,
 };
 use super::schema::SchemaInspection;
 use crate::RedbStorage;
@@ -173,6 +173,63 @@ impl RedbStorage {
                                 "Failed to rebuild recommendation episode index: {}",
                                 e
                             ))
+                        })?;
+                }
+            }
+
+            // Backfill modification watermarks for cache rows written before
+            // `episode_revisions` existed. Existing rows use their start_time as
+            // the best available watermark; later writes refresh it.
+            {
+                let mut revisions = write_txn
+                    .open_table(EPISODE_REVISIONS_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                    })?;
+
+                let mut missing: Vec<(String, i64)> = Vec::new();
+                {
+                    let episodes = write_txn.open_table(EPISODES_TABLE).map_err(|e| {
+                        Error::Storage(format!("Failed to open episodes table: {}", e))
+                    })?;
+
+                    for entry in episodes.iter().map_err(|e| {
+                        Error::Storage(format!("Failed to iterate episodes: {}", e))
+                    })? {
+                        let (key, value) = entry.map_err(|e| {
+                            Error::Storage(format!("Failed to read episode entry: {}", e))
+                        })?;
+                        let episode_id = key.value().to_string();
+
+                        let already_tracked = revisions
+                            .get(episode_id.as_str())
+                            .map_err(|e| {
+                                Error::Storage(format!(
+                                    "Failed to read episode revision: {}",
+                                    e
+                                ))
+                            })?
+                            .is_some();
+                        if already_tracked {
+                            continue;
+                        }
+
+                        let episode: Episode =
+                            postcard::from_bytes(value.value()).map_err(|e| {
+                                Error::Storage(format!(
+                                    "Failed to decode episode while backfilling revisions: {}",
+                                    e
+                                ))
+                            })?;
+                        missing.push((episode_id, episode.start_time.timestamp_millis()));
+                    }
+                }
+
+                for (episode_id, modified_at_ms) in missing {
+                    revisions
+                        .insert(episode_id.as_str(), modified_at_ms)
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to backfill episode revision: {}", e))
                         })?;
                 }
             }

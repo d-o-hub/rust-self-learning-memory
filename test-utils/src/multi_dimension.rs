@@ -183,6 +183,7 @@ mod turso_utils {
     }
 
     impl EmbeddingGenerator {
+        /// Create a generator for `dimension`-wide embeddings with a fixed seed.
         pub fn new(dimension: usize) -> Self {
             Self {
                 dimension,
@@ -190,10 +191,12 @@ mod turso_utils {
             }
         }
 
+        /// Create a generator for `dimension`-wide embeddings with `seed`.
         pub fn with_seed(dimension: usize, seed: u64) -> Self {
             Self { dimension, seed }
         }
 
+        /// Generate `count` deterministic pseudo-random embeddings.
         pub fn generate(&mut self, count: usize) -> Vec<Vec<f32>> {
             (0..count)
                 .map(|i| {
@@ -205,6 +208,7 @@ mod turso_utils {
                 .collect()
         }
 
+        /// Generate `count` embeddings clustered around `base_embedding`.
         pub fn generate_with_similarity(
             &mut self,
             base_embedding: &[f32],

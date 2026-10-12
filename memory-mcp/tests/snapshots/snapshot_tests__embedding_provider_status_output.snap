@@ -15,6 +15,8 @@ expression: output
     "api_version": "v1",
     "rate_limit": "3000 per minute"
   },
+  "storage_mode": "durable",
+  "storage_scope": "emb_v1:openai:text-embedding-3-small:1536#r42",
   "test_result": {
     "success": true,
     "duration_ms": 125,

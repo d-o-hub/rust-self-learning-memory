@@ -79,7 +79,7 @@ mod tests {
         let compressor = AsyncCompressor::new(config);
 
         let data = b"test data for streaming compression".repeat(100);
-        let mut input: &[u8] = &data;
+        let input: &[u8] = &data;
         let mut output = Vec::new();
 
         let result = compressor
@@ -111,7 +111,7 @@ mod tests {
         stream_data.extend_from_slice(&compressed.data);
 
         // Decompress from stream
-        let mut input: &[u8] = &stream_data;
+        let input: &[u8] = &stream_data;
         let mut output = Vec::new();
         let decompressed_size = compressor
             .decompress_stream(&mut &input[..], &mut output)

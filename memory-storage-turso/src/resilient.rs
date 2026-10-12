@@ -134,7 +134,7 @@ impl ResilientStorage {
     }
 
     /// Helper to reduce circuit-breaker boilerplate in StorageBackend methods
-    async fn circuit_call<F, Fut, T>(&self, op: F) -> Result<T>
+    pub(crate) async fn circuit_call<F, Fut, T>(&self, op: F) -> Result<T>
     where
         F: FnOnce(Arc<TursoStorage>) -> Fut + Send + 'static,
         Fut: std::future::Future<Output = Result<T>> + Send,
@@ -249,6 +249,11 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        self.circuit_call(move |s| async move { s.list_embedding_ids().await })
+            .await
+    }
+
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         let session = session.clone();
         self.circuit_call(move |s| async move { s.store_recommendation_session(&session).await })
@@ -307,8 +312,10 @@ impl StorageBackend for ResilientStorage {
 mod tests {
     use super::*;
     use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+    use do_memory_core::{Episode, StorageBackend};
     use std::time::Duration;
     use tempfile::TempDir;
+    use uuid::Uuid;
 
     async fn create_test_storage() -> Result<(ResilientStorage, TempDir)> {
         let dir = TempDir::new().unwrap();

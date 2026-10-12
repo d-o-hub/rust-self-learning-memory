@@ -1,69 +1,116 @@
 #![deny(unsafe_code)]
 // Clippy suppressions for memory-mcp
-#![allow(clippy::useless_attribute)]
-#![allow(clippy::excessive_nesting)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::panic)]
-#![allow(clippy::wildcard_imports)]
-#![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_wrap)]
-#![allow(clippy::float_cmp)]
-#![allow(clippy::unreadable_literal)]
-#![allow(clippy::struct_excessive_bools)]
-#![allow(clippy::default_trait_access)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::unused_async)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::to_string_in_format_args)]
-#![allow(clippy::cast_lossless)]
-#![allow(clippy::format_push_string)]
-#![allow(clippy::explicit_iter_loop)]
-#![allow(clippy::option_option)]
-#![allow(clippy::implicit_hasher)]
-#![allow(clippy::doc_link_with_quotes)]
-#![allow(clippy::single_match)]
-#![allow(clippy::neg_cmp_op_on_partial_ord)]
-#![allow(clippy::inefficient_to_string)]
-#![allow(clippy::bool_comparison)]
-#![allow(clippy::single_char_pattern)]
-#![allow(clippy::trivially_copy_pass_by_ref)]
-#![allow(clippy::manual_let_else)]
-#![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::needless_raw_string_hashes)]
-#![allow(clippy::cloned_instead_of_copied)]
-#![allow(clippy::used_underscore_binding)]
-#![allow(clippy::nonminimal_bool)]
-#![allow(clippy::bool_assert_comparison)]
-#![allow(clippy::let_and_return)]
-#![allow(clippy::unused_rounding)]
-#![allow(clippy::if_not_else)]
-#![allow(clippy::needless_continue)]
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::ignore_without_reason)]
-#![allow(clippy::items_after_statements)]
-#![allow(clippy::ref_option)]
-#![allow(clippy::single_match_else)]
-#![allow(clippy::clone_on_copy)]
-#![allow(clippy::if_then_some_else_none)]
-#![allow(clippy::unnested_or_patterns)]
-#![allow(clippy::redundant_else)]
-#![allow(clippy::expect_used)]
-#![allow(clippy::unwrap_used)]
-#![allow(missing_docs)]
-#![allow(rust_2024_compatibility)]
-#![allow(tail_expr_drop_order)]
-#![allow(unknown_lints)]
+#![expect(clippy::excessive_nesting, reason = "deeply nested control flow")]
+#![expect(
+    clippy::missing_errors_doc,
+    reason = "error variants documented separately"
+)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "panic paths documented separately"
+)]
+#![expect(
+    clippy::cognitive_complexity,
+    reason = "long-standing complex functions"
+)]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![cfg_attr(
+    test,
+    expect(clippy::panic, reason = "panic used for invariant violations")
+)]
+#![cfg_attr(
+    not(test),
+    expect(clippy::wildcard_imports, reason = "glob imports used for preludes")
+)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "precision loss accepted in metric math"
+)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "integer narrowing bounded by checks"
+)]
+#![expect(
+    clippy::cast_sign_loss,
+    reason = "non-negative values cast to unsigned"
+)]
+#![expect(
+    clippy::cast_possible_wrap,
+    reason = "range validated before wrapping cast"
+)]
+#![expect(
+    clippy::unreadable_literal,
+    reason = "literals kept verbatim for clarity"
+)]
+#![expect(
+    clippy::struct_excessive_bools,
+    reason = "config struct expressed as flags"
+)]
+#![expect(clippy::default_trait_access, reason = "explicit Default::default")]
+#![expect(clippy::match_same_arms, reason = "explicit arms aid maintenance")]
+#![expect(
+    clippy::redundant_closure_for_method_calls,
+    reason = "explicit closures aid readability"
+)]
+#![expect(clippy::map_unwrap_or, reason = "explicit pattern clearer than map_or")]
+#![expect(
+    clippy::needless_pass_by_value,
+    reason = "owned params kept for ergonomics"
+)]
+#![expect(clippy::unused_self, reason = "method kept for API symmetry")]
+#![expect(clippy::unused_async, reason = "async kept for API symmetry")]
+#![expect(clippy::similar_names, reason = "short names common in math code")]
+#![expect(
+    clippy::cast_lossless,
+    reason = "explicit widening casts document intent"
+)]
+#![expect(
+    clippy::format_push_string,
+    reason = "push_str formatting kept explicit"
+)]
+#![expect(clippy::explicit_iter_loop, reason = "explicit iterator loop kept")]
+#![expect(clippy::implicit_hasher, reason = "concrete hash maps in public API")]
+#![expect(
+    clippy::doc_link_with_quotes,
+    reason = "quoted doc links kept readable"
+)]
+#![expect(
+    clippy::inefficient_to_string,
+    reason = "to_string kept for uniformity"
+)]
+#![expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "small types passed by ref uniformly"
+)]
+#![expect(clippy::manual_let_else, reason = "match kept for clarity")]
+#![expect(clippy::unnecessary_wraps, reason = "Result kept for API consistency")]
+#![expect(
+    clippy::cloned_instead_of_copied,
+    reason = "cloned() kept for uniformity"
+)]
+#![expect(
+    clippy::used_underscore_binding,
+    reason = "underscore-prefixed binding is read"
+)]
+#![expect(clippy::if_not_else, reason = "positive-first form reads better")]
+#![expect(clippy::needless_continue, reason = "continue kept for explicitness")]
+#![expect(clippy::uninlined_format_args, reason = "format args kept explicit")]
+#![cfg_attr(
+    test,
+    expect(
+        clippy::items_after_statements,
+        reason = "helpers declared next to use"
+    )
+)]
+#![expect(clippy::ref_option, reason = "&Option kept for API consistency")]
+#![expect(clippy::single_match_else, reason = "explicit arms aid maintenance")]
+#![expect(clippy::if_then_some_else_none, reason = "explicit if/else clearer")]
+#![expect(clippy::expect_used, reason = "infallible expect in known-good paths")]
+#![expect(missing_docs, reason = "public docs still incomplete")]
 
 //! # Memory MCP (Model Context Protocol) Integration
 //!

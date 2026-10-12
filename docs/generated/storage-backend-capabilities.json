@@ -1,0 +1,481 @@
+{
+  "generated_by": "scripts/check-storage-backend-capabilities.sh --write",
+  "trait": "StorageBackend",
+  "source": [
+    "memory-core/src/storage/backend/backend_default_tests.rs",
+    "memory-core/src/storage/backend/capabilities.rs",
+    "memory-core/src/storage/backend/mod.rs"
+  ],
+  "summary": {
+    "methods_total": 46,
+    "required": 14,
+    "defaulted": 32,
+    "capability_gated": 23,
+    "value_returning_with_typed_fallback": 1,
+    "genuinely_safe_default": 2,
+    "fail_closed": 1,
+    "capability_declaration": 5
+  },
+  "methods": [
+    {
+      "name": "cleanup_episodes",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_episode_cleanup",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_episode_cleanup can sweep durably.",
+      "pending": null
+    },
+    {
+      "name": "count_cleanup_candidates",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_episode_cleanup",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable, mirroring cleanup_episodes; an unsupported dry run cannot report zero.",
+      "pending": null
+    },
+    {
+      "name": "delete_embedding",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "delete_episode",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "delete_procedural",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_all_patterns",
+      "signature": "defaulted",
+      "classification": "value-returning-with-typed-fallback",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "empty-vec",
+      "justification": "Typed empty-list fallback for single-pattern-only backends; durable backends override it.",
+      "pending": null
+    },
+    {
+      "name": "get_all_relationships",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_embedding",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "get_embeddings_batch",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "get_episode",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "get_episode_pattern_relationships",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_heuristic",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "get_pattern",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "get_procedural",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_recommendation_feedback",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "none",
+      "justification": "ADR-081: the None default must not be read as durable absence without the predicate.",
+      "pending": null
+    },
+    {
+      "name": "get_recommendation_session",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "none",
+      "justification": "ADR-081: only callers that gated on the predicate may treat the None as an authoritative miss.",
+      "pending": null
+    },
+    {
+      "name": "get_recommendation_session_for_episode",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "none",
+      "justification": "ADR-081: the no-op default is not durable history, so callers must gate on the predicate.",
+      "pending": null
+    },
+    {
+      "name": "get_recommendation_stats",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "default",
+      "justification": "ADR-081: default stats are zeroed, not computed; the predicate gates their interpretation.",
+      "pending": null
+    },
+    {
+      "name": "get_relationship_by_id",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_relationships",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_weighted_neighbors",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "health_check",
+      "signature": "defaulted",
+      "classification": "genuinely-safe-default",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "delegate",
+      "justification": "Delegates to the required get_episode: a backend whose read path answers is alive, and the default stores or fabricates nothing.",
+      "pending": null
+    },
+    {
+      "name": "list_embedding_ids",
+      "signature": "defaulted",
+      "classification": "fail-closed",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "capability-unavailable",
+      "justification": "The default raises Error::CapabilityUnavailable instead of an empty list: empty means 'nothing stored' and would make similarity search over a non-enumerating backend look like a successful empty result.",
+      "pending": null
+    },
+    {
+      "name": "list_recommendation_feedback",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_ranking_adaptation",
+      "gate_kind": "predicate",
+      "default_body": "empty-vec",
+      "justification": "ADR-082: the empty default contributes nothing; the ranking rebuild skips unadvertised backends.",
+      "pending": null
+    },
+    {
+      "name": "list_recommendation_sessions",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_ranking_adaptation",
+      "gate_kind": "predicate",
+      "default_body": "empty-vec",
+      "justification": "ADR-082: the empty default contributes nothing; the ranking rebuild skips unadvertised backends.",
+      "pending": null
+    },
+    {
+      "name": "query_episodes_by_metadata",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "query_episodes_since",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "query_procedural",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "relationship_exists",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "remove_relationship",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "store_embedding",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "store_embeddings_batch",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "store_episode",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "store_episode_pattern_relationship",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "store_episodes_batch",
+      "signature": "defaulted",
+      "classification": "genuinely-safe-default",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "delegate",
+      "justification": "Delegates every item to the required store_episode; it fabricates no result.",
+      "pending": null
+    },
+    {
+      "name": "store_heuristic",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "store_pattern",
+      "signature": "required",
+      "classification": "required",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": null,
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "store_procedural",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_procedural_memory",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_procedural_memory may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "store_recommendation_feedback",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "unit",
+      "justification": "ADR-081 no-op default; the checked persistence path counts it only when the predicate is true.",
+      "pending": null
+    },
+    {
+      "name": "store_recommendation_session",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_recommendation_attribution",
+      "gate_kind": "predicate",
+      "default_body": "unit",
+      "justification": "ADR-081 no-op default; the checked persistence path counts it only when the predicate is true.",
+      "pending": null
+    },
+    {
+      "name": "store_relationship",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_relationship_persistence",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "supports_episode_cleanup",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_procedural_memory",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_ranking_adaptation",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_recommendation_attribution",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_relationship_persistence",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    }
+  ]
+}

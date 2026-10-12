@@ -11,6 +11,17 @@ pub struct SyncState {
     pub sync_count: u64,
     /// Last error message if any
     pub last_error: Option<String>,
+    /// Highest episode modification watermark that has been synced.
+    ///
+    /// Every episode with `modified_at < modified_watermark` has been written to
+    /// the cache; the boundary millisecond itself is re-scanned on the next run
+    /// (inclusive `since`) and deduplicated by the idempotent cache write. The
+    /// watermark only advances after a whole page succeeds, so a failed page
+    /// leaves it pointing at the last durable progress. It is mirrored durably
+    /// through
+    /// [`SyncWatermarkBackend::save_sync_watermark`](crate::storage::SyncWatermarkBackend::save_sync_watermark)
+    /// so a restart resumes instead of re-basing the window.
+    pub modified_watermark: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 /// Configuration for storage synchronization

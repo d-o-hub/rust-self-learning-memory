@@ -1,34 +1,78 @@
 #![deny(unsafe_code)]
 // Clippy suppressions for memory-storage-redb
 // Cast-related: necessary for persistence statistics and metrics
-#![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_wrap)]
-#![allow(clippy::cast_lossless)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "precision loss accepted in metric math"
+)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "integer narrowing bounded by checks"
+)]
+#![expect(
+    clippy::cast_sign_loss,
+    reason = "non-negative values cast to unsigned"
+)]
+#![expect(
+    clippy::cast_possible_wrap,
+    reason = "range validated before wrapping cast"
+)]
+#![cfg_attr(
+    test,
+    expect(
+        clippy::cast_lossless,
+        reason = "explicit widening casts document intent"
+    )
+)]
 // Documentation: would require extensive rework
-#![allow(clippy::missing_errors_doc)]
-#![allow(missing_docs)]
+#![expect(
+    clippy::missing_errors_doc,
+    reason = "error variants documented separately"
+)]
+#![expect(missing_docs, reason = "public docs still incomplete")]
 // Pedantic lints: provide minimal value
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::unused_async)]
-#![allow(clippy::semicolon_if_nothing_returned)]
-#![allow(clippy::useless_vec)]
+#![expect(
+    clippy::must_use_candidate,
+    reason = "not every public value is must_use"
+)]
+#![expect(clippy::map_unwrap_or, reason = "explicit pattern clearer than map_or")]
+#![expect(
+    clippy::redundant_closure_for_method_calls,
+    reason = "explicit closures aid readability"
+)]
+#![expect(clippy::unused_self, reason = "method kept for API symmetry")]
+#![cfg_attr(
+    test,
+    expect(clippy::unused_async, reason = "async kept for API symmetry")
+)]
+#![expect(
+    clippy::semicolon_if_nothing_returned,
+    reason = "semicolon kept for consistency"
+)]
 // Format args: inlining not required for error message clarity
-#![allow(clippy::uninlined_format_args)]
-#![allow(unknown_lints)]
-#![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::excessive_nesting)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::float_cmp)]
-#![allow(clippy::unreadable_literal)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::used_underscore_binding)]
+#![expect(clippy::uninlined_format_args, reason = "format args kept explicit")]
+#![expect(clippy::unnecessary_wraps, reason = "Result kept for API consistency")]
+#![expect(
+    clippy::return_self_not_must_use,
+    reason = "constructors not marked must_use"
+)]
+#![expect(clippy::excessive_nesting, reason = "deeply nested control flow")]
+#![expect(
+    clippy::cognitive_complexity,
+    reason = "long-standing complex functions"
+)]
+#![cfg_attr(
+    test,
+    expect(
+        clippy::unreadable_literal,
+        reason = "literals kept verbatim for clarity"
+    )
+)]
+#![expect(clippy::doc_markdown, reason = "identifier backticks noisy in prose")]
+#![expect(
+    clippy::used_underscore_binding,
+    reason = "underscore-prefixed binding is read"
+)]
 
 //! # Memory Storage - redb
 //!
@@ -122,6 +166,19 @@ pub const MAX_EMBEDDING_SIZE: u64 = 1_000_000;
 
 // Table definitions
 pub(crate) const EPISODES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("episodes");
+/// Side table mapping episode id -> modification time (milliseconds since the
+/// Unix epoch). Kept separate from `episodes` because the postcard-serialized
+/// `Episode` layout cannot gain a field without breaking existing rows.
+pub(crate) const EPISODE_REVISIONS_TABLE: TableDefinition<&str, i64> =
+    TableDefinition::new("episode_revisions");
+
+/// Metadata key holding the strictly-increasing modification sequence used to
+/// stamp episode revisions in this cache.
+pub(crate) const REVISION_SEQ_KEY: &str = "episode_revision_seq";
+
+/// Metadata key holding the durably persisted incremental-sync watermark
+/// (milliseconds since the Unix epoch).
+pub(crate) const SYNC_WATERMARK_KEY: &str = "sync_watermark_ms";
 pub(crate) const PATTERNS_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("patterns");
 pub(crate) const HEURISTICS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("heuristics");
@@ -161,8 +218,9 @@ pub(crate) const DATA_TABLE_NAMES: [&str; 11] = [
 ];
 
 /// Every table this crate owns, including the schema-version metadata table.
-pub(crate) const KNOWN_TABLE_NAMES: [&str; 13] = [
+pub(crate) const KNOWN_TABLE_NAMES: [&str; 14] = [
     "episodes",
+    "episode_revisions",
     "patterns",
     "heuristics",
     "embeddings",

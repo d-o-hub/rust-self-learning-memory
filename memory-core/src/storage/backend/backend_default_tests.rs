@@ -7,6 +7,7 @@ use crate::episode::{
 };
 use crate::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use crate::procedural::ProceduralMemory;
+use crate::storage::SyncWatermarkBackend;
 use crate::{
     Episode, Error, Heuristic, Pattern, PatternId, Result, TaskContext, TaskOutcome, TaskType,
 };
@@ -74,6 +75,10 @@ impl StorageBackend for StubBackend {
 
 /// The stub implements no optional operation, so every predicate stays `false`.
 impl StorageBackendCapabilities for StubBackend {}
+
+/// Defaults for the incremental-sync watermark trait are exercised separately.
+#[async_trait]
+impl SyncWatermarkBackend for StubBackend {}
 
 fn sample_relationship() -> EpisodeRelationship {
     EpisodeRelationship::new(
@@ -283,4 +288,25 @@ async fn storage_backend_default_health_check_reads_through_the_backend() {
         .health_check()
         .await
         .expect("a backend whose required read succeeds must pass the default probe");
+}
+
+/// The default watermark query fails loudly instead of silently under-syncing
+/// (issue #1067): falling back to `query_episodes_since` would drop every
+/// episode older than the newest page.
+#[tokio::test]
+async fn storage_backend_default_watermark_query_fails_loudly() {
+    let backend = StubBackend;
+
+    let err = backend
+        .query_episodes_modified_since(Utc::now(), None, Some(10))
+        .await
+        .expect_err("default watermark query must fail");
+    assert!(
+        err.to_string().contains("modification watermarks"),
+        "unexpected error: {err}"
+    );
+
+    // Durability hooks default to no-ops so metadata-less backends still compile.
+    assert!(backend.load_sync_watermark().await.unwrap().is_none());
+    backend.save_sync_watermark(Utc::now()).await.unwrap();
 }

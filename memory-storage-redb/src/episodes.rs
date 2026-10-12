@@ -1,11 +1,39 @@
 //! Episode storage operations for redb cache
 
-use crate::{EPISODES_TABLE, RedbStorage};
+use crate::{
+    EPISODE_REVISIONS_TABLE, EPISODES_TABLE, METADATA_TABLE, REVISION_SEQ_KEY, RedbStorage,
+};
 use do_memory_core::{Episode, Error, Result};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::{debug, info};
 use uuid::Uuid;
+
+/// Allocate a strictly-increasing modification watermark for the cache.
+///
+/// The value is `max(now_ms, previous + 1)`, so a later write can never sort
+/// before an already-scanned cursor and be skipped. redb serialises write
+/// transactions, so the read-modify-write is race-free.
+pub(crate) fn allocate_revision_seq(
+    write_txn: &redb::WriteTransaction,
+    now_ms: i64,
+) -> Result<i64> {
+    let mut metadata = write_txn
+        .open_table(METADATA_TABLE)
+        .map_err(|e| Error::Storage(format!("Failed to open metadata table: {}", e)))?;
+
+    let stored = metadata
+        .get(REVISION_SEQ_KEY)
+        .map_err(|e| Error::Storage(format!("Failed to read revision sequence: {}", e)))?
+        .and_then(|guard| std::str::from_utf8(guard.value()).ok()?.parse::<i64>().ok())
+        .unwrap_or(0);
+
+    let seq = now_ms.max(stored + 1);
+    metadata
+        .insert(REVISION_SEQ_KEY, seq.to_string().as_bytes())
+        .map_err(|e| Error::Storage(format!("Failed to update revision sequence: {}", e)))?;
+    Ok(seq)
+}
 
 /// Query options for episodes
 #[derive(Debug, Clone, Default)]
@@ -37,6 +65,17 @@ impl RedbStorage {
                 table
                     .insert(episode_id.as_str(), episode_bytes.as_slice())
                     .map_err(|e| Error::Storage(format!("Failed to insert episode: {}", e)))?;
+            }
+
+            {
+                let seq = allocate_revision_seq(&write_txn, chrono::Utc::now().timestamp_millis())?;
+                let mut revisions = write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                })?;
+
+                revisions.insert(episode_id.as_str(), seq).map_err(|e| {
+                    Error::Storage(format!("Failed to record episode revision: {}", e))
+                })?;
             }
 
             write_txn
@@ -164,6 +203,16 @@ impl RedbStorage {
                 table
                     .remove(episode_id_str.as_str())
                     .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
+            }
+
+            {
+                let mut revisions = write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                })?;
+
+                revisions.remove(episode_id_str.as_str()).map_err(|e| {
+                    Error::Storage(format!("Failed to remove episode revision: {}", e))
+                })?;
             }
 
             write_txn

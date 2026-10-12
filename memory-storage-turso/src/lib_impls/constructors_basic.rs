@@ -250,6 +250,10 @@ impl TursoStorage {
         };
 
         #[cfg(not(feature = "keepalive-pool"))]
+        #[expect(
+            clippy::no_effect_underscore_binding,
+            reason = "placeholder while the keepalive pool is disabled"
+        )]
         let _keepalive_pool: Option<()> = None;
 
         info!("Successfully connected to Turso database");

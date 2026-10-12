@@ -9,11 +9,33 @@ use std::sync::Arc;
 use super::super::definitions::EmbeddingTools;
 use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput};
 use anyhow::{Result, anyhow};
+use do_memory_core::SelfLearningMemory;
 use do_memory_core::embeddings::{
-    EmbeddingConfig, InMemoryEmbeddingStorage, SemanticService,
+    EmbeddingConfig, SelectedEmbeddingStorage, SemanticService,
     config::{LocalConfig, ProviderConfig},
 };
 use tracing::{debug, info, instrument, warn};
+
+/// Select the embedding store for an activation from the memory's handles.
+///
+/// Builds the identity scope from the provider identity (`kind:model:dims`) and
+/// the deterministic configuration revision, then asks the memory to compose the
+/// configured `StorageBackend` handles into a scoped adapter (or an explicitly
+/// ephemeral store when none are wired).
+///
+/// Public so integration tests exercise the exact selection
+/// `configure_embeddings` performs.
+#[must_use]
+pub fn configured_embedding_storage(
+    memory: &SelfLearningMemory,
+    provider_config: &ProviderConfig,
+) -> SelectedEmbeddingStorage {
+    let scope = do_memory_core::embeddings::EmbeddingStorageScope::new(
+        provider_config.cache_identity(),
+        provider_config.config_revision(),
+    );
+    memory.embedding_storage(scope)
+}
 
 impl EmbeddingTools {
     /// Execute the `configure_embeddings` tool.
@@ -42,9 +64,21 @@ impl EmbeddingTools {
         let api_key = resolve_api_key(&provider_config, &input.api_key_env, &mut warnings)?;
 
         // ── Step 3: build the exact provider, probe it, validate dimension ───
-        // InMemoryEmbeddingStorage is used when no persistent storage backend
-        // is wired.  A future ADR may add storage composition here.
-        let storage = Box::new(InMemoryEmbeddingStorage::new());
+        // Storage is identity-scoped to the provider identity + config revision:
+        // vectors from a different activation are never returned. When no
+        // backend is configured the store is explicitly ephemeral and the
+        // non-durability is reported truthfully below.
+        let SelectedEmbeddingStorage { storage, mode } =
+            configured_embedding_storage(&self.memory, &provider_config);
+        let storage_mode = mode.label().to_string();
+        let storage_scope = mode.scope().key_prefix();
+        if !mode.is_durable() {
+            warnings.push(
+                "Embeddings are held in memory only for this process and will be lost on restart."
+                    .to_string(),
+            );
+        }
+
         let embedding_config = EmbeddingConfig {
             provider: provider_config.clone(),
             similarity_threshold: input.similarity_threshold.unwrap_or(0.7),
@@ -111,6 +145,8 @@ impl EmbeddingTools {
             activation_revision: Some(activation.revision),
             reindex_required: activation.reindex_required,
             provider_health: "active".to_string(),
+            storage_mode,
+            storage_scope,
         })
     }
 }

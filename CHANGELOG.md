@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The adaptive connection pool now has one coherent capacity model (#1063): the
+  configured monitor actually runs `check_and_scale` every `check_interval` and
+  is stopped by `shutdown`, resize decisions use a monotonic (pausable) Tokio
+  `Instant` so cooldowns are honored, and resizes adjust the semaphore permits
+  (`add_permits`/`forget_permits`) so scale-down reclaims only idle permits and
+  defers while work is active; utilization and the acquisition timeout report
+  the same effective target.
+- Pattern search, recommendations, attributed recommendations and the
+  management search API now use the runtime-activated embedding provider
+  (#1074): each pattern operation clones one owned provider snapshot before its
+  awaits, so the query embedding, the per-pattern embeddings and the reported
+  provider identity all come from the same activation revision instead of the
+  construction-time `semantic_service` field, which is `None` on every
+  production path. Without the snapshot the query embedding was always empty
+  and the semantic score collapsed to a constant.
 - Retrieval provenance is now execution-backed (#1079): the provenance path
   performs exactly one query-cache lookup, so cache hit/miss telemetry is
   counted once per operation, and it threads the serving tier, cache hit/miss,
@@ -17,6 +32,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of being set to the result count, and `RetrievalProvenance` /
   `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
   `fallback`, and a `RetrievalExecution` report).
+<<<<<<< HEAD
+- Turso episode/pattern row decoding no longer substitutes values for corrupt
+  data (#1071): required timestamps and JSON now return `Error::Storage` naming
+  the column, the result row, and the query surface; nullable fields stay
+  nullable; raw episode and pattern queries abort instead of returning a
+  partial result; a new allowlisted `QueryBuilder` offers the supported
+  parameterized path alongside `query_with_params`.
+=======
+- Turso storage retains pool permits for the whole database operation (#1064):
+  `TursoStorage` gains scoped `with_connection`/`with_connection_with_id`
+  helpers that own the pool guard across the query, its row iteration, and any
+  dependent work, so a pool saturated by one slow operation rejects or waits for
+  the next checkout instead of reporting free capacity while the operation is
+  still in flight; the standard, adaptive, and keep-alive pools expose the same
+  scoped contract, and prepared-statement cache cleanup for a checkout now runs
+  after the operation returns. The similarity-search brute-force fallback reuses
+  the already-held connection instead of opening a nested checkout, so it works
+  on a fully saturated pool. `get_connection`/`get_connection_with_id` are now
+  direct-connection mode only and error when a pool is configured.
 - MCP health (`health/check`) reports measured state instead of configuration
   (#1085, escalation E1): bounded per-backend probes answer
   `healthy`/`degraded`/`unavailable`/not-configured, uptime is the real process
@@ -25,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no tool populated is no longer presented as cache telemetry. URLs, filesystem
   paths, tokens and raw driver errors are redacted from the response (only fixed
   literals are emitted).
+>>>>>>> fix/scoped-pool-checkout
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow
@@ -36,6 +71,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Feedback-to-ranking refreshes are now incremental (#1078): an accepted
+  replacement updates only the changed session's pattern evidence via
+  `RankingIndex::apply_feedback`, so refresh cost no longer scales with total
+  history. `RankingIndex::from_history` remains the cold-start/canonical rebuild
+  and the fallback (unresolvable session or an inconsistent counter), the
+  tracker-authoritative latest-feedback-wins merge is unchanged, and a rebuild
+  whose history scan races an incremental update re-gathers instead of
+  clobbering it. New Criterion coverage (`benches/ranking_incremental.rs`)
+  compares rebuild vs. incremental latency at 1k/10k/100k entries.
 - crates.io publishing is now OIDC-only and de-duplicated (#1109 C1/C2): every
   publish job authenticates with the pinned `rust-lang/crates-io-auth-action`
   (no `CARGO_REGISTRY_TOKEN` secret, no hand-rolled exchange), the per-crate

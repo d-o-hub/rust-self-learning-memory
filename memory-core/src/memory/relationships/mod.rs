@@ -89,9 +89,13 @@ impl SelfLearningMemory {
             storage.store_relationship(&relationship).await?;
         }
 
-        // Store to cache if available
+        // Store to cache if available. Best-effort, but gated on the cache
+        // advertising relationship persistence: an unsupported cache returns
+        // `Error::CapabilityUnavailable`, which must not look like success.
         if let Some(cache) = &self.cache_storage {
-            let _ = cache.store_relationship(&relationship).await;
+            if cache.supports_relationship_persistence() {
+                let _ = cache.store_relationship(&relationship).await;
+            }
         }
 
         // In-memory fallback storage (when no backends configured)
@@ -129,9 +133,11 @@ impl SelfLearningMemory {
             storage.remove_relationship(relationship_id).await?;
         }
 
-        // Remove from cache
+        // Remove from cache (best-effort; gated like the store path above).
         if let Some(cache) = &self.cache_storage {
-            let _ = cache.remove_relationship(relationship_id).await;
+            if cache.supports_relationship_persistence() {
+                let _ = cache.remove_relationship(relationship_id).await;
+            }
         }
 
         // In-memory fallback removal (when no backends configured)

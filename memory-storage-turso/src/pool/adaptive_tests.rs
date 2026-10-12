@@ -51,6 +51,51 @@ async fn create_large_test_pool() -> (AdaptiveConnectionPool, TempDir) {
     (pool, dir)
 }
 
+/// Base config for scaling tests: deterministic cooldowns, no monitor noise,
+/// and a short enough acquire timeout that a broken scale-up fails fast.
+fn adaptive_config() -> AdaptivePoolConfig {
+    AdaptivePoolConfig {
+        min_connections: 1,
+        max_connections: 10,
+        scale_up_threshold: 0.5,
+        scale_down_threshold: 0.1,
+        scale_up_cooldown: Duration::ZERO,
+        scale_down_cooldown: Duration::ZERO,
+        scale_up_increment: 1,
+        scale_down_decrement: 1,
+        check_interval: Duration::from_secs(30),
+    }
+}
+
+async fn create_pool_with(config: AdaptivePoolConfig) -> (AdaptiveConnectionPool, TempDir) {
+    let dir = TempDir::new().unwrap();
+    let db_path = dir.path().join("test.db");
+    let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+    let pool = AdaptiveConnectionPool::new_sync(Arc::new(db), config)
+        .await
+        .unwrap();
+    (pool, dir)
+}
+
+/// Yield until a condition holds, so paused-clock tests do not depend on
+/// task scheduling order between the monitor and the test body.
+async fn yield_until(mut ready: impl FnMut() -> bool) {
+    for _ in 0..256 {
+        if ready() {
+            return;
+        }
+        tokio::task::yield_now().await;
+    }
+    assert!(ready(), "condition not satisfied after yielding");
+}
+
+fn monitor_running(pool: &AdaptiveConnectionPool) -> bool {
+    pool.monitor
+        .lock()
+        .as_ref()
+        .is_some_and(|handle| !handle.task.is_finished())
+}
+
 #[tokio::test]
 async fn test_adaptive_pool_creation() {
     let (pool, _dir) = create_test_pool().await;
@@ -137,12 +182,202 @@ async fn test_max_connections() {
 }
 
 #[tokio::test]
-async fn test_check_and_scale() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_scale_up_adds_permits_for_extra_checkouts() {
+    let config = AdaptivePoolConfig {
+        max_connections: 5,
+        scale_up_increment: 4,
+        ..adaptive_config()
+    };
+    let (pool, _dir) = create_pool_with(config).await;
 
-    pool.check_and_scale().await;
+    assert_eq!(pool.available_connections(), 1);
+    let conn1 = pool.get().await.unwrap();
+    assert_eq!(pool.available_connections(), 0);
 
+    // Utilization is 1/1, so an explicit tick grows the pool.
+    assert!(pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 5);
+    assert_eq!(pool.available_connections(), 4);
+    assert_eq!(pool.metrics().scale_up_count, 1);
+
+    // The extra capacity is real: these checkouts would time out without it.
+    let conn2 = pool.get().await.unwrap();
+    let conn3 = pool.get().await.unwrap();
+    let conn4 = pool.get().await.unwrap();
+    let conn5 = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 5);
+    assert_eq!(pool.available_connections(), 0);
+
+    drop((conn1, conn2, conn3, conn4, conn5));
+    assert_eq!(pool.active_connections(), 0);
+    assert_eq!(pool.available_connections(), 5);
+}
+
+#[tokio::test(start_paused = true)]
+async fn test_scale_up_respects_cooldown() {
+    let config = AdaptivePoolConfig {
+        scale_up_threshold: 0.1,
+        scale_down_threshold: 0.05,
+        scale_up_cooldown: Duration::from_secs(10),
+        check_interval: Duration::from_secs(3600),
+        ..adaptive_config()
+    };
+    let (pool, _dir) = create_pool_with(config).await;
+
+    let _conn = pool.get().await.unwrap(); // utilization 1/1 keeps scaling eligible
+
+    // The first eligible resize happens immediately.
+    assert!(pool.check_and_scale().await);
     assert_eq!(pool.max_connections(), 2);
+    assert_eq!(pool.metrics().scale_up_count, 1);
+
+    // Still inside the cooldown: no second resize, even though utilization is
+    // still above the scale-up threshold.
+    assert!(!pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 2);
+    assert_eq!(pool.metrics().scale_up_count, 1);
+
+    // The first resize eligible after the cooldown happens as soon as time moves.
+    tokio::time::advance(Duration::from_secs(10)).await;
+    assert!(pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 3);
+    assert_eq!(pool.metrics().scale_up_count, 2);
+
+    // The new resize starts a fresh cooldown.
+    assert!(!pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 3);
+    assert_eq!(pool.metrics().scale_up_count, 2);
+}
+
+#[tokio::test]
+async fn test_scale_down_reclaims_only_idle_permits() {
+    let config = AdaptivePoolConfig {
+        max_connections: 10,
+        scale_down_threshold: 0.6,
+        scale_up_increment: 9,
+        scale_down_decrement: 8,
+        ..adaptive_config()
+    };
+    let (pool, _dir) = create_pool_with(config).await;
+
+    let conn1 = pool.get().await.unwrap(); // utilization 1/1
+    assert!(pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 10);
+    assert_eq!(pool.available_connections(), 9);
+
+    let conn2 = pool.get().await.unwrap();
+    let conn3 = pool.get().await.unwrap();
+    assert_eq!(pool.active_connections(), 3);
+    assert_eq!(pool.available_connections(), 7);
+
+    // The target drop is 8 permits, but only 7 are idle: the reduction is
+    // partial so the three checked-out connections are never stranded.
+    assert!(pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 3);
+    assert_eq!(pool.available_connections(), 0);
+    assert_eq!(pool.active_connections(), 3);
+    assert_eq!(pool.metrics().scale_down_count, 1);
+
+    // Checked-out connections survive the shrink and stay usable.
+    for conn in [&conn1, &conn2, &conn3] {
+        assert!(
+            conn.connection()
+                .unwrap()
+                .query("SELECT 1", ())
+                .await
+                .is_ok()
+        );
+    }
+
+    // Dropping them releases exactly the remaining capacity, never more.
+    drop((conn1, conn2, conn3));
+    assert_eq!(pool.active_connections(), 0);
+    assert_eq!(pool.available_connections(), 3);
+    assert!(pool.available_connections() <= pool.max_connections() as usize);
+}
+
+#[tokio::test]
+async fn test_scale_down_defers_while_all_permits_are_active() {
+    // Thresholds that only ever allow shrinking; capacity is grown directly so
+    // the scale-down path can be isolated.
+    let config = AdaptivePoolConfig {
+        min_connections: 2,
+        max_connections: 6,
+        scale_up_threshold: 1.1,
+        scale_down_threshold: 1.0,
+        scale_up_increment: 4,
+        scale_down_decrement: 4,
+        ..adaptive_config()
+    };
+    let (pool, _dir) = create_pool_with(config).await;
+
+    // White-box: grow capacity without touching the scaling thresholds.
+    assert!(pool.core.scale_up());
+    assert_eq!(pool.max_connections(), 6);
+
+    let conns: Vec<_> = {
+        let mut conns = Vec::new();
+        for _ in 0..6 {
+            conns.push(pool.get().await.unwrap());
+        }
+        conns
+    };
+    assert_eq!(pool.active_connections(), 6);
+    assert_eq!(pool.available_connections(), 0);
+
+    // Every permit is checked out: the reduction must be deferred, not forced.
+    assert!(!pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 6);
+    assert_eq!(pool.available_connections(), 0);
+    assert_eq!(pool.metrics().scale_down_count, 0);
+
+    // Once the work drains, the next tick reclaims idle permits.
+    drop(conns);
+    assert!(pool.check_and_scale().await);
+    assert_eq!(pool.max_connections(), 2);
+    assert_eq!(pool.available_connections(), 2);
+    assert_eq!(pool.metrics().scale_down_count, 1);
+}
+
+#[tokio::test(start_paused = true)]
+async fn test_monitor_runs_on_check_interval_and_stops_on_shutdown() {
+    let config = AdaptivePoolConfig {
+        scale_up_cooldown: Duration::from_secs(1),
+        check_interval: Duration::from_secs(5),
+        ..adaptive_config()
+    };
+    let (pool, _dir) = create_pool_with(config).await;
+
+    let _conn = pool.get().await.unwrap(); // utilization 1/1
+    // Let the spawned monitor poll once so its interval timer is registered at
+    // the test's t = 0 before any time is advanced.
+    tokio::task::yield_now().await;
+    tokio::task::yield_now().await;
+    assert!(monitor_running(&pool));
+    assert_eq!(pool.max_connections(), 1);
+
+    // Before the configured interval elapses the monitor has done nothing.
+    tokio::time::advance(Duration::from_secs(4)).await;
+    tokio::task::yield_now().await;
+    assert_eq!(pool.metrics().scale_up_count, 0);
+    assert_eq!(pool.max_connections(), 1);
+
+    // Crossing the interval lets the monitor perform the resize itself.
+    tokio::time::sleep(Duration::from_secs(1)).await;
+    yield_until(|| pool.metrics().scale_up_count >= 1).await;
+    assert_eq!(pool.max_connections(), 2);
+    assert!(pool.available_connections() >= 1);
+
+    // Shutdown stops the monitor: no further resize happens as time advances.
+    pool.shutdown().await;
+    assert!(!monitor_running(&pool));
+
+    let count = pool.metrics().scale_up_count;
+    let capacity = pool.max_connections();
+    tokio::time::sleep(Duration::from_secs(60)).await;
+    tokio::task::yield_now().await;
+    assert_eq!(pool.metrics().scale_up_count, count);
+    assert_eq!(pool.max_connections(), capacity);
 }
 
 #[tokio::test]

@@ -1,6 +1,6 @@
 use super::super::{MonitoringStorageBackend, SimpleMonitoringStorage};
 use crate::monitoring::types::{AgentType, ExecutionRecord};
-use crate::storage::StorageBackend;
+use crate::storage::{StorageBackend, StorageBackendCapabilities};
 use crate::{Episode, Result};
 use async_trait::async_trait;
 use chrono::Utc;
@@ -10,6 +10,8 @@ use uuid::Uuid;
 struct MockStorage {
     episodes: std::sync::Mutex<Vec<Episode>>,
 }
+
+impl StorageBackendCapabilities for MockStorage {}
 
 #[async_trait]
 impl StorageBackend for MockStorage {

@@ -1,13 +1,14 @@
 //! Adaptive connection pool that dynamically adjusts pool size based on load.
 
+use super::adaptive_scale::{AdaptiveCore, AdaptiveMetrics, MonitorHandle, spawn_monitor};
 use do_memory_core::{Error, Result};
 use libsql::Database;
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
-use tokio::sync::{OwnedSemaphorePermit, Semaphore};
-use tracing::{debug, info};
+use tokio::sync::OwnedSemaphorePermit;
+use tracing::{debug, info, warn};
 
 /// Unique identifier for a connection
 pub type ConnectionId = u64;
@@ -60,77 +61,33 @@ pub struct AdaptivePoolMetrics {
     pub total_released: u64,
 }
 
-#[derive(Debug)]
-struct AdaptiveMetrics {
-    utilization_percent: AtomicU64,
-    active_connections: AtomicU32,
-    max_connections: AtomicU32,
-    scale_up_count: AtomicU32,
-    scale_down_count: AtomicU32,
-    avg_wait_time_us: AtomicU64,
-    total_acquired: AtomicU64,
-    total_released: AtomicU64,
-    wait_time_total_us: AtomicU64,
-    wait_count: AtomicU64,
-    last_scale_up: AtomicU64,
-    last_scale_down: AtomicU64,
-}
-
-impl Default for AdaptiveMetrics {
-    fn default() -> Self {
-        Self {
-            utilization_percent: AtomicU64::new(0),
-            active_connections: AtomicU32::new(0),
-            max_connections: AtomicU32::new(0),
-            scale_up_count: AtomicU32::new(0),
-            scale_down_count: AtomicU32::new(0),
-            avg_wait_time_us: AtomicU64::new(0),
-            total_acquired: AtomicU64::new(0),
-            total_released: AtomicU64::new(0),
-            wait_time_total_us: AtomicU64::new(0),
-            wait_count: AtomicU64::new(0),
-            last_scale_up: AtomicU64::new(0),
-            last_scale_down: AtomicU64::new(0),
-        }
-    }
-}
-
 pub struct AdaptiveConnectionPool {
     db: Arc<Database>,
-    config: Arc<AdaptivePoolConfig>,
-    semaphore: Arc<Semaphore>,
-    current_max: Arc<AtomicU32>,
-    metrics: Arc<AdaptiveMetrics>,
+    core: Arc<AdaptiveCore>,
     next_conn_id: Arc<AtomicU64>,
     cleanup_callback: RwLock<Option<ConnectionCleanupCallback>>,
-    _monitor_task: tokio::task::JoinHandle<()>,
+    monitor: Mutex<Option<MonitorHandle>>,
 }
 
 impl AdaptiveConnectionPool {
     pub async fn new(db: Arc<Database>, config: AdaptivePoolConfig) -> Result<Self> {
         let config = Arc::new(config);
-        let initial_max = config.min_connections as usize;
-        let min_conn = config.min_connections;
+        let initial_max = config.min_connections;
 
         info!(
             "Creating adaptive connection pool with min={}, max={}",
             config.min_connections, config.max_connections
         );
 
-        let semaphore = Arc::new(Semaphore::new(initial_max));
-
-        let metrics = Arc::new(AdaptiveMetrics::default());
-        metrics.max_connections.store(min_conn, Ordering::Relaxed);
+        let core = Arc::new(AdaptiveCore::new(config));
+        let monitor = spawn_monitor(&core);
 
         let pool = Self {
             db,
-            config: config.clone(),
-            semaphore,
-            current_max: Arc::new(AtomicU32::new(min_conn)),
-            metrics,
+            core,
             next_conn_id: Arc::new(AtomicU64::new(1)),
             cleanup_callback: RwLock::new(None),
-            _monitor_task: tokio::task::spawn(async {}),
+            monitor: Mutex::new(Some(monitor)),
         };
 
         let conn = pool
@@ -141,7 +98,10 @@ impl AdaptiveConnectionPool {
             .await
             .map_err(|e| Error::Storage(format!("Database validation failed: {}", e)))?;
 
-        info!("Adaptive connection pool created successfully");
+        info!(
+            "Adaptive connection pool created successfully (initial capacity {})",
+            initial_max
+        );
 
         Ok(pool)
     }
@@ -149,62 +109,57 @@ impl AdaptiveConnectionPool {
     #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn new_sync(db: Arc<Database>, config: AdaptivePoolConfig) -> Result<Self> {
         let config = Arc::new(config);
-        let initial_max = config.min_connections as usize;
-        let min_conn = config.min_connections;
 
         info!(
             "Creating adaptive connection pool (sync mode) with min={}, max={}",
             config.min_connections, config.max_connections
         );
 
-        let semaphore = Arc::new(Semaphore::new(initial_max));
-
-        let metrics = Arc::new(AdaptiveMetrics::default());
-        metrics.max_connections.store(min_conn, Ordering::Relaxed);
+        let core = Arc::new(AdaptiveCore::new(config));
+        let monitor = spawn_monitor(&core);
 
         Ok(Self {
             db,
-            config,
-            semaphore,
-            current_max: Arc::new(AtomicU32::new(min_conn)),
-            metrics,
+            core,
             next_conn_id: Arc::new(AtomicU64::new(1)),
             cleanup_callback: RwLock::new(None),
-            _monitor_task: tokio::task::spawn(async {}),
+            monitor: Mutex::new(Some(monitor)),
         })
     }
 
     async fn try_acquire(&self, timeout: Duration) -> Result<OwnedSemaphorePermit> {
         let start = Instant::now();
 
-        match tokio::time::timeout(timeout, self.semaphore.clone().acquire_owned()).await {
+        match tokio::time::timeout(timeout, self.core.semaphore().clone().acquire_owned()).await {
             Ok(Ok(permit)) => {
                 let wait_us = start.elapsed().as_micros() as u64;
 
-                self.metrics
+                self.core
+                    .metrics
                     .wait_time_total_us
                     .fetch_add(wait_us, Ordering::Relaxed);
-                self.metrics.wait_count.fetch_add(1, Ordering::Relaxed);
+                self.core.metrics.wait_count.fetch_add(1, Ordering::Relaxed);
 
-                let total_time = self.metrics.wait_time_total_us.load(Ordering::Relaxed);
-                let count = self.metrics.wait_count.load(Ordering::Relaxed);
+                let total_time = self.core.metrics.wait_time_total_us.load(Ordering::Relaxed);
+                let count = self.core.metrics.wait_count.load(Ordering::Relaxed);
                 if let Some(avg) = total_time.checked_div(count) {
-                    self.metrics.avg_wait_time_us.store(avg, Ordering::Relaxed);
+                    self.core
+                        .metrics
+                        .avg_wait_time_us
+                        .store(avg, Ordering::Relaxed);
                 }
 
                 let active = self
+                    .core
                     .metrics
                     .active_connections
                     .fetch_add(1, Ordering::Relaxed)
                     + 1;
-
-                let max = self.current_max.load(Ordering::Relaxed);
-                let utilization = (active as f64 / max as f64) * 100.0;
-                self.metrics
-                    .utilization_percent
-                    .store(utilization as u64, Ordering::Relaxed);
-
-                self.metrics.total_acquired.fetch_add(1, Ordering::Relaxed);
+                self.core.refresh_utilization(active);
+                self.core
+                    .metrics
+                    .total_acquired
+                    .fetch_add(1, Ordering::Relaxed);
 
                 Ok(permit)
             }
@@ -213,102 +168,27 @@ impl AdaptiveConnectionPool {
                 e
             ))),
             Err(_) => Err(Error::Storage(format!(
-                "Connection acquisition timed out after {:?}",
-                timeout
+                "Connection acquisition timed out after {:?} (effective capacity {})",
+                timeout,
+                self.core.effective_max()
             ))),
         }
     }
 
-    async fn scale_up(&self) {
-        let now = Instant::now();
-        let last_up = self.metrics.last_scale_up.load(Ordering::Relaxed);
-
-        // Use duration since a fixed epoch
-        let epoch_duration = Duration::from_nanos(last_up);
-        let last_up_time = Instant::now() - epoch_duration;
-
-        if now.duration_since(last_up_time) < self.config.scale_up_cooldown {
-            return;
-        }
-
-        let current_max = self.current_max.load(Ordering::Relaxed);
-
-        if current_max >= self.config.max_connections {
-            return;
-        }
-
-        let new_max =
-            (current_max + self.config.scale_up_increment).min(self.config.max_connections);
-
-        info!("Scaling up: {} -> {} connections", current_max, new_max);
-
-        self.current_max.store(new_max, Ordering::Relaxed);
-        self.metrics
-            .max_connections
-            .store(new_max, Ordering::Relaxed);
-        self.metrics
-            .last_scale_up
-            .store(now.elapsed().as_nanos() as u64, Ordering::Relaxed);
-        self.metrics.scale_up_count.fetch_add(1, Ordering::Relaxed);
-
-        debug!("Scale up complete: {} connections", new_max);
-    }
-
-    async fn scale_down(&self) {
-        let now = Instant::now();
-        let last_down = self.metrics.last_scale_down.load(Ordering::Relaxed);
-
-        let epoch_duration = Duration::from_nanos(last_down);
-        let last_down_time = Instant::now() - epoch_duration;
-
-        if now.duration_since(last_down_time) < self.config.scale_down_cooldown {
-            return;
-        }
-
-        let current_max = self.current_max.load(Ordering::Relaxed);
-        let active = self.metrics.active_connections.load(Ordering::Relaxed);
-
-        let min_allowed = active.max(self.config.min_connections);
-        let new_max =
-            (current_max.saturating_sub(self.config.scale_down_decrement)).max(min_allowed);
-
-        if new_max >= current_max {
-            return;
-        }
-
-        info!(
-            "Scaling down: {} -> {} connections (active: {})",
-            current_max, new_max, active
-        );
-
-        self.current_max.store(new_max, Ordering::Relaxed);
-        self.metrics
-            .max_connections
-            .store(new_max, Ordering::Relaxed);
-        self.metrics
-            .last_scale_down
-            .store(now.elapsed().as_nanos() as u64, Ordering::Relaxed);
-        self.metrics
-            .scale_down_count
-            .fetch_add(1, Ordering::Relaxed);
-
-        debug!("Scale down complete: {} connections", new_max);
-    }
-
-    pub async fn check_and_scale(&self) {
-        let active = self.metrics.active_connections.load(Ordering::Relaxed);
-        let max = self.current_max.load(Ordering::Relaxed);
-        let utilization = active as f64 / max as f64;
-
-        if utilization >= self.config.scale_up_threshold {
-            self.scale_up().await;
-        } else if utilization <= self.config.scale_down_threshold {
-            self.scale_down().await;
-        }
+    /// Run one scaling decision immediately.
+    ///
+    /// The background monitor calls this every `check_interval`; callers may
+    /// also trigger it explicitly. Returns `true` when the pool resized.
+    ///
+    /// The `async` signature is kept for API compatibility even though the
+    /// decision itself is synchronous.
+    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    pub async fn check_and_scale(&self) -> bool {
+        self.core.check_and_scale()
     }
 
     pub async fn get(&self) -> Result<AdaptivePooledConnection> {
-        let permit = self.try_acquire(self.config.check_interval).await?;
+        let permit = self.try_acquire(self.core.check_interval()).await?;
 
         // Generate unique connection ID
         let conn_id = self.next_conn_id.fetch_add(1, Ordering::Relaxed);
@@ -328,8 +208,8 @@ impl AdaptiveConnectionPool {
             conn_id,
             // Own the shared state so the guard stays valid even if the pool is
             // dropped while this connection is checked out.
-            metrics: Arc::clone(&self.metrics),
-            current_max: Arc::clone(&self.current_max),
+            metrics: Arc::clone(&self.core.metrics),
+            current_max: Arc::clone(self.core.current_max()),
             permit: Some(permit),
             connection: Some(connection),
             cleanup_callback,
@@ -337,31 +217,38 @@ impl AdaptiveConnectionPool {
     }
 
     pub fn available_connections(&self) -> usize {
-        self.semaphore.available_permits()
+        self.core.semaphore().available_permits()
     }
 
+    /// Current utilization, computed against the effective capacity.
     pub fn utilization(&self) -> f64 {
-        self.metrics.utilization_percent.load(Ordering::Relaxed) as f64 / 100.0
+        let active = self.core.metrics.active_connections.load(Ordering::Relaxed);
+        f64::from(active) / f64::from(self.core.effective_max().max(1))
     }
 
     pub fn active_connections(&self) -> u32 {
-        self.metrics.active_connections.load(Ordering::Relaxed)
+        self.core.metrics.active_connections.load(Ordering::Relaxed)
     }
 
+    /// Effective capacity (permits issued by the pool).
     pub fn max_connections(&self) -> u32 {
-        self.current_max.load(Ordering::Relaxed)
+        self.core.effective_max()
     }
 
     pub fn metrics(&self) -> AdaptivePoolMetrics {
         AdaptivePoolMetrics {
-            utilization_percent: self.metrics.utilization_percent.load(Ordering::Relaxed) as f64,
-            active_connections: self.metrics.active_connections.load(Ordering::Relaxed),
-            max_connections: self.metrics.max_connections.load(Ordering::Relaxed),
-            scale_up_count: self.metrics.scale_up_count.load(Ordering::Relaxed),
-            scale_down_count: self.metrics.scale_down_count.load(Ordering::Relaxed),
-            avg_wait_time_us: self.metrics.avg_wait_time_us.load(Ordering::Relaxed),
-            total_acquired: self.metrics.total_acquired.load(Ordering::Relaxed),
-            total_released: self.metrics.total_released.load(Ordering::Relaxed),
+            utilization_percent: self
+                .core
+                .metrics
+                .utilization_percent
+                .load(Ordering::Relaxed) as f64,
+            active_connections: self.core.metrics.active_connections.load(Ordering::Relaxed),
+            max_connections: self.core.metrics.max_connections.load(Ordering::Relaxed),
+            scale_up_count: self.core.metrics.scale_up_count.load(Ordering::Relaxed),
+            scale_down_count: self.core.metrics.scale_down_count.load(Ordering::Relaxed),
+            avg_wait_time_us: self.core.metrics.avg_wait_time_us.load(Ordering::Relaxed),
+            total_acquired: self.core.metrics.total_acquired.load(Ordering::Relaxed),
+            total_released: self.core.metrics.total_released.load(Ordering::Relaxed),
         }
     }
 
@@ -403,10 +290,31 @@ impl AdaptiveConnectionPool {
         info!("Connection cleanup callback removed");
     }
 
+    /// Stop the background monitor and wait for it to finish.
     pub async fn shutdown(&self) {
         info!("Shutting down adaptive connection pool");
-        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        // Take the handle out before awaiting so no lock is held across await.
+        let handle = self.monitor.lock().take();
+        if let Some(handle) = handle {
+            handle.shutdown.notify_one();
+            if let Err(error) = handle.task.await {
+                warn!("Adaptive connection pool monitor stopped abnormally: {error}");
+            }
+        }
+
         info!("Adaptive connection pool shutdown complete");
+    }
+}
+
+impl Drop for AdaptiveConnectionPool {
+    fn drop(&mut self) {
+        // Abort a monitor that was never explicitly shut down so it cannot
+        // outlive the pool.
+        if let Some(handle) = self.monitor.get_mut().take() {
+            handle.shutdown.notify_one();
+            handle.task.abort();
+        }
     }
 }
 
@@ -465,7 +373,7 @@ impl Drop for AdaptivePooledConnection {
                 .active_connections
                 .fetch_sub(1, Ordering::Relaxed);
 
-            let max = self.current_max.load(Ordering::Relaxed).max(1);
+            let max = self.current_max.load(Ordering::Acquire).max(1);
 
             let new_utilization = (active.saturating_sub(1) as f64 / max as f64) * 100.0;
             self.metrics

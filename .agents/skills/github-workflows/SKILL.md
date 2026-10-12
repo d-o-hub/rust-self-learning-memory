@@ -65,6 +65,16 @@ See linked files for caching strategies, troubleshooting, and release management
 - **Conditional jobs**: Skip on docs-only changes
 - **Quality gates**: Block merge on failures
 
+## Toolchain Pinning Guardrail
+
+- Never float a toolchain in a workflow that gates work or runs on a schedule.
+  `nightly` broke a transitive dependency (`branches 0.4.5`, `core::intrinsics`)
+  with no repository change and failed every fuzz target as a startup failure;
+  floating `stable` similarly adds deny-by-default lints between releases.
+- Pin a dated channel (`nightly-2026-09-26`) in **both** the job env and the
+  `dtolnay/rust-toolchain` action input, comment why, and validate the pin by
+  building the affected crate with that toolchain before pushing (LESSON-040).
+
 ## PR Check Attachment Guardrail
 
 - After pushing fixes, validate checks are attached to the PR head SHA:

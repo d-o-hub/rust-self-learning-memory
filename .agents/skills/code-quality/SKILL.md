@@ -43,6 +43,20 @@ Unified skill for Rust code quality and clean code development.
 
 **DRY/KISS/YAGNI**: Extract common code, simple solutions, build what's needed now
 
+## Before Every Push
+
+- Run `cargo fmt --all -- --check` as the **last** step, including after conflict
+  resolution and after hand-indenting merged blocks. `tests/quality_gates.rs::quality_gate_formatting`
+  re-runs the same check inside the Storage Matrix *and* Coverage jobs, so one
+  formatting miss reds three jobs (LESSON-039).
+- A crate-root `#[expect(lint, reason = "...")]` must be **fulfilled** in every
+  configuration that compiles the crate; an expectation that never fires fails
+  `cargo clippy --workspace --tests -- -D warnings` as
+  `unfulfilled_lint_expectations`. Dead `cfg(test)` suppressions are the usual
+  cause — delete them or narrow the `cfg_attr` (LESSON-037).
+- A new defaulted `StorageBackend` method also needs a classification in
+  `scripts/storage-backend-capabilities.toml` (see `feature-implement`).
+
 ## Anti-Patterns
 
 | Bad | Fix |

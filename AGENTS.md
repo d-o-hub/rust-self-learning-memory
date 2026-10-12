@@ -74,6 +74,7 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 - **Shared `CARGO_TARGET_DIR`**: concurrent worktree builds can replace test binaries and fake mass failures — re-run the failing test in isolation before believing it.
 - **Strict up-to-date checks**: every merge invalidates the other PRs' required runs; merge as a serial pipeline (update the next branch immediately after each merge).
 - **Machine-readable output**: never trust a job whose report file is empty (e.g. `--message-format libtest-json` needs `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`); assert the artifact exists.
+- **Session traps (2026-10-11/12, full detail `agent_docs/LESSONS.md` LESSON-039…045)**: a missing `cargo fmt --all` reds the fast gate *and* `quality_gate_formatting` inside Storage Matrix + Coverage; floating toolchains break dependency *compilation* (pin dated nightly/stable); `gh pr checks` prints cancelled checks as `fail` (verify with the jobs API, and never cancel runs of a PR you intend to merge); same-file structural splits in parallel PRs (`backend.rs`) force manual rebuilds — land the structural PR first; a new defaulted `StorageBackend` method needs an overlay classification (`fail-closed` when it returns `CapabilityUnavailable` without a predicate); the drift check re-evaluates its original payload, so after the auto-label push or `gh pr update-branch`.
 
 ## Dev Harness (do-harness)
 

@@ -568,3 +568,93 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   over full-suite runs while siblings compile.
 - References: `.agents/skills/ci-poll/SKILL.md`, `scripts/merge-pr.sh`, PRs
   #1150/#1154.
+
+## LESSON-039: one missing `cargo fmt --all` reds three CI surfaces at once (2026-10-11)
+
+- Issue: the rebuilt #1147 branch was pushed after conflict resolution without a
+  final `cargo fmt`. The fast gate failed, and `e2e-tests/tests/quality_gates.rs`
+  `quality_gate_formatting` failed *inside* both the Storage Matrix job and the
+  Code Coverage job (which runs the whole test suite), so one local miss produced
+  three red jobs and a wasted ~1h CI cycle.
+- Impact: a formatting miss is never local; suite-wide gates re-run it.
+- Fix/prevention: run `cargo fmt --all -- --check` (or `./scripts/code-quality.sh
+  fmt`) as the **last** step before every push, including after conflict
+  resolution and after hand-indenting merged blocks (rustfmt does not always
+  reindent a closure passed as a call argument — verify, do not assume).
+- References: `.agents/skills/code-quality/SKILL.md`, PR #1147.
+
+## LESSON-040: floating toolchains break dependency compilation, not just lints (2026-10-04..11)
+
+- Issue: the fuzz workflow floated `nightly`; a nightly-only change to
+  `core::intrinsics` broke the transitive `branches 0.4.5` crate with no
+  repository change, so every fuzz target exited 1 as a "startup failure" and
+  the weekly run was red for two cycles.
+- Impact: a scheduled gate goes red with zero code change and no obvious cause.
+- Fix/prevention: pin dated toolchains for every job that must not float
+  (`RUSTUP_TOOLCHAIN: nightly-2026-09-26` + the same in `dtolnay/rust-toolchain`);
+  validate a pin by building the offending crate locally with that toolchain.
+- References: `.github/workflows/fuzz.yml`, PR #1161.
+
+## LESSON-041: `gh pr checks` prints cancelled checks as `fail` (2026-10-11)
+
+- Issue: after stale runs were cancelled, `gh pr checks` showed ~20 rows as
+  `fail` with durations, which read as genuine failures; the jobs API showed
+  `completed/cancelled`. Follow-on effect: cancelled required checks also keep
+  `mergeStateStatus` from reaching `CLEAN`, so the merge gate refuses.
+- Impact: wasted diagnosis, and cancelling other PRs' runs silently blocks them.
+- Fix/prevention: classify a row with `gh api
+  repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status, .conclusion'` before
+  treating it as failed; do not cancel runs of PRs you intend to merge — re-run
+  them with a fresh push/`gh pr update-branch` instead.
+- References: `.agents/skills/ci-fix/SKILL.md`, `.agents/skills/pr-readiness/SKILL.md`.
+
+## LESSON-042: same-file structural splits in parallel PRs force manual rebuilds (2026-10-11)
+
+- Issue: #1149 and #1151 both split `memory-core/src/storage/backend.rs` into a
+  `backend_trait.rs` module while #1152 split the same file into
+  `backend/mod.rs` + `capabilities.rs`. Any two of them conflict on the file
+  layout, and the later branches had to be rebuilt by hand (4 rebuilds), each
+  repeating the same conflict resolution.
+- Impact: merge order becomes load-bearing; rebuilding costs a full local
+  verification cycle plus a CI cycle.
+- Fix/prevention: land the structural split first, then rebuild the rest on top
+  of it (keep the winner's layout and re-apply the other PR's intent); never
+  merge a stacked PR before its base; when a branch is rebuilt, re-run fmt +
+  workspace clippy + the PR's own tests before pushing.
+- References: PRs #1149, #1151, #1152.
+
+## LESSON-043: the capability checker distinguishes fail-closed defaults (2026-10-11)
+
+- Issue: `list_embedding_ids` (a defaulted `StorageBackend` method that returns
+  `Error::CapabilityUnavailable`) fit no class in the inventory vocabulary:
+  `capability-gated` requires naming a predicate, and the typed-fallback class
+  warns forever.
+- Impact: the fail-closed gate either blocks a correct default or keeps the
+  inventory noisy.
+- Fix/prevention: the checker now has a `fail-closed` class (coherence: the
+  default body must be a `CapabilityUnavailable` error, with a justification) and
+  an F6 fixture; a new defaulted `StorageBackend` method must be classified in
+  `scripts/storage-backend-capabilities.toml` in the same PR that adds it.
+- References: `scripts/check-storage-backend-capabilities.sh`, PR #1158.
+
+## LESSON-044: the drift check re-runs its original event payload (2026-10-11)
+
+- Issue: `Check for unreleased changes` fails when drift is critical and
+  auto-adds the `release-preparation` label, but re-running the failed job
+  re-evaluates the *original* payload (no label) and fails again.
+- Impact: a re-run cannot clear the check; only a new event can.
+- Fix/prevention: after the label appears, push a commit or run
+  `gh pr update-branch <pr>` so the new `synchronize` event carries the label.
+- References: `.github/workflows/release-drift.yml`, PRs #1161 and the wave.
+
+## LESSON-045: fixture timestamps must encode the assertion's ordering (2026-10-11)
+
+- Issue: the #1068 regression test built the "newer" copy with an `end_time`
+  that preceded the "older" copy's `start_time`, so the assertion measured the
+  inverse of the intended comparison and failed on correct code.
+- Impact: a green-implementation red test wastes a cycle and can trigger a wrong
+  fix.
+- Fix/prevention: construct fixture timestamps as explicit absolute values in
+  the order the assertion assumes; treat a failing assertion on freshly written
+  code as a fixture hypothesis before touching the implementation.
+- References: `memory-core/tests/get_all_episodes_merge.rs`, PR #1068.

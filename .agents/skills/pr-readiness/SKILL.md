@@ -264,3 +264,20 @@ When reporting PR readiness, always include:
 - `.agents/skills/code-quality/SKILL.md` — fmt/clippy/coverage gates
 - `AGENTS.md` → "PR Health Check" section — Quick reference table
 - `./scripts/check-pr-readiness.sh` — Automated merge/CI/comment gates
+
+## Pipeline Traps (2026-10-11/12, LESSON-039…045)
+
+- **Serial merges**: the strict up-to-date policy means each merge invalidates the
+  other PRs' runs. Land the *structural* PR first when branches split the same
+  files (`backend.rs` in #1149/#1151 vs #1152) and rebuild the rest on the
+  winner's layout; never merge a stacked PR before its base.
+- **`gh pr update-branch` aborts on any conflict** — resolve locally
+  (`git merge origin/main` in a worktree), re-run fmt + workspace clippy + the
+  PR's own tests, then push. A rebuilt branch that skips fmt reds the fast gate,
+  Storage Matrix and Coverage at once (`quality_gate_formatting`, LESSON-039).
+- **Never cancel another PR's runs**: cancelled checks render as `fail` in
+  `gh pr checks` and keep `mergeStateStatus` from reaching `CLEAN`
+  (LESSON-041); re-run with a fresh push instead.
+- **Drift check payload**: after the workflow auto-adds `release-preparation`, a
+  re-run still fails (original payload has no label) — push a commit or
+  `gh pr update-branch` so the new `synchronize` event carries it (LESSON-044).

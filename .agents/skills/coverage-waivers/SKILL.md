@@ -23,6 +23,7 @@ These decide whether a line *can* be covered by CI:
 | **No CI job enables `csm`**, so `#[cfg(feature = "csm")]` tests never execute in CI | grep all workflows for `--features csm`; see issue #1045 |
 | Tests gated behind a feature that CI never builds are dead weight for coverage | the `#[cfg(feature = ...)]` attribute on the test module |
 | Waivable classes were accepted here before | PR #1041 comment, PR #1042 comment |
+| A red **Code Coverage** job is often the *formatting* gate, not coverage | `e2e-tests/tests/quality_gates.rs::quality_gate_formatting` runs `cargo fmt --check` in the same suite — read the failing test name before the percentage (LESSON-039) |
 
 ## Classification
 

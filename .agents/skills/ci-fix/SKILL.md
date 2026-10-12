@@ -85,6 +85,21 @@ cargo tarpaulin --workspace
 # See LESSON-022
 ```
 
+## Diagnosing "failures" that are not failures
+
+- `gh pr checks` prints **cancelled** rows as `fail` with a duration. Confirm the
+  real conclusion before diagnosing: `gh api repos/{owner}/{repo}/actions/jobs/<job_id>
+  --jq '.status, .conclusion'` (`completed/cancelled`). Cancelling runs also keeps
+  `mergeStateStatus` away from `CLEAN`, so never cancel a PR you intend to merge
+  (LESSON-041).
+- A red `Code Coverage` or `Storage Matrix` job is often the *formatting* gate:
+  both run `e2e-tests/tests/quality_gates.rs`, whose `quality_gate_formatting`
+  test runs `cargo fmt --check` (LESSON-039). Find the failing test name before
+  looking at coverage numbers.
+- A scheduled job (fuzz/nightly) failing with no repository change is usually a
+  floating toolchain: `nightly` broke the transitive `branches` crate via
+  `core::intrinsics` (LESSON-040). Pin the toolchain in the workflow.
+
 ## Fix Commands
 
 ```bash

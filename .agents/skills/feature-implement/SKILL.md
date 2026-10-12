@@ -37,3 +37,19 @@ See **[process.md](process.md)** for detailed phases and **[patterns.md](pattern
 - Error handling: `anyhow::Result`
 - Storage: Turso (durable) + redb (cache)
 - Serialization: postcard
+
+## StorageBackend Surface Guardrails
+
+- A **new defaulted `StorageBackend` method** must be classified in
+  `scripts/storage-backend-capabilities.toml` in the same PR, or the fail-closed
+  checker in `fast-gate` blocks every PR (regenerate
+  `docs/generated/storage-backend-capabilities.json` with `--write`).
+- Use `fail-closed` when the default returns `Error::CapabilityUnavailable` but
+  there is no predicate to name; `capability-gated` requires a real
+  `supports_*`/`can_*` predicate in the trait source.
+- A new capability predicate belongs on `StorageBackendCapabilities` (default
+  `false`), and every cache/durability caller gates on it before treating a write
+  as durable (ADR-081 style).
+- Every `StorageBackend` test double needs the `StorageBackendCapabilities` impl
+  (`impl StorageBackendCapabilities for T {}` is enough when it advertises
+  nothing).

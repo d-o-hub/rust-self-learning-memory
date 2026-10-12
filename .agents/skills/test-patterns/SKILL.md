@@ -76,6 +76,16 @@ impl StorageBackend for MockTursoStorage {
 | `std::thread::sleep()` | `tokio::time::sleep().await` |
 | Blocking runtime | `spawn_blocking` for sync |
 
+## Fixture Guardrails
+
+- Construct fixture timestamps as explicit absolute values in the order the
+  assertion assumes. A "newer" fixture whose `end_time` precedes the "older"
+  fixture's `start_time` measures the inverse comparison and fails on correct
+  code — treat a failing assertion on fresh code as a fixture hypothesis first
+  (LESSON-045).
+- Every storage test double must implement `StorageBackendCapabilities` (the
+  supertrait); an empty impl is correct when it advertises no optional capability.
+
 ## Pre-Commit Checklist
 
 - [ ] Names: `test_<function>_<scenario>_<expected>`, AAA separation, single behavior

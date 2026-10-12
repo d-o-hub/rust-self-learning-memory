@@ -483,6 +483,18 @@ async fn test_capacity_eviction_atomic_cleanup_purges_embeddings()
         0,
         "no pending eviction intents may remain"
     );
+
+    // The modification watermark (#1067) must not keep a revision row for an
+    // evicted episode.
+    let modified = storage
+        .query_episodes_modified_since(chrono::DateTime::<chrono::Utc>::MIN_UTC, None, None)
+        .await?;
+    assert!(
+        !modified
+            .iter()
+            .any(|(episode, _)| episode.episode_id == ids[0]),
+        "an evicted episode must not keep a revision row"
+    );
     Ok(())
 }
 

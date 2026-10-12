@@ -122,6 +122,19 @@ pub const MAX_EMBEDDING_SIZE: u64 = 1_000_000;
 
 // Table definitions
 pub(crate) const EPISODES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("episodes");
+/// Side table mapping episode id -> modification time (milliseconds since the
+/// Unix epoch). Kept separate from `episodes` because the postcard-serialized
+/// `Episode` layout cannot gain a field without breaking existing rows.
+pub(crate) const EPISODE_REVISIONS_TABLE: TableDefinition<&str, i64> =
+    TableDefinition::new("episode_revisions");
+
+/// Metadata key holding the strictly-increasing modification sequence used to
+/// stamp episode revisions in this cache.
+pub(crate) const REVISION_SEQ_KEY: &str = "episode_revision_seq";
+
+/// Metadata key holding the durably persisted incremental-sync watermark
+/// (milliseconds since the Unix epoch).
+pub(crate) const SYNC_WATERMARK_KEY: &str = "sync_watermark_ms";
 pub(crate) const PATTERNS_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("patterns");
 pub(crate) const HEURISTICS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("heuristics");
@@ -161,8 +174,9 @@ pub(crate) const DATA_TABLE_NAMES: [&str; 11] = [
 ];
 
 /// Every table this crate owns, including the schema-version metadata table.
-pub(crate) const KNOWN_TABLE_NAMES: [&str; 13] = [
+pub(crate) const KNOWN_TABLE_NAMES: [&str; 14] = [
     "episodes",
+    "episode_revisions",
     "patterns",
     "heuristics",
     "embeddings",

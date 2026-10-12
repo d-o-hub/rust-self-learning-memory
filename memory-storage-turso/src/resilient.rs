@@ -134,7 +134,7 @@ impl ResilientStorage {
     }
 
     /// Helper to reduce circuit-breaker boilerplate in StorageBackend methods
-    async fn circuit_call<F, Fut, T>(&self, op: F) -> Result<T>
+    pub(crate) async fn circuit_call<F, Fut, T>(&self, op: F) -> Result<T>
     where
         F: FnOnce(Arc<TursoStorage>) -> Fut + Send + 'static,
         Fut: std::future::Future<Output = Result<T>> + Send,

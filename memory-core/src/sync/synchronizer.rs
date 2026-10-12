@@ -28,6 +28,11 @@ pub struct StorageSynchronizer<T, R> {
     /// Cache storage (typically redb - fast)
     pub redb: Arc<R>,
     sync_state: Arc<RwLock<SyncState>>,
+    /// Maximum number of episodes fetched per incremental-sync page.
+    ///
+    /// Clamped to [`MAX_QUERY_LIMIT`] so a single page can never exceed the
+    /// storage-layer bound.
+    page_size: usize,
 }
 
 impl<T, R> StorageSynchronizer<T, R> {
@@ -37,12 +42,29 @@ impl<T, R> StorageSynchronizer<T, R> {
             turso,
             redb,
             sync_state: Arc::new(RwLock::new(SyncState::default())),
+            page_size: MAX_QUERY_LIMIT,
         }
+    }
+
+    /// Set the per-page bound used by incremental syncs.
+    ///
+    /// The value is clamped to `1..=`[`MAX_QUERY_LIMIT`]; the default is
+    /// `MAX_QUERY_LIMIT`. Smaller pages are useful for tests and for limiting
+    /// the working set on memory-constrained hosts.
+    #[must_use]
+    pub fn with_page_size(mut self, page_size: usize) -> Self {
+        self.page_size = page_size.clamp(1, MAX_QUERY_LIMIT);
+        self
     }
 
     /// Get the current synchronization state
     pub async fn get_sync_state(&self) -> SyncState {
         self.sync_state.read().await.clone()
+    }
+
+    /// Record a fully-synced page so the next run resumes from its end.
+    async fn advance_watermark(&self, watermark: DateTime<Utc>) {
+        self.sync_state.write().await.modified_watermark = Some(watermark);
     }
 
     /// Update sync state after a successful sync
@@ -64,9 +86,44 @@ impl<T, R> StorageSynchronizer<T, R> {
 
 impl<T, R> StorageSynchronizer<T, R>
 where
-    T: crate::storage::StorageBackend + 'static,
+    T: crate::storage::StorageBackend + crate::storage::SyncWatermarkBackend + 'static,
     R: crate::storage::StorageBackend + 'static,
 {
+    /// Resolve the watermark to start from: in-memory state first, then the
+    /// durable watermark (survives restarts), else the caller's `since`.
+    async fn resolve_start_watermark(&self, since: DateTime<Utc>) -> Result<DateTime<Utc>> {
+        if let Some(watermark) = self.sync_state.read().await.modified_watermark {
+            return Ok(watermark);
+        }
+
+        match timeout(SYNC_ALL_TIMEOUT, self.turso.load_sync_watermark()).await {
+            Ok(Ok(Some(watermark))) => Ok(watermark),
+            Ok(Ok(None)) => Ok(since),
+            Ok(Err(e)) => Err(Error::Storage(format!("Error loading sync watermark: {e}"))),
+            Err(_) => Err(Error::Storage(format!(
+                "Timeout loading sync watermark after {SYNC_ALL_TIMEOUT:?}"
+            ))),
+        }
+    }
+
+    /// Durably persist a fully-synced page, then advance the in-memory
+    /// watermark. Persisting first means a storage failure leaves the prior
+    /// watermark intact and the page is retried on the next run.
+    async fn persist_watermark(&self, watermark: DateTime<Utc>) -> Result<()> {
+        match timeout(SYNC_ALL_TIMEOUT, self.turso.save_sync_watermark(watermark)).await {
+            Ok(Ok(())) => {
+                self.advance_watermark(watermark).await;
+                Ok(())
+            }
+            Ok(Err(e)) => Err(Error::Storage(format!(
+                "Error persisting sync watermark: {e}"
+            ))),
+            Err(_) => Err(Error::Storage(format!(
+                "Timeout persisting sync watermark after {SYNC_ALL_TIMEOUT:?}"
+            ))),
+        }
+    }
+
     /// Sync a single episode from Turso (source) to redb (cache)
     ///
     /// Fetches the episode from the source storage and stores it in the cache storage.
@@ -116,13 +173,19 @@ where
         Ok(())
     }
 
-    /// Sync all episodes modified since a given timestamp
+    /// Sync all episodes modified since the recorded watermark.
     ///
-    /// Queries the source storage for recent episodes and syncs them to the cache.
+    /// Pages through the source with a bounded keyset scan ordered by
+    /// `(modified_at, episode_id)`. The watermark on [`SyncState`] advances
+    /// only after a whole page is written successfully: a query error returns
+    /// with the prior watermark intact, and a per-episode store error stops the
+    /// loop before the failed page so a later run retries it.
     ///
     /// # Arguments
     ///
-    /// * `since` - Only sync episodes with `start_time` >= this timestamp
+    /// * `since` - Initial watermark, used only when no previous sync has been
+    ///   recorded. Once a watermark exists, syncing resumes from it so no
+    ///   modification is skipped.
     ///
     /// # Returns
     ///
@@ -130,53 +193,96 @@ where
     ///
     /// # Errors
     ///
-    /// Returns error if query fails, but continues syncing other episodes if individual stores fail
+    /// Returns error if a page query fails or times out.
     pub async fn sync_all_recent_episodes(&self, since: DateTime<Utc>) -> Result<SyncStats> {
         let correlation_id = Uuid::new_v4();
+        let page_size = self.page_size;
 
-        info!(correlation_id = %correlation_id, "Syncing all episodes since {}", since);
-
-        // Query source storage for recent episodes with high limit for sync operations and with timeout
-        // timeout returns Result<Result<Vec<Episode>, Error>, Elapsed>
-        let episodes = match timeout(
-            SYNC_ALL_TIMEOUT,
-            self.turso
-                .query_episodes_since(since, Some(MAX_QUERY_LIMIT)),
-        )
-        .await
-        {
-            Ok(Ok(episodes)) => episodes,
-            Ok(Err(e)) => return Err(Error::Storage(format!("Error querying episodes: {e}"))),
-            Err(_) => {
-                return Err(Error::Storage(format!(
-                    "Timeout querying episodes after {SYNC_ALL_TIMEOUT:?}"
-                )));
-            }
-        };
-
-        let total = episodes.len();
-
+        // Resume from the durable watermark when one exists; `since` is only
+        // the entry point for the very first incremental sync.
+        let mut watermark = self.resolve_start_watermark(since).await?;
+        let mut cursor: Option<(DateTime<Utc>, Uuid)> = None;
         let mut stats = SyncStats::default();
 
-        // Batch update cache with individual timeouts for each store operation
-        for episode in episodes {
-            let episode_id = episode.episode_id;
-            match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(&episode)).await {
-                Ok(Ok(())) => {
-                    stats.episodes_synced += 1;
-                }
+        info!(correlation_id = %correlation_id, "Syncing episodes modified since {}", watermark);
+
+        loop {
+            let mut page = match timeout(
+                SYNC_ALL_TIMEOUT,
+                self.turso
+                    .query_episodes_modified_since(watermark, cursor, Some(page_size)),
+            )
+            .await
+            {
+                Ok(Ok(page)) => page,
                 Ok(Err(e)) => {
-                    error!(correlation_id = %correlation_id, "Failed to sync episode {}: {}", episode_id, e);
-                    stats.errors += 1;
+                    return Err(Error::Storage(format!("Error querying episodes: {e}")));
                 }
                 Err(_) => {
-                    error!(
-                        correlation_id = %correlation_id,
-                        "Timeout syncing episode {} after {:?}",
-                        episode_id, SYNC_EPISODE_TIMEOUT
-                    );
-                    stats.errors += 1;
+                    return Err(Error::Storage(format!(
+                        "Timeout querying episodes after {SYNC_ALL_TIMEOUT:?}"
+                    )));
                 }
+            };
+
+            // Defensive normalisation: drop anything at or before the cursor and
+            // order by the keyset so the page bound and the new watermark are
+            // computed on the same, unambiguous order.
+            if let Some((cursor_at, cursor_id)) = cursor {
+                page.retain(|(episode, modified_at)| {
+                    (*modified_at, episode.episode_id) > (cursor_at, cursor_id)
+                });
+            }
+            page.sort_by_key(|a| (a.1, a.0.episode_id));
+
+            let Some(next_cursor) = page
+                .last()
+                .map(|(episode, modified_at)| (*modified_at, episode.episode_id))
+            else {
+                break;
+            };
+
+            let page_len = page.len();
+            let mut page_errors = 0usize;
+
+            for (episode, _modified_at) in &page {
+                let episode_id = episode.episode_id;
+                match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(episode)).await {
+                    Ok(Ok(())) => stats.episodes_synced += 1,
+                    Ok(Err(e)) => {
+                        error!(correlation_id = %correlation_id, "Failed to sync episode {}: {}", episode_id, e);
+                        stats.errors += 1;
+                        page_errors += 1;
+                    }
+                    Err(_) => {
+                        error!(
+                            correlation_id = %correlation_id,
+                            "Timeout syncing episode {} after {:?}",
+                            episode_id, SYNC_EPISODE_TIMEOUT
+                        );
+                        stats.errors += 1;
+                        page_errors += 1;
+                    }
+                }
+            }
+
+            if page_errors > 0 {
+                // Do not advance past a page that was not fully written: the
+                // next run resumes from the previous watermark and retries it.
+                error!(
+                    correlation_id = %correlation_id,
+                    "Page from {} had {} errors; watermark stays at {}",
+                    watermark, page_errors, watermark
+                );
+                break;
+            }
+
+            watermark = next_cursor.0;
+            cursor = Some(next_cursor);
+            self.persist_watermark(next_cursor.0).await?;
+
+            if page_len < page_size {
+                break;
             }
         }
 
@@ -186,8 +292,8 @@ where
 
         info!(
             correlation_id = %correlation_id,
-            "Sync complete: {}/{} episodes synced, {} errors",
-            stats.episodes_synced, total, stats.errors
+            "Sync complete: {} episodes synced, {} errors, watermark at {}",
+            stats.episodes_synced, stats.errors, watermark
         );
 
         Ok(stats)

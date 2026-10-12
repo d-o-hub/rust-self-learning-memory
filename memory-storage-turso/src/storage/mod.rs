@@ -22,6 +22,7 @@ mod embedding_tables;
 mod embeddings_internal;
 pub mod episodes;
 pub mod heuristics;
+pub(crate) mod metadata;
 pub mod monitoring;
 pub mod patterns;
 pub mod procedural;

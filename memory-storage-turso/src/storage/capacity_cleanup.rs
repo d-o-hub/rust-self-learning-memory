@@ -187,6 +187,18 @@ async fn cleanup_body(
             error: format!("Failed to delete evicted episodes: {e}"),
         })?;
 
+    // Keep the modification watermark (#1067) in step with eviction: a revision
+    // row for a deleted episode is invisible to the sync JOIN but would leak one
+    // row per evicted episode.
+    let sql = format!("DELETE FROM episode_revisions WHERE episode_id IN ({placeholders})");
+    let params: Vec<libsql::Value> = episode_ids.iter().map(|id| id.clone().into()).collect();
+    conn.execute_sql(&sql, params)
+        .await
+        .map_err(|e| CleanupFailure {
+            stage: CleanupStage::Episodes,
+            error: format!("Failed to delete evicted episode revisions: {e}"),
+        })?;
+
     Ok(())
 }
 
@@ -288,6 +300,7 @@ mod tests {
                 "DELETE FROM embeddings WHERE item_id IN (?,?)".to_string(),
                 "DELETE FROM embeddings_384 WHERE item_id IN (?,?)".to_string(),
                 "DELETE FROM episodes WHERE episode_id IN (?,?)".to_string(),
+                "DELETE FROM episode_revisions WHERE episode_id IN (?,?)".to_string(),
                 "COMMIT".to_string(),
             ],
             "both table families purged before the episode delete, then committed"

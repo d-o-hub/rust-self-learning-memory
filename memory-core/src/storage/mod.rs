@@ -8,9 +8,11 @@
 //! query construction, error types, and circuit breaker patterns.
 
 mod backend;
+mod backend_watermark;
 pub mod circuit_breaker;
 
 pub use backend::{StorageBackend, StorageBackendCapabilities};
+pub use backend_watermark::SyncWatermarkBackend;
 
 /// Default limit for query operations (when not specified)
 pub const DEFAULT_QUERY_LIMIT: usize = 100;

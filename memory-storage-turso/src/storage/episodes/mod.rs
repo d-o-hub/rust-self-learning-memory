@@ -6,6 +6,7 @@ pub mod compression;
 pub mod crud;
 pub mod query;
 pub mod raw_query;
+pub mod revision;
 pub mod row;
 
 pub use compression::{compress_json_field, decompress_json_field};

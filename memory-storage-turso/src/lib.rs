@@ -91,6 +91,7 @@ pub mod cache;
 pub mod pool;
 mod relationships;
 mod resilient;
+mod resilient_watermark;
 mod schema;
 #[cfg(test)]
 mod tests;

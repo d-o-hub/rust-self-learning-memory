@@ -32,14 +32,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of being set to the result count, and `RetrievalProvenance` /
   `ProvenancedRetrieval` gain execution-backed fields (`executed`, `tier`,
   `fallback`, and a `RetrievalExecution` report).
-<<<<<<< HEAD
 - Turso episode/pattern row decoding no longer substitutes values for corrupt
   data (#1071): required timestamps and JSON now return `Error::Storage` naming
   the column, the result row, and the query surface; nullable fields stay
   nullable; raw episode and pattern queries abort instead of returning a
   partial result; a new allowlisted `QueryBuilder` offers the supported
   parameterized path alongside `query_with_params`.
-=======
+- MCP `configure_embeddings` no longer routes every activation through a
+  process-local `InMemoryEmbeddingStorage` (#1073). Configured primary/cache
+  `StorageBackend` handles are composed into an identity-scoped
+  `EmbeddingStorageAdapter` (provider identity + configuration revision in the
+  logical key), so vectors persist and a reconfiguration cannot read vectors
+  written under a different provider identity/revision. With no backend the
+  store is explicitly ephemeral and `configure_embeddings` /
+  `embedding_provider_status` report `storage_mode: "ephemeral"` plus a
+  restart-loss warning instead of implying persistence. `StorageBackend` gains a
+  defaulted `list_embedding_ids` so the adapter can brute-force similarity
+  search without a concrete backend type; `find_similar_episodes` and
+  `find_similar_patterns` keep working through the key-shape change.
 - Turso storage retains pool permits for the whole database operation (#1064):
   `TursoStorage` gains scoped `with_connection`/`with_connection_with_id`
   helpers that own the pool guard across the query, its row iteration, and any
@@ -59,7 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no tool populated is no longer presented as cache telemetry. URLs, filesystem
   paths, tokens and raw driver errors are redacted from the response (only fixed
   literals are emitted).
->>>>>>> fix/scoped-pool-checkout
 - crates.io publishing is dispatched explicitly by `release.yml` (#1109): the
   `release: published` event does not create a workflow run when the release is
   published with the repository `GITHUB_TOKEN` (as the draft-first release flow

@@ -98,6 +98,14 @@ impl EmbeddingTools {
             let similarity_threshold = config.similarity_threshold;
             let batch_size = config.batch_size;
             let cache_enabled = config.cache_embeddings;
+            let storage_scope = semantic_service
+                .storage_scope()
+                .map(|scope| scope.key_prefix());
+            let storage_mode = if semantic_service.is_durable() {
+                "durable"
+            } else {
+                "ephemeral"
+            };
 
             let metadata = semantic_service.provider.metadata();
 
@@ -147,6 +155,12 @@ impl EmbeddingTools {
                     batch_size
                 ));
             }
+            if storage_mode == "ephemeral" {
+                warnings.push(
+                    "Embedding vectors are stored in memory only and will be lost on restart."
+                        .to_string(),
+                );
+            }
 
             let available = test_result.as_ref().map(|t| t.success).unwrap_or(true);
 
@@ -160,6 +174,8 @@ impl EmbeddingTools {
                 batch_size,
                 cache_enabled,
                 metadata,
+                storage_mode: storage_mode.to_string(),
+                storage_scope,
                 test_result,
                 warnings,
             });
@@ -176,6 +192,8 @@ impl EmbeddingTools {
             batch_size: 32,
             cache_enabled: false,
             metadata: serde_json::json!({"status": "not_configured"}),
+            storage_mode: "none".to_string(),
+            storage_scope: None,
             test_result: None,
             warnings: vec![
                 "Semantic embeddings not configured. Use configure_embeddings to enable embedding features.".to_string()

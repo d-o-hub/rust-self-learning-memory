@@ -123,6 +123,13 @@ pub struct EmbeddingProviderStatusOutput {
     pub cache_enabled: bool,
     /// Provider-specific metadata
     pub metadata: serde_json::Value,
+    /// Storage durability mode: `"durable"` (persisted through configured
+    /// backends), `"ephemeral"` (in-process only, lost on restart), or
+    /// `"none"` when no provider is configured.
+    pub storage_mode: String,
+    /// Identity scope (provider identity + configuration revision) of the
+    /// vectors held by the active store, when known.
+    pub storage_scope: Option<String>,
     /// Last test result (if test_connectivity was true)
     pub test_result: Option<ProviderTestResult>,
     /// Configuration warnings
@@ -197,6 +204,13 @@ pub struct ConfigureEmbeddingsOutput {
     /// than a degraded health value, so a success response always reports
     /// `"active"` (ADR-077).
     pub provider_health: String,
+    /// Storage durability mode after activation: `"durable"` when vectors are
+    /// persisted through the configured storage backends, `"ephemeral"` when
+    /// they live only in this process and are lost on restart.
+    pub storage_mode: String,
+    /// Identity-scoped logical key prefix the activated store writes vectors
+    /// under (provider identity + configuration revision).
+    pub storage_scope: String,
 }
 
 /// Input parameters for semantic memory query

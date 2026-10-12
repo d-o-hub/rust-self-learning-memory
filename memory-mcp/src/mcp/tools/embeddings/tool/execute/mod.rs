@@ -4,3 +4,5 @@ mod configure;
 mod generate;
 mod query;
 mod status;
+
+pub use configure::configured_embedding_storage;

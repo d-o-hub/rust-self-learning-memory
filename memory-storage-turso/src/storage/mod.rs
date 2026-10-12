@@ -92,6 +92,105 @@ impl TursoStorage {
         self._get_embeddings_batch_internal(ids).await
     }
 
+    /// List embeddings stored through the generic backend API.
+    ///
+    /// Returns the `item_id`s of every row tagged `item_type = 'embedding'`.
+    /// Both layouts are covered: the single-table build reads `embeddings`, and
+    /// the `turso_multi_dimension` build walks the dimension-specific
+    /// `embeddings_<dimension>` tables that [`Self::store_embedding_backend`]
+    /// routes writes into. The result is sorted and deduplicated so callers get
+    /// a deterministic candidate order.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the embeddings cannot be queried.
+    pub async fn list_embedding_ids_backend(&self) -> Result<Vec<String>> {
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            // The generic API routes writes into the dimension-specific tables
+            // under this feature (`_store_embedding_internal` ->
+            // `store_embedding_dimension_aware`), so the listing must walk the
+            // same tables instead of returning an empty base namespace.
+            const TABLES_SQL: &str = "SELECT name FROM sqlite_master \
+                 WHERE type = 'table' \
+                   AND name LIKE 'embeddings\\_%' ESCAPE '\\' \
+                 ORDER BY name";
+
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
+            let mut table_rows = conn.query(TABLES_SQL, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to list embedding tables: {}", e))
+            })?;
+
+            let mut tables = Vec::new();
+            while let Some(row) = table_rows.next().await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to read embedding table row: {}", e))
+            })? {
+                let name: String = row.get(0).map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to parse embedding table name: {}",
+                        e
+                    ))
+                })?;
+                tables.push(name);
+            }
+
+            let mut ids = Vec::new();
+            for table in tables {
+                // SAFETY: `table` comes from `sqlite_master` (schema-owned, never
+                // user input), so it cannot inject SQL; identifiers cannot be
+                // parameterized.
+                let sql = format!("SELECT item_id FROM {table} WHERE item_type = 'embedding'");
+                let mut rows = conn.query(&sql, ()).await.map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to list embeddings from {table}: {}",
+                        e
+                    ))
+                })?;
+                while let Some(row) = rows.next().await.map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to read embedding row from {table}: {}",
+                        e
+                    ))
+                })? {
+                    let id: String = row
+                        .get(0)
+                        .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                    ids.push(id);
+                }
+            }
+            ids.sort();
+            ids.dedup();
+            Ok(ids)
+        }
+
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
+            let mut rows = conn
+                .query(
+                    "SELECT item_id FROM embeddings WHERE item_type = 'embedding'",
+                    (),
+                )
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to list embeddings: {}", e))
+                })?;
+
+            let mut ids = Vec::new();
+            while let Some(row) = rows.next().await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to read embedding row: {}", e))
+            })? {
+                let id: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                ids.push(id);
+            }
+            ids.sort();
+            ids.dedup();
+            Ok(ids)
+        }
+    }
+
     /// Migrate existing embeddings to populate embedding_vector column
     pub async fn migrate_embeddings_to_vector_format(&self) -> Result<usize> {
         use tracing::info;

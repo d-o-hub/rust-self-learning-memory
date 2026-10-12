@@ -276,4 +276,36 @@ impl RedbStorage {
         info!("Retrieved {} embeddings from batch request", results.len());
         Ok(results)
     }
+
+    /// List every stored embedding id implementation.
+    pub async fn list_embedding_ids_impl(&self) -> Result<Vec<String>> {
+        let db = Arc::clone(&self.db);
+
+        let ids = tokio::task::spawn_blocking(move || {
+            let read_txn = db
+                .begin_read()
+                .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
+
+            let table = read_txn
+                .open_table(EMBEDDINGS_TABLE)
+                .map_err(|e| Error::Storage(format!("Failed to open embeddings table: {}", e)))?;
+
+            let mut ids = Vec::new();
+            for entry in table
+                .iter()
+                .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?
+            {
+                let (key, _value) = entry.map_err(|e| {
+                    Error::Storage(format!("Failed to read embedding entry: {}", e))
+                })?;
+                ids.push(key.value().to_string());
+            }
+            Ok::<Vec<String>, Error>(ids)
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+
+        debug!("Listed {} embedding ids", ids.len());
+        Ok(ids)
+    }
 }

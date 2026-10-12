@@ -121,6 +121,13 @@ impl StorageBackend for CachedTursoStorage {
             .map_err(|e| Error::Storage(format!("Batch get embeddings error: {}", e)))
     }
 
+    async fn list_embedding_ids(&self) -> Result<Vec<String>> {
+        self.storage
+            .list_embedding_ids()
+            .await
+            .map_err(|e| Error::Storage(format!("List embeddings error: {}", e)))
+    }
+
     async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
         self.storage
             .store_recommendation_session(session)

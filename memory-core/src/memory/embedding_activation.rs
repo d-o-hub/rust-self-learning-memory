@@ -45,6 +45,34 @@ impl std::fmt::Display for EmbeddingActivationError {
 impl std::error::Error for EmbeddingActivationError {}
 
 impl SelfLearningMemory {
+    /// Select the embedding store for a new activation.
+    ///
+    /// When a primary [`StorageBackend`](crate::storage::StorageBackend) is
+    /// configured this returns a durable
+    /// [`EmbeddingStorageAdapter`](crate::embeddings::EmbeddingStorageAdapter)
+    /// over the configured primary and (when distinct) cache handles. With no
+    /// storage backend it returns an explicitly ephemeral in-process store.
+    ///
+    /// The [`EmbeddingStorageMode`](crate::embeddings::EmbeddingStorageMode) is
+    /// returned alongside the store so callers report durability truthfully
+    /// instead of implying persistence they do not have.
+    #[must_use]
+    pub fn embedding_storage(
+        &self,
+        scope: crate::embeddings::EmbeddingStorageScope,
+    ) -> crate::embeddings::SelectedEmbeddingStorage {
+        let (primary, cache) = self.storage_backends();
+        match primary {
+            Some(primary) => {
+                // A backend reused as both primary and cache must not be written
+                // twice; treat that as "no separate cache".
+                let cache = cache.filter(|candidate| !Arc::ptr_eq(candidate, &primary));
+                crate::embeddings::SelectedEmbeddingStorage::durable(primary, cache, scope)
+            }
+            None => crate::embeddings::SelectedEmbeddingStorage::ephemeral(scope),
+        }
+    }
+
     /// Atomically replace the active embedding provider.
     ///
     /// This is the **runtime seam** used by `configure_embeddings` (MCP tool) to

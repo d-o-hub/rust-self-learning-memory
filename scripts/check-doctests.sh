@@ -34,35 +34,33 @@ failure() {
 }
 
 # 1. Run documentation tests
-section "Running documentation tests (cargo test --doc)..."
-if cargo test --doc --quiet 2>&1 | grep -q "test result: ok"; then
+section "Running documentation tests (cargo test --workspace --doc)..."
+if cargo test --workspace --doc --quiet; then
     success "All documentation tests passed"
 else
     failure "Documentation tests failed"
-    echo "Running with verbose output:"
-    cargo test --doc
     exit 1
 fi
 
 # 2. Build documentation to check for broken links and warnings
-section "Building documentation (cargo doc --no-deps --document-private-items)..."
-if RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items >/dev/null 2>&1; then
+section "Building documentation (cargo doc --workspace --no-deps --document-private-items)..."
+if RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --document-private-items >/dev/null 2>&1; then
     success "Documentation built successfully"
 else
     failure "Documentation build failed or produced warnings"
     echo "Running with verbose output:"
-    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items
+    RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --document-private-items
     exit 1
 fi
 
 # 3. Optional: Check for broken intra-doc links (requires rustdoc 1.48+)
-section "Checking for broken intra-doc links (cargo doc --no-deps --document-private-items -Z rustdoc-scrape-examples)..."
+section "Checking for broken intra-doc links (cargo doc --workspace --no-deps --document-private-items -Z rustdoc-scrape-examples)..."
 if rustc --version | grep -q "nightly"; then
-    if cargo doc --no-deps --document-private-items -Z rustdoc-scrape-examples --quiet 2>&1 | tail -5 | grep -q "Finished"; then
+    if cargo doc --workspace --no-deps --document-private-items -Z rustdoc-scrape-examples --quiet 2>&1 | tail -5 | grep -q "Finished"; then
         success "Intra-doc links are valid"
     else
         failure "Broken intra-doc links detected"
-        cargo doc --no-deps --document-private-items -Z rustdoc-scrape-examples
+        cargo doc --workspace --no-deps --document-private-items -Z rustdoc-scrape-examples
         exit 1
     fi
 else

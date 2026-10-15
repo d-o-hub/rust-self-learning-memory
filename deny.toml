@@ -45,6 +45,14 @@ ignore = [
     # Fix: Patched in h2 >=0.4.16 (h2 0.3.27 in hyper 0.14 is unpatched)
     # Mitigation: Transitive dependency via hyper 0.14, awaiting libsql upstream update to hyper 1.x
     "RUSTSEC-2026-0258",
+
+    # RUSTSEC-2026-0346: rustls Debug impls expose TLS secrets
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22.4
+    # Mitigation: Transitive dependency via hyper-rustls 0.25, awaiting libsql upstream update
+    "RUSTSEC-2026-0346",
+    # RUSTSEC-2026-0349: rustls Unauthenticated ServerHello downgrade
+    # Same dependency chain as RUSTSEC-2026-0346
+    "RUSTSEC-2026-0349",
 ]
 
 [licenses]

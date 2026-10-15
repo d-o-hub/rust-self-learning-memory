@@ -168,6 +168,7 @@ impl SpatiotemporalIndex {
     /// This is significantly faster than O(n) linear scan.
     #[must_use]
     pub fn query_range(&self, start: DateTime<Utc>, end: DateTime<Utc>, limit: usize) -> Vec<Uuid> {
+        let limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         let start_time = std::time::Instant::now();
         let mut results = Vec::new();
         let range = TimeRange::from_timestamps(start, end);

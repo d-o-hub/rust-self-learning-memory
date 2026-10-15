@@ -50,6 +50,12 @@ ignore = [
     # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22.4
     # Mitigation: Transitive dependency via hyper-rustls 0.25, awaiting libsql upstream update
     "RUSTSEC-2026-0346",
+    # RUSTSEC-2026-0347: rustls Buffered application data sent to outer server after ECH rejection
+    # Same dependency chain as RUSTSEC-2026-0346
+    "RUSTSEC-2026-0347",
+    # RUSTSEC-2026-0348: rustls Brotli certificate decompression allocation panic
+    # Same dependency chain as RUSTSEC-2026-0346
+    "RUSTSEC-2026-0348",
     # RUSTSEC-2026-0349: rustls Unauthenticated ServerHello downgrade
     # Same dependency chain as RUSTSEC-2026-0346
     "RUSTSEC-2026-0349",

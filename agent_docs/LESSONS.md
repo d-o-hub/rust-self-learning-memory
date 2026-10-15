@@ -767,3 +767,22 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `.event`, or allowlist per-event failures with a tracked issue — needs an
   explicit decision first; do not silently exclude schedule runs.
 - References: `scripts/release-manager.sh`, `.github/workflows/nightly-tests.yml`, ADR-027.
+
+## LESSON-052: `statusCheckRollup` keeps superseded runs, so a label toggle fakes a CI failure (2026-10-15)
+
+- Issue: after the human `release-preparation` toggle cleared the drift check on
+  #1174, the head SHA still carried the two earlier `FAILURE` rows for
+  `Check for unreleased changes`. `scripts/check-pr-readiness.sh` counts raw
+  rollup entries, so it reported `32 pass, 2 fail` and `merge-pr.sh` refused with
+  "readiness gate failed" while `mergeStateStatus` was `CLEAN` and GitHub's
+  evaluation saw the newest run (success) as authoritative.
+- Impact: a correct, fully green PR becomes unmergeable through the sanctioned
+  path; the tempting workaround (delete the failing runs, or merge around the
+  gate) is a bypass and is not acceptable.
+- Fix/prevention: re-run on a **fresh head SHA** — rollups are per SHA, so
+  `git commit --allow-empty -m "chore: re-trigger CI …" && git push` drops the
+  stale rows (the `synchronize` payload now carries the label, so the drift check
+  passes). Durable fix: reduce the rollup to the latest run per check name
+  (prefer an unfinished entry over a finished one) before classifying. Never
+  delete workflow runs to silence a gate.
+- References: `scripts/check-pr-readiness.sh`, `scripts/merge-pr.sh`, LESSON-041, LESSON-049.

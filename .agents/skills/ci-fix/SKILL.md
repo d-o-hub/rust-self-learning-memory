@@ -123,6 +123,13 @@ gh pr edit <n> --add-label release-preparation   # human actor => `labeled` run
   --jq '.status, .conclusion'` (`completed/cancelled`). Cancelling runs also keeps
   `mergeStateStatus` away from `CLEAN`, so never cancel a PR you intend to merge
   (LESSON-041).
+- **`check-pr-readiness.sh` reports `N fail` while `gh pr checks` shows none**:
+  `statusCheckRollup` retains *every* check run for the head SHA, so a re-run
+  (label toggle, `gh run rerun`) leaves stale `FAILURE` rows that the readiness
+  counter counts. Confirm with `gh api repos/{owner}/{repo}/commits/<sha>/check-runs`
+  (compare `completed_at` per name) and fix it on a **fresh SHA** —
+  `git commit --allow-empty -m "chore: re-trigger CI after <reason>" && git push`.
+  Deleting workflow runs to quiet a gate is a bypass (LESSON-052).
 - A red `Code Coverage` or `Storage Matrix` job is often the *formatting* gate:
   both run `e2e-tests/tests/quality_gates.rs`, whose `quality_gate_formatting`
   test runs `cargo fmt --check` (LESSON-039). Find the failing test name before

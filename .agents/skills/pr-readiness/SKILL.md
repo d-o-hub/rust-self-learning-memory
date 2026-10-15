@@ -302,7 +302,7 @@ When reporting PR readiness, always include:
 - `AGENTS.md` → "PR Health Check" section — Quick reference table
 - `./scripts/check-pr-readiness.sh` — Automated merge/CI/comment gates
 
-## Pipeline Traps (2026-10-11/12/15, LESSON-039…051)
+## Pipeline Traps (2026-10-11/12/15, LESSON-039…052)
 
 - **Serial merges**: the strict up-to-date policy means each merge invalidates the
   other PRs' runs. Land the *structural* PR first when branches split the same
@@ -326,3 +326,9 @@ When reporting PR readiness, always include:
   (`cargo deny` + `cargo audit`) with separate DB clones, and a stale deny clone
   yields a false "advisories ok". Run both before declaring a readiness verdict on
   a dependency PR (LESSON-046/047).
+- **Stale `FAILURE` rows are not current failures**: `statusCheckRollup` keeps every
+  run for the head SHA, so the readiness script can report `N fail` on a PR whose
+  latest run of that check passed and whose `mergeStateStatus` is `CLEAN`.
+  Cross-check `completed_at` per check name via the check-runs API, then re-trigger
+  on a fresh SHA (`--allow-empty` commit + push). Do not delete runs or merge around
+  the gate (LESSON-052).

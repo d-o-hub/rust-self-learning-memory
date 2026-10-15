@@ -279,6 +279,9 @@ impl QuerySignature {
     pub fn from_query_text(query: &str) -> Self {
         let mut sig = Self::new();
 
+        // Pre-compute lowercased query once to avoid O(N) heap allocations in keyword loops.
+        let lower = query.to_lowercase();
+
         // Extract common tool names from query
         let common_tools = [
             "read",
@@ -300,8 +303,8 @@ impl QuerySignature {
         ];
 
         for tool in common_tools {
-            if query.to_lowercase().contains(tool) {
-                sig.expected_tools.insert(tool.to_string());
+            if lower.contains(tool) {
+                sig.expected_tools.insert((*tool).to_string());
             }
         }
 
@@ -320,7 +323,7 @@ impl QuerySignature {
         ];
 
         for pattern in error_patterns {
-            if query.to_lowercase().contains(pattern) {
+            if lower.contains(pattern) {
                 sig.relevant_errors.insert(normalize_error_type(pattern));
             }
         }

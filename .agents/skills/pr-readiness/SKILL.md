@@ -31,7 +31,7 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
 
 1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete.
 2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state.
-3. **NEVER use `gh pr merge --admin` to bypass branch protection** — Fix the code, don't bypass the gate.
+3. **NEVER use `gh pr merge --admin` to bypass the `main` guard** — the guard is ruleset `main-protection` (branch protection 404s here); fix the code, don't bypass the gate.
 4. **NEVER merge a PR you haven't personally verified** — Run the full check and confirm ALL conditions.
 5. **NEVER skip loading this skill** — Load this skill before any merge recommendation.
 6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue comments; address actionable feedback before declaring ready.
@@ -69,12 +69,49 @@ Also use the helper script:
 | `HAS_HOOKS` | Pre-receive hooks blocking | ❌ NO | Investigate hooks |
 | `UNKNOWN` | GitHub hasn't computed yet | ⏳ Wait | Re-query in 30s |
 
+`BLOCKED` while every listed row is green is normal, not suspicious: either the
+`CI / Required` aggregate has not been created yet (see below), or an
+unresolved review thread / extra-approval rule is holding the PR
+(`required_review_thread_resolution=true`,
+`require_extra_approval_for_unattributed_changes=true`).
+
+**Which checks are required is a ruleset, not branch protection** (ruleset
+`main-protection`, id 9591004; `/branches/main/protection` 404s). The endpoint
+returns an **array of rule objects**, and the contexts live at
+`.parameters.required_status_checks`:
+
+```bash
+gh api repos/{owner}/{repo}/rules/branches/main > /tmp/rules.json
+jq '.[] | select(.type=="required_status_checks") | .parameters' /tmp/rules.json
+```
+
+Today that set is exactly `CI / Required` + `Codacy Static Code Analysis`, with
+`strict_required_status_checks_policy=true` (every merge invalidates other PRs'
+runs → merges are serial), `required_review_thread_resolution=true`,
+`required_approving_review_count=0`, and
+`dismiss_stale_reviews_on_push=true` — any push drops an existing approval, so
+batch a cosmetic fix with the substantive change instead of adding it after the
+review. A green row outside this list does not
+unblock a merge; changing the list is a ruleset change, never a workflow edit
+(LESSON-050).
+
+**`CI / Required` will not show up in `gh pr checks` until late.** It is the
+aggregate job `required` in `ci.yml` (`needs:` fast-gate, commitlint, test,
+csm-tests, mcp-build, multi-platform, quality-gates; `if: always()`), which
+fail-closes on *any* non-success dependency including `skipped`. So
+`mergeStateStatus=BLOCKED` with 26 green per-job rows usually just means the
+aggregate has not been created yet — wait for the slowest dependency (typically
+`multi-platform`/macOS) instead of hunting a phantom failure. If the aggregate
+ever reports while the visible rows are green, read
+`scripts/ci-required-evaluate.sh` (the single result-mapping authority) before
+anything else (LESSON-050, ADR-079).
+
 ### 3. Interpret CI Check Conclusions
 
 | Conclusion | Meaning | Action |
 |------------|---------|--------|
 | `SUCCESS` | Check passed | ✅ None |
-| `SKIPPED` | Expected skip (Release on PRs, Coverage badge on non-main) | ✅ None |
+| `SKIPPED` | Expected skip (Release on PRs, Coverage badge on non-main). A row that skips by job guard is structural, e.g. `Maintain canonical drift issue` (`if: github.event_name != 'pull_request'`) — never a bypassed gate | ✅ None |
 | `CANCELLED` | Workflow was cancelled — may be stale or dependent | ⚠️ Investigate; re-run if stale |
 | `FAILURE` | Check failed | ❌ Must fix |
 | `pending` / `IN_PROGRESS` | Still running | ⏳ Wait — do NOT recommend merge |
@@ -265,7 +302,7 @@ When reporting PR readiness, always include:
 - `AGENTS.md` → "PR Health Check" section — Quick reference table
 - `./scripts/check-pr-readiness.sh` — Automated merge/CI/comment gates
 
-## Pipeline Traps (2026-10-11/12, LESSON-039…045)
+## Pipeline Traps (2026-10-11/12/15, LESSON-039…051)
 
 - **Serial merges**: the strict up-to-date policy means each merge invalidates the
   other PRs' runs. Land the *structural* PR first when branches split the same
@@ -281,3 +318,11 @@ When reporting PR readiness, always include:
 - **Drift check payload**: after the workflow auto-adds `release-preparation`, a
   re-run still fails (original payload has no label) — push a commit or
   `gh pr update-branch` so the new `synchronize` event carries it (LESSON-044).
+  Prefer the cheaper human toggle when the PR is otherwise green: `gh pr edit <n>
+  --remove-label release-preparation && gh pr edit <n> --add-label
+  release-preparation`. The bot's own `GITHUB_TOKEN` label write cannot re-trigger
+  the workflow, and `gh run rerun` only replays the stale payload (LESSON-049).
+- **Advisory PRs look green locally and red in CI**: the audit gate is two tools
+  (`cargo deny` + `cargo audit`) with separate DB clones, and a stale deny clone
+  yields a false "advisories ok". Run both before declaring a readiness verdict on
+  a dependency PR (LESSON-046/047).

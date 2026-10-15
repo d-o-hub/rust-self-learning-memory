@@ -658,3 +658,112 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   the order the assertion assumes; treat a failing assertion on freshly written
   code as a fixture hypothesis before touching the implementation.
 - References: `memory-core/tests/get_all_episodes_merge.rs`, PR #1068.
+
+## LESSON-046: advisories are gated by two tools in one step — deny alone is not the truth (2026-10-15)
+
+- Issue: `origin/main` HEAD went red on a fresh batch of RustSec advisories. The
+  Quality Gates job runs **both** `cargo deny check advisories` and
+  `cargo audit --json` (then fails on `.vulnerabilities.count > 0`) — see
+  `.github/workflows/ci.yml:380-398`. A rustls-only bump cleared deny but left
+  five quinn-proto advisories that only audit reports, because the two tools
+  consult different advisory DB clones and surface different sets.
+- Impact: an advisory PR scoped from deny output alone re-reds main and needs a
+  second full CI cycle; waiver text gets written twice, in two files.
+- Fix/prevention: before proposing an advisory fix, enumerate the **union** of
+  `cargo deny check advisories` and `cargo audit --json` against the target
+  lockfile. Every ignore needs an entry in **both** `deny.toml`
+  (`[advisories] ignore`) and `.cargo/audit.toml` — the lists are independent
+  and both are blocking.
+- References: `.github/workflows/ci.yml`, `.agents/skills/code-quality/SKILL.md`, PR #1174.
+
+## LESSON-047: a stale advisory DB clone makes `cargo deny` report a false green (2026-10-15)
+
+- Issue: local `cargo deny` reported "advisories ok" against the exact lockfile
+  CI proved failing. Its DB clone under `~/.cargo/advisory-dbs/…` was pinned at
+  commit `e2111519` (2026-09-25) while `cargo audit`'s clone
+  `~/.cargo/advisory-db` was current; the refresh was blocked by a `db.lock`
+  left behind by an earlier crash.
+- Impact: a false green mis-scopes the fix, and the PR is declared done before
+  it can possibly pass.
+- Fix/prevention: check the DB's checkout date before believing a green advisory
+  run, and cross-check with the second tool. Investigate a `db.lock` (find the
+  holding process) rather than deleting it. For per-advisory facts, use the
+  already-cloned markdown at `~/.cargo/advisory-db/crates/<pkg>/<ID>.md` or
+  `rustsec.org/advisories/<ID>.html` — `api.rustsec.io` and `crates.io/api/v1`
+  returned empty bodies to `curl` here.
+- References: LESSON-046, `.agents/skills/code-quality/SKILL.md`.
+
+## LESSON-048: bump to the minimal patched version, then re-run the WASM gate (2026-10-15)
+
+- Issue: `cargo update -p quinn-proto` chose 0.11.19 although the advisory's
+  `[versions] patched` range only required 0.11.18. The bump also dragged
+  `rand` 0.9→0.10 and `getrandom` 0.3→0.4 across majors — and `getrandom` is
+  exactly the crate whose `--cfg getrandom_backend="wasm_js"` RUSTFLAGS are
+  hardcoded in the WASM Compile Check gate (`.github/workflows/ci.yml:505-512`).
+- Impact: an over-pull multiplies lockfile churn and review surface; a
+  `getrandom` major can break the wasm target without touching any code path
+  the advisory is about.
+- Fix/prevention: read `[versions] patched` from the advisory and pin the floor
+  with `cargo update -p <pkg> --precise <min-patched>`. When a bump crosses a
+  `getrandom` major, re-run the WASM job's exact command *with its RUSTFLAGS*
+  locally. Keep advisory PRs lockfile-only; `Cargo.toml` changes belong in a
+  separate PR.
+- References: `agent_docs/dependency_upgrades.md`, PR #1174.
+
+## LESSON-049: bot-applied labels cannot clear the drift check — toggle them as a human (2026-10-15, extends LESSON-044)
+
+- Issue: `release-drift.yml` fails when cadence is critical *and*
+  `github.event.pull_request.labels` lacks `release-preparation`, then applies
+  that label with `GITHUB_TOKEN`. GitHub suppresses workflow-triggered actions,
+  so no `labeled` run fires, and `gh run rerun <id>` only replays the original
+  label-less payload — it failed again. A human label toggle emitted a fresh
+  `labeled` event carrying the label and passed.
+- Impact: the documented retry path (`push a commit` / `gh pr update-branch`)
+  re-triggers the whole suite, which under `strict_required_status_checks_policy`
+  invalidates the PR's own required runs.
+- Fix/prevention: `gh pr edit <n> --remove-label release-preparation && gh pr
+  edit <n> --add-label release-preparation` (needs `labeled` in the workflow's
+  `pull_request` types). Separate fact: a permanently-`skipping`
+  `Maintain canonical drift issue` row on PRs is structural
+  (`if: github.event_name != 'pull_request'`), not a skipped gate.
+- References: `.github/workflows/release-drift.yml`, LESSON-044, PR #1174.
+
+## LESSON-050: `main` is guarded by a ruleset, not branch protection (2026-10-15)
+
+- Issue: `gh api repos/{owner}/{repo}/branches/main/protection` 404s while merges
+  are still gated. The guard is ruleset `main-protection` (id 9591004). Required
+  contexts are exactly `CI / Required` and `Codacy Static Code Analysis`;
+  `strict_required_status_checks_policy=true`,
+  `required_review_thread_resolution=true`,
+  `required_approving_review_count=0`,
+  `dismiss_stale_reviews_on_push=true`,
+  `require_extra_approval_for_unattributed_changes=true`.
+- Impact: merge-state questions get answered from the wrong API, and green
+  non-required rows are mistaken for blockers (or vice versa).
+- Fix/prevention: read `gh api repos/{owner}/{repo}/rules/branches/main` — the
+  payload is an array of *rule* objects (each carrying `ruleset_id`), and the
+  contexts live at `.parameters.required_status_checks` (not `.context`), so dump
+  it to a file before scripting jq. `CI / Required` is not a per-job row: it is
+  the aggregate job `required` (`name: CI / Required`, `needs:` the substantive
+  jobs, fail-closed on any non-success dependency incl. `skipped`), so it only
+  appears after the slowest dependency (often `multi-platform`) finishes —
+  `mergeStateStatus` stays `BLOCKED` while every visible row is green. Required-
+  check drift is a ruleset change, never a workflow edit.
+- References: `.github/workflows/ci.yml` (`required` job), ADR-079, PR #1174.
+
+## LESSON-051: `ci-check` counts scheduled runs by head SHA, so an always-red nightly blocks releases (2026-10-15)
+
+- Issue: `do_ci_check` in `scripts/release-manager.sh` lists
+  `gh run list --branch main --commit <head>` and counts every completed
+  non-success run without fetching the `event` field — so a `schedule`-triggered
+  nightly failure attached to the release SHA blocks the ship even though the
+  commit itself is unchanged (`isolated-turso-native-tests` has been red since
+  it first ran 2026-10-07).
+- Impact: releases are held by pre-existing debt; advancing main HEAD only opens
+  a *window*, because the next nightly (cron `0 2 * * *`, observed start
+  06:36-08:37 UTC) re-attaches to the new SHA.
+- Fix/prevention: for v0.1.45 the decision was to keep the gate strict and ship
+  inside the window, not to weaken `ci-check`. The durable fix — filter on
+  `.event`, or allowlist per-event failures with a tracked issue — needs an
+  explicit decision first; do not silently exclude schedule runs.
+- References: `scripts/release-manager.sh`, `.github/workflows/nightly-tests.yml`, ADR-027.

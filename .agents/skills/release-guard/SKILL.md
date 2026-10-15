@@ -33,8 +33,9 @@ description: "Canonical release workflow for this repo. One path every time: mai
 | `gh release create` by hand | Bypasses cargo-dist / preflight / artifacts |
 | Tag from non-`main` | Policy + dist target |
 | Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
-| `--admin` / force merge | Branch protection exists for a reason |
+| `--admin` / force merge | `main` is guarded by ruleset `main-protection` (not branch protection) for a reason; `required_status_checks` there are the only checks that unblock a merge |
 | Ship while main CI pending/failed | Broken release |
+| Relax `do_ci_check` (e.g. drop `schedule` runs) to get a release out | The gate is the release's only CI proof; weakening it needs an explicit decision and a PR of its own, never a ship-time edit (LESSON-051) |
 | `--skip-local-tests` without `ci-check` parity | Skips the local `validate`/`prepare` gates; only acceptable when a `ci-check` on the **exact** release commit is green (full `ship` already runs it) |
 | Multiple competing “release procedures” | This skill + `release-manager.sh` only |
 
@@ -144,6 +145,9 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | verify-release-state fails docs | PR: set `Released Version: vX.Y.Z` in ROADMAP + STATUS |
 | ci-check pending | Wait; re-run `ci-check` |
 | ci-check failed | Fix main CI first |
+| ci-check failed and **no push triggered it** (a `schedule` nightly run is attached to the release SHA) | `do_ci_check` filters by head SHA only, so scheduled failures count. Do **not** weaken the gate mid-release: land a fix on main so the nightly detaches off the new HEAD, then ship inside the window before the next nightly starts (`gh run list --workflow=nightly-tests.yml` for the observed start; cron is `0 2 * * *`) — LESSON-051 |
+| Advisory-driven main red (Cargo Deny / Dependency Audit) | Fix main with a lockfile-only PR first; scope from **both** `cargo deny check advisories` and `cargo audit --json` — one tool green does not mean main green (LESSON-046/047) |
+| `Check for unreleased changes` red on the version PR | Cadence is critical; the PR needs `release-preparation`. If the bot already applied it, `gh run rerun` replays the label-less payload — toggle the label as a human: `gh pr edit <n> --remove-label release-preparation && gh pr edit <n> --add-label release-preparation` (LESSON-049) |
 | Tag already on remote | Do not retag; inspect `gh release view` |
 | release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
 | Release left **unpublished draft** (workflow died between draft creation and publish) | Re-run the failed tag workflow run (`gh run rerun <id>`) — the draft-create step is idempotent and publishing stays inside `release.yml`; never create a release by hand. This recovery only applies while the release is a **draft**; a published immutable release cannot be amended (delete it — and the tag, after review — before shipping a corrected one) |
@@ -158,6 +162,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | **release-guard** (this) | **All** release/tag/publish/deploy requests |
 | github-release-best-practices | Background only; defers to this skill |
 | pr-readiness | Merging the version-bump PR before ship |
+| code-quality | The advisory-bump procedure when main CI is red on `Cargo Deny` / `Dependency Audit` |
 | release-drift workflow | Alerts when main outruns tags — does not ship |
 
 ## Commands reference

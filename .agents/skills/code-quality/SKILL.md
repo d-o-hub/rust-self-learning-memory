@@ -75,6 +75,44 @@ cargo tree -d | grep -cE "^[a-z]"   # Count duplicates (target: <100)
 cargo machete && cargo shear       # Find unused deps
 ```
 
+## Security Advisory Bumps (read before scoping a fix)
+
+**Two blocking tools, one step.** The Quality Gates job runs `cargo deny check
+advisories` *and* `cargo audit --json` (failing on `.vulnerabilities.count > 0`).
+They read different advisory DB clones and report different sets, so scope from
+the union (LESSON-046):
+
+```bash
+cargo deny check advisories
+cargo audit --json > /tmp/audit.json; jq -r '.vulnerabilities.count' /tmp/audit.json
+jq -r '.vulnerabilities.vulnerabilities[] | .package.name + " " + .advisory.id' /tmp/audit.json
+```
+
+**Local deny can lie.** A stale clone under `~/.cargo/advisory-dbs/` reports
+"advisories ok" against a lock CI proves red; check its checkout date and
+cross-check with `cargo audit` (DB at `~/.cargo/advisory-db`). Investigate a
+leftover `db.lock` instead of deleting it (LESSON-047). Per-advisory facts:
+`~/.cargo/advisory-db/crates/<pkg>/<ID>.md` or `rustsec.org/advisories/<ID>.html`
+(`api.rustsec.io` / `crates.io/api/v1` return empty bodies to `curl`).
+
+**Bump the floor, not the tip.**
+
+```bash
+cargo update -p <pkg> --precise <minimal-patched-from-[versions]-patched>
+```
+
+When a bump moves `getrandom` across a major, re-run the WASM gate locally with
+its real flags: `cargo check -p do-memory-core --target wasm32-unknown-unknown
+--no-default-features --features wasm32` with
+`RUSTFLAGS='-D warnings --cfg getrandom_backend="wasm_js"'` (LESSON-048).
+
+**Waivers.** Keep advisory PRs lockfile-only. Every ignore needs the same
+evidence-backed entry in **both** `deny.toml` (`[advisories] ignore`) and
+`.cargo/audit.toml`, stating: the advisory, the dependency chain, the fix range
+(or why no in-place patch exists), and the mitigation verified against source —
+not asserted. Fix, don't suppress: a waiver is only for chains this workspace
+cannot patch.
+
 ## Code Review Output Format
 
 ```markdown

@@ -85,6 +85,37 @@ cargo tarpaulin --workspace
 # See LESSON-022
 ```
 
+### RustSec advisory failure on `main` (Cargo Deny / Dependency Audit)
+```bash
+# Symptom: Cargo Deny, Dependency Audit, or Quality Gates goes red with no code
+#          change — a new advisory landed against the existing lock.
+# TRAP: the step runs TWO blocking tools. Fixing what `cargo deny` printed
+#       leaves `cargo audit --json` (vulnerabilities.count > 0) red, because
+#       they consult different advisory DB clones. Scope from the union.
+# TRAP: local `cargo deny` reports a FALSE GREEN when its DB clone
+#       (~/.cargo/advisory-dbs/) is stale; check the checkout date, or verify
+#       with `cargo audit` (~/.cargo/advisory-db) which refreshes separately.
+cargo deny check advisories
+cargo audit --json > /tmp/audit.json && jq -r '.vulnerabilities.count' /tmp/audit.json
+# Fix: bump to the minimal patched version from the advisory's
+#      [versions] patched range, not the newest:
+cargo update -p <pkg> --precise <min-patched>
+# Then re-run the WASM gate if the bump moved getrandom across a major.
+# Waivers go in BOTH deny.toml and .cargo/audit.toml, with verified evidence.
+# See .agents/skills/code-quality/SKILL.md, LESSON-046..048
+```
+
+### Drift check (`Check for unreleased changes`) will not clear on re-run
+```bash
+# Symptom: fails while cadence is critical; the workflow auto-adds
+#          `release-preparation`, but `gh run rerun` fails again.
+# Cause: the re-run replays the ORIGINAL event payload (label-less), and the
+#        bot-applied label (via GITHUB_TOKEN) cannot trigger a new run.
+gh pr edit <n> --remove-label release-preparation
+gh pr edit <n> --add-label release-preparation   # human actor => `labeled` run
+# See LESSON-049 (and LESSON-044 for the synchronize-event variant)
+```
+
 ## Diagnosing "failures" that are not failures
 
 - `gh pr checks` prints **cancelled** rows as `fail` with a duration. Confirm the
@@ -99,6 +130,15 @@ cargo tarpaulin --workspace
 - A scheduled job (fuzz/nightly) failing with no repository change is usually a
   floating toolchain: `nightly` broke the transitive `branches` crate via
   `core::intrinsics` (LESSON-040). Pin the toolchain in the workflow.
+- A row stuck at `skipping` forever on a PR is not a skipped gate.
+  `Maintain canonical drift issue` is guarded by
+  `if: github.event_name != 'pull_request'`, so it only ever runs on schedule
+  (LESSON-049).
+- **The ruleset, not branch protection, decides what blocks a merge.** `main` is
+  guarded by ruleset `main-protection`; `/branches/main/protection` 404s. Green
+  rows outside `.rules[].parameters.required_status_checks` don't unblock
+  anything, and an unresolved review thread can keep `mergeStateStatus` at
+  `BLOCKED` with every check passing (LESSON-050).
 
 ## Fix Commands
 

@@ -53,6 +53,15 @@ fn test_scope_filter_from_query() {
     assert!(filter.required_tags.contains("bug"));
     assert!(filter.required_tags.contains("feature"));
     assert!(filter.time_range.is_some());
+
+    let filter_today = ScopeFilter::from_query_text("fix bug today");
+    assert!(filter_today.time_range.is_some());
+
+    let filter_week = ScopeFilter::from_query_text("fix bug this week");
+    assert!(filter_week.time_range.is_some());
+
+    let filter_month = ScopeFilter::from_query_text("fix bug this month");
+    assert!(filter_month.time_range.is_some());
 }
 
 #[test]

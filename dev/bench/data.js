@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792181426322,
+  "lastUpdate": 1792186856710,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -68719,6 +68719,858 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 50514.94,
             "range": "± 155.05",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c34c68edc872eec55e4ed0207c23ecf32c88d88b",
+          "message": "fix(turso): repair the red nightly suite and the three production bugs behind it (#1180)\n\n* fix(turso): hold pooled checkouts for every storage read/write\n\n`get_connection_with_id()` only works on a direct connection, so under a\nconfigured connection pool these calls failed before reaching SQL. Route\neach site through `with_connection`/`with_connection_with_id`, which keep\nthe permit for the whole closure.\n\nAffected: capacity eviction intents (record/pending/mark-failed/clear and\nthe cleanup transaction), the modified-since episode query, sync watermark\nload/save, and the embedding id listing.\n\n* fix(storage): read embeddings through the dimension tables under turso_multi_dimension\n\n`_store_embedding_internal` routes writes to `store_embedding_dimension_aware`\nwhen the feature is on and that build never creates the legacy `embeddings`\ntable, but the readers still queried it. `_get_embedding_internal` (and the\nbatch path that delegates to it) and `has_vector_embeddings` now mirror the\nwrite path; the count spans the four indexed dimension tables because\n`embeddings_other` has no vector index and cannot serve vector_top_k.\n\n* fix(turso): write monitoring metrics against the real schema columns\n\nThe INSERT/SELECT statements named `last_execution_time` and\n`avg_completion_time`, which the DDL does not create (`last_execution`,\n`avg_completion_time_ms`), so every metrics write failed on both builds.\nThe statement was also storing seconds in `avg_duration_ms`, an\nINTEGER-affinity column, and reading it back as f64. Round-trip\nmilliseconds through i64 instead.\n\n* test(turso): stop swallowing errors and use schema-valid embeddings\n\nEvery assert in these suites mapped a `Result` to a bare boolean, so an\nErr printed only \"should succeed\" and hid the cause. Include the value in\nthe message. The embedding fixtures also stored 2 and 5 element vectors,\nwhich the default `F32_BLOB(384)` column rejects in the vector index\nbefore the storage layer sees them; use 384-dimensional fixtures.\n\n* ci(nightly): gate the multi-dimension suites at build level\n\n`multi_dimension_routing` and `phase1_validation` only pass with the\n`turso_multi_dimension` schema. Their per-test `cfg_attr(..., ignore)`\nguards do not help on nightly, which runs `--run-ignored only` and so\nforce-executes them against the default schema. Declare\n`required-features` instead and add a nightly invocation that runs both\nsuites with the feature enabled.\n\nThat invocation uses `--run-ignored all`: with the feature on,\nphase1_validation's tests are no longer marked ignored and `only` would\nfilter every one of them out.\n\n* docs(changelog): record the Turso nightly repairs for #1180\n\n* test(turso): cover the connection-helper arms the patch left unexecuted\n\nCodecov reported 57 missing patch lines; 50 of them are default-build lines the\ncoverage job instruments but never runs.\n\n- storage/mod.rs 177-201 and 245-246: list_embedding_ids_backend's single-table\n  branch and has_vector_embeddings had zero hits in CI.\n- storage/capacity_intents.rs 78-82, 192-195, 226-229, 258-261: the four\n  intent-outbox map_err arms.\n- storage/embeddings_internal.rs 176-180: the prepare-failure arm.\n- storage/monitoring.rs 75, 281, 290: store_agent_metrics and\n  row_to_agent_metrics were only exercised by the pooled tests ignored under\n  ADR-027, so the column corrections this PR makes had no regression guard.\n\nAll eight run pool-free through Builder::new_local in src/tests.rs and provoke\nthe failure arms by dropping the table the statement needs, so the production\nSQL is what fails. Verified with 339 lib tests (default) and the same four\nunder --features turso_multi_dimension.",
+          "timestamp": "2026-10-16T20:49:24Z",
+          "tree_id": "ee92433d72ffb6acc965f1774889f850064b2551",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/c34c68edc872eec55e4ed0207c23ecf32c88d88b"
+        },
+        "date": 1792186856275,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "broadcast_fan_out_fan_out_10_receivers",
+            "value": 42138.96,
+            "range": "± 1319.85",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_1_receivers",
+            "value": 14780.91,
+            "range": "± 1029.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_50_receivers",
+            "value": 162280.69,
+            "range": "± 1982.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_5_receivers",
+            "value": 26592.6,
+            "range": "± 370.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_single_receiver_send_1000_events",
+            "value": 132188.23,
+            "range": "± 1727.83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 35460732.35,
+            "range": "± 2174758.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 414742137.75,
+            "range": "± 6849687.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 197226792.97,
+            "range": "± 15989316.1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 414866668.9,
+            "range": "± 5798440.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 72528748.98,
+            "range": "± 13735150.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 17343952.93,
+            "range": "± 394284.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 130.96,
+            "range": "± 2.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 222.6,
+            "range": "± 832.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_all",
+            "value": 19.82,
+            "range": "± 0.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_connection",
+            "value": 15.46,
+            "range": "± 1.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_concurrent_concurrent_access",
+            "value": 1385696.95,
+            "range": "± 155166",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 3310938.87,
+            "range": "± 128151.96",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 362.6,
+            "range": "± 70.05",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 2677.43,
+            "range": "± 29.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 142.8,
+            "range": "± 2.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 229.65,
+            "range": "± 7.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 321.15,
+            "range": "± 8.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 184.83,
+            "range": "± 3.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 3116.67,
+            "range": "± 112.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 33246.09,
+            "range": "± 802.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 350567.39,
+            "range": "± 5314.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 1726572.01,
+            "range": "± 52824.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 142.43,
+            "range": "± 2.77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 8743.12,
+            "range": "± 163.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 852.26,
+            "range": "± 15.72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 262.07,
+            "range": "± 9.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 353.63,
+            "range": "± 33.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 432.62,
+            "range": "± 32.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 296.41,
+            "range": "± 16.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_parameterized_queries",
+            "value": 400.6,
+            "range": "± 23.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 540.08,
+            "range": "± 51.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_statistics_stats_calculation",
+            "value": 10.63,
+            "range": "± 0.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 43.99,
+            "range": "± 2.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_1000",
+            "value": 44.53,
+            "range": "± 0.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_500",
+            "value": 43.9,
+            "range": "± 0.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_5000",
+            "value": 44.62,
+            "range": "± 3.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 1799.57,
+            "range": "± 58.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 54072.32,
+            "range": "± 1092.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 200.74,
+            "range": "± 4.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 5465.86,
+            "range": "± 104.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 882.01,
+            "range": "± 51.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 27588.63,
+            "range": "± 1078.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_stress_capacity_1024",
+            "value": 134257.35,
+            "range": "± 1788.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_stress_capacity_256",
+            "value": 33332.52,
+            "range": "± 617.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_stress_capacity_4096",
+            "value": 552871.66,
+            "range": "± 45919.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_stress_capacity_64",
+            "value": 8676.92,
+            "range": "± 606.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 7991631.73,
+            "range": "± 857218.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 8050428.39,
+            "range": "± 699908.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 3.79,
+            "range": "± 0.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 3.89,
+            "range": "± 0.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 3.87,
+            "range": "± 0.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 3.82,
+            "range": "± 0.06",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 3.84,
+            "range": "± 0.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.24,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.24,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.24,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.24,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.24,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 84587.95,
+            "range": "± 2949.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 19015.12,
+            "range": "± 642.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 19214.89,
+            "range": "± 579.71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 18369.59,
+            "range": "± 732.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 49974.93,
+            "range": "± 907.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_latest_concurrency_1_read_latest@1",
+            "value": 4975940984.6,
+            "range": "± 69456122.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 5484329520.2,
+            "range": "± 65181639.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 5000639311.2,
+            "range": "± 103319914.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 5153860641.8,
+            "range": "± 119213271.46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 5240710623,
+            "range": "± 45008822.38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_16_read_only@16",
+            "value": 4980213902.3,
+            "range": "± 79609793.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 4950689170.5,
+            "range": "± 29174444.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 5164479895,
+            "range": "± 684575102.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 4955297024.7,
+            "range": "± 43469430.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 9483386911.2,
+            "range": "± 180374789.83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 5224461071.3,
+            "range": "± 19969713.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 6084270066.1,
+            "range": "± 43857218.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 7162664303.4,
+            "range": "± 38820296.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 23498.08,
+            "range": "± 791.83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 25139.2,
+            "range": "± 6511.3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 403636.14,
+            "range": "± 8246.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 15446.99,
+            "range": "± 9353.4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 48651.32,
+            "range": "± 23169.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 85961.63,
+            "range": "± 38591.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 231026.08,
+            "range": "± 115719.31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_1",
+            "value": 5176678.83,
+            "range": "± 217142.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_10",
+            "value": 10538068.77,
+            "range": "± 2102257.59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 229.42,
+            "range": "± 26.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 1816.05,
+            "range": "± 22.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 906.68,
+            "range": "± 45.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 5684.6,
+            "range": "± 276.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 55914.25,
+            "range": "± 2218.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 27832.44,
+            "range": "± 358.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 17851.51,
+            "range": "± 341.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 51550.18,
+            "range": "± 22210.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 59187,
+            "range": "± 28972.3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lifecycle_simulation_episode_lifecycle_events",
+            "value": 1193.6,
+            "range": "± 98.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 10.02,
+            "range": "± 0.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 1005.49,
+            "range": "± 43.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 1019.77,
+            "range": "± 56.59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 895.73,
+            "range": "± 25.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 464.45,
+            "range": "± 18.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 367.47,
+            "range": "± 28.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 6065119.7,
+            "range": "± 2482920.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 2729284.96,
+            "range": "± 628649.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 10901.78,
+            "range": "± 451.51",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 918.27,
+            "range": "± 35.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "send_event",
+            "value": 23.29,
+            "range": "± 0.51",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 17853.72,
+            "range": "± 281.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 7666.25,
+            "range": "± 206.93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 37346.48,
+            "range": "± 590.95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 1794512.88,
+            "range": "± 391142.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 1612496.72,
+            "range": "± 119186.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 1698110.59,
+            "range": "± 401517.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 1639724.03,
+            "range": "± 185030.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 1853541.32,
+            "range": "± 460168.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 1575270.5,
+            "range": "± 102941.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "subscribe",
+            "value": 50.37,
+            "range": "± 2.19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 4843.04,
+            "range": "± 267.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 3135.07,
+            "range": "± 180.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 9208.55,
+            "range": "± 99.98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 1984.03,
+            "range": "± 118.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 16644.83,
+            "range": "± 939.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 157285.45,
+            "range": "± 2314.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_full_sort_n100000_k10000",
+            "value": 1915143.9,
+            "range": "± 19140.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_full_sort_n10000_k1000",
+            "value": 110413.22,
+            "range": "± 5445.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_full_sort_n1000_k100",
+            "value": 9308.65,
+            "range": "± 1482.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_full_sort_n100_k10",
+            "value": 652.96,
+            "range": "± 14.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_partial_sort_n100000_k10000",
+            "value": 220567.65,
+            "range": "± 19183.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_partial_sort_n10000_k1000",
+            "value": 18679.79,
+            "range": "± 1184.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_partial_sort_n1000_k100",
+            "value": 1746.46,
+            "range": "± 32.46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_selection_partial_sort_n100_k10",
+            "value": 208.21,
+            "range": "± 3.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_varying_k_full_n10000_k10",
+            "value": 113965.11,
+            "range": "± 9177.28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "top_k_varying_k_partial_n10000_k10",
+            "value": 9619.94,
+            "range": "± 762.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 33732.19,
+            "range": "± 583.54",
             "unit": "ns/iter"
           }
         ]

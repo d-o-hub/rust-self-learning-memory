@@ -202,6 +202,37 @@ prerequisite stands.
      token secret returns, if `id-token: write` disappears, or if the auth
      action loses its SHA pin.
 
+## Amendment (2026-10-16): the publish guard was false-green, so publishing now proves itself
+
+Hardening item 6 above shipped a guard that never published. In
+`.github/actions/publish-crate/action.yml` the live upload step read
+`if: ${{ !inputs.dry-run && … }}`, but composite-action inputs arrive as
+**strings**: GitHub coerces any non-empty string to `true`, so `!"false"` is
+`false` and the step was skipped on every run where `publish-crates.yml` passed
+`dry-run: false`. The job still minted an OIDC token, still reported success, and
+uploaded nothing (evidence: run `38887674688` for `v0.1.45`, whose publish step is
+`conclusion=skipped` inside a successful job). Introduced 2026-10-03 in `493cfb01`
+(#1109); releases v0.1.44 and v0.1.45 never reached crates.io, and because
+`release.yml` dispatches the chain **on the tag ref**, a superseded tag cannot be
+republished after the fix — the corrected guard only takes effect from the next
+tag forward.
+
+Consequences for this ADR:
+
+- Publish gates compare inputs against the literal `'true'`
+  (`inputs.dry-run != 'true'`), the form the tag guard and the auth step already
+  used; `scripts/validate-gate-contract.sh` fails any `!inputs.` guard in the
+  publish files.
+- A green publish job must now prove the upload: `Verify publish landed` polls
+  crates.io (bounded, 20 x 15s) for the version it just published, so the failure
+  no longer surfaces only as the *next* crate's dependency timeout.
+- `Check if version exists` tests membership of the full version list rather than
+  equality with `.versions[0]`, so re-running a chain stays idempotent even once a
+  newer version has landed.
+- The claim in the migration notes that "every job skips a version that already
+  exists" was not the reason publishing stopped, and the fix does not weaken
+  tag-only authority (ADR-072): the next tag carries the corrected action.
+
 ## Alternatives considered
 
 1. **Keep the static token indefinitely**: rejected because the supply-chain risk

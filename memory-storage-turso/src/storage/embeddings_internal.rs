@@ -142,6 +142,11 @@ impl TursoStorage {
     }
 
     /// Get an embedding (internal implementation)
+    ///
+    /// Mirrors [`Self::_store_embedding_internal`]: the `turso_multi_dimension`
+    /// build writes through `store_embedding_dimension_aware` and never creates
+    /// the legacy `embeddings` table, so reads must walk the dimension tables
+    /// there and the single-table SQL below only applies to the default build.
     pub(crate) async fn _get_embedding_internal(
         &self,
         item_id: &str,
@@ -151,38 +156,50 @@ impl TursoStorage {
             "Retrieving embedding: item_id={}, item_type={}",
             item_id, item_type
         );
-        self.with_connection_with_id(async |conn, conn_id| {
-            const SQL: &str =
-                "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
 
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare_with_id(conn_id, conn, SQL)
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-                })?;
-            let mut rows = stmt
-                .query(libsql::params![item_id.to_string(), item_type.to_string()])
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
-                })?;
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            return self.get_embedding_dimension_aware(item_id, item_type).await;
+        }
 
-            if let Some(row) = rows.next().await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
-            })? {
-                let embedding_data: String = row
-                    .get(0)
-                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            self.with_connection_with_id(async |conn, conn_id| {
+                const SQL: &str =
+                    "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
 
-                let embedding = self.decode_embedding_data(&embedding_data)?;
-                Ok(Some(embedding))
-            } else {
-                Ok(None)
-            }
-        })
-        .await
+                let stmt = self
+                    .prepared_cache
+                    .get_or_prepare_with_id(conn_id, conn, SQL)
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to prepare statement: {}",
+                            e
+                        ))
+                    })?;
+                let mut rows = stmt
+                    .query(libsql::params![item_id.to_string(), item_type.to_string()])
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
+                    })?;
+
+                if let Some(row) = rows.next().await.map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
+                })? {
+                    let embedding_data: String = row
+                        .get(0)
+                        .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+
+                    let embedding = self.decode_embedding_data(&embedding_data)?;
+                    Ok(Some(embedding))
+                } else {
+                    Ok(None)
+                }
+            })
+            .await
+        }
     }
 
     /// Delete an embedding

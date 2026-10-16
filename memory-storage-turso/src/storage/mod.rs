@@ -224,11 +224,26 @@ impl TursoStorage {
     }
 
     /// Check if embedding vector column is populated for vector_top_k search
+    ///
+    /// Under `turso_multi_dimension` there is one table per supported dimension
+    /// and no legacy `embeddings` table, so the count spans the four tables that
+    /// own a vector index; `embeddings_other` has no index and cannot serve
+    /// vector_top_k.
     pub async fn has_vector_embeddings(&self) -> Result<bool> {
-        self.with_connection_with_id(async |conn, _conn_id| {
-            let sql = "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
+        #[cfg(feature = "turso_multi_dimension")]
+        const SQL: &str = r#"
+            SELECT COALESCE(SUM(n), 0) FROM (
+                SELECT COUNT(*) AS n FROM embeddings_384 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_1024 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_1536 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_3072 WHERE embedding_vector IS NOT NULL
+            )"#;
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        const SQL: &str =
+            "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
 
-            let mut rows = conn.query(sql, ()).await.map_err(|e| {
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let mut rows = conn.query(SQL, ()).await.map_err(|e| {
                 do_memory_core::Error::Storage(format!("Failed to check vector embeddings: {}", e))
             })?;
 

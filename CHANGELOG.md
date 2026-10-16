@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.45] - 2026-10-14
+
 ### Fixed
 
 - The adaptive connection pool now has one coherent capacity model (#1063): the
@@ -88,6 +90,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is published, which is also what makes the trusted-publisher environment
   restriction (tags only) usable.
 
+- Turso capacity eviction is error-aware and repairable (#1070): each selected
+  episode is recorded in a durable `capacity_eviction_intents` outbox before any
+  deletion, its embedding rows (every legacy and `turso_multi_dimension` table
+  discovered from `sqlite_master`) and the episode row are deleted in a single
+  transaction, a failure rolls the whole transaction back and is attributed to
+  the failing stage in a structured `EvictionOutcome`, and `enforce_capacity`
+  reports the error instead of success. The outbox is retryable through
+  `pending_capacity_eviction_intents` / `retry_pending_capacity_evictions`.
+
 ### Changed
 
 - Feedback-to-ranking refreshes are now incremental (#1078): an accepted
@@ -119,6 +130,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CycloneDX SBOMs, generates build-provenance and SBOM attestations
   (`actions/attest`), and only then publishes — compatible with enabling
   immutable releases, and verifiable with `gh attestation verify`.
+
+- `StorageBackend`'s optional operations can no longer fake durable success
+  (#1087): the relationship, procedural and episode-cleanup defaults return
+  `Error::CapabilityUnavailable`, the capability predicates moved into a
+  `StorageBackendCapabilities` supertrait, callers that mirror into a cache gate
+  on the predicate first, and a fail-closed inventory
+  (`scripts/storage-backend-capabilities.toml` +
+  `docs/generated/storage-backend-capabilities.json`) classifies every defaulted
+  method in the blocking `fast-gate` job. A defaulted method that cannot be
+  advertised as a capability is classified `fail-closed`.
+- Crate-root lint suppressions are `expect(...)` with reasons (#1092): the
+  workspace ratchets 317 crate-root `#![allow]` lines to zero, the turso crate
+  denies `unsafe_code`, and dead suppressions that no longer fired are deleted
+  (`unfulfilled_lint_expectations` catches them in the workspace clippy gate).
+- The fuzz workflow pins a dated nightly toolchain instead of floating `nightly`
+  (#1161): a nightly-only `core::intrinsics` change broke the transitive
+  `branches` crate and failed every fuzz target as a startup failure.
 
 ## [0.1.44] - 2026-10-02
 

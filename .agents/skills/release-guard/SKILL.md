@@ -137,6 +137,19 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 - Drift issue (#849-style) should close when tag matches workspace version
 - Bump workspace to next patch for development in a **follow-up PR** (optional)
+- **A green `publish-crates.yml` is not proof the crates published.** Verify each
+  crate externally after the dispatch finishes, or the workspace ships binaries
+  while crates.io silently stalls (LESSON-053):
+
+  ```bash
+  TAG=vX.Y.Z
+  for c in do-memory-core do-memory-storage-redb do-memory-storage-turso do-memory-mcp; do
+    echo "$c: $(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+      "https://crates.io/api/v1/crates/$c/versions" |
+      jq -r --arg v "${TAG#v}" '[(.versions // [])[].num] | index($v) != null')"
+  done
+  # every line must be true; "false" means the publish chain was green but skipped
+  ```
 
 ## Failure playbook
 

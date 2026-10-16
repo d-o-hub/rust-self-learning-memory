@@ -786,3 +786,40 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   (prefer an unfinished entry over a finished one) before classifying. Never
   delete workflow runs to silence a gate.
 - References: `scripts/check-pr-readiness.sh`, `scripts/merge-pr.sh`, LESSON-041, LESSON-049.
+
+## LESSON-053: a negated input guard makes the crates.io publish chain falsely green (2026-10-16)
+
+- Issue: `release-manager.sh ship --execute` published v0.1.45, `release.yml`
+  dispatched `publish-crates.yml` on the tag and the run went **success** for
+  `Publish do-memory-core` — yet `crates.io/api/v1/crates/do-memory-core/versions`
+  still listed `0.1.34` as newest. The log shows
+  `Version not on crates.io, will publish`, `aborting upload due to dry run`,
+  `Retrieved token successfully`, then
+  `##[endaction … conclusion=skipped;duration_ms=0]` for `Publish to crates.io`.
+  Cause: `if: ${{ !inputs.dry-run && … }}`. Composite-action inputs are
+  **strings**, and GitHub coerces any non-empty string to `true`, so the value
+  `publish-crates.yml` renders (`dry-run: ${{ inputs.dry-run == true }}` →
+  `"false"`) makes `!inputs.dry-run` **false** and skips the real upload.
+  Introduced 2026-10-03 in `493cfb01` (#1109); v0.1.44 and v0.1.45 never
+  published, and `do-memory-mcp` has been stuck at 0.1.31.
+- Impact: the release looks complete — release assets, attestations and a green
+  publish workflow all say "shipped" — while the crates.io audience gets nothing
+  and the gap only surfaces as the *next* crate's
+  `dependency … did not appear on crates.io within 300s` timeout. Retagging is
+  not a fix either: a run takes the workflow **and** the composite action from
+  its tag SHA, and `Verify tag matches version` binds tag to manifest, so a
+  superseded tag can never publish retroactively.
+- Fix/prevention: never negate an input in a gate — compare to the literal
+  (`inputs.dry-run != 'true'`), the form the tag guard and auth step already used
+  in the same file. Make a green publish prove itself (`Verify publish landed`
+  polls the versions endpoint, bounded like LESSON-014) and query version
+  **membership** (`[(.versions // [])[].num] | index($v) != null`) instead of
+  `.versions[0].num` equality, so re-runs stay idempotent once a newer version
+  exists. Sensors: `scripts/validate-gate-contract.sh` fails any `!inputs.` guard
+  in the publish files and `scripts/test-release-workflow.sh --publish-fixtures`
+  requires the proof step. After any release, assert the publish externally —
+  `curl -sS https://crates.io/api/v1/crates/<crate>/versions | jq '.versions[0].num'`
+  must equal the tag; a green workflow is not evidence that an artifact exists.
+- References: `.github/actions/publish-crate/action.yml`,
+  `.github/workflows/publish-crates.yml`, ADR-078 (amendment 2026-10-16),
+  LESSON-014, #1179.

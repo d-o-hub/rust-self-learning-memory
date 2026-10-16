@@ -75,6 +75,29 @@ See linked files for caching strategies, troubleshooting, and release management
   `dtolnay/rust-toolchain` action input, comment why, and validate the pin by
   building the affected crate with that toolchain before pushing (LESSON-040).
 
+## Composite Input Truthiness Guardrail
+
+- Composite-action (`action.yml`) inputs arrive as **strings**, even when the
+  caller passes a rendered boolean, and GitHub coerces any non-empty string to
+  `true` — so `!"false"` is `false`. `if: ${{ !inputs.dry-run }}` therefore skips
+  the step on every real run while the job reports success (LESSON-053: the
+  crates.io publish chain uploaded nothing for two releases this way).
+- Gate on an explicit comparison (`inputs.dry-run != 'true'`, `inputs.x == 'true'`)
+  and use **one** form across all steps of the action — the broken file compared
+  correctly on two steps and negated on the third, which is why the skip survived
+  review.
+- A run executes the workflow **and** the composite actions from its own SHA: a fix
+  only applies to runs dispatched from refs that contain it (dispatching on a tag
+  uses the tag's copy, so a superseded tag keeps the old behaviour forever).
+- Prove side effects, do not assume them: any step that claims an external change
+  (publish, push, register) must poll the provider with a bounded loop
+  (`for i in $(seq 1 20)`, `sleep 15`) and `::error::` out when the object is
+  missing. A green job is not evidence that an artifact exists.
+- When checking whether an API already has an object, test **membership** of the
+  full list (`[(.versions // [])[].num] | index($v) != null`) rather than
+  comparing the newest entry — `[0]` equality misreads a superseded-but-present
+  version as absent and flips a retry into a hard failure.
+
 ## PR Check Attachment Guardrail
 
 - After pushing fixes, validate checks are attached to the PR head SHA:

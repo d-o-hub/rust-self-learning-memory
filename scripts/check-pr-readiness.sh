@@ -60,13 +60,15 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
   # Count check statuses from the LATEST run per check name. GitHub evaluates
   # only the newest run of each context, so a re-run (e.g. the
   # release-preparation label toggle on Release Drift Check) leaves superseded
-  # FAILURE rows in statusCheckRollup. An unfinished run always wins over a
-  # finished one of the same name, so pending work is never hidden.
+  # FAILURE rows in statusCheckRollup. sort_by is ascending and `last` wins, so
+  # the unfinished-first key must be the HIGHER one: a run still in flight beats
+  # any finished run of the same name, otherwise a stale FAILURE hides real
+  # pending work — and a stale SUCCESS reports a running check as passing.
   ROLLUP=$(echo "$PRS" | jq -c --argjson i "$i" '(.[$i].statusCheckRollup // [])')
   LATEST=$(echo "$ROLLUP" | jq -c '
     group_by(.name // .context // "?")
     | map(sort_by(
-        (if ((.status // "COMPLETED") | IN("IN_PROGRESS", "QUEUED", "PENDING")) then 0 else 1 end),
+        (if ((.status // "COMPLETED") | IN("IN_PROGRESS", "QUEUED", "PENDING")) then 1 else 0 end),
         (.completedAt // .startedAt // ""))
       | last)')
   RAW_TOTAL=$(echo "$ROLLUP" | jq 'length')
@@ -127,17 +129,17 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     VERDICT="❌ MERGE CONFLICTS"
     ACTIONS="Checkout branch, merge main, resolve conflicts, push"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   elif [ "$MERGE_STATE" = "DIRTY" ]; then
     VERDICT="❌ DIRTY (conflicts)"
     ACTIONS="Checkout branch, merge main, resolve conflicts, push"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   elif [ "$MERGE_STATE" = "BEHIND" ]; then
     VERDICT="⚠️ BEHIND MAIN"
     ACTIONS="Update branch: gh api repos/$REPO/pulls/$NUMBER/update-branch -X PUT -f update_method=merge"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
     if [ "$FIX_MODE" = true ]; then
       echo "  🔧 Auto-fixing: updating branch..."
       gh api "repos/$REPO/pulls/$NUMBER/update-branch" -X PUT -f update_method=merge 2>&1 | jq -r '.message // "Updated"'
@@ -149,7 +151,7 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     elif [ "$FAILURE" -gt 0 ]; then
       VERDICT="❌ BLOCKED (CI failing)"
       ACTIONS="Fix $FAILURE failing check(s)"
-      ((ISSUES_FOUND++))
+      ISSUES_FOUND=$((ISSUES_FOUND + 1))
     else
       VERDICT="⏳ BLOCKED (required checks)"
       ACTIONS="Wait for required checks"
@@ -159,14 +161,14 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     VERDICT="⚠️ UNSTABLE (non-required checks failing)"
     ACTIONS="Check if failing checks are pre-existing or non-blocking"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   fi
 
   if [ "$FAILURE" -gt 0 ] && [ "$VERDICT" = "✅ READY" ]; then
     VERDICT="❌ CI FAILURE"
     ACTIONS="Fix $FAILURE failing check(s)"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   fi
 
   if [ "$CANCELLED" -gt 0 ]; then
@@ -179,7 +181,7 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
         VERDICT="⚠️ CANCELLED CHECKS"
         ACTIONS="Re-run cancelled workflows: gh run rerun {run_id}"
         ALL_READY=false
-        ((ISSUES_FOUND++))
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
       fi
     fi
   fi
@@ -195,7 +197,7 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     VERDICT="❌ CHANGES REQUESTED"
     ACTIONS="Address review feedback (gh api repos/$REPO/pulls/$NUMBER/comments + reviews); fix, push, request re-review"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   fi
 
   if [ "${INLINE_COUNT:-0}" -gt 0 ] && [ "$VERDICT" = "✅ READY" ]; then
@@ -206,7 +208,7 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
     VERDICT="⚠️ CODECOV FEEDBACK"
     ACTIONS="Address Codecov missing lines / patch coverage (add tests); see .agents/skills/pr-readiness/SKILL.md"
     ALL_READY=false
-    ((ISSUES_FOUND++))
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
   fi
 
   echo "  Verdict: $VERDICT"

@@ -242,7 +242,7 @@ pub fn hit_rate_at_k(retrieved: &[usize], relevant: &HashSet<usize>, k: usize) -
 
 /// Reciprocal Rank Fusion (RRF) for combining multiple ranked lists.
 ///
-/// RRF is robust to score scale differences and doesn't require normalization.
+/// RRF is resilient to score scale differences and doesn't require normalization.
 ///
 /// # Arguments
 ///

@@ -982,6 +982,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   read its `evals/evals.json` before adding prose about what is forbidden, and
   run the named skill (`./scripts/run-evals.sh <skill>`), not `--changed`, while
   iterating — then re-run after committing so CI and local see the same tree.
+  Same family, second instance the same day: `coverage-waivers` fixture
+  `documents-default-feature-pipeline` asserted
+  `rg -qi 'default features only|no feature flags'`, so **correcting** that claim
+  (coverage actually runs `--features do-memory-mcp/oauth`, per
+  `.github/workflows/coverage.yml:98` — measured, not assumed) reddened the eval
+  for stating the truth. Rule: a fixture must pin the *substance* (which file,
+  which flag, which command), never a literal phrase, and it must be rewritten in
+  the same change that corrects the claim — otherwise the sensor actively defends
+  the stale wording.
 - References: `.agents/skills/release-cadence-manager/evals/evals.json`,
   `.agents/skills/release-guard/evals/evals.json`, `scripts/run-evals.sh`,
   `.github/workflows/skill-evals.yml`, `agent_docs/coding_workflow.md`, PR #1175.

@@ -268,23 +268,35 @@ mod resilient_tests {
         let (storage, _dir) = create_resilient_storage().await;
 
         let embedding_id = "test_embedding_123";
-        let embedding = vec![0.1_f32, 0.2, 0.3, 0.4, 0.5];
+        // The default (non `turso_multi_dimension`) schema stores embeddings in an
+        // `F32_BLOB(384)` column, so a shorter vector is rejected by the vector
+        // index before the storage layer ever sees it.
+        let embedding = vec![0.1_f32; 384];
 
         // Store embedding
         let result = storage
             .store_embedding(embedding_id, embedding.clone())
             .await;
-        assert!(result.is_ok(), "store_embedding should succeed");
+        assert!(
+            result.is_ok(),
+            "store_embedding should succeed, got: {result:?}"
+        );
 
         // Get embedding
         let result = storage.get_embedding(embedding_id).await;
-        assert!(result.is_ok(), "get_embedding should succeed");
+        assert!(
+            result.is_ok(),
+            "get_embedding should succeed, got: {result:?}"
+        );
         let retrieved = result.unwrap();
         assert!(retrieved.is_some(), "Embedding should be found");
 
         // Delete embedding
         let result = storage.delete_embedding(embedding_id).await;
-        assert!(result.is_ok(), "delete_embedding should succeed");
+        assert!(
+            result.is_ok(),
+            "delete_embedding should succeed, got: {result:?}"
+        );
         assert!(result.unwrap(), "delete_embedding should return true");
 
         // Verify deletion
@@ -298,19 +310,25 @@ mod resilient_tests {
         let (storage, _dir) = create_resilient_storage().await;
 
         let embeddings = vec![
-            ("emb1".to_string(), vec![0.1_f32, 0.2]),
-            ("emb2".to_string(), vec![0.3_f32, 0.4]),
-            ("emb3".to_string(), vec![0.5_f32, 0.6]),
+            ("emb1".to_string(), vec![0.1_f32; 384]),
+            ("emb2".to_string(), vec![0.2_f32; 384]),
+            ("emb3".to_string(), vec![0.3_f32; 384]),
         ];
 
         // Store batch
         let result = storage.store_embeddings_batch(embeddings.clone()).await;
-        assert!(result.is_ok(), "store_embeddings_batch should succeed");
+        assert!(
+            result.is_ok(),
+            "store_embeddings_batch should succeed, got: {result:?}"
+        );
 
         // Get batch
         let ids = vec!["emb1".to_string(), "emb2".to_string(), "emb3".to_string()];
         let result = storage.get_embeddings_batch(&ids).await;
-        assert!(result.is_ok(), "get_embeddings_batch should succeed");
+        assert!(
+            result.is_ok(),
+            "get_embeddings_batch should succeed, got: {result:?}"
+        );
 
         let retrieved = result.unwrap();
         assert_eq!(retrieved.len(), 3, "Should retrieve 3 embeddings");

@@ -1,18 +1,18 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-09
-**Released Version**: v0.1.44 (latest tag)
+**Last Updated**: 2026-10-14
+**Released Version**: v0.1.45 (release candidate; latest tag v0.1.44)
 **Workspace Version**: 0.1.45 (post-v0.1.44 bump)
 **Edition**: Rust 2024
-**Active plan**: **audit-backlog wave** (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`) — W1–W4 + Q02 merged; wave A in review (#1138, #1140, #1144–#1154, #1158, #1159); #1142 (#1065), #1143 (#1092 slice 1), #1148 (#1079) merged 2026-10-06…08. Remaining: chains #1067→#1068→#1089 and #1073→#1074→#1076, then release `v0.1.45` (#1137). Prior wave (2026-10-02/04): v0.1.44 shipped, checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 migration (#1108), architecture/status refresh (#1094 → #1110), coverage-floor reconciliation (#1090 → #1117), release pipeline C1–C7 (#1121/#1123/#1125).
-**Branch**: main @ `5054c15a` (2026-10-08)
+**Active plan**: **release closeout for the audit-backlog wave** (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`) — W1–W6, Q02, and wave-A slices are merged through #1161; the last open PR, #1153, merged as `b6326d90` on 2026-10-12. Follow-up issues #1068, #1089, and #1076 remain queued after the release.
+**Branch**: `chore/release-v0.1.45` (release candidate based on `origin/main` @ `bdd3ff07`)
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | run `gh pr list --state open` (17 at 2026-10-09: wave A + plans #1141) |
-| Open issues | run `gh issue list --state open` (16 at 2026-10-09) — per-issue verdicts, evidence and queue position live in `STATUS/GAP_ANALYSIS_LATEST.md` |
+| Open PRs | none open (run `gh pr list --state open`) — release preparation is the next intentional PR |
+| Open issues | 8 open (run `gh issue list --state open`) — per-issue verdicts, evidence and queue position live in `STATUS/GAP_ANALYSIS_LATEST.md` |
 
 ## Corrected claim (2026-10-04)
 
@@ -32,19 +32,18 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 | W4 #1066 | ✅ #1139 (`f1c31699`, `0485bb66`) — redb episode→session index ranks by `(timestamp, session_id)`; open-time repair heals stale write-order winners (no schema bump) |
 | Hygiene | ✅ #1128 docs-integrity false positives, #1129 tracker reconciliation, #1133 local hook sensors, #1136 dependabot actions bump |
 
-## In review (2026-10-09)
+## Recently merged (2026-10-09…12)
 
 | Slice | PR | State |
 |-------|-----|-------|
-| W5 #1075 query-aware lexical fallback | #1138 | roast MAJORs fixed (raw-query tokens only, context double-count removed); CI re-running |
-| W6 #1085 health probes + URL redaction (E1) | #1140 | roast MAJOR fixed (live retrieval-cache metrics); rebased; CI re-running |
-| #1067 modification watermark | #1149 | 6 roast MAJORs fixed (txn atomicity, monotonic revisions, durable watermark, loud default, Turso backfill); rebased |
-| #1064 scoped pool checkout | #1147 | roast BLOCKER fixed (brute-force fallback reuses the held connection); rebased |
-| #1063 / #1070 / #1071 / #1073 / #1078 | #1146, #1150, #1145, #1151, #1154 | CI fixes pushed (assert_is_empty, doctest, LOC decomposition) |
-| #1087 capability truth | #1144, #1152, #1158 | cleanup pair / procedural+relationships / inventory+checker, all in review |
-| #1092 lint slice 2 | #1153 | crate-root allows 317 → 0 with expects; workspace clippy green locally |
-| Nightly JSON flag fix | #1159 | isolated job never ran its tests; env var added |
-| #1155 / #1157 (jules) | #1155, #1157 | perf (Cow lowercase) / security (query_range clamp); #1157 cleaned to one commit |
+| W5 #1075 query-aware lexical fallback | #1138 | ✅ merged |
+| W6 #1085 health probes + URL redaction (E1) | #1140 | ✅ merged |
+| #1067 / #1064 / #1070 / #1063 / #1071 | #1149, #1147, #1150, #1146, #1145 | ✅ merged |
+| #1073 / #1078 / #1074 | #1151, #1154, #1160 | ✅ merged |
+| #1087 capability truth | #1144, #1152, #1158 | ✅ merged |
+| #1092 lint slice 2 | #1153 | ✅ merged as `b6326d90`; crate-root allows 317 → 0 |
+| Nightly JSON / fuzz toolchain fixes | #1159, #1161 | ✅ merged |
+| Release-plan refresh | #1141 | ✅ merged |
 
 ## Recent completed (2026-10-04 — release pipeline C5–C7)
 
@@ -80,11 +79,11 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 | Area | State |
 |------|--------|
 | First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict up-to-date policy); the aggregate is causally same-run and rejects `skipped`/`cancelled`/timed-out results |
-| Repo-wide open gaps | **16 open issues**: audit backlog 14 remaining + #1109 (code-complete, manual) + #1137 (release drift) — register: `STATUS/GAP_ANALYSIS_LATEST.md` |
-| Merged since 2026-10-06 | #1130 (#1091), #1142 (#1065), #1143 (#1092 slice 1), #1148 (#1079) |
-| Production pattern query relevance | ⚠️ **pending #1074** (E2 — `semantic_service` has no writer until the live snapshot seam lands) |
-| `episodes.created_at` watermark | ⚠️ **not a creation stamp** until #1067 lands (E3 — absent from the Turso INSERT column list) |
-| Release | v0.1.44 tagged 2026-10-02; `v0.1.45` release follows the wave (#1137) |
+| Repo-wide open gaps | **7 open issues**: follow-up storage/retrieval work, release drift, manual release-pipeline steps, and current docs work — register: `STATUS/GAP_ANALYSIS_LATEST.md` |
+| Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153 |
+| Production pattern query relevance | ✅ **#1074 merged in #1160** — pattern operations use one runtime provider snapshot |
+| `episodes.created_at` watermark | ✅ **#1067 merged in #1149** — durable modification watermark and bounded keyset pages |
+| Release | v0.1.45 candidate prepared; latest tag remains v0.1.44 until the release workflow completes |
 | Code execution | Fail-closed; S1.1c Wasmtime/WASI **NO-GO** |
 | Serialization | Postcard required |
 | Skill evals / routes | 40/40 |
@@ -93,12 +92,10 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P1 | Finish the wave: merge #1138, #1140, #1130 with green CI | W5/W6/Q02 | 🔄 |
-| P1 | Modification-watermark chain: #1067 → #1068 → #1089 (episode `updated_at` + Turso column + redb `SCHEMA_VERSION` bump, keyset pages, revision-aware merge, redb batch writer) | S08/S09/M08 | ⏳ next |
-| P1 | Identity-scoped embedding chain: #1073 → #1074 (pattern sites) → #1076 | R02/R03/R05 | ⏳ next |
-| P1 | `StorageBackend` capability truth (#1087, 4 PRs) · lint-suppression integrity (#1092, 4 PRs) | M06/Q03 | ⏳ |
-| P1 | Remaining validated P1s: #1063, #1064, #1065, #1070, #1071, #1078, #1079 | S04/S05/S06/S11/S12/R07/R08 | ⏳ |
-| P0 | Ship `v0.1.45` once the wave is green (drift issue #1137) | release | ⏳ |
+| P0 | Merge the release-preparation PR with green CI and current version docs | release | 🔄 |
+| P0 | Ship `v0.1.45` through `release-manager.sh ship --execute` | release | ⏳ |
+| P2 | Follow-up watermark sync improvements (#1068, #1089) | S09/M08 | ⏳ post-release |
+| P2 | Follow-up embedding reuse and batching (#1076) | R05 | ⏳ post-release |
 | P0 | ADR-079 stage 4 live fault-injection proof; ADR-080/081 lifecycle; #1109 crates.io registrations + secret deletion | maintainer | ⏸ external |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 

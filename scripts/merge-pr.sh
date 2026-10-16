@@ -109,8 +109,28 @@ MERGE_STATE="$(jq -r '.mergeStateStatus' <<<"$PR_JSON")"
 [[ "$MERGEABLE" == "MERGEABLE" ]] || fail "mergeable=$MERGEABLE (conflicts?)"
 [[ "$MERGE_STATE" == "CLEAN" ]] || fail "mergeStateStatus=$MERGE_STATE (need CLEAN)"
 
-BAD_CHECKS="$(jq -r '[.statusCheckRollup[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT" or .conclusion == "ACTION_REQUIRED")] | length' <<<"$PR_JSON")"
-PENDING_CHECKS="$(jq -r '[.statusCheckRollup[] | select(.status != "COMPLETED")] | length' <<<"$PR_JSON")"
+# statusCheckRollup keeps every run ever recorded for the head SHA, so a re-run
+# (the human release-preparation label toggle, or a ghost commit that cleared
+# `Check for unreleased changes`) leaves superseded FAILURE rows behind. GitHub
+# only evaluates the newest run per name, so this gate must too — otherwise it
+# refuses a CLEAN, fully green PR (LESSON-052, PR #1175). Keep it fail-closed: an
+# unfinished run sorts ABOVE every finished one, so pending work can never be
+# resolved by a stale row. Same reduction as check-pr-readiness.sh; if either
+# changes, change both.
+LATEST_RUNS="$(jq -c '
+  (.statusCheckRollup // [])
+  | group_by(.name // .context // "?")
+  | map(sort_by(
+      (if ((.status // "COMPLETED") | IN("IN_PROGRESS", "QUEUED", "PENDING")) then 1 else 0 end),
+      (.completedAt // .startedAt // ""))
+    | last)' <<<"$PR_JSON")"
+SUPERSEDED_COUNT="$(( $(jq -r '(.statusCheckRollup // []) | length' <<<"$PR_JSON") - $(jq -r 'length' <<<"$LATEST_RUNS") ))"
+if [[ "$SUPERSEDED_COUNT" -gt 0 ]]; then
+  echo "  ℹ️  $SUPERSEDED_COUNT superseded check run(s) ignored — counted the latest run per check name"
+fi
+
+BAD_CHECKS="$(jq -r '[.[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT" or .conclusion == "ACTION_REQUIRED")] | length' <<<"$LATEST_RUNS")"
+PENDING_CHECKS="$(jq -r '[.[] | select(.status != "COMPLETED")] | length' <<<"$LATEST_RUNS")"
 [[ "$BAD_CHECKS" == "0" ]] || fail "$BAD_CHECKS failed/cancelled check(s); re-run or fix before merging"
 [[ "$PENDING_CHECKS" == "0" ]] || fail "$PENDING_CHECKS check(s) still pending; wait for a terminal state"
 

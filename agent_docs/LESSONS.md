@@ -955,3 +955,33 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `plans/ROADMAPS/ROADMAP_ACTIVE.md`, `plans/STATUS/CURRENT.md`,
   `.agents/skills/release-guard/SKILL.md`,
   `.agents/skills/release-cadence-manager/SKILL.md`, #1181, ACT-411, ACT-412.
+
+## LESSON-058: a "does not teach X" eval reddens the moment you write "never do X" (2026-10-16)
+
+- Issue: the skills distill (#1175) added a `### Gate Semantics` bullet to
+  `.agents/skills/release-cadence-manager/SKILL.md` saying ship only through
+  `release-manager.sh ship --execute`, **never** `gh release create`. The prose
+  is correct; the fixture was not. `Skill schema + evals` failed on
+  `no-manual-ship ... FAIL`, `Command: ! rg -q 'gh release create'
+  .agents/skills/release-cadence-manager/SKILL.md` (run 38914237079, job
+  117017480826, exit 1). A presence-only predicate treats *any* mention of the
+  anti-pattern as a violation, so it punishes the strongest available wording.
+  24 skills carry this shape under `no-unguarded-gh-release-create`.
+- Impact: the sensor is inverted — a skill that states the prohibition and a
+  skill that teaches the bad command score identically, so it cannot
+  distinguish the fix from the bug, and any future guardrail wording in those
+  24 skills silently reddens CI. Second-order trap: `run-evals.sh --changed`
+  derives its skill list from `git diff --name-only origin/main...HEAD`
+  (`scripts/run-evals.sh:169-174`), i.e. **committed state only**, so uncommitted
+  fixture edits are invisible and a local green run proves nothing about the push.
+- Fix/prevention: write such fixtures as *require the canonical command AND
+  reject unguarded mentions* — `rg -q 'release-manager\.sh ship --execute'
+  SKILL.md && ! (rg -n 'gh release create' SKILL.md | rg -vi
+  'never|no t|do not|don.t|avoid|forbid|instead')` (the form
+  `release-guard/blocks-manual-release` already used). When editing a skill,
+  read its `evals/evals.json` before adding prose about what is forbidden, and
+  run the named skill (`./scripts/run-evals.sh <skill>`), not `--changed`, while
+  iterating — then re-run after committing so CI and local see the same tree.
+- References: `.agents/skills/release-cadence-manager/evals/evals.json`,
+  `.agents/skills/release-guard/evals/evals.json`, `scripts/run-evals.sh`,
+  `.github/workflows/skill-evals.yml`, `agent_docs/coding_workflow.md`, PR #1175.

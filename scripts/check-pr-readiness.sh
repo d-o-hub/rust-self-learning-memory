@@ -57,22 +57,39 @@ for i in $(seq 0 $((PR_COUNT - 1))); do
   MERGE_STATE=$(echo "$PRS" | jq -r ".[$i].mergeStateStatus")
   BRANCH=$(echo "$PRS" | jq -r ".[$i].headRefName")
 
-  # Count check statuses
-  SUCCESS=$(echo "$PRS" | jq "[.[$i].statusCheckRollup[] | select(.conclusion == \"SUCCESS\")] | length")
-  FAILURE=$(echo "$PRS" | jq "[.[$i].statusCheckRollup[] | select(.conclusion == \"FAILURE\")] | length")
-  CANCELLED=$(echo "$PRS" | jq "[.[$i].statusCheckRollup[] | select(.conclusion == \"CANCELLED\")] | length")
-  PENDING=$(echo "$PRS" | jq "[.[$i].statusCheckRollup[] | select(.status == \"IN_PROGRESS\" or .status == \"QUEUED\" or .status == \"PENDING\")] | length")
-  SKIPPED=$(echo "$PRS" | jq "[.[$i].statusCheckRollup[] | select(.conclusion == \"SKIPPED\")] | length")
-  TOTAL=$(echo "$PRS" | jq ".[$i].statusCheckRollup | length")
+  # Count check statuses from the LATEST run per check name. GitHub evaluates
+  # only the newest run of each context, so a re-run (e.g. the
+  # release-preparation label toggle on Release Drift Check) leaves superseded
+  # FAILURE rows in statusCheckRollup. An unfinished run always wins over a
+  # finished one of the same name, so pending work is never hidden.
+  ROLLUP=$(echo "$PRS" | jq -c --argjson i "$i" '(.[$i].statusCheckRollup // [])')
+  LATEST=$(echo "$ROLLUP" | jq -c '
+    group_by(.name // .context // "?")
+    | map(sort_by(
+        (if ((.status // "COMPLETED") | IN("IN_PROGRESS", "QUEUED", "PENDING")) then 0 else 1 end),
+        (.completedAt // .startedAt // ""))
+      | last)')
+  RAW_TOTAL=$(echo "$ROLLUP" | jq 'length')
+  TOTAL=$(echo "$LATEST" | jq 'length')
+  SUPERSEDED=$((RAW_TOTAL - TOTAL))
+
+  SUCCESS=$(echo "$LATEST" | jq '[.[] | select(.conclusion == "SUCCESS")] | length')
+  FAILURE=$(echo "$LATEST" | jq '[.[] | select(.conclusion == "FAILURE")] | length')
+  CANCELLED=$(echo "$LATEST" | jq '[.[] | select(.conclusion == "CANCELLED")] | length')
+  PENDING=$(echo "$LATEST" | jq '[.[] | select((.status // "") | IN("IN_PROGRESS", "QUEUED", "PENDING"))] | length')
+  SKIPPED=$(echo "$LATEST" | jq '[.[] | select(.conclusion == "SKIPPED")] | length')
 
   # Determine Codacy status
-  CODACY=$(echo "$PRS" | jq -r "[.[$i].statusCheckRollup[] | select(.name == \"Codacy Static Code Analysis\")] | .[0].conclusion // \"NOT_FOUND\"")
+  CODACY=$(echo "$LATEST" | jq -r '[.[] | select((.name // .context // "") == "Codacy Static Code Analysis")] | (.[0].conclusion // .[0].state // "NOT_FOUND")')
 
   echo "───────────────────────────────────────────────────────"
   echo "PR #$NUMBER: $TITLE"
   echo "  Branch: $BRANCH"
   echo "  Merge State: $MERGE_STATE ($MERGEABLE)"
   echo "  CI: $SUCCESS pass, $FAILURE fail, $CANCELLED cancelled, $PENDING pending, $SKIPPED skipped (of $TOTAL)"
+  if [ "$SUPERSEDED" -gt 0 ]; then
+    echo "  ℹ️  $SUPERSEDED superseded check run(s) ignored — counted the latest run per check name"
+  fi
   echo "  Codacy: $CODACY"
 
   # ── PR comments / reviews (human + bots) ───────────────────

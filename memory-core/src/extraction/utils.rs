@@ -97,7 +97,7 @@ fn calculate_pattern_score(
             score += (unique_tools as f64 / tools.len() as f64) * 20.0;
         }
         Pattern::ErrorRecovery { .. } => {
-            // Error recovery patterns are valuable for robustness
+            // Error recovery patterns are valuable for reliability
             score += 30.0;
         }
         Pattern::DecisionPoint { outcome_stats, .. } => {

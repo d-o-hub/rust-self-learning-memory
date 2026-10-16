@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### CI/CD
+
+- Publishing to crates.io actually publishes again. The `publish-crate`
+  composite guarded its authenticated `cargo publish` with `!inputs.dry-run`,
+  and because composite inputs arrive as strings GitHub coerces `"false"` to
+  true, so the live upload step was skipped on every tag publish while the job
+  reported success: releases v0.1.44 and v0.1.45 never reached crates.io
+  (`do-memory-core` was last published at 0.1.34, `do-memory-mcp` at 0.1.31).
+  The guard now compares against `'true'` like the tag and auth steps, every
+  real publish is followed by a bounded check that the version is visible on
+  crates.io, the version-exists gate tests membership of the full version list
+  instead of equality with the newest entry, and the gate-contract and
+  publish-fixture validators fail if any of those three regress (regression of
+  #1109).
+
 ## [0.1.45] - 2026-10-14
 
 ### Fixed

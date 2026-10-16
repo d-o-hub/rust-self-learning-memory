@@ -6,7 +6,7 @@
 
 ## Overview
 
-Regex search enables powerful pattern matching for complex queries. This feature includes built-in ReDoS (Regular Expression Denial of Service) protection to ensure safe operation.
+Regex search enables pattern matching for complex queries. This feature includes built-in ReDoS (Regular Expression Denial of Service) protection to ensure safe operation.
 
 ## Key Features
 

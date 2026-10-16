@@ -76,6 +76,11 @@ check_publish_fixtures() {
     rg -q 'id-token: write' .github/workflows/publish-crates.yml || fail "publish jobs must grant 'id-token: write'"
     rg -q 'crates-io-auth-action@[0-9a-f]{40}' .github/actions/publish-crate/action.yml || fail "publish action must call the SHA-pinned crates-io-auth-action"
     rg -q -- 'cargo publish --package .*--locked' .github/actions/publish-crate/action.yml || fail "the publish command itself must use cargo publish --locked"
+    # A green publish job must mean an uploaded crate: every crates.io gate is a
+    # membership query over the full version list, and a real publish is followed
+    # by a bounded visibility poll (the guard once skipped upload in silence).
+    rg -qF '[(.versions // [])[].num] | index($v)' .github/actions/publish-crate/action.yml || fail "crates.io version gates must test membership, not the newest entry"
+    rg -q 'Verify publish landed' .github/actions/publish-crate/action.yml || fail "publish action must prove the upload landed on crates.io"
   else
     echo "NOTE: publish-crates.yml not present; skipping publish fixture checks"
   fi

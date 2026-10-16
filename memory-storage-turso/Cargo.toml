@@ -81,6 +81,22 @@ futures = "0.3.32"
 do-memory-test-utils = { path = "../test-utils", features = ["turso"] }
 proptest = "1.11"
 
+# Dimension-specific routing only exists in the `turso_multi_dimension` schema;
+# the default build has a single `embeddings` table with F32_BLOB(384), where
+# 1024/1536/3072/512 writes are rejected by the vector index. Keeping the target
+# out of the build until the feature is on stops nightly from reporting a schema
+# mismatch as a storage bug.
+[[test]]
+name = "multi_dimension_routing"
+required-features = ["turso_multi_dimension"]
+
+# Same schema requirement as `multi_dimension_routing`. Its per-test
+# `cfg_attr(not(feature = ...), ignore)` guards are not enough on their own:
+# nightly runs `--run-ignored only`, which forces ignored tests to execute.
+[[test]]
+name = "phase1_validation"
+required-features = ["turso_multi_dimension"]
+
 # Allow unsafe only for specific use cases
 
 # Inherit workspace lints

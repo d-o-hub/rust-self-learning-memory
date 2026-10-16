@@ -66,6 +66,17 @@ jobs:
             --message-format libtest-json > target/turso-reports/security_tests_report.json || status=1
           nix develop --command cargo nextest run -p do-memory-storage-turso --run-ignored only \
             --message-format libtest-json > target/turso-reports/ignored_turso_report.json || status=1
+          # `multi_dimension_routing` and `phase1_validation` require the
+          # `turso_multi_dimension` schema, so the package-wide run above no
+          # longer even builds them. Run them explicitly with the feature
+          # enabled — otherwise the suites would silently disappear from
+          # nightly. `--run-ignored all`, not `only`: with the feature on,
+          # phase1_validation's `cfg_attr(not(feature = …), ignore)` no longer
+          # marks its tests ignored, and `only` would filter all of them out.
+          nix develop --command cargo nextest run -p do-memory-storage-turso \
+            --features turso_multi_dimension \
+            --test multi_dimension_routing --test phase1_validation --run-ignored all \
+            --message-format libtest-json > target/turso-reports/multi_dimension_report.json || status=1
           if [ "$status" -ne 0 ]; then
             echo "::error::Isolated Turso native tests failed or timed out — inspect the uploaded report"
           fi

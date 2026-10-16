@@ -848,3 +848,110 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   never a mid-release edit.
 - References: `.github/workflows/changelog.yml`, `cliff.toml`,
   `scripts/release-manager.sh`, LESSON-044.
+
+## LESSON-055: nightly test configuration masquerades as a storage bug (2026-10-16)
+
+- Issue: three knobs move the numbers with no code changing. `nightly-tests.yml`
+  cron is `0 2 * * *` but scheduled runs actually started 06:30–06:49Z (queue
+  delay), and the workflow also fires on `push` of `v*.*.*` — `workflow_dispatch`
+  is the only reliable clock. `[[test]] required-features` is a BUILD-level gate:
+  with the feature off the target is not compiled at all, so test counts
+  silently change. `--run-ignored only` FORCE-RUNS `#[ignore]`d tests. The red
+  nightly (106 run / 36 failed, run 38883104337 at 8ee711bd) was partly a
+  *configuration artifact*, proven by the split: `--run-ignored only` →
+  86 passed / 0 failed (default schema) plus
+  `--features turso_multi_dimension --test multi_dimension_routing --test phase1_validation --run-ignored all`
+  → 20 passed / 0 skipped, and `86 + 20 = 106` = the pre-fix total.
+- Impact: a schema/config mismatch surfaced by force-running ignored tests reads
+  as a Turso storage defect, and a count that silently omits feature-gated
+  targets makes two runs of the same commit look contradictory — so the fix
+  gets aimed at storage instead of at the test configuration.
+- Fix/prevention: never quote a nightly pass/fail count without the feature
+  matrix and the `--run-ignored` mode that produced it. A schema/config mismatch
+  surfaced by force-running ignored tests is a **TEST CONFIGURATION** finding,
+  not a storage bug. Use `--run-ignored all` when you also want feature-gated
+  targets compiled.
+- References: `.github/workflows/nightly-tests.yml`, `Cargo.toml`,
+  `.agents/skills/ci-fix/SKILL.md`, `.agents/skills/github-workflows/SKILL.md`,
+  LESSON-051, ACT-403, ACT-407.
+
+## LESSON-056: three advisory registers, and `cargo audit` is gated on `.vulnerabilities` only (2026-10-16)
+
+- Issue: 12 Dependabot alerts were **6 advisories × 2 lockfiles**
+  (`Cargo.lock` + `fuzz/Cargo.lock`); `Cargo.toml:14` sets `exclude = ["fuzz"]`,
+  so no local gate ever reads the fuzz lockfile. PR #1174 cleared the audit/deny
+  gates and closed ZERO Dependabot alerts. Two distinct mechanisms make an
+  advisory invisible to BOTH CI gates: (1) RustSec `informational` advisories —
+  `lru` RUSTSEC-2026-0002
+  (`~/.cargo/advisory-dbs/<db>/crates/lru/RUSTSEC-2026-0002.md`:
+  `informational = "unsound"`, `aliases = ["GHSA-rhfx-m35p-ff5j"]`,
+  `patched = [">= 0.16.3"]`) is routed by cargo-audit to `.warnings.unsound`,
+  NEVER to `.vulnerabilities`, and both CI audit steps
+  (`.github/workflows/ci.yml:383-402`,
+  `.github/workflows/security.yml:77-95`) fail only when
+  `.vulnerabilities.count > 0`; `cargo deny` does not gate informational ids
+  either. (2) A GHSA never adopted into RustSec (`libsql-sqlite3-parser`,
+  CVE-2025-47736 — the advisory DB has `libsqlite3-sys` but no
+  `libsql-sqlite3-parser`) is invisible to both by absence. Measured twice on
+  the current lock (cargo-audit 0.22.2): in-repo `cargo audit --no-fetch --json`
+  → rc 0, `.vulnerabilities.list` empty, with 5 `.warnings.unsound` (git2
+  RUSTSEC-2026-0183/0184, lru RUSTSEC-2026-0253 ×3) + 1
+  `.warnings.unmaintained` (RUSTSEC-2024-0449) still reported; the same
+  `Cargo.lock` run from `/tmp` (so `.cargo/audit.toml` ignores do NOT apply) →
+  rc 1 with 8 `.vulnerabilities` (rsa 2023-0071,
+  rustls-webpki 2026-0049/0098/0099/0104, h2 2026-0258, rustls 2026-0346/0349).
+- Impact: a green audit and a green deny prove only that nothing un-ignored
+  reached `.vulnerabilities` — every one of the three registers can still list
+  advisories while both CI gates pass, which is exactly how #1174 could go green
+  and close no alerts.
+- Fix/prevention: a green `cargo audit` proves only "nothing un-ignored reached
+  `.vulnerabilities`" — always cite the ignore list and the surviving
+  `.warnings` count. Classify an advisory by **register** before promising a
+  fix. Dedupe alerts by `security_advisory.ghsa_id`, never by row count, and
+  inspect `.security_advisory | keys` before writing a bulk `jq` projection
+  (wrong keys silently yield empty columns). Corrected in this session: an
+  earlier draft claimed informational advisories DO fail `cargo audit` —
+  measurement said otherwise, which is itself the lesson.
+- References: `.github/workflows/ci.yml`, `.github/workflows/security.yml`,
+  `.cargo/audit.toml`, `Cargo.toml`, `fuzz/Cargo.lock`,
+  `.agents/skills/code-quality/SKILL.md`, `.agents/skills/ci-fix/SKILL.md`,
+  LESSON-053, ACT-404, PR #1174.
+
+## LESSON-057: a version bump does not make a repo shippable, and the drift gate files its own issue (2026-10-16)
+
+- Issue: `release-manager.sh` Phase 0 runs
+  `./scripts/verify-release-state.sh --check-unreleased`, which validates
+  `CHANGELOG.md`, `ROADMAP_ACTIVE.md` "Released Version" and `STATUS/CURRENT.md`
+  against `workspace_version`. After the 0.1.46 bump PR (#1181) was queued it
+  still printed: `❌ ROADMAP_ACTIVE.md says v0.1.45 (expected v0.1.46)`,
+  `❌ STATUS/CURRENT.md references v0.1.45`,
+  `❌ CHANGELOG.md missing entry for v0.1.46`,
+  `⚠️ parse-changelog not installed`. Second half: `check-release-drift.sh`
+  returns `critical/version_not_advanced` whenever
+  `workspace_version == latest_tag` with commits after the tag (the normal
+  post-ship state), and its `maintain-issue`
+  job (`.github/workflows/release-drift.yml:98-149`, concurrency group
+  `release-drift-canonical-issue`) **creates-or-updates one canonical
+  `release-drift` issue from main**, closing it at `:156` when drift resolves —
+  #1182 was opened 2026-10-16T13:32Z by `app/github-actions`.
+- Impact: a bump-only branch is still not shippable, and without
+  `parse-changelog-cli` release notes silently fall back. The drift issue is a
+  symptom, not a task: closing it by hand only makes the next detection
+  re-create it — and because it is a real issue it moves the open-issue count
+  the plans validators compare (5 → 6), which is how `validate-plans.sh`
+  tracker-drift caught a stale duplicate count inside `STATUS/CURRENT.md`.
+- Fix/prevention: land CHANGELOG `## [X.Y.Z]` + the version-doc flip as **ONE
+  release-prep PR before any tag date is promised** (precedent #1169), and
+  install `parse-changelog-cli` (`cargo install parse-changelog-cli`) or release
+  notes silently fall back — `release-preparation` is that PR's label, never an
+  override on unrelated PRs. Resolve drift by advancing the state the gate
+  reads, never by hand-closing #1182, and keep the sanctioned paths: ship only
+  through `./scripts/release-manager.sh ship --execute` (`release-guard`,
+  **never** `gh release create`) and merge only through
+  `./scripts/merge-pr.sh <PR> --execute` (never `--admin`/`--force`).
+- References: `scripts/release-manager.sh`, `scripts/verify-release-state.sh`,
+  `scripts/check-release-drift.sh`, `scripts/validate-plans.sh`,
+  `.github/workflows/release-drift.yml`, `CHANGELOG.md`,
+  `plans/ROADMAPS/ROADMAP_ACTIVE.md`, `plans/STATUS/CURRENT.md`,
+  `.agents/skills/release-guard/SKILL.md`,
+  `.agents/skills/release-cadence-manager/SKILL.md`, #1181, ACT-411, ACT-412.

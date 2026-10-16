@@ -985,3 +985,30 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: `.agents/skills/release-cadence-manager/evals/evals.json`,
   `.agents/skills/release-guard/evals/evals.json`, `scripts/run-evals.sh`,
   `.github/workflows/skill-evals.yml`, `agent_docs/coding_workflow.md`, PR #1175.
+
+## LESSON-059: `((i++))` under `set -e` silently truncates a report loop (2026-10-16)
+
+- Issue: `scripts/check-pr-readiness.sh` runs `set -euo pipefail` and counted
+  problems with `((ISSUES_FOUND++))`. A post-increment evaluates to the **old**
+  value, so the first increment from `0` makes the arithmetic command return
+  exit status 1, and `set -e` kills the script mid-loop. Measured:
+  `bash -c 'set -euo pipefail; X=0; ((X++)); echo survived'` → rc 1, nothing
+  printed; `((++X))` and `X=$((X+1))` both survive.
+- Impact: the all-PRs sweep printed **2 of 9** PRs and exited, with empty stderr
+  and a plausible-looking report. Because rc=1 is also the script's legitimate
+  "issues found" summary exit, an abort was indistinguishable from a normal
+  failure — so the truncated output read as complete. The hidden consequence:
+  PR #1171's 3 failing checks (`clippy::cast_precision_loss` at
+  `memory-core/tests/storage_sync.rs:645`, plus Commit Message Lint) never
+  surfaced, because #1171 sits past the abort point in `gh pr list` order.
+- Fix/prevention: use `VAR=$((VAR + 1))` (or `((++VAR))`) for counters inside
+  `set -e` scripts; never rely on a bare `((VAR++))`. Treat a summary tool's
+  output length as an assertion, not an assumption — the sweep must report
+  `N` PRs where `N == gh pr list --state open | wc -l`, or say plainly that it
+  stopped early. Same rule as the empty-report trap in AGENTS.md's
+  machine-readable-output bullet: a short report is a broken report until proven
+  otherwise, and fixing it here turned "2 PRs, nothing else to see" into 9 PRs
+  with one genuinely red branch.
+- References: `scripts/check-pr-readiness.sh`, PR #1177, PR #1171,
+  AGENTS.md (machine-readable-output trap), LESSON-026, LESSON-036
+  (vacuous-green / empty-artifact class).

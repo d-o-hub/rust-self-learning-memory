@@ -69,6 +69,12 @@ Also use the helper script:
 ./scripts/check-pr-readiness.sh --fix [PR_NUMBER]   # also update BEHIND branches
 ```
 
+**A short report is a broken report.** Run the sweep without a PR number and compare its
+PR count to `gh pr list --state open | wc -l` before acting on it — the all-PRs loop
+historically aborted after 2 of 9 PRs (a bare `((ISSUES_FOUND++))` under `set -e`, whose
+rc=1 was indistinguishable from the script's normal "issues found" exit; LESSON-059).
+Missing PRs in the output is not "nothing to report".
+
 **Re-read the head SHA last — it is ephemeral.** Under
 `strict_required_status_checks_policy`, every merge onto `main` pushes every other branch
 to `BEHIND` and re-queues all of its runs, so a `headRefOid` pinned in a doc, comment, or
@@ -79,8 +85,10 @@ plan is stale after **one** merge (#1179 `3056b560`→`c36a874d`,
 gh pr view {n} --json headRefOid,mergeStateStatus -q '[.headRefOid, .mergeStateStatus] | @tsv'
 ```
 
-`statusCheckRollup` — which `check-pr-readiness.sh` counts raw — also keeps **superseded**
-runs, so classify conclusions from the latest run per check name on that SHA:
+`statusCheckRollup` also keeps **superseded** runs. `check-pr-readiness.sh` reduces them
+to the latest run per check name (#1177); reproduce the same reduction by hand — preferring
+an unfinished run over any finished one of the same name, so a stale row never reports
+running work as passed:
 
 ```bash
 gh api "repos/{owner}/{repo}/commits/<headRefOid>/check-runs?per_page=100" \

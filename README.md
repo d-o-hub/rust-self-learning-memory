@@ -41,13 +41,13 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
 
-### 🔄 Episode Checkpoints and Handoff
+### Episode Checkpoints and Handoff
 - Checkpoint episodes mid-task for long-running workflows
 - Generate handoff packs to transfer state between agents or sessions
 - Resume execution from saved checkpoints
 - State preservation with findings and pending actions
 
-### 🌊 CSM Cascading Retrieval
+### CSM Cascading Retrieval
 - 100% CPU-local retrieval via Chaotic Semantic Memory (CSM)
 - 4-tier cascade (BM25 -> HDC -> ConceptGraph -> API Embeddings)
 - Hyperdimensional computing (HDC) binary vectors for zero-API similarity search
@@ -320,10 +320,10 @@ do-memory-cli playbook recommend "Implement JWT auth" --domain security
 
 ```bash
 # Start the MCP server
-cargo run --bin do-memory-mcp-server
+cargo run --bin do-memory-mcp
 
 # Or run with custom config
-cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
+cargo run --bin do-memory-mcp -- --config mcp-config-memory.json
 ```
 
 #### Programmatic Usage

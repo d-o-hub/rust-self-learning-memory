@@ -66,6 +66,7 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 - **Files**: ≤500 LOC per source file (enforced in CI).
 - **Tests**: ≥70% coverage floor (90% target); `#[tokio::test]` for async; AAA pattern.
 - **Docs**: URLs wrapped in `<...>`; new public types re-exported from `lib.rs`.
+- **Fail-closed code execution**: `execute_agent_code` is unavailable and fails closed.
 
 ## Workflow Traps (2026-10, read before merging)
 

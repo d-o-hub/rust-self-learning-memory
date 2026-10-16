@@ -258,6 +258,12 @@ if [[ "$CI_PARITY" == true ]]; then
     if ! grep -q 'id-token: write' "$WF_DIR/publish-crates.yml"; then
       fail "publish-crates.yml jobs must grant 'id-token: write' (trusted publishing)"
     fi
+    # A composite action's inputs arrive as strings, so `!inputs.x` coerces
+    # "false" to true: the publish guard written this way skipped every real
+    # cargo publish while the job reported success. Gates must compare literals.
+    if grep -qE "if:.*![[:space:]]*inputs\." "${publish_files[@]}"; then
+      fail "publish gates must not negate an input (!inputs.x): inputs are strings, use inputs.x != 'true'"
+    fi
   fi
 fi
 

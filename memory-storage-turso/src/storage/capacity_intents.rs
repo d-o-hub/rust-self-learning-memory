@@ -69,45 +69,46 @@ fn eviction_backend_from_str(value: &str) -> EvictionBackend {
 impl TursoStorage {
     /// Durable cleanup intents still awaiting reconciliation.
     pub async fn pending_capacity_eviction_intents(&self) -> Result<Vec<CapacityEvictionIntent>> {
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-
-        const SQL: &str = "SELECT episode_id, backend, error, attempts \
+        self.with_connection(async |conn| {
+            const SQL: &str = "SELECT episode_id, backend, error, attempts \
                            FROM capacity_eviction_intents \
                            ORDER BY created_at ASC, episode_id ASC";
 
-        let mut rows = conn.query(SQL, ()).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!(
-                "Failed to list capacity eviction intents: {}",
-                e
-            ))
-        })?;
+            let mut rows = conn.query(SQL, ()).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!(
+                    "Failed to list capacity eviction intents: {}",
+                    e
+                ))
+            })?;
 
-        let mut intents = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
-        {
-            let episode_id: String = row
-                .get(0)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            let backend: String = row
-                .get(1)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            let error: String = row
-                .get(2)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            let attempts: i64 = row
-                .get(3)
-                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-            intents.push(CapacityEvictionIntent {
-                episode_id: parse_episode_id(&episode_id),
-                backend: eviction_backend_from_str(&backend),
-                error,
-                attempts: u32::try_from(attempts.max(0)).unwrap_or(u32::MAX),
-            });
-        }
-        Ok(intents)
+            let mut intents = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+            {
+                let episode_id: String = row
+                    .get(0)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                let backend: String = row
+                    .get(1)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                let error: String = row
+                    .get(2)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                let attempts: i64 = row
+                    .get(3)
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                intents.push(CapacityEvictionIntent {
+                    episode_id: parse_episode_id(&episode_id),
+                    backend: eviction_backend_from_str(&backend),
+                    error,
+                    attempts: u32::try_from(attempts.max(0)).unwrap_or(u32::MAX),
+                });
+            }
+            Ok(intents)
+        })
+        .await
     }
 
     /// Retry the cleanup for every pending capacity-eviction intent.
@@ -129,9 +130,13 @@ impl TursoStorage {
             }
         }
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let cleanup = run_capacity_cleanup(&conn, &episode_ids).await;
-        drop(conn);
+        // `with_connection`, not `get_connection_with_id`: the cleanup must hold a
+        // pooled checkout for its whole transaction, and `run_capacity_cleanup`
+        // reports its own structured failure type, so only the checkout itself is
+        // a `Result` here.
+        let cleanup = self
+            .with_connection(async |conn| Ok(run_capacity_cleanup(conn, &episode_ids).await))
+            .await?;
 
         match cleanup {
             Ok(()) => {
@@ -174,22 +179,24 @@ impl TursoStorage {
             return Ok(());
         }
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        const SQL: &str = "INSERT INTO capacity_eviction_intents \
+        self.with_connection(async |conn| {
+            const SQL: &str = "INSERT INTO capacity_eviction_intents \
              (episode_id, backend, error, attempts, created_at, updated_at) \
              VALUES (?, 'durable', '', 0, strftime('%s', 'now'), strftime('%s', 'now')) \
              ON CONFLICT(episode_id) DO UPDATE SET updated_at = excluded.updated_at";
 
-        for id in episode_ids {
-            conn.execute(SQL, libsql::params![id.clone()])
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!(
-                        "Failed to record capacity eviction intent for {id}: {e}"
-                    ))
-                })?;
-        }
-        Ok(())
+            for id in episode_ids {
+                conn.execute(SQL, libsql::params![id.clone()])
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to record capacity eviction intent for {id}: {e}"
+                        ))
+                    })?;
+            }
+            Ok(())
+        })
+        .await
     }
 
     /// Update the persisted intents with the failing backend and error.
@@ -203,25 +210,27 @@ impl TursoStorage {
             return Ok(());
         }
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        const SQL: &str = "UPDATE capacity_eviction_intents \
+        self.with_connection(async |conn| {
+            const SQL: &str = "UPDATE capacity_eviction_intents \
              SET backend = ?, error = ?, attempts = attempts + 1, \
                  updated_at = strftime('%s', 'now') \
              WHERE episode_id = ?";
 
-        for id in episode_ids {
-            conn.execute(
-                SQL,
-                libsql::params![backend.to_string(), error.to_string(), id.clone()],
-            )
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!(
-                    "Failed to mark capacity eviction intent for {id} as failed: {e}"
-                ))
-            })?;
-        }
-        Ok(())
+            for id in episode_ids {
+                conn.execute(
+                    SQL,
+                    libsql::params![backend.to_string(), error.to_string(), id.clone()],
+                )
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to mark capacity eviction intent for {id} as failed: {e}"
+                    ))
+                })?;
+            }
+            Ok(())
+        })
+        .await
     }
 
     /// Clear the persisted intents after a successful cleanup.
@@ -233,7 +242,6 @@ impl TursoStorage {
             return Ok(());
         }
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
         let placeholders = episode_ids
             .iter()
             .map(|_| "?")
@@ -243,13 +251,16 @@ impl TursoStorage {
             format!("DELETE FROM capacity_eviction_intents WHERE episode_id IN ({placeholders})");
         let params: Vec<libsql::Value> = episode_ids.iter().map(|id| id.clone().into()).collect();
 
-        conn.execute(&sql, libsql::params_from_iter(params))
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!(
-                    "Failed to clear capacity eviction intents: {e}"
-                ))
-            })?;
-        Ok(())
+        self.with_connection(async |conn| {
+            conn.execute(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to clear capacity eviction intents: {e}"
+                    ))
+                })?;
+            Ok(())
+        })
+        .await
     }
 }

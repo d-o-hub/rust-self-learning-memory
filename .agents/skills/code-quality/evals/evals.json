@@ -19,6 +19,16 @@
       "name": "no-blanket-allow-advice",
       "description": "Does not recommend silencing clippy with #[allow] as default",
       "exec": "! rg -qi 'use #\\[allow\\]|add #\\[allow\\(clippy' .agents/skills/code-quality/SKILL.md"
+    },
+    {
+      "name": "names-the-authoritative-clippy-command",
+      "description": "Records the exact CI clippy invocation (workspace + --tests + the -A allow list) so a local run cannot diverge",
+      "exec": "rg -q 'cargo clippy --workspace --tests' .agents/skills/code-quality/SKILL.md && rg -q 'clippy::expect_used' .agents/skills/code-quality/SKILL.md && rg -q 'clippy::unwrap_used' .agents/skills/code-quality/SKILL.md"
+    },
+    {
+      "name": "warns-against-package-scoped-clippy",
+      "description": "Warns that a -p scoped run misreports #![expect(...)] gates because of feature unification",
+      "exec": "rg -qi 'package-scoped|-p <crate>' .agents/skills/code-quality/SKILL.md && rg -qi 'feature unification|unified feature' .agents/skills/code-quality/SKILL.md && rg -qi 'unfulfilled' .agents/skills/code-quality/SKILL.md"
     }
   ]
 }

@@ -1021,3 +1021,91 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: `scripts/check-pr-readiness.sh`, PR #1177, PR #1171,
   AGENTS.md (machine-readable-output trap), LESSON-026, LESSON-036
   (vacuous-green / empty-artifact class).
+
+## LESSON-060: a package-scoped clippy run turns `#![expect(...)]` gates into false errors (2026-10-16)
+
+- Issue: verifying a test-only change with
+  `cargo clippy -p <crate> --tests -- -D warnings -A clippy::expect_used -A
+  clippy::unwrap_used -A clippy::uninlined_format_args` (flags copied verbatim
+  from `scripts/code-quality.sh:144`) reported two `unfulfilled lint expectation`
+  errors in files the change never touched: `test-utils/src/lib.rs:14`
+  (`#![expect(clippy::doc_markdown, ...)]`) and `memory-storage-turso/src/lib.rs:4`
+  (`expect(clippy::expect_used, reason = "expect in compression code and tests")`).
+  Neither is a defect. An `expect(...)` gate is fulfilled only if the lint
+  actually fires in that crate, and whether it fires depends on the feature set:
+  CI runs `cargo clippy --workspace --tests`, where workspace feature unification
+  turns on `compression`, while `-p <crate>` resolves only that package's own
+  default features.
+- Impact: two red errors pointing at unrelated crates, sitting next to the two
+  findings that *were* real (`clippy::unnecessary_to_owned`,
+  `clippy::field_reassign_with_default`). Reading the artifacts as defects would
+  have meant "fixing" `#![expect]` gates in crates this PR never touched — the
+  same class as LESSON-055, where the nightly's test configuration looked like a
+  storage bug.
+- Fix/prevention: before judging a lint result, run the gate CI runs
+  (`./scripts/code-quality.sh clippy --workspace`). In a scoped run, treat
+  `unfulfilled lint expectation` as an artifact of the narrower feature set and
+  re-confirm it under the workspace run; note that `-A clippy::expect_used` on
+  the command line cannot satisfy a crate-level `expect`, because the attribute
+  overrides the command-line level. Prefer the real findings by filtering on the
+  changed file paths, not by the presence of `error:` lines.
+- References: `scripts/code-quality.sh:144,158`, `.github/workflows/ci.yml:94`,
+  `memory-storage-turso/src/lib.rs:4`, `test-utils/src/lib.rs:14`, LESSON-055,
+  `.agents/skills/code-quality/SKILL.md`.
+
+## LESSON-061: the CI coverage artifact is the patch-coverage ground truth, not a local run (2026-10-16)
+
+- Issue: classifying PR #1180's "57 lines missing" from a local
+  `cargo llvm-cov` run of `do-memory-storage-turso` disagreed with CI on which
+  lines were missing. Locally `trait_impls/mod.rs` 330/346 looked uncovered (CI
+  covers them) and `storage/monitoring.rs` reported 0 hits across 171
+  instrumented lines, while CI's per-file counts were 25/17/9/3/3. Reason:
+  `.github/workflows/coverage.yml:98` instruments a **whole-workspace** test run,
+  so other crates' tests contribute hits into this crate's lines; a `-p` run
+  cannot see them.
+- Impact: the classification would have waived lines that are plainly coverable
+  and demanded tests for lines CI already covers. It also first mislabeled
+  `storage/mod.rs`'s missing block as `turso_multi_dimension`-gated (therefore
+  uncoverable). The CI lcov shows `DA:177..201,0` inside the
+  `#[cfg(not(feature = "turso_multi_dimension"))]` arm — default-build code, so
+  tests were owed, not a waiver.
+- Fix/prevention: take the report Codecov actually parsed, then intersect it with
+  the patch:
+  `gh run list --workflow coverage.yml --branch <pr-branch> --json
+  databaseId,headSha` → `gh run download <id> --name coverage-report` (the
+  artifact *is* `lcov.info`) → compare `DA:<line>,0` against the hunk ranges from
+  `git diff -U0 <merge-base> <head> -- <file>`. That reproduced the comment's
+  totals exactly (25+17+9+3+3 = 57) and supplied the line numbers the comment
+  omits. Use local `cargo llvm-cov` only to prove that a *new* test executes a
+  line, never to decide which lines were missing.
+- References: PR #1180, `.github/workflows/coverage.yml:98,151-154`,
+  `.agents/skills/coverage-waivers/SKILL.md`, LESSON-052 (measuring the wrong
+  surface class).
+
+## LESSON-062: "unreachable defensive arm" was a missing-setup problem, not an unreachable one (2026-10-16)
+
+- Issue: most of PR #1180's missing patch lines were `map_err(...)` arms in
+  `capacity_intents.rs` and `embeddings_internal.rs`. Reaching "the statement
+  prepared, then the query failed" looks like it needs a prepared-cache race, and
+  the pooled path that owns the cache is `#[ignore]`d (ADR-027). Worse, direct
+  connection mode cannot race at all: `get_connection_with_id()`
+  (`lib_impls/helpers.rs:87-93`) calls `get_connection_id()`, which is
+  `NEXT_ID.fetch_add(1, Ordering::Relaxed)` (`prepared/cache.rs:102-108`), so every
+  checkout gets a fresh id, the cache never hits, and the arm stays cold.
+- Resolution: invalidate the **schema** instead of racing the cache. Write
+  successfully, then `DROP TABLE` the table the *next* statement needs (a
+  `drop_table()` helper using `storage.get_connection()` +
+  `conn.execute("DROP TABLE IF EXISTS …")`). Prepare/execute then fails for real and
+  the `map_err` runs: 4 capacity-intent arms plus the `#[cfg(not(feature =
+  "turso_multi_dimension"))]` prepare-failure arm, 8/8 new tests green in the default
+  build (whole crate lib suite 339 run / 339 passed / 7 skipped).
+- Impact: those lines were about to be waived as an unreachable defensive arm — a
+  false waiver on 20+ patch lines, and the kind of waiver that hides real untested
+  error handling.
+- Fix/prevention: before waiving an error arm, try destructive setup on the local
+  `libsql::Builder::new_local` database. A waiver must name the *specific* mechanism
+  that makes the line unreachable (e.g. "per-checkout cache id, so the cache cannot
+  hit outside the pooled path"), never a general "needs a race" or "needs a pool".
+- References: PR #1180, `memory-storage-turso/src/lib_impls/helpers.rs:87-93`,
+  `memory-storage-turso/src/prepared/cache.rs:102-108`,
+  `.agents/skills/coverage-waivers/SKILL.md` (destructive setup), LESSON-061.

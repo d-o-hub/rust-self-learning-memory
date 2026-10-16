@@ -54,6 +54,21 @@ Unified skill for Rust code quality and clean code development.
   `cargo clippy --workspace --tests -- -D warnings` as
   `unfulfilled_lint_expectations`. Dead `cfg(test)` suppressions are the usual
   cause — delete them or narrow the `cfg_attr` (LESSON-037).
+- **Never act on a clippy finding from a `-p <crate>` run.** The authoritative gate is
+  `cargo clippy --workspace --tests -- -D warnings -A clippy::expect_used
+  -A clippy::uninlined_format_args -A clippy::unwrap_used`
+  (`scripts/code-quality.sh:144,158`; CI calls it at `ci.yml:94`). Feature unification
+  (the expectation only fires once the workspace's unified feature set compiles the code
+  path it gates), and can miss findings the workspace run catches. Observed on both
+  `memory-storage-turso/src/lib.rs` and `test-utils/src/lib.rs` (`do-memory-test-utils`)
+  while writing PR #1180's tests — neither crate needed touching, and the workspace gate
+  was green.
+  Re-run the exact workspace command before editing another crate's `lib.rs`. Two more
+  traps: `-A clippy::expect_used` on the command line cannot silence a crate-level
+  `#![expect(...)]` (the attribute wins), and clippy's own suggestions on new test code
+  must be applied as rewrites, not suppressions — `&vec[..].to_vec()`-style clones want
+  `std::slice::from_ref(&x)`, and fields set after `Default::default()` want a struct
+  literal with `..Default::default()` (LESSON-060).
 - A new defaulted `StorageBackend` method also needs a classification in
   `scripts/storage-backend-capabilities.toml` (see `feature-implement`).
 

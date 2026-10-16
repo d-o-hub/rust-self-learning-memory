@@ -105,6 +105,13 @@ Phase 5: Update Plans & Documentation [Documentation]
   docs/skills edits into one push.
 - A label applied with `GITHUB_TOKEN` does not re-trigger a run. After
   `./scripts/release-cadence-manager.sh resolve --pr {n}`, re-run the job (or push) before reading the verdict.
+- Drift files its own tracker entry: the `maintain-issue` job (`release-drift.yml:98-149`, concurrency group
+  `release-drift-canonical-issue`) **creates or updates one canonical open `release-drift` issue from main** and
+  closes it once drift resolves (`:156`). It is a symptom, so closing it by hand only makes the next detection
+  re-create it — the exit stays the version bump. Because it is a real issue, it also counts in the open-issue
+  total the plans validators compare: after it appears, `validate-plans.sh` reports
+  `WARN: claims 5 open issue(s); GitHub reports 6` until `STATUS/CURRENT.md` and `ROADMAP_ACTIVE.md` are updated
+  in the same PR that changes the state.
 - Bumping the version is necessary but **not sufficient** to be shippable: the `CHANGELOG.md` `## [X.Y.Z]`
   heading and the `ROADMAP_ACTIVE.md` / `STATUS/CURRENT.md` flip must land as a release-prep PR *before any tag
   date is promised*. Verify with `./scripts/verify-release-state.sh --check-unreleased`.

@@ -106,12 +106,18 @@ runs:
       id: check-version
       shell: bash
       run: |
+        set -euo pipefail
         VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "${{ inputs.crate }}") | .version')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Local version: $VERSION"
-        EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/${{ inputs.crate }}/versions" | jq -r '.versions[0].num // empty')
-        echo "Crates.io latest: $EXISTING"
-        if [ "$EXISTING" = "$VERSION" ]; then
+        # Membership over the whole version list, not `.versions[0]` equality:
+        # once a newer version lands, an already-published one reads as absent
+        # and the publish below dies on "version already uploaded".
+        EXISTING=$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+          "https://crates.io/api/v1/crates/${{ inputs.crate }}/versions" | \
+          jq -r --arg v "$VERSION" '[(.versions // [])[].num] | index($v) != null')
+        echo "Version present on crates.io: $EXISTING"
+        if [ "$EXISTING" = "true" ]; then
           echo "exists=true" >> $GITHUB_OUTPUT
           echo "::notice::${{ inputs.crate }}@$VERSION already exists on crates.io, skipping"
           echo "Version exists on crates.io, will skip publish"
@@ -194,7 +200,10 @@ runs:
       uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
 
     - name: Publish to crates.io
-      if: ${{ !inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
+      # Composite inputs are strings, so the previous `!inputs.dry-run` guard
+      # coerced "false" to true and skipped every real publish while the job
+      # stayed green. Compare to 'true' like the tag guard and auth steps above.
+      if: ${{ inputs.dry-run != 'true' && steps.check-version.outputs.exists != 'true' }}
       shell: bash
       run: |
         echo "exists output: ${{ steps.check-version.outputs.exists }}"
@@ -204,3 +213,25 @@ runs:
         cargo publish --package ${{ inputs.crate }} --locked --no-verify
       env:
         CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+    - name: Verify publish landed
+      # A green job must mean an uploaded crate: the guard above once skipped the
+      # publish silently, and only the next crate's dependency poll noticed.
+      # Same bounded poll as "Wait for crates.io propagation" (LESSON-014).
+      if: ${{ inputs.dry-run != 'true' && steps.check-version.outputs.exists != 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        CRATE="${{ inputs.crate }}"
+        VERSION="${{ steps.check-version.outputs.version }}"
+        for i in $(seq 1 20); do
+          if [ "$(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+              "https://crates.io/api/v1/crates/$CRATE/versions" | \
+              jq -r --arg v "$VERSION" '[(.versions // [])[].num] | index($v) != null')" = "true" ]; then
+            echo "OK: $CRATE@$VERSION is on crates.io (attempt $i)"
+            exit 0
+          fi
+          sleep 15
+        done
+        echo "::error::$CRATE@$VERSION was not visible on crates.io within 300s (20 x 15s) after publishing"
+        exit 1

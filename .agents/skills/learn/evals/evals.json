@@ -22,8 +22,8 @@
     },
     {
       "name": "no-unguarded-gh-release-create",
-      "description": "Does not teach manual gh release create as ship path",
-      "exec": "! rg -q 'gh release create' .agents/skills/learn/SKILL.md"
+      "description": "Never presents manual gh release create as the ship path (a line that forbids it is allowed)",
+      "exec": "! (rg -n 'gh release create' .agents/skills/learn/SKILL.md | rg -vi 'never|no t|do not|don.t|avoid|forbid|instead')"
     }
   ]
 }

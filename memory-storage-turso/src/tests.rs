@@ -683,3 +683,211 @@ mod compression_tests {
         assert!(savings > 55.0 && savings < 65.0);
     }
 }
+
+// ============================================================================
+// Coverage for the `with_connection` storage paths (PR #1180 review)
+//
+// Pool-free like the issue-#1070 section of `tests/capacity_enforcement_test.rs`,
+// so the default-feature CI pipeline runs them. Failure arms are provoked with
+// real schema mutations against the statements the production path runs.
+// ============================================================================
+
+/// Drop a table so the next statement that needs it fails for real.
+async fn drop_table(storage: &TursoStorage, table: &str) {
+    let conn = storage.get_connection().await.unwrap();
+    conn.execute(&format!("DROP TABLE IF EXISTS {table}"), ())
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn test_list_embedding_ids_backend_returns_stored_ids() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let embedding = create_test_embedding_384();
+    storage
+        .store_embedding("listing_probe_b", embedding.clone())
+        .await
+        .unwrap();
+    storage
+        .store_embedding("listing_probe_a", embedding)
+        .await
+        .unwrap();
+
+    let ids = storage.list_embedding_ids_backend().await.unwrap();
+
+    assert!(ids.contains(&"listing_probe_a".to_string()));
+    assert!(ids.contains(&"listing_probe_b".to_string()));
+    let mut sorted = ids.clone();
+    sorted.sort();
+    assert_eq!(ids, sorted, "candidate order must be deterministic");
+}
+
+#[tokio::test]
+async fn test_has_vector_embeddings_tracks_stored_vectors() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    assert!(
+        !storage.has_vector_embeddings().await.unwrap(),
+        "a fresh schema holds no vectors"
+    );
+
+    storage
+        .store_embedding("vector_probe", create_test_embedding_384())
+        .await
+        .unwrap();
+
+    assert!(
+        storage.has_vector_embeddings().await.unwrap(),
+        "storing writes the vector32 column the count reads"
+    );
+}
+
+#[tokio::test]
+async fn test_pending_capacity_eviction_intents_reports_query_failure() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    let episode_id = uuid::Uuid::new_v4().to_string();
+
+    storage
+        .record_pending_capacity_eviction_intents(std::slice::from_ref(&episode_id))
+        .await
+        .unwrap();
+    assert_eq!(
+        storage
+            .pending_capacity_eviction_intents()
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+
+    drop_table(&storage, "capacity_eviction_intents").await;
+    let error = storage
+        .pending_capacity_eviction_intents()
+        .await
+        .unwrap_err();
+
+    assert!(
+        format!("{error}").contains("Failed to list capacity eviction intents"),
+        "unexpected error: {error}"
+    );
+}
+
+#[tokio::test]
+async fn test_record_capacity_eviction_intents_reports_insert_failure() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    drop_table(&storage, "capacity_eviction_intents").await;
+
+    let error = storage
+        .record_pending_capacity_eviction_intents(&[uuid::Uuid::new_v4().to_string()])
+        .await
+        .unwrap_err();
+
+    assert!(
+        format!("{error}").contains("Failed to record capacity eviction intent"),
+        "unexpected error: {error}"
+    );
+}
+
+#[tokio::test]
+async fn test_mark_capacity_eviction_intents_failed_reports_update_failure() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    drop_table(&storage, "capacity_eviction_intents").await;
+
+    let error = storage
+        .mark_capacity_eviction_intents_failed(
+            &[uuid::Uuid::new_v4().to_string()],
+            do_memory_core::EvictionBackend::Durable,
+            "injected",
+        )
+        .await
+        .unwrap_err();
+
+    assert!(
+        format!("{error}").contains("Failed to mark capacity eviction intent"),
+        "unexpected error: {error}"
+    );
+}
+
+#[tokio::test]
+async fn test_clear_capacity_eviction_intents_reports_delete_failure() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    drop_table(&storage, "capacity_eviction_intents").await;
+
+    let error = storage
+        .clear_capacity_eviction_intents(&[uuid::Uuid::new_v4().to_string()])
+        .await
+        .unwrap_err();
+
+    assert!(
+        format!("{error}").contains("Failed to clear capacity eviction intents"),
+        "unexpected error: {error}"
+    );
+}
+
+/// The default build prepares the single-table read, so dropping `embeddings`
+/// surfaces its prepare failure. `turso_multi_dimension` routes the same call
+/// through the dimension-aware reader instead.
+#[cfg(not(feature = "turso_multi_dimension"))]
+#[tokio::test]
+async fn test_get_embedding_internal_reports_prepare_failure() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    storage
+        .store_embedding("prepare_probe", create_test_embedding_384())
+        .await
+        .unwrap();
+    assert!(
+        storage
+            ._get_embedding_internal("prepare_probe", "embedding")
+            .await
+            .unwrap()
+            .is_some()
+    );
+
+    drop_table(&storage, "embeddings").await;
+    let error = storage
+        ._get_embedding_internal("prepare_probe", "embedding")
+        .await
+        .unwrap_err();
+
+    assert!(
+        format!("{error}").contains("Failed to prepare statement"),
+        "unexpected error: {error}"
+    );
+}
+
+/// Guards the column corrections in `storage/monitoring.rs`: `agent_metrics`
+/// stores millisecond integers and names the timestamp column `last_execution`.
+#[tokio::test]
+async fn test_agent_metrics_round_trips_millisecond_durations() {
+    use do_memory_core::monitoring::types::{AgentMetrics, AgentType};
+
+    let (storage, _dir) = create_test_storage().await.unwrap();
+    let metrics = AgentMetrics {
+        agent_name: "duration_round_trip_agent".to_string(),
+        agent_type: AgentType::GoapAgent,
+        total_executions: 10,
+        successful_executions: 9,
+        total_duration: std::time::Duration::from_millis(2500),
+        avg_duration: std::time::Duration::from_millis(250),
+        last_execution: chrono::DateTime::from_timestamp(1_700_000_000, 0),
+        ..Default::default()
+    };
+
+    storage.store_agent_metrics(&metrics).await.unwrap();
+
+    let loaded = storage
+        .load_agent_metrics("duration_round_trip_agent")
+        .await
+        .unwrap()
+        .expect("stored metrics must load");
+
+    assert_eq!(loaded.agent_type, AgentType::GoapAgent);
+    assert_eq!(loaded.total_executions, 10);
+    assert_eq!(
+        loaded.total_duration,
+        std::time::Duration::from_millis(2500)
+    );
+    assert_eq!(loaded.avg_duration, std::time::Duration::from_millis(250));
+    assert_eq!(loaded.last_execution, metrics.last_execution);
+}

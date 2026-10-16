@@ -115,7 +115,7 @@ let filter = EpisodeFilter::builder()
 
 ## Combining with Other Filters
 
-Fuzzy search works seamlessly with existing filters:
+Fuzzy search works with existing filters:
 
 ```rust
 // Fuzzy search + domain filter

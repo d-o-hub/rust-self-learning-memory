@@ -40,17 +40,31 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 
 1. **ANALYZE** → Understand goals, constraints, resources
    - **Check ADRs**: Read relevant ADRs from `plans/adr/` before planning
+   - **Prove premises by measurement**: a step about an external artifact's contents (a bump that
+     "clears N alerts") enters the plan only after resolution proves it — scratch crate at the target
+     version with the same features, `cargo update && cargo tree -e no-dev`, diff before/after.
+     Release notes are claims; an unchanged graph means upstream-blocked, not a PR.
+   - **Classify registers**: GHSA, `cargo audit` and `cargo deny` are independent sources; count
+     distinct advisories and dedupe across lockfiles (one of them may be read by no local gate).
 2. **DECOMPOSE** → Break into atomic tasks with dependencies
    - **Task Decomposition**: Create goal hierarchy with success criteria (see patterns.md)
    - **Dependency Types**: Sequential (A→B), Parallel (A─┐B─┐), Converging (A─┐B─┼─>D)
+   - **Ownership before splitting**: check which open PR already touches the target files
+     (`gh pr diff <n> --name-only`) and extend that branch rather than opening an overlapping PR —
+     same-file splits force manual rebuilds, and every merge re-queues other branches' required runs.
 3. **STRATEGIZE** → Choose execution pattern
 4. **COORDINATE** → Assign to specialized agents
 5. **EXECUTE** → Run with monitoring and quality gates
 6. **SYNTHESIZE** → Aggregate results and validate success
+   - **Verify readiness, don't assert it**: a plan may not promise a tag or a shippable state until
+     `./scripts/verify-release-state.sh --check-unreleased` passes (it is Phase 0 of `release-manager.sh`);
+     a merged bump is not shippable — ship only via `release-guard` + `./scripts/release-manager.sh ship --execute`.
 
 ## PR Monitoring Guardrail
 
 - During EXECUTE/SYNTHESIZE for PR work, always verify `statusCheckRollup` on the latest head SHA.
+- Re-read `gh pr view <n> --json headRefOid,mergeStateStatus` immediately before any readiness claim —
+  head SHAs churn under strict required status checks — and batch edits per push (each push restarts the suite).
 - Treat an empty required-check rollup as a blocker and document it in `plans/STATUS/VALIDATION_LATEST.md`.
 - Avoid adding plans-only follow-up commits until remediation checks are attached.
 

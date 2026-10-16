@@ -79,6 +79,26 @@ Dry-run first if unsure:
 
 Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (team convention).
 
+### Ship preflight — a version bump alone does NOT make the repo shippable
+
+`ship` Phase 0 is `./scripts/verify-release-state.sh --check-unreleased`, which validates `CHANGELOG.md` +
+`ROADMAP_ACTIVE.md` + `STATUS/CURRENT.md` **against `workspace_version`**. A bump-only branch therefore still
+fails, and no tag date may be promised until all three agree:
+
+```text
+$ ./scripts/verify-release-state.sh --check-unreleased
+❌ ROADMAP_ACTIVE.md says v0.1.45 (expected v0.1.46)
+❌ STATUS/CURRENT.md references v0.1.45
+❌ CHANGELOG.md missing entry for v0.1.46
+⚠️  parse-changelog not installed (release notes will fall back)
+```
+
+- **Shippable set = version + the `## [X.Y.Z]` CHANGELOG heading + the version-doc flip**, landed together as
+  **one** release-prep PR (`chore(release): prepare vX.Y.Z changelog and version docs`; precedent #1169) and
+  green on main **before** tagging. Queueing the bump PR alone buys nothing — `ship` stops at Phase 0.
+- The `⚠️  parse-changelog not installed` line is a **silent fallback**, not a skipped check: install it
+  (`cargo install parse-changelog-cli`) so `release.yml` fills the GitHub Release body from `CHANGELOG.md`.
+
 ### CHANGELOG / GitHub Release notes (mandatory)
 
 `release.yml` (cargo-dist) uses **parse-changelog** to fill the GitHub Release body from `CHANGELOG.md`. Format must stay consistent with published releases (e.g. v0.1.34 / v0.1.35):
@@ -151,6 +171,15 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
   # every line must be true; "false" means the publish chain was green but skipped
   ```
 
+  - **The chain owns exactly 4 crates** (`publish-crates.yml`: core → redb → turso → mcp). A `do-memory-cli`
+    **404** is by design (it ships as a GitHub Release asset) and `do-memory-test-utils` is `publish = false`
+    (`test-utils/Cargo.toml`) — neither is a publish failure, so never widen the loop or "fix" the 404. Send a
+    `User-Agent` (crates.io rejects the default curl UA with `FETCH_FAILED`-shaped noise) and test version
+    **membership**, not `.versions[0].num` equality.
+  - **Release is not done** until `index("X.Y.Z") != null` for all 4 **and** `Verify publish landed` is green. A
+    green job whose publish step conclusion was `skipped` is **not** a publish — that is how `v0.1.45` shipped
+    while publishing nothing (`conclusion=skipped;duration_ms=0`). Read step conclusions, never the job verdict.
+
 ## Failure playbook
 
 | Symptom | Fix |
@@ -160,7 +189,8 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | ci-check failed | Fix main CI first |
 | ci-check failed and **no push triggered it** (a `schedule` nightly run is attached to the release SHA) | `do_ci_check` filters by head SHA only, so scheduled failures count. Do **not** weaken the gate mid-release: land a fix on main so the nightly detaches off the new HEAD, then ship inside the window before the next nightly starts (`gh run list --workflow=nightly-tests.yml` for the observed start; cron is `0 2 * * *`) — LESSON-051 |
 | Advisory-driven main red (Cargo Deny / Dependency Audit) | Fix main with a lockfile-only PR first; scope from **both** `cargo deny check advisories` and `cargo audit --json` — one tool green does not mean main green (LESSON-046/047) |
-| `Check for unreleased changes` red on the version PR | Cadence is critical; the PR needs `release-preparation`. If the bot already applied it, `gh run rerun` replays the label-less payload — toggle the label as a human: `gh pr edit <n> --remove-label release-preparation && gh pr edit <n> --add-label release-preparation` (LESSON-049) |
+| `Check for unreleased changes` red on the version PR | Cadence is critical; the PR needs `release-preparation`. If the bot already applied it, `gh run rerun` replays the label-less payload — toggle the label as a human: `gh pr edit <n> --remove-label release-preparation && gh pr edit <n> --add-label release-preparation` (LESSON-049). `release-preparation` is the **release PR's own label**: applying it to an unrelated PR to force a clean re-run is a deadlock breaker, not a fix — strip it again |
+| Everything green but `mergeStateStatus` stays `BLOCKED` / the release PR will not merge | `strict_required_status_checks_policy` makes merges **serial**: one merge puts every other branch `BEHIND` and re-queues its required runs, so head SHAs are ephemeral. Merge one PR at a time, re-read `gh pr view <n> --json headRefOid,mergeStateStatus` immediately before any merge/readiness claim, and batch docs/skills edits into **one** push (each push restarts the suite; `edited` does not) |
 | Tag already on remote | Do not retag; inspect `gh release view` |
 | release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
 | Release left **unpublished draft** (workflow died between draft creation and publish) | Re-run the failed tag workflow run (`gh run rerun <id>`) — the draft-create step is idempotent and publishing stays inside `release.yml`; never create a release by hand. This recovery only applies while the release is a **draft**; a published immutable release cannot be amended (delete it — and the tag, after review — before shipping a corrected one) |

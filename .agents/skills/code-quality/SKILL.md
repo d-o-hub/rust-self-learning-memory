@@ -88,6 +88,58 @@ cargo audit --json > /tmp/audit.json; jq -r '.vulnerabilities.count' /tmp/audit.
 jq -r '.vulnerabilities.vulnerabilities[] | .package.name + " " + .advisory.id' /tmp/audit.json
 ```
 
+**Three registers, one row per lockfile.** Dependabot alerts are a third source of
+truth, independent of both local gates, and they emit **one row per advisory per
+lockfile**: 12 open alerts were 6 advisories × (`Cargo.lock` +
+`fuzz/Cargo.lock`). `Cargo.toml:14` sets `exclude = ["fuzz"]`, so **no** local gate
+ever reads `fuzz/Cargo.lock`. Before promising a fix, name the register the id
+lives in (GHSA / RUSTSEC-under-audit / RUSTSEC-under-deny) and the lockfile each
+gate actually reads, and dedupe by advisory id — never by row count:
+
+| Source | Lockfiles read | Blind to |
+|--------|----------------|----------|
+| `cargo deny check advisories` (the **blocking** gate) | `Cargo.lock` | `informational` advisories (beyond `unmaintained = "workspace"`), GHSAs not adopted into RustSec, every id in `deny.toml` `ignore` |
+| `cargo audit` (structured report; CI fails only on `.vulnerabilities.count`) | `Cargo.lock` | `informational` advisories — they land in `.warnings`, never in `.vulnerabilities` — plus GHSAs not adopted into RustSec and every id in `.cargo/audit.toml` `ignore` |
+| Dependabot alerts | `Cargo.lock` + `fuzz/Cargo.lock` | nothing — but it closes only on a lockfile change |
+
+```bash
+gh api "/repos/{owner}/{repo}/dependabot/alerts?state=open" -q '.[0].security_advisory | keys'
+# Keys FIRST: a wrong key silently yields empty columns and a register that looks
+# bigger or smaller than it is.
+gh api "/repos/{owner}/{repo}/dependabot/alerts?state=open" \
+  -q '[.[].security_advisory.ghsa_id] | unique | length'    # advisories, not rows
+gh api "/repos/{owner}/{repo}/dependabot/alerts?state=open" \
+  -q '.[] | [.security_advisory.ghsa_id, .dependency.manifest_path, .security_advisory.severity] | @tsv'
+```
+
+**Two ways an advisory hides from a gate — neither means fixed.**
+- *`informational` severity*: `lru` **RUSTSEC-2026-0002** is
+  `informational = "unsound"` in the DB
+  (`~/.cargo/advisory-dbs/<db>/crates/lru/RUSTSEC-2026-0002.md`:
+  `aliases = ["GHSA-rhfx-m35p-ff5j"]`, `patched = [">= 0.16.3"]`,
+  `unaffected = ["< 0.9.0"]`). cargo-audit routes severities of that class to
+  `.warnings.unsound`, **not** `.vulnerabilities`, so it cannot redden the CI audit
+  step (which fails only when `.vulnerabilities.count > 0`) and it is not reported by
+  `cargo deny` either. Measured on the same lock, twice:
+  ```bash
+  cargo audit --no-fetch --json                      # in-repo: .cargo/audit.toml applies
+  # rc=0, .vulnerabilities.list = []  BUT .warnings.unsound = 5, .warnings.unmaintained = 1
+  cargo audit --no-fetch --json -f "$REPO/Cargo.lock" # from /tmp: ignores do NOT apply
+  # rc=1, .vulnerabilities.list = 8 (rsa 2023-0071, rustls-webpki 2026-0049/0098/0099/0104,
+  # h2 2026-0258, rustls 2026-0346/0349) and .warnings.unsound gains lru 2026-0002
+  ```
+  So a green `cargo audit` proves only "nothing un-ignored reached `.vulnerabilities`" —
+  name the ignore list and the surviving `.warnings` count whenever you cite it. The
+  audit.toml entry for 2026-0002 silences a *warning* line; it was never the thing
+  keeping the step green.
+- *Never adopted*: `libsql-sqlite3-parser` **CVE-2025-47736 / GHSA** has no
+  `crates/libsql-sqlite3-parser` directory in the advisory DB (only `libsqlite3-sys`),
+  so it fails **neither** local gate — Dependabot is the only observer.
+
+"audit green + deny green + Dependabot alerts open" is therefore a **normal
+state**, not a broken gate. Check (a) severity and (b) RustSec adoption before
+concluding the gate is wrong.
+
 **Local deny can lie.** A stale clone under `~/.cargo/advisory-dbs/` reports
 "advisories ok" against a lock CI proves red; check its checkout date and
 cross-check with `cargo audit` (DB at `~/.cargo/advisory-db`). Investigate a
@@ -101,6 +153,24 @@ leftover `db.lock` instead of deleting it (LESSON-047). Per-advisory facts:
 cargo update -p <pkg> --precise <minimal-patched-from-[versions]-patched>
 ```
 
+**Prove a bump by resolution, not by release notes.** A changelog claim that
+version X drops an advisory is a hypothesis; the proof is a before/after
+`cargo tree -e no-dev` diff. A scratch crate with the workspace's feature set
+is enough:
+
+```bash
+cargo new /tmp/probe && cd /tmp/probe
+# Cargo.toml: libsql = { version = "<candidate>", features = ["core","replication","remote","sync","tls"] }
+cargo update && cargo tree -e no-dev
+```
+
+`libsql 0.10.0` failed exactly this test: it resolves `hyper-rustls 0.25.0 ->
+rustls 0.22.4 -> rustls-webpki 0.102.8` and `libsql-sqlite3-parser 0.13.0` —
+identical to `0.9.30`, so the bump closes nothing. When resolution shows the pin,
+**name the pinning chain** (`libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 ->
+rustls-webpki 0.102.8`) and record the advisory as upstream-blocked instead of
+opening a PR that changes nothing.
+
 When a bump moves `getrandom` across a major, re-run the WASM gate locally with
 its real flags: `cargo check -p do-memory-core --target wasm32-unknown-unknown
 --no-default-features --features wasm32` with
@@ -110,8 +180,13 @@ its real flags: `cargo check -p do-memory-core --target wasm32-unknown-unknown
 evidence-backed entry in **both** `deny.toml` (`[advisories] ignore`) and
 `.cargo/audit.toml`, stating: the advisory, the dependency chain, the fix range
 (or why no in-place patch exists), and the mitigation verified against source —
-not asserted. Fix, don't suppress: a waiver is only for chains this workspace
-cannot patch.
+not asserted. The one legitimate asymmetry is an `informational` id, which only
+`cargo audit` can see (see *Two ways an advisory hides* above). Fix, don't
+suppress: a waiver is only for chains this workspace cannot patch. An ignore
+clears a **gate**, never an **alert**: PR #1174 made both local gates green and
+closed zero Dependabot rows. A row closes only when a lockfile stops resolving the
+affected version — and `fuzz/Cargo.lock` rows need a change Dependabot can see but
+no local gate can.
 
 ## Code Review Output Format
 

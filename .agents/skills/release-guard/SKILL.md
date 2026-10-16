@@ -166,6 +166,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | Release left **unpublished draft** (workflow died between draft creation and publish) | Re-run the failed tag workflow run (`gh run rerun <id>`) — the draft-create step is idempotent and publishing stays inside `release.yml`; never create a release by hand. This recovery only applies while the release is a **draft**; a published immutable release cannot be amended (delete it — and the tag, after review — before shipping a corrected one) |
 | Attestation missing for an asset | Check the `Attest …` steps of the tag workflow run; `gh attestation verify` locally; re-run the run if the step failed |
 | GitHub Release body empty / no notes | Duplicate `## [X.Y.Z]` in CHANGELOG (parse-changelog fails). Make versions unique; `gh release edit` to restore notes; keep gate in verify-release-state |
+| `chore(changelog): update CHANGELOG.md for vX.Y.Z` opened by `changelog.yml` on the tag push | **Close, never merge** — git-cliff regenerates the file from history, so it replaces the curated entries back to `## [0.1.10]` (precedent: #1119/#1105/#1054/#1036 all closed). The changelog is authored by the release-prep PR (LESSON-054) |
 | Want crates.io | Use publish workflow / team process after GitHub Release |
 
 ## Relationship to other skills

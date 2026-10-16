@@ -823,3 +823,28 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: `.github/actions/publish-crate/action.yml`,
   `.github/workflows/publish-crates.yml`, ADR-078 (amendment 2026-10-16),
   LESSON-014, #1179.
+
+## LESSON-054: the tag-push changelog automation rewrites the whole CHANGELOG — close, never merge (2026-10-16)
+
+- Issue: every tag push runs `.github/workflows/changelog.yml`, which executes
+  `git-cliff --config cliff.toml --output CHANGELOG.md` and opens an
+  `automated-pr` (`#1178` for `v0.1.45`). Because git-cliff regenerates the file
+  **from git history**, the PR replaces the curated Keep-a-Changelog prose with
+  one-line subjects all the way back to `## [0.1.10]` (+405/−264 across the same
+  single `CHANGELOG.md`, hunk header `@@ -7,317 +7,458 @@`) and re-dates the
+  section to the tag day. It looks
+  mergeable and even "fixes" the release date, which is what makes it dangerous.
+- Impact: merging it deletes the evidence-bearing entries the release process
+  requires (each `### Fixed` bullet names the PR and the behaviour it restored),
+  and it collides with any open PR editing the top of `CHANGELOG.md`. Precedent:
+  `#1119`, `#1105`, `#1054`, `#1036` — every previous auto-changelog PR was
+  closed without merging.
+- Fix/prevention: treat `chore(changelog): update CHANGELOG.md for v*` as a
+  **close-only** PR; the changelog is written by the release-prep PR
+  (`chore(release): prepare vX.Y.Z changelog and version docs`) per AGENTS.md.
+  Land release-facing `CHANGELOG.md` changes *before* reviewing that automation,
+  and mention the date truth in the prep PR instead of accepting the regen. If
+  the automation stays unwanted, the fix is to its trigger/config in its own PR —
+  never a mid-release edit.
+- References: `.github/workflows/changelog.yml`, `cliff.toml`,
+  `scripts/release-manager.sh`, LESSON-044.

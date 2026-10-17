@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-10-16
+- **Last Updated**: 2026-10-17
 - **Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). `v0.1.45` shipped
   but published nothing to crates.io, and the Turso nightly has been red since 2026-10-13. The queue is serial and
   starts with the closeout PR, which carries the `0.1.46` bump (ACT-402 → #1179 → #1177 → #1175 → #1180 → tag `v0.1.46`).
@@ -68,7 +68,7 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 |----|--------|-----|-----------|--------|
 | ACT-376 | Modification watermark: `Episode.updated_at` + Turso column + redb `SCHEMA_VERSION` 4→5, keyset pages on `(updated_at, episode_id)`, cursor through the sync loop; add a defaulted `query_episodes_modified_since` (E5) | #1067 (S08) | — | ⏳ |
 | ACT-377 | Revision-aware merge: one helper used by `get_all_episodes` and retrieval backfill; wire the orphan `resolve_episode_conflict`; document the missing-revision policy | #1068 (S09) | ACT-376 | ⏳ |
-| ACT-378 | Single-transaction redb `store_episodes_batch` override, then batch the synchronizer and honor the dead `SyncConfig.batch_size` | #1089 (M08) | ACT-376 | ⏳ |
+| ACT-378 | Single-transaction redb `store_episodes_batch` override, then batch the synchronizer and honor the dead `SyncConfig.batch_size` | #1089 (M08) | ACT-376 | ✅ code merged #1171 (`16426d08`); criteria 1–3 evidenced, 4 open |
 | ACT-379 | Identity-scoped `EmbeddingStorageBackend` adapter over `Arc<dyn StorageBackend>`, namespaces + `kind:model:dims`/revision in the key, truthful ephemeral mode | #1073 (R02) | — | ⏳ |
 | ACT-380 | Route the 5 remaining pattern/management sites through `live_semantic_service()` — closes E2 | #1074 (R03) | ACT-379, after ACT-374 | ⏳ |
 | ACT-381 | Reuse stored pattern vectors and batch only the misses; coalescing keyed on full provider identity/revision | #1076 (R05) | ACT-379, ACT-380 | ⏳ |
@@ -78,6 +78,15 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 | ACT-385 | Remaining validated P1s: #1063 adaptive pool monitor/permits/cooldown (E4), #1064 scoped `with_connection`, #1070 capacity eviction, #1071 strict row decode, #1065 ms recommendation timestamps, #1078 incremental ranking, #1079 execution-backed provenance | see GAP file | — | ⏳ |
 | ACT-368 | OIDC-only crates.io publish — manual steps: 4 crates.io registrations, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` env to `v*` | #1109 C1/C2 | — | ✅ code merged #1123; ⏸ maintainer |
 | ACT-369 | Release-path C5–C7: verify-a-release page, trigger slimming, publish-path hygiene | #1109 C5/C6/C7 | — | ✅ merged #1125 (`4fb0e20f`) |
+
+**ACT-378 evidence (2026-10-17)** — code half: `memory-storage-redb/src/backend_impl.rs:20` +
+`episodes.rs:99-127` (one write transaction per batch), `memory-core/src/sync/synchronizer.rs:298`
+(`page.chunks(batch_size)`) and `:48`/`:67` (`SyncConfig.batch_size` is no longer dead). Acceptance
+criteria for #1089, each named to the test that proves it: 1 → `storage_sync.rs:68`, `:794`
+(100/1,000 volume); 2 → `storage_sync.rs:278`, `sync_watermark.rs:383`; 3 → `sync_watermark.rs:306`
+and `:383` **plus** `sync_partial_failure_cursor.rs` (#1187), where the batch path and the cursor are
+finally asserted together; **4 → still open** — `sync_watermark.rs:268` proves exactly-once delivery
+("no duplicates or omissions") but no sync test asserts page **order**, so that box stays unchecked.
 
 ## Completed actions (pointer)
 

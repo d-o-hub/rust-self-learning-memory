@@ -96,6 +96,89 @@ impl RedbStorage {
         Ok(())
     }
 
+    /// Store a batch of episodes in cache in a single write transaction
+    pub async fn store_episodes_batch(&self, episodes: &[Episode]) -> Result<()> {
+        if episodes.is_empty() {
+            return Ok(());
+        }
+
+        debug!("Storing {} episodes in cache in a batch", episodes.len());
+        let db = Arc::clone(&self.db);
+
+        // Track metadata needed for cache recording
+        let mut cache_entries = Vec::with_capacity(episodes.len());
+        // Items to move into the blocking task for database insertion
+        let mut db_items = Vec::with_capacity(episodes.len());
+
+        for episode in episodes {
+            let episode_id = episode.episode_id;
+            let episode_id_str = episode_id.to_string();
+            let episode_bytes = postcard::to_allocvec(episode).map_err(|e| {
+                Error::Storage(format!("Failed to serialize episode {}: {}", episode_id, e))
+            })?;
+            let byte_size = episode_bytes.len();
+
+            cache_entries.push((episode_id, byte_size));
+            db_items.push((episode_id_str, episode_bytes));
+        }
+
+        tokio::task::spawn_blocking(move || {
+            let write_txn = db
+                .begin_write()
+                .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
+
+            {
+                let mut table = write_txn
+                    .open_table(EPISODES_TABLE)
+                    .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
+
+                let mut revisions = write_txn.open_table(EPISODE_REVISIONS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open episode revisions table: {}", e))
+                })?;
+
+                let seq = allocate_revision_seq(&write_txn, chrono::Utc::now().timestamp_millis())?;
+
+                for (episode_id_str, episode_bytes) in &db_items {
+                    table
+                        .insert(episode_id_str.as_str(), episode_bytes.as_slice())
+                        .map_err(|e| {
+                            Error::Storage(format!(
+                                "Failed to insert episode {}: {}",
+                                episode_id_str, e
+                            ))
+                        })?;
+
+                    revisions
+                        .insert(episode_id_str.as_str(), seq)
+                        .map_err(|e| {
+                            Error::Storage(format!(
+                                "Failed to record episode revision {}: {}",
+                                episode_id_str, e
+                            ))
+                        })?;
+                }
+            }
+
+            write_txn
+                .commit()
+                .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
+
+            Ok::<(), Error>(())
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+
+        // Record cache tracking for all stored episodes
+        for (episode_id, byte_size) in cache_entries {
+            self.cache
+                .record_access(episode_id, false, Some(byte_size))
+                .await;
+        }
+
+        info!("Successfully cached batch of {} episodes", episodes.len());
+        Ok(())
+    }
+
     /// Retrieve an episode from cache
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Option<Episode>> {
         debug!("Retrieving episode from cache: {}", episode_id);

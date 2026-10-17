@@ -17,6 +17,10 @@ impl StorageBackend for RedbStorage {
         self.store_episode(episode).await
     }
 
+    async fn store_episodes_batch(&self, episodes: &[Episode]) -> Result<()> {
+        self.store_episodes_batch(episodes).await
+    }
+
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
         self.get_episode(id).await
     }

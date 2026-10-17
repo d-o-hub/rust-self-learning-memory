@@ -33,6 +33,8 @@ pub struct StorageSynchronizer<T, R> {
     /// Clamped to [`MAX_QUERY_LIMIT`] so a single page can never exceed the
     /// storage-layer bound.
     page_size: usize,
+    /// Maximum number of episodes written in a single batch call.
+    batch_size: usize,
 }
 
 impl<T, R> StorageSynchronizer<T, R> {
@@ -43,6 +45,7 @@ impl<T, R> StorageSynchronizer<T, R> {
             redb,
             sync_state: Arc::new(RwLock::new(SyncState::default())),
             page_size: MAX_QUERY_LIMIT,
+            batch_size: super::types::SyncConfig::default().batch_size,
         }
     }
 
@@ -54,6 +57,15 @@ impl<T, R> StorageSynchronizer<T, R> {
     #[must_use]
     pub fn with_page_size(mut self, page_size: usize) -> Self {
         self.page_size = page_size.clamp(1, MAX_QUERY_LIMIT);
+        self
+    }
+
+    /// Set the batch chunk size used for store operations.
+    ///
+    /// The value is clamped to `1..=`[`MAX_QUERY_LIMIT`].
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.batch_size = batch_size.clamp(1, MAX_QUERY_LIMIT);
         self
     }
 
@@ -103,6 +115,42 @@ where
             Err(_) => Err(Error::Storage(format!(
                 "Timeout loading sync watermark after {SYNC_ALL_TIMEOUT:?}"
             ))),
+        }
+    }
+
+    /// Fallback method to sync a chunk item by item when a batch operation fails.
+    async fn sync_chunk_fallback(
+        &self,
+        chunk: &[(crate::Episode, DateTime<Utc>)],
+        correlation_id: Uuid,
+        stats: &mut SyncStats,
+        page_errors: &mut usize,
+    ) {
+        for (episode, _modified_at) in chunk {
+            let episode_id = episode.episode_id;
+            match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(episode)).await {
+                Ok(Ok(())) => stats.episodes_synced += 1,
+                Ok(Err(err)) => {
+                    error!(
+                        correlation_id = %correlation_id,
+                        "Failed to sync episode {}: {}",
+                        episode_id,
+                        err
+                    );
+                    stats.errors += 1;
+                    *page_errors += 1;
+                }
+                Err(_) => {
+                    error!(
+                        correlation_id = %correlation_id,
+                        "Timeout syncing episode {} after {:?}",
+                        episode_id,
+                        SYNC_EPISODE_TIMEOUT
+                    );
+                    stats.errors += 1;
+                    *page_errors += 1;
+                }
+            }
         }
     }
 
@@ -197,6 +245,7 @@ where
     pub async fn sync_all_recent_episodes(&self, since: DateTime<Utc>) -> Result<SyncStats> {
         let correlation_id = Uuid::new_v4();
         let page_size = self.page_size;
+        let batch_size = self.batch_size;
 
         // Resume from the durable watermark when one exists; `since` is only
         // the entry point for the very first incremental sync.
@@ -245,24 +294,41 @@ where
             let page_len = page.len();
             let mut page_errors = 0usize;
 
-            for (episode, _modified_at) in &page {
-                let episode_id = episode.episode_id;
-                match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(episode)).await {
-                    Ok(Ok(())) => stats.episodes_synced += 1,
+            // Chunk page into batches for efficient write transaction usage
+            for chunk in page.chunks(batch_size) {
+                let episodes_chunk: Vec<_> = chunk.iter().map(|(ep, _)| ep.clone()).collect();
+                let batch_store_res = timeout(
+                    SYNC_EPISODE_TIMEOUT,
+                    self.redb.store_episodes_batch(&episodes_chunk),
+                )
+                .await;
+
+                let needs_fallback = match batch_store_res {
+                    Ok(Ok(())) => {
+                        stats.episodes_synced += chunk.len();
+                        false
+                    }
                     Ok(Err(e)) => {
-                        error!(correlation_id = %correlation_id, "Failed to sync episode {}: {}", episode_id, e);
-                        stats.errors += 1;
-                        page_errors += 1;
+                        debug!(
+                            correlation_id = %correlation_id,
+                            "Batch store failed ({}), falling back to per-item sync for chunk of size {}",
+                            e, chunk.len()
+                        );
+                        true
                     }
                     Err(_) => {
-                        error!(
+                        debug!(
                             correlation_id = %correlation_id,
-                            "Timeout syncing episode {} after {:?}",
-                            episode_id, SYNC_EPISODE_TIMEOUT
+                            "Batch store timed out after {:?}, falling back to per-item sync for chunk of size {}",
+                            SYNC_EPISODE_TIMEOUT, chunk.len()
                         );
-                        stats.errors += 1;
-                        page_errors += 1;
+                        true
                     }
+                };
+
+                if needs_fallback {
+                    self.sync_chunk_fallback(chunk, correlation_id, &mut stats, &mut page_errors)
+                        .await;
                 }
             }
 

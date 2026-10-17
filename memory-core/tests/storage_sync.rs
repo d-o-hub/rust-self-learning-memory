@@ -5,6 +5,7 @@
 //!
 //! All tests follow the Given-When-Then pattern for clarity.
 
+use do_memory_core::StorageBackend;
 use do_memory_core::sync::{ConflictResolution, StorageSynchronizer, SyncConfig};
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_redb::RedbStorage;
@@ -271,4 +272,390 @@ fn should_provide_sensible_default_sync_configuration() {
     assert_eq!(config.batch_size, 100);
     assert!(config.sync_patterns);
     assert!(config.sync_heuristics);
+}
+
+#[tokio::test]
+async fn should_fallback_to_per_item_store_when_batch_fails_and_isolate_errors() {
+    use async_trait::async_trait;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    struct FailingBatchStorage {
+        real_redb: RedbStorage,
+        batch_call_count: Arc<AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl do_memory_core::StorageBackendCapabilities for FailingBatchStorage {}
+
+    #[async_trait]
+    impl do_memory_core::StorageBackend for FailingBatchStorage {
+        async fn store_episode(&self, episode: &Episode) -> do_memory_core::Result<()> {
+            // Induce failure for a specific bad episode ID
+            if episode.task_description == "BAD_EPISODE" {
+                return Err(do_memory_core::Error::Storage(
+                    "Simulated episode store failure".to_string(),
+                ));
+            }
+            self.real_redb.store_episode(episode).await
+        }
+
+        async fn store_episodes_batch(&self, _episodes: &[Episode]) -> do_memory_core::Result<()> {
+            self.batch_call_count.fetch_add(1, Ordering::SeqCst);
+            // Always fail batch write to trigger fallback
+            Err(do_memory_core::Error::Storage(
+                "Simulated batch failure".to_string(),
+            ))
+        }
+
+        async fn get_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<Option<Episode>> {
+            self.real_redb.get_episode(id).await
+        }
+
+        async fn delete_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<()> {
+            self.real_redb.delete_episode(id).await
+        }
+
+        async fn store_pattern(
+            &self,
+            pattern: &do_memory_core::Pattern,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_pattern(pattern).await
+        }
+
+        async fn get_pattern(
+            &self,
+            id: do_memory_core::episode::PatternId,
+        ) -> do_memory_core::Result<Option<do_memory_core::Pattern>> {
+            self.real_redb.get_pattern(id).await
+        }
+
+        async fn store_heuristic(
+            &self,
+            heuristic: &do_memory_core::Heuristic,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_heuristic(heuristic).await
+        }
+
+        async fn get_heuristic(
+            &self,
+            id: uuid::Uuid,
+        ) -> do_memory_core::Result<Option<do_memory_core::Heuristic>> {
+            self.real_redb.get_heuristic(id).await
+        }
+
+        async fn query_episodes_since(
+            &self,
+            since: chrono::DateTime<chrono::Utc>,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb.query_episodes_since(since, limit).await
+        }
+
+        async fn query_episodes_by_metadata(
+            &self,
+            key: &str,
+            value: &str,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb
+                .query_episodes_by_metadata(key, value, limit)
+                .await
+        }
+
+        async fn store_embedding(
+            &self,
+            id: &str,
+            embedding: Vec<f32>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embedding(id, embedding).await
+        }
+
+        async fn get_embedding(&self, id: &str) -> do_memory_core::Result<Option<Vec<f32>>> {
+            self.real_redb.get_embedding(id).await
+        }
+
+        async fn delete_embedding(&self, id: &str) -> do_memory_core::Result<bool> {
+            self.real_redb.delete_embedding(id).await
+        }
+
+        async fn store_embeddings_batch(
+            &self,
+            embeddings: Vec<(String, Vec<f32>)>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embeddings_batch(embeddings).await
+        }
+
+        async fn get_embeddings_batch(
+            &self,
+            ids: &[String],
+        ) -> do_memory_core::Result<Vec<Option<Vec<f32>>>> {
+            self.real_redb.get_embeddings_batch(ids).await
+        }
+    }
+
+    let (turso, _turso_dir) = create_test_turso().await.unwrap();
+    let (redb, _redb_dir) = create_test_redb().await.unwrap();
+    let batch_call_count = Arc::new(AtomicUsize::new(0));
+
+    let failing_cache = FailingBatchStorage {
+        real_redb: redb,
+        batch_call_count: Arc::clone(&batch_call_count),
+    };
+
+    let sync =
+        StorageSynchronizer::new(Arc::new(turso), Arc::new(failing_cache)).with_batch_size(10);
+
+    let context = TaskContext::default();
+    let mut episodes = Vec::new();
+    for i in 0..5 {
+        let desc = if i == 2 {
+            "BAD_EPISODE".to_string()
+        } else {
+            format!("Good task {i}")
+        };
+        let ep = Episode::new(desc, context.clone(), TaskType::Testing);
+        episodes.push(ep);
+    }
+
+    for chunk in episodes.chunks(10) {
+        sync.turso
+            .store_episodes_batch(chunk.to_vec())
+            .await
+            .unwrap();
+    }
+
+    let since = chrono::Utc::now() - chrono::Duration::hours(1);
+    let stats = sync.sync_all_recent_episodes(since).await.unwrap();
+
+    // Verify batch was attempted
+    assert!(
+        batch_call_count.load(Ordering::SeqCst) > 0,
+        "Batch store should have been attempted"
+    );
+
+    // 4 good episodes synced, 1 error
+    assert_eq!(stats.episodes_synced, 4, "4 good episodes should be synced");
+    assert_eq!(stats.errors, 1, "1 bad episode should be recorded as error");
+
+    // Verify good episodes are in cache and bad episode is not
+    for (i, ep) in episodes.iter().enumerate() {
+        let cached = sync.redb.get_episode(ep.episode_id).await.unwrap();
+        if i == 2 {
+            assert!(cached.is_none(), "BAD_EPISODE should not be cached");
+        } else {
+            assert!(cached.is_some(), "Good episode {i} should be cached");
+        }
+    }
+}
+
+#[tokio::test]
+async fn should_handle_per_item_timeout_in_fallback_loop() {
+    use async_trait::async_trait;
+
+    struct TimingOutItemStorage {
+        real_redb: RedbStorage,
+    }
+
+    #[async_trait]
+    impl do_memory_core::StorageBackendCapabilities for TimingOutItemStorage {}
+
+    #[async_trait]
+    impl do_memory_core::StorageBackend for TimingOutItemStorage {
+        async fn store_episode(&self, episode: &Episode) -> do_memory_core::Result<()> {
+            if episode.task_description == "TIMEOUT_EPISODE" {
+                // Sleep longer than SYNC_EPISODE_TIMEOUT in test if needed, or trigger fallback path
+                tokio::time::sleep(std::time::Duration::from_secs(31)).await;
+            }
+            self.real_redb.store_episode(episode).await
+        }
+
+        async fn store_episodes_batch(&self, _episodes: &[Episode]) -> do_memory_core::Result<()> {
+            // Always fail batch write to trigger fallback
+            Err(do_memory_core::Error::Storage(
+                "Simulated batch failure".to_string(),
+            ))
+        }
+
+        async fn get_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<Option<Episode>> {
+            self.real_redb.get_episode(id).await
+        }
+
+        async fn delete_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<()> {
+            self.real_redb.delete_episode(id).await
+        }
+
+        async fn store_pattern(
+            &self,
+            pattern: &do_memory_core::Pattern,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_pattern(pattern).await
+        }
+
+        async fn get_pattern(
+            &self,
+            id: do_memory_core::episode::PatternId,
+        ) -> do_memory_core::Result<Option<do_memory_core::Pattern>> {
+            self.real_redb.get_pattern(id).await
+        }
+
+        async fn store_heuristic(
+            &self,
+            heuristic: &do_memory_core::Heuristic,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_heuristic(heuristic).await
+        }
+
+        async fn get_heuristic(
+            &self,
+            id: uuid::Uuid,
+        ) -> do_memory_core::Result<Option<do_memory_core::Heuristic>> {
+            self.real_redb.get_heuristic(id).await
+        }
+
+        async fn query_episodes_since(
+            &self,
+            since: chrono::DateTime<chrono::Utc>,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb.query_episodes_since(since, limit).await
+        }
+
+        async fn query_episodes_by_metadata(
+            &self,
+            key: &str,
+            value: &str,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb
+                .query_episodes_by_metadata(key, value, limit)
+                .await
+        }
+
+        async fn store_embedding(
+            &self,
+            id: &str,
+            embedding: Vec<f32>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embedding(id, embedding).await
+        }
+
+        async fn get_embedding(&self, id: &str) -> do_memory_core::Result<Option<Vec<f32>>> {
+            self.real_redb.get_embedding(id).await
+        }
+
+        async fn delete_embedding(&self, id: &str) -> do_memory_core::Result<bool> {
+            self.real_redb.delete_embedding(id).await
+        }
+
+        async fn store_embeddings_batch(
+            &self,
+            embeddings: Vec<(String, Vec<f32>)>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embeddings_batch(embeddings).await
+        }
+
+        async fn get_embeddings_batch(
+            &self,
+            ids: &[String],
+        ) -> do_memory_core::Result<Vec<Option<Vec<f32>>>> {
+            self.real_redb.get_embeddings_batch(ids).await
+        }
+    }
+
+    // Pause time or use tokio time control
+    tokio::time::pause();
+
+    let (turso, _turso_dir) = create_test_turso().await.unwrap();
+    let (redb, _redb_dir) = create_test_redb().await.unwrap();
+
+    let timeout_cache = TimingOutItemStorage { real_redb: redb };
+    let sync =
+        StorageSynchronizer::new(Arc::new(turso), Arc::new(timeout_cache)).with_batch_size(10);
+
+    let context = TaskContext::default();
+    let ep1 = Episode::new(
+        "Good task 1".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
+    let ep2 = Episode::new(
+        "TIMEOUT_EPISODE".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
+
+    sync.turso
+        .store_episodes_batch(vec![ep1, ep2])
+        .await
+        .unwrap();
+
+    let since = chrono::Utc::now() - chrono::Duration::hours(1);
+
+    // Spawn task to advance virtual time if blocked
+    let sync_task = tokio::spawn(async move { sync.sync_all_recent_episodes(since).await });
+
+    tokio::time::advance(std::time::Duration::from_secs(35)).await;
+    let stats = sync_task.await.unwrap().unwrap();
+
+    assert_eq!(stats.episodes_synced, 1, "1 good episode should be synced");
+    assert_eq!(
+        stats.errors, 1,
+        "1 timeout episode should be recorded as error"
+    );
+}
+
+#[tokio::test]
+async fn should_sync_large_volumes_using_batch_writes_100_and_1000() {
+    // Test 100 and 1,000 episode scale sync
+    for count in [100, 1000] {
+        let (turso, _turso_dir) = create_test_turso().await.unwrap();
+        let (redb, _redb_dir) = create_test_redb().await.unwrap();
+        let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb)).with_batch_size(100);
+
+        let context = TaskContext::default();
+        let mut episodes = Vec::with_capacity(count);
+        for i in 0..count {
+            episodes.push(Episode::new(
+                format!("Batch task {i}"),
+                context.clone(),
+                TaskType::Testing,
+            ));
+        }
+
+        // Store episodes into source Turso storage
+        for chunk in episodes.chunks(100) {
+            sync.turso
+                .store_episodes_batch(chunk.to_vec())
+                .await
+                .unwrap();
+        }
+
+        let since = chrono::Utc::now() - chrono::Duration::hours(1);
+        let start_time = std::time::Instant::now();
+        let stats = sync.sync_all_recent_episodes(since).await.unwrap();
+        let elapsed = start_time.elapsed();
+
+        assert_eq!(
+            stats.episodes_synced, count,
+            "Should sync all {count} episodes"
+        );
+        assert_eq!(stats.errors, 0, "Should have no errors for {count} sync");
+
+        // Print measured throughput for inspection during benchmark runs
+        let rate = (count as f64) / elapsed.as_secs_f64();
+        println!(
+            "Synced {count} episodes in {:?} ({:.2} episodes/sec)",
+            elapsed, rate
+        );
+
+        // Verify representative samples in redb cache
+        for idx in [0, count / 2, count - 1] {
+            let ep_id = episodes[idx].episode_id;
+            let cached = sync.redb.get_episode(ep_id).await.unwrap();
+            assert!(
+                cached.is_some(),
+                "Sample episode {idx} (id: {ep_id}) should be in cache"
+            );
+        }
+    }
 }

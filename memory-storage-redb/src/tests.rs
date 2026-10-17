@@ -42,6 +42,39 @@ pub async fn test_clear_all() {
     assert!(result.is_ok());
 }
 
+#[tokio::test]
+pub async fn test_store_episodes_batch_empty_and_non_empty() {
+    let storage = create_test_storage().await.unwrap();
+
+    // 1. Empty batch
+    let empty_res = storage.store_episodes_batch(&[]).await;
+    assert!(empty_res.is_ok());
+
+    // 2. Multiple episodes batch
+    let ep1 = Episode::new(
+        "Batch task 1".to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+    let ep2 = Episode::new(
+        "Batch task 2".to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+
+    let batch = vec![ep1.clone(), ep2.clone()];
+    storage.store_episodes_batch(&batch).await.unwrap();
+
+    // Verify both retrieved
+    let ret1 = storage.get_episode(ep1.episode_id).await.unwrap();
+    assert!(ret1.is_some());
+    assert_eq!(ret1.unwrap().task_description, "Batch task 1");
+
+    let ret2 = storage.get_episode(ep2.episode_id).await.unwrap();
+    assert!(ret2.is_some());
+    assert_eq!(ret2.unwrap().task_description, "Batch task 2");
+}
+
 // ========== Embedding Storage Tests ==========
 
 #[tokio::test]

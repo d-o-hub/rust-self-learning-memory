@@ -117,78 +117,88 @@ impl TursoStorage {
                    AND name LIKE 'embeddings\\_%' ESCAPE '\\' \
                  ORDER BY name";
 
-            let (conn, _conn_id) = self.get_connection_with_id().await?;
-            let mut table_rows = conn.query(TABLES_SQL, ()).await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to list embedding tables: {}", e))
-            })?;
-
-            let mut tables = Vec::new();
-            while let Some(row) = table_rows.next().await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to read embedding table row: {}", e))
-            })? {
-                let name: String = row.get(0).map_err(|e| {
+            self.with_connection(async |conn| {
+                let mut table_rows = conn.query(TABLES_SQL, ()).await.map_err(|e| {
                     do_memory_core::Error::Storage(format!(
-                        "Failed to parse embedding table name: {}",
+                        "Failed to list embedding tables: {}",
                         e
                     ))
                 })?;
-                tables.push(name);
-            }
 
-            let mut ids = Vec::new();
-            for table in tables {
-                // SAFETY: `table` comes from `sqlite_master` (schema-owned, never
-                // user input), so it cannot inject SQL; identifiers cannot be
-                // parameterized.
-                let sql = format!("SELECT item_id FROM {table} WHERE item_type = 'embedding'");
-                let mut rows = conn.query(&sql, ()).await.map_err(|e| {
+                let mut tables = Vec::new();
+                while let Some(row) = table_rows.next().await.map_err(|e| {
                     do_memory_core::Error::Storage(format!(
-                        "Failed to list embeddings from {table}: {}",
+                        "Failed to read embedding table row: {}",
                         e
                     ))
-                })?;
+                })? {
+                    let name: String = row.get(0).map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to parse embedding table name: {}",
+                            e
+                        ))
+                    })?;
+                    tables.push(name);
+                }
+
+                let mut ids = Vec::new();
+                for table in tables {
+                    // SAFETY: `table` comes from `sqlite_master` (schema-owned, never
+                    // user input), so it cannot inject SQL; identifiers cannot be
+                    // parameterized.
+                    let sql = format!("SELECT item_id FROM {table} WHERE item_type = 'embedding'");
+                    let mut rows = conn.query(&sql, ()).await.map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to list embeddings from {table}: {}",
+                            e
+                        ))
+                    })?;
+                    while let Some(row) = rows.next().await.map_err(|e| {
+                        do_memory_core::Error::Storage(format!(
+                            "Failed to read embedding row from {table}: {}",
+                            e
+                        ))
+                    })? {
+                        let id: String = row
+                            .get(0)
+                            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+                        ids.push(id);
+                    }
+                }
+                ids.sort();
+                ids.dedup();
+                Ok(ids)
+            })
+            .await
+        }
+
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            self.with_connection(async |conn| {
+                let mut rows = conn
+                    .query(
+                        "SELECT item_id FROM embeddings WHERE item_type = 'embedding'",
+                        (),
+                    )
+                    .await
+                    .map_err(|e| {
+                        do_memory_core::Error::Storage(format!("Failed to list embeddings: {}", e))
+                    })?;
+
+                let mut ids = Vec::new();
                 while let Some(row) = rows.next().await.map_err(|e| {
-                    do_memory_core::Error::Storage(format!(
-                        "Failed to read embedding row from {table}: {}",
-                        e
-                    ))
+                    do_memory_core::Error::Storage(format!("Failed to read embedding row: {}", e))
                 })? {
                     let id: String = row
                         .get(0)
                         .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
                     ids.push(id);
                 }
-            }
-            ids.sort();
-            ids.dedup();
-            Ok(ids)
-        }
-
-        #[cfg(not(feature = "turso_multi_dimension"))]
-        {
-            let (conn, _conn_id) = self.get_connection_with_id().await?;
-            let mut rows = conn
-                .query(
-                    "SELECT item_id FROM embeddings WHERE item_type = 'embedding'",
-                    (),
-                )
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to list embeddings: {}", e))
-                })?;
-
-            let mut ids = Vec::new();
-            while let Some(row) = rows.next().await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to read embedding row: {}", e))
-            })? {
-                let id: String = row
-                    .get(0)
-                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
-                ids.push(id);
-            }
-            ids.sort();
-            ids.dedup();
-            Ok(ids)
+                ids.sort();
+                ids.dedup();
+                Ok(ids)
+            })
+            .await
         }
     }
 
@@ -214,11 +224,26 @@ impl TursoStorage {
     }
 
     /// Check if embedding vector column is populated for vector_top_k search
+    ///
+    /// Under `turso_multi_dimension` there is one table per supported dimension
+    /// and no legacy `embeddings` table, so the count spans the four tables that
+    /// own a vector index; `embeddings_other` has no index and cannot serve
+    /// vector_top_k.
     pub async fn has_vector_embeddings(&self) -> Result<bool> {
-        self.with_connection_with_id(async |conn, _conn_id| {
-            let sql = "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
+        #[cfg(feature = "turso_multi_dimension")]
+        const SQL: &str = r#"
+            SELECT COALESCE(SUM(n), 0) FROM (
+                SELECT COUNT(*) AS n FROM embeddings_384 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_1024 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_1536 WHERE embedding_vector IS NOT NULL
+                UNION ALL SELECT COUNT(*) FROM embeddings_3072 WHERE embedding_vector IS NOT NULL
+            )"#;
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        const SQL: &str =
+            "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
 
-            let mut rows = conn.query(sql, ()).await.map_err(|e| {
+        self.with_connection_with_id(async |conn, _conn_id| {
+            let mut rows = conn.query(SQL, ()).await.map_err(|e| {
                 do_memory_core::Error::Storage(format!("Failed to check vector embeddings: {}", e))
             })?;
 

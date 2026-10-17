@@ -129,6 +129,9 @@ impl ScopeFilter {
     pub fn from_query_text(query: &str) -> Self {
         let mut filter = Self::new();
 
+        // Pre-compute lowercased query once to avoid O(N) heap allocations in keyword loops.
+        let lower = query.to_lowercase();
+
         // Extract common tags from query
         let common_tags = [
             "bug",
@@ -147,21 +150,20 @@ impl ScopeFilter {
         ];
 
         for tag in common_tags {
-            if query.to_lowercase().contains(tag) {
-                filter.required_tags.insert(tag.to_string());
+            if lower.contains(tag) {
+                filter.required_tags.insert((*tag).to_string());
             }
         }
 
         // Extract task types
         let task_types = ["implementation", "debugging", "testing", "review"];
         for tt in task_types {
-            if query.to_lowercase().contains(tt) {
-                filter.required_task_types.insert(tt.to_string());
+            if lower.contains(tt) {
+                filter.required_task_types.insert((*tt).to_string());
             }
         }
 
         // Extract time hints
-        let lower = query.to_lowercase();
         if lower.contains("recent") || lower.contains("latest") {
             filter.time_range = Some(TimeRange::recent_days(7));
         } else if lower.contains("today") {

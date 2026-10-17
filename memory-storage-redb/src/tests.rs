@@ -75,6 +75,48 @@ pub async fn test_store_episodes_batch_empty_and_non_empty() {
     assert_eq!(ret2.unwrap().task_description, "Batch task 2");
 }
 
+/// The cache derives `modified_at` from the allocated revision sequence, so a
+/// batch must allocate a strictly increasing revision per episode. Sharing one
+/// revision across a batch collapses every entry onto the same timestamp and
+/// the keyset read then orders by `episode_id`, silently losing write order.
+#[tokio::test]
+pub async fn test_store_episodes_batch_preserves_revision_order() {
+    let storage = create_test_storage().await.unwrap();
+    let since = chrono::Utc::now() - chrono::Duration::hours(1);
+
+    let episodes: Vec<Episode> = (0..50)
+        .map(|i| {
+            Episode::new(
+                format!("Ordered task {i}"),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+        })
+        .collect();
+    storage.store_episodes_batch(&episodes).await.unwrap();
+
+    let rows = storage
+        .query_episodes_modified_since(since, None, Some(episodes.len()))
+        .await
+        .unwrap();
+    assert_eq!(rows.len(), episodes.len(), "no episode may be dropped");
+
+    let stamps: std::collections::HashSet<i64> =
+        rows.iter().map(|(_, at)| at.timestamp_millis()).collect();
+    assert_eq!(
+        stamps.len(),
+        rows.len(),
+        "each episode must receive its own revision sequence"
+    );
+
+    let read_ids: Vec<Uuid> = rows.iter().map(|(episode, _)| episode.episode_id).collect();
+    let written_ids: Vec<Uuid> = episodes.iter().map(|episode| episode.episode_id).collect();
+    assert_eq!(
+        read_ids, written_ids,
+        "a batch write must preserve write order in the cache"
+    );
+}
+
 // ========== Embedding Storage Tests ==========
 
 #[tokio::test]

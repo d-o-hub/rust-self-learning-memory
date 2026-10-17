@@ -136,8 +136,6 @@ impl RedbStorage {
                     Error::Storage(format!("Failed to open episode revisions table: {}", e))
                 })?;
 
-                let seq = allocate_revision_seq(&write_txn, chrono::Utc::now().timestamp_millis())?;
-
                 for (episode_id_str, episode_bytes) in &db_items {
                     table
                         .insert(episode_id_str.as_str(), episode_bytes.as_slice())
@@ -147,6 +145,13 @@ impl RedbStorage {
                                 episode_id_str, e
                             ))
                         })?;
+
+                    // Allocated per item, not once per chunk: the cache derives
+                    // `modified_at` from this sequence, so a shared revision
+                    // would make every episode in the batch tie and reorder by
+                    // episode id instead of write order.
+                    let seq =
+                        allocate_revision_seq(&write_txn, chrono::Utc::now().timestamp_millis())?;
 
                     revisions
                         .insert(episode_id_str.as_str(), seq)

@@ -1147,3 +1147,32 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: `scripts/verify-release-state.sh`, LESSON-053, LESSON-057,
   `.agents/skills/release-guard/SKILL.md`,
   `.agents/skills/github-release-best-practices/SKILL.md`.
+
+## LESSON-064: a bot branch's "Merge branch 'main'" resolution rolled a dependency bump back (2026-10-17)
+
+- Issue: PR #1176 is one line of production code (`limit.min(MAX_QUERY_LIMIT)` in
+  `SpatiotemporalIndex::query_range`) plus a test. Its `--stat` against the merge
+  base also carried `memory-cli/Cargo.toml`, `memory-mcp/Cargo.toml`,
+  `tests/Cargo.toml` and `Cargo.lock`. Those four hunks set `sysinfo = "0.38"`
+  and delete the `objc2`/`dispatch2`/`objc2-foundation` tree, while **both** the
+  merge base (`2e1d7537`) and `main` (`c34c68ed`) say `0.39` — the branch had
+  merged main four times (`ffe8c021`, `824f3869`, `ec2b0a9c`, `fc3f5924`) and one
+  resolution kept the stale side.
+- Why `MERGEABLE` hid it: a 3-way merge takes "theirs" for a line only the
+  branch changed, so merging #1176 would have **downgraded sysinfo on main** and
+  rewritten `Cargo.lock`. GitHub reported `MERGEABLE`/`CLEAN`-equivalent status,
+  Codacy reported 0 issues and Codecov reported every coverable line covered —
+  none of those signals touch dependency state.
+- Detection: `for r in $MB $TIP origin/main; do git show $r:memory-cli/Cargo.toml | grep '^sysinfo'; done`
+  (compare merge base, tip, main for the same manifest line), or read the branch
+  diff restricted to manifests:
+  `git diff $MB $TIP -- Cargo.lock '*/Cargo.toml'`. Any manifest hunk on a branch
+  whose title is not a dependency change is the finding.
+- Fix/prevention: repair the branch, do not merge and revert —
+  `git checkout origin/main -- Cargo.lock '*/Cargo.toml'`, commit, push once
+  (the branch needs a CI cycle anyway because it is `BEHIND`). AGENTS.md's
+  bot/agent-branch trap and `pr-readiness` rule 7 now name this dependency
+  variant explicitly, pinned by the
+  `catches-dependency-rollback-on-stale-branches` eval.
+- References: PR #1176, LESSON-035 (`MERGEABLE` ≠ no lost work),
+  `.agents/skills/pr-readiness/SKILL.md`.

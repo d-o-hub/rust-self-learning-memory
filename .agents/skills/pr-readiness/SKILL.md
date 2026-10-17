@@ -47,6 +47,16 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
    conflict", never "no lost work". Run `git diff <merge-base> <tip> --stat` and reject
    any tip that removes files it never touched (PR #1130's tip silently reverted four
    merged PRs while reporting `MERGEABLE`, LESSON-035).
+   The same failure hides in **dependency manifests**: repeated
+   `Merge branch 'main' into …` resolutions that keep "ours" quietly roll a
+   dependency bump back. PR #1176 (a one-line `query_range` clamp) ended up with
+   `sysinfo = "0.38"` in `memory-cli`/`memory-mcp`/`tests` `Cargo.toml` plus the
+   `objc2` tree deleted from `Cargo.lock`, while both its merge base and `main`
+   were at `0.39` — a 3-way merge takes "theirs" for a line only the branch
+   changed, so merging it would have **downgraded main**. On any branch whose
+   title is not a dependency change, every `Cargo.toml`/`Cargo.lock` hunk is a
+   red flag; diff the tip against current main for those paths and fix the
+   branch (`git checkout origin/main -- Cargo.lock '*/Cargo.toml'`) before merge.
 
 ---
 
@@ -272,7 +282,8 @@ gh api "repos/${OWNER_REPO}/issues/${n}/comments" --paginate
 A PR is ready to merge ONLY when ALL of:
 
 - `mergeable` = `MERGEABLE` — **and**, on a long-lived or bot/agent branch,
-  `git diff <merge-base> <tip> --stat` shows no removals the branch never made
+  `git diff <merge-base> <tip> --stat` shows no removals the branch never made, and no
+  `Cargo.toml`/`Cargo.lock` hunk that rolls back a bump `main` already has
 - `mergeStateStatus` = `CLEAN` (`BEHIND` / `BLOCKED` are states to fix, not verdicts)
 - `headRefOid` came from **this** query — never carried over from a doc, an earlier check,
   or a PR comment

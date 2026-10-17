@@ -70,7 +70,7 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 
 ## Workflow Traps (2026-10, read before merging)
 
-- **Bot/agent branches**: `mergeable=MERGEABLE` ≠ no lost work. Diff the tip against the merge base (`git diff <merge-base> <tip> --stat`) before merging a long-lived branch; PR #1130's tip silently reverted four merged PRs.
+- **Bot/agent branches**: `mergeable=MERGEABLE` ≠ no lost work. Diff the tip against the merge base (`git diff <merge-base> <tip> --stat`) before merging a long-lived branch; PR #1130's tip silently reverted four merged PRs. The variant that actually bites: repeated `Merge branch 'main' into …` resolutions that keep "ours" roll back dependency bumps — PR #1176 (a one-line `query_range` clamp) carried `sysinfo = "0.38"` + the `objc2` tree deleted from `Cargo.lock` while merge base and main were at `0.39`, and a 3-way merge takes "theirs" for a line only the branch changed, so merging it would have downgraded **main**. On a non-deps branch, any `Cargo.toml`/`Cargo.lock` hunk is a red flag: `git checkout origin/main -- Cargo.lock '*/Cargo.toml'` and re-verify before merge.
 - **Floating `stable`**: new deny-by-default lints appear between releases (clippy `assert_is_empty`, rustdoc `redundant_explicit_links` in 1.99). `rustup update stable` before diagnosing CI-only lint failures; fix the lint, never suppress.
 - **Shared `CARGO_TARGET_DIR`**: concurrent worktree builds can replace test binaries and fake mass failures — re-run the failing test in isolation before believing it.
 - **Strict up-to-date checks**: every merge invalidates the other PRs' required runs; merge as a serial pipeline (update the next branch immediately after each merge).

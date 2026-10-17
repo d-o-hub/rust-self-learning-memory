@@ -793,10 +793,12 @@ async fn should_fall_back_to_per_item_store_when_batch_write_times_out() {
 #[allow(clippy::cast_precision_loss)]
 async fn should_sync_large_volumes_using_batch_writes_100_and_1000() {
     // Test 100 and 1,000 episode scale sync
+    let batch_size = 100;
     for count in [100, 1000] {
         let (turso, _turso_dir) = create_test_turso().await.unwrap();
         let (redb, _redb_dir) = create_test_redb().await.unwrap();
-        let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb)).with_batch_size(100);
+        let sync =
+            StorageSynchronizer::new(Arc::new(turso), Arc::new(redb)).with_batch_size(batch_size);
 
         let context = TaskContext::default();
         let mut episodes = Vec::with_capacity(count);
@@ -834,14 +836,20 @@ async fn should_sync_large_volumes_using_batch_writes_100_and_1000() {
             elapsed, rate
         );
 
-        // Verify representative samples in redb cache
-        for idx in [0, count / 2, count - 1] {
-            let ep_id = episodes[idx].episode_id;
-            let cached = sync.redb.get_episode(ep_id).await.unwrap();
-            assert!(
-                cached.is_some(),
-                "Sample episode {idx} (id: {ep_id}) should be in cache"
-            );
-        }
+        // Acceptance criteria 2 and 4: the cache must end up holding every
+        // synced episode exactly once. Reading the whole page back instead of
+        // sampling a few ids is what makes a silently dropped or duplicated
+        // item detectable at this volume.
+        let cached = sync
+            .redb
+            .query_episodes_modified_since(since, None, Some(count))
+            .await
+            .unwrap();
+        assert_eq!(
+            cached.len(),
+            count,
+            "Every episode must land in the cache exactly once, saw {} for {count}",
+            cached.len()
+        );
     }
 }

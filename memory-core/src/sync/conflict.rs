@@ -116,13 +116,18 @@ mod tests {
         let t1 = Utc::now();
         let t2 = t1 + chrono::Duration::seconds(10);
 
-        let mut old_cache = Episode::new("Old cache".to_string(), context.clone(), TaskType::Testing);
-        old_cache.metadata.insert("modified_at".to_string(), t1.to_rfc3339());
+        let mut old_cache =
+            Episode::new("Old cache".to_string(), context.clone(), TaskType::Testing);
+        old_cache
+            .metadata
+            .insert("modified_at".to_string(), t1.to_rfc3339());
         let old_cache_arc = Arc::new(old_cache);
 
         let mut new_durable = Episode::new("New durable".to_string(), context, TaskType::Testing);
         new_durable.episode_id = old_cache_arc.episode_id;
-        new_durable.metadata.insert("modified_at".to_string(), t2.to_rfc3339());
+        new_durable
+            .metadata
+            .insert("modified_at".to_string(), t2.to_rfc3339());
         let new_durable_arc = Arc::new(new_durable);
 
         let winner = select_winning_episode(
@@ -141,13 +146,18 @@ mod tests {
         let t1 = Utc::now();
         let t2 = t1 + chrono::Duration::seconds(10);
 
-        let mut new_cache = Episode::new("New cache".to_string(), context.clone(), TaskType::Testing);
-        new_cache.metadata.insert("modified_at".to_string(), t2.to_rfc3339());
+        let mut new_cache =
+            Episode::new("New cache".to_string(), context.clone(), TaskType::Testing);
+        new_cache
+            .metadata
+            .insert("modified_at".to_string(), t2.to_rfc3339());
         let new_cache_arc = Arc::new(new_cache);
 
         let mut old_durable = Episode::new("Old durable".to_string(), context, TaskType::Testing);
         old_durable.episode_id = new_cache_arc.episode_id;
-        old_durable.metadata.insert("modified_at".to_string(), t1.to_rfc3339());
+        old_durable
+            .metadata
+            .insert("modified_at".to_string(), t1.to_rfc3339());
         let old_durable_arc = Arc::new(old_durable);
 
         let winner = select_winning_episode(
@@ -165,11 +175,16 @@ mod tests {
         let context = TaskContext::default();
         let t1 = Utc::now();
 
-        let mut cache_ep = Episode::new("Cache payload".to_string(), context.clone(), TaskType::Testing);
+        let mut cache_ep = Episode::new(
+            "Cache payload".to_string(),
+            context.clone(),
+            TaskType::Testing,
+        );
         cache_ep.start_time = t1;
         let cache_arc = Arc::new(cache_ep);
 
-        let mut durable_ep = Episode::new("Durable payload".to_string(), context, TaskType::Testing);
+        let mut durable_ep =
+            Episode::new("Durable payload".to_string(), context, TaskType::Testing);
         durable_ep.episode_id = cache_arc.episode_id;
         durable_ep.start_time = t1;
         let durable_arc = Arc::new(durable_ep);
@@ -189,14 +204,21 @@ mod tests {
         let context = TaskContext::default();
         let t1 = Utc::now();
 
-        let mut legacy_ep = Episode::new("Legacy payload".to_string(), context.clone(), TaskType::Testing);
+        let mut legacy_ep = Episode::new(
+            "Legacy payload".to_string(),
+            context.clone(),
+            TaskType::Testing,
+        );
         legacy_ep.start_time = t1;
         let legacy_arc = Arc::new(legacy_ep);
 
-        let mut explicit_ep = Episode::new("Explicit payload".to_string(), context, TaskType::Testing);
+        let mut explicit_ep =
+            Episode::new("Explicit payload".to_string(), context, TaskType::Testing);
         explicit_ep.episode_id = legacy_arc.episode_id;
         explicit_ep.start_time = t1;
-        explicit_ep.metadata.insert("modified_at".to_string(), t1.to_rfc3339());
+        explicit_ep
+            .metadata
+            .insert("modified_at".to_string(), t1.to_rfc3339());
         let explicit_arc = Arc::new(explicit_ep);
 
         let winner = select_winning_episode(

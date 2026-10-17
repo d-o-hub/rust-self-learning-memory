@@ -803,22 +803,30 @@ async fn should_replace_stale_redb_episode_with_newer_turso_episode() {
     let t1 = chrono::Utc::now();
     let t2 = t1 + chrono::Duration::seconds(10);
 
-    let mut stale_redb = Episode::new("Stale redb description".to_string(), context.clone(), TaskType::Testing);
+    let mut stale_redb = Episode::new(
+        "Stale redb description".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
     stale_redb.start_time = t1;
-    stale_redb.metadata.insert("modified_at".to_string(), t1.to_rfc3339());
+    stale_redb
+        .metadata
+        .insert("modified_at".to_string(), t1.to_rfc3339());
     redb_arc.store_episode(&stale_redb).await.unwrap();
 
-    let mut newer_turso = Episode::new("Newer Turso description".to_string(), context, TaskType::Testing);
+    let mut newer_turso = Episode::new(
+        "Newer Turso description".to_string(),
+        context,
+        TaskType::Testing,
+    );
     newer_turso.episode_id = stale_redb.episode_id;
     newer_turso.start_time = t2;
-    newer_turso.metadata.insert("modified_at".to_string(), t2.to_rfc3339());
+    newer_turso
+        .metadata
+        .insert("modified_at".to_string(), t2.to_rfc3339());
     turso_arc.store_episode(&newer_turso).await.unwrap();
 
-    let memory = SelfLearningMemory::with_storage(
-        MemoryConfig::default(),
-        turso_arc,
-        redb_arc,
-    );
+    let memory = SelfLearningMemory::with_storage(MemoryConfig::default(), turso_arc, redb_arc);
 
     let episodes = memory.get_all_episodes().await.unwrap();
 
@@ -840,22 +848,30 @@ async fn should_preserve_newer_redb_episode_over_older_turso_episode() {
     let t1 = chrono::Utc::now();
     let t2 = t1 + chrono::Duration::seconds(10);
 
-    let mut newer_redb = Episode::new("Newer redb description".to_string(), context.clone(), TaskType::Testing);
+    let mut newer_redb = Episode::new(
+        "Newer redb description".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
     newer_redb.start_time = t2;
-    newer_redb.metadata.insert("modified_at".to_string(), t2.to_rfc3339());
+    newer_redb
+        .metadata
+        .insert("modified_at".to_string(), t2.to_rfc3339());
     redb_arc.store_episode(&newer_redb).await.unwrap();
 
-    let mut older_turso = Episode::new("Older Turso description".to_string(), context, TaskType::Testing);
+    let mut older_turso = Episode::new(
+        "Older Turso description".to_string(),
+        context,
+        TaskType::Testing,
+    );
     older_turso.episode_id = newer_redb.episode_id;
     older_turso.start_time = t1;
-    older_turso.metadata.insert("modified_at".to_string(), t1.to_rfc3339());
+    older_turso
+        .metadata
+        .insert("modified_at".to_string(), t1.to_rfc3339());
     turso_arc.store_episode(&older_turso).await.unwrap();
 
-    let memory = SelfLearningMemory::with_storage(
-        MemoryConfig::default(),
-        turso_arc,
-        redb_arc,
-    );
+    let memory = SelfLearningMemory::with_storage(MemoryConfig::default(), turso_arc, redb_arc);
 
     let episodes = memory.get_all_episodes().await.unwrap();
 
@@ -877,20 +893,24 @@ async fn should_follow_conservative_policy_for_missing_revision_metadata() {
     let now = chrono::Utc::now();
     let t1 = chrono::DateTime::from_timestamp(now.timestamp(), 0).unwrap();
 
-    let mut redb_legacy = Episode::new("Legacy redb payload".to_string(), context.clone(), TaskType::Testing);
+    let mut redb_legacy = Episode::new(
+        "Legacy redb payload".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
     redb_legacy.start_time = t1;
     redb_arc.store_episode(&redb_legacy).await.unwrap();
 
-    let mut turso_legacy = Episode::new("Legacy Turso payload".to_string(), context, TaskType::Testing);
+    let mut turso_legacy = Episode::new(
+        "Legacy Turso payload".to_string(),
+        context,
+        TaskType::Testing,
+    );
     turso_legacy.episode_id = redb_legacy.episode_id;
     turso_legacy.start_time = t1;
     turso_arc.store_episode(&turso_legacy).await.unwrap();
 
-    let memory = SelfLearningMemory::with_storage(
-        MemoryConfig::default(),
-        turso_arc,
-        redb_arc,
-    );
+    let memory = SelfLearningMemory::with_storage(MemoryConfig::default(), turso_arc, redb_arc);
 
     let episodes = memory.get_all_episodes().await.unwrap();
 
@@ -911,16 +931,34 @@ async fn should_select_same_winner_in_get_all_episodes_and_context_backfill() {
     let ts1 = chrono::Utc::now();
     let ts2 = ts1 + chrono::Duration::seconds(10);
 
-    let mut ep_redb1 = Episode::new("Context task stale redb".to_string(), context.clone(), TaskType::Testing);
-    ep_redb1.complete(TaskOutcome::Success { verdict: "ok".to_string(), artifacts: vec![] });
+    let mut ep_redb1 = Episode::new(
+        "Context task stale redb".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
+    ep_redb1.complete(TaskOutcome::Success {
+        verdict: "ok".to_string(),
+        artifacts: vec![],
+    });
     ep_redb1.start_time = ts1;
-    ep_redb1.metadata.insert("modified_at".to_string(), ts1.to_rfc3339());
+    ep_redb1
+        .metadata
+        .insert("modified_at".to_string(), ts1.to_rfc3339());
 
-    let mut ep_turso1 = Episode::new("Context task newer turso".to_string(), context.clone(), TaskType::Testing);
+    let mut ep_turso1 = Episode::new(
+        "Context task newer turso".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
     ep_turso1.episode_id = ep_redb1.episode_id;
-    ep_turso1.complete(TaskOutcome::Success { verdict: "ok".to_string(), artifacts: vec![] });
+    ep_turso1.complete(TaskOutcome::Success {
+        verdict: "ok".to_string(),
+        artifacts: vec![],
+    });
     ep_turso1.start_time = ts2;
-    ep_turso1.metadata.insert("modified_at".to_string(), ts2.to_rfc3339());
+    ep_turso1
+        .metadata
+        .insert("modified_at".to_string(), ts2.to_rfc3339());
 
     let turso1_arc: Arc<dyn StorageBackend> = Arc::new(turso1);
     let redb1_arc: Arc<dyn StorageBackend> = Arc::new(redb1);
@@ -937,29 +975,24 @@ async fn should_select_same_winner_in_get_all_episodes_and_context_backfill() {
     let mut config1 = MemoryConfig::default();
     config1.quality_threshold = 0.0;
     config1.pattern_extraction_threshold = 0.0;
-    let mem1 = SelfLearningMemory::with_storage(
-        config1,
-        turso1_arc,
-        redb1_arc,
-    );
+    let mem1 = SelfLearningMemory::with_storage(config1, turso1_arc, redb1_arc);
     let get_all_result = mem1.get_all_episodes().await.unwrap();
 
     // 2) Winner from context backfill
     let mut config2 = MemoryConfig::default();
     config2.quality_threshold = 0.0;
     config2.pattern_extraction_threshold = 0.0;
-    let mem2 = SelfLearningMemory::with_storage(
-        config2,
-        turso2_arc,
-        redb2_arc,
-    );
+    let mem2 = SelfLearningMemory::with_storage(config2, turso2_arc, redb2_arc);
     let backfilled = mem2
         .retrieve_relevant_context("Context task".to_string(), context, 1)
         .await;
 
     assert_eq!(get_all_result.len(), 1);
     assert_eq!(backfilled.len(), 1);
-    assert_eq!(get_all_result[0].task_description, "Context task newer turso");
+    assert_eq!(
+        get_all_result[0].task_description,
+        "Context task newer turso"
+    );
     assert_eq!(backfilled[0].task_description, "Context task newer turso");
 }
 

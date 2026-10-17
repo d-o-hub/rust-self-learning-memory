@@ -397,4 +397,3 @@ pub fn cache_storage(
 ) -> Option<&Arc<dyn crate::StorageBackend>> {
     cache_storage.as_ref()
 }
-

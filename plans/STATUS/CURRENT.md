@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-16
-**Released Version**: v0.1.45 (tag `8ee711bd`, GitHub Release 2026-10-16) — **not on crates.io** (newest published `0.1.34`)
+**Last Updated**: 2026-10-17
+**Released Version**: v0.1.46
 **Workspace Version**: 0.1.46 (post-v0.1.45 bump, landed with the closeout; tag `v0.1.46` is the publish vehicle)
 **Edition**: Rust 2024
 **Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the audit-backlog wave is merged and

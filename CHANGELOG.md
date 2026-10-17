@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.46] - 2026-10-17
+
 ### Fixed
 
 - Turso monitoring metrics could never be written (#1180): `store_agent_metrics`
@@ -44,6 +46,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `F32_BLOB(384)` column, and the metrics assertions printed a fixed sentence
   instead of the real `Err`, which is why three production defects stayed hidden
   while nightly was red.
+
+### Performance
+
+- Turso-to-redb synchronization writes in batches (#1171): each keyset page is
+  chunked by `SyncConfig::batch_size` (default 100) and cached through one
+  `RedbStorage::store_episodes_batch` write transaction instead of one per
+  episode, so syncing 1000 episodes measured 205 ms against 1.66 s at
+  `batch_size = 1` (8.1x) using 10 write transactions instead of 1000. A chunk
+  whose batch fails or exceeds `SYNC_EPISODE_TIMEOUT` falls back to per-item
+  stores for that chunk only, so one bad episode cannot mark unrelated episodes
+  as synced. The revision sequence stays allocated per episode: the cache
+  derives `modified_at` from it, so one shared revision per chunk would collapse
+  the whole batch onto one timestamp and let the keyset read fall back to its
+  `episode_id` tie-break, losing write order.
 
 ### CI/CD
 

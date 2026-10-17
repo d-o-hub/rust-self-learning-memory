@@ -1,7 +1,7 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-16
-**Released Version**: v0.1.45 (tag `8ee711bd`, GitHub Release 2026-10-16) — not yet on crates.io (newest published `0.1.34`)
+**Last Updated**: 2026-10-17
+**Released Version**: v0.1.46
 **Workspace Version**: 0.1.46 (post-v0.1.45 bump; the tag `v0.1.46` is the publish vehicle)
 **Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). The audit-backlog wave is closed (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`: W1–W6, Q02, wave-A slices merged through #1161, #1153 as `b6326d90`); open work is the false-green crates.io publish (#1179), the red Turso nightly (#1180), the readiness run-ordering fix (#1177), guardrail docs (#1175) and the `0.1.46` bump. Follow-ups #1068, #1089, #1076 stay queued behind it.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)

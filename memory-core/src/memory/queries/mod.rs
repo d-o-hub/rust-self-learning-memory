@@ -35,12 +35,14 @@ pub async fn get_all_episodes(
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
 ) -> Result<Vec<Episode>> {
-    // 1) Start with in-memory episodes - collect Arcs directly (no clone)
-    let mut all_episodes: HashMap<Uuid, Arc<Episode>> = {
+    use crate::sync::{EpisodeOrigin, select_winning_episode};
+
+    // 1) Start with in-memory episodes - collect Arcs directly with origin tracking
+    let mut all_episodes: HashMap<Uuid, (Arc<Episode>, EpisodeOrigin)> = {
         let episodes = episodes_fallback.read().await;
         episodes
             .iter()
-            .map(|(id, ep)| (*id, Arc::clone(ep)))
+            .map(|(id, ep)| (*id, (Arc::clone(ep), EpisodeOrigin::InMemory)))
             .collect()
     };
 
@@ -61,10 +63,23 @@ pub async fn get_all_episodes(
                     "Fetched episodes from cache storage"
                 );
                 for episode in cache_episodes {
-                    // Only insert if not already present (use entry API to avoid clone)
+                    let incoming = Arc::new(episode);
+                    let id = incoming.episode_id;
                     all_episodes
-                        .entry(episode.episode_id)
-                        .or_insert_with(|| Arc::new(episode));
+                        .entry(id)
+                        .and_modify(|(existing, origin)| {
+                            let winner = select_winning_episode(
+                                existing,
+                                *origin,
+                                &incoming,
+                                EpisodeOrigin::Cache,
+                            );
+                            if Arc::ptr_eq(&winner, &incoming) {
+                                *origin = EpisodeOrigin::Cache;
+                            }
+                            *existing = winner;
+                        })
+                        .or_insert((incoming, EpisodeOrigin::Cache));
                 }
             }
             Err(e) => {
@@ -89,10 +104,23 @@ pub async fn get_all_episodes(
                     "Fetched episodes from durable storage"
                 );
                 for episode in turso_episodes {
-                    // Only insert if not already present (use entry API to avoid clone)
+                    let incoming = Arc::new(episode);
+                    let id = incoming.episode_id;
                     all_episodes
-                        .entry(episode.episode_id)
-                        .or_insert_with(|| Arc::new(episode));
+                        .entry(id)
+                        .and_modify(|(existing, origin)| {
+                            let winner = select_winning_episode(
+                                existing,
+                                *origin,
+                                &incoming,
+                                EpisodeOrigin::Durable,
+                            );
+                            if Arc::ptr_eq(&winner, &incoming) {
+                                *origin = EpisodeOrigin::Durable;
+                            }
+                            *existing = winner;
+                        })
+                        .or_insert((incoming, EpisodeOrigin::Durable));
                 }
             }
             Err(e) => {
@@ -101,13 +129,23 @@ pub async fn get_all_episodes(
         }
     }
 
-    // 4) Update in-memory cache with any newly discovered episodes
+    // 4) Update in-memory cache with winning episodes, ensuring newer in-memory values are preserved
     {
         let mut episodes_cache = episodes_fallback.write().await;
-        for (id, episode) in &all_episodes {
-            if !episodes_cache.contains_key(id) {
-                // Store Arc instead of cloning the full episode
-                episodes_cache.insert(*id, Arc::clone(episode));
+        for (id, (winner, winner_origin)) in &mut all_episodes {
+            if let Some(existing_in_mem) = episodes_cache.get(id) {
+                let final_winner = select_winning_episode(
+                    existing_in_mem,
+                    EpisodeOrigin::InMemory,
+                    winner,
+                    *winner_origin,
+                );
+                if !Arc::ptr_eq(&final_winner, existing_in_mem) {
+                    episodes_cache.insert(*id, Arc::clone(&final_winner));
+                }
+                *winner = final_winner;
+            } else {
+                episodes_cache.insert(*id, Arc::clone(winner));
             }
         }
     }
@@ -121,7 +159,7 @@ pub async fn get_all_episodes(
     // Convert Arc<Episode> to Episode for public API (dereference and clone each)
     Ok(all_episodes
         .into_values()
-        .map(|arc_ep| (*arc_ep).clone())
+        .map(|(arc_ep, _)| (*arc_ep).clone())
         .collect())
 }
 

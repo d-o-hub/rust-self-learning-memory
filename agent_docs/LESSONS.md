@@ -940,16 +940,21 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `release-drift` issue from main**, closing it at `:156` when drift resolves —
   #1182 was opened 2026-10-16T13:32Z by `app/github-actions`.
 - Impact: a bump-only branch is still not shippable, and without
-  `parse-changelog-cli` release notes silently fall back. The drift issue is a
+  `parse-changelog` installed the release notes silently fall back. The drift issue is a
   symptom, not a task: closing it by hand only makes the next detection
   re-create it — and because it is a real issue it moves the open-issue count
   the plans validators compare (5 → 6), which is how `validate-plans.sh`
   tracker-drift caught a stale duplicate count inside `STATUS/CURRENT.md`.
 - Fix/prevention: land CHANGELOG `## [X.Y.Z]` + the version-doc flip as **ONE
   release-prep PR before any tag date is promised** (precedent #1169), and
-  install `parse-changelog-cli` (`cargo install parse-changelog-cli`) or release
+  install the tool (`cargo install --locked parse-changelog`) or release
   notes silently fall back — `release-preparation` is that PR's label, never an
-  override on unrelated PRs. Resolve drift by advancing the state the gate
+  override on unrelated PRs. Every copy of this instruction previously named the
+  crate **`parse-changelog-cli`, which does not exist** on crates.io (HTTP 404;
+  the real crate is `parse-changelog` 0.6.17, binary `parse-changelog`), so an
+  agent following the hint failed the install and concluded the tool was
+  unavailable. Verify a crate name against crates.io before writing an install
+  command into a guide. Resolve drift by advancing the state the gate
   reads, never by hand-closing #1182, and keep the sanctioned paths: ship only
   through `./scripts/release-manager.sh ship --execute` (`release-guard`,
   **never** `gh release create`) and merge only through
@@ -1114,3 +1119,31 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: PR #1180, `memory-storage-turso/src/lib_impls/helpers.rs:87-93`,
   `memory-storage-turso/src/prepared/cache.rs:102-108`,
   `.agents/skills/coverage-waivers/SKILL.md` (destructive setup), LESSON-061.
+
+## LESSON-063: two release affordances in our own guides do not exist (2026-10-17)
+
+- Issue: while fixing the preflight warning for v0.1.46, four copies of
+  `cargo install parse-changelog-cli` were spread across
+  `scripts/verify-release-state.sh`, `agent_docs/LESSONS.md`,
+  `release-guard` and `github-release-best-practices`. That crate is **404 on
+  crates.io**; the real one is `parse-changelog` (binary `parse-changelog`,
+  0.6.17 installed here). An agent following the hint gets a failed install and
+  concludes the tool is unavailable, so the warning persists and release notes
+  silently fall back to a download table.
+- Second affordance: `verify-release-state.sh --help` advertised
+  `--fix  Auto-fix version references in .md files`. `FIX_MODE` was assigned at
+  the flag and read nowhere — `--fix` exited 0 having changed nothing, while the
+  drift errors it claimed to repair stayed up.
+- Detection: `curl -sS -A "<ua>" https://crates.io/api/v1/crates/<name>` (the
+  `-A` is mandatory — LESSON-053) and, for flags,
+  `grep -c 'FIX_MODE\|--fix' scripts/<x>.sh` — an option whose variable appears
+  only in the assignment is a no-op.
+- Fix/prevention: a guide may only name an affordance that is verified to exist.
+  Corrected the crate name everywhere, pinned it with the
+  `names-the-real-parse-changelog-crate` /
+  `no-phantom-crate-in-install-hint` evals, and deleted the dead `--fix` flag
+  and its help line rather than leaving a documented lie (no caller used it;
+  `check-pr-readiness.sh --fix` is a different, working flag).
+- References: `scripts/verify-release-state.sh`, LESSON-053, LESSON-057,
+  `.agents/skills/release-guard/SKILL.md`,
+  `.agents/skills/github-release-best-practices/SKILL.md`.

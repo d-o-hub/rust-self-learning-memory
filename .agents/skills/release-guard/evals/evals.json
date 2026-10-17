@@ -29,6 +29,11 @@
       "name": "release-yml-is-authority",
       "description": "Points at release.yml for GitHub Release creation",
       "exec": "rg -q 'release.yml' .agents/skills/release-guard/SKILL.md"
+    },
+    {
+      "name": "names-the-real-parse-changelog-crate",
+      "description": "Install hint uses the crate that exists (parse-changelog); the phantom parse-changelog-cli 404s on crates.io",
+      "exec": "rg -q 'cargo install --locked parse-changelog' .agents/skills/release-guard/SKILL.md && ! rg -q 'cargo install parse-changelog-cli' .agents/skills/release-guard/SKILL.md ./scripts/verify-release-state.sh"
     }
   ]
 }

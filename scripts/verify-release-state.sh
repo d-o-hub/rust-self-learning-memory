@@ -17,20 +17,17 @@ readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 CHECK_TAG=false
 CHECK_UNRELEASED=false
-FIX_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --check-tag) CHECK_TAG=true; shift ;;
     --check-unreleased) CHECK_UNRELEASED=true; shift ;;
-    --fix) FIX_MODE=true; shift ;;
     -h|--help)
-      echo "Usage: $(basename "$0") [--check-tag] [--check-unreleased] [--fix]"
+      echo "Usage: $(basename "$0") [--check-tag] [--check-unreleased]"
       echo ""
       echo "Options:"
       echo "  --check-tag         Verify latest git tag matches Cargo.toml version"
       echo "  --check-unreleased  Warn if unreleased feat/fix commits exist on main"
-      echo "  --fix               Auto-fix version references in .md files"
       exit 0
       ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -221,7 +218,9 @@ if [[ -f "CHANGELOG.md" ]]; then
       failures=$((failures + 1))
     fi
   else
-    echo "  ⚠️  parse-changelog not installed (cargo install parse-changelog-cli)"
+    # The crate is `parse-changelog`; `parse-changelog-cli` does not exist, so
+    # the old hint failed the install and left agents assuming the tool was unavailable.
+    echo "  ⚠️  parse-changelog not installed (cargo install --locked parse-changelog)"
     warnings=$((warnings + 1))
   fi
 else

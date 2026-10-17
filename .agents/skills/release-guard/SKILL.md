@@ -97,7 +97,8 @@ $ ./scripts/verify-release-state.sh --check-unreleased
   **one** release-prep PR (`chore(release): prepare vX.Y.Z changelog and version docs`; precedent #1169) and
   green on main **before** tagging. Queueing the bump PR alone buys nothing — `ship` stops at Phase 0.
 - The `⚠️  parse-changelog not installed` line is a **silent fallback**, not a skipped check: install it
-  (`cargo install parse-changelog-cli`) so `release.yml` fills the GitHub Release body from `CHANGELOG.md`.
+  (`cargo install --locked parse-changelog` — the crate is `parse-changelog`; **`parse-changelog-cli`
+  does not exist**) so `release.yml` fills the GitHub Release body from `CHANGELOG.md`.
 
 ### CHANGELOG / GitHub Release notes (mandatory)
 

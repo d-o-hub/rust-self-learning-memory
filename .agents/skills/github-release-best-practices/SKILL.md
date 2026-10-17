@@ -26,7 +26,8 @@ Do **not** invent a second release path. This file is supporting context only.
 ### A bumped version is not a shippable repo
 
 Tagging requires 1 + 2 + 3 above **on main**. `⚠️ parse-changelog not installed` in the preflight output is also a
-blocker — install it (`cargo install parse-changelog-cli`) or release notes silently fall back to an empty body.
+blocker — install it (`cargo install --locked parse-changelog`; the crate is **`parse-changelog`**, not
+`parse-changelog-cli`, which does not exist) or release notes silently fall back to an empty body.
 Mismatch output looks like this:
 
 ```

@@ -401,8 +401,9 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   user-visible "release" claim was true for GitHub Releases but false for the
   registry.
 - Detection: `gh release view <tag> --json author` → `github-actions[bot]` means
-  the event was suppressed; compare `curl -s https://crates.io/api/v1/crates/<crate> | jq -r .crate.max_version`
-  with the workspace version; `gh run list --workflow=publish-crates.yml --event=release`
+  the event was suppressed; compare `curl -s -A ci-verify https://crates.io/api/v1/crates/<crate> | jq -r .crate.max_version`
+  with the workspace version (the `User-Agent` is required — without it crates.io
+  returns an error body and the command prints nothing); `gh run list --workflow=publish-crates.yml --event=release`
   shows the last run that actually fired.
 - Fix: `release.yml`'s `dispatch-publish` job (needs `actions: write`) calls
   `gh workflow run publish-crates.yml --ref <tag> -f dry-run=false` after the
@@ -818,8 +819,12 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   exists. Sensors: `scripts/validate-gate-contract.sh` fails any `!inputs.` guard
   in the publish files and `scripts/test-release-workflow.sh --publish-fixtures`
   requires the proof step. After any release, assert the publish externally —
-  `curl -sS https://crates.io/api/v1/crates/<crate>/versions | jq '.versions[0].num'`
-  must equal the tag; a green workflow is not evidence that an artifact exists.
+  `curl -sS -A ci-verify https://crates.io/api/v1/crates/<crate>/versions | jq -r --arg v "$TAG" '[(.versions // [])[].num] | index($v) != null'`
+  must print `true`; a green workflow is not evidence that an artifact exists.
+  **Send the `User-Agent`:** crates.io rejects the request without one, and the empty
+  body it returns makes a bare `curl | jq` print nothing — which looks like a missing
+  version and, worse, is easy to skim past (the same empty-report trap as the
+  libtest-json gate above).
 - References: `.github/actions/publish-crate/action.yml`,
   `.github/workflows/publish-crates.yml`, ADR-078 (amendment 2026-10-16),
   LESSON-014, #1179.

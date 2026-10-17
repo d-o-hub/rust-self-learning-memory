@@ -605,6 +605,188 @@ async fn should_handle_per_item_timeout_in_fallback_loop() {
 }
 
 #[tokio::test]
+async fn should_fall_back_to_per_item_store_when_batch_write_times_out() {
+    use async_trait::async_trait;
+
+    struct BatchTimingOutStorage {
+        real_redb: RedbStorage,
+        batch_attempts: std::sync::atomic::AtomicUsize,
+        item_stores: std::sync::atomic::AtomicUsize,
+    }
+
+    #[async_trait]
+    impl do_memory_core::StorageBackendCapabilities for BatchTimingOutStorage {}
+
+    #[async_trait]
+    impl do_memory_core::StorageBackend for BatchTimingOutStorage {
+        async fn store_episodes_batch(&self, _episodes: &[Episode]) -> do_memory_core::Result<()> {
+            // Block past SYNC_EPISODE_TIMEOUT so the batch future is cancelled and
+            // the per-item fallback takes over.
+            self.batch_attempts
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            tokio::time::sleep(Duration::from_secs(31)).await;
+            Ok(())
+        }
+
+        async fn store_episode(&self, episode: &Episode) -> do_memory_core::Result<()> {
+            self.item_stores
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            self.real_redb.store_episode(episode).await
+        }
+
+        async fn get_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<Option<Episode>> {
+            self.real_redb.get_episode(id).await
+        }
+
+        async fn delete_episode(&self, id: uuid::Uuid) -> do_memory_core::Result<()> {
+            self.real_redb.delete_episode(id).await
+        }
+
+        async fn store_pattern(
+            &self,
+            pattern: &do_memory_core::Pattern,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_pattern(pattern).await
+        }
+
+        async fn get_pattern(
+            &self,
+            id: do_memory_core::episode::PatternId,
+        ) -> do_memory_core::Result<Option<do_memory_core::Pattern>> {
+            self.real_redb.get_pattern(id).await
+        }
+
+        async fn store_heuristic(
+            &self,
+            heuristic: &do_memory_core::Heuristic,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_heuristic(heuristic).await
+        }
+
+        async fn get_heuristic(
+            &self,
+            id: uuid::Uuid,
+        ) -> do_memory_core::Result<Option<do_memory_core::Heuristic>> {
+            self.real_redb.get_heuristic(id).await
+        }
+
+        async fn query_episodes_since(
+            &self,
+            since: chrono::DateTime<chrono::Utc>,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb.query_episodes_since(since, limit).await
+        }
+
+        async fn query_episodes_by_metadata(
+            &self,
+            key: &str,
+            value: &str,
+            limit: Option<usize>,
+        ) -> do_memory_core::Result<Vec<Episode>> {
+            self.real_redb
+                .query_episodes_by_metadata(key, value, limit)
+                .await
+        }
+
+        async fn store_embedding(
+            &self,
+            id: &str,
+            embedding: Vec<f32>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embedding(id, embedding).await
+        }
+
+        async fn get_embedding(&self, id: &str) -> do_memory_core::Result<Option<Vec<f32>>> {
+            self.real_redb.get_embedding(id).await
+        }
+
+        async fn delete_embedding(&self, id: &str) -> do_memory_core::Result<bool> {
+            self.real_redb.delete_embedding(id).await
+        }
+
+        async fn store_embeddings_batch(
+            &self,
+            embeddings: Vec<(String, Vec<f32>)>,
+        ) -> do_memory_core::Result<()> {
+            self.real_redb.store_embeddings_batch(embeddings).await
+        }
+
+        async fn get_embeddings_batch(
+            &self,
+            ids: &[String],
+        ) -> do_memory_core::Result<Vec<Option<Vec<f32>>>> {
+            self.real_redb.get_embeddings_batch(ids).await
+        }
+    }
+
+    tokio::time::pause();
+
+    let (turso, _turso_dir) = create_test_turso().await.unwrap();
+    let (redb, _redb_dir) = create_test_redb().await.unwrap();
+
+    let cache = Arc::new(BatchTimingOutStorage {
+        real_redb: redb,
+        batch_attempts: std::sync::atomic::AtomicUsize::new(0),
+        item_stores: std::sync::atomic::AtomicUsize::new(0),
+    });
+    let sync =
+        StorageSynchronizer::new(Arc::new(turso), Arc::clone(&cache)).with_batch_size(10);
+
+    let context = TaskContext::default();
+    let ep1 = Episode::new(
+        "Batch timeout 1".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
+    let ep2 = Episode::new(
+        "Batch timeout 2".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    );
+    let ids = [ep1.episode_id, ep2.episode_id];
+
+    sync.turso
+        .store_episodes_batch(vec![ep1, ep2])
+        .await
+        .unwrap();
+
+    let since = chrono::Utc::now() - chrono::Duration::hours(1);
+
+    let sync_task = tokio::spawn(async move { sync.sync_all_recent_episodes(since).await });
+    tokio::time::advance(Duration::from_secs(35)).await;
+    let stats = sync_task.await.unwrap().unwrap();
+
+    assert_eq!(
+        stats.episodes_synced, 2,
+        "per-item fallback must recover every episode the batch lost"
+    );
+    assert_eq!(
+        stats.errors, 0,
+        "a batch timeout alone is not an error once fallback succeeds"
+    );
+
+    // Proves the timeout arm (not a fast batch success) drove the sync: exactly one
+    // batch attempt was abandoned and every episode went through per-item storage.
+    assert_eq!(
+        cache.batch_attempts.load(std::sync::atomic::Ordering::SeqCst),
+        1,
+        "the batch write should be attempted once and then abandoned"
+    );
+    assert_eq!(
+        cache.item_stores.load(std::sync::atomic::Ordering::SeqCst),
+        2,
+        "both episodes must be stored by the per-item fallback"
+    );
+
+    for id in ids {
+        let cached = cache.real_redb.get_episode(id).await.unwrap();
+        assert!(cached.is_some(), "episode {id} missing from cache after fallback");
+    }
+}
+
+#[tokio::test]
+#[allow(clippy::cast_precision_loss)]
 async fn should_sync_large_volumes_using_batch_writes_100_and_1000() {
     // Test 100 and 1,000 episode scale sync
     for count in [100, 1000] {

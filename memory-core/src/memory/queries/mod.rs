@@ -24,6 +24,33 @@ pub use tag_queries::{TagStats, get_all_tags, get_tag_statistics, list_episodes_
 /// Default limit for `get_all_episodes` (used for backfilling)
 const GET_ALL_EPISODES_LIMIT: Option<usize> = Some(1000);
 
+/// Merge a candidate episode into the in-progress candidate map using revision-aware selection.
+fn merge_candidate_episode(
+    map: &mut HashMap<Uuid, (Arc<Episode>, crate::sync::EpisodeOrigin)>,
+    episode: Episode,
+    origin: crate::sync::EpisodeOrigin,
+) {
+    use crate::sync::select_winning_episode;
+
+    let incoming = Arc::new(episode);
+    let id = incoming.episode_id;
+    match map.entry(id) {
+        std::collections::hash_map::Entry::Occupied(mut entry) => {
+            let (existing, existing_origin) = entry.get();
+            let winner = select_winning_episode(existing, *existing_origin, &incoming, origin);
+            let winner_origin = if Arc::ptr_eq(&winner, &incoming) {
+                origin
+            } else {
+                *existing_origin
+            };
+            entry.insert((winner, winner_origin));
+        }
+        std::collections::hash_map::Entry::Vacant(entry) => {
+            entry.insert((incoming, origin));
+        }
+    }
+}
+
 /// Get all episodes with proper lazy loading from storage backends.
 ///
 /// This method implements the lazy loading pattern: memory → redb → Turso.
@@ -50,42 +77,20 @@ pub async fn get_all_episodes(
 
     // 2) Try to fetch from cache storage (redb) if we might be missing episodes
     if let Some(cache) = cache_storage {
-        // Fetch episodes from cache with limit
         let since = Utc
             .timestamp_millis_opt(0)
             .single()
             .unwrap_or_else(Utc::now);
-        match cache
+        if let Ok(cache_episodes) = cache
             .query_episodes_since(since, GET_ALL_EPISODES_LIMIT)
             .await
         {
-            Ok(cache_episodes) => {
-                debug!(
-                    cache_count = cache_episodes.len(),
-                    "Fetched episodes from cache storage"
-                );
-                for episode in cache_episodes {
-                    let incoming = Arc::new(episode);
-                    let id = incoming.episode_id;
-                    all_episodes
-                        .entry(id)
-                        .and_modify(|(existing, origin)| {
-                            let winner = select_winning_episode(
-                                existing,
-                                *origin,
-                                &incoming,
-                                EpisodeOrigin::Cache,
-                            );
-                            if Arc::ptr_eq(&winner, &incoming) {
-                                *origin = EpisodeOrigin::Cache;
-                            }
-                            *existing = winner;
-                        })
-                        .or_insert((incoming, EpisodeOrigin::Cache));
-                }
-            }
-            Err(e) => {
-                debug!("Failed to fetch episodes from cache storage: {}", e);
+            debug!(
+                cache_count = cache_episodes.len(),
+                "Fetched episodes from cache storage"
+            );
+            for episode in cache_episodes {
+                merge_candidate_episode(&mut all_episodes, episode, EpisodeOrigin::Cache);
             }
         }
     }
@@ -96,37 +101,16 @@ pub async fn get_all_episodes(
             .timestamp_millis_opt(0)
             .single()
             .unwrap_or_else(Utc::now);
-        match turso
+        if let Ok(turso_episodes) = turso
             .query_episodes_since(since, GET_ALL_EPISODES_LIMIT)
             .await
         {
-            Ok(turso_episodes) => {
-                debug!(
-                    turso_count = turso_episodes.len(),
-                    "Fetched episodes from durable storage"
-                );
-                for episode in turso_episodes {
-                    let incoming = Arc::new(episode);
-                    let id = incoming.episode_id;
-                    all_episodes
-                        .entry(id)
-                        .and_modify(|(existing, origin)| {
-                            let winner = select_winning_episode(
-                                existing,
-                                *origin,
-                                &incoming,
-                                EpisodeOrigin::Durable,
-                            );
-                            if Arc::ptr_eq(&winner, &incoming) {
-                                *origin = EpisodeOrigin::Durable;
-                            }
-                            *existing = winner;
-                        })
-                        .or_insert((incoming, EpisodeOrigin::Durable));
-                }
-            }
-            Err(e) => {
-                debug!("Failed to fetch episodes from durable storage: {}", e);
+            debug!(
+                turso_count = turso_episodes.len(),
+                "Fetched episodes from durable storage"
+            );
+            for episode in turso_episodes {
+                merge_candidate_episode(&mut all_episodes, episode, EpisodeOrigin::Durable);
             }
         }
     }

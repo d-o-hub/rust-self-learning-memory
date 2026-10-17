@@ -80,5 +80,11 @@ tag_prefix = "v"
 # Regex to match git tags
 tags = "v[0-9]*\\.[0-9]*\\.[0-9]*"
 
+# Which tags count as a release boundary. `tags` above does NOT bound this: a
+# local `backup/pr-1171-pre-squash` tag was still emitted as `## [backup/...] -
+# <date>` under `--latest`, so only `tag_pattern` keeps non-release refs out of
+# the version headings.
+tag_pattern = '^v[0-9]+\.[0-9]+\.[0-9]+$'
+
 # Include revert commits
 include_reverts = true

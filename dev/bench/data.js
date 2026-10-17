@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792227517225,
+  "lastUpdate": 1792235694657,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -71017,6 +71017,720 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 50730.49,
             "range": "± 239.26",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1124e8ac28f0a22972d87bea5a1263225f372a23",
+          "message": "docs(agents): encode the 2026-10-15/16 release traps as skill guardrails (#1175)\n\n* docs(agents): record advisory, ruleset and drift traps from the release block\n\nEncode LESSON-046..051 (dual advisory gates, stale deny DB, minimal patched\nbumps + WASM re-check, human label toggle for the drift check, ruleset-owned\nrequired contexts, schedule runs gating ci-check) into AGENTS.md and the\ncode-quality, ci-fix, pr-readiness and release-guard skills.\n\n* docs(agents): record the stale statusCheckRollup false failure\n\nLESSON-052: the rollup keeps every run for a head SHA, so a re-run leaves\nsuperseded FAILURE rows and check-pr-readiness.sh blocks a CLEAN, green PR.\nClear it on a fresh SHA; never delete runs or bypass the merge gate.\n\n* docs(agents): record the false-green crates.io publish guard\n\nLESSON-053 plus the prevention surface: an AGENTS.md publish-chain trap, a\ngithub-workflows guardrail for negated composite inputs and unproven side\neffects, and a release-guard checklist step that verifies each crate on\ncrates.io instead of trusting a green publish run.\n\n* docs(agents): mark the tag-push changelog regen as close-only\n\ngit-cliff rewrites CHANGELOG.md from history, so the automated PR opened on the\nv0.1.45 tag push would replace curated entries back to 0.1.10; every previous\none (#1119, #1105, #1054, #1036) was closed without merging.\n\n* docs(skills): encode the v0.1.46 closeout learnings as skill guardrails\n\nDistills the verified findings from the v0.1.45 release closeout into the nine\nskills that actually govern the behaviour that failed, so the next release hits\nthe rule before committing to a tag instead of after.\n\nScope stays inside this PR's own file set (skills only, no code), and one PR\nrather than two because #1175 already owns five of these files — a parallel\nskills PR would recreate the documented same-file split trap.\n\n- release-guard, release-cadence-manager, github-release-best-practices: a\n  version bump does not make the repo shippable; run verify-release-state.sh\n  --check-unreleased (ship Phase 0) before promising a tag, land CHANGELOG +\n  version-doc flip as one release-prep PR, install parse-changelog\n- release-guard, github-workflows, github-release-best-practices: the publish\n  chain owns exactly 4 crates (cli 404 and test-utils publish=false are by\n  design), and a green job whose publish step concluded 'skipped' published\n  nothing\n- github-workflows: real composite-input truthiness root cause\n  (!inputs.dry-run on the string \"false\"), the workflow-level guard was never\n  the bug, and the corrected blast radius (last published 0.1.34/0.1.31)\n- code-quality, ci-fix: GHSA / cargo-audit / cargo-deny are three registers,\n  one alert per lockfile, and fuzz/Cargo.lock is read by no local gate;\n  informational advisories land in .warnings so they redden NEITHER gate, and\n  a never-adopted GHSA is invisible to both\n- pr-readiness, ci-poll: head SHAs are ephemeral under strict up-to-date,\n  reduce check-runs with max_by(.id) (completed_at is null while re-queued),\n  cancelled is not failed, and batch pushes\n- goap-agent: prove premises by measurement, classify registers, check file\n  ownership before splitting work, verify readiness instead of asserting it\n\n* docs(skills): teach the canonical drift issue that release-drift.yml files\n\nThe cadence skill described the gate but not its side effect on the tracker: the\nmaintain-issue job (release-drift.yml:98-149, concurrency group\nrelease-drift-canonical-issue) creates-or-updates ONE open `release-drift`\nissue from main and closes it at :156 once drift resolves. Closing it by hand\nonly makes the next detection re-create it, and because it is a real issue it\nmoves the open-issue count that validate-plans.sh compares against GitHub.\n\n* docs(agents): record LESSON-055..057 from the v0.1.45 closeout\n\nThe long-form entries the nine updated skills point at, plus the three matching\none-line traps in AGENTS.md's Workflow Traps section.\n\n- LESSON-055: nightly test *configuration* can masquerade as a storage bug —\n  cron 0 2 * * * actually starts ~06:30Z and tag pushes trigger it too,\n  [[test]] required-features is a build-level gate, and --run-ignored only\n  force-runs ignored tests. The 106-run nightly decomposes into 86\n  (--run-ignored only) + 20 (--features turso_multi_dimension,\n  --run-ignored all), which is what proved the split.\n- LESSON-056: three advisory registers with two independent invisibility\n  mechanisms. RustSec informational advisories reach audit's .warnings.unsound\n  and never .vulnerabilities (the only field CI fails on), and a GHSA never\n  adopted into RustSec is absent outright. Measured both ways on one lock:\n  in-repo rc 0 with 5 unsound warnings still present, /tmp rc 1 with 8\n  vulnerabilities once .cargo/audit.toml stops applying.\n- LESSON-057: a version bump does not make the repo shippable (ship Phase 0\n  still fails on CHANGELOG + version docs), and the drift gate files its own\n  canonical release-drift issue in place (#1182) — a symptom, never close by\n  hand.\n\nThe error-swallowing-assert entry stays with ACT-407 until #1180 merges, so its\nevidence can cite the real file:line instead of recollection.\n\n* test(skills): make the gh-release-create evals police the act, not the mention\n\n24 fixtures asserted `! rg -q 'gh release create' SKILL.md`, so stating the\nprohibition reddened Skill schema + evals (no-manual-ship on release-cadence-manager,\nrun 38914237079). Require the canonical ship path where the skill documents it and\nreject only unguarded mentions; the new predicate is strictly more permissive, so\nevery previously green skill still passes.\n\n* docs(agents): record LESSON-058 on presence-only skill evals\n\nAdds the workflow trap to AGENTS.md and coding_workflow.md: read a skill's\nevals/evals.json before writing forbidden-practice prose, use the\ncanonical-command-required + unguarded-mention-rejected fixture form, and note\nthat run-evals.sh --changed sees committed state only.\n\n* docs(agents): record LESSON-059 on the set -e counter trap\n\ncheck-pr-readiness.sh aborted after 2 of 9 PRs because a bare ((ISSUES_FOUND++))\nreturns exit status 1 on its first increment from 0, and rc=1 is also its normal\n\"issues found\" exit, so the truncated report looked complete. Hidden cost: PR\n#1171's three failing checks never appeared. Adds the trap to AGENTS.md and a\nreport-coverage assertion to the pr-readiness skill.\n\n* docs(skills): correct the coverage-waivers facts that misled a real triage\n\nClassifying PR #1180's Codecov findings against the skill produced a wrong\nanswer, so the stale claims are replaced with measured ones:\n- coverage.yml:98 instruments `--features do-memory-mcp/oauth`, not \"default\n  features only\", and `csm` tests DO run in CI (ci.yml:206-212) — they are just\n  not instrumented, which is a stronger waiver than \"runs locally only\".\n- adds the `turso_multi_dimension` / `compression` waiver class and the rule\n  that \"needs a live Turso instance\" is not a waiver reason, because\n  tests/pool_integration_test.rs drives libsql `new_local` in CI without\n  `#[ignore]`.\n- codecov/patch carries a 50% target, so it can conclude `success` while its\n  comment prints a `:x:` — a thread to answer, not a CI blocker.\n\nThe `documents-default-feature-pipeline` fixture pinned the inaccurate phrase,\nso correcting the claim reddened it; it now asserts the substance (file + flag),\nand a new fixture locks in the status-vs-comment distinction.\n\n* docs(skills): pin coverage and clippy triage to the CI artifacts\n\nThree traps surfaced while answering PR #1180's Codecov report. A\npackage-scoped cargo llvm-cov -p run under-reports coverage against CI's\nwhole-workspace instrumentation, so it manufactures waivers for lines the\npipeline already covers; the coverage-report artifact is the ground truth.\nA -p scoped clippy run likewise misreports crate-root #![expect(...)] gates\nas unfulfilled because feature unification differs. And an error arm that\nlooks unconstructable is usually a missing-setup problem: invalidating the\nschema (DROP TABLE after a successful write) reaches it deterministically,\nwhereas the prepared-cache race really cannot be built in direct mode.\n\nEach lesson ships with substance-pinned eval fixtures so a future rewrite\ncannot silently drop the command that makes it reproducible.",
+          "timestamp": "2026-10-17T10:20:20Z",
+          "tree_id": "72594e81946345cb2653bc1331f3ec595d698588",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/1124e8ac28f0a22972d87bea5a1263225f372a23"
+        },
+        "date": 1792235693875,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "broadcast_fan_out_fan_out_10_receivers",
+            "value": 47909.44,
+            "range": "± 326.91",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_1_receivers",
+            "value": 18580.02,
+            "range": "± 1124.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_5_receivers",
+            "value": 31661.72,
+            "range": "± 558.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_single_receiver_send_1000_events",
+            "value": 156860.5,
+            "range": "± 2290.3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 40886047.88,
+            "range": "± 1341107.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 422148400.75,
+            "range": "± 6205165.31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 205201549.27,
+            "range": "± 3271277.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 419054589.05,
+            "range": "± 3759877.06",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 78860387.93,
+            "range": "± 1674374.46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 23114193.24,
+            "range": "± 541197.11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 182.59,
+            "range": "± 1.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 295.95,
+            "range": "± 1174.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_all",
+            "value": 10.01,
+            "range": "± 0.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_connection",
+            "value": 15.75,
+            "range": "± 0.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_concurrent_concurrent_access",
+            "value": 2241809.07,
+            "range": "± 41003.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 5564819.56,
+            "range": "± 15586.71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 512.89,
+            "range": "± 47.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 3702.97,
+            "range": "± 71.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 194.73,
+            "range": "± 3.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 231.73,
+            "range": "± 4.28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 280.86,
+            "range": "± 1.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 207.97,
+            "range": "± 1.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 3843.76,
+            "range": "± 24.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 41681,
+            "range": "± 144.53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 441212.26,
+            "range": "± 4991.19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 2236819.95,
+            "range": "± 26229.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 181.41,
+            "range": "± 3.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 12890.03,
+            "range": "± 453.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 1236.12,
+            "range": "± 6.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 390.01,
+            "range": "± 9.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 431.23,
+            "range": "± 13.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 482.99,
+            "range": "± 22.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 419.62,
+            "range": "± 23.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_parameterized_queries",
+            "value": 546.9,
+            "range": "± 8.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 730.32,
+            "range": "± 12.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_statistics_stats_calculation",
+            "value": 6.22,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 58.19,
+            "range": "± 0.06",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 2786.07,
+            "range": "± 14.11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 76056.49,
+            "range": "± 168.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 331.04,
+            "range": "± 1.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 7747.57,
+            "range": "± 58.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 1435.16,
+            "range": "± 72.51",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 38081.76,
+            "range": "± 753.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 9516625.03,
+            "range": "± 297894.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 9390689.11,
+            "range": "± 318060.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 8.27,
+            "range": "± 0.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 8.29,
+            "range": "± 0.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 8.27,
+            "range": "± 0.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 8.27,
+            "range": "± 0.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 8.27,
+            "range": "± 0.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 149888.01,
+            "range": "± 1681.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 30875.46,
+            "range": "± 1784.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 31651.63,
+            "range": "± 1683.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 29175.77,
+            "range": "± 1589.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 81862.7,
+            "range": "± 724.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_latest_concurrency_1_read_latest@1",
+            "value": 5001312895,
+            "range": "± 40849736.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 5667573781.4,
+            "range": "± 34981015.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 5021758757.7,
+            "range": "± 45013727.99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 5174138928.6,
+            "range": "± 40134245.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 5350600010.5,
+            "range": "± 64866885.99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_16_read_only@16",
+            "value": 5380474310.3,
+            "range": "± 47766739.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 5029858913.6,
+            "range": "± 42655624.68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 5081807020.2,
+            "range": "± 31684614.88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 5182796206.2,
+            "range": "± 36918926.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 9449009002.2,
+            "range": "± 41967656.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 5261374267.6,
+            "range": "± 58266258.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 6095426332,
+            "range": "± 35257294.68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 7194505520.9,
+            "range": "± 47162662.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 35503.35,
+            "range": "± 159.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 35620.15,
+            "range": "± 271.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 814096.08,
+            "range": "± 1297.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 17359.09,
+            "range": "± 1626.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 50488.47,
+            "range": "± 3989.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 104152.08,
+            "range": "± 10001.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 161309.92,
+            "range": "± 22991.46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 366.57,
+            "range": "± 6.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 2781.39,
+            "range": "± 4.65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 1423.01,
+            "range": "± 1.96",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 7688.86,
+            "range": "± 15.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 76561.88,
+            "range": "± 167.85",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 38098.88,
+            "range": "± 419.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 23583.67,
+            "range": "± 93.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 46317.69,
+            "range": "± 12224.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 59964.94,
+            "range": "± 9376.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 6.19,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 1108.04,
+            "range": "± 2.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 1110.4,
+            "range": "± 9.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 1066.43,
+            "range": "± 2.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 708.87,
+            "range": "± 25.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 565.3,
+            "range": "± 15.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 5204593.78,
+            "range": "± 204422.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 2583023.97,
+            "range": "± 118880.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 18658.8,
+            "range": "± 65.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 1060.04,
+            "range": "± 2.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 29584.24,
+            "range": "± 708.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 13191.3,
+            "range": "± 34.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 61058.27,
+            "range": "± 767.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 1864832.25,
+            "range": "± 65305.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 1870007.51,
+            "range": "± 56119.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 1886603.03,
+            "range": "± 58275.91",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 1862433.44,
+            "range": "± 63483.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 1853002.36,
+            "range": "± 61811.71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 1837736.32,
+            "range": "± 39961.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 7539.05,
+            "range": "± 306.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 5080.09,
+            "range": "± 125.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 13789.99,
+            "range": "± 336.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 3922.38,
+            "range": "± 13.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 35866.42,
+            "range": "± 333.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 350658.26,
+            "range": "± 1406.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 50741.9,
+            "range": "± 213.76",
             "unit": "ns/iter"
           }
         ]

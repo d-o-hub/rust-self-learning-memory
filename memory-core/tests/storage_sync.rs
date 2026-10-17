@@ -730,8 +730,7 @@ async fn should_fall_back_to_per_item_store_when_batch_write_times_out() {
         batch_attempts: std::sync::atomic::AtomicUsize::new(0),
         item_stores: std::sync::atomic::AtomicUsize::new(0),
     });
-    let sync =
-        StorageSynchronizer::new(Arc::new(turso), Arc::clone(&cache)).with_batch_size(10);
+    let sync = StorageSynchronizer::new(Arc::new(turso), Arc::clone(&cache)).with_batch_size(10);
 
     let context = TaskContext::default();
     let ep1 = Episode::new(
@@ -769,7 +768,9 @@ async fn should_fall_back_to_per_item_store_when_batch_write_times_out() {
     // Proves the timeout arm (not a fast batch success) drove the sync: exactly one
     // batch attempt was abandoned and every episode went through per-item storage.
     assert_eq!(
-        cache.batch_attempts.load(std::sync::atomic::Ordering::SeqCst),
+        cache
+            .batch_attempts
+            .load(std::sync::atomic::Ordering::SeqCst),
         1,
         "the batch write should be attempted once and then abandoned"
     );
@@ -781,7 +782,10 @@ async fn should_fall_back_to_per_item_store_when_batch_write_times_out() {
 
     for id in ids {
         let cached = cache.real_redb.get_episode(id).await.unwrap();
-        assert!(cached.is_some(), "episode {id} missing from cache after fallback");
+        assert!(
+            cached.is_some(),
+            "episode {id} missing from cache after fallback"
+        );
     }
 }
 

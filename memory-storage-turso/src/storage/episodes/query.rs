@@ -202,34 +202,36 @@ impl TursoStorage {
             since, effective_limit, cursor
         );
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params_vec))
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query modified episodes: {}", e)))?;
+        self.with_connection(async |conn| {
+            let mut rows = conn
+                .query(&sql, libsql::params_from_iter(params_vec))
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query modified episodes: {}", e)))?;
 
-        let mut episodes = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-        {
-            let episode = self.row_to_episode(&row).await?;
-            let modified_at_ms: i64 = row.get(17).map_err(|e| {
-                Error::Storage(format!("Failed to read episode revision timestamp: {}", e))
-            })?;
-            let modified_at = chrono::DateTime::from_timestamp_millis(modified_at_ms)
-                .unwrap_or(episode.start_time);
-            episodes.push((episode, modified_at));
-        }
+            let mut episodes = Vec::new();
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+            {
+                let episode = self.row_to_episode(&row).await?;
+                let modified_at_ms: i64 = row.get(17).map_err(|e| {
+                    Error::Storage(format!("Failed to read episode revision timestamp: {}", e))
+                })?;
+                let modified_at = chrono::DateTime::from_timestamp_millis(modified_at_ms)
+                    .unwrap_or(episode.start_time);
+                episodes.push((episode, modified_at));
+            }
 
-        info!(
-            "Found {} episodes modified since {} (limit: {})",
-            episodes.len(),
-            since,
-            effective_limit
-        );
-        Ok(episodes)
+            info!(
+                "Found {} episodes modified since {} (limit: {})",
+                episodes.len(),
+                since,
+                effective_limit
+            );
+            Ok(episodes)
+        })
+        .await
     }
 
     /// Query episodes by metadata key-value pair

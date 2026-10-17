@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Turso monitoring metrics could never be written (#1180): `store_agent_metrics`
+  and `store_task_metrics` named columns that the DDL does not create
+  (`agent_metrics.last_execution_time`, `task_metrics.avg_completion_time`,
+  vs. `last_execution` / `avg_completion_time_ms`), so every insert failed with
+  `table … has no column named …` on any freshly initialized database. The
+  reads used the same wrong names, so the failure was invisible: the only tests
+  covering the path are nightly-only and asserted `result.is_ok()` without
+  printing the error. `avg_duration` is now stored and read in the column's
+  declared unit (previously written as seconds into `avg_duration_ms` and read
+  back divided by 1000).
+- Embeddings written under the `turso_multi_dimension` schema were unreadable:
+  `_store_embedding_internal`, `_delete_embedding_internal` and
+  `list_embedding_ids_backend` are dimension-aware under that feature, but
+  `_get_embedding_internal` and `has_vector_embeddings` still queried the legacy
+  `embeddings` table, which the feature never creates, so every read failed with
+  `no such table: embeddings`. Reads now take the same dimension-aware path.
+- Pooled Turso callers no longer use the direct-connection accessor: the
+  capacity-eviction intent table, the sync watermark and the embedding listing
+  called `get_connection_with_id()`, which returns
+  `get_connection() is only available in direct-connection mode` whenever a pool
+  is configured; they now checkout through `with_connection()`.
+- Nightly can no longer misreport feature-gated schemas as storage bugs:
+  `multi_dimension_routing` and `phase1_validation` are built only with
+  `turso_multi_dimension` (`required-features`), and `nightly-tests.yml` runs
+  those two suites in a dedicated step **with** the feature. Ignored per-test
+  `cfg_attr(…, ignore)` guards were not enough because nightly forces ignored
+  tests to run with `--run-ignored only`.
+
+### Tests
+
+- `#[ignore]`d Turso fixtures now match the default schema: the resilient
+  keep-alive tests stored 5- and 2-dimensional embeddings into the
+  `F32_BLOB(384)` column, and the metrics assertions printed a fixed sentence
+  instead of the real `Err`, which is why three production defects stayed hidden
+  while nightly was red.
+
 ### CI/CD
 
 - Publishing to crates.io actually publishes again. The `publish-crate`

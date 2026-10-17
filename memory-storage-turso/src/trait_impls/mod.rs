@@ -326,8 +326,10 @@ impl SyncWatermarkBackend for super::TursoStorage {
     async fn load_sync_watermark(&self) -> Result<Option<chrono::DateTime<chrono::Utc>>> {
         use crate::storage::metadata::{SYNC_WATERMARK_KEY, get_metadata};
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        let Some(raw) = get_metadata(&conn, SYNC_WATERMARK_KEY).await? else {
+        let raw = self
+            .with_connection(async |conn| get_metadata(conn, SYNC_WATERMARK_KEY).await)
+            .await?;
+        let Some(raw) = raw else {
             return Ok(None);
         };
 
@@ -340,12 +342,8 @@ impl SyncWatermarkBackend for super::TursoStorage {
     async fn save_sync_watermark(&self, watermark: chrono::DateTime<chrono::Utc>) -> Result<()> {
         use crate::storage::metadata::{SYNC_WATERMARK_KEY, store_metadata};
 
-        let (conn, _conn_id) = self.get_connection_with_id().await?;
-        store_metadata(
-            &conn,
-            SYNC_WATERMARK_KEY,
-            &watermark.timestamp_millis().to_string(),
-        )
-        .await
+        let stored = watermark.timestamp_millis().to_string();
+        self.with_connection(async |conn| store_metadata(conn, SYNC_WATERMARK_KEY, &stored).await)
+            .await
     }
 }

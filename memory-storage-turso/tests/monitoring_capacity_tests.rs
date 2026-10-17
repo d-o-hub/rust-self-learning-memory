@@ -260,7 +260,10 @@ mod monitoring_tests {
         let result = storage.store_agent_metrics(&metrics).await;
 
         // Assert
-        assert!(result.is_ok(), "Should successfully store agent metrics");
+        assert!(
+            result.is_ok(),
+            "Should successfully store agent metrics, got: {result:?}"
+        );
 
         Ok(())
     }
@@ -324,7 +327,7 @@ mod monitoring_tests {
             let result = storage.store_agent_metrics(&metrics).await;
             assert!(
                 result.is_ok(),
-                "Should store metrics for agent type {agent_type:?}"
+                "Should store metrics for agent type {agent_type:?}, got: {result:?}"
             );
         }
 
@@ -381,7 +384,10 @@ mod monitoring_tests {
         let result = storage.store_task_metrics(&metrics).await;
 
         // Assert
-        assert!(result.is_ok(), "Should successfully store task metrics");
+        assert!(
+            result.is_ok(),
+            "Should successfully store task metrics, got: {result:?}"
+        );
 
         Ok(())
     }
@@ -516,7 +522,10 @@ mod monitoring_tests {
         let result = storage.store_agent_metrics(&metrics).await;
 
         // Assert
-        assert!(result.is_ok(), "Should store metrics with zero executions");
+        assert!(
+            result.is_ok(),
+            "Should store metrics with zero executions, got: {result:?}"
+        );
 
         Ok(())
     }
@@ -532,7 +541,10 @@ mod monitoring_tests {
         let result = storage.store_task_metrics(&metrics).await;
 
         // Assert
-        assert!(result.is_ok(), "Should store metrics with zero tasks");
+        assert!(
+            result.is_ok(),
+            "Should store metrics with zero tasks, got: {result:?}"
+        );
 
         Ok(())
     }

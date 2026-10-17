@@ -1,67 +1,65 @@
-# Validation Latest — 2026-10-09 (audit-backlog wave A in review)
+# Validation Latest — 2026-10-16 (v0.1.45 shipped, closeout queue in review)
 
-**Goal**: record the verified state of the audit-backlog wave — which slices merged, which are in review, and the
-CI evidence attached to each head SHA (PR monitoring guardrail).
+**Goal**: record the verified state of the release closeout — what shipped, what is in review, and the CI/local
+evidence attached to each head SHA (PR monitoring guardrail from the `goap-agent` skill).
 
-**Workspace**: `0.1.45` · **Branch**: `main` @ `5054c15a` · **Tag**: `v0.1.44`
+**Workspace**: `0.1.46` (bumped post-release in the closeout PR) · **Branch**: `main` @ `8ee711bd` · **Tag**: `v0.1.45` (GitHub Release 2026-10-16T10:30:09Z)
+**Plan**: [`../GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](../GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
+**Previous record**: [`archive/2026/VALIDATION_2026-10-09.md`](archive/2026/VALIDATION_2026-10-09.md) (audit-backlog wave A)
 
 ## Method
 
-- Merged slices verified by commit/SHA on `main` (`git log`) and by issue state (`gh issue view`).
-- In-review PRs verified per head SHA via `gh pr checks` / the check-runs API; every failure was reproduced locally
-  with the canonical commands where possible (local clippy is 1.98; CI's floating stable is 1.99, so 1.99-only lints
-  were fixed from the CI log evidence).
-- Local evidence for new checks: `./scripts/check-ignored-tests.sh` (159 attrs, inventory complete),
-  `./scripts/check-lint-suppressions.sh` (317 → 0 after #1153), the storage-backend capability checker + its 6 fixtures
-  from PR #1158 (all OK), `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1 cargo nextest … --message-format libtest-json` emits JSON.
+- Release state read from the source of truth, not from the tracker: `git tag --sort=-creatordate`,
+  `gh release list`, `gh run list --workflow release.yml`, and the crates.io API per crate
+  (`-A` user-agent required; an unauthenticated request returns a non-JSON body and must not be read as "absent").
+- Every nightly claim reproduced **locally with the exact nightly invocation**, in both feature configurations,
+  before and after the change. A job whose report file is empty is not evidence (see 2026-10-09 record).
+- PR status computed as **latest run per check name** from the check-runs API, because `statusCheckRollup` keeps
+  superseded runs (that is what #1177 fixes).
+- Nothing in this closeout was skipped, waived, `#[ignore]`d, or bypassed. Standing instruction: *all CI must pass,
+  including Codacy — never skip any*.
 
-## Merged (2026-10-05…08)
+## Verified on `main`
 
-| Slice | PR | Commit | Evidence |
-|-------|----|--------|----------|
-| W0 trackers + wave doc | #1129 | `26b12fc8` | plans validation + tracker-drift 0 mismatches |
-| W1 #1077 ranking guard | #1131 | `874df209` | contention test; guard dropped before `.await` |
-| W2 #1086 sub-second latency | #1135 | `75007b51` | non-zero ms regression test |
-| W3 #1088 tag-tx rollback | #1134 | `347b3296` | failure-injection test |
-| W4 #1066 redb index order | #1139 | `f1c31699`, `0485bb66` | 6 rank/repair tests; issue #1066 closed with evidence |
-| Q02 #1091 ignored tests | #1130 | `8a363505` | inventory 159 + 14 un-ignored tests green; isolated job fail-visible |
-| #1065 recommendation precision | #1142 | `5054c15a` | ms ordering + UUID tie-break + backfill tests; issue closed |
-| #1092 lint slice 1 | #1143 | `cdb70594` | turso denies `unsafe_code`; ratchet checker + fixtures |
-| #1079 provenance | #1148 | `9fdbc765` | 314 lib retrieval tests; single lookup |
+| Item | Evidence |
+|------|----------|
+| `v0.1.45` tagged + released | tag → `8ee711bd` (#1169 merge); `gh release list` → published 2026-10-16T10:30:09Z; shipped via `./scripts/release-manager.sh ship --execute` |
+| 2 high + 2 moderate advisories cleared | #1174 merged as `2d5ed2b0`; `main` CI green |
+| **crates.io did NOT receive `v0.1.44`/`v0.1.45`** | newest published: `do-memory-core`/`-storage-redb`/`-storage-turso` = `0.1.34`, `do-memory-mcp` = `0.1.31`; release run `38883104363` = `success`. The publish chain is exactly those **4** crates (`publish-crates.yml`: core → redb → turso → mcp); `do-memory-cli` answers 404 because it ships as a GitHub Release asset and `do-memory-test-utils` is `publish = false` (`test-utils/Cargo.toml:6`), so neither 404 is a publish failure |
+| …because the publish step was skipped while green | dispatched run `38887674688`: `Check if version exists` → `Crates.io latest: 0.1.34 / will publish`, `Authenticate … Retrieved token successfully`, `Publish to crates.io` → `conclusion=skipped;duration_ms=0` |
+| Nightly red since 2026-10-13 | `gh run list --workflow nightly-tests.yml --limit 5` → 5 × `failure`; run `38883104337` (`8ee711bd`) → `106 tests run: 70 passed, 36 failed, 514 skipped` |
 
-## In review (head SHA at 2026-10-09)
+## In review (head SHA + evidence at 2026-10-16)
 
-| Slice | PR | Head | Local evidence |
-|-------|----|------|----------------|
-| W5 #1075 lexical fallback | #1138 | `b7b71493`+ | 17/17 `pattern_search` tests; clippy clean |
-| W6 #1085 health probes | #1140 | `c35e3e39`+ | 7/7 unit + 4/4 integration; fmt fixed; clippy clean |
-| #1067 watermark | #1149 | `88a1d047` | 14/14 `storage_sync`; monotonic/backfill/durable-watermark tests |
-| #1064 scoped checkout | #1147 | `74401715` | 13/13 pool integration; nested-checkout BLOCKER fixed |
-| #1063 adaptive pool | #1146 | `409258f4` | 33/33 adaptive; E4 test replaced |
-| #1070 capacity eviction | #1150 | `95021e52` | 12/12 capacity tests incl. failure injection |
-| #1071 strict row decode | #1145 | `8035b12f` | doctest fixed; 12/12 raw-query/builder tests |
-| #1073 embedding adapter | #1151 | `61b82a94` | 147 lib embeddings + 67 MCP; LOC decomposed |
-| #1078 ranking index | #1154 | `213c28a8` | 100k: 222 ms full rebuild → 0.84 µs incremental |
-| #1087 capability truth | #1144/#1152/#1158 | — | workspace clippy; checker + 6 fixtures OK |
-| #1092 lint slice 2 | #1153 | `655f4dca` | crate-root allows 317 → 0; workspace clippy green |
-| #1155 perf lowercase Cow | #1155 | `181d363f` | scoring/types diffs reviewed; tests added |
-| #1157 query_range clamp | #1157 | `9dac415a` | 70/70 spatiotemporal; clamp pinned by test |
-| #1159 nightly JSON flag | #1159 | — | flag verified locally |
+`main` advanced twice while this closeout was in review — `8ee711bd` (#1169, the `v0.1.45` release merge) then
+`791c01a3` (#1173 docs sync, 13:11Z). Under `strict_required_status_checks_policy` each advance puts every branch
+`BEHIND` and re-queues its required runs, so the heads below are the *post-update* SHAs and will move again until the
+queue drains: re-read with `gh pr view <n> --json headRefOid,mergeStateStatus` rather than trusting this row.
 
-## Findings (2026-10-06…09)
+| PR | Head | Latest-run-per-name status | Local evidence |
+|----|------|---------------------------|----------------|
+| #1179 publish guard | `c36a874d` | re-queued on the new main (18 names, 1 green so far) | `yamllint`, `shellcheck`, `bash -n`, `./scripts/validate-gate-contract.sh --ci-parity` PASS, `./scripts/test-release-workflow.sh --publish-fixtures` OK; sensor confirmed to bite `origin/main:197` |
+| #1177 readiness run ordering | `826f5c7f` | re-queued on the new main (20 names) | latest-per-name reduction of the check-runs API reproduces the fix: #1179's two stale `Check for unreleased changes` **failures** are superseded by run `116964525934` = `success` |
+| #1175 guardrail docs | `7d8dac23` | 27 success / 1 skipped / 1 in progress (`Quality Gates`) | owns `AGENTS.md` + `agent_docs/LESSONS.md`; no code touched |
+| #1180 nightly Turso | `34774f4d` | 24 success / 5 in progress / 1 skipped / 1 neutral / **1 failure = `Check for unreleased changes`** | the only red is the drift gate, which clears when the `0.1.46` bump lands — nothing in the PR fails. `--run-ignored only` → **86 passed / 0 failed** (default schema); `--features turso_multi_dimension --test multi_dimension_routing --test phase1_validation --run-ignored all` → **20 passed / 0 skipped**; `86 + 20 = 106` = pre-fix total; `cargo clippy -p do-memory-storage-turso --lib` clean in both feature configs; `yamllint`/`actionlint -shellcheck=` rc 0 |
+| plans closeout + `0.1.46` bump (this PR) | `33953794` + main `791c01a3` | queued on the merged head | `./scripts/check-release-drift.sh` → `severity=clean reason=within_cadence`; `./scripts/validate-plans.sh` green (active-set, version-state `cargo=0.1.46 tag=0.1.45`, tracker-drift mismatches=0); `./scripts/check-docs-integrity.sh` green; `cargo update --workspace --offline` for the lockfile |
 
-| Finding | Evidence |
-|---------|----------|
-| #1130's PR tip had reverted main | `git diff 810db30b da0c867c` deleted W1–W4 files, plans and scripts; rescued to one clean commit before merge |
-| #1091's isolated nightly never ran its tests | `--message-format libtest-json` needs `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`; both report files were empty; fixed in #1159 |
-| #1140 shipped an unformatted test line | rustfmt diff in `health_probe_test.rs`; fixed and pushed |
-| #1145's module doctest did not compile | `filter(EpisodeColumn::Domain, "=", …)` vs typed `FilterOp`; fixed |
-| #1150 new tests tripped clippy 1.99 `assert_is_empty` | `assert!(x.is_empty())` → `assert_eq!(x.len(), 0)` |
-| #1152 tripped rustdoc 1.99 `redundant_explicit_links` | explicit `](crate::Error::CapabilityUnavailable)` on a resolvable label; fixed |
-| #1153 unfulfilled expectations | crate-root `expect` for a lint the canonical gate `-A`-allows; scoped/removed with evidence |
-| Release-drift check label race | the enforcement step reads the trigger payload's labels; the workflow's own label is not visible to it (GITHUB_TOKEN events don't re-trigger), so a dispatch run (or a push after the label) is the documented way to clear the stale failure |
-| Strict up-to-date policy ⇒ serial merges | every merge invalidates the other PRs' required-check runs; 17 PRs need one update+CI cycle each |
+## Findings (2026-10-13…16)
+
+| Finding | Evidence / consequence |
+|---------|------------------------|
+| Composite-action inputs are strings, so `!inputs.dry-run` is a **truthiness bug** | `!"false"` → `false`; the live publish step was skipped on every tag since `493cfb01` while the job stayed green. Use `inputs.dry-run != 'true'` (the form the neighbouring guards already used). Two releases silently unpublished. |
+| A green job is not evidence of work | the only sensor that ever noticed was the *next* crate's dependency timeout (`dependency do-memory-core@0.1.45 did not appear on crates.io within 300s`). `Verify publish landed` now polls crates.io inside the publishing job. |
+| `statusCheckRollup` mixes superseded runs | the same check name appears multiple times with different conclusions; the readiness gate must reduce to the latest run per name (#1177) |
+| `#[ignore]` + `--run-ignored only` cannot express "only with this feature" | nightly force-ran the multi-dimension suites against the default schema. Feature-gated suites need `[[test]] required-features`; per-test `cfg_attr(…, ignore)` is not a build gate. |
+| `--run-ignored only` also **silently empties** a suite | with the feature on, those tests stop being ignored, so `only` filters all of them out: `6 passed, 14 skipped` looked fine. Use `--run-ignored all` and assert the run count. |
+| Asserts that map `Result` → `bool` hide production defects | `assert!(result.is_ok(), "Should succeed")` let three real bugs (metrics columns, metrics units, pooled checkout) sit in a red suite for days with no diagnosis. Print `{result:?}`. |
+| Hand-written SQL drifted from the DDL | `agent_metrics.last_execution_time` / `task_metrics.avg_completion_time` do not exist (`last_execution`, `avg_completion_time_ms`), and `avg_duration_ms` was written in **seconds** and read back `/1000`. Turso monitoring metrics could never be stored. Needs a schema-vs-SQL sensor (ACT-406). |
+| `get_connection_with_id()` is direct-connection only | pooled deployments fail before SQL; scoped checkout (`with_connection`) must wrap the whole closure. |
+| The workflow's own `GITHUB_TOKEN` label does not re-trigger a run | the drift check reads the trigger payload's labels, so `release-preparation` must be re-applied from outside (`gh pr edit --remove-label/--add-label`) to clear a stale `version_not_advanced`. That re-label was used on #1179 and worked, but it is the documented deadlock breaker, not the fix: **the fix is the `0.1.46` bump PR landing first**, which makes the check clean for the whole queue with no override. |
+| Local floating stable breaks `--all-targets` clippy | `test-utils/src/lib.rs` unfulfilled `#![expect(...)]` reproduces on untouched `main` — environmental, pre-existing, **not** caused by #1180; recorded rather than suppressed. |
 
 ## Live tracker state
 
-`gh issue list --state open` = 16 · `gh pr list --state open` = 17 (wave A + plans #1141).
+`gh pr list --state open` = 10 · `gh issue list --state open` = 5 (#1068, #1076, #1089, #1109, #1165) ·
+Dependabot alerts = 12 (2 high, 2 moderate, 8 low — high/moderate fixed on `main`, the 8 low need `libsql 0.10.0`).

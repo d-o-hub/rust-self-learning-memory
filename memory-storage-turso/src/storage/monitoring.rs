@@ -55,7 +55,7 @@ impl TursoStorage {
             const SQL: &str = r#"
             INSERT OR REPLACE INTO agent_metrics (
                 agent_name, agent_type, total_executions, successful_executions,
-                total_duration_ms, avg_duration_ms, last_execution_time
+                total_duration_ms, avg_duration_ms, last_execution
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
@@ -72,7 +72,7 @@ impl TursoStorage {
                 metrics.total_executions as i64,
                 metrics.successful_executions as i64,
                 metrics.total_duration.as_millis() as i64,
-                metrics.avg_duration.as_secs_f64(),
+                metrics.avg_duration.as_millis() as i64,
                 metrics.last_execution.map(|t| t.timestamp()),
             ])
             .await
@@ -90,7 +90,7 @@ impl TursoStorage {
         self.with_connection_with_id(async |conn, conn_id| {
             const SQL: &str = r#"
             INSERT OR REPLACE INTO task_metrics (
-                task_type, total_tasks, completed_tasks, avg_completion_time
+                task_type, total_tasks, completed_tasks, avg_completion_time_ms
             ) VALUES (?, ?, ?, ?)
         "#;
 
@@ -122,7 +122,7 @@ impl TursoStorage {
         self.with_connection_with_id(async |conn, conn_id| {
             const SQL: &str = r#"
             SELECT agent_name, agent_type, total_executions, successful_executions,
-                   total_duration_ms, avg_duration_ms, last_execution_time
+                   total_duration_ms, avg_duration_ms, last_execution
             FROM agent_metrics WHERE agent_name = ?
         "#;
 
@@ -210,7 +210,7 @@ impl TursoStorage {
         debug!("Loading task metrics: {}", task_type);
         self.with_connection_with_id(async |conn, conn_id| {
             const SQL: &str = r#"
-            SELECT task_type, total_tasks, completed_tasks, avg_completion_time
+            SELECT task_type, total_tasks, completed_tasks, avg_completion_time_ms
             FROM task_metrics WHERE task_type = ?
         "#;
 
@@ -278,7 +278,7 @@ impl TursoStorage {
         let total_executions: i64 = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
         let successful_executions: i64 = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
         let total_duration_ms: i64 = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-        let avg_duration_ms: f64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
+        let avg_duration_ms: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
         let last_execution_time: Option<i64> = row.get(6).ok();
 
         Ok(AgentMetrics {
@@ -287,7 +287,7 @@ impl TursoStorage {
             total_executions: total_executions as u64,
             successful_executions: successful_executions as u64,
             total_duration: std::time::Duration::from_millis(total_duration_ms as u64),
-            avg_duration: std::time::Duration::from_secs_f64(avg_duration_ms / 1000.0),
+            avg_duration: std::time::Duration::from_millis(avg_duration_ms as u64),
             min_duration: std::time::Duration::MAX,
             max_duration: std::time::Duration::ZERO,
             last_execution: last_execution_time

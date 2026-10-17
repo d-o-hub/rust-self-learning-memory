@@ -2,7 +2,7 @@
 
 **Generated**: 2026-10-04
 **Audit baseline of the findings**: `9f50c607` (2026-09-28) · **Re-validated at**: `74a44a15` (`main`)
-**Workspace Version**: `0.1.45` · **Released Tag**: `v0.1.44`
+**Workspace Version**: `0.1.46` · **Released Tag**: `v0.1.45`
 **Active Focus**: GAP03 — repo-wide issue register (previous focus DOC02, archived at `archive/2026/GAP_ANALYSIS_2026-10-02.md`)
 
 ## Why this register exists
@@ -23,6 +23,26 @@ In review: W5 #1075 #1138 · W6 #1085 #1140 · #1063 #1146 · #1064 #1147 · #10
 · #1073 #1151 · #1078 #1154 · #1087 #1144/#1152/#1158 · #1092 slice 2 #1153 · #1159.
 Waiting on merges: #1068/#1089 (after #1149), #1074 (in flight), #1076 (after #1074). Verdicts below remain the
 2026-10-04 audit snapshot; see `VALIDATION_LATEST.md` for the live state.
+
+## Live addendum (2026-10-16)
+
+`gh issue list --state open` = **5** — of the audited #1063–#1092 set only the three declared follow-ups remain
+(#1068 revision-aware merge, #1089 batch sync writes, #1076 pattern-embedding reuse); everything else in this
+register merged. The other two are release-series: #1109 (manual crates.io registrations — maintainer-external)
+and #1165 (v0.1.45 drift, closes with the `0.1.46` bump).
+
+New gaps found **after** the audit, i.e. not covered by any verdict below — tracked as ACT-399…ACT-412 in
+`ACTIONS.md` with evidence in `../GOAP_RELEASE_CLOSEOUT_2026-10-16.md` and `VALIDATION_LATEST.md`:
+
+| Gap | Evidence | Owner action |
+|-----|----------|--------------|
+| crates.io publish chain was **false-green** since `493cfb01`: two releases (`v0.1.44`, `v0.1.45`) never uploaded | newest published `0.1.34` (mcp `0.1.31`) while `release.yml` run `38883104363` = `success`; publish step `conclusion=skipped` | ACT-399 (#1179) + ACT-402/ACT-409 (first publishing tag `v0.1.46`) |
+| Turso monitoring metrics could never be stored (SQL named columns the DDL does not create; `avg_duration_ms` written in seconds) | nightly run `38883104337`: `106 tests run: 70 passed, 36 failed` | ACT-401 (#1180) + ACT-406 (schema-vs-SQL sensor) |
+| Multi-dimension embedding reads queried a table that feature build never creates | `no such table: embeddings` under `turso_multi_dimension` | ACT-401 (#1180) |
+| Pooled call sites used the direct-connection accessor | `get_connection() is only available in direct-connection mode` | ACT-401 (#1180), residual callers under #1064 follow-up |
+| Nightly test *configuration* could report a schema mismatch as a storage bug | `#[ignore]` + `--run-ignored only` ignores feature gating | ACT-403, ACT-407 |
+| 12 Dependabot alerts = **6 advisories × 2 lockfiles** (`Cargo.lock`, `fuzz/Cargo.lock`), **all upstream-blocked**: 8 × `rustls-webpki 0.102.8` (2 high) via `libsql 0.9.30/0.10.0 → hyper-rustls 0.25 → rustls 0.22.4`; 2 × `lru <0.16.3` via `augurs-changepoint 0.10.2 → changepoint 0.14.2 → rv 0.16.5` and `agentfs-sdk 0.6.4`; 2 × `libsql-sqlite3-parser ≤0.13.0` with **no patched release** (CVE-2025-47736). `cargo audit`/`cargo deny` were cleared separately by #1174, which closed none of these | `gh api repos/:owner/:repo/dependabot/alerts?state=open --paginate` + `cargo tree` on a scratch `libsql 0.10.0` crate | ACT-404 (wait for upstream: tursodatabase/libsql, Manishearth/llru-rs, augurs-project/augurs) |
+| The tag cannot be cut straight after #1180: `release-manager.sh` Phase 0 fails on docs/CHANGELOG state | `./scripts/verify-release-state.sh --check-unreleased` → `❌ 3 version mismatches` (`ROADMAP_ACTIVE says v0.1.45`, `CURRENT references v0.1.45`, `CHANGELOG.md missing entry for v0.1.46`), plus `⚠️ parse-changelog not installed` while `release.yml` depends on that parser | ACT-412 (release-prep PR: CHANGELOG `[0.1.46]` + version-doc flip, then `ship`) |
 
 ## Register — 22 open issues
 

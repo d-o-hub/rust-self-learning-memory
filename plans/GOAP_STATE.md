@@ -1,13 +1,16 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-14
-- **Version**: workspace `0.1.45` · latest tag `v0.1.44`
-- **Branch**: `chore/release-v0.1.45` (release candidate based on `origin/main` @ `bdd3ff07`)
-- **Open PRs**: none open (run `gh pr list --state open`) — release preparation is the next intentional PR
-- **Open issues**: 8 open (run `gh issue list --state open`: #1068, #1076, #1089, #1109, #1137, #1164, #1165, #1168)
-- **Active plan**: release closeout for [`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) — all currently open PRs are merged; #1068, #1089, and #1076 remain post-release follow-ups
+- **Last Updated**: 2026-10-16
+- **Version**: workspace `0.1.46` (post-v0.1.45 bump, this PR) · latest tag `v0.1.45` (`8ee711bd`, GitHub Release published 2026-10-16)
+- **Branch**: `main` (`8ee711bd`) — no release branch; the post-release version bump is the next intentional PR
+- **Open PRs**: 10 open (run `gh pr list --state open`) — this plans+bump PR goes first (it clears critical drift),
+  then #1179 → #1177 → #1175 → #1180 (serial: `strict_required_status_checks_policy`), then tag `v0.1.46`
+- **Open issues**: 5 open (run `gh issue list --state open`: #1068, #1076, #1089, #1109, #1165)
+- **Active plan**: **release closeout** — [`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
+  (publish stall, red nightly, drift gate); audit-backlog follow-ups #1068/#1076/#1089 remain queued behind it
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
-- **Release**: `v0.1.45` candidate prepared; latest tag remains `v0.1.44`; ship after the release-preparation PR merges (drift issues #1137/#1165)
+- **Release**: `v0.1.45` shipped — but **nothing reached crates.io** (newest `0.1.34`; `do-memory-mcp` `0.1.31`),
+  because the publish guard was false-green. Fix in #1179; the next tag (`v0.1.46`) is the only publish vehicle.
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ---
@@ -47,15 +50,31 @@ Adjacent merges: #1128 docs-integrity, #1133 local hook sensors, #1136 dependabo
 
 ## Next queue
 
+- **Merge pipeline (serial, forced by strict up-to-date + drift gate)**: this plans + `0.1.46` bump PR **first**
+  (it makes `check-release-drift.sh` clean instead of overriding it with `release-preparation`) → #1179 publish
+  guard → #1177 readiness gate → #1175 guardrail docs → #1180 nightly Turso → tag `v0.1.46`, which is the publish
+  vehicle because the chain runs from the tag SHA.
+- **Publish repair (ACT-402)**: `v0.1.44`/`v0.1.45` never reached crates.io; `0.1.46` must be verified with
+  `index("0.1.46") != null` per crate **and** a green `Verify publish landed`.
+- **Nightly repair (ACT-403)**: #1180 turns the 36-failure nightly green and exposes four real defects
+  (metrics column/unit drift, multi-dimension read gap, pooled-checkout misuse, error-swallowing asserts).
+- **Dependabot (ACT-404)**: 12 alerts open, but they are **6 advisories duplicated across `Cargo.lock` and
+  `fuzz/Cargo.lock`** and all are upstream-blocked: 8 × `rustls-webpki 0.102.8` (2 high) reached only through
+  `libsql → hyper-rustls 0.25 → rustls 0.22.4`, 2 × `lru <0.16.3` through `augurs-changepoint 0.10.2` and
+  `agentfs-sdk 0.6.4` (both already newest), 2 × `libsql-sqlite3-parser` with no upstream patch. `libsql 0.10.0`
+  changes none of this (verified with a scratch `cargo tree`), so no bump PR is planned until upstream moves.
 - **Watermark follow-ups**: #1068, #1089 remain queued after the merged #1149 implementation.
 - **Embedding follow-up**: #1076 remains queued after merged #1151/#1160 implementations.
-- **Merge pipeline**: empty; #1153 was the final open PR and merged serially through the readiness gate.
-- **Release/closeout**: merge the release-preparation PR, then ship `v0.1.45`; #1109 manual crates.io steps remain maintainer-external.
+- **Release/closeout**: `v0.1.45` shipped; #1109 manual crates.io registrations + secret deletion remain
+  maintainer-external.
 
 ## Current truth flags
 
 ```text
-release_current                   = false (v0.1.44 tagged 2026-10-02; v0.1.45 candidate ready — ship after release PR)
+release_current                   = true  (v0.1.45 tagged 2026-10-16 on 8ee711bd; workspace bumped to 0.1.46 here)
+crates_io_publish_truthful        = false (guard `!inputs.dry-run` string-coerced to true → uploads skipped since
+                                           493cfb01; newest published 0.1.34/mcp 0.1.31 — fixed in #1179, lands on 0.1.46)
+nightly_turso_green               = false (36 of 106 failing at 8ee711bd; repaired locally in #1180, awaiting CI)
 audit_backlog_registered          = true  (#1129 — every #1063–#1092 issue has a verdict in GAP_ANALYSIS_LATEST.md)
 w1_ranking_guard_released         = true  (#1131)
 w2_subsecond_latency_released     = true  (#1135)
@@ -70,7 +89,8 @@ lint_crate_root_allows_zero       = true (#1143/#1153)
 production_pattern_query_relevance = true (#1160 — runtime provider snapshot across pattern paths)
 watermark_source_of_truth         = true (#1149 — revision table + keyset pages + durable watermark)
 required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; same-run aggregate)
-release_dispatch_truthful         = true  (#1123/#1125 — OIDC-only publish chain, verify-a-release docs)
+release_dispatch_truthful         = partial (#1123/#1125 made the chain OIDC-only + docs, but the publish step
+                                           itself was false-green until #1179; see crates_io_publish_truthful)
 ```
 
 ## Closed campaigns (pointer)

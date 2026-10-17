@@ -1,14 +1,14 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-14
-**Released Version**: v0.1.45 (release candidate; latest tag v0.1.44)
-**Workspace Version**: 0.1.45 (post-v0.1.44 bump)
-**Active plan**: **release closeout for the audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`. W1–W6, Q02, and the wave-A slices are merged through #1161; the last open PR, #1153, merged as `b6326d90` on 2026-10-12. Follow-up issues #1068, #1089, and #1076 remain queued after the release.
+**Last Updated**: 2026-10-16
+**Released Version**: v0.1.45 (tag `8ee711bd`, GitHub Release 2026-10-16) — not yet on crates.io (newest published `0.1.34`)
+**Workspace Version**: 0.1.46 (post-v0.1.45 bump; the tag `v0.1.46` is the publish vehicle)
+**Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). The audit-backlog wave is closed (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`: W1–W6, Q02, wave-A slices merged through #1161, #1153 as `b6326d90`); open work is the false-green crates.io publish (#1179), the red Turso nightly (#1180), the readiness run-ordering fix (#1177), guardrail docs (#1175) and the `0.1.46` bump. Follow-ups #1068, #1089, #1076 stay queued behind it.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: `chore/release-v0.1.45` (release candidate based on `origin/main` @ `bdd3ff07`)
-**Open PRs**: none open (run `gh pr list --state open`) — release preparation is the next intentional PR
-**Open issues**: 8 open (run `gh issue list --state open`) — the open set is a registered audit backlog, not free work: per-issue verdicts and evidence live in `STATUS/GAP_ANALYSIS_LATEST.md`
+**Branch**: `main` @ `8ee711bd`
+**Open PRs**: 9 open (run `gh pr list --state open`) — the closeout PR goes first (it carries the `0.1.46` bump that clears critical drift for the queue), then #1179, #1177, #1175, #1180 merge serially and the tag is cut; parked perf/bot PRs (#1171, #1172, #1176, #1178) need their own review passes. All seven parked/queued PRs still carry `release-preparation`, auto-applied by `release-drift.yml` while drift was `critical`; the label is a deadlock breaker, not the fix, and the bump here makes it unnecessary (#1173 merged as `13:11Z`, which is why the count moved 10 → 9)
+**Open issues**: 6 open (run `gh issue list --state open`) — the open set is a registered audit backlog, not free work: per-issue verdicts and evidence live in `STATUS/GAP_ANALYSIS_LATEST.md`. The sixth is **#1182**, the canonical `release-drift` issue the `maintain-issue` job files and updates **in place** from `main` (`release-drift.yml:98-149`); it is a symptom of the post-ship `version_not_advanced` state, so it must not be closed by hand — it resolves when the `0.1.46` bump lands
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6
 

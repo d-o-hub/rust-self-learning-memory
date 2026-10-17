@@ -179,6 +179,22 @@ fn test_query_limit() {
 }
 
 #[test]
+fn test_query_range_limit_clamped() {
+    let mut index = SpatiotemporalIndex::new();
+    let now = Utc::now();
+
+    for _ in 0..1050 {
+        let episode = create_test_episode_with_time("test-domain", TaskType::CodeGeneration, now);
+        index.insert(&episode);
+    }
+
+    let start = now - Duration::hours(1);
+    let results = index.query_range(start, now + Duration::hours(1), usize::MAX);
+
+    assert_eq!(results.len(), crate::storage::MAX_QUERY_LIMIT);
+}
+
+#[test]
 fn test_multiple_episodes_same_hour() {
     let mut index = SpatiotemporalIndex::new();
     let now = Utc::now();

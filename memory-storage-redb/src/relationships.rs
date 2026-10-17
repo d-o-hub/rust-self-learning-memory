@@ -14,19 +14,19 @@ impl RedbStorage {
     // StorageBackend trait implementations
 
     /// Store a relationship (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
         self.cache_relationship(relationship)
     }
 
     /// Remove a relationship (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
         self.remove_cached_relationship(relationship_id)
     }
 
     /// Get relationships (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn get_relationships(
         &self,
         episode_id: Uuid,
@@ -36,7 +36,7 @@ impl RedbStorage {
     }
 
     /// Check if relationship exists (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn relationship_exists(
         &self,
         from_episode_id: Uuid,
@@ -50,7 +50,7 @@ impl RedbStorage {
     }
 
     /// Store a relationship between an episode and a pattern (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn store_episode_pattern_relationship(
         &self,
         relationship: &EpisodePatternRelationship,
@@ -83,7 +83,7 @@ impl RedbStorage {
     }
 
     /// Get pattern relationships for an episode (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn get_episode_pattern_relationships(
         &self,
         episode_id: Uuid,
@@ -167,7 +167,7 @@ impl RedbStorage {
     }
 
     /// Get all relationships (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
         let read_txn = self
             .db
@@ -197,7 +197,7 @@ impl RedbStorage {
     }
 
     /// Get a relationship by its ID (StorageBackend trait)
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
+    #[expect(clippy::unused_async)]
     pub async fn get_relationship_by_id(
         &self,
         relationship_id: Uuid,

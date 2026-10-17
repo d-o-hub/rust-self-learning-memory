@@ -972,16 +972,20 @@ async fn should_select_same_winner_in_get_all_episodes_and_context_backfill() {
     turso2_arc.store_episode(&ep_turso1).await.unwrap();
 
     // 1) Winner from get_all_episodes
-    let mut config1 = MemoryConfig::default();
-    config1.quality_threshold = 0.0;
-    config1.pattern_extraction_threshold = 0.0;
+    let config1 = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
     let mem1 = SelfLearningMemory::with_storage(config1, turso1_arc, redb1_arc);
     let get_all_result = mem1.get_all_episodes().await.unwrap();
 
     // 2) Winner from context backfill
-    let mut config2 = MemoryConfig::default();
-    config2.quality_threshold = 0.0;
-    config2.pattern_extraction_threshold = 0.0;
+    let config2 = MemoryConfig {
+        quality_threshold: 0.0,
+        pattern_extraction_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
     let mem2 = SelfLearningMemory::with_storage(config2, turso2_arc, redb2_arc);
     let backfilled = mem2
         .retrieve_relevant_context("Context task".to_string(), context, 1)
@@ -1038,10 +1042,7 @@ async fn should_sync_large_volumes_using_batch_writes_100_and_1000() {
 
         // Print measured throughput for inspection during benchmark runs
         let rate = (count as f64) / elapsed.as_secs_f64();
-        println!(
-            "Synced {count} episodes in {:?} ({:.2} episodes/sec)",
-            elapsed, rate
-        );
+        println!("Synced {count} episodes in {elapsed:?} ({rate:.2} episodes/sec)");
 
         // Acceptance criteria 2 and 4: the cache must end up holding every
         // synced episode exactly once. Reading the whole page back instead of

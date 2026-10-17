@@ -6,9 +6,9 @@
       "exec": "test -f .agents/skills/coverage-waivers/SKILL.md"
     },
     {
-      "name": "documents-default-feature-pipeline",
-      "description": "States that coverage runs default features only",
-      "exec": "rg -qi 'default features only|no feature flags' .agents/skills/coverage-waivers/SKILL.md"
+      "name": "documents-the-measured-feature-set",
+      "description": "Names the coverage job and the exact features it instruments, instead of the inaccurate \"default features only\"",
+      "exec": "rg -q 'coverage\\.yml' .agents/skills/coverage-waivers/SKILL.md && rg -q 'do-memory-mcp/oauth' .agents/skills/coverage-waivers/SKILL.md"
     },
     {
       "name": "documents-tracing-waiver-class",
@@ -22,8 +22,13 @@
     },
     {
       "name": "documents-feature-gated-gap",
-      "description": "Documents feature-gated files and the csm CI gap",
-      "exec": "rg -q '#1045' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'feature-gated' .agents/skills/coverage-waivers/SKILL.md"
+      "description": "Documents feature-gated waiver classes (csm and the Turso features) and the #1045 history",
+      "exec": "rg -q '#1045' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'feature-gated' .agents/skills/coverage-waivers/SKILL.md && rg -q 'turso_multi_dimension' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "distinguishes-patch-status-from-comment",
+      "description": "Teaches that codecov/patch can be green while its comment warns, so the thread is answered rather than treated as a CI blocker",
+      "exec": "rg -qi 'codecov/patch' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'target' .agents/skills/coverage-waivers/SKILL.md"
     },
     {
       "name": "requires-ungated-tests",
@@ -39,6 +44,26 @@
       "name": "rejects-ci-green-alone",
       "description": "Rejects CI-green-alone merging with an unanswered Codecov comment",
       "exec": "rg -q 'CI green, ready to merge' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "demands-the-ci-coverage-artifact",
+      "description": "Points at the CI coverage-report artifact (gh run download) as the line-level ground truth, not a local llvm-cov run",
+      "exec": "rg -q 'gh run download' .agents/skills/coverage-waivers/SKILL.md && rg -q 'coverage-report' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'git diff -U0|patch hunks' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "bounds-the-local-report",
+      "description": "States why a package-scoped local coverage report cannot decide triage (whole-workspace instrumentation differs)",
+      "exec": "rg -qi 'under-report|whole-workspace|whole workspace' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'manufactur|fake waiver|fewer' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "checks-cfg-not-polarity",
+      "description": "Warns that cfg(not(feature = ...)) compiles in the measured build, so those lines are coverable",
+      "exec": "rg -qi 'cfg\\(not\\(feature' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'inverts|compiles .{0,30}measured|is coverable, not waivable' .agents/skills/coverage-waivers/SKILL.md"
+    },
+    {
+      "name": "documents-destructive-setup-for-error-arms",
+      "description": "Teaches schema invalidation (DROP TABLE after a write) to reach error arms deterministically before waiving them as unreachable",
+      "exec": "rg -qi 'DROP TABLE' .agents/skills/coverage-waivers/SKILL.md && rg -qi 'destructive setup|new_local' .agents/skills/coverage-waivers/SKILL.md"
     }
   ]
 }

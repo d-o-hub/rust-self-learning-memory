@@ -401,8 +401,9 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   user-visible "release" claim was true for GitHub Releases but false for the
   registry.
 - Detection: `gh release view <tag> --json author` → `github-actions[bot]` means
-  the event was suppressed; compare `curl -s https://crates.io/api/v1/crates/<crate> | jq -r .crate.max_version`
-  with the workspace version; `gh run list --workflow=publish-crates.yml --event=release`
+  the event was suppressed; compare `curl -s -A ci-verify https://crates.io/api/v1/crates/<crate> | jq -r .crate.max_version`
+  with the workspace version (the `User-Agent` is required — without it crates.io
+  returns an error body and the command prints nothing); `gh run list --workflow=publish-crates.yml --event=release`
   shows the last run that actually fired.
 - Fix: `release.yml`'s `dispatch-publish` job (needs `actions: write`) calls
   `gh workflow run publish-crates.yml --ref <tag> -f dry-run=false` after the
@@ -658,3 +659,520 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   the order the assertion assumes; treat a failing assertion on freshly written
   code as a fixture hypothesis before touching the implementation.
 - References: `memory-core/tests/get_all_episodes_merge.rs`, PR #1068.
+
+## LESSON-046: advisories are gated by two tools in one step — deny alone is not the truth (2026-10-15)
+
+- Issue: `origin/main` HEAD went red on a fresh batch of RustSec advisories. The
+  Quality Gates job runs **both** `cargo deny check advisories` and
+  `cargo audit --json` (then fails on `.vulnerabilities.count > 0`) — see
+  `.github/workflows/ci.yml:380-398`. A rustls-only bump cleared deny but left
+  five quinn-proto advisories that only audit reports, because the two tools
+  consult different advisory DB clones and surface different sets.
+- Impact: an advisory PR scoped from deny output alone re-reds main and needs a
+  second full CI cycle; waiver text gets written twice, in two files.
+- Fix/prevention: before proposing an advisory fix, enumerate the **union** of
+  `cargo deny check advisories` and `cargo audit --json` against the target
+  lockfile. Every ignore needs an entry in **both** `deny.toml`
+  (`[advisories] ignore`) and `.cargo/audit.toml` — the lists are independent
+  and both are blocking.
+- References: `.github/workflows/ci.yml`, `.agents/skills/code-quality/SKILL.md`, PR #1174.
+
+## LESSON-047: a stale advisory DB clone makes `cargo deny` report a false green (2026-10-15)
+
+- Issue: local `cargo deny` reported "advisories ok" against the exact lockfile
+  CI proved failing. Its DB clone under `~/.cargo/advisory-dbs/…` was pinned at
+  commit `e2111519` (2026-09-25) while `cargo audit`'s clone
+  `~/.cargo/advisory-db` was current; the refresh was blocked by a `db.lock`
+  left behind by an earlier crash.
+- Impact: a false green mis-scopes the fix, and the PR is declared done before
+  it can possibly pass.
+- Fix/prevention: check the DB's checkout date before believing a green advisory
+  run, and cross-check with the second tool. Investigate a `db.lock` (find the
+  holding process) rather than deleting it. For per-advisory facts, use the
+  already-cloned markdown at `~/.cargo/advisory-db/crates/<pkg>/<ID>.md` or
+  `rustsec.org/advisories/<ID>.html` — `api.rustsec.io` and `crates.io/api/v1`
+  returned empty bodies to `curl` here.
+- References: LESSON-046, `.agents/skills/code-quality/SKILL.md`.
+
+## LESSON-048: bump to the minimal patched version, then re-run the WASM gate (2026-10-15)
+
+- Issue: `cargo update -p quinn-proto` chose 0.11.19 although the advisory's
+  `[versions] patched` range only required 0.11.18. The bump also dragged
+  `rand` 0.9→0.10 and `getrandom` 0.3→0.4 across majors — and `getrandom` is
+  exactly the crate whose `--cfg getrandom_backend="wasm_js"` RUSTFLAGS are
+  hardcoded in the WASM Compile Check gate (`.github/workflows/ci.yml:505-512`).
+- Impact: an over-pull multiplies lockfile churn and review surface; a
+  `getrandom` major can break the wasm target without touching any code path
+  the advisory is about.
+- Fix/prevention: read `[versions] patched` from the advisory and pin the floor
+  with `cargo update -p <pkg> --precise <min-patched>`. When a bump crosses a
+  `getrandom` major, re-run the WASM job's exact command *with its RUSTFLAGS*
+  locally. Keep advisory PRs lockfile-only; `Cargo.toml` changes belong in a
+  separate PR.
+- References: `agent_docs/dependency_upgrades.md`, PR #1174.
+
+## LESSON-049: bot-applied labels cannot clear the drift check — toggle them as a human (2026-10-15, extends LESSON-044)
+
+- Issue: `release-drift.yml` fails when cadence is critical *and*
+  `github.event.pull_request.labels` lacks `release-preparation`, then applies
+  that label with `GITHUB_TOKEN`. GitHub suppresses workflow-triggered actions,
+  so no `labeled` run fires, and `gh run rerun <id>` only replays the original
+  label-less payload — it failed again. A human label toggle emitted a fresh
+  `labeled` event carrying the label and passed.
+- Impact: the documented retry path (`push a commit` / `gh pr update-branch`)
+  re-triggers the whole suite, which under `strict_required_status_checks_policy`
+  invalidates the PR's own required runs.
+- Fix/prevention: `gh pr edit <n> --remove-label release-preparation && gh pr
+  edit <n> --add-label release-preparation` (needs `labeled` in the workflow's
+  `pull_request` types). Separate fact: a permanently-`skipping`
+  `Maintain canonical drift issue` row on PRs is structural
+  (`if: github.event_name != 'pull_request'`), not a skipped gate.
+- References: `.github/workflows/release-drift.yml`, LESSON-044, PR #1174.
+
+## LESSON-050: `main` is guarded by a ruleset, not branch protection (2026-10-15)
+
+- Issue: `gh api repos/{owner}/{repo}/branches/main/protection` 404s while merges
+  are still gated. The guard is ruleset `main-protection` (id 9591004). Required
+  contexts are exactly `CI / Required` and `Codacy Static Code Analysis`;
+  `strict_required_status_checks_policy=true`,
+  `required_review_thread_resolution=true`,
+  `required_approving_review_count=0`,
+  `dismiss_stale_reviews_on_push=true`,
+  `require_extra_approval_for_unattributed_changes=true`.
+- Impact: merge-state questions get answered from the wrong API, and green
+  non-required rows are mistaken for blockers (or vice versa).
+- Fix/prevention: read `gh api repos/{owner}/{repo}/rules/branches/main` — the
+  payload is an array of *rule* objects (each carrying `ruleset_id`), and the
+  contexts live at `.parameters.required_status_checks` (not `.context`), so dump
+  it to a file before scripting jq. `CI / Required` is not a per-job row: it is
+  the aggregate job `required` (`name: CI / Required`, `needs:` the substantive
+  jobs, fail-closed on any non-success dependency incl. `skipped`), so it only
+  appears after the slowest dependency (often `multi-platform`) finishes —
+  `mergeStateStatus` stays `BLOCKED` while every visible row is green. Required-
+  check drift is a ruleset change, never a workflow edit.
+- References: `.github/workflows/ci.yml` (`required` job), ADR-079, PR #1174.
+
+## LESSON-051: `ci-check` counts scheduled runs by head SHA, so an always-red nightly blocks releases (2026-10-15)
+
+- Issue: `do_ci_check` in `scripts/release-manager.sh` lists
+  `gh run list --branch main --commit <head>` and counts every completed
+  non-success run without fetching the `event` field — so a `schedule`-triggered
+  nightly failure attached to the release SHA blocks the ship even though the
+  commit itself is unchanged (`isolated-turso-native-tests` has been red since
+  it first ran 2026-10-07).
+- Impact: releases are held by pre-existing debt; advancing main HEAD only opens
+  a *window*, because the next nightly (cron `0 2 * * *`, observed start
+  06:36-08:37 UTC) re-attaches to the new SHA.
+- Fix/prevention: for v0.1.45 the decision was to keep the gate strict and ship
+  inside the window, not to weaken `ci-check`. The durable fix — filter on
+  `.event`, or allowlist per-event failures with a tracked issue — needs an
+  explicit decision first; do not silently exclude schedule runs.
+- References: `scripts/release-manager.sh`, `.github/workflows/nightly-tests.yml`, ADR-027.
+
+## LESSON-052: `statusCheckRollup` keeps superseded runs, so a label toggle fakes a CI failure (2026-10-15)
+
+- Issue: after the human `release-preparation` toggle cleared the drift check on
+  #1174, the head SHA still carried the two earlier `FAILURE` rows for
+  `Check for unreleased changes`. `scripts/check-pr-readiness.sh` counts raw
+  rollup entries, so it reported `32 pass, 2 fail` and `merge-pr.sh` refused with
+  "readiness gate failed" while `mergeStateStatus` was `CLEAN` and GitHub's
+  evaluation saw the newest run (success) as authoritative.
+- Impact: a correct, fully green PR becomes unmergeable through the sanctioned
+  path; the tempting workaround (delete the failing runs, or merge around the
+  gate) is a bypass and is not acceptable.
+- Fix/prevention: re-run on a **fresh head SHA** — rollups are per SHA, so
+  `git commit --allow-empty -m "chore: re-trigger CI …" && git push` drops the
+  stale rows (the `synchronize` payload now carries the label, so the drift check
+  passes). Durable fix: reduce the rollup to the latest run per check name
+  (prefer an unfinished entry over a finished one) before classifying. Never
+  delete workflow runs to silence a gate.
+- References: `scripts/check-pr-readiness.sh`, `scripts/merge-pr.sh`, LESSON-041, LESSON-049.
+
+## LESSON-053: a negated input guard makes the crates.io publish chain falsely green (2026-10-16)
+
+- Issue: `release-manager.sh ship --execute` published v0.1.45, `release.yml`
+  dispatched `publish-crates.yml` on the tag and the run went **success** for
+  `Publish do-memory-core` — yet `crates.io/api/v1/crates/do-memory-core/versions`
+  still listed `0.1.34` as newest. The log shows
+  `Version not on crates.io, will publish`, `aborting upload due to dry run`,
+  `Retrieved token successfully`, then
+  `##[endaction … conclusion=skipped;duration_ms=0]` for `Publish to crates.io`.
+  Cause: `if: ${{ !inputs.dry-run && … }}`. Composite-action inputs are
+  **strings**, and GitHub coerces any non-empty string to `true`, so the value
+  `publish-crates.yml` renders (`dry-run: ${{ inputs.dry-run == true }}` →
+  `"false"`) makes `!inputs.dry-run` **false** and skips the real upload.
+  Introduced 2026-10-03 in `493cfb01` (#1109); v0.1.44 and v0.1.45 never
+  published, and `do-memory-mcp` has been stuck at 0.1.31.
+- Impact: the release looks complete — release assets, attestations and a green
+  publish workflow all say "shipped" — while the crates.io audience gets nothing
+  and the gap only surfaces as the *next* crate's
+  `dependency … did not appear on crates.io within 300s` timeout. Retagging is
+  not a fix either: a run takes the workflow **and** the composite action from
+  its tag SHA, and `Verify tag matches version` binds tag to manifest, so a
+  superseded tag can never publish retroactively.
+- Fix/prevention: never negate an input in a gate — compare to the literal
+  (`inputs.dry-run != 'true'`), the form the tag guard and auth step already used
+  in the same file. Make a green publish prove itself (`Verify publish landed`
+  polls the versions endpoint, bounded like LESSON-014) and query version
+  **membership** (`[(.versions // [])[].num] | index($v) != null`) instead of
+  `.versions[0].num` equality, so re-runs stay idempotent once a newer version
+  exists. Sensors: `scripts/validate-gate-contract.sh` fails any `!inputs.` guard
+  in the publish files and `scripts/test-release-workflow.sh --publish-fixtures`
+  requires the proof step. After any release, assert the publish externally —
+  `curl -sS -A ci-verify https://crates.io/api/v1/crates/<crate>/versions | jq -r --arg v "$TAG" '[(.versions // [])[].num] | index($v) != null'`
+  must print `true`; a green workflow is not evidence that an artifact exists.
+  **Send the `User-Agent`:** crates.io rejects the request without one, and the empty
+  body it returns makes a bare `curl | jq` print nothing — which looks like a missing
+  version and, worse, is easy to skim past (the same empty-report trap as the
+  libtest-json gate above).
+- References: `.github/actions/publish-crate/action.yml`,
+  `.github/workflows/publish-crates.yml`, ADR-078 (amendment 2026-10-16),
+  LESSON-014, #1179.
+
+## LESSON-054: the tag-push changelog automation rewrites the whole CHANGELOG — close, never merge (2026-10-16)
+
+- Issue: every tag push runs `.github/workflows/changelog.yml`, which executes
+  `git-cliff --config cliff.toml --output CHANGELOG.md` and opens an
+  `automated-pr` (`#1178` for `v0.1.45`). Because git-cliff regenerates the file
+  **from git history**, the PR replaces the curated Keep-a-Changelog prose with
+  one-line subjects all the way back to `## [0.1.10]` (+405/−264 across the same
+  single `CHANGELOG.md`, hunk header `@@ -7,317 +7,458 @@`) and re-dates the
+  section to the tag day. It looks
+  mergeable and even "fixes" the release date, which is what makes it dangerous.
+- Impact: merging it deletes the evidence-bearing entries the release process
+  requires (each `### Fixed` bullet names the PR and the behaviour it restored),
+  and it collides with any open PR editing the top of `CHANGELOG.md`. Precedent:
+  `#1119`, `#1105`, `#1054`, `#1036` — every previous auto-changelog PR was
+  closed without merging.
+- Fix/prevention: treat `chore(changelog): update CHANGELOG.md for v*` as a
+  **close-only** PR; the changelog is written by the release-prep PR
+  (`chore(release): prepare vX.Y.Z changelog and version docs`) per AGENTS.md.
+  Land release-facing `CHANGELOG.md` changes *before* reviewing that automation,
+  and mention the date truth in the prep PR instead of accepting the regen. If
+  the automation stays unwanted, the fix is to its trigger/config in its own PR —
+  never a mid-release edit.
+- References: `.github/workflows/changelog.yml`, `cliff.toml`,
+  `scripts/release-manager.sh`, LESSON-044.
+
+## LESSON-055: nightly test configuration masquerades as a storage bug (2026-10-16)
+
+- Issue: three knobs move the numbers with no code changing. `nightly-tests.yml`
+  cron is `0 2 * * *` but scheduled runs actually started 06:30–06:49Z (queue
+  delay), and the workflow also fires on `push` of `v*.*.*` — `workflow_dispatch`
+  is the only reliable clock. `[[test]] required-features` is a BUILD-level gate:
+  with the feature off the target is not compiled at all, so test counts
+  silently change. `--run-ignored only` FORCE-RUNS `#[ignore]`d tests. The red
+  nightly (106 run / 36 failed, run 38883104337 at 8ee711bd) was partly a
+  *configuration artifact*, proven by the split: `--run-ignored only` →
+  86 passed / 0 failed (default schema) plus
+  `--features turso_multi_dimension --test multi_dimension_routing --test phase1_validation --run-ignored all`
+  → 20 passed / 0 skipped, and `86 + 20 = 106` = the pre-fix total.
+- Impact: a schema/config mismatch surfaced by force-running ignored tests reads
+  as a Turso storage defect, and a count that silently omits feature-gated
+  targets makes two runs of the same commit look contradictory — so the fix
+  gets aimed at storage instead of at the test configuration.
+- Fix/prevention: never quote a nightly pass/fail count without the feature
+  matrix and the `--run-ignored` mode that produced it. A schema/config mismatch
+  surfaced by force-running ignored tests is a **TEST CONFIGURATION** finding,
+  not a storage bug. Use `--run-ignored all` when you also want feature-gated
+  targets compiled.
+- References: `.github/workflows/nightly-tests.yml`, `Cargo.toml`,
+  `.agents/skills/ci-fix/SKILL.md`, `.agents/skills/github-workflows/SKILL.md`,
+  LESSON-051, ACT-403, ACT-407.
+
+## LESSON-056: three advisory registers, and `cargo audit` is gated on `.vulnerabilities` only (2026-10-16)
+
+- Issue: 12 Dependabot alerts were **6 advisories × 2 lockfiles**
+  (`Cargo.lock` + `fuzz/Cargo.lock`); `Cargo.toml:14` sets `exclude = ["fuzz"]`,
+  so no local gate ever reads the fuzz lockfile. PR #1174 cleared the audit/deny
+  gates and closed ZERO Dependabot alerts. Two distinct mechanisms make an
+  advisory invisible to BOTH CI gates: (1) RustSec `informational` advisories —
+  `lru` RUSTSEC-2026-0002
+  (`~/.cargo/advisory-dbs/<db>/crates/lru/RUSTSEC-2026-0002.md`:
+  `informational = "unsound"`, `aliases = ["GHSA-rhfx-m35p-ff5j"]`,
+  `patched = [">= 0.16.3"]`) is routed by cargo-audit to `.warnings.unsound`,
+  NEVER to `.vulnerabilities`, and both CI audit steps
+  (`.github/workflows/ci.yml:383-402`,
+  `.github/workflows/security.yml:77-95`) fail only when
+  `.vulnerabilities.count > 0`; `cargo deny` does not gate informational ids
+  either. (2) A GHSA never adopted into RustSec (`libsql-sqlite3-parser`,
+  CVE-2025-47736 — the advisory DB has `libsqlite3-sys` but no
+  `libsql-sqlite3-parser`) is invisible to both by absence. Measured twice on
+  the current lock (cargo-audit 0.22.2): in-repo `cargo audit --no-fetch --json`
+  → rc 0, `.vulnerabilities.list` empty, with 5 `.warnings.unsound` (git2
+  RUSTSEC-2026-0183/0184, lru RUSTSEC-2026-0253 ×3) + 1
+  `.warnings.unmaintained` (RUSTSEC-2024-0449) still reported; the same
+  `Cargo.lock` run from `/tmp` (so `.cargo/audit.toml` ignores do NOT apply) →
+  rc 1 with 8 `.vulnerabilities` (rsa 2023-0071,
+  rustls-webpki 2026-0049/0098/0099/0104, h2 2026-0258, rustls 2026-0346/0349).
+- Impact: a green audit and a green deny prove only that nothing un-ignored
+  reached `.vulnerabilities` — every one of the three registers can still list
+  advisories while both CI gates pass, which is exactly how #1174 could go green
+  and close no alerts.
+- Fix/prevention: a green `cargo audit` proves only "nothing un-ignored reached
+  `.vulnerabilities`" — always cite the ignore list and the surviving
+  `.warnings` count. Classify an advisory by **register** before promising a
+  fix. Dedupe alerts by `security_advisory.ghsa_id`, never by row count, and
+  inspect `.security_advisory | keys` before writing a bulk `jq` projection
+  (wrong keys silently yield empty columns). Corrected in this session: an
+  earlier draft claimed informational advisories DO fail `cargo audit` —
+  measurement said otherwise, which is itself the lesson.
+- References: `.github/workflows/ci.yml`, `.github/workflows/security.yml`,
+  `.cargo/audit.toml`, `Cargo.toml`, `fuzz/Cargo.lock`,
+  `.agents/skills/code-quality/SKILL.md`, `.agents/skills/ci-fix/SKILL.md`,
+  LESSON-053, ACT-404, PR #1174.
+
+## LESSON-057: a version bump does not make a repo shippable, and the drift gate files its own issue (2026-10-16)
+
+- Issue: `release-manager.sh` Phase 0 runs
+  `./scripts/verify-release-state.sh --check-unreleased`, which validates
+  `CHANGELOG.md`, `ROADMAP_ACTIVE.md` "Released Version" and `STATUS/CURRENT.md`
+  against `workspace_version`. After the 0.1.46 bump PR (#1181) was queued it
+  still printed: `❌ ROADMAP_ACTIVE.md says v0.1.45 (expected v0.1.46)`,
+  `❌ STATUS/CURRENT.md references v0.1.45`,
+  `❌ CHANGELOG.md missing entry for v0.1.46`,
+  `⚠️ parse-changelog not installed`. Second half: `check-release-drift.sh`
+  returns `critical/version_not_advanced` whenever
+  `workspace_version == latest_tag` with commits after the tag (the normal
+  post-ship state), and its `maintain-issue`
+  job (`.github/workflows/release-drift.yml:98-149`, concurrency group
+  `release-drift-canonical-issue`) **creates-or-updates one canonical
+  `release-drift` issue from main**, closing it at `:156` when drift resolves —
+  #1182 was opened 2026-10-16T13:32Z by `app/github-actions`.
+- Impact: a bump-only branch is still not shippable, and without
+  `parse-changelog` installed the release notes silently fall back. The drift issue is a
+  symptom, not a task: closing it by hand only makes the next detection
+  re-create it — and because it is a real issue it moves the open-issue count
+  the plans validators compare (5 → 6), which is how `validate-plans.sh`
+  tracker-drift caught a stale duplicate count inside `STATUS/CURRENT.md`.
+- Fix/prevention: land CHANGELOG `## [X.Y.Z]` + the version-doc flip as **ONE
+  release-prep PR before any tag date is promised** (precedent #1169), and
+  install the tool (`cargo install --locked parse-changelog`) or release
+  notes silently fall back — `release-preparation` is that PR's label, never an
+  override on unrelated PRs. Every copy of this instruction previously named the
+  crate **`parse-changelog-cli`, which does not exist** on crates.io (HTTP 404;
+  the real crate is `parse-changelog` 0.6.17, binary `parse-changelog`), so an
+  agent following the hint failed the install and concluded the tool was
+  unavailable. Verify a crate name against crates.io before writing an install
+  command into a guide. Resolve drift by advancing the state the gate
+  reads, never by hand-closing #1182, and keep the sanctioned paths: ship only
+  through `./scripts/release-manager.sh ship --execute` (`release-guard`,
+  **never** `gh release create`) and merge only through
+  `./scripts/merge-pr.sh <PR> --execute` (never `--admin`/`--force`).
+- References: `scripts/release-manager.sh`, `scripts/verify-release-state.sh`,
+  `scripts/check-release-drift.sh`, `scripts/validate-plans.sh`,
+  `.github/workflows/release-drift.yml`, `CHANGELOG.md`,
+  `plans/ROADMAPS/ROADMAP_ACTIVE.md`, `plans/STATUS/CURRENT.md`,
+  `.agents/skills/release-guard/SKILL.md`,
+  `.agents/skills/release-cadence-manager/SKILL.md`, #1181, ACT-411, ACT-412.
+
+## LESSON-058: a "does not teach X" eval reddens the moment you write "never do X" (2026-10-16)
+
+- Issue: the skills distill (#1175) added a `### Gate Semantics` bullet to
+  `.agents/skills/release-cadence-manager/SKILL.md` saying ship only through
+  `release-manager.sh ship --execute`, **never** `gh release create`. The prose
+  is correct; the fixture was not. `Skill schema + evals` failed on
+  `no-manual-ship ... FAIL`, `Command: ! rg -q 'gh release create'
+  .agents/skills/release-cadence-manager/SKILL.md` (run 38914237079, job
+  117017480826, exit 1). A presence-only predicate treats *any* mention of the
+  anti-pattern as a violation, so it punishes the strongest available wording.
+  24 skills carry this shape under `no-unguarded-gh-release-create`.
+- Impact: the sensor is inverted — a skill that states the prohibition and a
+  skill that teaches the bad command score identically, so it cannot
+  distinguish the fix from the bug, and any future guardrail wording in those
+  24 skills silently reddens CI. Second-order trap: `run-evals.sh --changed`
+  derives its skill list from `git diff --name-only origin/main...HEAD`
+  (`scripts/run-evals.sh:169-174`), i.e. **committed state only**, so uncommitted
+  fixture edits are invisible and a local green run proves nothing about the push.
+- Fix/prevention: write such fixtures as *require the canonical command AND
+  reject unguarded mentions* — `rg -q 'release-manager\.sh ship --execute'
+  SKILL.md && ! (rg -n 'gh release create' SKILL.md | rg -vi
+  'never|no t|do not|don.t|avoid|forbid|instead')` (the form
+  `release-guard/blocks-manual-release` already used). When editing a skill,
+  read its `evals/evals.json` before adding prose about what is forbidden, and
+  run the named skill (`./scripts/run-evals.sh <skill>`), not `--changed`, while
+  iterating — then re-run after committing so CI and local see the same tree.
+  Same family, second instance the same day: `coverage-waivers` fixture
+  `documents-default-feature-pipeline` asserted
+  `rg -qi 'default features only|no feature flags'`, so **correcting** that claim
+  (coverage actually runs `--features do-memory-mcp/oauth`, per
+  `.github/workflows/coverage.yml:98` — measured, not assumed) reddened the eval
+  for stating the truth. Rule: a fixture must pin the *substance* (which file,
+  which flag, which command), never a literal phrase, and it must be rewritten in
+  the same change that corrects the claim — otherwise the sensor actively defends
+  the stale wording.
+- References: `.agents/skills/release-cadence-manager/evals/evals.json`,
+  `.agents/skills/release-guard/evals/evals.json`, `scripts/run-evals.sh`,
+  `.github/workflows/skill-evals.yml`, `agent_docs/coding_workflow.md`, PR #1175.
+
+## LESSON-059: `((i++))` under `set -e` silently truncates a report loop (2026-10-16)
+
+- Issue: `scripts/check-pr-readiness.sh` runs `set -euo pipefail` and counted
+  problems with `((ISSUES_FOUND++))`. A post-increment evaluates to the **old**
+  value, so the first increment from `0` makes the arithmetic command return
+  exit status 1, and `set -e` kills the script mid-loop. Measured:
+  `bash -c 'set -euo pipefail; X=0; ((X++)); echo survived'` → rc 1, nothing
+  printed; `((++X))` and `X=$((X+1))` both survive.
+- Impact: the all-PRs sweep printed **2 of 9** PRs and exited, with empty stderr
+  and a plausible-looking report. Because rc=1 is also the script's legitimate
+  "issues found" summary exit, an abort was indistinguishable from a normal
+  failure — so the truncated output read as complete. The hidden consequence:
+  PR #1171's 3 failing checks (`clippy::cast_precision_loss` at
+  `memory-core/tests/storage_sync.rs:645`, plus Commit Message Lint) never
+  surfaced, because #1171 sits past the abort point in `gh pr list` order.
+- Fix/prevention: use `VAR=$((VAR + 1))` (or `((++VAR))`) for counters inside
+  `set -e` scripts; never rely on a bare `((VAR++))`. Treat a summary tool's
+  output length as an assertion, not an assumption — the sweep must report
+  `N` PRs where `N == gh pr list --state open | wc -l`, or say plainly that it
+  stopped early. Same rule as the empty-report trap in AGENTS.md's
+  machine-readable-output bullet: a short report is a broken report until proven
+  otherwise, and fixing it here turned "2 PRs, nothing else to see" into 9 PRs
+  with one genuinely red branch.
+- References: `scripts/check-pr-readiness.sh`, PR #1177, PR #1171,
+  AGENTS.md (machine-readable-output trap), LESSON-026, LESSON-036
+  (vacuous-green / empty-artifact class).
+
+## LESSON-060: a package-scoped clippy run turns `#![expect(...)]` gates into false errors (2026-10-16)
+
+- Issue: verifying a test-only change with
+  `cargo clippy -p <crate> --tests -- -D warnings -A clippy::expect_used -A
+  clippy::unwrap_used -A clippy::uninlined_format_args` (flags copied verbatim
+  from `scripts/code-quality.sh:144`) reported two `unfulfilled lint expectation`
+  errors in files the change never touched: `test-utils/src/lib.rs:14`
+  (`#![expect(clippy::doc_markdown, ...)]`) and `memory-storage-turso/src/lib.rs:4`
+  (`expect(clippy::expect_used, reason = "expect in compression code and tests")`).
+  Neither is a defect. An `expect(...)` gate is fulfilled only if the lint
+  actually fires in that crate, and whether it fires depends on the feature set:
+  CI runs `cargo clippy --workspace --tests`, where workspace feature unification
+  turns on `compression`, while `-p <crate>` resolves only that package's own
+  default features.
+- Impact: two red errors pointing at unrelated crates, sitting next to the two
+  findings that *were* real (`clippy::unnecessary_to_owned`,
+  `clippy::field_reassign_with_default`). Reading the artifacts as defects would
+  have meant "fixing" `#![expect]` gates in crates this PR never touched — the
+  same class as LESSON-055, where the nightly's test configuration looked like a
+  storage bug.
+- Fix/prevention: before judging a lint result, run the gate CI runs
+  (`./scripts/code-quality.sh clippy --workspace`). In a scoped run, treat
+  `unfulfilled lint expectation` as an artifact of the narrower feature set and
+  re-confirm it under the workspace run; note that `-A clippy::expect_used` on
+  the command line cannot satisfy a crate-level `expect`, because the attribute
+  overrides the command-line level. Prefer the real findings by filtering on the
+  changed file paths, not by the presence of `error:` lines.
+- References: `scripts/code-quality.sh:144,158`, `.github/workflows/ci.yml:94`,
+  `memory-storage-turso/src/lib.rs:4`, `test-utils/src/lib.rs:14`, LESSON-055,
+  `.agents/skills/code-quality/SKILL.md`.
+
+## LESSON-061: the CI coverage artifact is the patch-coverage ground truth, not a local run (2026-10-16)
+
+- Issue: classifying PR #1180's "57 lines missing" from a local
+  `cargo llvm-cov` run of `do-memory-storage-turso` disagreed with CI on which
+  lines were missing. Locally `trait_impls/mod.rs` 330/346 looked uncovered (CI
+  covers them) and `storage/monitoring.rs` reported 0 hits across 171
+  instrumented lines, while CI's per-file counts were 25/17/9/3/3. Reason:
+  `.github/workflows/coverage.yml:98` instruments a **whole-workspace** test run,
+  so other crates' tests contribute hits into this crate's lines; a `-p` run
+  cannot see them.
+- Impact: the classification would have waived lines that are plainly coverable
+  and demanded tests for lines CI already covers. It also first mislabeled
+  `storage/mod.rs`'s missing block as `turso_multi_dimension`-gated (therefore
+  uncoverable). The CI lcov shows `DA:177..201,0` inside the
+  `#[cfg(not(feature = "turso_multi_dimension"))]` arm — default-build code, so
+  tests were owed, not a waiver.
+- Fix/prevention: take the report Codecov actually parsed, then intersect it with
+  the patch:
+  `gh run list --workflow coverage.yml --branch <pr-branch> --json
+  databaseId,headSha` → `gh run download <id> --name coverage-report` (the
+  artifact *is* `lcov.info`) → compare `DA:<line>,0` against the hunk ranges from
+  `git diff -U0 <merge-base> <head> -- <file>`. That reproduced the comment's
+  totals exactly (25+17+9+3+3 = 57) and supplied the line numbers the comment
+  omits. Use local `cargo llvm-cov` only to prove that a *new* test executes a
+  line, never to decide which lines were missing.
+- References: PR #1180, `.github/workflows/coverage.yml:98,151-154`,
+  `.agents/skills/coverage-waivers/SKILL.md`, LESSON-052 (measuring the wrong
+  surface class).
+
+## LESSON-062: "unreachable defensive arm" was a missing-setup problem, not an unreachable one (2026-10-16)
+
+- Issue: most of PR #1180's missing patch lines were `map_err(...)` arms in
+  `capacity_intents.rs` and `embeddings_internal.rs`. Reaching "the statement
+  prepared, then the query failed" looks like it needs a prepared-cache race, and
+  the pooled path that owns the cache is `#[ignore]`d (ADR-027). Worse, direct
+  connection mode cannot race at all: `get_connection_with_id()`
+  (`lib_impls/helpers.rs:87-93`) calls `get_connection_id()`, which is
+  `NEXT_ID.fetch_add(1, Ordering::Relaxed)` (`prepared/cache.rs:102-108`), so every
+  checkout gets a fresh id, the cache never hits, and the arm stays cold.
+- Resolution: invalidate the **schema** instead of racing the cache. Write
+  successfully, then `DROP TABLE` the table the *next* statement needs (a
+  `drop_table()` helper using `storage.get_connection()` +
+  `conn.execute("DROP TABLE IF EXISTS …")`). Prepare/execute then fails for real and
+  the `map_err` runs: 4 capacity-intent arms plus the `#[cfg(not(feature =
+  "turso_multi_dimension"))]` prepare-failure arm, 8/8 new tests green in the default
+  build (whole crate lib suite 339 run / 339 passed / 7 skipped).
+- Impact: those lines were about to be waived as an unreachable defensive arm — a
+  false waiver on 20+ patch lines, and the kind of waiver that hides real untested
+  error handling.
+- Fix/prevention: before waiving an error arm, try destructive setup on the local
+  `libsql::Builder::new_local` database. A waiver must name the *specific* mechanism
+  that makes the line unreachable (e.g. "per-checkout cache id, so the cache cannot
+  hit outside the pooled path"), never a general "needs a race" or "needs a pool".
+- References: PR #1180, `memory-storage-turso/src/lib_impls/helpers.rs:87-93`,
+  `memory-storage-turso/src/prepared/cache.rs:102-108`,
+  `.agents/skills/coverage-waivers/SKILL.md` (destructive setup), LESSON-061.
+
+## LESSON-063: two release affordances in our own guides do not exist (2026-10-17)
+
+- Issue: while fixing the preflight warning for v0.1.46, four copies of
+  `cargo install parse-changelog-cli` were spread across
+  `scripts/verify-release-state.sh`, `agent_docs/LESSONS.md`,
+  `release-guard` and `github-release-best-practices`. That crate is **404 on
+  crates.io**; the real one is `parse-changelog` (binary `parse-changelog`,
+  0.6.17 installed here). An agent following the hint gets a failed install and
+  concludes the tool is unavailable, so the warning persists and release notes
+  silently fall back to a download table.
+- Second affordance: `verify-release-state.sh --help` advertised
+  `--fix  Auto-fix version references in .md files`. `FIX_MODE` was assigned at
+  the flag and read nowhere — `--fix` exited 0 having changed nothing, while the
+  drift errors it claimed to repair stayed up.
+- Detection: `curl -sS -A "<ua>" https://crates.io/api/v1/crates/<name>` (the
+  `-A` is mandatory — LESSON-053) and, for flags,
+  `grep -c 'FIX_MODE\|--fix' scripts/<x>.sh` — an option whose variable appears
+  only in the assignment is a no-op.
+- Fix/prevention: a guide may only name an affordance that is verified to exist.
+  Corrected the crate name everywhere, pinned it with the
+  `names-the-real-parse-changelog-crate` /
+  `no-phantom-crate-in-install-hint` evals, and deleted the dead `--fix` flag
+  and its help line rather than leaving a documented lie (no caller used it;
+  `check-pr-readiness.sh --fix` is a different, working flag).
+- References: `scripts/verify-release-state.sh`, LESSON-053, LESSON-057,
+  `.agents/skills/release-guard/SKILL.md`,
+  `.agents/skills/github-release-best-practices/SKILL.md`.
+
+## LESSON-064: a bot branch's "Merge branch 'main'" resolution rolled a dependency bump back (2026-10-17)
+
+- Issue: PR #1176 is one line of production code (`limit.min(MAX_QUERY_LIMIT)` in
+  `SpatiotemporalIndex::query_range`) plus a test. Its `--stat` against the merge
+  base also carried `memory-cli/Cargo.toml`, `memory-mcp/Cargo.toml`,
+  `tests/Cargo.toml` and `Cargo.lock`. Those four hunks set `sysinfo = "0.38"`
+  and delete the `objc2`/`dispatch2`/`objc2-foundation` tree, while **both** the
+  merge base (`2e1d7537`) and `main` (`c34c68ed`) say `0.39` — the branch had
+  merged main four times (`ffe8c021`, `824f3869`, `ec2b0a9c`, `fc3f5924`) and one
+  resolution kept the stale side.
+- Why `MERGEABLE` hid it: a 3-way merge takes "theirs" for a line only the
+  branch changed, so merging #1176 would have **downgraded sysinfo on main** and
+  rewritten `Cargo.lock`. GitHub reported `MERGEABLE`/`CLEAN`-equivalent status,
+  Codacy reported 0 issues and Codecov reported every coverable line covered —
+  none of those signals touch dependency state.
+- Detection: `for r in $MB $TIP origin/main; do git show $r:memory-cli/Cargo.toml | grep '^sysinfo'; done`
+  (compare merge base, tip, main for the same manifest line), or read the branch
+  diff restricted to manifests:
+  `git diff $MB $TIP -- Cargo.lock '*/Cargo.toml'`. Any manifest hunk on a branch
+  whose title is not a dependency change is the finding.
+- Fix/prevention: repair the branch, do not merge and revert —
+  `git checkout origin/main -- Cargo.lock '*/Cargo.toml'`, commit, push once
+  (the branch needs a CI cycle anyway because it is `BEHIND`). AGENTS.md's
+  bot/agent-branch trap and `pr-readiness` rule 7 now name this dependency
+  variant explicitly, pinned by the
+  `catches-dependency-rollback-on-stale-branches` eval.
+- References: PR #1176, LESSON-035 (`MERGEABLE` ≠ no lost work),
+  `.agents/skills/pr-readiness/SKILL.md`.

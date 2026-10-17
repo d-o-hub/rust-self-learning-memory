@@ -19,6 +19,11 @@
       "name": "verify-script-exists",
       "description": "Related release scripts present",
       "exec": "test -x ./scripts/release-manager.sh || test -f ./scripts/verify-release-state.sh"
+    },
+    {
+      "name": "no-phantom-crate-in-install-hint",
+      "description": "parse-changelog install hint names a crate that exists on crates.io",
+      "exec": "! rg -q 'cargo install parse-changelog-cli' .agents/skills/github-release-best-practices/SKILL.md"
     }
   ]
 }

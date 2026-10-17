@@ -35,6 +35,15 @@ gh pr checks <PR> --required --json name,state,bucket,workflow,link
 | `skipping` | Skipped (often OK) |
 | `cancel` | Cancelled — investigate / re-run |
 
+**Cancelled ≠ failed.** `gh pr checks` prints `CANCELLED` rows as `fail` **with a duration**, which reads as a genuine failure (LESSON-041). Classify every suspect row through the jobs API before reporting it or starting a diagnosis:
+
+```bash
+gh api repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status, .conclusion'
+# completed/cancelled => not a code failure;  completed/failure => real failure
+```
+
+Never cancel runs of a PR you intend to merge: a cancelled required check keeps `mergeStateStatus` away from `CLEAN`, so the merge gate refuses. Re-trigger with a push or `gh pr update-branch` instead.
+
 ## Preferred: `gh run watch` for a single workflow
 
 ```bash
@@ -57,6 +66,32 @@ gh pr view <PR> --json mergeStateStatus,statusCheckRollup,mergeable \
   --jq '{state: .mergeStateStatus, mergeable: .mergeable, pending: [.statusCheckRollup[]? | select(.status != "COMPLETED") | .name], failing: [.statusCheckRollup[]? | select(.status == "COMPLETED" and .conclusion != "SUCCESS" and .conclusion != "SKIPPED") | {name: .name, conclusion: .conclusion}]}'
 ```
 
+## Poll the current head (strict up-to-date checks)
+
+Ruleset `main-protection` sets `strict_required_status_checks_policy=true`: **one merge onto `main` re-queues every required run on every other open branch** (LESSON-038, LESSON-050). While a queue drains the head SHA is ephemeral — a SHA captured at the start of a wait, or pinned in a doc or note, goes stale within minutes.
+
+**Re-read the head at the START of every polling cycle:**
+
+```bash
+gh pr view <PR> --json headRefOid,mergeStateStatus \
+  --jq '{sha: .headRefOid, state: .mergeStateStatus}'
+```
+
+Polling a superseded SHA creates a permanent "still red" illusion: the old run never improves and the current one is never looked at.
+
+`statusCheckRollup` keeps **every** check run for the head SHA, so a re-run leaves a stale `FAILURE` row sitting next to a newer `SUCCESS` (LESSON-052). Reduce to **latest run per check name** on that SHA before reporting anything as failed:
+
+```bash
+# Latest run per check name on the current head — real non-successes only
+gh api "repos/{owner}/{repo}/commits/$(gh pr view <PR> -q .headRefOid)/check-runs" --paginate \
+  --jq '(.check_runs | group_by(.name) | map(max_by(.id))
+         | map(select(.status == "completed" and .conclusion != "success" and .conclusion != "skipped")) | .[])'
+```
+
+Prefer `gh pr checks --watch` / `gh run watch`; use this scripted reduction only when their output is ambiguous.
+
+**Batch pushes — a polling cost, not tidiness.** Every branch push restarts the entire required suite (LESSON-049), so N single-file edits cost N full CI cycles; land docs/skills edits as one push. PR body edits are free: `release-drift.yml` triggers on `opened, synchronize, reopened, labeled, unlabeled` — **not** `edited`.
+
 ## Fallback polling (only if watch is unavailable)
 
 CI rarely completes in under 60s. Use **bounded** sleep + re-check (max 5 rounds):
@@ -69,9 +104,13 @@ CI rarely completes in under 60s. Use **bounded** sleep + re-check (max 5 rounds
 | 4+ | 600s |
 
 ```bash
+# 0. Every round starts here — last round's SHA may already be superseded
+gh pr view <PR> --json headRefOid,mergeStateStatus --jq '.headRefOid'
 sleep 60
 gh pr checks <PR> --required --json name,state,bucket
 ```
+
+A changed `headRefOid` (or `mergeStateStatus` flipping to `BEHIND`) means the suite re-queued under strict up-to-date checks — not that CI regressed. Re-run the reduction above on the new SHA before reporting.
 
 ## Interpret merge readiness
 
@@ -85,8 +124,8 @@ gh pr checks <PR> --required --json name,state,bucket
 
 ### Terminal conditions (stop)
 
-1. `mergeStateStatus` = `CLEAN` and required checks pass  
-2. Required check `bucket=fail` → fix and re-push  
+1. `mergeStateStatus` = `CLEAN` and required checks pass on the **current** `headRefOid`  
+2. Required check `bucket=fail` → confirm it is `fail` and not `cancel`, and that the row survived latest-run-per-name reduction on the current head, then fix and re-push  
 3. Max 5 rounds / policy timeout → report state  
 4. `DIRTY` → stop and fix conflicts  
 
@@ -103,6 +142,10 @@ gh api repos/{owner}/{repo}/pulls/<PR>/update-branch -X PUT -f update_method=mer
 ## Common pitfalls
 
 - Prefer `gh pr checks --watch` over bare `sleep` loops  
+- Re-read `headRefOid` at the start of **every** cycle — polling a superseded SHA under strict up-to-date checks fakes a permanent red  
+- `statusCheckRollup` keeps superseded runs → report only failures that survive latest-run-per-name reduction on the current head  
+- Cancelled ≠ failed: confirm with the jobs API before calling a row a failure, and never cancel runs of a PR you intend to merge  
+- Batch edits into one push — each push restarts the whole required suite, so one push per file is a polling-cost multiplier  
 - `SKIPPED` is often expected (e.g. Release workflow on PRs)  
 - `CANCELLED` on required checks → re-run; do not merge  
 - Green checks ≠ mergeable if conflicts (`DIRTY`) or comments remain  

@@ -26,6 +26,11 @@
       "exec": "rg -q 'CHANGES_REQUESTED' .agents/skills/pr-readiness/SKILL.md"
     },
     {
+      "name": "catches-dependency-rollback-on-stale-branches",
+      "description": "Teaches that a non-deps branch's Cargo.toml/Cargo.lock hunk can roll back a bump main already has (PR #1176 sysinfo 0.39 -> 0.38)",
+      "exec": "rg -q 'sysinfo' .agents/skills/pr-readiness/SKILL.md && rg -q 'Cargo.lock' .agents/skills/pr-readiness/SKILL.md && rg -q 'git checkout origin/main -- Cargo.lock' .agents/skills/pr-readiness/SKILL.md"
+    },
+    {
       "name": "not-ci-green-only",
       "description": "Rejects CI-green-alone merge recommendation pattern",
       "exec": "rg -q 'CI green|ready to merge|CLEAN' .agents/skills/pr-readiness/SKILL.md"

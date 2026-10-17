@@ -33,8 +33,9 @@ description: "Canonical release workflow for this repo. One path every time: mai
 | `gh release create` by hand | Bypasses cargo-dist / preflight / artifacts |
 | Tag from non-`main` | Policy + dist target |
 | Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
-| `--admin` / force merge | Branch protection exists for a reason |
+| `--admin` / force merge | `main` is guarded by ruleset `main-protection` (not branch protection) for a reason; `required_status_checks` there are the only checks that unblock a merge |
 | Ship while main CI pending/failed | Broken release |
+| Relax `do_ci_check` (e.g. drop `schedule` runs) to get a release out | The gate is the release's only CI proof; weakening it needs an explicit decision and a PR of its own, never a ship-time edit (LESSON-051) |
 | `--skip-local-tests` without `ci-check` parity | Skips the local `validate`/`prepare` gates; only acceptable when a `ci-check` on the **exact** release commit is green (full `ship` already runs it) |
 | Multiple competing “release procedures” | This skill + `release-manager.sh` only |
 
@@ -77,6 +78,27 @@ Dry-run first if unsure:
 - CHANGELOG must have **exactly one** `## [X.Y.Z]` section (unique version headers).
 
 Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (team convention).
+
+### Ship preflight — a version bump alone does NOT make the repo shippable
+
+`ship` Phase 0 is `./scripts/verify-release-state.sh --check-unreleased`, which validates `CHANGELOG.md` +
+`ROADMAP_ACTIVE.md` + `STATUS/CURRENT.md` **against `workspace_version`**. A bump-only branch therefore still
+fails, and no tag date may be promised until all three agree:
+
+```text
+$ ./scripts/verify-release-state.sh --check-unreleased
+❌ ROADMAP_ACTIVE.md says v0.1.45 (expected v0.1.46)
+❌ STATUS/CURRENT.md references v0.1.45
+❌ CHANGELOG.md missing entry for v0.1.46
+⚠️  parse-changelog not installed (release notes will fall back)
+```
+
+- **Shippable set = version + the `## [X.Y.Z]` CHANGELOG heading + the version-doc flip**, landed together as
+  **one** release-prep PR (`chore(release): prepare vX.Y.Z changelog and version docs`; precedent #1169) and
+  green on main **before** tagging. Queueing the bump PR alone buys nothing — `ship` stops at Phase 0.
+- The `⚠️  parse-changelog not installed` line is a **silent fallback**, not a skipped check: install it
+  (`cargo install --locked parse-changelog` — the crate is `parse-changelog`; **`parse-changelog-cli`
+  does not exist**) so `release.yml` fills the GitHub Release body from `CHANGELOG.md`.
 
 ### CHANGELOG / GitHub Release notes (mandatory)
 
@@ -136,6 +158,28 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 - Drift issue (#849-style) should close when tag matches workspace version
 - Bump workspace to next patch for development in a **follow-up PR** (optional)
+- **A green `publish-crates.yml` is not proof the crates published.** Verify each
+  crate externally after the dispatch finishes, or the workspace ships binaries
+  while crates.io silently stalls (LESSON-053):
+
+  ```bash
+  TAG=vX.Y.Z
+  for c in do-memory-core do-memory-storage-redb do-memory-storage-turso do-memory-mcp; do
+    echo "$c: $(curl -sS -H "User-Agent: rust-self-learning-memory-ci" \
+      "https://crates.io/api/v1/crates/$c/versions" |
+      jq -r --arg v "${TAG#v}" '[(.versions // [])[].num] | index($v) != null')"
+  done
+  # every line must be true; "false" means the publish chain was green but skipped
+  ```
+
+  - **The chain owns exactly 4 crates** (`publish-crates.yml`: core → redb → turso → mcp). A `do-memory-cli`
+    **404** is by design (it ships as a GitHub Release asset) and `do-memory-test-utils` is `publish = false`
+    (`test-utils/Cargo.toml`) — neither is a publish failure, so never widen the loop or "fix" the 404. Send a
+    `User-Agent` (crates.io rejects the default curl UA with `FETCH_FAILED`-shaped noise) and test version
+    **membership**, not `.versions[0].num` equality.
+  - **Release is not done** until `index("X.Y.Z") != null` for all 4 **and** `Verify publish landed` is green. A
+    green job whose publish step conclusion was `skipped` is **not** a publish — that is how `v0.1.45` shipped
+    while publishing nothing (`conclusion=skipped;duration_ms=0`). Read step conclusions, never the job verdict.
 
 ## Failure playbook
 
@@ -144,11 +188,16 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | verify-release-state fails docs | PR: set `Released Version: vX.Y.Z` in ROADMAP + STATUS |
 | ci-check pending | Wait; re-run `ci-check` |
 | ci-check failed | Fix main CI first |
+| ci-check failed and **no push triggered it** (a `schedule` nightly run is attached to the release SHA) | `do_ci_check` filters by head SHA only, so scheduled failures count. Do **not** weaken the gate mid-release: land a fix on main so the nightly detaches off the new HEAD, then ship inside the window before the next nightly starts (`gh run list --workflow=nightly-tests.yml` for the observed start; cron is `0 2 * * *`) — LESSON-051 |
+| Advisory-driven main red (Cargo Deny / Dependency Audit) | Fix main with a lockfile-only PR first; scope from **both** `cargo deny check advisories` and `cargo audit --json` — one tool green does not mean main green (LESSON-046/047) |
+| `Check for unreleased changes` red on the version PR | Cadence is critical; the PR needs `release-preparation`. If the bot already applied it, `gh run rerun` replays the label-less payload — toggle the label as a human: `gh pr edit <n> --remove-label release-preparation && gh pr edit <n> --add-label release-preparation` (LESSON-049). `release-preparation` is the **release PR's own label**: applying it to an unrelated PR to force a clean re-run is a deadlock breaker, not a fix — strip it again |
+| Everything green but `mergeStateStatus` stays `BLOCKED` / the release PR will not merge | `strict_required_status_checks_policy` makes merges **serial**: one merge puts every other branch `BEHIND` and re-queues its required runs, so head SHAs are ephemeral. Merge one PR at a time, re-read `gh pr view <n> --json headRefOid,mergeStateStatus` immediately before any merge/readiness claim, and batch docs/skills edits into **one** push (each push restarts the suite; `edited` does not) |
 | Tag already on remote | Do not retag; inspect `gh release view` |
 | release.yml failed preflight | Version/tag mismatch — delete bad tag only after review |
 | Release left **unpublished draft** (workflow died between draft creation and publish) | Re-run the failed tag workflow run (`gh run rerun <id>`) — the draft-create step is idempotent and publishing stays inside `release.yml`; never create a release by hand. This recovery only applies while the release is a **draft**; a published immutable release cannot be amended (delete it — and the tag, after review — before shipping a corrected one) |
 | Attestation missing for an asset | Check the `Attest …` steps of the tag workflow run; `gh attestation verify` locally; re-run the run if the step failed |
 | GitHub Release body empty / no notes | Duplicate `## [X.Y.Z]` in CHANGELOG (parse-changelog fails). Make versions unique; `gh release edit` to restore notes; keep gate in verify-release-state |
+| `chore(changelog): update CHANGELOG.md for vX.Y.Z` opened by `changelog.yml` on the tag push | **Close, never merge** — git-cliff regenerates the file from history, so it replaces the curated entries back to `## [0.1.10]` (precedent: #1119/#1105/#1054/#1036 all closed). The changelog is authored by the release-prep PR (LESSON-054) |
 | Want crates.io | Use publish workflow / team process after GitHub Release |
 
 ## Relationship to other skills
@@ -158,6 +207,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 | **release-guard** (this) | **All** release/tag/publish/deploy requests |
 | github-release-best-practices | Background only; defers to this skill |
 | pr-readiness | Merging the version-bump PR before ship |
+| code-quality | The advisory-bump procedure when main CI is red on `Cargo Deny` / `Dependency Audit` |
 | release-drift workflow | Alerts when main outruns tags — does not ship |
 
 ## Commands reference

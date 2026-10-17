@@ -109,6 +109,14 @@ design preserves.
   `./scripts/run-evals.sh --fixtures` and
   `./scripts/validate-gate-contract.sh --ci-parity` locally — the Skill Evals
   workflow enforces both on PRs.
+- Two eval traps (LESSON-058): `run-evals.sh --changed` diffs
+  `origin/main...HEAD`, so **uncommitted** skill edits are silently excluded and a
+  local green run can be vacuous — pass the skill name explicitly while iterating
+  (`./scripts/run-evals.sh <skill>`). And a "does not teach X" fixture written as
+  `! rg -q 'X'` is **presence-only**: adding the prohibition in prose ("never run
+  `gh release create`") reddens it. Write it as require-the-canonical-command **and**
+  reject unguarded mentions:
+  `rg -q '<canonical command>' SKILL.md && ! (rg -n 'X' SKILL.md | rg -vi 'never|no t|do not|don.t|avoid|forbid|instead')`.
 
 **Evidence:** command + observed output (counts, exit codes) recorded in the PR
 body. "Should pass" is not evidence.

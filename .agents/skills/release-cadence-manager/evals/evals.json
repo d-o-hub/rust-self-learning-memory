@@ -22,8 +22,8 @@
     },
     {
       "name": "no-manual-ship",
-      "description": "Does not teach manual gh release create as ship path",
-      "exec": "! rg -q 'gh release create' .agents/skills/release-cadence-manager/SKILL.md"
+      "description": "Teaches the canonical ship command and never presents manual release creation as the ship path (a mention that forbids it is allowed)",
+      "exec": "rg -q 'release-manager\\.sh ship --execute' .agents/skills/release-cadence-manager/SKILL.md && ! (rg -n 'gh release create' .agents/skills/release-cadence-manager/SKILL.md | rg -vi 'never|no t|do not|don.t|avoid|forbid|instead')"
     }
   ]
 }

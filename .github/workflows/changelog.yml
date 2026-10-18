@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to write the section for (must already exist)
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -21,17 +26,37 @@ jobs:
           fetch-depth: 0
 
       - name: Install git-cliff
-        run: cargo install git-cliff
+        run: cargo install git-cliff --locked --version 2.14.2
+
+      - name: Resolve release tag
+        env:
+          GH_REF: ${{ github.ref }}
+          GH_REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ "${GH_REF#refs/tags/}" = "$GH_REF" ]; then
+            candidate="$INPUT_TAG"
+          else
+            candidate="$GH_REF_NAME"
+          fi
+          # Fail closed: an unbounded or non-release ref must not be rendered as
+          # a version section (issue #1178). Event data stays out of the shell
+          # until it matches this literal release-tag shape.
+          if ! printf '%s' "$candidate" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::not a release tag: '$candidate' (expected vMAJOR.MINOR.PATCH)"
+            exit 1
+          fi
+          echo "CLIFF_TAG=$candidate" >> "$GITHUB_ENV"
 
       - name: Generate changelog
-        run: git-cliff --config cliff.toml --output CHANGELOG.md
+        run: git-cliff --config cliff.toml --latest --tag "$CLIFF_TAG" --prepend CHANGELOG.md
 
       - name: Create Pull Request for updated changelog
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
         with:
-          commit-message: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }} [skip ci]"
-          title: "chore(changelog): update CHANGELOG.md for ${{ github.ref_name }}"
+          commit-message: "chore(changelog): update CHANGELOG.md for ${{ env.CLIFF_TAG }}"
+          title: "chore(changelog): update CHANGELOG.md for ${{ env.CLIFF_TAG }}"
           body: "Automated update of CHANGELOG.md."
-          branch: "chore/update-changelog-${{ github.ref_name }}"
+          branch: "chore/update-changelog-${{ env.CLIFF_TAG }}"
           base: main
           labels: automated-pr

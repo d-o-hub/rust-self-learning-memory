@@ -1143,6 +1143,9 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     steps:
+      # ⚠️ SUPERSEDED — see "Amendment 2026-10-17" at the end of this file. The `args:` below do not bound the
+      # commit range (`--tag` only names the version), and `OUTPUT` rewrites the whole file. Use
+      # `--latest --tag <vX.Y.Z> --prepend CHANGELOG.md` plus `tag_pattern` in cliff.toml.
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -1704,3 +1707,61 @@ jobs:
 - **ADR-034**: Release Engineering Modernization
 - **ADR-033**: Modern Testing Strategy
 - **ADR-031**: Cargo Lock Integrity for Security Audit
+
+---
+
+## Amendment 2026-10-17 — changelog generation on release tags (supersedes the `args` at :1154)
+
+**Trigger**: issue #1178. Every `chore(update-changelog)-*` PR from v0.1.41 onward was closed unmerged, and the
+generator's output rewrote already-published history (`compare/8ee711bd...bd8d8dc` = one file, `+405/−264`, with
+`-## [0.1.45] - 2026-10-14` → `+## [0.1.45] - 2026-10-16`).
+
+**What the experiment showed** (real `git-cliff 2.14.2` binary, checksum-verified, run in a detached worktree at the
+`v0.1.45` tag and diffed against the committed `CHANGELOG.md`):
+
+| Invocation | Result |
+|---|---|
+| `--config cliff.toml --output CHANGELOG.md` (what `changelog.yml` actually ran) | 272,870 bytes, **693 lines changed / 276 deletions** — every published section re-rendered |
+| `--tag v0.1.45` — **this ADR's prescription at :1154** | **byte-identical** to the row above: 272,870 / 693 / 276 |
+| `--latest` written with `--output` | 4,328 bytes — a fragment; correct file destroyed |
+| `--latest --tag v0.1.46 --prepend CHANGELOG.md` | **62 lines changed, 0 deletions** — pure insertion above `## [Unreleased]` |
+
+So **`--tag` does not bound the commit range**. It is documented as "sets the tag for the latest version" and only
+*names* the version under release; following :1154 literally would not have prevented the damage. The two properties
+that matter come from elsewhere:
+
+- **`--latest`** bounds the range to "since the previous release tag" — and it *derives the section label from that
+  boundary tag*, which is why generation must run on the new tag itself, and why `--tag` is still required.
+- **`--prepend`** (not `--output`) keeps published sections immutable; `--output` truncates and re-renders the whole
+  file from the commit-subject template.
+
+**Second, independent defect**: `cliff.toml` had `tag_prefix = "v"` and `tags = "v[0-9]*\\.[0-9]*\\.[0-9]*"` but no
+`tag_pattern`, and **neither of those bounds release-boundary selection** — a local `backup/pr-1171-pre-squash` tag was
+still emitted as `## [backup/pr-1171-pre-squash] - 2026-10-17`, and `--tag v0.1.46` did **not** override it. Fixed with
+`tag_pattern = '^v[0-9]+\\.[0-9]+\\.[0-9]+$'`. Proved separately: new args with the *old* config still leaked a
+backup-tag heading; new args **plus** `tag_pattern` leaked none. One defect, one fix each — do not expect either to
+cover the other.
+
+**Amended prescription**:
+
+```toml
+# cliff.toml [git]
+tag_prefix = "v"
+tag_pattern = '^v[0-9]+\.[0-9]+\.[0-9]+$'   # bounds release-boundary selection
+```
+
+```yaml
+- name: Resolve release tag      # fail-closed: refs/tags/vX.Y.Z, or workflow_dispatch inputs.tag
+  run: 'git-cliff --config cliff.toml --latest --tag "$CLIFF_TAG" --prepend CHANGELOG.md'
+```
+
+**Deviation retained**: this ADR prescribes `uses: orhun/git-cliff-action@v4` (:1151). `changelog.yml` instead ran
+`cargo install git-cliff` **unpinned**; the fix pins `--locked --version 2.14.2` rather than adopting the action,
+because this repository SHA-pins every third-party action and no verified commit SHA for the action was available.
+Adopting `orhun/git-cliff-action` (pinned by SHA) remains a follow-up; the underlying risk this closes is that a
+generator upgrade silently re-renders every release — crates.io shows `2.14.0`/`2.14.1` on 2026-09-01 and `2.14.2` on
+2026-09-18, i.e. a mid-chain upgrade during the v0.1.41→v0.1.45 releases that broke.
+
+**Not covered by this amendment**: a guard that *detects* published-section rewrites (a diff-based immutability
+sensor) is still unbuilt; and `[skip ci]` in the generator's commit message leaves the resulting PR with an empty
+required-check rollup, which is why those PRs could not be merged even when their content was right.

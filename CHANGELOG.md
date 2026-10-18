@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.46] - 2026-10-18
+
+
+
+### Documentation
+
+- record the v0.1.45 release closeout ([5d5abab](https://github.com/d-o-hub/rust-self-learning-memory/commit/5d5abab3e921dc206a4cf46b4c1842a02bf3e49a))
+
+- write the 2026-10-16 validation record and archive wave A ([f878ddc](https://github.com/d-o-hub/rust-self-learning-memory/commit/f878ddc651956b31405f3401630c3a0e3858944b))
+
+- sync GOAP state, queue, roadmap and status to 2026-10-16 ([90cc61b](https://github.com/d-o-hub/rust-self-learning-memory/commit/90cc61bbac45ba87d97585087d2d6fe75f719a60))
+
+- put the version bump at the head of the queue ([307e001](https://github.com/d-o-hub/rust-self-learning-memory/commit/307e001c29f3db6143bf93acca46915ed6064ec2))
+
+- refresh version references for the 0.1.46 development bump ([5475291](https://github.com/d-o-hub/rust-self-learning-memory/commit/5475291902d1e9f32e44c7b0572af13c2042841f))
+
+- correct the Dependabot attribution before #1181 merges ([bb0d7f2](https://github.com/d-o-hub/rust-self-learning-memory/commit/bb0d7f276f0ffb242dffb1d87c7ff6b46daf159f))
+
+- classify the alert registers and track the label cleanup ([3395379](https://github.com/d-o-hub/rust-self-learning-memory/commit/339537941fda74672532bc3acb9cdf36a46b0a9b))
+
+- synchronize documentation with codebase (#1173) ([791c01a](https://github.com/d-o-hub/rust-self-learning-memory/commit/791c01a3b5d4ace9870c636fe791c3a801179fac))
+
+- refresh the in-review heads after main moved ([668ace4](https://github.com/d-o-hub/rust-self-learning-memory/commit/668ace46534ebdb350c76a453d7e740ecaeb733c))
+
+- register the ship-time blocker that a bump PR cannot clear ([dc731af](https://github.com/d-o-hub/rust-self-learning-memory/commit/dc731afb3f28ab0375a99e0aba8ec8f3eb6b122d))
+
+- correct the advisory-register claim and record #1182 ([41f6d15](https://github.com/d-o-hub/rust-self-learning-memory/commit/41f6d150f0721e42da5dce92dabce4faab7ff246))
+
+- encode the 2026-10-15/16 release traps as skill guardrails (#1175) ([1124e8a](https://github.com/d-o-hub/rust-self-learning-memory/commit/1124e8ac28f0a22972d87bea5a1263225f372a23))
+
+- record the batched storage sync write path ([18c15be](https://github.com/d-o-hub/rust-self-learning-memory/commit/18c15be2524b2a7df73d6491bb0f7d3fe2c52e84))
+
+
+### Fixed
+
+- the crates.io publish guard never published (false-green chain) (#1179) ([01d1bd7](https://github.com/d-o-hub/rust-self-learning-memory/commit/01d1bd7e99be4554b122327bc4ea388c9a6ebe3d))
+
+- make the readiness gate's check counting trustworthy (#1177) ([967703e](https://github.com/d-o-hub/rust-self-learning-memory/commit/967703ed4871e56183dde0f920e89e51c424953a))
+
+- repair the red nightly suite and the three production bugs behind it (#1180) ([c34c68e](https://github.com/d-o-hub/rust-self-learning-memory/commit/c34c68edc872eec55e4ed0207c23ecf32c88d88b))
+
+- clamp query_range limit in spatiotemporal index (#1176) ([92caed0](https://github.com/d-o-hub/rust-self-learning-memory/commit/92caed0c90fc0ed144a20a16f46c5570c8260752))
+
+- stop the release generator rewriting published history (#1186) ([dccef2c](https://github.com/d-o-hub/rust-self-learning-memory/commit/dccef2ccd346a095866b823c12d64961a2b3629f))
+
+
+### Maintenance
+
+- bump workspace to 0.1.46 after shipping v0.1.45 ([5117780](https://github.com/d-o-hub/rust-self-learning-memory/commit/51177802712715be9e4e69e680629299de3d8691))
+
+- prepare v0.1.46 changelog and version docs ([8c3e141](https://github.com/d-o-hub/rust-self-learning-memory/commit/8c3e141101c8d80142d569578e955ea8017975d1))
+
+
+### Performance
+
+- eliminate redundant string allocations in query text parsing (#1172) ([2e1d753](https://github.com/d-o-hub/rust-self-learning-memory/commit/2e1d7537ee12df00fa895c6232e5a707edc2060f))
+
+- use batch writes during Turso-to-redb synchronization (#1171) ([16426d0](https://github.com/d-o-hub/rust-self-learning-memory/commit/16426d08ec437cb8f7fee3fbfe1a087cd2a26bdd))
+
+
+### Testing
+
+- cover the retryable cursor left by a failed batch chunk (#1187) ([d85efb5](https://github.com/d-o-hub/rust-self-learning-memory/commit/d85efb5c5bde3a0ad83b1b0795b4764feef7a839))
+
+
 ## [0.1.46] - 2026-10-17
 
 ### Fixed

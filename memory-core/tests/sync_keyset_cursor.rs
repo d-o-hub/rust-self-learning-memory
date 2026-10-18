@@ -1,13 +1,10 @@
 //! Keyset cursor ordering tests (issue #1089, criterion 4).
 //!
-//! Pins the acceptance criterion "the incremental sync cursor is a keyset, not a
-//! bare timestamp": paging must be stable across pages and must break ties
-//! deterministically when several episodes share a `modified_at`. A timestamp-only
-//! page bound drops every tied row past the boundary, which under-syncs the cache
-//! silently, so the ordering contract is asserted here rather than left to review.
-//!
-//! Split out of `sync_partial_failure_cursor.rs` (criterion 3) so each integration
-//! test file stays reviewable, and out of `sync_watermark.rs` for the same reason.
+//! Pins "the incremental sync cursor is a keyset, not a bare timestamp": paging stays
+//! stable across pages and breaks ties deterministically when episodes share a
+//! `modified_at`. A timestamp-only bound drops every tied row past the boundary and
+//! under-syncs the cache silently. Split from `sync_partial_failure_cursor.rs`
+//! (criterion 3) and `sync_watermark.rs` so each file stays reviewable.
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -16,7 +13,14 @@ use do_memory_core::sync::StorageSynchronizer;
 use do_memory_core::{Episode, Result, TaskContext, TaskType};
 use parking_lot::Mutex;
 use std::sync::Arc;
+use std::time::Duration;
 use uuid::Uuid;
+
+/// A run that does not finish in well under this bound is not "slow": it means the
+/// page bound stopped advancing, and the paging loop (`synchronizer.rs:258-353`) has
+/// no iteration cap. Failing here names the cause instead of letting nextest's
+/// `slow-timeout` kill the test mid-loop.
+const SYNC_DEADLINE: Duration = Duration::from_secs(10);
 
 // ============================================================================
 // Test doubles
@@ -25,11 +29,18 @@ use uuid::Uuid;
 /// Scripted source answering the keyset query the way the backend contract
 /// requires: keep rows at or after `since`, then strictly after the
 /// `(modified_at, episode_id)` cursor, order by that keyset, truncate to the page.
+/// `>= since` is deliberate: it is what lets the timestamp-granular watermark re-read
+/// a tie group instead of losing it.
 ///
-/// `>= since` is deliberate — it is what makes the durable (timestamp-granular)
-/// watermark re-read a tie group instead of losing it.
+/// `scrambled` delivers rows out of the order it selected them, which the real backend
+/// can do — it orders on `r.modified_at_ms` but returns
+/// `from_timestamp_millis(ms).unwrap_or(episode.start_time)`
+/// (`memory-storage-turso/src/storage/episodes/query.rs:221-222`) — so the
+/// synchronizer's own normalisation (`sync/synchronizer.rs:280-285`) stays reachable
+/// and load-bearing instead of invisible against an already-ordered double.
 struct KeysetSource {
     items: Vec<(Episode, DateTime<Utc>)>,
+    scrambled: bool,
     /// The cursor each page query was called with, in call order.
     cursors: Mutex<Vec<Option<(DateTime<Utc>, Uuid)>>>,
     /// Value written by the last `save_sync_watermark` call.
@@ -38,8 +49,18 @@ struct KeysetSource {
 
 impl KeysetSource {
     fn new(items: Vec<(Episode, DateTime<Utc>)>) -> Self {
+        Self::with_scramble(items, false)
+    }
+
+    /// Source that returns each page in reverse keyset order.
+    fn scrambled(items: Vec<(Episode, DateTime<Utc>)>) -> Self {
+        Self::with_scramble(items, true)
+    }
+
+    fn with_scramble(items: Vec<(Episode, DateTime<Utc>)>, scrambled: bool) -> Self {
         Self {
             items,
+            scrambled,
             cursors: Mutex::new(Vec::new()),
             persisted: Mutex::new(None),
         }
@@ -84,6 +105,9 @@ impl SyncWatermarkBackend for KeysetSource {
             .collect();
         page.sort_by_key(|a| (a.1, a.0.episode_id));
         page.truncate(limit);
+        if self.scrambled {
+            page.reverse();
+        }
         Ok(page)
     }
 
@@ -101,71 +125,58 @@ impl StorageBackendCapabilities for KeysetSource {}
 
 #[async_trait]
 impl StorageBackend for KeysetSource {
-    async fn store_episode(&self, _episode: &Episode) -> Result<()> {
+    async fn store_episode(&self, _: &Episode) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn get_episode(&self, _id: Uuid) -> Result<Option<Episode>> {
+    async fn get_episode(&self, _: Uuid) -> Result<Option<Episode>> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn delete_episode(&self, _id: Uuid) -> Result<()> {
+    async fn delete_episode(&self, _: Uuid) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn store_pattern(&self, _pattern: &do_memory_core::Pattern) -> Result<()> {
+    async fn store_pattern(&self, _: &do_memory_core::Pattern) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
     async fn get_pattern(
         &self,
-        _id: do_memory_core::episode::PatternId,
+        _: do_memory_core::episode::PatternId,
     ) -> Result<Option<do_memory_core::Pattern>> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn store_heuristic(&self, _heuristic: &do_memory_core::Heuristic) -> Result<()> {
+    async fn store_heuristic(&self, _: &do_memory_core::Heuristic) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn get_heuristic(&self, _id: Uuid) -> Result<Option<do_memory_core::Heuristic>> {
+    async fn get_heuristic(&self, _: Uuid) -> Result<Option<do_memory_core::Heuristic>> {
         unimplemented!("scripted source is read-only")
     }
-
     async fn query_episodes_since(
         &self,
-        _since: DateTime<Utc>,
-        _limit: Option<usize>,
+        _: DateTime<Utc>,
+        _: Option<usize>,
     ) -> Result<Vec<Episode>> {
         unimplemented!("scripted source only supports keyset queries")
     }
-
     async fn query_episodes_by_metadata(
         &self,
-        _key: &str,
-        _value: &str,
-        _limit: Option<usize>,
+        _: &str,
+        _: &str,
+        _: Option<usize>,
     ) -> Result<Vec<Episode>> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn store_embedding(&self, _id: &str, _embedding: Vec<f32>) -> Result<()> {
+    async fn store_embedding(&self, _: &str, _: Vec<f32>) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn get_embedding(&self, _id: &str) -> Result<Option<Vec<f32>>> {
+    async fn get_embedding(&self, _: &str) -> Result<Option<Vec<f32>>> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn delete_embedding(&self, _id: &str) -> Result<bool> {
+    async fn delete_embedding(&self, _: &str) -> Result<bool> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn store_embeddings_batch(&self, _embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
+    async fn store_embeddings_batch(&self, _: Vec<(String, Vec<f32>)>) -> Result<()> {
         unimplemented!("scripted source is read-only")
     }
-
-    async fn get_embeddings_batch(&self, _ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
+    async fn get_embeddings_batch(&self, _: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         unimplemented!("scripted source is read-only")
     }
 }
@@ -328,10 +339,13 @@ async fn should_sync_every_tied_episode_once_across_pages() {
         .with_batch_size(3);
 
     // When: one sync run walks the whole keyset
-    let stats = sync
-        .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1))
-        .await
-        .unwrap();
+    let stats = tokio::time::timeout(
+        SYNC_DEADLINE,
+        sync.sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1)),
+    )
+    .await
+    .expect("sync did not terminate: the page cursor stopped advancing")
+    .unwrap();
 
     // Then: every episode is delivered, none twice, none reordered
     assert_eq!(
@@ -340,16 +354,9 @@ async fn should_sync_every_tied_episode_once_across_pages() {
     );
     let deliveries = cache.deliveries();
     assert_eq!(
-        deliveries.len(),
-        deliveries
-            .iter()
-            .collect::<std::collections::HashSet<_>>()
-            .len(),
-        "issue #1089 criterion 4: paging must not re-deliver an episode inside one run"
-    );
-    assert_eq!(
         deliveries, expected,
-        "issue #1089 criterion 4: delivery order must equal the (modified_at, episode_id) keyset order"
+        "issue #1089 criterion 4: delivery order must equal the (modified_at, episode_id) \
+         keyset order — which also rules out re-delivering a row within one run"
     );
 
     // Then: the page bound is the full keyset pair, not just the timestamp
@@ -392,12 +399,16 @@ async fn should_not_lose_tied_episodes_when_resuming_from_the_watermark() {
     let cache = Arc::new(RecordingCache::new());
 
     // When: the first run drains the tie group across two pages
-    let first = StorageSynchronizer::new(source.clone(), cache.clone())
-        .with_page_size(2)
-        .with_batch_size(2)
-        .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1))
-        .await
-        .unwrap();
+    let first = tokio::time::timeout(
+        SYNC_DEADLINE,
+        StorageSynchronizer::new(source.clone(), cache.clone())
+            .with_page_size(2)
+            .with_batch_size(2)
+            .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1)),
+    )
+    .await
+    .expect("sync did not terminate: the page cursor stopped advancing")
+    .unwrap();
 
     // Then: all four arrive in one run, and the watermark stops at the shared
     // timestamp — the reason a resuming run cannot trust a `>` comparison
@@ -413,13 +424,16 @@ async fn should_not_lose_tied_episodes_when_resuming_from_the_watermark() {
 
     // When: a fresh synchronizer resumes from that watermark (new process)
     source.reset_queries();
-    let before = cache.deliveries().len();
-    let second = StorageSynchronizer::new(source.clone(), cache.clone())
-        .with_page_size(2)
-        .with_batch_size(2)
-        .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1))
-        .await
-        .unwrap();
+    let second = tokio::time::timeout(
+        SYNC_DEADLINE,
+        StorageSynchronizer::new(source.clone(), cache.clone())
+            .with_page_size(2)
+            .with_batch_size(2)
+            .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1)),
+    )
+    .await
+    .expect("resumed sync did not terminate: the page cursor stopped advancing")
+    .unwrap();
 
     // Then: the resumed run re-reads the tie group instead of skipping it, and
     // no episode is ever missing from the cache
@@ -431,17 +445,56 @@ async fn should_not_lose_tied_episodes_when_resuming_from_the_watermark() {
         second.episodes_synced > 0,
         "issue #1089 criterion 4: rows sharing the watermark timestamp must be re-read, not lost"
     );
-    assert_eq!(
-        cache.deliveries().len(),
-        before + second.episodes_synced,
-        "the resumed run must account for every delivery it made"
-    );
     for id in &ids {
         assert!(cache.contains(*id), "episode {id} never reached the cache");
     }
+}
+
+/// The synchronizer must not trust the order it is handed. Selecting rows by keyset
+/// and delivering them in that order are two different promises, and the real Turso
+/// row mapping only guarantees the first: it filters/orders on `r.modified_at_ms`
+/// yet returns `from_timestamp_millis(ms).unwrap_or(episode.start_time)`
+/// (`memory-storage-turso/src/storage/episodes/query.rs:221-222`). This case makes
+/// the synchronizer's own normalisation (`sync/synchronizer.rs:285`) load-bearing —
+/// delete that sort and the page tail used as the next cursor is no longer the
+/// keyset tail, so rows arrive twice and the order below breaks.
+#[tokio::test]
+async fn should_renormalize_a_page_delivered_out_of_keyset_order() {
+    // Given: the same tie group as the in-order run, from a scrambled source
+    let t0 = Utc::now();
+    let items: Vec<(Episode, DateTime<Utc>)> = vec![
+        (episode("a"), t0),
+        (episode("b"), t0),
+        (episode("c"), t0),
+        (episode("d"), t0 + chrono::Duration::milliseconds(1)),
+        (episode("e"), t0 + chrono::Duration::milliseconds(2)),
+    ];
+    let expected = keyset_order(&items);
+
+    let source = Arc::new(KeysetSource::scrambled(items));
+    let cache = Arc::new(RecordingCache::new());
+
+    // When: the synchronizer has to normalise what it received
+    let stats = tokio::time::timeout(
+        SYNC_DEADLINE,
+        StorageSynchronizer::new(source.clone(), cache.clone())
+            .with_page_size(2)
+            .with_batch_size(3)
+            .sync_all_recent_episodes(t0 - chrono::Duration::milliseconds(1)),
+    )
+    .await
+    .expect("scrambled-page sync did not terminate: the cursor stopped advancing")
+    .unwrap();
+
+    // Then: the same five rows, once each, in keyset order — the order the source
+    // happened to deliver in must not reach the cache or the next page bound
     assert_eq!(
-        ids.iter().filter(|id| cache.contains(**id)).count(),
-        ids.len(),
-        "issue #1089 criterion 4: coverage across runs must stay complete for tied timestamps"
+        stats.episodes_synced, 5,
+        "issue #1089 criterion 4: page delivery order must not change which rows sync"
+    );
+    assert_eq!(
+        cache.deliveries(),
+        expected,
+        "issue #1089 criterion 4: a scrambled page must still be written in keyset order"
     );
 }

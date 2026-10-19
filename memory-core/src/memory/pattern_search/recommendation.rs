@@ -90,12 +90,13 @@ pub async fn search_patterns_semantic(
             let mut missing_patterns = Vec::new();
 
             for (i, pattern) in filtered_patterns.iter().enumerate() {
-                if let Some(Some(vec)) = stored.get(i) {
-                    if vec.len() == expected_dim {
-                        emb_map.insert(pattern.id(), vec.clone());
-                    } else {
-                        missing_patterns.push(pattern.clone());
-                    }
+                let valid_vec = stored
+                    .get(i)
+                    .and_then(|opt| opt.as_ref())
+                    .filter(|v| v.len() == expected_dim);
+
+                if let Some(vec) = valid_vec {
+                    emb_map.insert(pattern.id(), vec.clone());
                 } else {
                     missing_patterns.push(pattern.clone());
                 }

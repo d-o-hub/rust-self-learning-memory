@@ -49,7 +49,11 @@ jobs:
           echo "CLIFF_TAG=$candidate" >> "$GITHUB_ENV"
 
       - name: Generate changelog
-        run: git-cliff --config cliff.toml --latest --tag "$CLIFF_TAG" --prepend CHANGELOG.md
+        # The script owns idempotency: it skips when the release-preparation PR
+        # already wrote this version's section, and fails on a file that
+        # parse-changelog would reject. Do not call git-cliff from here — #1186
+        # proved the workflow and the documented pre-release hook drift apart.
+        run: ./scripts/update-changelog.sh --tag "$CLIFF_TAG"
 
       - name: Create Pull Request for updated changelog
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1

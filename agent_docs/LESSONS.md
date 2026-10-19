@@ -1176,3 +1176,124 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `catches-dependency-rollback-on-stale-branches` eval.
 - References: PR #1176, LESSON-035 (`MERGEABLE` ≠ no lost work),
   `.agents/skills/pr-readiness/SKILL.md`.
+
+## LESSON-065: a `[skip ci]` token written as prose permanently blocks the merge (2026-10-17)
+
+- Issue: PR #1186 (changelog-generator fix) had every visible check green
+  (Codacy, CodeQL) and `mergeable=MERGEABLE`, yet `mergeStateStatus` never left
+  `BLOCKED`. The cause was in the **commit message body**: the change was
+  described as "drops the `[skip ci]` marker", and GitHub's skip matcher scans
+  the entire last commit message for CI control tokens — backticks, quotes and
+  prose context do not neutralize it. The branch therefore had
+  **zero `pull_request` runs** — the decisive probe is `gh api
+  "repos/{owner}/{repo}/commits/<sha>/check-runs" --jq '.total_count'`, which
+  returned `0` on the original head and `8` on the corrected one, so nothing
+  could ever satisfy the aggregate required context `CI / Required`.
+- Why it reads as "still pending" instead of "broken": the two checks that do
+  **not** honor the token — CodeQL (`Analyze (rust)`) and Codacy (a GitHub App) —
+  still produce rows, so the PR page looks healthy with two greens and no
+  pending item. A `BLOCKED` state with no visible `pending` row is the tell, not
+  the slowest dependency (LESSON-049/050).
+- Second-order hazard: GitHub's default squash-merge uses the PR title **plus the
+  commit body**, so merging that PR would have put the same control token on the
+  main merge commit and suppressed **push** CI on main — blinding the release
+  gate for exactly the commit the ship depends on (`release-manager.sh ci-check`
+  counts runs by head SHA; no runs, no green).
+- Detection: `gh api "repos/{owner}/{repo}/commits/<sha>/check-runs" -q
+  '[.check_runs[] | select(.name | test("Codacy|CodeQL|Analyze"))] | length'`
+  vs `.total_count`; a PR whose only check rows are App-based has been
+  self-suppressed. Also grep any message you are about to push:
+  `git log -1 --format=%B | grep -nE '\[(skip|ci skip|no ci)\]'`.
+- Fix/prevention: reword so the literal token never appears (write *skip-ci
+  marker*, not the bracketed form), `git commit --amend -F <file>`, then
+  `git push --force-with-lease`. Prove the rewrite was message-only with
+  `git rev-parse HEAD^{tree}` identical before and after, and re-assert
+  `total_count > 0` plus the expected per-workflow run list on the new SHA.
+  Never take the destructive shortcut of deleting/recreating the PR.
+- References: PR #1186, LESSON-049/050 (ruleset required contexts, aggregate
+  `CI / Required` row), LESSON-041 (never cancel runs you need),
+  `.agents/skills/pr-readiness/SKILL.md`, `.agents/skills/ci-poll/SKILL.md`.
+
+## LESSON-066: a fixed generator can be range-correct and still corrupt the changelog (2026-10-18)
+
+- Issue: `v0.1.46` shipped, the generator opened PR #1188, and the part #1186
+  fixed really worked — it covered only commits since `v0.1.45` and left
+  published history alone. But it is **not idempotent**: release-prep PR #1185
+  had already written a hand-authored `## [0.1.46] - 2026-10-17`, and the
+  generator inserted `## [0.1.46] - 2026-10-18` above it. Head file: line 10 the
+  new heading, line 75 the existing one, line 144 `## [0.1.45]`.
+- Why it matters: two identical version headings are exactly what
+  `verify-release-state.sh` rejects (its duplicate check is
+  `grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' | sort | uniq -d`), and it is the
+  same condition that produced **blank** release notes for v0.1.35. Merging
+  #1188 would have red-shipped the gate on main. The published `v0.1.46` notes
+  were unaffected because cargo-dist read the CHANGELOG **at the tag**.
+- Detection: after any generator run, diff heading sets rather than trusting the
+  PR's green CI —
+  `gh api repos/{o}/{r}/contents/CHANGELOG.md?ref=<head> --jq .content |
+  base64 -d | grep -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' | uniq -c`. CI does not
+  run the duplicate gate on a PR that only touches CHANGELOG.md — but in #1188
+  nothing ran at all: its eight workflow runs are `action_required` (LESSON-067),
+  which is why the rollup looked quietly green instead of failing.
+- Fix/prevention: the generator must treat "section for this tag already exists"
+  as replace-or-skip, and the generator job itself should fail on a duplicate
+  heading before it opens the PR.
+- Related tracker-integrity finding found while verifying: #1089 closed as
+  COMPLETED at 2026-10-17 12:25:12Z (via #1171) with **two acceptance criteria
+  still unchecked**; criterion 3 got its test only the next day (#1187, merged
+  2026-10-18, shipped in `v0.1.46`) and criterion 4 still has no ordering
+  assertion anywhere. A `stateReason: COMPLETED` is not evidence that the
+  acceptance list was satisfied —
+  `gh issue view <n> --json body -q .body | grep '^- \[ \]'` is. Re-verify
+  criterion state before repeating an issue's completion in a roadmap or
+  CHANGELOG line.
+- References: PR #1188, PR #1186, issue #1178, issue #1089, LESSON-057
+  (the bump is the drift exit), `.agents/skills/release-guard/SKILL.md`
+  (empty-notes failure mode).
+
+## LESSON-067: a bot-committer PR never runs CI, so its required check can never report (2026-10-18)
+
+- Issue: PR #1188 (opened by `peter-evans/create-pull-request` from the
+  `Generate Changelog` workflow) looked healthy: zero failing rows in
+  `statusCheckRollup`, and the only entries present were CodeQL and Codacy, all
+  `SUCCESS`. In fact none of the eight repository workflows ever executed:
+
+  ```
+  $ gh run list --branch chore/update-changelog-v0.1.46 --json name,conclusion
+  CI, Release Drift Check, Coverage, Security, Supply Chain Security,
+  Storage Matrix Tests, Skill Evals, File Structure Validation
+      -> every one conclusion=action_required
+  $ gh api repos/{owner}/{repo}/actions/runs/39122545647 \
+        --jq '.conclusion, .triggering_actor.login, .head_commit.committer.name'
+  action_required  github-actions[bot]  github-actions[bot]
+  $ gh api repos/{owner}/{repo}/actions/runs/39122545647/jobs --jq .total_count
+  0
+  ```
+
+- Why it matters: GitHub withholds workflow execution for runs whose commit and
+  trigger identity it does not trust — here both are `github-actions[bot]` —
+  until a maintainer approves them. So `CI / Required` is not pending and not
+  failing, it is **absent**, while the services GitHub pushes itself (CodeQL,
+  Codacy) report regardless. `mergeStateStatus` then sits at `BLOCKED` with
+  `pending: 0`, which reads as "still waiting on CI" and actually means "CI is
+  never coming". That is the second, independent reason generated changelog PRs
+  cannot land: #1178's equivalent was closed rather than merged in the same
+  shape, on top of its content defect (LESSON-066).
+- Detection: never treat an empty failing-row list as green. Count the rows
+  against the workflows a PR must trigger, then confirm the runs —
+  `gh run list --branch <head-branch> --json name,status,conclusion` and
+  `gh api repos/{owner}/{repo}/actions/runs/<id> --jq .conclusion`.
+  `action_required` together with `jobs.total_count == 0` means unapproved, not
+  passed. A rollup whose expected rows are silently missing is the same failure
+  class as an empty report file: assert the artifact exists before believing it.
+- Fix/prevention: prefer designs where the bot does not need a mergeable PR at
+  all — #1190 makes the generator skip a version the release-preparation PR
+  already wrote, so the normal case opens nothing. When a generated change
+  really is required, re-author the commit under a human identity
+  (`GIT_COMMITTER_NAME`/`GIT_COMMITTER_EMAIL` plus a user token) or have a
+  maintainer approve the runs **after reading the diff**; never blanket-approve
+  a bot's workflows just to make a rollup report.
+- References: PR #1188 (CI run `39122545647`), PR #1178's closed auto-PR,
+  LESSON-065 (the other way a rollup lies), LESSON-066 (the content defect in
+  the same PR), `.agents/skills/pr-readiness/SKILL.md` (green rows are not a
+  merge signal).

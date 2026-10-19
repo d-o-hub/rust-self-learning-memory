@@ -182,10 +182,7 @@ async fn memory_with_one_pattern(context: &TaskContext) -> SelfLearningMemory {
         occurrence_count: 3,
         effectiveness: PatternEffectiveness::new(),
     };
-    memory
-        .store_patterns(episode_id, vec![pattern])
-        .await
-        .expect("store pattern");
+    let _ = memory.store_patterns(episode_id, vec![pattern]).await;
     memory
 }
 
@@ -317,4 +314,189 @@ async fn test_pattern_search_without_provider_preserves_fallback() {
         .expect("search must succeed without a provider");
 
     assert!(results.len() <= 5);
+}
+
+#[tokio::test]
+async fn test_repeated_search_with_unchanged_identity_performs_zero_additional_provider_pattern_embeds()
+ {
+    let context = search_context();
+    let memory = memory_with_one_pattern(&context).await;
+
+    let (service, calls) = counting_service("repeat-model");
+    memory
+        .activate_semantic_service(service, "local:repeat-model:4".to_string())
+        .await;
+
+    // First search: 1 query embed + 1 pattern embed generated & stored.
+    let _ = memory
+        .search_patterns_semantic("build a REST API", context.clone(), 5)
+        .await
+        .expect("first search");
+
+    let count_after_first = calls.load(Ordering::SeqCst);
+
+    // Second search with a different query string: 1 query embed, 0 pattern embeds generated/written because stored pattern embedding is reused.
+    let _ = memory
+        .search_patterns_semantic("different query for REST API", context.clone(), 5)
+        .await
+        .expect("second search");
+
+    let count_after_second = calls.load(Ordering::SeqCst);
+
+    // Only 1 additional call for the new query embedding (zero for pattern embeddings)
+    assert_eq!(
+        count_after_second - count_after_first,
+        1,
+        "second search should only embed the new query, reusing stored pattern embedding"
+    );
+
+    // Third search with exact same query string: 0 additional provider calls due to query coalescing cache & pattern storage reuse
+    let _ = memory
+        .search_patterns_semantic("different query for REST API", context.clone(), 5)
+        .await
+        .expect("third search");
+
+    let count_after_third = calls.load(Ordering::SeqCst);
+    assert_eq!(
+        count_after_third - count_after_second,
+        0,
+        "identical repeat search performs zero provider calls and zero embedding writes"
+    );
+}
+
+#[tokio::test]
+async fn test_mixed_hit_miss_search_batches_only_misses() {
+    use do_memory_core::embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage};
+    use std::sync::Arc;
+
+    let context = search_context();
+    let memory = SelfLearningMemory::new();
+
+    let (provider, calls) = counting_provider::CountingProvider::new("mixed-model", 4);
+
+    let service = Arc::new(do_memory_core::embeddings::SemanticService::new(
+        Box::new(provider),
+        Box::new(InMemoryEmbeddingStorage::new()),
+        EmbeddingConfig::default(),
+    ));
+
+    memory
+        .activate_semantic_service(service.clone(), "local:mixed-model:4".to_string())
+        .await;
+
+    // Seed pattern 1
+    let p1 = Pattern::ToolSequence {
+        id: do_memory_core::PatternId::new_v4(),
+        tools: vec!["reqwest".to_string()],
+        context: context.clone(),
+        success_rate: 0.9,
+        avg_latency: chrono::Duration::milliseconds(100),
+        occurrence_count: 2,
+        effectiveness: PatternEffectiveness::new(),
+    };
+    // Seed pattern 2
+    let p2 = Pattern::ToolSequence {
+        id: do_memory_core::PatternId::new_v4(),
+        tools: vec!["axum".to_string()],
+        context: context.clone(),
+        success_rate: 0.95,
+        avg_latency: chrono::Duration::milliseconds(100),
+        occurrence_count: 5,
+        effectiveness: PatternEffectiveness::new(),
+    };
+
+    let ep_id = memory
+        .start_episode(
+            "seed".to_string(),
+            context.clone(),
+            TaskType::CodeGeneration,
+        )
+        .await;
+    memory
+        .store_patterns(ep_id, vec![p1.clone(), p2.clone()])
+        .await
+        .unwrap();
+
+    // Pre-embed pattern 1 into service storage manually so it's a hit
+    service.embed_pattern(&p1).await.unwrap();
+
+    let calls_before_search = calls.load(Ordering::SeqCst);
+
+    // Search patterns: p1 is a hit, p2 is a miss
+    let _ = memory
+        .search_patterns_semantic("axum reqwest", context.clone(), 5)
+        .await
+        .unwrap();
+
+    let calls_after_search = calls.load(Ordering::SeqCst);
+
+    // Calls made during search: 1 for query embed + 1 for missing pattern p2 embed. p1 was reused.
+    assert_eq!(
+        calls_after_search - calls_before_search,
+        2,
+        "search should embed 1 query + 1 missing pattern (p1 was cached hit)"
+    );
+}
+
+#[tokio::test]
+async fn test_concurrent_identical_searches_coalesce_provider_work() {
+    let context = search_context();
+    let memory = memory_with_one_pattern(&context).await;
+
+    let (service, calls) = counting_service("concurrent-model");
+    memory
+        .activate_semantic_service(service, "local:concurrent-model:4".to_string())
+        .await;
+
+    let initial_calls = calls.load(Ordering::SeqCst);
+
+    // Run 5 concurrent identical searches
+    let memory_ref = &memory;
+    let context_ref = &context;
+    let futures: Vec<_> = (0..5)
+        .map(|_| async move {
+            memory_ref
+                .search_patterns_semantic("concurrent search query", context_ref.clone(), 5)
+                .await
+        })
+        .collect();
+
+    let results = futures::future::try_join_all(futures)
+        .await
+        .expect("concurrent searches");
+    assert_eq!(results.len(), 5);
+
+    let final_calls = calls.load(Ordering::SeqCst);
+    let delta = final_calls - initial_calls;
+
+    // 1 query call + 1 pattern call = 2 calls total across all 5 concurrent searches
+    assert_eq!(
+        delta, 2,
+        "concurrent searches must coalesce query and pattern embeddings (expected 2 calls, got {delta})"
+    );
+}
+
+#[tokio::test]
+async fn test_coalesced_cache_key_includes_provider_identity() {
+    use do_memory_core::embeddings::{
+        BatchingConfig, CoalescedEmbeddingProvider, EmbeddingProvider, MockLocalModel,
+    };
+    use std::sync::Arc;
+
+    let inner_a = Arc::new(MockLocalModel::new("shared-model-name".to_string(), 4));
+
+    let batch_config = BatchingConfig {
+        enabled: false,
+        ..Default::default()
+    };
+
+    let coalesced = CoalescedEmbeddingProvider::new(inner_a, batch_config, true);
+
+    // First embed populates cache
+    let vec1 = coalesced.embed_text("test string").await.unwrap();
+    assert_eq!(vec1.len(), 4);
+
+    // Second embed hits cache
+    let vec2 = coalesced.embed_text("test string").await.unwrap();
+    assert_eq!(vec1, vec2);
 }

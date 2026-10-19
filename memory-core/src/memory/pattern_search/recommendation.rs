@@ -40,10 +40,25 @@ pub async fn search_patterns_semantic(
         "Starting semantic pattern search"
     );
 
-    // Generate embedding for query
-    let query_embedding = if let Some(service) = semantic_service {
+    // Apply pre-filters to candidates
+    let filtered_patterns: Vec<Pattern> = patterns
+        .into_iter()
+        .filter(|pattern| {
+            if config.filter_by_domain {
+                if let Some(pattern_ctx) = pattern.context() {
+                    if pattern_ctx.domain != context.domain {
+                        return false;
+                    }
+                }
+            }
+            true
+        })
+        .collect();
+
+    // Generate embedding for query and pre-fetch/batch-embed pattern embeddings
+    let (query_embedding, pattern_embeddings_map) = if let Some(service) = semantic_service {
         // Use the service to generate embeddings for the query text
-        match service.provider.embed_text(query).await {
+        let q_emb = match service.provider.embed_text(query).await {
             Ok(embedding) => {
                 debug!(
                     "Generated query embedding with {} dimensions",
@@ -58,37 +73,69 @@ pub async fn search_patterns_semantic(
                 );
                 vec![]
             }
-        }
-    } else {
-        debug!("No semantic service available, using keyword-based scoring");
-        vec![]
-    };
+        };
 
-    let mut results = Vec::new();
+        let mut emb_map = std::collections::HashMap::new();
 
-    for pattern in patterns {
-        // Apply pre-filters
-        if config.filter_by_domain {
-            if let Some(pattern_ctx) = pattern.context() {
-                if pattern_ctx.domain != context.domain {
-                    continue;
+        if !q_emb.is_empty() && !filtered_patterns.is_empty() {
+            let pattern_ids: Vec<_> = filtered_patterns.iter().map(|p| p.id()).collect();
+            let expected_dim = service.provider.embedding_dimension();
+
+            // Check storage in batch for stored embeddings
+            let stored = service
+                .get_pattern_embeddings_batch(&pattern_ids)
+                .await
+                .unwrap_or_default();
+
+            let mut missing_patterns = Vec::new();
+
+            for (i, pattern) in filtered_patterns.iter().enumerate() {
+                let valid_vec = stored
+                    .get(i)
+                    .and_then(|opt| opt.as_ref())
+                    .filter(|v| v.len() == expected_dim);
+
+                if let Some(vec) = valid_vec {
+                    emb_map.insert(pattern.id(), vec.clone());
+                } else {
+                    missing_patterns.push(pattern.clone());
+                }
+            }
+
+            if !missing_patterns.is_empty() {
+                let gen_embeddings = service
+                    .embed_patterns_batch(&missing_patterns)
+                    .await
+                    .unwrap_or_default();
+                for (pattern, vec) in missing_patterns.into_iter().zip(gen_embeddings) {
+                    emb_map.insert(pattern.id(), vec);
                 }
             }
         }
 
-        // Note: TaskContext doesn't have task_type field in current implementation
-        // Filtering by task type would require changes to TaskContext struct
+        (q_emb, emb_map)
+    } else {
+        debug!("No semantic service available, using keyword-based scoring");
+        (vec![], std::collections::HashMap::new())
+    };
+
+    let mut results = Vec::new();
+
+    for pattern in filtered_patterns {
+        let empty_vec = Vec::new();
+        let pattern_emb = pattern_embeddings_map
+            .get(&pattern.id())
+            .unwrap_or(&empty_vec);
 
         // Calculate multi-signal score
         let score_breakdown = calculate_pattern_score(
             query,
             &query_embedding,
             &pattern,
+            pattern_emb,
             context,
-            semantic_service,
             &config,
-        )
-        .await?;
+        )?;
 
         let relevance_score = super::scoring::combine_scores(&score_breakdown, &config);
 

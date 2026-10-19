@@ -72,4 +72,17 @@ impl SemanticService {
         }
         Ok(results)
     }
+
+    /// Get pattern embeddings for multiple pattern IDs in batch.
+    pub async fn get_pattern_embeddings_batch(
+        &self,
+        pattern_ids: &[crate::episode::PatternId],
+    ) -> Result<Vec<Option<Vec<f32>>>> {
+        let mut results = Vec::with_capacity(pattern_ids.len());
+        for pattern_id in pattern_ids {
+            let embedding = self.storage.get_pattern_embedding(*pattern_id).await?;
+            results.push(embedding);
+        }
+        Ok(results)
+    }
 }

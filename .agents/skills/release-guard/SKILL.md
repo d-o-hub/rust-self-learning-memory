@@ -130,9 +130,14 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 - Confirm: `gh release view vX.Y.Z`
 - The tag workflow publishes **draft-first**: it creates a draft release, attaches
   the dist artifacts plus the CycloneDX SBOMs, generates build-provenance and
-  SBOM **attestations** (`actions/attest`), then publishes. Publishing is what
-  fires `release: published` (publish-crates.yml) and, once repository
-  immutability is enabled, locks the tag and assets.
+  SBOM **attestations** (`actions/attest`), then publishes. Publishing is what,
+  once repository immutability is enabled, locks the tag and assets.
+- **The crates.io chain is dispatched, not release-triggered** (LESSON-030):
+  publishing with the repository `GITHUB_TOKEN` creates no run for
+  `on: release: published`, so `release.yml`'s `dispatch-publish` job runs
+  `gh workflow run publish-crates.yml --ref vX.Y.Z -f dry-run=false` itself.
+  The publish run's `event` is therefore `workflow_dispatch` on the tag SHA —
+  the absence of a `release`-event run is not a failed publish.
 - **crates.io publish authentication is OIDC-only** (ADR-078 amendment): each
   publish job uses the pinned `rust-lang/crates-io-auth-action`; there is no
   `CARGO_REGISTRY_TOKEN` secret to rotate. One-time prerequisite **per crate**:

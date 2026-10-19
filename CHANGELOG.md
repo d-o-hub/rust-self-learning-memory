@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The changelog generator duplicated released-version sections (#1188): `changelog.yml` ran
+  `git-cliff --latest --tag "$CLIFF_TAG" --prepend CHANGELOG.md` unconditionally, so the `v0.1.46` tag push
+  prepended a second `## [0.1.46]` heading above the one the release-preparation PR had already curated
+  (`## [0.1.46] - 2026-10-18` over `## [0.1.46] - 2026-10-17`). `parse-changelog` rejects a file with two
+  sections for one version — measured: `error: multiple release notes for '0.1.46'`, rc=1, empty stdout,
+  versus rc=0/3991 bytes on `main` — which is the same payload that ships a GitHub Release with no notes.
+  `scripts/update-changelog.sh` is now the only entrypoint for this work: it skips when the target version
+  already has a section, fails instead of silently no-oping when `git-cliff` is missing, and validates its
+  own output (one non-empty heading per version, parseable by `parse-changelog` when installed).
+  `scripts/test-update-changelog.sh` covers the duplicate, skip, empty-section, missing-generator and
+  non-release-ref cases. The workflow and the ADR-045 `pre-release-hook` now share this script, so the
+  destructive `--output` form cannot be reinstated by a documented copy-paste.
+
 ## [0.1.46] - 2026-10-17
 
 ### Fixed

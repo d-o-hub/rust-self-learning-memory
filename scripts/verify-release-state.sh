@@ -131,7 +131,7 @@ fi
 if [[ "$CHECK_TAG" == "true" ]]; then
   echo ""
   echo "── Checking git tag ──"
-  LATEST_TAG=$(git tag --sort=-creatordate | head -1 || true)
+  LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -1 || true)
   EXPECTED_TAG="v$WORKSPACE_VERSION"
 
   if [[ -z "$LATEST_TAG" ]]; then
@@ -151,7 +151,7 @@ fi
 if [[ "$CHECK_UNRELEASED" == "true" ]]; then
   echo ""
   echo "── Checking for unreleased changes ──"
-  LATEST_TAG=$(git tag --sort=-creatordate | head -1 || true)
+  LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -1 || true)
   if [[ -n "$LATEST_TAG" ]]; then
     FEAT_COUNT=$(git log "${LATEST_TAG}..HEAD" --oneline --grep="^feat" 2>/dev/null | wc -l || echo 0)
     FIX_COUNT=$(git log "${LATEST_TAG}..HEAD" --oneline --grep="^fix" 2>/dev/null | wc -l || echo 0)

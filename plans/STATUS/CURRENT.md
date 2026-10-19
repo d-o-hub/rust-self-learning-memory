@@ -1,21 +1,22 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-17
-**Released Version**: v0.1.46
-**Workspace Version**: 0.1.46 (post-v0.1.45 bump, landed with the closeout; tag `v0.1.46` is the publish vehicle)
+**Last Updated**: 2026-10-18
+**Released Version**: v0.1.46 (tag `d85efb5c`, GitHub Release published 2026-10-18; the first release to reach crates.io since `0.1.34`)
+**Workspace Version**: 0.1.46 (equals the shipped tag; the next bump, `0.1.47`, is the post-release development PR)
 **Edition**: Rust 2024
-**Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the audit-backlog wave is merged and
-closed (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`); what remains is the false-green crates.io publish (#1179), the
-red Turso nightly (#1180), the readiness-gate run-ordering fix (#1177), guardrail docs (#1175) and the `0.1.46`
-bump. Follow-up issues #1068, #1089 and #1076 stay queued behind it.
-**Branch**: `main` @ `8ee711bd`
+**Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the closeout is shipped: the
+false-green crates.io publish (#1179) is fixed and verified externally at `v0.1.46`, the red Turso nightly (#1180),
+the readiness-gate run ordering (#1177) and guardrail docs (#1175) are merged, and the `0.1.46` bump shipped.
+What remains: #1089 criterion 4 (the sync ordering assertion — the issue was closed with it unchecked), the
+changelog generator's duplicate-section defect (#1188), and follow-ups #1068 and #1076.
+**Branch**: `main` @ `d85efb5c`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | live list — run `gh pr list --state open`; the release-closeout queue merges serially (order in the active plan under `plans/`), then the post-release bump PR |
-| Open issues | 6 open (run `gh issue list --state open` — #1068, #1076, #1089, #1109, #1165, #1182) — per-issue verdicts, evidence and queue position live in `STATUS/GAP_ANALYSIS_LATEST.md` |
+| Open PRs | 4 open — #1189 (tag-selection fix + post-`v0.1.46` truth), #1190 (idempotent changelog generator, the replacement for #1188), #1188 (generator-produced changelog, **do not merge**: it duplicates the `## [0.1.46]` heading, see LESSON-066) and #1184 (redb/Turso revision merge, still red on the `conflict.rs` test-module layout). Next in order is the `0.1.47` bump PR, which is what clears `version_not_advanced` for all of them |
+| Open issues | 4 open (#1068, #1076, #1109, plus #1089 reopened on 2026-10-18 because criterion 4 — the sync ordering assertion — was never evidenced; criterion 3 is now proven by #1187 in `v0.1.46`). #1165 and the `release-drift` #1182 closed when `v0.1.46` was tagged |
 | Open Dependabot alerts | 12 (2 high, 2 medium, 8 low) = **6 advisories duplicated across `Cargo.lock` + `fuzz/Cargo.lock`**, all upstream-blocked (`rustls-webpki 0.102.8` via the libsql→rustls 0.22 chain, `lru <0.16.3` via `augurs-changepoint`/`agentfs-sdk`, unpatched `libsql-sqlite3-parser`). #1174 cleared `cargo audit`/`cargo deny`, **not** these — `libsql 0.10.0` would change none of them |
 
 ## Corrected claim (2026-10-04)
@@ -56,7 +57,7 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 | v0.1.45 release | `8ee711bd` → tag `v0.1.45` | ✅ shipped via `release-manager.sh ship --execute` (never `gh release create`) |
 | rustls + quinn-proto advisories | #1174 (`2d5ed2b0`) | ✅ merged — cleared the 2 high + 2 moderate alerts and unblocked `main` |
 | Release docs + version bump | #1169 | ✅ merged as `8ee711bd` |
-| crates.io publish false-green | #1179 | 🔄 in review — `if: ${{ !inputs.dry-run … }}` string-coercion skipped every real upload since `493cfb01`; adds `Verify publish landed` + gate-contract/fixture sensors |
+| crates.io publish false-green | #1179 | ✅ merged `01d1bd7e` **and verified externally at `v0.1.46`** — the string-coerced `!inputs.dry-run` guard had skipped every real upload since `493cfb01` (v0.1.44/v0.1.45 never published); `v0.1.46` published all four registered crates, each confirmed by crates.io version-membership over HTTP 200 |
 | Readiness gate run ordering | #1177 | 🔄 in review — count the latest check run per name (superseded runs were reported as current) |
 | Guardrail docs (advisory/ruleset/drift traps) | #1175 | 🔄 in review — owns `AGENTS.md` + `agent_docs/LESSONS.md` |
 | Turso nightly: 36 failures → 4 real defects | #1180 | 🔄 in review — metrics column/unit drift, multi-dimension read gap, pooled-checkout misuse, error-swallowing asserts; `required-features` + feature-specific nightly step |
@@ -95,12 +96,12 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 | Area | State |
 |------|--------|
 | First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict up-to-date policy); the aggregate is causally same-run and rejects `skipped`/`cancelled`/timed-out results |
-| Repo-wide open issues | 6 (the authoritative count + list is the **Open issues** row under *Open tracker (live)* — keep it in that one place; this row carried a stale copy of it). Note on **#1182**: the canonical `release-drift` issue, filed and updated **in place** by the `maintain-issue` job at `release-drift.yml:98-149` because `version_not_advanced` is the normal post-ship state — do not close it by hand, it resolves when the `0.1.46` bump lands |
-| Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153, #1174 |
+| Repo-wide open issues | 4 (the authoritative count + list is the **Open issues** row under *Open tracker (live)* — keep it in that one place; this row carried a stale copy of it). Note on **#1182**: the canonical `release-drift` issue, filed and updated **in place** by the `maintain-issue` job at `release-drift.yml:98-149` — it closed itself at 2026-10-18 11:14:15Z once `v0.1.46` was tagged, which is the designed exit (`version_not_advanced` clears when the tag matches), never by hand |
+| Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153, #1174, #1172, #1173, #1175, #1176, #1177, #1179, #1180, #1181, #1185, #1186, #1187 |
 | Production pattern query relevance | ✅ **#1074 merged in #1160** — pattern operations use one runtime provider snapshot |
 | `episodes.created_at` watermark | ✅ **#1067 merged in #1149** — durable modification watermark and bounded keyset pages |
-| Release | `v0.1.45` tagged `8ee711bd` and published on GitHub 2026-10-16 |
-| crates.io | ⚠️ **Stalled at `0.1.34`** (`do-memory-mcp` at `0.1.31`) — the publish step was skipped by a string-coerced guard while the job stayed green; #1179 fixes it and `0.1.46` is the first tag that can publish |
+| Release | `v0.1.46` tagged `d85efb5c`, GitHub Release published 2026-10-18 11:35:10Z (draft-first run `39122396247`, every job success/skipped, non-empty `## Release Notes`) |
+| crates.io | ✅ **`0.1.46` published** — `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp` each verified by version membership (`http=200`, `index("0.1.46") != null`); this is the first release off the `0.1.34`/`0.1.31` stall, proving the #1179 guard fix externally. `do-memory-cli` / `do-memory-examples` are still not registered (404) |
 | Nightly (Turso native) | ⚠️ **Red since 2026-10-13** (36 of 106) — repaired in #1180; `86 + 20 = 106`, 0 failures, nothing ignored or waived |
 | Code execution | Fail-closed; S1.1c Wasmtime/WASI **NO-GO** |
 | Serialization | Postcard required |

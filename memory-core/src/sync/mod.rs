@@ -18,8 +18,8 @@
 //! ```
 
 pub use self::conflict::{
-    ConflictResolution, resolve_episode_conflict, resolve_heuristic_conflict,
-    resolve_pattern_conflict,
+    ConflictResolution, EpisodeOrigin, episode_revision_info, resolve_episode_conflict,
+    resolve_heuristic_conflict, resolve_pattern_conflict, select_winning_episode,
 };
 pub use self::synchronizer::StorageSynchronizer;
 pub use self::two_phase_commit::TwoPhaseCommit;

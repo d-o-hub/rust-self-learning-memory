@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### CI/CD
+
+- The release changelog generator no longer rewrites published history
+  (#1186). Every `chore/update-changelog` PR from v0.1.41 to v0.1.45 had to be
+  closed unmerged because its output re-rendered already-published sections —
+  the v0.1.45 run (#1178) produced one file at `+405/-264`, rewriting 209
+  curated prose lines and shifting dates. Two independent defects, proved
+  against the real git-cliff 2.14.2 binary at the v0.1.45 tag: `--output`
+  without `--latest` re-renders the whole file (`--tag` alone does not bound the
+  range), and `cliff.toml` had no `tag_pattern`, so any tag became the release
+  boundary — a local backup tag rendered as
+  `## [backup/pr-1171-pre-squash] - <date>`. The workflow now runs
+  `--latest --tag <vX.Y.Z> --prepend` (measured: 0 deletions), pins
+  `cargo install git-cliff --locked --version 2.14.2` so a generator upgrade
+  cannot silently change every release's rendering, gates the ref with a
+  fail-closed `Resolve release tag` step before it reaches the shell, and stops
+  embedding a skip-ci marker in its own commit message, which had been
+  suppressing the checks on the PRs it opened. ADR-045 amended accordingly.
+
+- The `release-guard` skill no longer claims that publishing a release fires
+  `release: published` and thereby runs `publish-crates.yml`. Verified at
+  `v0.1.46`: the publish run (39123847241) started 13s after the release went
+  live with `event=workflow_dispatch` on the tag SHA, because
+  `release.yml`'s `dispatch-publish` job dispatches it explicitly — a release
+  published with the repository `GITHUB_TOKEN` creates no `release`-event run
+  (LESSON-030). The skill now states the dispatch path and records that the
+  chain owns four crates (`do-memory-core`, `do-memory-storage-redb`,
+  `do-memory-storage-turso`, `do-memory-mcp`), all confirmed at `0.1.46` by
+  crates.io version membership over HTTP 200, while a `do-memory-cli` or
+  `do-memory-test-utils` 404 is by design. Looking for a `release`-event run
+  and finding none previously read as a failed publish.
+
+### Tests
+
+- Issue #1089 acceptance criterion 3 is now evidenced (#1187):
+  `memory-core/tests/sync_partial_failure_cursor.rs` drives the real
+  synchronizer with a page size of 4 and a chunk size of 2 against a cache that
+  rejects one chunk wholesale, and asserts the failing item stays uncached,
+  that the in-memory and durable watermarks both refuse to advance, and that a
+  healed retry re-delivers everything the failed run skipped. Criterion 4 (sync
+  ordering) remains open.
+
 ### Fixed
 
 - The changelog generator duplicated released-version sections (#1188): `changelog.yml` ran

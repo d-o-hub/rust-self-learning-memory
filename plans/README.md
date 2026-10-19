@@ -1,6 +1,6 @@
 # Plans Directory
 
-**Workspace**: `v0.1.46` · **Released tag**: `v0.1.46` · **Main baseline**: `16426d08`
+**Workspace**: `v0.1.46` · **Released tag**: `v0.1.46` (`d85efb5c`, GitHub Release 2026-10-18, all four registered crates published) · **Main baseline**: `d85efb5c`
 **Active plan**: **release closeout** — [GOAP_RELEASE_CLOSEOUT_2026-10-16.md](GOAP_RELEASE_CLOSEOUT_2026-10-16.md) (ACT-399…ACT-412: the stalled crates.io publish, the red Turso nightly, the drift gate). The audit-backlog wave [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) is closed — W1–W6, Q02 and all wave-A slices merged (#1130…#1161). Per-issue register: [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
 **Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage-floor reconciliation #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
 **Last Updated**: 2026-10-16

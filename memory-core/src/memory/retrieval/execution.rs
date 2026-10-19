@@ -112,7 +112,8 @@ impl SelfLearningMemory {
                     .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
                     .await
                 {
-                    self.merge_backfilled_episodes(fetched).await;
+                    self.merge_backfilled_episodes(fetched, crate::sync::EpisodeOrigin::Cache)
+                        .await;
                 }
             }
 
@@ -122,7 +123,8 @@ impl SelfLearningMemory {
                     .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
                     .await
                 {
-                    self.merge_backfilled_episodes(fetched).await;
+                    self.merge_backfilled_episodes(fetched, crate::sync::EpisodeOrigin::Durable)
+                        .await;
                 }
             }
         }
@@ -452,16 +454,31 @@ impl SelfLearningMemory {
         )
     }
 
-    /// Merge fetched episodes into the in-memory fallback map, ignoring empties.
-    async fn merge_backfilled_episodes(&self, fetched: Vec<Episode>) {
+    /// Merge fetched episodes into the in-memory fallback map using revision-aware conflict resolution.
+    async fn merge_backfilled_episodes(
+        &self,
+        fetched: Vec<Episode>,
+        origin: crate::sync::EpisodeOrigin,
+    ) {
         if fetched.is_empty() {
             return;
         }
         let mut episodes = self.episodes_fallback.write().await;
         for ep in fetched {
+            let incoming = Arc::new(ep);
+            let id = incoming.episode_id;
             episodes
-                .entry(ep.episode_id)
-                .or_insert_with(|| Arc::new(ep));
+                .entry(id)
+                .and_modify(|existing| {
+                    let winner = crate::sync::select_winning_episode(
+                        existing,
+                        crate::sync::EpisodeOrigin::InMemory,
+                        &incoming,
+                        origin,
+                    );
+                    *existing = winner;
+                })
+                .or_insert(incoming);
         }
     }
 }

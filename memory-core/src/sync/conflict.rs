@@ -105,6 +105,47 @@ pub fn resolve_episode_conflict(
     }
 }
 
+/// Resolve conflict between two patterns
+#[must_use]
+pub fn resolve_pattern_conflict(
+    turso_pattern: &Arc<Pattern>,
+    redb_pattern: &Arc<Pattern>,
+    strategy: ConflictResolution,
+) -> Arc<Pattern> {
+    match strategy {
+        ConflictResolution::TursoWins => Arc::clone(turso_pattern),
+        ConflictResolution::RedbWins => Arc::clone(redb_pattern),
+        ConflictResolution::MostRecent => {
+            // Compare based on success rate or occurrence count
+            if turso_pattern.success_rate() >= redb_pattern.success_rate() {
+                Arc::clone(turso_pattern)
+            } else {
+                Arc::clone(redb_pattern)
+            }
+        }
+    }
+}
+
+/// Resolve conflict between two heuristics
+#[must_use]
+pub fn resolve_heuristic_conflict(
+    turso_heuristic: &Arc<Heuristic>,
+    redb_heuristic: &Arc<Heuristic>,
+    strategy: ConflictResolution,
+) -> Arc<Heuristic> {
+    match strategy {
+        ConflictResolution::TursoWins => Arc::clone(turso_heuristic),
+        ConflictResolution::RedbWins => Arc::clone(redb_heuristic),
+        ConflictResolution::MostRecent => {
+            if turso_heuristic.updated_at >= redb_heuristic.updated_at {
+                Arc::clone(turso_heuristic)
+            } else {
+                Arc::clone(redb_heuristic)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -229,46 +270,5 @@ mod tests {
         );
 
         assert_eq!(winner.task_description, "Explicit payload");
-    }
-}
-
-/// Resolve conflict between two patterns
-#[must_use]
-pub fn resolve_pattern_conflict(
-    turso_pattern: &Arc<Pattern>,
-    redb_pattern: &Arc<Pattern>,
-    strategy: ConflictResolution,
-) -> Arc<Pattern> {
-    match strategy {
-        ConflictResolution::TursoWins => Arc::clone(turso_pattern),
-        ConflictResolution::RedbWins => Arc::clone(redb_pattern),
-        ConflictResolution::MostRecent => {
-            // Compare based on success rate or occurrence count
-            if turso_pattern.success_rate() >= redb_pattern.success_rate() {
-                Arc::clone(turso_pattern)
-            } else {
-                Arc::clone(redb_pattern)
-            }
-        }
-    }
-}
-
-/// Resolve conflict between two heuristics
-#[must_use]
-pub fn resolve_heuristic_conflict(
-    turso_heuristic: &Arc<Heuristic>,
-    redb_heuristic: &Arc<Heuristic>,
-    strategy: ConflictResolution,
-) -> Arc<Heuristic> {
-    match strategy {
-        ConflictResolution::TursoWins => Arc::clone(turso_heuristic),
-        ConflictResolution::RedbWins => Arc::clone(redb_heuristic),
-        ConflictResolution::MostRecent => {
-            if turso_heuristic.updated_at >= redb_heuristic.updated_at {
-                Arc::clone(turso_heuristic)
-            } else {
-                Arc::clone(redb_heuristic)
-            }
-        }
     }
 }

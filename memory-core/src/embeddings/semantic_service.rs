@@ -326,6 +326,49 @@ impl SemanticService {
         Ok(embedding)
     }
 
+    /// Generate and store embeddings for multiple patterns in batch
+    pub async fn embed_patterns_batch(&self, patterns: &[Pattern]) -> Result<Vec<Vec<f32>>> {
+        if patterns.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let texts: Vec<String> = patterns
+            .iter()
+            .map(super::semantic_text::pattern_to_text)
+            .collect();
+
+        let start = std::time::Instant::now();
+        let outcome = self.provider.embed_batch(&texts).await;
+        let duration_ms = start.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+
+        crate::monitoring::metrics::global_retrieval_metrics().record_embedding(
+            self.provider_label(),
+            match &outcome {
+                Ok(_) => crate::monitoring::metrics::EmbeddingOutcome::Ok,
+                Err(_) => crate::monitoring::metrics::EmbeddingOutcome::Error,
+            },
+            duration_ms,
+        );
+
+        let embeddings = outcome?;
+
+        if embeddings.len() != patterns.len() {
+            anyhow::bail!(
+                "Batch embedding returned {} embeddings for {} patterns",
+                embeddings.len(),
+                patterns.len()
+            );
+        }
+
+        for (pattern, embedding) in patterns.iter().zip(embeddings.iter()) {
+            self.storage
+                .store_pattern_embedding(pattern.id(), embedding.clone())
+                .await?;
+        }
+
+        Ok(embeddings)
+    }
+
     /// Generate and store embedding for a pattern
     ///
     /// Creates a semantic representation based on:

@@ -99,7 +99,17 @@ impl CoalescedEmbeddingProvider {
     }
 
     fn cache_key(&self, text: &str) -> String {
-        format!("{}:{}", self.inner.model_name(), text.trim())
+        format!(
+            "{}:{}:{}:{}",
+            self.inner.model_name(),
+            self.inner.embedding_dimension(),
+            self.inner
+                .metadata()
+                .get("provider_identity")
+                .and_then(|v| v.as_str())
+                .unwrap_or(""),
+            text.trim()
+        )
     }
 
     async fn run_batch_worker(

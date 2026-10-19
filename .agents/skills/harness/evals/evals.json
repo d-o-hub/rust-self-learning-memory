@@ -22,8 +22,8 @@
     },
     {
       "name": "workflow-step-ten",
-      "description": "Change Workflow step 10 runs do-harness verify --record",
-      "exec": "rg -q 'do-harness verify --record' AGENTS.md"
+      "description": "AGENTS.md runs canonical do-harness verify --set verification --strict --record",
+      "exec": "rg -q 'do-harness verify --set verification --strict --record' AGENTS.md"
     },
     {
       "name": "dev-harness-section",

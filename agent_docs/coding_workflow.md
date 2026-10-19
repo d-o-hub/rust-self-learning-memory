@@ -92,14 +92,9 @@ design preserves.
 - Then the full gate set in [`AGENTS.md#required-checks-before-commit`](../AGENTS.md#required-checks-before-commit):
 
   ```bash
-  ./scripts/code-quality.sh fmt
-  ./scripts/code-quality.sh clippy --workspace
-  ./scripts/build-rust.sh check
-  cargo nextest run --all
-  cargo test --doc
-  cargo doc --no-deps --document-private-items
-  ./scripts/quality-gates.sh
-  do-harness verify --record          # computational sensors + state; --only <sensor> to iterate
+  do-harness verify --set feedback                     # cheap edit loop
+  do-harness verify --set verification --strict --record  # full pre-completion contract
+  do-harness status --set verification                 # confirm green local evidence boundary
   git status                          # everything intended is staged
   ```
 

@@ -17,7 +17,7 @@ Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso
 | Release | `./scripts/release-manager.sh ship --execute` |
 | Release cadence | `./scripts/release-cadence-manager.sh` |
 | Disk cleanup | `./scripts/clean-artifacts.sh [quick\|standard\|full]` |
-| Harness | `do-harness verify --record` · `do-harness doctor` |
+| Harness | `do-harness verify --set verification --strict --record && do-harness status --set verification` · `do-harness doctor` |
 
 ## Skill + CLI Pattern (CRITICAL)
 
@@ -33,7 +33,7 @@ Route every operation: **skill? → script? → Skill + CLI? → task tool.**
 | Wait for CI | `ci-poll` | `gh pr checks --watch` |
 | Release | `release-guard` | `./scripts/release-manager.sh ship --execute` |
 | Release cadence | `release-cadence-manager` | `./scripts/release-cadence-manager.sh` |
-| Harness sensors | `harness` | `do-harness verify --record` |
+| Harness sensors | `harness` | `do-harness verify --set verification --strict --record && do-harness status --set verification` |
 | Complex multi-step | `goap-agent` | — |
 | Parallel workers | `agent-coordination` | — |
 
@@ -92,20 +92,20 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 
 ## Dev Harness (do-harness)
 
-Sensors live in `do-harness.toml` (fmt, check, clippy, test, deny, loc) and map to guides in `HARNESS.md`. `do-harness verify --record` runs the suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Sensor fired? Fix that sensor first, then commit.
+Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`.
+`do-harness.toml` defines two explicit signal sets:
+- **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`).
+- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
+
+`do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
 **Do NOT run `do-harness hook install`** — `.pre-commit-config.yaml` owns the git hooks, installed via `./scripts/install-hooks.sh`. A fresh clone has none installed (`.git/hooks` holds only `.sample` files), so every declared sensor is inert until that script runs; `./scripts/install-hooks.sh --verify` reports which are missing. The commit stage is the cheap subset (fmt, loc, file hygiene, shellcheck, yamllint) — clippy is `stages: [manual]` (`pre-commit run --hook-stage manual --all-files`), and `commitlint` needs the **commit-msg** hook type, which plain `pre-commit install` does not create. Worktrees share the common hooks dir, so one install covers them all. `do-harness init` must never inject the skill-creator scripts or ignore `.agents/events/`. Steering loop, metrics events and the fired-sensor runbook: [`.agents/skills/harness/SKILL.md`](.agents/skills/harness/SKILL.md).
 
 ## Required Checks Before Commit
 
-- [ ] `./scripts/code-quality.sh fmt`
-- [ ] `./scripts/code-quality.sh clippy --workspace`
-- [ ] `./scripts/build-rust.sh check`
-- [ ] `cargo nextest run --all`
-- [ ] `cargo test --doc`
-- [ ] `cargo doc --no-deps --document-private-items`
-- [ ] `./scripts/quality-gates.sh`
-- [ ] `do-harness verify --record`
+- [ ] `do-harness verify --set feedback` (cheap edit-loop check during coding)
+- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
+- [ ] `do-harness status --set verification` (confirm green local evidence boundary)
 - [ ] `git status` — only intended changes staged
 
 ## PR Health Check

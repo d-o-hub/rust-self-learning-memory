@@ -20,9 +20,13 @@ coding).
   changes. Computational output strictly supersedes LLM self-assessment.
 
 ## Feedback Sensors
-| Sensor | Command | Stage |
-|--------|---------|-------|
-| verify | `do-harness verify` | pre-commit (subset) + pre-push + CI (full) |
+Pinned compatible harness version: `v0.1.0`. Signal sets defined in `do-harness.toml`:
+
+| Signal Set / Mode | Command | Stage |
+|-------------------|---------|-------|
+| feedback | `do-harness verify --set feedback` | cheap edit loop (`fmt`, `loc`, `check`) |
+| verification boundary | `do-harness verify --set verification --strict --record` | pre-completion contract (all quality gates) |
+| verification status | `do-harness status --set verification` | confirm green evidence boundary |
 | individual | `do-harness verify --only <name>` | targeted re-runs |
 
 Sensors are defined in `do-harness.toml`; run `do-harness list` to see them.

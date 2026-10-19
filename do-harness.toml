@@ -9,6 +9,24 @@ language = "rust"
 pre-commit = ["fmt", "loc"]
 pre-push = []
 
+[sets]
+feedback = ["fmt", "loc", "check"]
+verification = [
+  "fmt",
+  "check",
+  "clippy",
+  "loc",
+  "deny",
+  "docs",
+  "test",
+  "csm-feature",
+  "ignored-tests",
+  "lint-suppressions",
+  "yaml-frontmatter",
+  "storage-backend-capabilities",
+  "quality-gates",
+]
+
 [[sensors]]
 name = "fmt"
 argv = ["cargo", "fmt", "--all", "--", "--check"]
@@ -21,9 +39,34 @@ argv = ["cargo", "check", "--workspace"]
 name = "clippy"
 argv = ["bash", "scripts/code-quality.sh", "clippy", "--workspace"]
 
+# Normal unit + integration test suite. Matches CI test job selection:
+# excludes benches/examples/test-utils to keep runtime stable and uses profile ci.
 [[sensors]]
 name = "test"
-argv = ["cargo", "nextest", "run", "--all"]
+argv = [
+  "cargo",
+  "nextest",
+  "run",
+  "--profile",
+  "ci",
+  "--workspace",
+  "--exclude",
+  "do-memory-benches",
+  "--exclude",
+  "do-memory-examples",
+  "--exclude",
+  "do-memory-test-utils",
+]
+
+# Dedicated CSM feature test suite matching CI csm-tests job (issue #1045).
+[[sensors]]
+name = "csm-feature"
+argv = ["cargo", "nextest", "run", "--profile", "ci", "-p", "do-memory-core", "--features", "csm"]
+
+# Doctest execution and rustdoc build validation matching check-doctests.sh.
+[[sensors]]
+name = "docs"
+argv = ["bash", "scripts/check-doctests.sh"]
 
 [[sensors]]
 name = "deny"
@@ -32,3 +75,25 @@ argv = ["cargo", "deny", "check"]
 [[sensors]]
 name = "loc"
 argv = ["bash", "scripts/check-loc.sh"]
+
+[[sensors]]
+name = "ignored-tests"
+argv = ["bash", "scripts/check-ignored-tests.sh"]
+
+[[sensors]]
+name = "lint-suppressions"
+argv = ["bash", "scripts/check-lint-suppressions.sh"]
+
+[[sensors]]
+name = "yaml-frontmatter"
+argv = ["bash", "scripts/check-yaml-frontmatter.sh"]
+
+[[sensors]]
+name = "storage-backend-capabilities"
+argv = ["bash", "scripts/check-storage-backend-capabilities.sh", "--check"]
+
+# Quality gates runner. Sets QUALITY_GATE_SKIP_DOCTEST=true and QUALITY_GATE_SKIP_LOC=true
+# because doctest validation and LOC checks are executed by dedicated sensors 'docs' and 'loc'.
+[[sensors]]
+name = "quality-gates"
+argv = ["bash", "-c", "QUALITY_GATE_SKIP_DOCTEST=true QUALITY_GATE_SKIP_LOC=true scripts/quality-gates.sh"]

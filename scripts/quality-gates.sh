@@ -335,15 +335,19 @@ else
 fi
 
 # Blocking source file-size compliance gate
-if ! run_source_file_size_gate; then
-    echo ""
-    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
-    echo -e "${RED}│          ✗ Quality Gates FAILED                               │${NC}"
-    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
-    echo ""
-    echo "Review the output above to identify which gates failed."
-    echo "See docs/QUALITY_GATES.md for troubleshooting guidance."
-    exit 1
+if [ "${QUALITY_GATE_SKIP_LOC:-false}" != "true" ]; then
+  if ! run_source_file_size_gate; then
+      echo ""
+      echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+      echo -e "${RED}│          ✗ Quality Gates FAILED                               │${NC}"
+      echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+      echo ""
+      echo "Review the output above to identify which gates failed."
+      echo "See docs/QUALITY_GATES.md for troubleshooting guidance."
+      exit 1
+  fi
+else
+  echo -e "${YELLOW}Skipping source file size gate (${NC}QUALITY_GATE_SKIP_LOC=true${YELLOW}).${NC}"
 fi
 
 echo ""

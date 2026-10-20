@@ -1,16 +1,18 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-16
-- **Version**: workspace `0.1.46` (post-v0.1.45 bump, this PR) · latest tag `v0.1.45` (`8ee711bd`, GitHub Release published 2026-10-16)
-- **Branch**: `main` (`8ee711bd`) — no release branch; the post-release version bump is the next intentional PR
-- **Open PRs**: 10 open (run `gh pr list --state open`) — this plans+bump PR goes first (it clears critical drift),
-  then #1179 → #1177 → #1175 → #1180 (serial: `strict_required_status_checks_policy`), then tag `v0.1.46`
-- **Open issues**: 5 open (run `gh issue list --state open`: #1068, #1076, #1089, #1109, #1165)
+- **Last Updated**: 2026-10-20
+- **Version**: workspace `0.1.47` (post-v0.1.46 development bump, merged in #1193) · latest tag `v0.1.46` (`d85efb5c`, GitHub Release published 2026-10-18)
+- **Branch**: `main` (`7411a336`) — no release branch; the `0.1.47` release-prep PR is the next intentional PR
+- **Open PRs**: 2 open (run `gh pr list --state open`) — #1204 (release-gate CI event filtering, ADR-083) and
+  #1194 (LESSON-068…076). Merges are serial: `strict_required_status_checks_policy` puts every other branch
+  `BEHIND` and re-queues their required runs, so #1204 lands first and #1194 is refreshed onto the new `main`
+- **Open issues**: 2 open (run `gh issue list --state open`: #1109, #1200)
 - **Active plan**: **release closeout** — [`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
-  (publish stall, red nightly, drift gate); audit-backlog follow-ups #1068/#1076/#1089 remain queued behind it
+  (publish stall, red nightly, drift gate); ACT-405 (the release-gate event decision) is the last open action
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
-- **Release**: `v0.1.45` shipped — but **nothing reached crates.io** (newest `0.1.34`; `do-memory-mcp` `0.1.31`),
-  because the publish guard was false-green. Fix in #1179; the next tag (`v0.1.46`) is the only publish vehicle.
+- **Release**: `v0.1.46` shipped and **reached crates.io** (all four registered crates verified by version
+  membership, `http=200`) — the first release off the `0.1.34`/`0.1.31` stall, proving the #1179 guard fix
+  externally. The next tag is `v0.1.47`, gated on a release-prep PR.
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
 ---

@@ -1,22 +1,22 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-18
+**Last Updated**: 2026-10-20
 **Released Version**: v0.1.46 (tag `d85efb5c`, GitHub Release published 2026-10-18; the first release to reach crates.io since `0.1.34`)
-**Workspace Version**: 0.1.46 (equals the shipped tag; the next bump, `0.1.47`, is the post-release development PR)
+**Workspace Version**: 0.1.47 (the post-`v0.1.46` development bump, merged in #1193 — **ahead** of the shipped tag, so `verify-release-state.sh --check-unreleased` is *expected* to fail until a `0.1.47` release-prep PR lands)
 **Edition**: Rust 2024
 **Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the closeout is shipped: the
 false-green crates.io publish (#1179) is fixed and verified externally at `v0.1.46`, the red Turso nightly (#1180),
 the readiness-gate run ordering (#1177) and guardrail docs (#1175) are merged, and the `0.1.46` bump shipped.
-What remains: #1089 criterion 4 (the sync ordering assertion — the issue was closed with it unchecked), the
-changelog generator's duplicate-section defect (#1188), and follow-ups #1068 and #1076.
-**Branch**: `main` @ `d85efb5c`
+What remains: the `0.1.47` release-prep PR (CHANGELOG heading + version-doc flip), the crates.io registrations
+for `do-memory-cli`/`do-memory-examples`, and the upstream-blocked Dependabot register.
+**Branch**: `main` @ `7411a336`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | 4 open — #1189 (tag-selection fix + post-`v0.1.46` truth), #1190 (idempotent changelog generator, the replacement for #1188), #1188 (generator-produced changelog, **do not merge**: it duplicates the `## [0.1.46]` heading, see LESSON-066) and #1184 (redb/Turso revision merge, still red on the `conflict.rs` test-module layout). Next in order is the `0.1.47` bump PR, which is what clears `version_not_advanced` for all of them |
-| Open issues | 4 open (#1068, #1076, #1109, plus #1089 reopened on 2026-10-18 because criterion 4 — the sync ordering assertion — was never evidenced; criterion 3 is now proven by #1187 in `v0.1.46`). #1165 and the `release-drift` #1182 closed when `v0.1.46` was tagged |
+| Open PRs | 2 open — #1204 (release-gate CI event filtering, ADR-083) and #1194 (LESSON-068…076 from the release close-out). Both are in review; the rest of the queue merged (#1189, #1190, #1192, #1193, #1197, #1198, #1201, #1203). `gh pr list --state open` is the live source |
+| Open issues | 2 open (#1109, #1200 — the latter is the release-gate event-filtering issue that #1204 closes). #1068, #1076 and #1089 closed on 2026-10-19/20; #1182 and #1165 closed when `v0.1.46` was tagged |
 | Open Dependabot alerts | 12 (2 high, 2 medium, 8 low) = **6 advisories duplicated across `Cargo.lock` + `fuzz/Cargo.lock`**, all upstream-blocked (`rustls-webpki 0.102.8` via the libsql→rustls 0.22 chain, `lru <0.16.3` via `augurs-changepoint`/`agentfs-sdk`, unpatched `libsql-sqlite3-parser`). #1174 cleared `cargo audit`/`cargo deny`, **not** these — `libsql 0.10.0` would change none of them |
 
 ## Corrected claim (2026-10-04)
@@ -96,7 +96,7 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 | Area | State |
 |------|--------|
 | First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict up-to-date policy); the aggregate is causally same-run and rejects `skipped`/`cancelled`/timed-out results |
-| Repo-wide open issues | 4 (the authoritative count + list is the **Open issues** row under *Open tracker (live)* — keep it in that one place; this row carried a stale copy of it). Note on **#1182**: the canonical `release-drift` issue, filed and updated **in place** by the `maintain-issue` job at `release-drift.yml:98-149` — it closed itself at 2026-10-18 11:14:15Z once `v0.1.46` was tagged, which is the designed exit (`version_not_advanced` clears when the tag matches), never by hand |
+| Repo-wide open issues | the authoritative count + list is the **Open issues** row under *Open tracker (live)* — keep it in that one place; this row used to carry a stale copy of it. Note on **#1182**: the canonical `release-drift` issue, filed and updated **in place** by the `maintain-issue` job at `release-drift.yml:98-149` — it closed itself at 2026-10-18 11:14:15Z once `v0.1.46` was tagged, which is the designed exit (`version_not_advanced` clears when the tag matches), never by hand |
 | Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153, #1174, #1172, #1173, #1175, #1176, #1177, #1179, #1180, #1181, #1185, #1186, #1187 |
 | Production pattern query relevance | ✅ **#1074 merged in #1160** — pattern operations use one runtime provider snapshot |
 | `episodes.created_at` watermark | ✅ **#1067 merged in #1149** — durable modification watermark and bounded keyset pages |
@@ -111,17 +111,12 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Land the closeout PR **first** — it carries the `0.1.46` bump, which clears critical drift for the whole queue so no PR needs the `release-preparation` override | ACT-402 | 🔄 next |
-| P0 | Then merge the rest serially with full green CI (Codacy included, no waivers): #1179 → #1177 → #1175 → #1180 | ACT-399…401 | 🔄 |
-| P0 | Before the tag: the **release-prep PR** (CHANGELOG `## [0.1.46]` + version-doc flip) — `verify-release-state.sh --check-unreleased` currently reports 3 mismatches, which is `release-manager.sh` Phase 0 | ACT-412 | ⏳ |
-| P0 | Then cut tag `v0.1.46` and verify every crate the publish chain owns (core, redb, turso, mcp) resolves on crates.io | ACT-409 | ⏳ |
-| P0 | Next nightly run green (scheduled + dispatch), including the new feature-specific step | ACT-403 | ⏳ |
+| P0 | The **release-prep PR** for `0.1.47` (CHANGELOG `## [0.1.47]` heading + version-doc flip) — `verify-release-state.sh --check-unreleased` reports the ROADMAP/STATUS/CHANGELOG mismatches that `release-manager.sh` Phase 0 refuses on | ACT-412 | ⏳ |
+| P0 | Then cut tag `v0.1.47` and verify every crate the publish chain owns (core, redb, turso, mcp) resolves on crates.io | ACT-409 | ⏳ |
 | P1 | Dependabot register is **upstream-blocked, not a bump away**: wait for libsql to move to hyper 1.x (clears the 8 `rustls-webpki`), for `augurs-changepoint`/`agentfs-sdk` to pass `lru 0.16.3`, and for a `libsql-sqlite3-parser` patch; classify each alert as gated+ignored, informational-only, or Dependabot-only | ACT-404 | ⏳ blocked upstream |
-| P2 | Strip the auto-applied `release-preparation` label from the seven non-release PRs once the bump is on `main`; review parked #1171/#1172/#1176/#1178 with a tip-vs-merge-base diff before any merge | ACT-411 | ⏳ |
-| P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(…, ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ⏳ |
+| P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(…, ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ✅ schema/SQL sensor landed in #1201; LESSON/AGENTS entries in #1203 |
 | P2 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering) — hardening only, never weakened at ship time | ACT-405 | ✅ decision + ADR-083 — only `push`/`pull_request` gate; a tag-triggered nightly (a `push`) still gates |
-| P2 | Follow-up watermark sync improvements (#1068, #1089) | S09/M08 | ⏳ post-closeout |
-| P2 | Follow-up embedding reuse and batching (#1076) | R05 | ⏳ post-closeout |
+| P2 | Strip the auto-applied `release-preparation` label from the remaining non-release PRs; review any parked PR with a tip-vs-merge-base diff before merging | ACT-411 | 🔄 in progress — removed from #1194; #1204 never carried it |
 | P0 | ADR-079 stage 4 live fault-injection proof; ADR-080/081 lifecycle; #1109 crates.io registrations + secret deletion | maintainer | ⏸ external |
 | P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
 

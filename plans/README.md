@@ -3,8 +3,8 @@
 **Workspace**: `v0.1.47` · **Released tag**: `v0.1.46` (`d85efb5c`, GitHub Release 2026-10-18, all four registered crates published) · **Main baseline**: `7411a336`
 **Active plan**: **release closeout** — [GOAP_RELEASE_CLOSEOUT_2026-10-16.md](GOAP_RELEASE_CLOSEOUT_2026-10-16.md) (ACT-399…ACT-412: the stalled crates.io publish, the red Turso nightly, the drift gate). The audit-backlog wave [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) is closed — W1–W6, Q02 and all wave-A slices merged (#1130…#1161). Per-issue register: [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
 **Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage-floor reconciliation #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
-**Last Updated**: 2026-10-16
-**Open PRs**: run `gh pr list --state open` (17 on 2026-10-09) · **Open issues**: run `gh issue list --state open` (**16** — remaining audit backlog 1063/1064/1067/1068/1070/1071/1073/1074/1075/1076/1078/1085/1087/1089 + #1109 code-complete with manual crates.io steps + #1137 release drift)
+**Last Updated**: 2026-10-20
+**Open PRs**: run `gh pr list --state open` (**2** on 2026-10-20 — #1204, #1194) · **Open issues**: run `gh issue list --state open` (**2** on 2026-10-20 — #1109, code-complete with manual crates.io registration steps remaining, and #1200, the release-gate event-filtering issue that #1204 closes)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

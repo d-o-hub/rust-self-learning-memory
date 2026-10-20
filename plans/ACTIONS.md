@@ -1,9 +1,12 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-10-17
-- **Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). `v0.1.45` shipped
-  but published nothing to crates.io, and the Turso nightly has been red since 2026-10-13. The queue is serial and
-  starts with the closeout PR, which carries the `0.1.46` bump (ACT-402 → #1179 → #1177 → #1175 → #1180 → tag `v0.1.46`).
+- **Last Updated**: 2026-10-20
+- **Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). `v0.1.46` shipped
+  and **reached crates.io** (all four registered crates verified by version membership) — the first release off the
+  `0.1.34`/`0.1.31` stall, proving the #1179 publish-guard fix externally. The Turso nightly was repaired in #1180.
+  The only open actions are the `0.1.47` release-prep PR + tag (ACT-412, ACT-409), the upstream-blocked Dependabot
+  register (ACT-404) and the toolchain pin (ACT-410); ACT-405 (the release-gate event decision) is closed by
+  ADR-083 in #1204.
 - **Previous plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`; W1–W6, Q02 and the wave-A
   slices all merged (ACT-370…ACT-398 closed), including #1153 as `b6326d90`.
 - **Earlier plan**: release pipeline hardening (#1109) — **code complete**: C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125).
@@ -47,20 +50,20 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 
 | ID | Action | Rec | Depends on | Status |
 |----|--------|-----|-----------|--------|
-| ACT-399 | Merge #1179: publish guard `inputs.dry-run != 'true'`, in-job `Verify publish landed` crates.io poll, membership-shaped version check, gate-contract + publish-fixture sensors | #1109 (release) | ACT-402 | 🔄 in review `c36a874d` (main `791c01a3` merged 13:15Z) |
-| ACT-400 | Merge #1177: readiness gate counts the latest check run per name so superseded failures stop shadowing current ones | CI trust | after ACT-399 | 🔄 in review `826f5c7f` (main `791c01a3` merged) |
-| ACT-401 | Merge #1175 → #1180 **serially** (strict up-to-date invalidates the others on every merge) | guardrails/tests | after ACT-400 | 🔄 #1175 `7d8dac23`, #1180 `34774f4d` — heads move with every `main` merge, re-read with `gh pr view <n> --json headRefOid` |
-| ACT-402 | **`0.1.46` bump, landed in the closeout PR**: `Cargo.toml` + `Cargo.lock` + version references across the active plan set (template `b3d1b944`; the CHANGELOG heading moves at release time, not here). This is what makes the drift gate clean instead of overriding it | release | — | 🔄 in review — acceptance: `check-release-drift.sh` → `severity=clean` |
+| ACT-399 | Merge #1179: publish guard `inputs.dry-run != 'true'`, in-job `Verify publish landed` crates.io poll, membership-shaped version check, gate-contract + publish-fixture sensors | #1109 (release) | ACT-402 | ✅ merged (#1179) — the false-green publish is fixed and `v0.1.46` reached crates.io |
+| ACT-400 | Merge #1177: readiness gate counts the latest check run per name so superseded failures stop shadowing current ones | CI trust | after ACT-399 | ✅ merged (#1177) |
+| ACT-401 | Merge #1175 → #1180 **serially** (strict up-to-date invalidates the others on every merge) | guardrails/tests | after ACT-400 | ✅ merged (#1175, #1180) |
+| ACT-402 | **`0.1.46` bump, landed in the closeout PR**: `Cargo.toml` + `Cargo.lock` + version references across the active plan set (template `b3d1b944`; the CHANGELOG heading moves at release time, not here). This is what makes the drift gate clean instead of overriding it | release | — | ✅ merged (#1185) — `check-release-drift.sh` → `severity=clean`; the post-release `0.1.47` bump followed in #1193 |
 | ACT-403 | Next nightly green (schedule + dispatch) with the new `turso_multi_dimension` step reporting 20/20 | #1091 (Q02) | after #1180 merges | ⏳ |
 | ACT-404 | Dependabot register is **upstream-blocked**: 12 alerts = 6 advisories × 2 lockfiles (`Cargo.lock`, `fuzz/Cargo.lock`) — 8 `rustls-webpki 0.102.8` (2 high, via `libsql → hyper-rustls 0.25 → rustls 0.22.4`), 2 `lru <0.16.3` (via `augurs-changepoint 0.10.2` + `agentfs-sdk 0.6.4`, both newest), 2 `libsql-sqlite3-parser` (no patch). Do **not** open the `libsql 0.10.0` bump PR: 0.10.0 pulls the same chain (verified by `cargo tree` in a scratch crate) | Dependabot | — | ⏳ blocked upstream; re-test when libsql moves to hyper 1.x |
 | ACT-410 | Pin a dated `stable` for the advisory/lint gates so a floating toolchain cannot break compilation or invent deny lints between releases | toolchain | — (local hygiene) | ⏳ |
-| ACT-411 | Strip the auto-applied `release-preparation` label from #1171/#1172/#1175/#1176/#1177/#1179/#1180 once the bump is on `main`; review the parked #1171/#1172/#1176/#1178 on their own merits (tip-vs-merge-base diff first) | release drift | after ACT-402 | ⏳ |
+| ACT-411 | Strip the auto-applied `release-preparation` label from the non-release PRs once the bump is on `main`; review any parked PR on its own merits (tip-vs-merge-base diff first) | release drift | after ACT-402 | ⏳ |
 | ACT-405 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering). Hardening only — never weaken the gate at ship time | release | after ACT-403 | ✅ decision + ADR-083 — `schedule`/`workflow_dispatch` are advisory; `push`/`pull_request` gate (a tag-triggered nightly is a `push` and still gates) |
-| ACT-406 | New `validate-schema-sql.sh` sensor: columns referenced in hand-written SQL vs the DDL constants, wired next to `validate-gate-contract.sh` in `skill-evals.yml` | Turso (S03) | after #1180 merges | ⏳ |
+| ACT-406 | New `validate-schema-sql.sh` sensor: columns referenced in hand-written SQL vs the DDL constants, wired next to `validate-gate-contract.sh` in `skill-evals.yml` | Turso (S03) | after #1180 merges | ✅ merged (#1201) |
 | ACT-407 | LESSON + `AGENTS.md` trap entries: `required-features` vs `cfg_attr(…, ignore)` under `--run-ignored only`; asserts must print the `Err`; a step with `conclusion=skipped` in a green job is not evidence | Q02/Q03 | after #1175 merges (it owns both files) | ⏳ |
-| ACT-409 | **Cut tag `v0.1.46`** once ACT-399…ACT-401 **and ACT-412** land — the first tag that can publish, because the chain runs from the tag SHA | release | after ACT-399, ACT-401, ACT-412 | ⏳ acceptance: `index("0.1.46") != null` for core/redb/turso/mcp **and** `Verify publish landed` green |
-| ACT-412 | **Release-prep PR before the tag**: `CHANGELOG.md` `## [0.1.46]` section + the `Released Version`/version-doc flip, because `release-manager.sh` Phase 0 runs `verify-release-state.sh --check-unreleased`, which today reports 3 mismatches (`ROADMAP_ACTIVE says v0.1.45`, `CURRENT references v0.1.45`, `CHANGELOG missing entry for v0.1.46`) and would refuse to ship. Also install `parse-changelog-cli` so the local check uses the parser `release.yml` uses | release | after ACT-401 (#1180) | ⏳ this is the PR that legitimately carries `release-preparation` |
-| ACT-408 | Close #1165 with the release evidence; re-queue #1068/#1089/#1076 behind the closeout | release drift | after ACT-409 | ⏳ |
+| ACT-409 | **Cut tag `v0.1.46`** once ACT-399…ACT-401 **and ACT-412** land — the first tag that can publish, because the chain runs from the tag SHA | release | after ACT-399, ACT-401, ACT-412 | ✅ done — tag `v0.1.46` (`d85efb5c`); `index("0.1.46") != null` for core/redb/turso/mcp, all four published |
+| ACT-412 | **Release-prep PR before the tag**: `CHANGELOG.md` `## [0.1.46]` section + the `Released Version`/version-doc flip, because `release-manager.sh` Phase 0 runs `verify-release-state.sh --check-unreleased`. Also install `parse-changelog-cli` so the local check uses the parser `release.yml` uses | release | after ACT-401 (#1180) | ✅ merged for `0.1.46` (#1185) — the `0.1.47` release-prep PR is still open (the workspace is at `0.1.47` and the docs still name `0.1.46`) |
+| ACT-408 | Close #1165 with the release evidence; re-queue #1068/#1089/#1076 behind the closeout | release drift | after ACT-409 | ✅ done — #1165, #1068, #1089 and #1076 all closed 2026-10-19/20 |
 
 ## Queued actions (2026-10-04 — validated backlog, sequenced)
 

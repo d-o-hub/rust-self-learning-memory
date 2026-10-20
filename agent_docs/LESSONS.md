@@ -1646,38 +1646,50 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   "If your repository has a Codacy configuration file, the *Ignored files* settings
   defined on the Codacy UI don't apply" — so adding one silently **disables** the
   UI ignore list repo-wide.
-  (2) **the diagnosis was wrong.** The 11-digit GitHub Actions run IDs are not the
+  (2) **the diagnosis was wrong twice.** The 11-digit GitHub Actions run IDs are not the
   trigger: `main` carries 72 standalone 11-digit numbers (80 including `fuzz/`),
   including 10 lines that pair one ID with an `HH:MM:SS` timestamp, and Codacy is
-  green on all of them.
-  (3) **the real trigger is two IDs on one line.** Scanning `main` for lines with two
-  standalone 11-digit numbers within 200 characters finds 3 — all in `plans/`, none
-  in a file this PR touched — while the flagged `AGENTS.md:94` had both run IDs
-  **57 characters apart** (`39222134818` … `39224885643`). That is what the phone
-  detector reads as a number: the same 11 digits, twice, close together.
+  green on all of them. Two IDs close together on one line are not the trigger
+  either: `main` has 3 such lines, all in `plans/`, none in a file this PR touched.
+  The first hypothesis ("two IDs, 57 characters apart") was **tested and rejected** —
+  after separating the IDs the finding persisted.
+  (3) **the real trigger is timestamp density.** The flagged `AGENTS.md:94` carried
+  **five** `HH:MM:SS` timestamps, three of them within 69 characters. The same
+  bullet on the last green commit carried **two**, 36 characters apart. A scan of
+  every Markdown file on `main` finds **zero** lines with three timestamps within 80
+  characters, and exactly one elsewhere — a JSON sample of ISO timestamps, which
+  Codacy has never flagged. So the detector reads a dense cluster of digit-group
+  timestamps as a phone number, and the digit runs that look like IDs are a red
+  herring.
 - Detection: before silencing a PII finding, find the *minimal* pattern that
   distinguishes the flagged line from every unflagged one, in the same file and in
-  `main`:
+  `main` — and **test the hypothesis by changing the file and re-running the
+  analyzer**, because the obvious candidate can be wrong:
 
   ```
-  # standalone 10-11 digit runs on one line, and how far apart they are
+  # count the digit-group timestamps on the flagged line and their spans
   python3 - <<'PY'
   import re
   line = open('AGENTS.md').read().split('\n')[93]
-  ids = list(re.finditer(r'(?<![\w-])[0-9]{10,11}(?![\w-])', line))
-  print(len(ids), ids[1].start() - ids[0].end() if len(ids) > 1 else None)
+  ts = list(re.finditer(r'\d{2}:\d{2}:\d{2}', line))
+  print([m.group() for m in ts])
+  for i in range(len(ts) - 2):
+      print('span', ts[i+2].end() - ts[i].start())
   PY
   ```
 
-  The answer was "two IDs, 57 characters apart", which is why the fix is to name one
-  of them differently (by its run *number*) rather than to remove both.
-- Fix/prevention: keep the digits apart in the prose — quote one run by its API id and
-  the other by its run number — and do **not** add a `.codacy.yml` to silence a
-  documentation finding. If a Codacy config file is ever needed, use `exclude_paths`
-  with the `---` header, exclude the narrowest path, and prove the context flips
-  back to `success` before claiming it works. Note also that Codacy always uses the
-  config file **in the default branch**, so a PR-only config never silently changes
-  the default-branch analysis.
+  The answer was "five timestamps, three within 69 characters", against a green
+  baseline of two. The fix is therefore to **thin the timestamps out** — quote the
+  per-second detail in `agent_docs/LESSONS.md`, where each timestamp sits on its own
+  line, and keep the summary bullet to the two that carry the argument.
+- Fix/prevention: thin the timestamps out in the prose — keep the summary bullet to the
+  two that carry the argument, and put the per-second detail in `agent_docs/LESSONS.md`,
+  where each timestamp sits on its own line — and do **not** add a `.codacy.yml` to
+  silence a documentation finding. If a Codacy config file is ever needed, use
+  `exclude_paths` with the `---` header, exclude the narrowest path, and prove the
+  context flips back to `success` before claiming it works. Note also that Codacy
+  always uses the config file **in the default branch**, so a PR-only config never
+  silently changes the default-branch analysis.
 - References: PR #1194 (heads `31f6265f` green → `76e588b2` red), Codacy check runs
   `117960009097` (success) / `117980639748` (action_required),
   <https://docs.codacy.com/repositories-configure/codacy-configuration-file>,

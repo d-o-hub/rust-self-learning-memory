@@ -81,6 +81,15 @@ jobs:
       - name: Gate contract (CI parity)
         run: ./scripts/validate-gate-contract.sh --ci-parity
 
+      - name: Schema/SQL column contract (ACT-406)
+        # Hand-written INSERT column lists must exist in the Turso CREATE TABLE
+        # DDL. Cargo-free; a self-test proves the check is load-bearing before
+        # the real crate is scanned (the v0.1.45 nightly-red class of bug).
+        run: |
+          chmod +x scripts/validate-schema-sql.sh
+          ./scripts/validate-schema-sql.sh --self-test
+          ./scripts/validate-schema-sql.sh
+
       - name: Release/publish workflow fixtures (W2.4)
         # cargo-free; asserts tag-only release authority (no workflow_dispatch)
         # and publish truth: --locked, bounded propagation polling, and
@@ -116,6 +125,8 @@ jobs:
             echo "| test-workflow-guards --required-aggregate | always |"
             echo "| validate-gate-contract | always |"
             echo "| validate-gate-contract --ci-parity | always |"
+            echo "| validate-schema-sql --self-test | always |"
+            echo "| validate-schema-sql | always |"
             echo "| test-release-workflow --publish-fixtures | always |"
             echo "| run-evals --fixtures | always |"
             echo "| run-evals --changed | pull_request |"

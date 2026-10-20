@@ -57,6 +57,7 @@ merge-required** by the ruleset.
 | Skill evals | `./scripts/run-evals.sh` | fixtures recommended before skill PRs | Skill Evals runs fixtures always, changed on PR, full on schedule/dispatch | No | all skills strict schema | `.github/workflows/skill-evals.yml` + `./scripts/run-evals.sh --fixtures` |
 | Release cadence | `./scripts/check-release-drift.sh` | warning@20 / critical@30 | Release Drift Check | No | tag before hard limit | release-drift workflow |
 | Gate contract integrity | `./scripts/validate-gate-contract.sh` | required when editing gates | Skill Evals runs default + `--ci-parity`; parity checks same-run fast-gate commands, aggregate needs set, evaluator, and absence of waiter/anchor topology | No | semantic matrix ↔ scripts ↔ workflows ↔ ruleset alignment | `./scripts/validate-gate-contract.sh --ci-parity` |
+| Schema/SQL column contract | `./scripts/validate-schema-sql.sh` (ACT-406) | hand-written INSERT columns must exist in the Turso `CREATE TABLE` DDL | Skill Evals runs `--self-test` then the real crate scan (cargo-free, always) | No | catch nightly-red column drift pre-merge | `.github/workflows/skill-evals.yml` + `./scripts/validate-schema-sql.sh` |
 
 ### Coverage truth (explicit)
 
@@ -83,6 +84,7 @@ merge-required** by the ruleset.
 | full skill suite | `./scripts/run-evals.sh` | Skill Evals on `schedule` / `workflow_dispatch` |
 | release drift | `./scripts/check-release-drift.sh` | `release-drift.yml` |
 | gate contract | `./scripts/validate-gate-contract.sh` | Skill Evals job (default + `--ci-parity`) |
+| schema/SQL columns | `./scripts/validate-schema-sql.sh` | Skill Evals job (`--self-test` + real scan), always |
 
 `./scripts/validate-gate-contract.sh` fails if this matrix file is missing required sections or if default coverage floor in `quality-gates.sh` disagrees with the **Blocking floor (local)** cell above.
 

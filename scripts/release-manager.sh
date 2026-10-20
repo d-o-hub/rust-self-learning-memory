@@ -169,12 +169,12 @@ do_ci_check() {
 
   # ADR-083: only push/pull_request runs are evidence about this commit's CI.
   # Runs triggered by other events (issues, dynamic/CodeQL, …) are listed for
-  # visibility but never decide the verdict.
-  local gate_json advisory_json total pending failed advisory_count
-  gate_json=$(printf '%s' "$runs_json" | jq -c '[ .[] | select(
-      .event == "push" or .event == "pull_request" ) ]')
-  advisory_json=$(printf '%s' "$advisory_runs_json" | jq -c '[ .[] | select(
-      .event == "schedule" or .event == "workflow_dispatch" ) ]')
+  # visibility but never decide the verdict. The class membership comes from
+  # the shared library, so the gate's filter cannot drift from the rule.
+  local gate_json advisory_json other_json total pending failed advisory_count
+  gate_json=$(release_gate_select_runs "$runs_json" gating)
+  advisory_json=$(release_gate_select_runs "$advisory_runs_json" advisory)
+  other_json=$(release_gate_other_runs "$runs_json")
 
   total=$(release_gate_gating_total "$gate_json")
   pending=$(release_gate_gating_pending "$gate_json")
@@ -187,15 +187,10 @@ do_ci_check() {
   # Non-CI runs on the same SHA (CodeQL analyses, issue-triggered workflows).
   # They are reported so nothing is hidden, but they are not this commit's CI.
   local other_count
-  other_count=$(printf '%s' "$runs_json" | jq '[ .[] | select(
-      .event != "push" and .event != "pull_request" and
-      .event != "schedule" and .event != "workflow_dispatch" ) ] | length')
+  other_count=$(release_gate_gating_total "$other_json")
   if [[ "$other_count" -gt 0 ]]; then
     echo "  other runs on HEAD (not CI evidence, non-blocking):"
-    printf '%s' "$runs_json" | jq -r '.[] | select(
-        .event != "push" and .event != "pull_request" and
-        .event != "schedule" and .event != "workflow_dispatch" ) |
-        "    \(.status)/\(.conclusion // "-")  \(.name) [\(.event)]"' 2>/dev/null || true
+    echo "$other_json" | jq -r '.[] | "    \(.status)/\(.conclusion // "-")  \(.name) [\(.event)]"' 2>/dev/null || true
   fi
 
   if [[ "$advisory_count" -gt 0 ]]; then
@@ -242,12 +237,11 @@ do_status() {
     head=$(git rev-parse origin/main)
     runs_json=$(gh run list --branch main --commit "$head" --limit 100 \
       --json status,conclusion,name,event 2>/dev/null || echo '[]')
-    gate_json=$(printf '%s' "$runs_json" | jq -c '[ .[] | select(
-        .event == "push" or .event == "pull_request" ) ]')
+    gate_json=$(release_gate_select_runs "$runs_json" gating)
     pending=$(release_gate_gating_pending "$gate_json")
     failed=$(release_gate_gating_failures "$gate_json")
-    advisory_count=$(printf '%s' "$runs_json" | jq '[ .[] | select(
-        .event == "schedule" or .event == "workflow_dispatch" ) ] | length')
+    advisory_count=$(release_gate_gating_total \
+      "$(release_gate_select_runs "$runs_json" advisory)")
     echo "  main CI pending:    $pending (gating)"
     echo "  main CI failed:     $failed (gating)"
     # ADR-083: advisory runs stay visible so nothing is hidden by the filter.

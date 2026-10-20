@@ -775,6 +775,12 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   noise cannot consume the `--limit` window and hide the real `CI` run, and
   `scripts/test-release-workflow.sh` drives the real `do_ci_check` against a stubbed `gh`.
   A tag-triggered nightly is a `push` event and therefore **still gates** a release.
+  The event names are written down **once**, in the library's arrays: an earlier version
+  kept the classification in the library but still selected runs in `release-manager.sh`
+  with its own `select(.event == "push" or …)`, and dropping `pull_request` from that
+  inline copy left every fixture **green** — the fixture exercised the library while the
+  gate implemented something else, and no test could see the disagreement. The gate now
+  calls `release_gate_select_runs`, and the fixture fails if the gate inlines the names.
 - References: `scripts/release-manager.sh`, `scripts/lib/release-gate-events.sh`,
   `.github/workflows/nightly-tests.yml`, ADR-027, ADR-083.
 

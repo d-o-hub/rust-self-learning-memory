@@ -106,6 +106,14 @@ check_ci_check_event_filtering() {
   #     use it — otherwise the test below would only re-implement the logic.
   rg -q 'release-gate-events\.sh' "$rm" || fail "release-manager.sh must source scripts/lib/release-gate-events.sh"
   rg -q 'release_gate_gating_failures' "$rm" || fail "release-manager.sh must use the shared gate helpers"
+  # The event classes must come from the library, not from a second copy of the
+  # event names in a jq expression: two copies can disagree, and the fixture
+  # below would then test a rule the gate does not implement.
+  rg -q 'release_gate_select_runs' "$rm" \
+    || fail "release-manager.sh must select gating runs with release_gate_select_runs"
+  if rg -q '\.event == "push"' "$rm"; then
+    fail "release-manager.sh must not inline the event names; use release_gate_select_runs"
+  fi
 
   # (3) The library must classify events exactly as ADR-083 states:
   #     push/pull_request gate; schedule/workflow_dispatch are advisory.
@@ -198,6 +206,16 @@ STUB
     {"name":"Push on main","status":"completed","conclusion":"failure","event":"dynamic"}
   ]'
   [[ "$CI_CHECK_RC" -eq 0 ]] || fail "a dynamic (CodeQL) run must not block the release gate (rc=$CI_CHECK_RC): $CI_CHECK_OUT"
+
+  # (g) a red pull_request run is a gating failure: both gating events must
+  #     count. Without this case the fixture cannot tell "only push gates"
+  #     from "push and pull_request gate" — the gate and the library would
+  #     have to disagree for the fixture to notice.
+  run_ci_check '[
+    {"name":"CI","status":"completed","conclusion":"success","event":"push"},
+    {"name":"CI (PR)","status":"completed","conclusion":"failure","event":"pull_request"}
+  ]'
+  [[ "$CI_CHECK_RC" -ne 0 ]] || fail "a red pull_request run must block the gate: $CI_CHECK_OUT"
 
   rm -rf "$lib_dir"
   echo "OK: ci-check event filtering fixtures"

@@ -65,3 +65,43 @@ release_gate_gating_pending() {
 release_gate_gating_total() {
   printf '%s' "$1" | jq 'length'
 }
+
+# release_gate_event_list CLASS -> a JSON array of the events in that class.
+# The arrays above are the only place the event names are written down.
+release_gate_event_list() {
+  local class="$1" candidate
+  local -a events=()
+  case "$class" in
+    gating) events=("${RELEASE_GATE_GATING_EVENTS[@]}") ;;
+    advisory) events=("${RELEASE_GATE_ADVISORY_EVENTS[@]}") ;;
+    *) echo "release_gate_event_list: unknown class '$class'" >&2; return 1 ;;
+  esac
+  local out='['
+  for candidate in "${events[@]}"; do
+    [[ "$out" == '[' ]] || out+=','
+    out+="$(jq -c -n --arg e "$candidate" '$e')"
+  done
+  printf '%s]' "$out"
+}
+
+# release_gate_select_runs RUNS_JSON CLASS -> the subset of runs whose event
+# belongs to CLASS ("gating" or "advisory"). The selector is built from the
+# arrays above, never from a copied event list: a second copy of the event
+# names is a second source of truth, and no test can catch the two
+# disagreeing.
+release_gate_select_runs() {
+  local runs_json="$1" class="$2"
+  printf '%s' "$runs_json" | jq -c --argjson list "$(release_gate_event_list "$class")" '
+    [ .[] | select(.event as $e | $list | index($e)) ]'
+}
+
+# release_gate_other_runs RUNS_JSON -> the runs of every other event. They are
+# reported for visibility but never decide the verdict.
+release_gate_other_runs() {
+  local runs_json="$1"
+  printf '%s' "$runs_json" | jq -c \
+    --argjson gating "$(release_gate_event_list gating)" \
+    --argjson advisory "$(release_gate_event_list advisory)" '
+    [ .[] | select((.event as $e | $gating | index($e)) | not)
+          | select((.event as $e | $advisory | index($e)) | not) ]'
+}

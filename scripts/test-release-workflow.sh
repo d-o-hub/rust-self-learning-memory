@@ -95,7 +95,12 @@ check_ci_check_event_filtering() {
   [[ -f "$lib" ]] || fail "missing $lib"
 
   # (1) release-manager.sh must fetch event in gh run list
-  rg -q 'gh run list' "$rm" && rg -q '\--json.*event' "$rm" || fail "release-manager.sh must include event in gh run list --json"
+  if ! rg -q 'gh run list' "$rm"; then
+    fail "release-manager.sh must query workflow runs"
+  fi
+  if ! rg -q '\--json.*event' "$rm"; then
+    fail "release-manager.sh must include event in gh run list --json"
+  fi
 
   # (2) The classification must live in the shared library, and the gate must
   #     use it — otherwise the test below would only re-implement the logic.

@@ -23,7 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a red or pending push run must. Gating and advisory runs are queried
   separately, server-side, so advisory noise cannot consume the result limit
   and hide the real `CI` run. A tag-triggered nightly is a `push` event and
-  still gates a release.
+  still gates a release. The event names are written down once, in the
+  library's arrays: an inline copy in `release-manager.sh` is a second source
+  of truth, and no fixture can catch the two disagreeing — measured, dropping
+  `pull_request` from such a copy left every fixture green.
 
 - The release changelog generator no longer rewrites published history
   (#1186). Every `chore/update-changelog` PR from v0.1.41 to v0.1.45 had to be

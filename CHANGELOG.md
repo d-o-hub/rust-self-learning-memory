@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CI/CD
 
+- The release gate now distinguishes the runs that prove a commit is green from
+  the runs that merely happen to sit on the same SHA (ADR-083, #1200).
+  `release-manager.sh ci-check` counted every completed non-success run on
+  `origin/main` HEAD, so an always-red scheduled nightly held a release whose
+  own push CI was green — the defect recorded in LESSON-051. Only `push` and
+  `pull_request` runs gate a release now; `schedule` and `workflow_dispatch`
+  runs are advisory and are still reported, never silently dropped. The
+  classification is an allowlist (a newly-introduced event type does not
+  silently become gating) and lives in `scripts/lib/release-gate-events.sh`,
+  which `scripts/test-release-workflow.sh` exercises through the real
+  `do_ci_check` against a stubbed `gh`: a red scheduled run must not block, and
+  a red or pending push run must. Gating and advisory runs are queried
+  separately, server-side, so advisory noise cannot consume the result limit
+  and hide the real `CI` run. A tag-triggered nightly is a `push` event and
+  still gates a release.
+
 - The release changelog generator no longer rewrites published history
   (#1186). Every `chore/update-changelog` PR from v0.1.41 to v0.1.45 had to be
   closed unmerged because its output re-rendered already-published sections —

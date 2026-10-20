@@ -97,6 +97,11 @@ done
 
 cd "$PROJECT_ROOT"
 
+# ADR-083: the run classification lives in a sourceable library so the
+# release gate and its test share one implementation (a copy test cannot fail).
+# shellcheck source=scripts/lib/release-gate-events.sh
+source "$PROJECT_ROOT/scripts/lib/release-gate-events.sh"
+
 run_cmd() {
   local cmd="$1"
   if [[ "$DRY_RUN" == "true" ]]; then
@@ -152,26 +157,54 @@ do_ci_check() {
   head=$(git rev-parse origin/main)
   echo "  origin/main: $(git rev-parse --short "$head")"
 
-  local runs_json
-  runs_json=$(gh run list --branch main --commit "$head" --limit 30 \
-    --json status,conclusion,name,databaseId 2>/dev/null || echo '[]')
+  # Query gating and advisory runs separately, server-side: filtering after a
+  # single --limit would let advisory noise consume the limit and silently
+  # drop the real CI run (a fail-open gate).
+  local runs_json advisory_runs_json
+  runs_json=$(gh run list --branch main --commit "$head" --limit 100 \
+    --json status,conclusion,name,event 2>/dev/null || echo '[]')
+  advisory_runs_json=$(gh run list --branch main --commit "$head" --limit 100 \
+    --json status,conclusion,name,event --event schedule --event workflow_dispatch \
+    2>/dev/null || echo '[]')
 
-  local total pending failed
-  total=$(echo "$runs_json" | jq 'length')
-  pending=$(echo "$runs_json" | jq '[.[] | select(.status != "completed")] | length')
-  failed=$(echo "$runs_json" | jq '[.[] | select(
-      .status == "completed" and
-      (.conclusion != "success") and
-      (.conclusion != "skipped") and
-      (.conclusion != "neutral") and
-      (.conclusion != null)
-    )] | length')
+  # ADR-083: only push/pull_request runs are evidence about this commit's CI.
+  # Runs triggered by other events (issues, dynamic/CodeQL, …) are listed for
+  # visibility but never decide the verdict.
+  local gate_json advisory_json total pending failed advisory_count
+  gate_json=$(printf '%s' "$runs_json" | jq -c '[ .[] | select(
+      .event == "push" or .event == "pull_request" ) ]')
+  advisory_json=$(printf '%s' "$advisory_runs_json" | jq -c '[ .[] | select(
+      .event == "schedule" or .event == "workflow_dispatch" ) ]')
 
-  echo "  workflow runs on HEAD: total=$total pending=$pending failed=$failed"
-  echo "$runs_json" | jq -r '.[] | "    \(.status)/\(.conclusion // "-")  \(.name)"' 2>/dev/null || true
+  total=$(release_gate_gating_total "$gate_json")
+  pending=$(release_gate_gating_pending "$gate_json")
+  failed=$(release_gate_gating_failures "$gate_json")
+  advisory_count=$(release_gate_gating_total "$advisory_json")
+
+  echo "  gating workflow runs on HEAD (push/pull_request): total=$total pending=$pending failed=$failed"
+  echo "$gate_json" | jq -r '.[] | "    \(.status)/\(.conclusion // "-")  \(.name) [\(.event)]"' 2>/dev/null || true
+
+  # Non-CI runs on the same SHA (CodeQL analyses, issue-triggered workflows).
+  # They are reported so nothing is hidden, but they are not this commit's CI.
+  local other_count
+  other_count=$(printf '%s' "$runs_json" | jq '[ .[] | select(
+      .event != "push" and .event != "pull_request" and
+      .event != "schedule" and .event != "workflow_dispatch" ) ] | length')
+  if [[ "$other_count" -gt 0 ]]; then
+    echo "  other runs on HEAD (not CI evidence, non-blocking):"
+    printf '%s' "$runs_json" | jq -r '.[] | select(
+        .event != "push" and .event != "pull_request" and
+        .event != "schedule" and .event != "workflow_dispatch" ) |
+        "    \(.status)/\(.conclusion // "-")  \(.name) [\(.event)]"' 2>/dev/null || true
+  fi
+
+  if [[ "$advisory_count" -gt 0 ]]; then
+    echo "  advisory workflow runs on HEAD (schedule/workflow_dispatch — non-blocking):"
+    echo "$advisory_json" | jq -r '.[] | "    \(.status)/\(.conclusion // "-")  \(.name) [\(.event)]"' 2>/dev/null || true
+  fi
 
   if [[ "$total" -eq 0 ]]; then
-    echo "  ❌ No GitHub Actions runs found for origin/main HEAD yet" >&2
+    echo "  ❌ No push/pull_request GitHub Actions runs found for origin/main HEAD yet" >&2
     echo "     Wait for push-triggered CI, then re-run." >&2
     exit 1
   fi
@@ -205,20 +238,20 @@ do_status() {
     echo "  worktree:           clean"
   fi
   if command -v gh >/dev/null 2>&1 && git rev-parse origin/main >/dev/null 2>&1; then
-    local head runs_json pending failed
+    local head runs_json gate_json pending failed advisory_count
     head=$(git rev-parse origin/main)
-    runs_json=$(gh run list --branch main --commit "$head" --limit 20 \
-      --json status,conclusion,name 2>/dev/null || echo '[]')
-    pending=$(echo "$runs_json" | jq '[.[] | select(.status != "completed")] | length')
-    failed=$(echo "$runs_json" | jq '[.[] | select(
-        .status == "completed" and
-        (.conclusion != "success") and
-        (.conclusion != "skipped") and
-        (.conclusion != "neutral") and
-        (.conclusion != null)
-      )] | length')
-    echo "  main CI pending:    $pending"
-    echo "  main CI failed:     $failed"
+    runs_json=$(gh run list --branch main --commit "$head" --limit 100 \
+      --json status,conclusion,name,event 2>/dev/null || echo '[]')
+    gate_json=$(printf '%s' "$runs_json" | jq -c '[ .[] | select(
+        .event == "push" or .event == "pull_request" ) ]')
+    pending=$(release_gate_gating_pending "$gate_json")
+    failed=$(release_gate_gating_failures "$gate_json")
+    advisory_count=$(printf '%s' "$runs_json" | jq '[ .[] | select(
+        .event == "schedule" or .event == "workflow_dispatch" ) ] | length')
+    echo "  main CI pending:    $pending (gating)"
+    echo "  main CI failed:     $failed (gating)"
+    # ADR-083: advisory runs stay visible so nothing is hidden by the filter.
+    echo "  advisory runs:      $advisory_count (schedule/workflow_dispatch — non-blocking)"
   fi
   echo ""
   echo "Ship when version docs match and main CI is green:"

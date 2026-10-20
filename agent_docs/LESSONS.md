@@ -767,7 +767,16 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   inside the window, not to weaken `ci-check`. The durable fix — filter on
   `.event`, or allowlist per-event failures with a tracked issue — needs an
   explicit decision first; do not silently exclude schedule runs.
-- References: `scripts/release-manager.sh`, `.github/workflows/nightly-tests.yml`, ADR-027.
+- Resolution (2026-10-20, ADR-083, PR #1204): the explicit decision is now made —
+  `schedule` and `workflow_dispatch` runs are **advisory** for release gating, and only
+  `push`/`pull_request` runs gate a release. `do_ci_check` classifies runs through
+  `scripts/lib/release-gate-events.sh` (an allowlist, so a newly-introduced event type does
+  not silently become gating), queries gating and advisory runs **separately** so advisory
+  noise cannot consume the `--limit` window and hide the real `CI` run, and
+  `scripts/test-release-workflow.sh` drives the real `do_ci_check` against a stubbed `gh`.
+  A tag-triggered nightly is a `push` event and therefore **still gates** a release.
+- References: `scripts/release-manager.sh`, `scripts/lib/release-gate-events.sh`,
+  `.github/workflows/nightly-tests.yml`, ADR-027, ADR-083.
 
 ## LESSON-052: `statusCheckRollup` keeps superseded runs, so a label toggle fakes a CI failure (2026-10-15)
 

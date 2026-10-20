@@ -1,7 +1,7 @@
-# Codebase Analysis Latest — 2026-10-02 (Architecture & Status Refresh)
+# Codebase Analysis Latest — 2026-10-20 (Architecture & Status Refresh)
 
-**Branch**: `main` @ `4f4f4ba8d06a82429a2e539c65c3cb37624291e9`
-**Workspace Version**: `0.1.46` · **Released Tag**: `v0.1.45` (tagged 2026-10-16)
+**Branch**: `main` @ `7411a33644cd59b9d796ebd349bd50969e4237a9`
+**Workspace Version**: `0.1.47` · **Released Tag**: `v0.1.46` (tagged 2026-10-18)
 **Active Track**: Architecture, status, and serialization evidence synchronization (DOC02)
 
 ## Architecture (as implemented)
@@ -21,7 +21,7 @@
 
 | Check | Result |
 |-------|--------|
-| Workspace crates | 9 crates, all synchronized at version `0.1.46` |
+| Workspace crates | 9 crates, all synchronized at version `0.1.47` |
 | Code execution | `execute_agent_code` is fail-closed (no production Wasmtime sandbox) |
 | Serialization | Postcard in production (`do-memory-storage-redb`) |
 | Validation harness | `./scripts/validate-plans.sh --all` exit 0 |

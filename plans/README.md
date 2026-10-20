@@ -47,6 +47,9 @@ and [ADR-081 attribution capability truth & feedback resolution](adr/ADR-081-Att
 [ADR-079 fail-closed CI control plane](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md) is **Accepted** — stage 3 live
 (ruleset `9591004` requires `CI / Required`), stage 5 cleanup merged in #947 (2026-08-12),
 stage 4 live fault-injection proof remains external maintainer evidence.
+[ADR-083 release-gate CI event filtering](adr/ADR-083-Release-Gate-CI-Check-Event-Filtering.md) is **Accepted** —
+only `push`/`pull_request` runs gate a release; `schedule`/`workflow_dispatch` runs are advisory
+(LESSON-051's durable fix, ACT-405).
 
 ## Spikes
 

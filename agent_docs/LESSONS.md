@@ -1631,7 +1631,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `memory-storage-turso/src/storage/episodes/query.rs:197`, LESSON-060 (triage sources that lie),
   LESSON-066 (the same gap, recorded as open).
 
-## LESSON-076: a required analyzer's PII finding on CI run IDs is fixed by separating the digits, not by excluding the files (2026-10-20)
+## LESSON-076: a required analyzer's PII finding on a CI run id is fixed by naming the run, not by excluding the files (2026-10-20)
 
 - Issue: the required `Codacy Static Code Analysis` context sat at `action_required` on
   this PR with one annotation: `Potential PII: phone number pattern found` at
@@ -1646,46 +1646,42 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   "If your repository has a Codacy configuration file, the *Ignored files* settings
   defined on the Codacy UI don't apply" — so adding one silently **disables** the
   UI ignore list repo-wide.
-  (2) **the diagnosis was wrong twice.** The 11-digit GitHub Actions run IDs are not the
-  trigger: `main` carries 72 standalone 11-digit numbers (80 including `fuzz/`),
-  including 10 lines that pair one ID with an `HH:MM:SS` timestamp, and Codacy is
-  green on all of them. Two IDs close together on one line are not the trigger
-  either: `main` has 3 such lines, all in `plans/`, none in a file this PR touched.
-  The first hypothesis ("two IDs, 57 characters apart") was **tested and rejected** —
-  after separating the IDs the finding persisted.
-  (3) **the real trigger is timestamp density.** The flagged `AGENTS.md:94` carried
-  **five** `HH:MM:SS` timestamps, three of them within 69 characters. The same
-  bullet on the last green commit carried **two**, 36 characters apart. A scan of
-  every Markdown file on `main` finds **zero** lines with three timestamps within 80
-  characters, and exactly one elsewhere — a JSON sample of ISO timestamps, which
-  Codacy has never flagged. So the detector reads a dense cluster of digit-group
-  timestamps as a phone number, and the digit runs that look like IDs are a red
-  herring.
+  (2) **the first two diagnoses were both wrong, and both were testable.** The
+  hypothesis "two run IDs 57 characters apart" was **tested and rejected** — after
+  separating the IDs the finding persisted. The replacement hypothesis "a dense
+  cluster of `HH:MM:SS` timestamps" was **also tested and rejected** — after
+  thinning the timestamps from five to two the finding still persisted. Both
+  hypotheses were plausible, neither was the cause.
+  (3) **the real trigger is a bare 10–15 digit run in `AGENTS.md`.** The green head
+  `31f6265f` has **zero** lines with a 10–15 digit run in `AGENTS.md`; both red
+  heads have exactly **one** — the GitHub Actions run id on the flagged bullet.
+  `agent_docs/LESSONS.md` on the *same* green head already carries 9 such ids and
+  is not flagged, so the detector is not a general "11 digits" rule either: the
+  finding is reported for the **changed file**, and the run id in `AGENTS.md` is
+  what it reads.
 - Detection: before silencing a PII finding, find the *minimal* pattern that
-  distinguishes the flagged line from every unflagged one, in the same file and in
-  `main` — and **test the hypothesis by changing the file and re-running the
-  analyzer**, because the obvious candidate can be wrong:
+  distinguishes the flagged file from the last green version of **the same file** —
+  not from `main`, and not from the repository at large. Codacy only reports
+  against changed files, so `main` is not a baseline for it, and a "grep the whole
+  repo" sweep measures nothing:
 
   ```
-  # count the digit-group timestamps on the flagged line and their spans
-  python3 - <<'PY'
-  import re
-  line = open('AGENTS.md').read().split('\n')[93]
-  ts = list(re.finditer(r'\d{2}:\d{2}:\d{2}', line))
-  print([m.group() for m in ts])
-  for i in range(len(ts) - 2):
-      print('span', ts[i+2].end() - ts[i].start())
-  PY
+  # 10-15 digit runs in one file, green head vs current head
+  for sha in <green-sha> <current-sha>; do
+    echo -n "$sha: "
+    git show "$sha:AGENTS.md" | grep -cE '(^|[^0-9A-Za-z_-])[0-9]{10,15}([^0-9A-Za-z_-]|$)'
+  done
   ```
 
-  The answer was "five timestamps, three within 69 characters", against a green
-  baseline of two. The fix is therefore to **thin the timestamps out** — quote the
-  per-second detail in `agent_docs/LESSONS.md`, where each timestamp sits on its own
-  line, and keep the summary bullet to the two that carry the argument.
-- Fix/prevention: thin the timestamps out in the prose — keep the summary bullet to the
-  two that carry the argument, and put the per-second detail in `agent_docs/LESSONS.md`,
-  where each timestamp sits on its own line — and do **not** add a `.codacy.yml` to
-  silence a documentation finding. If a Codacy config file is ever needed, use
+  The answer was "0 on the green head, 1 on the red head", and the fix is to name
+  the run by its **run number** in `AGENTS.md` and keep the API id in
+  `agent_docs/LESSONS.md`, where the log's existing ids live and are not flagged.
+  The lesson is that each hypothesis must be **falsified by a change and a
+  re-run**, not merely by a plausible regex: two of the three here survived a
+  careful reading of the evidence and were still wrong.
+- Fix/prevention: name a CI run by its **run number** in `AGENTS.md` and keep the
+  API id in `agent_docs/LESSONS.md`; do **not** add a `.codacy.yml` to silence a
+  documentation finding. If a Codacy config file is ever needed, use
   `exclude_paths` with the `---` header, exclude the narrowest path, and prove the
   context flips back to `success` before claiming it works. Note also that Codacy
   always uses the config file **in the default branch**, so a PR-only config never
@@ -1694,4 +1690,5 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `117960009097` (success) / `117980639748` (action_required),
   <https://docs.codacy.com/repositories-configure/codacy-configuration-file>,
   LESSON-058 (a presence-only fixture punishes the correct wording),
-  LESSON-063 (documented affordances that do not exist).
+  LESSON-063 (documented affordances that do not exist),
+  LESSON-052 (reduce the rollup to the latest run per check name).

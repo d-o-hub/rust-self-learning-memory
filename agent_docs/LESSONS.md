@@ -1297,3 +1297,389 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   LESSON-065 (the other way a rollup lies), LESSON-066 (the content defect in
   the same PR), `.agents/skills/pr-readiness/SKILL.md` (green rows are not a
   merge signal).
+## LESSON-068: a lint that only fires in the `lib test` target makes a `--lib` clippy run a false green (2026-10-19)
+
+- Issue: PR #1184 head `7ab5e46e` failed `Quick PR Check (Format + Clippy)` with exactly one
+  error — `clippy::items_after_test_module` at `memory-core/src/sync/conflict.rs:109`, "could
+  not compile `do-memory-core` (lib test)". Reproducing it the obvious way was green:
+
+  ```
+  $ cargo clippy -p do-memory-core --lib -- -D warnings     # rc 0 — lint absent
+  $ cargo clippy -p do-memory-core --tests -- -D warnings    # rc 101 — reproduces
+  ```
+
+- Why it matters: the lint is evaluated per **compilation target**, and items after
+  `#[cfg(test)] mod tests` only exist as a shape in the test build. A `--lib` check therefore
+  certifies the file clean while CI still fails, and the natural conclusion is "CI is
+  flaky / the toolchain moved". The same class of target-scoped blindness made the pre-fix
+  coverage picture look fine (`[[test]] required-features` is a build gate, LESSON-055).
+- Detection: reproduce a clippy failure with the **exact command CI runs**, including its
+  target flags. Here that is `ci.yml:94` → `./scripts/code-quality.sh clippy --workspace` →
+  `cargo clippy --workspace --tests -- -D warnings …` (`code-quality.sh:144,158`). If a
+  suspected-lint reproduction comes back green, suspect the target set before the lint.
+- Fix/prevention: fix the shape, not the gate — move the items above the test module
+  (`03870115`, pure reorder, 274 → 274 lines, no `#[allow]`), and record that any future
+  `items_after_*` diagnosis must use `--tests`.
+- References: PR #1184 (head `03870115`), `cargo clippy --explain
+  clippy::items_after_test_module` (clippy 0.1.99 / rustc 1.99.0 `b940084d7e`),
+  `.agents/skills/ci-fix/SKILL.md`, LESSON-060 (the sibling clippy misreport).
+
+## LESSON-069: dropping the repo's `-A` allow-list invents a second clippy failure (2026-10-19)
+
+- Issue: while reproducing #1184's lint, running the gate "stricter" than CI — i.e.
+  `cargo clippy --workspace --tests -- -D warnings` without the three `-A` flags — produced
+  an additional `clippy::expect_used` error in
+  `memory-core/tests/pattern_search_integration_test.rs:188` (the `.expect("store pattern")` call),
+  which CI does not report.
+- Why it matters: the repo's authoritative gate is not "-D warnings" alone; it is
+  `-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used`
+  (`scripts/code-quality.sh:144,158`). "More strict than CI" reads as *more failures than CI*,
+  and sends you fixing (or suppressing) code that is not blocking anything. LESSON-060 is the
+  mirror image: a *scoped* run misreports crate-root `#![expect(...)]` gates. Both directions
+  come from treating "clippy" as one command when the gate is a specific flag set.
+- Detection: copy the command out of the workflow and the script that expands it; diff your
+  invocation's flags against it before believing an extra error. Note also that `-A` on the
+  command line cannot override a crate-level attribute, so flags and attributes are not
+  interchangeable levers.
+- Fix/prevention: keep one canonical definition of the gate (the script), have CI call it, and
+  quote the expanded command in any report of clippy state. The fix for #1184 was the lint
+  itself; the `expect_used` finding was discarded as an artifact once the flags matched.
+- References: `scripts/code-quality.sh:144,158`, `.github/workflows/ci.yml:94`, PR #1184,
+  LESSON-060.
+
+## LESSON-070: prove a conflict resolution lossless with index-stage set arithmetic, not with eyeballing (2026-10-19)
+
+- Issue: re-basing PR #1189 onto `main` produced one conflicted file (`CHANGELOG.md`) whose two
+  sides added **different, both-valid** sections — ours added `### CI/CD` + `### Tests`, theirs
+  (from #1190) added `### Fixed`. The LESSON-064 failure mode is exactly this shape: a
+  hand-resolved merge that silently keeps "ours" and rolls the other side's work back.
+- Why it matters: `git diff` after the fact does not answer "did I lose a line from either
+  side?" on a text file where ordering is meaningful, and a careless Edit injected a stray
+  blank line during the first attempt. A merge of a docs file is where silent loss hides,
+  because nothing fails to compile.
+- Detection: after resolving, intersect the resolved file against both sides as sets, using the
+  conflict stages rather than memory:
+
+  ```
+  # Read the two sides BEFORE staging: `git add` collapses stages 1/2/3 into stage 0,
+  # after which `git show :2:` fails with "path is in the index, but not at stage 2".
+  export LC_ALL=C                                    # sort must not be locale-dependent
+  git show :2:CHANGELOG.md | LC_ALL=C sort -u > /tmp/ours
+  git show :3:CHANGELOG.md | LC_ALL=C sort -u > /tmp/theirs
+  comm -23 /tmp/ours <(sort -u CHANGELOG.md)          # lines lost from ours  -> must be empty
+  comm -23 /tmp/theirs <(sort -u CHANGELOG.md)        # lines lost from theirs -> must be empty
+  comm -13 <(cat /tmp/ours /tmp/theirs | sort -u) <(sort -u CHANGELOG.md)   # invented lines
+  git grep -n '^<<<<<<<\|^=======\|^>>>>>>' -- CHANGELOG.md                 # leftover markers
+  ```
+
+  Measured: 0 lost from either side, 0 invented, 0 markers, net `+42/-0`, 34 `## [` headings all
+  distinct, `parse-changelog CHANGELOG.md 0.1.46` rc 0.
+- Two traps inside the technique, both reproduced in a scratch repo: (1) `git add` on a conflicted
+  path collapses the conflict stages — after staging, `git show :2:<file>` fails with
+  "fatal: path '<file>' is in the index, but not at stage 2", so the proof must read the stages
+  *before* staging, not after; (2) `git checkout --conflict=merge -- <file>` **overwrites the
+  working file with conflict markers**, destroying the resolution you just made — it is only
+  needed to re-label `HEAD`/`base` markers as `ours`/`theirs`, so run it on a copy, or not at
+  all. And plain `sort` is locale-collating, so `comm` warned "file is not in sorted order" and
+  produced a bogus missing-lines list — `LC_ALL=C` is required for the proof to mean anything.
+- Fix/prevention: run the set-difference proof as part of resolving, and verify the *content*
+  diff versus `origin/main` separately (`git diff origin/main HEAD --stat`) so a docs PR cannot
+  smuggle a `Cargo.toml`/`Cargo.lock` revert (LESSON-064).
+- References: PR #1189 (`2a859aec`), PR #1190, LESSON-064, `.agents/skills/pr-readiness/SKILL.md`.
+
+## LESSON-071: `--check-unreleased` failing after a development bump is the correct state, and the label override can hide it (2026-10-19)
+
+- Issue: PR #1193 bumps the workspace to `0.1.47` with **no** `## [0.1.47]` CHANGELOG section,
+  so `./scripts/verify-release-state.sh --check-unreleased` reports 4 version-doc/heading
+  mismatches on the branch. Separately, PR #1192's `Check for unreleased changes` went red with
+  `reason=version_not_advanced` while #1184's identical-looking row reported success.
+- Why it matters: the temptation is to "fix" the bump PR by writing a `## [0.1.47] - 2026-10-19`
+  heading — which would publish a release note for a release that has not happened, i.e. the
+  exact tracker-integrity defect this workstream exists to remove (LESSON-057, #1089's closure).
+  And the drift gate has two facts that are easy to conflate:
+  `scripts/check-release-drift.sh:70-74` sets critical when `workspace_version ==
+  latest_version` **and** `total > 0`; `release-drift.yml:87-96` guards the failing step with
+  `!contains(github.event.pull_request.labels.*.name,'release-preparation')`, so a labelled PR
+  reports green **without the check ever running**. #1184 (a bot storage PR) and #1192 (a test
+  PR) both carry that label via the workflow's own best-effort auto-label step — their green
+  rows are overrides, not passes.
+- Detection: read the two numbers before arguing about either (`workspace_version`,
+  `latest_tag`, `total`, `severity`, `reason`), and check the label list before trusting a drift
+  row. A development bump is compliant with `release-guard`'s own rule — "Bump workspace to next
+  patch for development in a **follow-up PR** (optional)" (`SKILL.md:160`).
+- Fix/prevention: land the bump first when other PRs are blocked by
+  `version_not_advanced` — after `0.1.47` is on `main`, `workspace_version != latest_version`,
+  the `elif` chain reaches `is_valid_next_version`, and every later PR is clean **on merit**.
+  Then remove the misapplied `release-preparation` labels. ADR-079 §6 is the governing precedent
+  — "Release creation remains tag-only under ADR-072. Remove the broken Release
+  `workflow_dispatch` surface rather than inventing a second release path" (line 105) — applied
+  to the drift gate: delete the broken override surface instead of keeping a second, undocumented
+  path. (§5's "No bypass flag is used" is scoped there to ruleset migration, so cite it as the
+  repo's stance on bypasses rather than as a rule about labels.) Document the expected-fail state
+  in the PR body instead of silencing the gate.
+- The label is not free to use, and the workflow's own auto-label step breaks its contract:
+  **ADR-058 D2** permits "a trusted collaborator to label **only the release-preparation PR** to
+  break a **hard-limit deadlock**". Three of the four open PRs (#1184 bot storage fix, #1189
+  tag-selector + docs fix, #1192 test-only fix) carried the label, none of them is a
+  release-preparation PR, it was applied by `github-actions[bot]` rather than a trusted
+  collaborator, and the repository was at 4 unreleased commits — not the ≥30 commits / ≥14 days
+  hard limit the deadlock-breaker exists for — while the one PR that actually is the next-version
+  bump (#1193) had no label.
+- The asymmetry, measured on #1192 (workflow "Release Drift Check" run `39211445689` — run
+  *number* 1596; cite the id, the number is not an API id — event `pull_request`, head
+  `b192da92`): run created `06:42:17Z`, job started `06:42:32Z`,
+  `github-actions[bot]` applied the label at `06:42:40Z`, the `Enforce release cadence` **step**
+  failed at `06:42:41Z` (`##[error]Process completed with exit code 1` at `06:42:41.575Z`), the
+  **job** closed `06:42:43Z` — all inside **one** run. Name the subject of each timestamp: the
+  step and the job do not fail at the same second, and quoting the job time as the step time
+  makes the measurement unverifiable against the step API.
+  `github.event.pull_request.labels` is the snapshot taken when the event
+  fired, so a label applied by a run's own best-effort step cannot suppress that run's failing
+  step; and because a token-applied label produces no follow-up `labeled` run (LESSON-049), the
+  *only* #1192 head has one drift row: the failing one. The label is therefore useless-against-the-
+  current-failure and harmful-against-the-future: it silences the step on every later run (that is
+  why #1184, labelled on `2026-10-17T14:04:06Z`, reports a green drift row that never ran) without
+  ever clearing the red row it was applied to fix.
+- Reproduced on a PR opened for this very lesson, which is the cleanest form of the evidence:
+  #1194 (`docs/lessons-068-075`, a **docs-only** PR) opened `08:21:00Z`; its drift run
+  `39222134818` ran `Auto-label release-preparation` `08:26:33→08:26:37Z` (label event recorded
+  `08:26:36Z`, actor `github-actions[bot]`), and `Enforce release cadence` started and failed at
+  `08:26:37Z` — **one second after** the label, because the label is a trigger-time snapshot and
+  the step's own `if:` still saw a label-less payload. Exactly one drift run exists for that head
+  — the token-applied label re-fired nothing, and it left #1194 labelled, red on the current head,
+  and silently exempt on every future one. So "automation labels the release PR" is not a rare
+  misfire to be argued about: it fires on any PR whose head still equals the latest tag, including
+  a `agent_docs/`-only diff with no `Cargo.toml` change at all.
+- The two runs of #1194 together are the whole defect lifecycle on a single PR, with no
+  inference needed. Run `39222134818` (head `31f6265f`, created `08:21:00Z`): `Auto-label`
+  applied the label at `08:26:36Z`, `Enforce release cadence` failed one second later at
+  `08:26:37Z`, run conclusion **failure**. Run `39224885643` (head `bdad4e1d`, created `08:44:10Z`
+  by the next push): the label was already in that event's payload, so **both** `Auto-label` and
+  `Enforce release cadence` were `skipped` and the run conclusion was **success**. Nothing about
+  the repository changed in those 18 minutes — measured at `08:59:24Z` the drift state was still
+  `workspace=0.1.46 latest_tag=v0.1.46 total=11 severity=critical reason=version_not_advanced`.
+  So the row reports green for a repo still in critical drift, on a docs-only PR, because a bot
+  applied a label a commit earlier. That is the false green, and it is why the enforce step must
+  be un-guardable rather than overridable.
+- Why the expected-fail state is safe to land, and where it bites: `verify-release-state.sh`
+  has **no CI caller** (`grep -rn verify-release-state .github/workflows/` → empty; the only
+  executable references anywhere are `release-manager.sh:231`/`:304`,
+  `release-cadence-manager.sh`, and `test-release-workflow.sh:87`, which merely asserts the file
+  exists while `skill-evals.yml:99` runs `--publish-fixtures` against mocks). So merging the bump
+  cannot
+  redden `main`. What it does guarantee is the *next* cut's gate: measured on the `0.1.47`
+  tree, `--check-unreleased` fails with exactly four mismatches — ROADMAP `Released Version`,
+  STATUS version references, a missing `## [0.1.47]` heading, and `parse-changelog` rejecting
+  the version — which `release-manager.sh` Phase 0 will refuse until a 0.1.47
+  release-preparation PR lands. Drift-clean is therefore **not** shippable: the bump buys a
+  clean cadence gate, and the #1169 release-prep pattern is still required before any tag.
+- ADR basis for this distinction: ADR-072 §1 makes "Released version" authoritative only as a
+  "matching immutable git tag plus successful automated GitHub release for the same commit" and
+  lists **"Workspace version alone" as the non-authoritative source** — which is precisely what a
+  development bump changes. The same table makes "Published crate version" require crates.io
+  API/index evidence rather than release-plan claims, so verifying `0.1.46` membership over HTTP
+  200 (not reading the workflow's own green step) is the compliant way to state it shipped.
+- References: PRs #1192/#1193, `scripts/check-release-drift.sh:70-74`,
+  `.github/workflows/release-drift.yml:73-96`, ADR-058 D2, ADR-072 §4 (step 3 is the sanctioned
+  version bump), ADR-079 §5–§6, LESSON-049, LESSON-057.
+
+## LESSON-072: `gh pr checks --required --watch` can exit 0 while a third of the checks have not run (2026-10-19)
+
+- Issue: on PR #1189, `gh pr checks 1189 --required --watch` returned exit code 0 while 12 of 21
+  rows were still `pending` and `mergeStateStatus` was `BLOCKED`.
+- Why it matters: the ci-poll skill documents `--watch` as the preferred waiter, so exit 0 reads
+  as "CI done, merge". It is not: the required subset is evaluated against what GitHub has
+  *attached* as required, and an aggregate like `CI / Required` (LESSON-050/051) can be satisfied
+  by rows that are not the slow jobs. Merging on that signal would merge on absent evidence.
+- Detection: treat `mergeStateStatus` plus a pending count as the terminal condition, not the
+  watcher's exit code, and assert the row count against the workflows a PR must trigger
+  (LESSON-067's empty-rollup class):
+
+  ```
+  gh pr view <n> --json mergeStateStatus --jq .mergeStateStatus
+  gh pr checks <n> --json bucket --jq '[.[] | select(.bucket=="pending")] | length'
+  ./scripts/check-pr-readiness.sh <n>
+  ```
+
+  Here that sequence said BLOCKED with 12 pending while the watcher had already reported success,
+  so the merge was held until the readiness gate itself went green.
+- Fix/prevention: wire the merge step behind `check-pr-readiness.sh`, and never behind the exit
+  code of a `--watch` invocation. Update `.agents/skills/ci-poll/SKILL.md`'s "Exit 0 = all listed
+  checks passed" reading with the pending-count assertion.
+- Same-class corollary, measured the other way: a **run object can report `status=queued` while
+  its jobs are already running**. `gh run list --commit 2a859aec` showed `CI … queued`, and
+  `gh api repos/{owner}/{repo}/actions/runs/39211135856` returned `status=queued` — while the
+  **jobs** endpoint (`…/runs/<id>/jobs`) listed `Quick PR Check`, `Semver Check`,
+  `Commit Message Lint`, `WASM Compile Check` as `completed/success` with `MCP Build` and
+  `CSM Feature Tests` `in_progress`. (The run object carries no `jobs` field at all — only
+  `jobs_url` — so the discriminator is `jobs.total_count` on the **jobs** endpoint, not a `jobs`
+  key on the run object; that endpoint reported `total_count: 0` for the `action_required` case of
+  LESSON-067, where no run had been started at all.) So `queued` at the run level is not evidence
+  of a stalled or unapproved queue: read the **jobs** endpoint, and use `jobs.total_count == 0` as
+  the discriminator for the `action_required` case — here it was a 37-minute runner wait, then
+  work, not a withheld run.
+- References: PR #1189 (run `39211135856`), PR #1184, `.agents/skills/ci-poll/SKILL.md`,
+  LESSON-050, LESSON-051, LESSON-067.
+
+## LESSON-073: measure release state in the tree you are reporting about (2026-10-19)
+
+- Issue: `./scripts/release-cadence-manager.sh detect` run from the primary checkout printed
+  `severity=clean reason=within_cadence`, while CI's `Check for unreleased changes` on a branch
+  containing the same `main` said `severity=critical reason=version_not_advanced`. Both outputs
+  were "true" — of different trees: the checkout was still on `d85efb5c` (the `v0.1.46` tag),
+  4 commits behind `origin/main`.
+- Why it matters: every release-pipeline number is a function of `HEAD`, the tag set and the
+  working tree. A stale local `main` produces a confident, wrong answer, and because the wrong
+  answer is the *comfortable* one ("within cadence") it gets believed. The same trap explains
+  `git status` "working-tree cleanliness unknown" reports and the shared-`CARGO_TARGET_DIR`
+  fake-mass-failure pattern.
+- Detection: before quoting a release or drift number, assert the tree identity:
+
+  ```
+  git fetch origin main
+  git rev-parse HEAD origin/main            # equal, or say which one you measured
+  git rev-list --count HEAD..origin/main    # 0 expected
+  git merge-base --is-ancestor v0.1.46 origin/main
+  ```
+
+  Re-measured after a fast-forward (`d85efb5c → 86aa6269`, clean tree, only the primary checkout
+  holds `main`): `workspace_version=0.1.46 latest_tag=v0.1.46 total=4 severity=critical
+  reason=version_not_advanced` — now matching CI.
+- Fix/prevention: for one-off measurements prefer a detached worktree at `origin/main`
+  (`git worktree add --detach <path> origin/main`, removed after) over the long-lived checkout,
+  and state the SHA in any number you report. Related completeness fact found while here:
+  `fuzz/Cargo.lock` pins the local crates at `0.1.39` (stale by 7 releases, harmless because
+  `Cargo.toml` `exclude = ["fuzz"]` makes it a separate workspace and no CI job builds the repo
+  with `--locked`), so a version bump PR is *not* expected to touch it.
+- References: PRs #1192/#1193, `scripts/release-cadence-manager.sh`,
+  `scripts/check-release-drift.sh`, AGENTS.md "Shared `CARGO_TARGET_DIR`", LESSON-056.
+
+## LESSON-074: a two-dot diff against `main` manufactures "the bot branch reverted merged work" findings (2026-10-19)
+
+- Issue: auditing PR #1184 (a `jules-*` bot branch) before `gh pr update-branch`, `git diff
+  origin/main HEAD --stat` listed `scripts/test-update-changelog.sh | 167 ------`,
+  `scripts/update-changelog.sh | 154 +----`, `plans/adr/ADR-045-… | 28 ---` and `CHANGELOG.md | 15 --`
+  — i.e. it looked like the branch would delete the changelog-generator fix that #1190 had just landed.
+  That reading is wrong: `git diff A B` reports the *tree difference*, which conflates "B reverted A's
+  change" with "A advanced past B". Only the three-dot form (`git diff <merge-base> B`, which is exactly
+  what `gh pr diff --name-only` shows) answers the revert question.
+- Second, sharper trap: the per-file existence test that was supposed to confirm it produced a **fake
+  alarm**. `git rev-parse <ref>:<path>` on a path that does not exist exits non-zero (rc=128) but
+  still **echoes the literal argument on stdout** alongside the `fatal:` line, so a script that
+  captured stdout without checking the exit status compared two error strings and printed
+  `!!! BRANCH MODIFIED vs merge-base` for a file absent from *both* sides.
+- Detection: prove the claim with merge-base blob equality, and use `git cat-file -e` for existence:
+
+  ```
+  MB=$(git merge-base origin/main HEAD)
+  git diff --stat $MB HEAD                    # what the branch introduces (must equal the PR file list)
+  for f in <suspect files>; do
+    git cat-file -e $MB:$f 2>/dev/null && mb=yes || mb=no
+    git cat-file -e HEAD:$f 2>/dev/null && hd=yes || hd=no
+    printf '%s MB=%s HEAD=%s MAIN=%s\n' "$f" "$mb" "$hd" \
+      "$(git cat-file -e origin/main:$f 2>/dev/null && echo yes || echo no)"
+  done
+  git diff --stat origin/main HEAD            # re-run after the merge; must still equal the branch's own delta
+  ```
+
+  #1184 resolved as safe: merge base `d85efb5c`, branch delta exactly 6 files (+638/−188), no
+  `Cargo.toml`/`Cargo.lock` hunk, and `scripts/test-update-changelog.sh` was *added* by #1190's
+  `2a9a7b6e` (`MB=absent HEAD=absent MAIN=present`) — a "main advanced" case, not a revert. Post-update
+  head `a861ea3b` kept #1190's blobs identical to `origin/main` (`2b509cbc`, `f4d4189e`, `9ab34369`).
+- Fix/prevention: the AGENTS.md bot-branch rule says "diff the tip against the merge base" — this is the
+  arithmetic that makes it checkable, plus the asymmetry check (branch delta before and after the merge must
+  be the same size; #1184 was 6 files/+638/−188 both times). Record the blob hashes, not the file list, when
+  claiming a merge preserved merged work.
+- References: PR #1184 (heads `03870115` → `a861ea3b`), PR #1190 (`2a9a7b6e`), AGENTS.md
+  "Bot/agent branches", LESSON-064, LESSON-070.
+
+## LESSON-075: check a test against production, not against the issue's prose (2026-10-19)
+
+- Issue: #1089 criterion 4 demands "a dedicated assertion over the keyset `(updated_at, episode_id)`".
+  PR #1192's `memory-core/tests/sync_keyset_cursor.rs` keys on `(modified_at, episode_id)`, which reads
+  like a fidelity gap in the test — the obvious move is to ask the author to "fix" the test to match the
+  tracker.
+- Why it matters: the tracker was wrong. Production orders sync pages by **`modified_at`**:
+  `memory-storage-turso/src/storage/episodes/query.rs:197` emits
+  `ORDER BY r.modified_at_ms ASC, r.episode_id ASC LIMIT ?`, and the synchronizer's defensive
+  normalisation (`memory-core/src/sync/synchronizer.rs:280-286`) retains `> (cursor_at, cursor_id)` and
+  `sort_by_key(|a| (a.1, a.0.episode_id))`. `updated_at` is a real field and a common one
+  (73 references across `memory-core`/`memory-storage-turso`, e.g. `constants.rs:114`,
+  `procedural/types.rs:37`, `patterns/heuristic.rs:25`, the Turso pattern tables) — what it is *not*
+  is a field of the **sync cursor**, which is keyed by `modified_at_ms`. "Fixing" the test to
+  the prose would have desynchronised it from the code it is supposed to pin.
+- Detection: before accepting or rejecting a test's fidelity, read the two production sites that create the
+  property — the SQL `ORDER BY` and any in-process re-sort — and compare them with the fake's sort/filter:
+
+  ```
+  grep -rn "ORDER BY .*modified_at\|ORDER BY .*updated_at" memory-storage-*/src
+  grep -rn "sort_by_key\|> (cursor_at, cursor_id)" memory-core/src/sync/synchronizer.rs
+  ```
+
+  #1192's fake sorts with the same key as `synchronizer.rs:286` and filters with the same tuple comparison
+  as `:281-282`, and `should_renormalize_a_page_delivered_out_of_keyset_order` targets the defensive branch
+  directly — so the test is faithful and the issue text needs the correction.
+- Fix/prevention: when ticking an acceptance box, cite the production line the test pins (not just the test
+  name), and correct the criterion's field name in the same edit. A tick justified by "the test matches the
+  prose" is weaker than one justified by "the test matches the query the backend actually runs".
+- Closing note: this is the gap #1189's LESSON-066 recorded as still open ("criterion 4 still has no
+  ordering assertion anywhere"), so the two entries are a matched pair — the dated lesson states the
+  absence, this one states that the fix must be verified against production rather than against the
+  tracker's wording. LESSON entries are timestamped snapshots, so #1189's stale-sounding sentence is left
+  as written; the live correction belongs in the issue body.
+- References: issue #1089 criterion 4, PR #1192 (`b192da92`), `memory-core/src/sync/synchronizer.rs:280-286`,
+  `memory-storage-turso/src/storage/episodes/query.rs:197`, LESSON-060 (triage sources that lie),
+  LESSON-066 (the same gap, recorded as open).
+
+## LESSON-076: a required analyzer's PII finding on CI run IDs is fixed by separating the digits, not by excluding the files (2026-10-20)
+
+- Issue: the required `Codacy Static Code Analysis` context sat at `action_required` on
+  this PR with one annotation: `Potential PII: phone number pattern found` at
+  `AGENTS.md:94`. The attempted fix added a `.codacy.yml` excluding `'**/*.md'`
+  (commit `dfe1fe9a`) — and the context stayed red, because the file used a key
+  Codacy does not support.
+- Why it matters: the reflex was to switch the analyzer off for the file class it
+  complained about. Three things make that the wrong reflex here:
+  (1) **the file was inert** — Codacy's documented key is `exclude_paths` (Java glob
+  syntax), not `exclude_patterns`, and the file must start with a `---` line
+  (<https://docs.codacy.com/repositories-configure/codacy-configuration-file>); and
+  "If your repository has a Codacy configuration file, the *Ignored files* settings
+  defined on the Codacy UI don't apply" — so adding one silently **disables** the
+  UI ignore list repo-wide.
+  (2) **the diagnosis was wrong.** The 11-digit GitHub Actions run IDs are not the
+  trigger: `main` carries 72 standalone 11-digit numbers (80 including `fuzz/`),
+  including 10 lines that pair one ID with an `HH:MM:SS` timestamp, and Codacy is
+  green on all of them.
+  (3) **the real trigger is two IDs on one line.** Scanning `main` for lines with two
+  standalone 11-digit numbers within 200 characters finds 3 — all in `plans/`, none
+  in a file this PR touched — while the flagged `AGENTS.md:94` had both run IDs
+  **57 characters apart** (`39222134818` … `39224885643`). That is what the phone
+  detector reads as a number: the same 11 digits, twice, close together.
+- Detection: before silencing a PII finding, find the *minimal* pattern that
+  distinguishes the flagged line from every unflagged one, in the same file and in
+  `main`:
+
+  ```
+  # standalone 10-11 digit runs on one line, and how far apart they are
+  python3 - <<'PY'
+  import re
+  line = open('AGENTS.md').read().split('\n')[93]
+  ids = list(re.finditer(r'(?<![\w-])[0-9]{10,11}(?![\w-])', line))
+  print(len(ids), ids[1].start() - ids[0].end() if len(ids) > 1 else None)
+  PY
+  ```
+
+  The answer was "two IDs, 57 characters apart", which is why the fix is to name one
+  of them differently (by its run *number*) rather than to remove both.
+- Fix/prevention: keep the digits apart in the prose — quote one run by its API id and
+  the other by its run number — and do **not** add a `.codacy.yml` to silence a
+  documentation finding. If a Codacy config file is ever needed, use `exclude_paths`
+  with the `---` header, exclude the narrowest path, and prove the context flips
+  back to `success` before claiming it works. Note also that Codacy always uses the
+  config file **in the default branch**, so a PR-only config never silently changes
+  the default-branch analysis.
+- References: PR #1194 (heads `31f6265f` green → `76e588b2` red), Codacy check runs
+  `117960009097` (success) / `117980639748` (action_required),
+  <https://docs.codacy.com/repositories-configure/codacy-configuration-file>,
+  LESSON-058 (a presence-only fixture punishes the correct wording),
+  LESSON-063 (documented affordances that do not exist).

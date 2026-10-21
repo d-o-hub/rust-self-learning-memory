@@ -70,7 +70,7 @@ argv = ["bash", "scripts/check-doctests.sh"]
 
 [[sensors]]
 name = "deny"
-argv = ["bash", "scripts/check-dependency-audit.sh"]
+argv = ["cargo", "deny", "check"]
 
 [[sensors]]
 name = "loc"

@@ -131,9 +131,12 @@ gh run view <run_id> --json event,createdAt,runStartedAt,conclusion
 # now" — dispatch it and name the run id in any claim about it having run.
 gh workflow run nightly-tests.yml
 # Never quote a nightly pass/fail count without the feature set that produced it
-# (next entry). An always-red nightly re-attaches to the release SHA and blocks
-# the ship via ci-check: narrow that gate only by explicit decision, never by
-# silently excluding schedule runs or deleting runs (LESSON-051, LESSON-052).
+# (next entry). Per ADR-083, a `schedule` or `workflow_dispatch` run is
+# ADVISORY for release gating: `release-manager.sh ci-check` gates on
+# `push`/`pull_request` runs only, so a red nightly no longer blocks the ship.
+# A tag-triggered nightly is a `push` event and DOES still gate. The decision
+# is permanent in code — never re-narrow the gate at ship time, never delete
+# runs (LESSON-051, LESSON-052, ADR-083).
 ```
 
 ### An ignored test failed / the test count changed

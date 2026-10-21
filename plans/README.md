@@ -1,10 +1,10 @@
 # Plans Directory
 
-**Workspace**: `v0.1.46` · **Released tag**: `v0.1.46` (`d85efb5c`, GitHub Release 2026-10-18, all four registered crates published) · **Main baseline**: `d85efb5c`
+**Workspace**: `v0.1.47` · **Released tag**: `v0.1.46` (`d85efb5c`, GitHub Release 2026-10-18, all four registered crates published) · **Main baseline**: `7411a336`
 **Active plan**: **release closeout** — [GOAP_RELEASE_CLOSEOUT_2026-10-16.md](GOAP_RELEASE_CLOSEOUT_2026-10-16.md) (ACT-399…ACT-412: the stalled crates.io publish, the red Turso nightly, the drift gate). The audit-backlog wave [GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md](GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md) is closed — W1–W6, Q02 and all wave-A slices merged (#1130…#1161). Per-issue register: [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
 **Completed previous wave**: v0.1.44 shipped 2026-10-02 (checked completion receipts #1107, CLI drain-and-verify #1112, pattern-search input bounds #1113, clippy 1.99 migration #1108, architecture/status refresh #1110, coverage-floor reconciliation #1117); release pipeline C1–C7 landed in #1121/#1123/#1125; workspace bumped to 0.1.45 post-release
-**Last Updated**: 2026-10-16
-**Open PRs**: run `gh pr list --state open` (17 on 2026-10-09) · **Open issues**: run `gh issue list --state open` (**16** — remaining audit backlog 1063/1064/1067/1068/1070/1071/1073/1074/1075/1076/1078/1085/1087/1089 + #1109 code-complete with manual crates.io steps + #1137 release drift)
+**Last Updated**: 2026-10-20
+**Open PRs**: run `gh pr list --state open` (**2** on 2026-10-21 — #1204, #1207; #1194 merged as `24a90054`) · **Open issues**: run `gh issue list --state open` (**4** on 2026-10-20 — #1206 (audit the excluded `fuzz/Cargo.lock` as a separate dependency graph), #1205 (the auto-filed `release-drift` issue), #1200 (the release-gate event-filtering issue that #1204 closes) and #1109 (code-complete with manual crates.io registration steps remaining))
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation
@@ -47,6 +47,9 @@ and [ADR-081 attribution capability truth & feedback resolution](adr/ADR-081-Att
 [ADR-079 fail-closed CI control plane](adr/ADR-079-Fail-Closed-CI-Required-Check-Control-Plane.md) is **Accepted** — stage 3 live
 (ruleset `9591004` requires `CI / Required`), stage 5 cleanup merged in #947 (2026-08-12),
 stage 4 live fault-injection proof remains external maintainer evidence.
+[ADR-083 release-gate CI event filtering](adr/ADR-083-Release-Gate-CI-Check-Event-Filtering.md) is **Accepted** —
+only `push`/`pull_request` runs gate a release; `schedule`/`workflow_dispatch` runs are advisory
+(LESSON-051's durable fix, ACT-405).
 
 ## Spikes
 

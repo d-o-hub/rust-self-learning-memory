@@ -103,7 +103,9 @@ cd "$PROJECT_ROOT"
 source "$PROJECT_ROOT/scripts/lib/release-gate-events.sh"
 
 # Query every event separately so runs of unrelated event types cannot consume
-# an event's result limit. The event names come from the shared classification.
+# an event's result limit. The exact SHA is the scope: --branch main would hide
+# push runs whose head branch is a release tag on that same commit.
+# Event names come from the shared classification.
 query_release_gate_runs() {
   local class="$1" head="$2" event event_runs runs_json='[]'
   local -a events=()
@@ -114,8 +116,9 @@ query_release_gate_runs() {
   esac
 
   for event in "${events[@]}"; do
-    if ! event_runs=$(gh run list --branch main --commit "$head" --limit 100 \
+    if ! event_runs=$(gh run list --commit "$head" --limit 100 \
       --event "$event" --json status,conclusion,name,event 2>/dev/null); then
+
       echo "Failed to query $event workflow runs for $head" >&2
       return 1
     fi
@@ -198,7 +201,7 @@ do_ci_check() {
     echo "  ⚠️  Unable to query advisory workflow runs; status is incomplete" >&2
     advisory_runs_json='[]'
   fi
-  all_runs_json=$(gh run list --branch main --commit "$head" --limit 100 \
+  all_runs_json=$(gh run list --commit "$head" --limit 100 \
     --json status,conclusion,name,event 2>/dev/null || echo '[]')
 
   # ADR-083: only push/pull_request runs are evidence about this commit's CI.

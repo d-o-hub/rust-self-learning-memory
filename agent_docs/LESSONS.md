@@ -772,14 +772,17 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `push`/`pull_request` runs gate a release. `do_ci_check` classifies events
   through `scripts/lib/release-gate-events.sh`, an allowlist, and the
   `query_release_gate_runs` helper queries each gating and advisory event
-  separately with `--event` before the 100-run limit. The query and selector
-  both use the library arrays. `scripts/test-release-workflow.sh` drives the
-  real `do_ci_check` with a stub that honors filtering and limits; it covers
-  red `pull_request` runs and a failed push behind 99 unrelated issue runs.
-  The unfiltered list is visibility only and never determines the gate verdict.
-  A tag-triggered nightly is a `push` event and therefore **still gates** a
-  release. The previous source-text checks did not prove behavior under a
-  capped run list; the regression now reproduces and catches that false-green.
+  separately with `--commit <head> --event` before the 100-run limit and does
+  not add `--branch main`: a tag-triggered `push` has the tag as `headBranch`
+  but must still be included when its SHA matches. The query and selector both
+  use the library arrays. `scripts/test-release-workflow.sh` drives the real
+  `do_ci_check` with a stub that honors branch/event filters and limits; it
+  covers red `pull_request` runs, a failed push behind 99 unrelated issue runs,
+  a failed tag push beside a green main push, and a tag-ref `dynamic` run that
+  remains visible. The unfiltered list is visibility only and never determines
+  the gate verdict. The previous source-text checks did not prove behavior
+  under a capped run list; the regression now reproduces and catches that
+  false-green.
 - References: `scripts/release-manager.sh`, `scripts/lib/release-gate-events.sh`,
   `.github/workflows/nightly-tests.yml`, ADR-027, ADR-083.
 

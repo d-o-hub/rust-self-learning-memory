@@ -67,16 +67,25 @@ runs and red advisory/non-CI runs, rather than asserting source text.
 `do_ci_check()` and `do_status()` query each gating and advisory event separately:
 
 - gating: separate `--event push` and `--event pull_request` calls, each with
-  `--branch main --commit <head> --limit 100`
+  `--commit <head> --limit 100`
 - advisory: separate `--event schedule` and `--event workflow_dispatch` calls
-  with the same branch, commit, and limit
+  with the same commit and limit
 
-`do_ci_check` makes an additional unfiltered 100-run query only to report other
-event types. It never uses that truncated list to decide the release verdict.
-Separate per-event queries keep unrelated events from consuming a gating event's
-limit. The regression fixture places 99 unrelated issue runs between a green
-push and a failed push; the failed run must still block. A single unfiltered
-query followed by a client-side filter would omit that failure.
+The exact SHA scopes each query; no `--branch main` filter is applied. A
+tag-triggered push has the tag name as `headBranch`, but must remain included
+when its `headSha` equals `<head>`. The regression fixture pairs a successful
+main push with a failed push on `v0.1.45` and requires the tag run to block.
+The fixture also attaches a `dynamic` run to the tag ref and asserts it remains
+visible in `do_ci_check`'s non-gating output, proving the visibility query is
+SHA-wide too.
+
+`do_ci_check` makes an additional unfiltered 100-run query for the same SHA
+only to report other event types. It never uses that truncated list to decide
+the release verdict. Separate per-event queries keep unrelated events from
+consuming a gating event's limit. The regression fixture also places 99
+unrelated issue runs between a green push and a failed push; the failed run
+must still block. A single unfiltered query followed by a client-side filter
+would omit that failure.
 
 Gating assertions (`total > 0`, `pending == 0`, `failed == 0`) operate strictly on the gating set.
 Advisory runs are logged separately with an explicit label (`schedule/workflow_dispatch —

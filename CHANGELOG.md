@@ -42,9 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or pending push and `pull_request` runs must, and a failed push beyond
   unrelated issue-event noise must still block. Each event is queried
   separately with `--event` before its 100-run limit; the unfiltered result list
-  is used only to report other event types. A tag-triggered nightly remains a
-  `push` event and still gates a release. The event names live once in the
-  library arrays and feed both the per-event queries and local selection.
+  is used only to report other event types. Queries are pinned to the exact SHA
+  without `--branch main`, so a tag-triggered nightly (`push` with the tag as
+  `headBranch`) on that SHA remains gating; the regression requires a failed
+  tagged push to block beside a green main push. Event names live once in the
+  library arrays and feed both the per-event queries and local selection. The
+  fixture also asserts that a tag-ref non-gating run remains visible for the
+  same SHA.
 
 - The release changelog generator no longer rewrites published history
   (#1186). Every `chore/update-changelog` PR from v0.1.41 to v0.1.45 had to be

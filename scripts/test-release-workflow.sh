@@ -98,25 +98,29 @@ check_ci_check_event_filtering() {
   stub_bin="$lib_dir/bin"
   mkdir -p "$stub_bin"
 
-  # Stub gh: filter by one --event, then apply the requested result limit.
+  # Stub gh: apply branch/event filters before the requested result limit.
   cat > "$stub_bin/gh" <<'STUB'
 #!/usr/bin/env bash
 event=""
+branch=""
 limit=20
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --event) event="$2"; shift 2 ;;
     --limit) limit="$2"; shift 2 ;;
     --json) shift 2 ;;
-    --branch|--commit) shift 2 ;;
+    --branch) branch="$2"; shift 2 ;;
+    --commit) shift 2 ;;
     *) shift ;;
   esac
 done
 if [[ -n "$event" ]]; then
-  printf '%s' "$STUB_RUNS" | jq -c --arg e "$event" --argjson limit "$limit" \
-    '[ .[] | select(.event == $e) ] | .[:$limit]'
+  printf '%s' "$STUB_RUNS" | jq -c --arg b "$branch" --arg e "$event" \
+    --argjson limit "$limit" \
+    '[ .[] | select(($b == "" or (.headBranch // "main") == $b) and .event == $e) ] | .[:$limit]'
 else
-  printf '%s' "$STUB_RUNS" | jq -c --argjson limit "$limit" '.[:$limit]'
+  printf '%s' "$STUB_RUNS" | jq -c --arg b "$branch" --argjson limit "$limit" \
+    '[ .[] | select($b == "" or (.headBranch // "main") == $b) ] | .[:$limit]'
 fi
 STUB
   chmod +x "$stub_bin/gh"
@@ -208,6 +212,15 @@ STUB
   ')
   run_ci_check "$crowded_runs"
   [[ "$CI_CHECK_RC" -ne 0 ]] || fail "a failed push run beyond unrelated event noise must block the gate: $CI_CHECK_OUT"
+  # (j) a failed tag-triggered push run on the pinned SHA must remain gating.
+  run_ci_check '[
+    {"name":"CI main","status":"completed","conclusion":"success","event":"push","headBranch":"main"},
+    {"name":"Nightly tag","status":"completed","conclusion":"failure","event":"push","headBranch":"v0.1.45"},
+    {"name":"Tag scan","status":"completed","conclusion":"success","event":"dynamic","headBranch":"v0.1.45"}
+  ]'
+  [[ "$CI_CHECK_RC" -ne 0 ]] || fail "a failed tag-triggered push run on the pinned release SHA must block the gate: $CI_CHECK_OUT"
+  [[ "$CI_CHECK_OUT" == *"Tag scan [dynamic]"* ]] || fail "non-gating runs on a tag ref must remain visible for the pinned SHA: $CI_CHECK_OUT"
+
 
   rm -rf "$lib_dir"
   echo "OK: ci-check event filtering fixtures"

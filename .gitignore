@@ -108,7 +108,7 @@ mcp-config-*.json
 .blackboxcli/settings.json
 *.proptest-regressions
 .memory-traces/
-audit-report.json
+audit-report*.json*
 insights-report/
 benchmark_results/
 # Root-level artifact dir only — must NOT swallow source modules like

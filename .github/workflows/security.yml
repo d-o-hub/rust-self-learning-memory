@@ -68,50 +68,32 @@ jobs:
           cargo install cargo-deny --locked
           cargo install cargo-audit --locked || true
 
-      - name: Run cargo deny advisories (blocking)
+      - name: Run dependency security audit (root and fuzz graphs)
         run: |
           set -euo pipefail
-          # W2.2: authoritative advisory gate — never soft-pass.
-          cargo deny check advisories
-
-      - name: Run cargo audit (structured report)
-        run: |
-          set -euo pipefail
-          set +e
-          cargo audit --json > audit-report.json 2>audit-err.txt
-          audit_rc=$?
-          set -e
-          if [ "$audit_rc" -eq 0 ] && [ -f audit-report.json ]; then
-            count=$(jq -r '.vulnerabilities.count // 0' audit-report.json)
-            echo "cargo audit vulnerabilities: ${count}"
-            if [ "${count}" -gt 0 ]; then
-              cat audit-report.json
-              exit 1
-            fi
-          else
-            echo "cargo audit tool/DB issue (rc=${audit_rc}); deny already enforced"
-            cat audit-err.txt || true
-            # Produce a minimal report so the artifact step still has a file.
-            echo '{"vulnerabilities":{"count":0},"note":"cargo-audit unavailable; cargo-deny enforced"}' > audit-report.json
-          fi
+          # Canonical multi-lockfile security audit entrypoint
+          bash scripts/check-dependency-audit.sh
 
       - name: Upload audit report artifact
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
         with:
           name: security-audit-report
-          path: audit-report.json
+          path: |
+            audit-report-root.json
+            audit-report-fuzz.json
           retention-days: 30
 
       - name: Post audit summary
         if: always()
         run: |
           echo "## Security Audit" >> $GITHUB_STEP_SUMMARY
-          echo "Authoritative gate: cargo deny check advisories (blocking)" >> $GITHUB_STEP_SUMMARY
-          if [ -f audit-report.json ]; then
-            echo "cargo-audit vulnerabilities count: $(cat audit-report.json | jq -r '.vulnerabilities.count // "n/a"')" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Audit report not found." >> $GITHUB_STEP_SUMMARY
+          echo "Audited lockfiles: \`Cargo.lock\` (root) and \`fuzz/Cargo.lock\` (fuzz)" >> $GITHUB_STEP_SUMMARY
+          if [ -f audit-report-root.json ]; then
+            echo "- Root (\`Cargo.lock\`): $(cat audit-report-root.json | jq -r '.vulnerabilities.count // "n/a"') vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f audit-report-fuzz.json ]; then
+            echo "- Fuzz (\`fuzz/Cargo.lock\`): $(cat audit-report-fuzz.json | jq -r '.vulnerabilities.count // "n/a"') vulnerabilities" >> $GITHUB_STEP_SUMMARY
           fi
 
   cargo-deny:

@@ -626,7 +626,33 @@ fn quality_gate_no_security_vulns() {
     let threshold = security_vuln_threshold();
     println!("Threshold: Max {threshold} critical/high/medium vulnerabilities");
 
-    // Run cargo audit
+    // Prefer canonical multi-lockfile audit script if present
+    if std::path::Path::new("scripts/check-dependency-audit.sh").exists() {
+        println!("Running scripts/check-dependency-audit.sh...");
+        let status = Command::new("bash")
+            .arg("scripts/check-dependency-audit.sh")
+            .status();
+
+        match status {
+            Ok(s) if s.success() => {
+                println!("✅ Security gate PASSED: 0 vulnerabilities found across lockfiles");
+                return;
+            }
+            Ok(_) => {
+                panic!(
+                    "❌ Security gate FAILED: Dependency security audit script reported vulnerabilities or errors"
+                );
+            }
+            Err(e) => {
+                println!("⚠️  Failed to execute scripts/check-dependency-audit.sh: {e}");
+                if !skip_optional_gates() {
+                    panic!("scripts/check-dependency-audit.sh execution failed");
+                }
+            }
+        }
+    }
+
+    // Fallback: Run cargo audit
     println!("Running cargo audit...");
     let output = Command::new("cargo").args(["audit", "--json"]).output();
 

@@ -1,8 +1,8 @@
 # Current Architecture - Core Components
 
-**Last Updated**: 2026-10-02
-**Workspace Version**: v0.1.46 (Released tag: v0.1.45)
-**Baseline SHA**: `4f4f4ba8d06a82429a2e539c65c3cb37624291e9`
+**Last Updated**: 2026-10-20
+**Workspace Version**: v0.1.47 (Released tag: v0.1.46)
+**Baseline SHA**: `7411a33644cd59b9d796ebd349bd50969e4237a9`
 **Production Readiness**: 100% ✅
 
 ---
@@ -24,7 +24,7 @@ The Self-Learning Memory System is a production-ready Rust 2024 episodic learnin
 
 ### Crate Overview (9 Total)
 
-All member packages are at workspace version **0.1.46** (matching `cargo metadata`).
+All member packages are at workspace version **0.1.47** (matching `cargo metadata`).
 
 | Crate | Purpose | Dependencies | Status |
 |-------|---------|--------------|--------|

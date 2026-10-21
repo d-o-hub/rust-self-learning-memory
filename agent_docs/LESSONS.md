@@ -767,22 +767,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   inside the window, not to weaken `ci-check`. The durable fix — filter on
   `.event`, or allowlist per-event failures with a tracked issue — needs an
   explicit decision first; do not silently exclude schedule runs.
-- Resolution (2026-10-20, ADR-083, PR #1204): the explicit decision is now made —
-  `schedule` and `workflow_dispatch` runs are **advisory** for release gating, and only
-  `push`/`pull_request` runs gate a release. `do_ci_check` classifies runs through
-  `scripts/lib/release-gate-events.sh` (an allowlist, so a newly-introduced event type does
-  not silently become gating), queries gating and advisory runs **separately** so advisory
-  noise cannot consume the `--limit` window and hide the real `CI` run, and
-  `scripts/test-release-workflow.sh` drives the real `do_ci_check` against a stubbed `gh`.
-  A tag-triggered nightly is a `push` event and therefore **still gates** a release.
-  The event names are written down **once**, in the library's arrays: an earlier version
-  kept the classification in the library but still selected runs in `release-manager.sh`
-  with its own `select(.event == "push" or …)`, and dropping `pull_request` from that
-  inline copy left every fixture **green** — the fixture exercised the library while the
-  gate implemented something else, and no test could see the disagreement. The gate now
-  calls `release_gate_select_runs`, and the fixture fails if the gate inlines the names.
-- References: `scripts/release-manager.sh`, `scripts/lib/release-gate-events.sh`,
-  `.github/workflows/nightly-tests.yml`, ADR-027, ADR-083.
+- References: `scripts/release-manager.sh`, `.github/workflows/nightly-tests.yml`, ADR-027.
 
 ## LESSON-052: `statusCheckRollup` keeps superseded runs, so a label toggle fakes a CI failure (2026-10-15)
 
@@ -936,24 +921,6 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `.cargo/audit.toml`, `Cargo.toml`, `fuzz/Cargo.lock`,
   `.agents/skills/code-quality/SKILL.md`, `.agents/skills/ci-fix/SKILL.md`,
   LESSON-053, ACT-404, PR #1174.
-- A **fourth** way the local gate lies, measured 2026-10-20 (#1204): the advisory
-  **database itself** can be stale. `cargo deny` keeps its own clone under
-  `~/.cargo/advisory-dbs/<hash>/` (a git repo, refreshed only on demand), and
-  `cargo audit` keeps a separate one under `~/.cargo/advisory-db/`. The local
-  `cargo deny` clone was dated 2026-09-25, so it did not know
-  RUSTSEC-2026-0381/0382 (published 2026-10-19/20) and reported
-  `advisories ok` — a **false green** — while CI, with a fresh database, failed
-  the same gate. The tell is in the output: `warning[unknown-advisory] … unknown
-  advisory` and `warning[advisory-not-detected] … no crate matched advisory
-  criteria` for ignore entries the database has never heard of. A stale DB makes
-  *every* ignore entry look stale, so the warnings are the signal, not noise.
-  Refresh before trusting a green: `git -C ~/.cargo/advisory-dbs/<hash> fetch
-  --depth 1 origin main && git -C ~/.cargo/advisory-dbs/<hash> reset --hard
-  FETCH_HEAD` (a stale `index.lock` from a crashed run blocks the reset — remove
-  it), then re-run. `cargo audit` has its own DB and its own ignore file, so
-  **both** must be refreshed and **both** must carry a waiver: a waiver in only
-  `deny.toml` leaves `cargo audit` red, and one in only `.cargo/audit.toml`
-  leaves `cargo deny` red.
 
 ## LESSON-057: a version bump does not make a repo shippable, and the drift gate files its own issue (2026-10-16)
 
@@ -1623,20 +1590,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   arithmetic that makes it checkable, plus the asymmetry check (branch delta before and after the merge must
   be the same size; #1184 was 6 files/+638/−188 both times). Record the blob hashes, not the file list, when
   claiming a merge preserved merged work.
-- The same trap, **in the other direction**, on 2026-10-20: a `google-labs-jules[bot]` force-push on
-  PR #1204 replaced the head with three commits that reverted the implementation *and* re-introduced
-  #1194's lesson text — while #1194 itself was being merged into `main`. Measured against the new
-  `main`, the pushed branch would have **deleted LESSON-068…076** (395 lines) from `agent_docs/LESSONS.md`
-  and removed `scripts/lib/release-gate-events.sh` (107 lines) outright. The two-dot diff
-  (`git diff origin/main HEAD`) is what made it visible — the three-dot form would have shown only the
-  branch's own delta. The recovery is to rebuild on the new `main` and re-apply the work
-  (`git cherry-pick` onto the merge commit), not to merge the pushed head: a bot force-push is a
-  **signal that the head must be re-derived**, and the force-push may also carry legitimate work
-  (here, a `webpki-roots`/`rustls-webpki` security bump) that has to be re-applied and re-verified
-  separately. Check `git log --oneline origin/main..HEAD` for the **revert shape** — repeated commits
-  with the same subject — before assuming a branch is still your own.
-- References: PR #1184 (heads `03870115` → `a861ea3b`), PR #1190 (`2a9a7b6e`), PR #1204 (head
-  `3779106e` → force-pushed to `0ad61279`; rebuilt on `24a90054`), AGENTS.md
+- References: PR #1184 (heads `03870115` → `a861ea3b`), PR #1190 (`2a9a7b6e`), AGENTS.md
   "Bot/agent branches", LESSON-064, LESSON-070.
 
 ## LESSON-075: check a test against production, not against the issue's prose (2026-10-19)

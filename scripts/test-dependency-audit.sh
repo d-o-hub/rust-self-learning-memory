@@ -26,6 +26,24 @@ fi
 TEST_TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TEST_TMPDIR"' EXIT
 
+# Copy only what the audit script reads, not the whole repository: a full
+# `cp -r "$REPO_ROOT"` also copies `target/`, which is gigabytes of build
+# artifacts and fills the tmpfs the fixture runs in.
+make_fixture_repo() {
+    local dest="$1"
+    mkdir -p "$dest/scripts" "$dest/fuzz" "$dest/.cargo"
+    cp "$REPO_ROOT/scripts/check-dependency-audit.sh" "$dest/scripts/"
+    chmod +x "$dest/scripts/check-dependency-audit.sh"
+    cp "$REPO_ROOT/Cargo.lock" "$dest/Cargo.lock"
+    cp "$REPO_ROOT/fuzz/Cargo.lock" "$dest/fuzz/Cargo.lock"
+    cp "$REPO_ROOT/fuzz/Cargo.toml" "$dest/fuzz/Cargo.toml"
+    cp "$REPO_ROOT/deny.toml" "$dest/deny.toml"
+    cp "$REPO_ROOT/.cargo/audit.toml" "$dest/.cargo/audit.toml"
+    # The audit script diffs the lockfiles against git, so the fixture needs a
+    # repository (or the diff fails and the run aborts).
+    (cd "$dest" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm fixture)
+}
+
 # Test 1: Successful real audit run on repository
 echo "Test 1: Run real dependency audit..."
 OUT1=$("$AUDIT_SCRIPT" 2>&1)
@@ -46,7 +64,7 @@ echo "PASSED Test 1"
 
 # Test 2: Failure on missing fuzz lockfile
 echo "Test 2: Failure on missing fuzz lockfile..."
-cp -r "$REPO_ROOT" "$TEST_TMPDIR/repo_missing_fuzz"
+make_fixture_repo "$TEST_TMPDIR/repo_missing_fuzz"
 rm -f "$TEST_TMPDIR/repo_missing_fuzz/fuzz/Cargo.lock"
 set +e
 OUT2=$(cd "$TEST_TMPDIR/repo_missing_fuzz" && ./scripts/check-dependency-audit.sh 2>&1)
@@ -64,8 +82,8 @@ echo "PASSED Test 2"
 
 # Test 3: Failure on empty fuzz lockfile
 echo "Test 3: Failure on empty fuzz lockfile..."
-cp -r "$REPO_ROOT" "$TEST_TMPDIR/repo_empty_fuzz"
-> "$TEST_TMPDIR/repo_empty_fuzz/fuzz/Cargo.lock"
+make_fixture_repo "$TEST_TMPDIR/repo_empty_fuzz"
+: > "$TEST_TMPDIR/repo_empty_fuzz/fuzz/Cargo.lock"
 set +e
 OUT3=$(cd "$TEST_TMPDIR/repo_empty_fuzz" && ./scripts/check-dependency-audit.sh 2>&1)
 RC3=$?
@@ -82,7 +100,7 @@ echo "PASSED Test 3"
 
 # Test 4: Failure on seeded vulnerability finding in fuzz graph
 echo "Test 4: Failure on seeded unignored vulnerability in fuzz graph..."
-cp -r "$REPO_ROOT" "$TEST_TMPDIR/repo_seeded_fuzz"
+make_fixture_repo "$TEST_TMPDIR/repo_seeded_fuzz"
 # Add an unignored vulnerable dependency (RUSTSEC-2021-0145 / atty 0.2.14) to fuzz/Cargo.toml and fuzz/Cargo.lock
 cat << 'EOF' >> "$TEST_TMPDIR/repo_seeded_fuzz/fuzz/Cargo.toml"
 

@@ -69,6 +69,18 @@ ignore = [
     # chain never offers the group whose prediction can be poisoned. The 0.23 line is patched
     # by this change.
     "RUSTSEC-2026-0349",
+
+    # RUSTSEC-2026-0382: rustls-webpki may accept certificate paths containing distrusted
+    # emSign intermediates when the configured trust anchors allow such paths. The private keys
+    # for those intermediates are now well known.
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.16 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
+    # Upstream blocker: requires libsql to migrate from hyper-rustls 0.25 (hyper 0.14) to a
+    # hyper 1.x line; rustls 0.22 pins rustls-webpki to the 0.102 series.
+    # Mitigation: the 0.102.8 chain is the only one that cannot take the patched webpki, and
+    # the direct rustls-webpki dependency is at 0.103.16 (patched). The exposure is the
+    # transitive libsql/hyper-rustls path only.
+    "RUSTSEC-2026-0382",
 ]
 
 [licenses]

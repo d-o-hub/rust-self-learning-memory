@@ -3,10 +3,10 @@
 - **Last Updated**: 2026-10-20
 - **Version**: workspace `0.1.47` (post-v0.1.46 development bump, merged in #1193) · latest tag `v0.1.46` (`d85efb5c`, GitHub Release published 2026-10-18)
 - **Branch**: `main` (`7411a336`) — no release branch; the `0.1.47` release-prep PR is the next intentional PR
-- **Open PRs**: 2 open (run `gh pr list --state open`) — #1204 (release-gate CI event filtering, ADR-083) and
-  #1194 (LESSON-068…076). Merges are serial: `strict_required_status_checks_policy` puts every other branch
-  `BEHIND` and re-queues their required runs, so #1204 lands first and #1194 is refreshed onto the new `main`
-- **Open issues**: 2 open (run `gh issue list --state open`: #1109, #1200)
+- **Open PRs**: 1 open (run `gh pr list --state open`) — #1204 (release-gate CI event filtering, ADR-083).
+  #1194 (LESSON-068…076) merged 2026-10-20 as `24a90054`. Merges are serial:
+  `strict_required_status_checks_policy` puts every other branch `BEHIND` and re-queues their required runs
+- **Open issues**: 4 open (run `gh issue list --state open`: #1206, #1205, #1200, #1109)
 - **Active plan**: **release closeout** — [`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
   (publish stall, red nightly, drift gate); ACT-405 (the release-gate event decision) is the last open action
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)

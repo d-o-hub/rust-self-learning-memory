@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- `webpki-roots` 1.0.7 → 1.0.10 (RUSTSEC-2026-0381), `rustls-webpki` 0.103.15 →
+  0.103.16 (RUSTSEC-2026-0382) and `webpki-root-certs` 1.0.7 → 1.0.10
+  (RUSTSEC-2026-0383). `cargo audit` reports 1 vulnerability instead of 3; the
+  remaining one is `rustls-webpki` 0.102.8, reached transitively through
+  `libsql → hyper-rustls 0.25 → rustls 0.22` and blocked on libsql moving to
+  hyper 1.x, so it stays on the existing upstream-blocked register.
+
 ### CI/CD
 
 - The release gate now distinguishes the runs that prove a commit is green from

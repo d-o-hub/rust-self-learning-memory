@@ -1605,7 +1605,20 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   arithmetic that makes it checkable, plus the asymmetry check (branch delta before and after the merge must
   be the same size; #1184 was 6 files/+638/−188 both times). Record the blob hashes, not the file list, when
   claiming a merge preserved merged work.
-- References: PR #1184 (heads `03870115` → `a861ea3b`), PR #1190 (`2a9a7b6e`), AGENTS.md
+- The same trap, **in the other direction**, on 2026-10-20: a `google-labs-jules[bot]` force-push on
+  PR #1204 replaced the head with three commits that reverted the implementation *and* re-introduced
+  #1194's lesson text — while #1194 itself was being merged into `main`. Measured against the new
+  `main`, the pushed branch would have **deleted LESSON-068…076** (395 lines) from `agent_docs/LESSONS.md`
+  and removed `scripts/lib/release-gate-events.sh` (107 lines) outright. The two-dot diff
+  (`git diff origin/main HEAD`) is what made it visible — the three-dot form would have shown only the
+  branch's own delta. The recovery is to rebuild on the new `main` and re-apply the work
+  (`git cherry-pick` onto the merge commit), not to merge the pushed head: a bot force-push is a
+  **signal that the head must be re-derived**, and the force-push may also carry legitimate work
+  (here, a `webpki-roots`/`rustls-webpki` security bump) that has to be re-applied and re-verified
+  separately. Check `git log --oneline origin/main..HEAD` for the **revert shape** — repeated commits
+  with the same subject — before assuming a branch is still your own.
+- References: PR #1184 (heads `03870115` → `a861ea3b`), PR #1190 (`2a9a7b6e`), PR #1204 (head
+  `3779106e` → force-pushed to `0ad61279`; rebuilt on `24a90054`), AGENTS.md
   "Bot/agent branches", LESSON-064, LESSON-070.
 
 ## LESSON-075: check a test against production, not against the issue's prose (2026-10-19)

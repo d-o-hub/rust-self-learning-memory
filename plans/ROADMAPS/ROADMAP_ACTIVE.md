@@ -7,8 +7,8 @@
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
 **Branch**: `main` @ `7411a336`
-**Open PRs**: 2 open (run `gh pr list --state open`) — #1204 (release-gate CI event filtering, ADR-083) and #1194 (LESSON-068…076 from the release close-out). The rest of the queue merged: #1189, #1190, #1192, #1193, #1197, #1198, #1201, #1203
-**Open issues**: 2 open (run `gh issue list --state open`) — #1109 and #1200 (the release-gate event-filtering issue that #1204 closes). #1068, #1076 and #1089 closed on 2026-10-19/20; #1182 and #1165 closed when `v0.1.46` was tagged
+**Open PRs**: 1 open (run `gh pr list --state open`) — #1204 (release-gate CI event filtering, ADR-083). #1194 (LESSON-068…076) merged 2026-10-20 as `24a90054`; the rest of the queue merged earlier: #1189, #1190, #1192, #1193, #1197, #1198, #1201, #1203
+**Open issues**: 4 open (run `gh issue list --state open`) — #1206 (audit the excluded `fuzz/Cargo.lock` as a separate dependency graph), #1205 (the auto-filed `release-drift` issue: 20 commits / 2 days since `v0.1.46`), #1200 (the release-gate event-filtering issue that #1204 closes) and #1109 (release-pipeline best practice, code-complete). #1068, #1076 and #1089 closed on 2026-10-19/20; #1182 and #1165 closed when `v0.1.46` was tagged
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6
 

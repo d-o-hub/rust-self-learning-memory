@@ -936,6 +936,24 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `.cargo/audit.toml`, `Cargo.toml`, `fuzz/Cargo.lock`,
   `.agents/skills/code-quality/SKILL.md`, `.agents/skills/ci-fix/SKILL.md`,
   LESSON-053, ACT-404, PR #1174.
+- A **fourth** way the local gate lies, measured 2026-10-20 (#1204): the advisory
+  **database itself** can be stale. `cargo deny` keeps its own clone under
+  `~/.cargo/advisory-dbs/<hash>/` (a git repo, refreshed only on demand), and
+  `cargo audit` keeps a separate one under `~/.cargo/advisory-db/`. The local
+  `cargo deny` clone was dated 2026-09-25, so it did not know
+  RUSTSEC-2026-0381/0382 (published 2026-10-19/20) and reported
+  `advisories ok` — a **false green** — while CI, with a fresh database, failed
+  the same gate. The tell is in the output: `warning[unknown-advisory] … unknown
+  advisory` and `warning[advisory-not-detected] … no crate matched advisory
+  criteria` for ignore entries the database has never heard of. A stale DB makes
+  *every* ignore entry look stale, so the warnings are the signal, not noise.
+  Refresh before trusting a green: `git -C ~/.cargo/advisory-dbs/<hash> fetch
+  --depth 1 origin main && git -C ~/.cargo/advisory-dbs/<hash> reset --hard
+  FETCH_HEAD` (a stale `index.lock` from a crashed run blocks the reset — remove
+  it), then re-run. `cargo audit` has its own DB and its own ignore file, so
+  **both** must be refreshed and **both** must carry a waiver: a waiver in only
+  `deny.toml` leaves `cargo audit` red, and one in only `.cargo/audit.toml`
+  leaves `cargo deny` red.
 
 ## LESSON-057: a version bump does not make a repo shippable, and the drift gate files its own issue (2026-10-16)
 

@@ -89,7 +89,15 @@ jobs:
           github.event_name == 'pull_request' &&
           steps.check.outputs.severity == 'critical' &&
           !contains(github.event.pull_request.labels.*.name, 'release-preparation')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [[ -n "${{ github.event.pull_request.number }}" ]]; then
+            if gh pr view "${{ github.event.pull_request.number }}" --json labels --jq '.labels[].name' 2>/dev/null | grep -q 'release-preparation'; then
+              echo "PR has release-preparation label; skipping cadence enforcement."
+              exit 0
+            fi
+          fi
           echo "Release cadence exceeded or version state is invalid: ${{ steps.check.outputs.reason }}" >&2
           echo "A maintainer may label the release PR 'release-preparation' to break a cadence deadlock." >&2
           echo "Or re-run after: ./scripts/release-cadence-manager.sh resolve --pr ${{ github.event.pull_request.number }}" >&2

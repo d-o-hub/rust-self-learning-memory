@@ -160,6 +160,17 @@ pub(crate) fn get_or_generate_episode_embedding(
 ///
 /// Similarity score between 0.0 and 1.0
 pub(crate) fn calculate_text_similarity(query_lower: &str, text_lower: &str) -> f32 {
+    debug_assert_eq!(
+        query_lower,
+        query_lower.to_lowercase(),
+        "query_lower must be lowercased"
+    );
+    debug_assert_eq!(
+        text_lower,
+        text_lower.to_lowercase(),
+        "text_lower must be lowercased"
+    );
+
     // Collect set of word slices directly without heap-allocating lowercased String copies.
     let query_words: std::collections::HashSet<_> = query_lower.split_whitespace().collect();
     let text_words: std::collections::HashSet<_> = text_lower.split_whitespace().collect();

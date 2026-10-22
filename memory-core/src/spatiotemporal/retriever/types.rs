@@ -144,34 +144,23 @@ pub(crate) fn get_or_generate_episode_embedding(
     vec![task_len, domain_hash, steps_count]
 }
 
-/// Calculate text similarity between pre-lowercased query and episode text slices.
+/// Calculate text similarity between query and episode text.
 ///
 /// Uses a simple word overlap metric:
 /// `similarity = (common_words) / max(query_words, text_words)`
-/// Expects both `query_lower` and `text_lower` to be pre-lowercased to avoid
-/// redundant string allocations when scoring multiple candidate episodes.
 ///
 /// # Arguments
 ///
-/// * `query_lower` - Pre-lowercased query text
-/// * `text_lower` - Pre-lowercased candidate text
+/// * `query` - Query text
+/// * `text` - Text to compare against
 ///
 /// # Returns
 ///
 /// Similarity score between 0.0 and 1.0
-pub(crate) fn calculate_text_similarity(query_lower: &str, text_lower: &str) -> f32 {
-    debug_assert_eq!(
-        query_lower,
-        query_lower.to_lowercase(),
-        "query_lower must be lowercased"
-    );
-    debug_assert_eq!(
-        text_lower,
-        text_lower.to_lowercase(),
-        "text_lower must be lowercased"
-    );
+pub(crate) fn calculate_text_similarity(query: &str, text: &str) -> f32 {
+    let query_lower = query.to_lowercase();
+    let text_lower = text.to_lowercase();
 
-    // Collect set of word slices directly without heap-allocating lowercased String copies.
     let query_words: std::collections::HashSet<_> = query_lower.split_whitespace().collect();
     let text_words: std::collections::HashSet<_> = text_lower.split_whitespace().collect();
 

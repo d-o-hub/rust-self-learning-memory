@@ -191,6 +191,7 @@ impl HierarchicalIndex {
     /// Query episodes by domain.
     #[must_use]
     pub fn query_by_domain(&self, domain: &str, limit: usize) -> Vec<Uuid> {
+        let limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         if let Some(domain_index) = self.domains.get(domain) {
             let mut results = Vec::new();
 
@@ -212,6 +213,7 @@ impl HierarchicalIndex {
     /// Query episodes by task type within a domain.
     #[must_use]
     pub fn query_by_task_type(&self, domain: &str, task_type: TaskType, limit: usize) -> Vec<Uuid> {
+        let limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         if let Some(domain_index) = self.domains.get(domain) {
             if let Some(task_type_index) = domain_index.task_types.get(&task_type) {
                 let mut results = self.collect_from_temporal_index(&task_type_index.temporal_index);
@@ -369,6 +371,7 @@ impl HierarchicalIndex {
     }
 
     fn query_task_type_across_domains(&self, task_type: TaskType, limit: usize) -> Vec<Uuid> {
+        let limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         let mut results = Vec::new();
 
         for domain_index in self.domains.values() {

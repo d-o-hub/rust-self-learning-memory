@@ -112,7 +112,7 @@ Search with `grep`/`glob`/`find`, read with `read`; `bash` is for binaries and s
 
 ## Monitoring
 
-MCP observability (`get_metrics`, `health_check`) and MCP tool contracts: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) + [`.agents/skills/do-memory-mcp/SKILL.md`](.agents/skills/do-memory-mcp/SKILL.md).
+MCP observability (`get_metrics`, `health_check`) and MCP tool contracts (`query_memory`, `analyze_patterns`, `advanced_pattern_analysis`): [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) + [`.agents/skills/do-memory-mcp/SKILL.md`](.agents/skills/do-memory-mcp/SKILL.md).
 
 ## Cross-References
 

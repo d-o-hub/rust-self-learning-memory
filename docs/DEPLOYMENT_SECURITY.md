@@ -275,11 +275,11 @@ log() {
 
 # 1. Generate new Turso token
 log "Generating new Turso token..."
-NEW_TOKEN=$(turso db tokens create prod-memory-db --expiration 90d)
+AUTH_TOKEN=$(turso db tokens create prod-memory-db --expiration 90d)
 
 # 2. Update secret store (example with Vault)
 log "Updating Vault secret..."
-vault kv put secret/do-memory-mcp auth_token="$NEW_TOKEN"
+vault kv put secret/do-memory-mcp auth_token="$AUTH_TOKEN"
 
 # 3. Signal service to reload (graceful rotation)
 log "Reloading service..."

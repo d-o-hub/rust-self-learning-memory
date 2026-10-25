@@ -249,4 +249,11 @@ fn test_limit_clamping_to_max_query_limit() {
 
     let results = index.query_by_task_type("web-api", TaskType::CodeGeneration, 2000);
     assert!(results.len() <= crate::storage::MAX_QUERY_LIMIT);
+
+    // Cover query_task_type_across_domains
+    let query_across = HierarchicalQuery::new()
+        .with_task_type(TaskType::CodeGeneration)
+        .with_limit(2000);
+    let results_across = index.query(&query_across);
+    assert!(results_across.len() <= crate::storage::MAX_QUERY_LIMIT);
 }

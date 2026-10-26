@@ -18,3 +18,8 @@
 **Vulnerability:** `SpatiotemporalIndex::query_range` accepted an unbounded `limit: usize` parameter without clamping, allowing callers (such as `HierarchicalIndex::query` passing `usize::MAX`) to trigger unbounded vector allocations during time range queries.
 **Learning:** Internal time-range indexing methods called with `usize::MAX` must clamp inputs to `crate::storage::MAX_QUERY_LIMIT` at entry.
 **Prevention:** Always bound input query limits on public and internal indexing APIs using `limit.min(crate::storage::MAX_QUERY_LIMIT)`.
+
+## 2026-10-19 — Unbounded limit in HierarchicalIndex and HierarchicalQuery
+**Vulnerability:** `HierarchicalIndex` query methods (`query_by_domain`, `query_by_task_type`, `query_task_type_across_domains`) and `HierarchicalQuery::with_limit` accepted an unbounded `limit: usize` parameter, leading to potential resource exhaustion (CWE-770) when called with large limits like `usize::MAX`.
+**Learning:** Hierarchical search query builders and index methods must bound user-controlled `limit` inputs to prevent unbounded memory allocation and execution.
+**Prevention:** Clamp query limit inputs on public/builder methods using `limit.min(crate::storage::MAX_QUERY_LIMIT)`.

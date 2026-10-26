@@ -231,3 +231,29 @@ fn test_memory_usage_estimate() {
     // Memory usage should increase with data
     assert!(usage_with_data > base_usage);
 }
+
+#[test]
+fn test_limit_clamping_to_max_query_limit() {
+    let mut index = HierarchicalIndex::new();
+
+    // Insert more than MAX_QUERY_LIMIT episodes if needed or check clamping behavior
+    let query = HierarchicalQuery::new().with_limit(5000);
+    assert_eq!(query.limit, crate::storage::MAX_QUERY_LIMIT);
+
+    for _ in 0..10 {
+        index.insert(&create_test_episode("web-api", TaskType::CodeGeneration));
+    }
+
+    let results = index.query_by_domain("web-api", usize::MAX);
+    assert!(results.len() <= crate::storage::MAX_QUERY_LIMIT);
+
+    let results = index.query_by_task_type("web-api", TaskType::CodeGeneration, 2000);
+    assert!(results.len() <= crate::storage::MAX_QUERY_LIMIT);
+
+    // Cover query_task_type_across_domains
+    let query_across = HierarchicalQuery::new()
+        .with_task_type(TaskType::CodeGeneration)
+        .with_limit(2000);
+    let results_across = index.query(&query_across);
+    assert!(results_across.len() <= crate::storage::MAX_QUERY_LIMIT);
+}

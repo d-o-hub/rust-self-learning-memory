@@ -32,7 +32,7 @@ do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.40"
 do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.40" }
 
 # MCP-specific dependencies
-parking_lot = "0.12.5"
+parking_lot = "0.13.0"
 url = "2.5.8"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 

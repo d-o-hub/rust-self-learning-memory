@@ -134,7 +134,7 @@ impl HierarchicalQuery {
     /// Set the result limit.
     #[must_use]
     pub fn with_limit(mut self, limit: usize) -> Self {
-        self.limit = limit;
+        self.limit = limit.min(crate::storage::MAX_QUERY_LIMIT);
         self
     }
 }

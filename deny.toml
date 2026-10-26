@@ -81,6 +81,12 @@ ignore = [
     # the direct rustls-webpki dependency is at 0.103.16 (patched). The exposure is the
     # transitive libsql/hyper-rustls path only.
     "RUSTSEC-2026-0382",
+
+    # RUSTSEC-2026-0387: crypto-bigint timing variability in constant-time operations
+    # Dependency chain: jsonwebtoken 11.1.0 -> p256/p384 -> ecdsa -> elliptic-curve 0.13.8 -> crypto-bigint 0.5.5
+    # Fix: crypto-bigint >=0.7.6 (semver-incompatible with elliptic-curve 0.13.8's crypto-bigint 0.5 constraint)
+    # Mitigation: Transitive dependency of jsonwebtoken (p256/p384 feature); do-memory-mcp uses HS256 HMAC exclusively.
+    "RUSTSEC-2026-0387",
 ]
 
 [licenses]

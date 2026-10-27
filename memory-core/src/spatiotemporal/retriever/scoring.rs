@@ -85,8 +85,6 @@ impl super::HierarchicalRetriever {
         query: &RetrievalQuery,
     ) -> Vec<HierarchicalScore> {
         let now = Utc::now();
-        // Pre-compute query lowercasing once for text similarity evaluation across all candidate episodes.
-        let query_text_lower = query.query_text.to_lowercase();
 
         let scored: Vec<HierarchicalScore> = candidates
             .iter()
@@ -131,7 +129,7 @@ impl super::HierarchicalRetriever {
                 } else {
                     // Fallback to text-based similarity
                     calculate_text_similarity(
-                        &query_text_lower,
+                        &query.query_text.to_lowercase(),
                         &episode.task_description.to_lowercase(),
                     )
                 };

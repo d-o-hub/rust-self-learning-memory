@@ -61,7 +61,7 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 
 # Synchronization
-parking_lot = "0.12.5"
+parking_lot = "0.13.0"
 
 # Compression libraries (optional, enabled by compression feature)
 # Using lz4_flex for safe LZ4 implementation (no unsafe code)

@@ -1,23 +1,22 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-20
-**Released Version**: v0.1.46 (tag `d85efb5c`, GitHub Release published 2026-10-18; the first release to reach crates.io since `0.1.34`)
-**Workspace Version**: 0.1.47 (the post-`v0.1.46` development bump, merged in #1193 — **ahead** of the shipped tag, so `verify-release-state.sh --check-unreleased` is *expected* to fail until a `0.1.47` release-prep PR lands)
+**Last Updated**: 2026-10-28
+**Released Version**: v0.1.47 (release target; tag and publication pending green main CI)
+**Workspace Version**: 0.1.47 (release preparation; latest published tag is v0.1.46)
 **Edition**: Rust 2024
 **Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the closeout is shipped: the
 false-green crates.io publish (#1179) is fixed and verified externally at `v0.1.46`, the red Turso nightly (#1180),
 the readiness-gate run ordering (#1177) and guardrail docs (#1175) are merged, and the `0.1.46` bump shipped.
-What remains: the `0.1.47` release-prep PR (CHANGELOG heading + version-doc flip), the crates.io registrations
-for `do-memory-cli`/`do-memory-examples`, and the upstream-blocked Dependabot register.
-**Branch**: `main` @ `18b1ab8f`
+What remains: land this release preparation, verify main CI, ship `0.1.47`, and verify the release and four published crates.
+**Branch**: release preparation based on `main` @ `1c2196e1`
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | 0 open — the queue is merged. #1207 merged 2026-10-21 as `18b1ab8f`, #1204 as `9497dd2c`, #1194 (LESSON-068…076) as `24a90054`; the rest merged earlier (#1189, #1190, #1192, #1193, #1197, #1198, #1201, #1203). `gh pr list --state open` is the live source |
-| Open issues | 3 open — #1208 (audit the excluded `fuzz/Cargo.lock` as a separate dependency graph; #1206 closed with a PR whose merged commit did not carry the work, so this re-files it), #1205 (the auto-filed `release-drift` issue: 32 commits / 3 days since `v0.1.46` — it closes itself when the version advances) and #1109 (the release-pipeline best-practice work, code-complete with the manual crates.io registrations outstanding). #1200 closed with #1204; #1068, #1076 and #1089 closed on 2026-10-19/20; #1182 and #1165 closed when `v0.1.46` was tagged |
-| Open Dependabot alerts | 12 (2 high, 2 medium, 8 low) = **6 advisories duplicated across `Cargo.lock` + `fuzz/Cargo.lock`**, all upstream-blocked (`rustls-webpki 0.102.8` via the libsql→rustls 0.22 chain, `lru <0.16.3` via `augurs-changepoint`/`agentfs-sdk`, unpatched `libsql-sqlite3-parser`). The **root** graph is now clean: `cargo deny` → `advisories ok` and `cargo audit` → 0 vulnerabilities (measured 2026-10-21, after the RUSTSEC-2026-0381/0382/0383 bumps in #1204). The **fuzz** graph still fails (`cargo deny --manifest-path fuzz/Cargo.toml check advisories` → FAILED) and no gate reads it — that is #1208 |
+| Open PRs | #1217 updates dependencies; `gh pr list --state open` is the live source. |
+| Open issues | #1205 tracks release drift; #1109 tracks release-pipeline acceptance and external configuration. |
+| Dependency audit | The security workflow audits both the root and excluded fuzz lockfiles; consult its latest run for current advisory status. |
 
 ## Corrected claim (2026-10-04)
 
@@ -111,7 +110,7 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | The **release-prep PR** for `0.1.47` (CHANGELOG `## [0.1.47]` heading + version-doc flip) — `verify-release-state.sh --check-unreleased` reports the ROADMAP/STATUS/CHANGELOG mismatches that `release-manager.sh` Phase 0 refuses on | ACT-412 | ⏳ |
+| P0 | Land the **release-prep PR** for `0.1.47` and verify green main CI | ACT-412 | ⏳ |
 | P0 | Then cut tag `v0.1.47` and verify every crate the publish chain owns (core, redb, turso, mcp) resolves on crates.io | ACT-409 | ⏳ |
 | P1 | Dependabot register is **upstream-blocked, not a bump away**: wait for libsql to move to hyper 1.x (clears the 8 `rustls-webpki`), for `augurs-changepoint`/`agentfs-sdk` to pass `lru 0.16.3`, and for a `libsql-sqlite3-parser` patch; classify each alert as gated+ignored, informational-only, or Dependabot-only | ACT-404 | ⏳ blocked upstream |
 | P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(…, ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ✅ schema/SQL sensor landed in #1201; LESSON/AGENTS entries in #1203 |

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.47] - 2026-10-28
+
+### Added
+
+- Added a schema and SQL column sensor to catch mismatches between storage
+  queries and the database schema (#1201).
+
+### Changed
+
+- Pattern search reuses and batches embeddings (#1198), and hierarchical
+  retrieval computes the lowercased query once per search (#1212).
+
 ### Security
 
 - `webpki-roots` 1.0.7 → 1.0.10 (RUSTSEC-2026-0381), `rustls-webpki` 0.103.15 →
@@ -25,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `cargo audit` checks through `scripts/check-dependency-audit.sh`. The
   regression fixture verifies missing and empty lockfiles and asserts the seeded
   `RUSTSEC-2021-0145` finding comes from `fuzz/Cargo.lock` (#1208).
+
+  The `RUSTSEC-2026-0387` waiver for transitive `crypto-bigint` 0.5 is
+  documented in both audit configurations; MCP uses HS256 rather than the
+  affected elliptic-curve algorithms (#1215).
 
 ### CI/CD
 
@@ -87,10 +103,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   synchronizer with a page size of 4 and a chunk size of 2 against a cache that
   rejects one chunk wholesale, and asserts the failing item stays uncached,
   that the in-memory and durable watermarks both refuse to advance, and that a
-  healed retry re-delivers everything the failed run skipped. Criterion 4 (sync
-  ordering) remains open.
+  healed retry re-delivers everything the failed run skipped. Keyset ordering
+  for tied sync timestamps is covered by #1192.
 
 ### Fixed
+
+- Clamp hierarchical index query limits to the configured maximum (#1215).
+- Prefer the newest revision when merging redb and Turso records (#1184).
+- Fail the dependency audit when `cargo audit` itself errors (#1207).
 
 - The changelog generator duplicated released-version sections (#1188): `changelog.yml` ran
   `git-cliff --latest --tag "$CLIFF_TAG" --prepend CHANGELOG.md` unconditionally, so the `v0.1.46` tag push

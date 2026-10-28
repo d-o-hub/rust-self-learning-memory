@@ -1,14 +1,14 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-20
-**Released Version**: v0.1.46 (tag `d85efb5c`, GitHub Release 2026-10-18; all four registered crates published at `0.1.46`, ending the `0.1.34`/`0.1.31` stall)
-**Workspace Version**: 0.1.47 (the post-`v0.1.46` development bump, merged in #1193 — ahead of the shipped tag; `verify-release-state.sh --check-unreleased` is expected to fail until the `0.1.47` release-prep PR lands)
-**Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412) is shipped. The audit-backlog wave is closed (`GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`: W1–W6, Q02, wave-A slices merged through #1161, #1153 as `b6326d90`). Open work is now: #1089 criterion 4 (sync ordering assertion — the issue closed with it unchecked), the changelog generator's duplicate-section defect (#1188), the redb/Turso revision merge (#1068/#1184) and #1076.
+**Last Updated**: 2026-10-28
+**Released Version**: v0.1.47 (release target; tag and publication pending green main CI)
+**Workspace Version**: 0.1.47 (release preparation; latest published tag is v0.1.46)
+**Active plan**: prepare v0.1.47, verify main CI, and ship through the release manager. The release-pipeline code for #1109 is in place; remaining acceptance checks require external configuration and release verification.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: `main` @ `18b1ab8f`
-**Open PRs**: 0 open (run `gh pr list --state open`) — the queue is merged: #1207 as `18b1ab8f`, #1204 (release-gate CI event filtering, ADR-083) as `9497dd2c`, #1194 (LESSON-068…076) as `24a90054`, and the rest earlier: #1189, #1190, #1192, #1193, #1197, #1198, #1201, #1203
-**Open issues**: 3 open (run `gh issue list --state open`) — #1208 (audit the excluded `fuzz/Cargo.lock` as a separate dependency graph; #1206 closed with a PR whose merged commit did not carry the work), #1205 (the auto-filed `release-drift` issue: 32 commits / 3 days since `v0.1.46`) and #1109 (release-pipeline best practice, code-complete). #1200 closed with #1204; #1068, #1076 and #1089 closed on 2026-10-19/20; #1182 and #1165 closed when `v0.1.46` was tagged
+**Branch**: release preparation based on `main` @ `1c2196e1`
+**Open PRs**: #1217 (dependency updates); check GitHub for the live queue.
+**Open issues**: #1205 (release drift) and #1109 (release-pipeline acceptance and external configuration); check GitHub for the live list.
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6
 

@@ -930,7 +930,7 @@ checksum = "2906d3628a885aa49a23b88e71f63e51ae8df41cd76652287f0a6179a11833a9"
 
 [[package]]
 name = "do-memory-core"
-version = "0.1.48"
+version = "0.1.47"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-mcp"
-version = "0.1.48"
+version = "0.1.47"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -1000,7 +1000,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-redb"
-version = "0.1.48"
+version = "0.1.47"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1019,7 +1019,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-turso"
-version = "0.1.48"
+version = "0.1.47"
 dependencies = [
  "anyhow",
  "async-trait",

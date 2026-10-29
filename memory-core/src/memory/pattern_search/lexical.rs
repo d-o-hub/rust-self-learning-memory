@@ -40,7 +40,7 @@ fn to_lowercase_cow(s: &str) -> Cow<'_, str> {
 ///
 /// Splitting on punctuation (not just whitespace) is what lets `web-api` match a query
 /// saying `Web API`, and matches the episode-tag convention of trimming and lowercasing.
-fn tokenize<'a>(text: &'a str) -> HashSet<&'a str> {
+fn tokenize(text: &str) -> HashSet<&str> {
     text.split(|c: char| !c.is_alphanumeric())
         .filter(|token| token.len() >= 2)
         .filter(|token| !STRUCTURAL_LABELS.contains(token))

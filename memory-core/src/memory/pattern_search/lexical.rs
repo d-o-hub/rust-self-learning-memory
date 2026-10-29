@@ -10,6 +10,7 @@ use crate::embeddings::semantic_text::pattern_to_text;
 use crate::patterns::Pattern;
 #[cfg(test)]
 use crate::types::TaskContext;
+use std::borrow::Cow;
 use std::collections::HashSet;
 
 /// Neutral score returned when there is nothing to compare.
@@ -25,16 +26,24 @@ pub(crate) const NEUTRAL_SIMILARITY: f32 = 0.5;
 /// text the caller never asked about.
 const STRUCTURAL_LABELS: [&str; 5] = ["domain", "language", "framework", "tags", "complexity"];
 
-/// Lowercase, split on any non-alphanumeric character, and drop the noise.
+/// Avoid memory allocation if the string is already lowercase.
+#[inline]
+fn to_lowercase_cow(s: &str) -> Cow<'_, str> {
+    if s.chars().any(|c| c.is_uppercase()) {
+        Cow::Owned(s.to_lowercase())
+    } else {
+        Cow::Borrowed(s)
+    }
+}
+
+/// Split pre-lowercased text on any non-alphanumeric character and drop noise.
 ///
 /// Splitting on punctuation (not just whitespace) is what lets `web-api` match a query
 /// saying `Web API`, and matches the episode-tag convention of trimming and lowercasing.
-fn tokenize(text: &str) -> HashSet<String> {
-    text.to_lowercase()
-        .split(|c: char| !c.is_alphanumeric())
+fn tokenize(text: &str) -> HashSet<&str> {
+    text.split(|c: char| !c.is_alphanumeric())
         .filter(|token| token.len() >= 2)
         .filter(|token| !STRUCTURAL_LABELS.contains(token))
-        .map(str::to_string)
         .collect()
 }
 
@@ -50,13 +59,16 @@ fn tokenize(text: &str) -> HashSet<String> {
 /// and deliberately does NOT consult the task context — context agreement stays the job of
 /// [`super::scoring::calculate_context_match`] and must not be double-counted here.
 pub fn calculate_keyword_similarity(query: &str, pattern: &Pattern) -> f32 {
-    let query_tokens = tokenize(query);
+    let query_lower = to_lowercase_cow(query);
+    let query_tokens = tokenize(&query_lower);
     if query_tokens.is_empty() {
         // No typed terms to match on: keep the historical neutral value.
         return NEUTRAL_SIMILARITY;
     }
 
-    let pattern_tokens = tokenize(&pattern_to_text(pattern));
+    let pattern_text = pattern_to_text(pattern);
+    let pattern_lower = to_lowercase_cow(&pattern_text);
+    let pattern_tokens = tokenize(&pattern_lower);
     let common = query_tokens.intersection(&pattern_tokens).count();
 
     common as f32 / query_tokens.len() as f32

@@ -1,16 +1,31 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-10-06
-- **Status**: **audit-backlog wave — W1–W4 merged 2026-10-05, W5/W6 + Q02 in review.** 22 code issues (#1063–#1092) were filed
-  at `9f50c607`, never registered in these trackers, and re-validation at `74a44a15` found **0 fixed** (20 OPEN, 2 PARTIAL);
-  the wave closes them in dependency order. Earlier campaigns remain campaign-scoped: retrieval judgment (#1030 → #1041),
-  rerank (#1031 → #1042), ADR-082 ranking adaptation (#952) merged; ADR-080/081/082 lifecycle acceptance and ADR-079
-  stage 4 fault-inject proof remain maintainer-external
-- **Workspace**: `0.1.45` · **Tag**: `v0.1.44` · **Plan**: `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`
-- **Queued chains**: ACT-376…ACT-385 (watermark #1067→#1068→#1089; embedding identity #1073→#1074→#1076)
+- **Last Updated**: 2026-10-30
+- **Status**: **post-`v0.1.47` hardening — closed.** `v0.1.47` shipped (tag `854f6f8d`) and the released CLI was
+  dogfooded; the two defects it found are fixed (#1225 persisted pattern counts, #1226 same-domain retrieval
+  ranking), alongside the fixable advisory (#1224), the generated-lockfile alert (#1227), the workspace bump
+  restore (#1228) and the toolchain pin (#1222). ADR-079 stage 4 is proven (#1229, closed unmerged).
+  The earlier audit-backlog wave is fully merged (see the tables below); ADR-080/081/082 lifecycle acceptance
+  remains maintainer-external.
+- **Workspace**: `0.1.48` · **Tag**: `v0.1.47` · **Plan**: post-`v0.1.47` hardening (`ACTIONS.md` ACT-413...ACT-419)
+- **Queued chains**: none open — the watermark chain (#1067→#1068→#1089) and the embedding chain
+  (#1073→#1074→#1076) are closed.
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals — audit-backlog wave (2026-10-04…)
+## Active goals — post-`v0.1.47` hardening (2026-10-30, closed)
+
+| Goal | Rec | Priority | Status |
+|------|-----|----------|--------|
+| G-B1 patch the one fixable advisory on both dependency graphs | RUSTSEC-2026-0418 | P1 | ✅ #1224 (`0bc68aad`) — `libz-sys` 1.1.31 |
+| G-B2 the shipped CLI must report the patterns it can list | dogfood D1 | P1 | ✅ #1225 (`0a461028`) — 0 vs 2 before, 2 == 2 after |
+| G-B3 same-domain candidates must not tie on context relevance | dogfood D2 | P1 | ✅ #1226 — sub-signals scaled before the 40% cap |
+| G-B4 no generated lockfile in the tree | Dependabot #35 | P2 | ✅ #1227 (`6b28c2a0`) — alert `fixed` |
+| G-B5 the workspace version must be ahead of the latest tag | drift gate | P0 | ✅ #1228 (`7dd67587`) — `severity=clean`, #1223 self-closed |
+| G-B6 one pinned toolchain for builds, lint and advisories | toolchain | P2 | ✅ #1222 (`16a31396`) — 1.99.1 |
+| G-B7 live proof that a failing required check blocks the merge | ADR-079 stage 4 | P0 | ✅ #1229 (closed unmerged) |
+| G-B8 released-CLI dogfood is mandatory, not optional | release process | P1 | ✅ `.agents/skills/release-guard/SKILL.md` + evals |
+
+## Goals — audit-backlog wave (2026-10-04..., all merged)
 
 | Goal | Rec | Priority | Status |
 |------|-----|----------|--------|
@@ -23,43 +38,43 @@
 | G-A7 trackers match `gh issue list` | governance | P0 | ✅ #1129 — `GAP_ANALYSIS_LATEST.md` is the repo-wide register |
 | G-A8 ignored-test inventory + fail-visible isolated native job | #1091 / Q02 | P1 | ✅ merged #1130 (2026-10-06) — 159-entry inventory, 14 tests un-ignored, isolated job fail-visible (JSON flag follow-up #1159); issue closed with evidence |
 
-## Wave A goals (2026-10-06…09, in review)
+## Wave A goals (2026-10-06...09, all merged)
 
 | Goal | Rec | PR | Status |
 |------|-----|----|--------|
 | Recommendation precision (ms + UUID tie-break + backfill) | #1065 / S06 | #1142 | ✅ merged 2026-10-08 (`5054c15a`) |
 | Execution-backed retrieval provenance | #1079 / R08 | #1148 | ✅ merged 2026-10-07 (`9fdbc765`) |
-| Lint suppressions slice 1 (turso unsafe peel + ratchet) | #1092 / Q03 | #1143 | ✅ merged 2026-10-06 (`cdb70594`); slice 2 #1153 in review |
-| Strict row decode + allowlisted query builder | #1071 / S12 | #1145 | 🔄 in review (doctest fixed, rebased) |
-| Capacity eviction atomic-or-repairable | #1070 / S11 | #1150 | 🔄 in review |
-| Adaptive pool capacity model (E4) | #1063 / S04 | #1146 | 🔄 in review |
-| Scoped pool checkout | #1064 / S05 | #1147 | 🔄 in review (roast BLOCKER fixed) |
-| Modification watermark + keyset pages | #1067 / S08 | #1149 | 🔄 in review (6 roast MAJORs fixed) |
-| Identity-scoped embedding adapter | #1073 / R02 | #1151 | 🔄 in review |
-| Incremental ranking index + benches | #1078 / R07 | #1154 | 🔄 in review |
-| Capability truth (cleanup / procedural+relationships / inventory) | #1087 / M06 | #1144, #1152, #1158 | 🔄 in review |
-| Nightly libtest-JSON flag fix (follow-up to #1130) | — | #1159 | 🔄 in review |
+| Lint suppressions slice 1 (turso unsafe peel + ratchet) | #1092 / Q03 | #1143 | ✅ merged 2026-10-06 (`cdb70594`); slice 2 #1153 merged (`b6326d90`) |
+| Strict row decode + allowlisted query builder | #1071 / S12 | #1145 | ✅ merged |
+| Capacity eviction atomic-or-repairable | #1070 / S11 | #1150 | ✅ merged |
+| Adaptive pool capacity model (E4) | #1063 / S04 | #1146 | ✅ merged |
+| Scoped pool checkout | #1064 / S05 | #1147 | ✅ merged |
+| Modification watermark + keyset pages | #1067 / S08 | #1149 | ✅ merged |
+| Identity-scoped embedding adapter | #1073 / R02 | #1151 | ✅ merged |
+| Incremental ranking index + benches | #1078 / R07 | #1154 | ✅ merged |
+| Capability truth (cleanup / procedural+relationships / inventory) | #1087 / M06 | #1144, #1152, #1158 | ✅ merged |
+| Nightly libtest-JSON flag fix (follow-up to #1130) | — | #1159 | ✅ merged |
 
-## Queued goals (sequenced)
+## Queued goals (sequenced) — all closed as of 2026-10-30
 
-| Goal | Rec | Depends on |
-|------|-----|------------|
-| Modification watermark + bounded keyset pages | #1067 / S08 | — (E3, E5 constraints) |
-| Revision-aware merge of redb + Turso | #1068 / S09 | #1067 |
-| Batch writes through redb + synchronizer | #1089 / M08 | #1067 |
-| Identity-scoped embedding storage adapter | #1073 / R02 | — |
-| One runtime provider snapshot across memory paths (remaining pattern sites) | #1074 / R03 | #1073 (E2) |
-| Reuse + batch pattern embeddings | #1076 / R05 | #1073, #1074 |
-| Adaptive pool capacity model (cooldown + permits) | #1063 / S04 | — (E4: fix rewrites `adaptive_tests.rs:140-146`) |
-| Scoped pool checkout (`with_connection`) | #1064 / S05 | — |
-| Capacity eviction atomic-or-repairable | #1070 / S11 | — |
-| Strict row decode + raw-query error surfacing | #1071 / S12 | — |
-| Incremental ranking index + benches | #1078 / R07 | — |
-| Execution-backed retrieval provenance | #1079 / R08 | — |
-| Capability truth for `StorageBackend` defaults | #1087 / M06 | — (4 PRs) |
-| Lint-suppression integrity | #1092 / Q03 | — (4 PRs) |
-| Ship `v0.1.45` to clear release drift | #1137 | wave green |
-| crates.io trusted-publisher registrations + secret deletion | #1109 C1 | maintainer-external |
+| Goal | Rec | Outcome |
+|------|-----|---------|
+| Modification watermark + bounded keyset pages | #1067 / S08 | ✅ merged #1149 |
+| Revision-aware merge of redb + Turso | #1068 / S09 | ✅ closed with the release evidence (2026-10-19) |
+| Batch writes through redb + synchronizer | #1089 / M08 | ✅ merged #1171 (`16426d08`); issue closed |
+| Identity-scoped embedding storage adapter | #1073 / R02 | ✅ merged #1151 |
+| One runtime provider snapshot across memory paths (remaining pattern sites) | #1074 / R03 | ✅ merged #1160 |
+| Reuse + batch pattern embeddings | #1076 / R05 | ✅ merged #1198; issue closed |
+| Adaptive pool capacity model (cooldown + permits) | #1063 / S04 | ✅ merged #1146 |
+| Scoped pool checkout (`with_connection`) | #1064 / S05 | ✅ merged #1147 |
+| Capacity eviction atomic-or-repairable | #1070 / S11 | ✅ merged #1150 |
+| Strict row decode + raw-query error surfacing | #1071 / S12 | ✅ merged #1145 |
+| Incremental ranking index + benches | #1078 / R07 | ✅ merged #1154 |
+| Execution-backed retrieval provenance | #1079 / R08 | ✅ merged #1148 |
+| Capability truth for `StorageBackend` defaults | #1087 / M06 | ✅ merged #1144, #1152, #1158 |
+| Lint-suppression integrity | #1092 / Q03 | ✅ merged #1143, #1153 |
+| Ship a release to clear drift | #1137 | ✅ `v0.1.45` → `v0.1.46` → `v0.1.47` all shipped |
+| crates.io trusted-publisher registrations + secret deletion | #1109 C1 | ✅ done; issue closed |
 
 ### Why this wave and not the higher-effort chains
 

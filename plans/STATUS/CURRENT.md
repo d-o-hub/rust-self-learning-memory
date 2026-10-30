@@ -1,22 +1,23 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-10-28
-**Released Version**: v0.1.47 (release target; tag and publication pending green main CI)
-**Workspace Version**: 0.1.47 (release preparation; latest published tag is v0.1.46)
-**Edition**: Rust 2024
-**Active plan**: **release closeout** (`GOAP_RELEASE_CLOSEOUT_2026-10-16.md`) — the closeout is shipped: the
-false-green crates.io publish (#1179) is fixed and verified externally at `v0.1.46`, the red Turso nightly (#1180),
-the readiness-gate run ordering (#1177) and guardrail docs (#1175) are merged, and the `0.1.46` bump shipped.
-What remains: land this release preparation, verify main CI, ship `0.1.47`, and verify the release and four published crates.
-**Branch**: release preparation based on `main` @ `1c2196e1`
+**Last Updated**: 2026-10-30
+**Released Version**: v0.1.47 (tag `854f6f8d`, 2026-10-28; GitHub Release published 2026-10-28T20:41:48Z)
+**Workspace Version**: 0.1.48 (development bump; drift gate `severity=clean`, `reason=within_cadence`)
+**Edition**: Rust 2024 (toolchain pinned `1.99.1`)
+**Active plan**: **post-release hardening** — `v0.1.47` shipped and was dogfooded with the released CLI; the
+follow-ups that dogfood found are landed (#1225 persisted pattern counts in `storage stats`, #1226 same-domain
+retrieval ranking), together with the advisory fix (#1224), the generated-lockfile alert (#1227), the workspace
+bump restore (#1228) and the toolchain pin (#1222). Open work is the next release and the upstream-blocked
+Dependabot register.
+**Branch**: `main` (`7dd67587`) — no release branch open.
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | #1217 updates dependencies; `gh pr list --state open` is the live source. |
-| Open issues | #1205 tracks release drift; #1109 tracks release-pipeline acceptance and external configuration. |
-| Dependency audit | The security workflow audits both the root and excluded fuzz lockfiles; consult its latest run for current advisory status. |
+| Open PRs | 1 — this tracker refresh (PR 1230); #1222 and #1224–#1228 are merged; `gh pr list --state open` is the live source. |
+| Open issues | **0** — the `version_not_advanced` drift issue #1223 closed itself once 0.1.48 landed; `gh issue list --state open` is the live source. |
+| Dependency audit | RUSTSEC-2026-0418 fixed on both graphs by #1224 (`libz-sys 1.1.31`); the remaining register is upstream-blocked (ACT-404). |
 
 ## Corrected claim (2026-10-04)
 
@@ -25,6 +26,18 @@ CIT-A1…A5, PTA, RAT) and is still true for that campaign. It was never true of
 22-issue audit backlog was open the entire time and absent from the trackers, which is how "0 open gaps" got
 restated at each refresh. Read any campaign claim as campaign-scoped; the repo-wide register is
 `STATUS/GAP_ANALYSIS_LATEST.md`.
+
+## Recent completed (2026-10-30 — v0.1.47 dogfood follow-ups + toolchain pin)
+
+| Slice | PR | Evidence |
+|-------|-----|----------|
+| RUSTSEC-2026-0418 (`libz-sys` build-script env leak) | #1224 (`0bc68aad`) | `libz-sys` 1.1.28→1.1.31 in `Cargo.lock`, 1.1.29→1.1.31 in `fuzz/Cargo.lock`; CI 32 pass; local `quality-gates.sh` passed |
+| `storage stats` counted only the in-memory fallback | #1225 (`0a461028`) | released 0.1.47 CLI: `patterns.total_count=0` vs `pattern list=2` on the same DB; patched: `2 == 2`; regression test reopens the redb file in a second process |
+| Same-domain context match saturated the 40% budget | #1226 (`e12c7101`) | pre-fix `matching language (0.4)` vs `nonmatching (0.4)`; post-fix all five Rust episodes rank ahead of same-domain Python/TypeScript candidates |
+| Generated `.opencode/package-lock.json` tracked | #1227 (`6b28c2a0`) | Dependabot alert #35 (`zod`, high) state `fixed` after untracking + ignoring the file |
+| Workspace reverted to the released 0.1.47 by #1220 | #1228 (`7dd67587`) | `cargo metadata --locked` → 0.1.48 for all 9 workspace packages and the 4 path deps in `fuzz/Cargo.lock`; drift `severity=clean`; issue #1223 closed |
+| Rust toolchain floated on `stable` | #1222 (`16a31396`) | `rust-toolchain.toml` + `setup-rust` default = `1.99.1`; `cargo check -p do-memory-core --all-targets` on 1.99.1 passed; `release-preparation` label removed |
+| ADR-079 stage 4 merge-block proof | #1229 (closed unmerged) | injected frontmatter fault → `Quick PR Check` + `CI / Required` failed, `mergeStateStatus=BLOCKED` with `mergeable=MERGEABLE`, `merge-pr.sh` exit 1 |
 
 ## Recent completed (2026-10-05 — audit wave W1–W4 + hygiene)
 
@@ -96,11 +109,12 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 |------|--------|
 | First-party merge gate | ✅ **Live** — ruleset `9591004` requires `Codacy Static Code Analysis` + `CI / Required` (strict up-to-date policy); the aggregate is causally same-run and rejects `skipped`/`cancelled`/timed-out results |
 | Repo-wide open issues | the authoritative count + list is the **Open issues** row under *Open tracker (live)* — keep it in that one place; this row used to carry a stale copy of it. Note on **#1182**: the canonical `release-drift` issue, filed and updated **in place** by the `maintain-issue` job at `release-drift.yml:98-149` — it closed itself at 2026-10-18 11:14:15Z once `v0.1.46` was tagged, which is the designed exit (`version_not_advanced` clears when the tag matches), never by hand |
-| Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153, #1174, #1172, #1173, #1175, #1176, #1177, #1179, #1180, #1181, #1185, #1186, #1187 |
+| Merged since 2026-10-06 | #1130, #1142, #1143, #1148, #1138, #1140, #1144, #1145, #1146, #1147, #1149, #1150, #1151, #1152, #1154, #1158, #1159, #1160, #1161, #1153, #1174, #1172, #1173, #1175, #1176, #1177, #1179, #1180, #1181, #1185, #1186, #1187, #1193, #1194, #1201, #1203, #1204, #1207, #1220, #1222, #1224, #1225, #1226, #1227, #1228 |
 | Production pattern query relevance | ✅ **#1074 merged in #1160** — pattern operations use one runtime provider snapshot |
 | `episodes.created_at` watermark | ✅ **#1067 merged in #1149** — durable modification watermark and bounded keyset pages |
-| Release | `v0.1.46` tagged `d85efb5c`, GitHub Release published 2026-10-18 11:35:10Z (draft-first run `39122396247`, every job success/skipped, non-empty `## Release Notes`) |
-| crates.io | ✅ **`0.1.46` published** — `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp` each verified by version membership (`http=200`, `index("0.1.46") != null`); this is the first release off the `0.1.34`/`0.1.31` stall, proving the #1179 guard fix externally. `do-memory-cli` / `do-memory-examples` are still not registered (404) |
+| Release | `v0.1.47` tagged `854f6f8d` (2026-10-28), GitHub Release published 2026-10-28T20:41:48Z; workspace is `0.1.48` |
+| crates.io | ✅ **`0.1.47` published** — `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`; the publish chain has now landed two consecutive releases (`0.1.46`, `0.1.47`) since the #1179 guard fix. `do-memory-cli` / `do-memory-examples` are still not registered (404) |
+| Released-CLI dogfood (v0.1.47) | ✅ mandatory post-release step now codified in `.agents/skills/release-guard/SKILL.md` — asset digest matched (`76621912…ee58`), `--version` = 0.1.47, episode `8c6c3261…236e` completed with 3 steps and 5 learned patterns; it exposed the two defects fixed in #1225/#1226 |
 | Nightly (Turso native) | ⚠️ **Red since 2026-10-13** (36 of 106) — repaired in #1180; `86 + 20 = 106`, 0 failures, nothing ignored or waived |
 | Code execution | Fail-closed; S1.1c Wasmtime/WASI **NO-GO** |
 | Serialization | Postcard required |
@@ -110,14 +124,15 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Land the **release-prep PR** for `0.1.47` and verify green main CI | ACT-412 | ⏳ |
-| P0 | Then cut tag `v0.1.47` and verify every crate the publish chain owns (core, redb, turso, mcp) resolves on crates.io | ACT-409 | ⏳ |
-| P1 | Dependabot register is **upstream-blocked, not a bump away**: wait for libsql to move to hyper 1.x (clears the 8 `rustls-webpki`), for `augurs-changepoint`/`agentfs-sdk` to pass `lru 0.16.3`, and for a `libsql-sqlite3-parser` patch; classify each alert as gated+ignored, informational-only, or Dependabot-only | ACT-404 | ⏳ blocked upstream |
-| P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(…, ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ✅ schema/SQL sensor landed in #1201; LESSON/AGENTS entries in #1203 |
+| P0 | Land the **release-prep PR** for `0.1.47` and verify green main CI | ACT-412 | ✅ `0.1.47` release prep merged and shipped (tag `854f6f8d`); the version docs are flipped to `0.1.48` in this refresh |
+| P0 | Cut tag `v0.1.47` and verify the four owned crates resolve on crates.io | ACT-409 | ✅ tag `854f6f8d`; all four published; mandatory released-CLI dogfood performed (see snapshot) |
+| P1 | Dependabot register is **upstream-blocked, not a bump away**: libsql → hyper 1.x, `augurs-changepoint`/`agentfs-sdk` on `lru ≥ 0.16.3`, a `libsql-sqlite3-parser` patch; classify each remaining alert | ACT-404 | ⏳ blocked upstream; RUSTSEC-2026-0418 (the one fixable entry) cleared by #1224 |
+| P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(..., ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ✅ schema/SQL sensor landed in #1201; LESSON/AGENTS entries in #1203 |
 | P2 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering) — hardening only, never weakened at ship time | ACT-405 | ✅ decision + ADR-083 — only `push`/`pull_request` gate; a tag-triggered nightly (a `push`) still gates |
-| P2 | Strip the auto-applied `release-preparation` label from the remaining non-release PRs; review any parked PR with a tip-vs-merge-base diff before merging | ACT-411 | 🔄 in progress — removed from #1194; #1204 never carried it |
-| P0 | ADR-079 stage 4 live fault-injection proof; ADR-080/081 lifecycle; #1109 crates.io registrations + secret deletion | maintainer | ⏸ external |
-| P2 | Research/product spikes (R-F1…R-F7, R-F10) | R-F* | ⏸ DEFER |
+| P2 | Strip the auto-applied `release-preparation` label from non-release PRs; the drift gate is clean again, so no label is needed | ACT-411 | ✅ removed from #1194, #1204 never carried it, and #1222 was stripped before it merged |
+| P0 | ADR-079 stage 4 live fault-injection proof | maintainer | ✅ performed 2026-10-30 on probe PR #1229 (closed unmerged) — see ADR-079 acceptance criteria |
+| P0 | ADR-080/081 lifecycle acceptance | maintainer | ⏸ external |
+| P2 | Research/product spikes (R-F1...R-F7, R-F10) | R-F* | ⏸ DEFER |
 
 ## Canonical companions
 

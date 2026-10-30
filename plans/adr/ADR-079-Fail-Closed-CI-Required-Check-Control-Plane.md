@@ -1,6 +1,6 @@
 # ADR-079: Fail-Closed CI Required-Check Control Plane
 
-- **Status**: Accepted — stage 3 implemented 2026-08-10 (ruleset `9591004` requires `CI / Required`; CIT-A2 actor parity + fail-closed fixtures live); stage 5 cleanup (echo-anchor/waiter removal) landed in the closure PR from branch `fix/ci-attribution-truth-closure` (same-run fast gate + `ci-required-evaluate.sh` rejects `skipped`); stage 4 (deliberate live fault-injection merge-block proof) remains **external maintainer evidence — not performed here**
+- **Status**: Accepted — stage 3 implemented 2026-08-10 (ruleset `9591004` requires `CI / Required`; CIT-A2 actor parity + fail-closed fixtures live); stage 5 cleanup (echo-anchor/waiter removal) landed in the closure PR from branch `fix/ci-attribution-truth-closure` (same-run fast gate + `ci-required-evaluate.sh` rejects `skipped`); stage 4 (deliberate live fault-injection merge-block proof) **performed 2026-10-30** on probe PR #1229 (closed unmerged)
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
 - **Related**: ADR-029, ADR-030, ADR-038, ADR-039, ADR-042, ADR-072
@@ -160,7 +160,7 @@ baseline and a separate ratchet change.
 
 - The live ruleset requires `CI / Required` after staged verification. ✅ Done 2026-08-10 — ruleset `9591004` `required_status_checks` = `[Codacy Static Code Analysis, CI / Required]` (strict policy); enforced by `validate-gate-contract.sh --ci-parity` live-ruleset fixture.
 - Same-run skip hardening (stage 5). ✅ Landed in the closure PR (`fix/ci-attribution-truth-closure`): `commitlint` + `fast-gate` run inside `ci.yml`; `scripts/ci-required-evaluate.sh` accepts only `success` and rejects `skipped`/`cancelled`/`timed_out`/`failure`/missing/unknown; `quick-check.yml` and `pr-check-anchor.yml` are deleted and the cross-workflow waiters removed (`test`/`mcp-build`/`multi-platform` depend on the same-run gates). `validate-gate-contract.sh --ci-parity` and `test-workflow-guards.sh --required-aggregate` enforce this topology.
-- Stage 4 (deliberate live fault-injection merge-block proof) remains **external maintainer evidence**. It was NOT performed in this PR; the checked-in fail-closed evaluator and its fixtures are the merge-block regression proof here.
+- Stage 4 (deliberate live fault-injection merge-block proof). ✅ **Performed 2026-10-30** on probe PR #1229 (head `dd639359`), closed unmerged. The injected fault was an unquoted `description: …: …` in a `.claude/agents` frontmatter file, which failed `Quick PR Check (Format + Clippy)` at its first step (`ERROR: … unquoted description has ': '`, run `41074305242`). The same-run `CI / Required` aggregate then failed closed, `gh pr view 1229` reported `mergeable=MERGEABLE` with `mergeStateStatus=BLOCKED` (so the block came from checks, not conflicts), and `./scripts/merge-pr.sh 1229` refused with `Verdict: ❌ BLOCKED (CI failing)` / exit 1. Ruleset `9591004` (`main-protection`, `enforcement=active`) requires `Codacy Static Code Analysis` + `CI / Required` with `strict_required_status_checks_policy=true`. Branch and worktree deleted after capture; `main` never received the probe commit.
 - Failed, cancelled, timed-out, or missing applicable jobs fail the aggregate.
 - Commit lint failure fails the aggregate.
 - Explicitly inapplicable path/secret jobs do not block and cannot masquerade as

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29
+  to 1.1.31 in `fuzz/Cargo.lock`, fixing RUSTSEC-2026-0418 (build-script
+  environment leakage when `cc` 1.6 or later compiles on Unix).
+
 ## [0.1.47] - 2026-10-28
 
 ### Added

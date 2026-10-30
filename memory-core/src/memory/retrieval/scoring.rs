@@ -63,6 +63,13 @@ impl SelfLearningMemory {
         }
 
         // Context match (40% weight)
+        //
+        // Sub-signals are weighted 0.4 (domain) / 0.3 (language) / 0.2
+        // (framework) / 0.1 per matching tag; they sum to 1.0 for a full
+        // single-tag match. Rescale by 0.4 so the context component
+        // contributes at most 40% of the total score while each sub-signal
+        // keeps its relative effect (a matching language, for example,
+        // still outranks a nonmatching language within the same domain).
         let mut context_score = 0.0;
 
         if episode_ref.context.domain == context.domain {
@@ -93,6 +100,7 @@ impl SelfLearningMemory {
             context_score += 0.1 * common_tags_count as f32;
         }
 
+        context_score *= 0.4;
         score += context_score.min(0.4);
 
         // Description similarity (30% weight)
@@ -265,37 +273,150 @@ mod tests {
         ));
     }
 
+    /// Build an episode with fully controlled context fields (framework and
+    /// description included) on top of the shared test defaults.
+    fn episode_with_context(
+        domain: &str,
+        lang: Option<&str>,
+        framework: Option<&str>,
+        tags: Vec<&str>,
+        description: &str,
+    ) -> Arc<Episode> {
+        let mut episode = (*create_test_episode(domain, lang, tags)).clone();
+        episode.context.framework = framework.map(|s| s.to_string());
+        episode.task_description = description.to_string();
+        Arc::new(episode)
+    }
+
     #[test]
-    fn test_calculate_relevance_score() {
+    fn test_matching_language_outranks_nonmatching_language_within_same_domain() {
+        // A candidate whose language matches the query must outrank a
+        // candidate sharing only the domain: the language sub-signal must
+        // survive normalization instead of being swallowed by the domain
+        // contribution (regression: a matching domain capped the whole
+        // context score at 0.4, erasing language/framework/tag relevance).
         let memory = SelfLearningMemory::new();
-        let episode = create_test_episode("web-api", Some("rust"), vec!["rest"]);
         let context = TaskContext {
             domain: "web-api".to_string(),
             language: Some("rust".to_string()),
             ..Default::default()
         };
+        let rust_episode = episode_with_context(
+            "web-api",
+            Some("rust"),
+            None,
+            vec![],
+            "Implement a rust web api with axum",
+        );
+        let python_episode = episode_with_context(
+            "web-api",
+            Some("python"),
+            None,
+            vec![],
+            "Implement a rust web api with axum",
+        );
 
-        let query_tags_vec = ["rest".to_string()];
-        let query_tags: HashSet<&String> = query_tags_vec.iter().collect();
-        let query_words = ["rust", "web", "api"];
-        let query_words_gt3 = ["rust"];
-        let desc_lower = episode.task_description.to_lowercase();
+        // Query words that do not appear in the descriptions, so the
+        // description component is identical (zero) for both candidates.
+        let query_tags: HashSet<&String> = HashSet::new();
+        let query_words = ["zzz"];
+        let query_words_gt3: Vec<&str> = Vec::new();
+        let desc_lower = "implement a rust web api with axum";
 
-        let score = memory.calculate_relevance_score(
-            &episode,
+        let rust_score = memory.calculate_relevance_score(
+            &rust_episode,
             &context,
             &query_tags,
             &query_words,
             &query_words_gt3,
-            &desc_lower,
+            desc_lower,
+        );
+        let python_score = memory.calculate_relevance_score(
+            &python_episode,
+            &context,
+            &query_tags,
+            &query_words,
+            &query_words_gt3,
+            desc_lower,
         );
 
-        assert!(score > 0.0);
-        // Domain match (0.4) + Lang match (0.3) + Tag match (0.1) = 0.8 context score
-        // capped at 0.4.
-        // Description similarity: 1 common word / 3 total words = 0.33 * 0.3 = 0.1
-        // Total score ~ 0.5
-        assert!((0.49..=0.51).contains(&score));
+        assert!(
+            rust_score > python_score,
+            "matching language ({rust_score}) must outrank nonmatching language ({python_score}) sharing the same domain"
+        );
+    }
+
+    #[test]
+    fn test_context_component_respects_cap_and_subsignal_proportions() {
+        // The context component must never exceed 40% of the total score,
+        // while each sub-signal keeps its intended relative weight: domain
+        // .4 / language .3 / framework .2 / tags .1, rescaled by 0.4.
+        let memory = SelfLearningMemory::new();
+        let context = TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            tags: vec!["rest".to_string(), "auth".to_string()],
+            ..Default::default()
+        };
+        let query_tags: HashSet<&String> = context.tags.iter().collect();
+        // Query words absent from the descriptions → zero description component.
+        let query_words = ["zzz"];
+        let query_words_gt3: Vec<&str> = Vec::new();
+        let desc_lower = "implement a rust web api with axum";
+
+        let score_for = |domain: bool, lang: bool, framework: bool, tag_count: usize| {
+            let episode = episode_with_context(
+                if domain { "web-api" } else { "other" },
+                if lang { Some("rust") } else { None },
+                if framework { Some("axum") } else { None },
+                vec!["rest"; tag_count],
+                "Implement a rust web api with axum",
+            );
+            memory.calculate_relevance_score(
+                &episode,
+                &context,
+                &query_tags,
+                &query_words,
+                &query_words_gt3,
+                desc_lower,
+            )
+        };
+
+        // Context-only scores: expected value is
+        // (0.4·domain + 0.3·language + 0.2·framework + 0.1·tags) × 0.4,
+        // capped at 0.4 (the 40% context budget).
+        let domain_only = score_for(true, false, false, 0);
+        let domain_lang = score_for(true, true, false, 0);
+        let domain_lang_framework = score_for(true, true, true, 0);
+        let full = score_for(true, true, true, 1);
+        let overfull_two_tags = score_for(true, true, true, 2);
+
+        // Each additional matching sub-signal adds its proportional share.
+        assert!(
+            domain_only < domain_lang,
+            "language should add to a domain match"
+        );
+        assert!(
+            domain_lang < domain_lang_framework,
+            "framework should add to a domain+language match"
+        );
+        assert!(
+            domain_lang_framework < full,
+            "a matching tag should add to a domain+language+framework match"
+        );
+
+        // A full single-tag match contributes exactly 40%; extra tags cannot
+        // push the context component beyond the 40% budget.
+        assert_eq!(
+            full, 0.4,
+            "full context match should contribute exactly 0.4"
+        );
+        assert_eq!(
+            overfull_two_tags, 0.4,
+            "context contribution must be capped at 0.4"
+        );
+        assert!(domain_only > 0.0);
     }
 
     #[test]

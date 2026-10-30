@@ -399,14 +399,16 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         .iter()
         .filter(|e| e.context.language.as_deref() == Some("rust"))
         .count();
-    assert!(
-        !results.is_empty(),
-        "Should return some results (got {} results)",
+    assert_eq!(
+        results.len(),
+        10,
+        "Should return up to the requested limit (got {} results)",
         results.len()
     );
-    assert!(
-        rust_count > 0,
-        "Should return rust episodes (got {} results, {} rust)",
+    assert_eq!(
+        rust_count,
+        5,
+        "All five Rust episodes should rank ahead of non-Rust candidates sharing the domain (got {} results, {} rust)",
         results.len(),
         rust_count
     );

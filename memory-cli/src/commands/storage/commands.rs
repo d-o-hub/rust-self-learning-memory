@@ -17,7 +17,24 @@ pub async fn storage_stats(
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    let (total_episodes, completed_episodes, total_patterns) = memory.get_stats().await;
+    let stats = collect_storage_stats(memory).await?;
+    format.print_output(&stats)?;
+
+    Ok(())
+}
+
+/// Gather the statistics reported by `storage stats`.
+///
+/// Episode counts use `SelfLearningMemory::get_stats()` unchanged. The
+/// pattern count comes from `SelfLearningMemory::get_all_patterns()`, which
+/// lazily merges the in-memory cache with persisted backends (redb/Turso);
+/// `get_stats()` only counts `patterns_fallback`, so a fresh process would
+/// report 0 even when earlier processes persisted patterns (dogfood defect).
+pub(super) async fn collect_storage_stats(
+    memory: &do_memory_core::SelfLearningMemory,
+) -> anyhow::Result<StorageStats> {
+    let (total_episodes, completed_episodes, _) = memory.get_stats().await;
+    let total_patterns = memory.get_all_patterns().await?.len();
 
     // Heuristic size estimates. These are NOT measured through any backend
     // interface; they are explicitly labeled `Estimated` in output (PTA-A2).
@@ -29,7 +46,7 @@ pub async fn storage_stats(
     // Cache hit rate and last sync time are not exposed through the
     // `StorageBackend` trait. Report them as unavailable rather than
     // fabricating a zero hit rate or current timestamp.
-    let stats = StorageStats {
+    Ok(StorageStats {
         episodes: StorageStatsData {
             total_count: total_episodes,
             completed_count: MetricValue::measured(completed_episodes),
@@ -44,11 +61,7 @@ pub async fn storage_stats(
         storage_size_bytes: MetricValue::estimated(storage_size_bytes),
         cache_hit_rate: MetricValue::unavailable(),
         last_sync: MetricValue::unavailable(),
-    };
-
-    format.print_output(&stats)?;
-
-    Ok(())
+    })
 }
 
 pub async fn sync_storage(

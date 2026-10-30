@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `storage stats` counted only the process-local pattern fallback, so a fresh
+  process reported zero patterns even though `pattern list` and `pattern search`
+  returned the patterns persisted by an earlier process. It now counts the
+  backends through `get_all_patterns()`, so the reported total matches the
+  pattern-listing commands across process boundaries.
+
 ### Security
 
 - Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29

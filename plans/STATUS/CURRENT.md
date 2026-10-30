@@ -15,7 +15,7 @@ Dependabot register.
 
 | Kind | Items |
 |------|--------|
-| Open PRs | 1 — this tracker refresh (PR 1230); #1222 and #1224–#1228 are merged; `gh pr list --state open` is the live source. |
+| Open PRs | 1 — this evidence refresh (PR 1231); #1222, #1224–#1228 and #1230 are merged; `gh pr list --state open` is the live source. |
 | Open issues | **0** — the `version_not_advanced` drift issue #1223 closed itself once 0.1.48 landed; `gh issue list --state open` is the live source. |
 | Dependency audit | RUSTSEC-2026-0418 fixed on both graphs by #1224 (`libz-sys 1.1.31`); the remaining register is upstream-blocked (ACT-404). |
 

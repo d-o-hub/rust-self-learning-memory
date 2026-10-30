@@ -2,8 +2,8 @@
 
 - **Last Updated**: 2026-10-30
 - **Version**: workspace `0.1.48` (development bump restored in #1228) · latest tag `v0.1.47` (`854f6f8d`, GitHub Release published 2026-10-28T20:41:48Z)
-- **Branch**: `main` (`e12c7101`) — no release branch; the only open PR is this tracker refresh (#1230)
-- **Open PRs**: 1 (`gh pr list --state open`): #1230, this refresh. Merges are serial:
+- **Branch**: `main` (`18b713bd`) — no release branch; the only open PR is this evidence refresh (#1231)
+- **Open PRs**: 1 (`gh pr list --state open`): #1231, this refresh. Merges are serial:
   `strict_required_status_checks_policy` puts every other branch `BEHIND` and re-queues their required runs
 - **Open issues**: 0 (`gh issue list --state open`); the drift issue #1223 closed itself when 0.1.48 landed
 - **Active plan**: **post-`v0.1.47` hardening** — released-CLI dogfood follow-ups (#1225, #1226), advisory #1224,

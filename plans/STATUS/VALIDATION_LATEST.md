@@ -1,11 +1,32 @@
-# Validation Latest — 2026-10-16 (v0.1.45 shipped, closeout queue in review)
+# Validation Latest — 2026-10-30 (v0.1.47 shipped, dogfood follow-ups landed)
 
 **Goal**: record the verified state of the release closeout — what shipped, what is in review, and the CI/local
 evidence attached to each head SHA (PR monitoring guardrail from the `goap-agent` skill).
 
-**Workspace**: `0.1.46` (bumped post-release in the closeout PR) · **Branch**: `main` @ `8ee711bd` · **Tag**: `v0.1.45` (GitHub Release 2026-10-16T10:30:09Z)
+**Workspace**: `0.1.48` · **Branch**: `main` @ `18b713bd` · **Tag**: `v0.1.47` (`854f6f8d`, GitHub Release 2026-10-28T20:41:48Z)
 **Plan**: [`../GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](../GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
 **Previous record**: [`archive/2026/VALIDATION_2026-10-09.md`](archive/2026/VALIDATION_2026-10-09.md) (audit-backlog wave A)
+
+## Verified on `main` (2026-10-30)
+
+Each row is a command that was actually run in this session; nothing here is inferred from a tracker.
+
+| Artifact | Evidence |
+|----------|----------|
+| `v0.1.47` release | `gh release view v0.1.47` → published 2026-10-28T20:41:48Z; CLI asset `do-memory-cli-x86_64-unknown-linux-gnu.tar.xz` digest `sha256:76621912…ee58` matches `sha256sum` of the downloaded artifact |
+| Released-CLI dogfood (new mandatory step) | `do-memory-cli --version` → `0.1.47`; episode `8c6c3261-22d2-4a88-ac7a-4363f9ff236e` completed with 3 steps and 5 learned patterns; `pattern search release-check` returned 5 matches |
+| Dogfood defect D1 (`storage stats`) | released binary on the same DB: `patterns.total_count=0` vs `pattern list=2`; patched binary: `2 == 2` (fresh DB, cross-process) |
+| Dogfood defect D2 (retrieval ranking) | reverting only the scaling line made `test_matching_language_outranks_nonmatching_language_within_same_domain` fail with `matching language (0.4) … nonmatching (0.4)`; with the fix, 2 unit tests + the compliance test pass and all 5 Rust episodes rank first |
+| RUSTSEC-2026-0418 | #1224 `0bc68aad`; `libz-sys` 1.1.31 in both lockfiles; PR CI 32 pass; `./scripts/quality-gates.sh` passed locally |
+| `storage stats` fix | #1225 `0a461028`; `cargo nextest run -p do-memory-cli -E 'test(storage_stats_reports_persisted_patterns_after_reopen)'` → 2 passed; CI 30 pass |
+| Retrieval ranking fix | #1226 `e12c7101`; 3 targeted tests passed; CI green including Storage Matrix and Tests |
+| Generated lockfile untracked | #1227 `6b28c2a0`; `git ls-files .opencode \| grep -c package-lock` → 0; `gh api …/dependabot/alerts/35` → `state=fixed` |
+| Workspace 0.1.48 restored | #1228 `7dd67587`; `cargo metadata --locked` → 0.1.48 for 9 workspace packages and the 4 fuzz path deps; `./scripts/check-release-drift.sh` → `severity=clean`; issue #1223 → CLOSED |
+| Toolchain pinned | #1222 `16a31396`; `rustc --version` inside the tree → 1.99.1; `cargo check -p do-memory-core --all-targets` passed on 1.99.1 |
+| ADR-079 stage 4 | #1229 (closed unmerged): `Quick PR Check` + `CI / Required` FAILURE, `mergeStateStatus=BLOCKED` with `mergeable=MERGEABLE`, `./scripts/merge-pr.sh 1229` → exit 1 |
+| Release-guard dogfood rule | `./scripts/run-evals.sh release-guard` → 7/7; schema fixtures pass; `validate-gate-contract.sh --ci-parity` consistent |
+| Nightly | `gh run list --workflow nightly-tests.yml --limit 4` → 4 × `success` (2026-10-28…30) |
+| Plans refresh | #1230 `18b713bd`; `check-docs-integrity.sh` all passed, `check-yaml-frontmatter.sh` all validated, `validate-plans.sh` tracker drift `mismatches=0`, `validate-plan-evidence.sh --fixtures` passed, `run-evals.sh` all skills passed |
 
 ## Method
 

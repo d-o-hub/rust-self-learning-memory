@@ -1,17 +1,17 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-10-20
-- **Active plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399…ACT-412). `v0.1.46` shipped
-  and **reached crates.io** (all four registered crates verified by version membership) — the first release off the
-  `0.1.34`/`0.1.31` stall, proving the #1179 publish-guard fix externally. The Turso nightly was repaired in #1180.
-  The only open actions are the `0.1.47` release-prep PR + tag (ACT-412, ACT-409), the upstream-blocked Dependabot
-  register (ACT-404) and the toolchain pin (ACT-410); ACT-405 (the release-gate event decision) is closed by
-  ADR-083 in #1204.
-- **Previous plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`; W1–W6, Q02 and the wave-A
+- **Last Updated**: 2026-10-30
+- **Active plan**: **post-`v0.1.47` hardening** — ACT-413...ACT-419 are all closed by merged PRs (advisory #1224,
+  dogfood fixes #1225/#1226, generated-lockfile alert #1227, version restore #1228, release-guard dogfood rule,
+  ADR-079 stage-4 probe #1229) plus the toolchain pin #1222 (ACT-410). `v0.1.47` shipped and **reached crates.io**.
+  Remaining: the upstream-blocked Dependabot register (ACT-404), the next scheduled nightly check (ACT-403), and the
+  maintainer-external ADR-080/081 lifecycle acceptance.
+- **Previous plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399...ACT-412); landed.
+- **Earlier plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`; W1–W6, Q02 and the wave-A
   slices all merged (ACT-370…ACT-398 closed), including #1153 as `b6326d90`.
-- **Earlier plan**: release pipeline hardening (#1109) — **code complete**: C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125).
-  Remaining manual steps for crates.io: four trusted-publisher registrations, `CARGO_REGISTRY_TOKEN` deletion, and
-  restricting the `crates.io` environment to `v*` tags. See ADR-078 amendment + LESSON-030…034.
+- **Earlier plan**: release pipeline hardening (#1109) — ✅ complete: C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125),
+  and the external steps (four trusted-publisher registrations, `CARGO_REGISTRY_TOKEN` deletion, `crates.io`
+  environment restricted to `v*` tags) are done; the issue is closed. See ADR-078 amendment + LESSON-030...034.
 - **Archived plans**: `plans/archive/2026-07-consolidation/`
 
 ## Active actions (2026-10-04 — audit-backlog wave)
@@ -56,14 +56,28 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 | ACT-402 | **`0.1.46` bump, landed in the closeout PR**: `Cargo.toml` + `Cargo.lock` + version references across the active plan set (template `b3d1b944`; the CHANGELOG heading moves at release time, not here). This is what makes the drift gate clean instead of overriding it | release | — | ✅ merged (#1185) — `check-release-drift.sh` → `severity=clean`; the post-release `0.1.47` bump followed in #1193 |
 | ACT-403 | Next nightly green (schedule + dispatch) with the new `turso_multi_dimension` step reporting 20/20 | #1091 (Q02) | after #1180 merges | ⏳ |
 | ACT-404 | Dependabot register is **upstream-blocked**: 12 alerts = 6 advisories × 2 lockfiles (`Cargo.lock`, `fuzz/Cargo.lock`) — 8 `rustls-webpki 0.102.8` (2 high, via `libsql → hyper-rustls 0.25 → rustls 0.22.4`), 2 `lru <0.16.3` (via `augurs-changepoint 0.10.2` + `agentfs-sdk 0.6.4`, both newest), 2 `libsql-sqlite3-parser` (no patch). Do **not** open the `libsql 0.10.0` bump PR: 0.10.0 pulls the same chain (verified by `cargo tree` in a scratch crate). **Updated 2026-10-20 (#1204)**: the *direct* `webpki-roots`/`rustls-webpki`/`webpki-root-certs` advisories (RUSTSEC-2026-0381/0382/0383, published 2026-10-19/20) are fixed by bumping to 1.0.10/0.103.16/1.0.10 — the **root** graph goes `cargo audit` 4 → 0 and `cargo deny` FAILED → `advisories ok`, measured against a **fresh** advisory DB. Only the transitive `rustls-webpki 0.102.8` remains, waived in **both** `deny.toml` and `.cargo/audit.toml` because rustls 0.22 pins webpki to the 0.102 series and the fix needs libsql on a hyper 1.x line. The **fuzz** graph is still unaudited and still fails — that is #1208 | Dependabot | — | 🔄 root graph clean; the fuzz graph is #1208 and the transitive `0.102.8` stays blocked upstream — re-test when libsql moves to hyper 1.x |
-| ACT-410 | Pin a dated `stable` for the advisory/lint gates so a floating toolchain cannot break compilation or invent deny lints between releases | toolchain | — (local hygiene) | ⏳ |
-| ACT-411 | Strip the auto-applied `release-preparation` label from the non-release PRs once the bump is on `main`; review any parked PR on its own merits (tip-vs-merge-base diff first) | release drift | after ACT-402 | ⏳ |
+| ACT-410 | Pin a dated `stable` for the advisory/lint gates so a floating toolchain cannot break compilation or invent deny lints between releases | toolchain | — (local hygiene) | ✅ merged (#1222, `16a31396`) — `rust-toolchain.toml` + `setup-rust` default = `1.99.1`; `cargo check -p do-memory-core --all-targets` on 1.99.1 passed |
+| ACT-411 | Strip the auto-applied `release-preparation` label from the non-release PRs once the bump is on `main`; review any parked PR on its own merits (tip-vs-merge-base diff first) | release drift | after ACT-402 | ✅ done — removed from #1194 and #1222; #1204 never carried it; the drift gate is `severity=clean` since #1228 |
 | ACT-405 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering). Hardening only — never weaken the gate at ship time | release | after ACT-403 | ✅ decision + ADR-083 — `schedule`/`workflow_dispatch` are advisory; `push`/`pull_request` gate; SHA-only queries include tag-ref runs on the same commit, covered by the regression fixture |
 | ACT-406 | New `validate-schema-sql.sh` sensor: columns referenced in hand-written SQL vs the DDL constants, wired next to `validate-gate-contract.sh` in `skill-evals.yml` | Turso (S03) | after #1180 merges | ✅ merged (#1201) |
-| ACT-407 | LESSON + `AGENTS.md` trap entries: `required-features` vs `cfg_attr(…, ignore)` under `--run-ignored only`; asserts must print the `Err`; a step with `conclusion=skipped` in a green job is not evidence | Q02/Q03 | after #1175 merges (it owns both files) | ⏳ |
+| ACT-407 | LESSON + `AGENTS.md` trap entries: `required-features` vs `cfg_attr(..., ignore)` under `--run-ignored only`; asserts must print the `Err`; a step with `conclusion=skipped` in a green job is not evidence | Q02/Q03 | after #1175 merges (it owns both files) | ✅ merged (#1203) |
 | ACT-409 | **Cut tag `v0.1.46`** once ACT-399…ACT-401 **and ACT-412** land — the first tag that can publish, because the chain runs from the tag SHA | release | after ACT-399, ACT-401, ACT-412 | ✅ done — tag `v0.1.46` (`d85efb5c`); `index("0.1.46") != null` for core/redb/turso/mcp, all four published |
-| ACT-412 | **Release-prep PR before the tag**: `CHANGELOG.md` `## [0.1.46]` section + the `Released Version`/version-doc flip, because `release-manager.sh` Phase 0 runs `verify-release-state.sh --check-unreleased`. Also install `parse-changelog-cli` so the local check uses the parser `release.yml` uses | release | after ACT-401 (#1180) | ✅ merged for `0.1.46` (#1185) — the `0.1.47` release-prep PR is still open (the workspace is at `0.1.47` and the docs still name `0.1.46`) |
+| ACT-412 | **Release-prep PR before the tag**: `CHANGELOG.md` `## [0.1.46]` section + the `Released Version`/version-doc flip, because `release-manager.sh` Phase 0 runs `verify-release-state.sh --check-unreleased`. Also install `parse-changelog-cli` so the local check uses the parser `release.yml` uses | release | after ACT-401 (#1180) | ✅ done for `0.1.46` (#1185) **and** `0.1.47` (tag `854f6f8d`, release published 2026-10-28T20:41:48Z); the docs now name `0.1.48` as the development version |
 | ACT-408 | Close #1165 with the release evidence; re-queue #1068/#1089/#1076 behind the closeout | release drift | after ACT-409 | ✅ done — #1165, #1068, #1089 and #1076 all closed 2026-10-19/20 |
+
+## Active actions (2026-10-30 — v0.1.47 dogfood follow-ups + toolchain pin)
+
+Every row is backed by a merged PR or a closed probe; evidence strings are measured, not inferred.
+
+| ID | Action | Rec | Status |
+|----|--------|-----|--------|
+| ACT-413 | Patch RUSTSEC-2026-0418 on both graphs: `libz-sys` 1.1.28→1.1.31 (`Cargo.lock`) and 1.1.29→1.1.31 (`fuzz/Cargo.lock`), CHANGELOG `### Security` | advisory | ✅ merged #1224 (`0bc68aad`) — CI 32 pass; local `quality-gates.sh` passed |
+| ACT-414 | `storage stats` must count persisted patterns: use `get_all_patterns()` instead of the in-memory fallback; regression test that reopens the redb file in a second process | dogfood D1 | ✅ merged #1225 (`0a461028`) — released 0.1.47: stats 0 vs list 2; patched: 2 == 2 |
+| ACT-415 | Keep context sub-signals inside the 40% budget: scale by 0.4 **before** the cap; unit tests for language ordering and sub-signal proportions; compliance asserts all Rust episodes rank first | dogfood D2 | ✅ merged #1226 — pre-fix `0.4 == 0.4`, post-fix 5/5 Rust on top |
+| ACT-416 | Stop tracking the generated `.opencode/package-lock.json` and ignore it, so Dependabot alert #35 cannot recur | hygiene | ✅ merged #1227 (`6b28c2a0`) — alert #35 (`zod`, high) state `fixed` |
+| ACT-417 | Restore the workspace version to `0.1.48` after #1220 reverted it; verify both lockfiles and the drift gate | release | ✅ merged #1228 (`7dd67587`) — 9 workspace packages + 4 fuzz path deps at 0.1.48; `severity=clean`; drift issue #1223 closed itself |
+| ACT-418 | Make exact-tag released-CLI dogfooding mandatory in the release-guard skill: asset digest, `--version`, cross-process episode/pattern/`storage stats` parity, fix forward on a new release | release | ✅ `.agents/skills/release-guard/SKILL.md` — `run-evals.sh release-guard` 7/7, schema fixtures pass, gate contract consistent |
+| ACT-419 | Prove ADR-079 stage 4 with a live fault-injection probe and close it unmerged | CI trust | ✅ #1229 closed unmerged — `Quick PR Check` + `CI / Required` failed, `mergeStateStatus=BLOCKED` while `mergeable=MERGEABLE`, `merge-pr.sh` exit 1; branch and worktree deleted |
 
 ## Queued actions (2026-10-04 — validated backlog, sequenced)
 
@@ -102,8 +116,7 @@ finally asserted together; **4 → still open** — `sync_watermark.rs:268` prov
 | 2026-07 recommendation wave, ships v0.1.36–v0.1.41, skills | ✅ #873…#897 family |
 | Pre-2026-07 (ACT-190…ACT-363) | ✅ complete — full tables in `plans/archive/2026-07-consolidation/completed-sprints/` |
 
-Maintainer-external items still open: ADR-079 stage 4 live fault-injection proof; ADR-080/081 lifecycle acceptance;
-#1109 crates.io registrations + secret deletion.
+Maintainer-external items still open: ADR-080/081 lifecycle acceptance.
 
 ## Prevention permanently (do not regress)
 

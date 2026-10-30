@@ -1,14 +1,14 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-28
-**Released Version**: v0.1.47 (release target; tag and publication pending green main CI)
-**Workspace Version**: 0.1.47 (release preparation; latest published tag is v0.1.46)
-**Active plan**: prepare v0.1.47, verify main CI, and ship through the release manager. The release-pipeline code for #1109 is in place; remaining acceptance checks require external configuration and release verification.
+**Last Updated**: 2026-10-30
+**Released Version**: v0.1.47 (tag `854f6f8d`, 2026-10-28; GitHub Release 2026-10-28T20:41:48Z)
+**Workspace Version**: 0.1.48 (development bump; drift gate `severity=clean`, `reason=within_cadence`)
+**Active plan**: post-`v0.1.47` hardening — the released-CLI dogfood defects (`storage stats` persisted counts #1225, same-domain retrieval ranking #1226), the fixable advisory #1224, the generated-lockfile alert #1227, the workspace bump restore #1228 and the toolchain pin #1222 are landed. Next: keep `main` green, clear the upstream-blocked Dependabot register, then cut the next release through `release-manager.sh`.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: release preparation based on `main` @ `1c2196e1`
-**Open PRs**: #1217 (dependency updates); check GitHub for the live queue.
-**Open issues**: #1205 (release drift) and #1109 (release-pipeline acceptance and external configuration); check GitHub for the live list.
+**Branch**: `main` (`7dd67587`) — no release branch open
+**Open PRs**: 1 — this tracker refresh (PR 1230); #1226 merged as `e12c7101`. Check GitHub for the live queue.
+**Open issues**: none; the drift issue closes itself once the workspace version advances, and it did (#1223).
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6
 

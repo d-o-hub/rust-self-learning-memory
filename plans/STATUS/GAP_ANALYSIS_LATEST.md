@@ -2,7 +2,7 @@
 
 **Generated**: 2026-10-04
 **Audit baseline of the findings**: `9f50c607` (2026-09-28) · **Re-validated at**: `74a44a15` (`main`)
-**Workspace Version**: `0.1.46` · **Released Tag**: `v0.1.45`
+**Workspace Version**: `0.1.48` · **Released Tag**: `v0.1.47` (`854f6f8d`)
 **Active Focus**: GAP03 — repo-wide issue register (previous focus DOC02, archived at `archive/2026/GAP_ANALYSIS_2026-10-02.md`)
 
 ## Why this register exists
@@ -23,6 +23,24 @@ In review: W5 #1075 #1138 · W6 #1085 #1140 · #1063 #1146 · #1064 #1147 · #10
 · #1073 #1151 · #1078 #1154 · #1087 #1144/#1152/#1158 · #1092 slice 2 #1153 · #1159.
 Waiting on merges: #1068/#1089 (after #1149), #1074 (in flight), #1076 (after #1074). Verdicts below remain the
 2026-10-04 audit snapshot; see `VALIDATION_LATEST.md` for the live state.
+
+## Live addendum (2026-10-30) — everything above is closed
+
+- `gh issue list --state open` = **0**. The audited #1063–#1092 set, the follow-ups (#1068/#1089/#1076), the
+  release series (#1109, #1165) and the drift issue (#1223, closed by the workflow itself once 0.1.48 landed) are
+  all closed.
+- **New gaps found by the released-CLI dogfood of `v0.1.47`** — both fixed the same day:
+
+| Gap | Evidence | Fix |
+|-----|----------|-----|
+| `storage stats` reported `patterns.total_count = 0` in a fresh process while `pattern list` returned 5 | released 0.1.47 binary on `/tmp/v0147/dogfood/memory.db`; reproduced on a fresh DB as `0` vs `2` | #1225 — count through `get_all_patterns()`; 2 == 2 after |
+| A Rust query over Rust/Python/TypeScript episodes in one domain returned no Rust episodes | `test_matching_language_outranks_nonmatching_language_within_same_domain` failed with `matching language (0.4)` vs `nonmatching (0.4)` | #1226 — sub-signals scaled by the 0.4 budget before the cap; 5/5 Rust on top |
+
+- **Process gaps closed with them**: a released-CLI dogfood step is now mandatory in `release-guard`
+  (#1224-adjacent ACT-418); the generated `.opencode/package-lock.json` is untracked and ignored (#1227, alert #35
+  `fixed`); the toolchain is pinned to 1.99.1 (#1222); ADR-079 stage 4 is proven live (#1229, closed unmerged).
+- **Still upstream-blocked**: the transitive `rustls-webpki 0.102.8` (needs libsql on hyper 1.x), `lru <0.16.3`
+  via `augurs-changepoint`/`agentfs-sdk`, and `libsql-sqlite3-parser` (no patch) — see ACT-404.
 
 ## Live addendum (2026-10-16)
 

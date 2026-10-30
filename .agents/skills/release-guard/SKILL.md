@@ -128,6 +128,19 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 ## After ship
 
 - Confirm: `gh release view vX.Y.Z`
+- **Mandatory shipped-CLI dogfood before declaring the release complete:** download
+  `do-memory-cli` from this tag's published assets (never substitute a dev build);
+  verify its SHA-256 against GitHub's published asset digest and confirm
+  `--version` reports the version matching `vX.Y.Z`; use a fresh temporary
+  local database. Follow the `do-memory-cli-ops` cross-process workflow:
+  create an episode, log successful steps, and complete it.
+  In fresh processes, use `episode view`/`episode list` and `pattern list`/
+  `pattern search` to confirm the completed episode and learned pattern are
+  database-backed. Require `storage stats.patterns.total_count` to equal the
+  nonzero persisted `pattern list.total_count`. Record the tag, asset digest,
+  database path, episode ID, and counts. Any mismatch blocks closeout; fix
+  forward in a new release and repeat dogfooding there (never replace the
+  immutable tag). Workflow/attestation success is not a substitute.
 - The tag workflow publishes **draft-first**: it creates a draft release, attaches
   the dist artifacts plus the CycloneDX SBOMs, generates build-provenance and
   SBOM **attestations** (`actions/attest`), then publishes. Publishing is what,

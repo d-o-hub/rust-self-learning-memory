@@ -462,3 +462,114 @@ async fn sync_storage_reconciles_episodes_between_backends() {
     // Assert
     assert!(result.is_ok(), "live sync must succeed with dual backends");
 }
+
+// ---------------------------------------------------------------------------
+// storage_stats command: persisted pattern counts across process boundaries
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn storage_stats_reports_persisted_patterns_after_reopen() {
+    // Arrange: a first "process" persists patterns into an isolated redb
+    // database; a second "process" reopens the same file with empty
+    // in-memory fallbacks (the dogfood scenario for the reported defect).
+    let dir = tempfile::tempdir().expect("temp dir for storage backends");
+    let durable_path = dir.path().join("durable.redb");
+
+    let persisted_patterns;
+    {
+        let durable = do_memory_storage_redb::RedbStorage::new(&durable_path)
+            .await
+            .expect("durable backend");
+        let cache = do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
+            .await
+            .expect("cache backend");
+        // Lower quality threshold so the fixture episode is accepted (same
+        // convention as the e2e pattern workflow tests).
+        let memory = do_memory_core::SelfLearningMemory::with_storage(
+            do_memory_core::MemoryConfig {
+                quality_threshold: 0.3,
+                ..Default::default()
+            },
+            std::sync::Arc::new(durable),
+            std::sync::Arc::new(cache),
+        );
+
+        let context = do_memory_core::types::TaskContext {
+            domain: "web-api".to_string(),
+            ..Default::default()
+        };
+        let episode_id = memory
+            .start_episode(
+                "storage stats persistence fixture".to_string(),
+                context,
+                do_memory_core::types::TaskType::CodeGeneration,
+            )
+            .await;
+        let mut step = do_memory_core::episode::ExecutionStep::new(
+            1,
+            "code_editor".to_string(),
+            "write_function".to_string(),
+        );
+        step.result = Some(do_memory_core::types::ExecutionResult::Success {
+            output: "fixture step completed".to_string(),
+        });
+        memory.log_step(episode_id, step).await;
+        let _ = memory.flush_steps(episode_id).await;
+        memory
+            .complete_episode(
+                episode_id,
+                do_memory_core::types::TaskOutcome::Success {
+                    verdict: "completed".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .expect("complete episode");
+        // `with_storage` extracts and persists patterns synchronously during
+        // `complete_episode`, so no background queue drain is needed.
+
+        persisted_patterns = memory
+            .get_all_patterns()
+            .await
+            .expect("patterns query")
+            .len();
+        assert!(
+            persisted_patterns > 0,
+            "fixture must persist at least one pattern"
+        );
+    }
+    // First "process" ends: memory and both backends are dropped.
+
+    // Second "process": fresh memory over the same durable redb file.
+    let durable2 = do_memory_storage_redb::RedbStorage::new(&durable_path)
+        .await
+        .expect("reopen durable backend");
+    let restarted = do_memory_core::SelfLearningMemory::with_storage(
+        do_memory_core::MemoryConfig::default(),
+        std::sync::Arc::new(durable2),
+        std::sync::Arc::new(
+            do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
+                .await
+                .expect("reopen cache backend"),
+        ),
+    );
+
+    // The pre-fix source of the `storage stats` pattern count (the fallback)
+    // is empty: the old implementation would report 0 here.
+    let (_, _, fallback_patterns) = restarted.get_stats().await;
+    assert_eq!(
+        fallback_patterns, 0,
+        "fresh process must start without in-memory fallback patterns"
+    );
+
+    // Act: gather the exact statistics `storage stats` prints.
+    let stats = super::commands::collect_storage_stats(&restarted)
+        .await
+        .expect("collect storage stats");
+
+    // Assert: the fixed command path counts the persisted patterns.
+    assert_eq!(
+        stats.patterns.total_count, persisted_patterns,
+        "storage stats must include patterns persisted by an earlier process"
+    );
+}

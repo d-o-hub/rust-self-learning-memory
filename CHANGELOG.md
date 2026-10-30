@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   backends through `get_all_patterns()`, so the reported total matches the
   pattern-listing commands across process boundaries.
 
+- Retrieval relevance scored a matching domain at the full 40% context budget,
+  so the 40% cap absorbed every language, framework, and tag match. Candidates
+  sharing only the domain then tied with exact-context candidates, and a Rust
+  query over Rust/Python/TypeScript episodes in one domain returned no Rust
+  episodes at all. Sub-signals are now scaled by the 0.4 budget before the cap,
+  preserving their relative weights (domain .4 / language .3 / framework .2 /
+  tags .1) while the context component still never exceeds 40%.
+
 ### Security
 
 - Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29

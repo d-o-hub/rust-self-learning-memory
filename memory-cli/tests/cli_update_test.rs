@@ -1,8 +1,8 @@
 //! CLI integration tests for episode update command
 //!
-//! Note: These tests spawn `cargo run` which is slow, so they have extended
-//! timeouts in `.config/nextest.toml` and use `#[serial]` to avoid resource
-//! contention when running in parallel.
+//! The tests spawn the built `do-memory-cli` binary through `CARGO_BIN_EXE`:
+//! spawning `cargo run` instead cost ~60s per test (cargo invocation plus the
+//! workspace lock) and showed up as slow-test warnings in the nightly run.
 
 #![allow(clippy::expect_used)]
 
@@ -11,8 +11,7 @@ use std::process::Command;
 
 /// Helper function to run do-memory-cli command
 fn run_command(args: &[&str]) -> (bool, String, String) {
-    let output = Command::new("cargo")
-        .args(["run", "--package", "do-memory-cli", "--"])
+    let output = Command::new(env!("CARGO_BIN_EXE_do-memory-cli"))
         .args(args)
         .output()
         .expect("Failed to execute do-memory-cli");

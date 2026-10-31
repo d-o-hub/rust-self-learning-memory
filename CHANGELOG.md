@@ -23,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   preserving their relative weights (domain .4 / language .3 / framework .2 /
   tags .1) while the context component still never exceeds 40%.
 
+### Changed
+
+- `episode create --format json|yaml` emits one shape in every build. Compiling
+  with the `turso` feature used to rename the id field: redb-only builds printed
+  `{"id": ...}` while turso builds printed `{"episode_id": ..., "status": "created"}`.
+  Both now print `episode_id`, `task` and `status`, matching `episode view`,
+  `episode complete`, `episode log-step`, tags and feedback. A compile-time
+  feature must not change the CLI contract.
+
 ### Security
 
 - Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29

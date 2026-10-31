@@ -27,7 +27,8 @@ slow-timeout = { period = "120s", terminate-after = 2 }
 failure-output = "final"
 status-level = "skip"
 
-# CLI integration tests that spawn cargo run need longer timeouts
+# These cases spawn the built CLI binary (not `cargo run`); on a loaded box the
+# cold debug binary plus config/DB init can still exceed the default 120s cap.
 [[profile.default.overrides]]
 filter = "package(do-memory-cli) and test(update)"
 slow-timeout = { period = "180s", terminate-after = 2 }

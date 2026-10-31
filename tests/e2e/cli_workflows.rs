@@ -252,7 +252,7 @@ async fn test_episode_full_lifecycle() {
 
     assert!(success, "Create episode should succeed: {create_result:?}");
     let episode_id = create_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have episode id");
     println!("  ✓ Created episode: {episode_id}");
@@ -357,7 +357,7 @@ async fn test_relationship_workflow() {
 
     assert!(success, "Create parent should succeed");
     let parent_id = parent_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have parent id")
         .to_string();
@@ -372,7 +372,7 @@ async fn test_relationship_workflow() {
 
     assert!(success, "Create child should succeed");
     let child_id = child_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have child id")
         .to_string();
@@ -469,7 +469,7 @@ async fn test_tag_workflow() {
 
     assert!(success, "Create should succeed");
     let episode_id = create_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have episode id")
         .to_string();
@@ -594,7 +594,7 @@ async fn test_pattern_discovery() {
 
         assert!(success, "Create should succeed");
         let episode_id = create_result
-            .get("id")
+            .get("episode_id")
             .and_then(|v| v.as_str())
             .expect("Should have episode id")
             .to_string();
@@ -815,7 +815,7 @@ async fn test_bulk_operations() {
 
         assert!(success, "Create should succeed");
         let episode_id = create_result
-            .get("id")
+            .get("episode_id")
             .and_then(|v| v.as_str())
             .expect("Should have episode id")
             .to_string();
@@ -956,7 +956,7 @@ fn create_completed_episode(cli_path: &std::path::Path, config_path: &std::path:
     .expect("Failed to create episode");
     assert!(success, "Create episode should succeed: {create_result:?}");
     let episode_id = create_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have episode id")
         .to_string();

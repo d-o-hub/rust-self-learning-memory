@@ -3,7 +3,6 @@
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{EnhancedError, helpers};
-#[cfg(feature = "turso")]
 use crate::output::Output;
 use crate::output::OutputFormat;
 use do_memory_core::SelfLearningMemory;
@@ -14,9 +13,9 @@ pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
     domain: Option<String>,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
+    memory: &SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     if dry_run {
@@ -79,62 +78,32 @@ pub async fn create_episode(
         .start_episode(task.clone(), context_data, TaskType::CodeGeneration)
         .await;
 
-    // Output the result
-    #[cfg(feature = "turso")]
-    {
-        #[derive(Debug, serde::Serialize)]
-        struct CreateResult {
-            episode_id: String,
-            task: String,
-            status: String,
-        }
-
-        impl Output for CreateResult {
-            fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-                use colored::*;
-                writeln!(writer, "{}", "Episode Created".green().bold())?;
-                writeln!(writer, "ID: {}", self.episode_id.dimmed())?;
-                writeln!(writer, "Task: {}", self.task)?;
-                writeln!(writer, "Status: {}", self.status.green())?;
-                Ok(())
-            }
-        }
-
-        let result = CreateResult {
-            episode_id: episode_id.to_string(),
-            task: task.clone(),
-            status: "created".to_string(),
-        };
-
-        format.print_output(&result)
+    // Output the result. One struct for every build: a compile-time feature must
+    // not rename a JSON field, and `episode_id` matches `episode view/complete/
+    // log-step`, tags and feedback.
+    #[derive(Debug, serde::Serialize)]
+    struct CreateResult {
+        episode_id: String,
+        task: String,
+        status: String,
     }
 
-    #[cfg(not(feature = "turso"))]
-    {
-        #[derive(Debug, serde::Serialize)]
-        struct CreateResult {
-            id: String,
-            task: String,
+    impl Output for CreateResult {
+        fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+            use colored::*;
+            writeln!(writer, "{}", "Episode Created".green().bold())?;
+            writeln!(writer, "ID: {}", self.episode_id.dimmed())?;
+            writeln!(writer, "Task: {}", self.task)?;
+            writeln!(writer, "Status: {}", self.status.green())?;
+            Ok(())
         }
-
-        let result = CreateResult {
-            id: episode_id.to_string(),
-            task: task.clone(),
-        };
-
-        match format {
-            OutputFormat::Json => {
-                println!("{}", serde_json::to_string_pretty(&result)?);
-            }
-            OutputFormat::Yaml => {
-                println!("{}", serde_yaml::to_string(&result)?);
-            }
-            OutputFormat::Human => {
-                println!("Episode created: {}", episode_id);
-                println!("Task: {}", task);
-            }
-        }
-
-        Ok(())
     }
+
+    let result = CreateResult {
+        episode_id: episode_id.to_string(),
+        task: task.clone(),
+        status: "created".to_string(),
+    };
+
+    format.print_output(&result)
 }

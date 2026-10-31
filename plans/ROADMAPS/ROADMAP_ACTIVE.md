@@ -7,7 +7,7 @@
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
 **Branch**: `main` (`7dd67587`) — no release branch open
-**Open PRs**: 1 — this tracker refresh (PR 1230); #1226 merged as `e12c7101`. Check GitHub for the live queue.
+**Open PRs**: 1 — this evidence refresh (PR 1231); #1222, #1224–#1228 and #1230 are merged. Check GitHub for the live queue.
 **Open issues**: none; the drift issue closes itself once the workspace version advances, and it did (#1223).
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6

@@ -54,6 +54,23 @@ fn template_is_valid_toml_even_with_malformed_config() -> anyhow::Result<()> {
 }
 
 #[test]
+fn wizard_starts_with_malformed_config_without_a_terminal() -> anyhow::Result<()> {
+    let dir = TempDir::new()?;
+    let config = dir.path().join("broken.toml");
+    std::fs::write(&config, "invalid = [")?;
+
+    // No terminal is attached, so only verify dispatch to the first prompt.
+    cli(&dir, &config)
+        .args(["config", "wizard"])
+        .timeout(std::time::Duration::from_secs(10))
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("Memory CLI Configuration Wizard"))
+        .stderr(predicate::str::contains("Failed to parse").not());
+    Ok(())
+}
+
+#[test]
 fn init_recovers_from_broken_config_without_overwriting_it() -> anyhow::Result<()> {
     let dir = TempDir::new()?;
     let config = dir.path().join("broken.toml");

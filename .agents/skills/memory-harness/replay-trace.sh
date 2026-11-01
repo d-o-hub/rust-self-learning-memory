@@ -24,16 +24,16 @@ EPISODE_ID=$(echo "$CREATE_OUTPUT" | python3 -c "
 import json, sys
 try:
     data = json.load(sys.stdin)
-    # Handle various output formats
-    eid = data.get('id') or data.get('episode_id') or ''
+    # Read the canonical episode-create field.
+    eid = data.get('episode_id', '')
     print(eid)
 except:
     print('')
 " 2>/dev/null || echo "")
 
 if [ -z "$EPISODE_ID" ]; then
-  echo "  ⚠ Could not parse episode ID from create output, using placeholder"
-  EPISODE_ID="replay-$(date +%s)"
+  echo "Could not parse episode_id from create output" >&2
+  exit 1
 fi
 
 # --- Step logging ---

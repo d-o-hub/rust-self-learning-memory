@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Both now print `episode_id`, `task` and `status`, matching `episode view`,
   `episode complete`, `episode log-step`, tags and feedback. A compile-time
   feature must not change the CLI contract.
+  Human output is shared across builds too; redb-only builds now report the
+  created status, matching Turso.
 
 ### Security
 

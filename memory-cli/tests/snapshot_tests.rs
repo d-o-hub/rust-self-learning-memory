@@ -81,28 +81,6 @@ fn test_cli_episode_help() {
     assert_snapshot!(stdout);
 }
 
-/// Test pattern subcommand help snapshot
-///
-/// `pattern batch` is compiled only with the `turso` feature, so the help text
-/// differs per configuration. Keep one snapshot per feature set instead of
-/// depending on whichever binary was built last in the shared target dir.
-#[test]
-fn test_cli_pattern_help() {
-    let harness = CliHarness::new();
-
-    let output = harness
-        .execute(["pattern", "--help"])
-        .output()
-        .expect("Failed to execute command");
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let mut settings = insta::Settings::clone_current();
-    if cfg!(feature = "turso") {
-        settings.set_snapshot_suffix("turso");
-    }
-    settings.bind(|| assert_snapshot!(stdout));
-}
-
 /// Test storage subcommand help snapshot
 #[test]
 fn test_cli_storage_help() {

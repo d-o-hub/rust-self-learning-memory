@@ -93,7 +93,6 @@ fn test_relationship_full_cycle() {
     let json1 = extract_json(&out1);
     let ep1_id = json1["episode_id"]
         .as_str()
-        .or_else(|| json1["id"].as_str())
         .expect("Missing episode_id")
         .to_string();
 
@@ -107,7 +106,6 @@ fn test_relationship_full_cycle() {
     let json2 = extract_json(&out2);
     let ep2_id = json2["episode_id"]
         .as_str()
-        .or_else(|| json2["id"].as_str())
         .expect("Missing episode_id")
         .to_string();
 

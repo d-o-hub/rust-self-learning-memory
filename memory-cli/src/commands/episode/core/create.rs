@@ -85,7 +85,7 @@ pub async fn create_episode(
     struct CreateResult {
         episode_id: String,
         task: String,
-        status: String,
+        status: &'static str,
     }
 
     impl Output for CreateResult {
@@ -101,8 +101,8 @@ pub async fn create_episode(
 
     let result = CreateResult {
         episode_id: episode_id.to_string(),
-        task: task.clone(),
-        status: "created".to_string(),
+        task,
+        status: "created",
     };
 
     format.print_output(&result)

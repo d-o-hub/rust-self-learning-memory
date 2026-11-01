@@ -100,9 +100,10 @@
 #![expect(clippy::unnecessary_semicolon, reason = "semicolon kept for clarity")]
 #![expect(missing_docs, reason = "public docs still incomplete")]
 
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+mod bootstrap;
 mod commands;
 mod config;
 mod errors;
@@ -267,6 +268,10 @@ async fn main() -> anyhow::Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
+    if let Some(result) = bootstrap::try_run(&cli.command).await {
+        return result;
+    }
+
     // Load configuration with validation
     let mut config = match &cli.config {
         Some(path) => load_config_with_validation(Some(path.as_ref()))?,
@@ -392,15 +397,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         }
-        Commands::Completion { shell } => {
-            clap_complete::generate(
-                shell,
-                &mut Cli::command(),
-                "do-memory-cli",
-                &mut std::io::stdout(),
-            );
-            Ok(())
-        }
+        Commands::Completion { .. } => unreachable!("handled before configuration loading"),
         Commands::Tag { command } => {
             handle_tag_command(
                 command,

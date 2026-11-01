@@ -26,7 +26,7 @@ mkdir -p "$TRACE_DIR"
 TRACE_FILE="$TRACE_DIR/$(date +%Y%m%d-%H%M%S)-$(echo "$TASK" | tr ' ' '-' | head -c 40).json"
 
 # Create episode via CLI
-EPISODE_ID=$(do-memory-cli --format json episode create --task "$TASK" --domain "$DOMAIN" 2>/dev/null | jq -r '.id')
+EPISODE_ID=$(do-memory-cli --format json episode create --task "$TASK" --domain "$DOMAIN" 2>/dev/null | jq -r '.episode_id')
 
 # Write trace header
 echo '{"version":"1.0","episode_id":"'$EPISODE_ID'","steps":[]}' > "$TRACE_FILE"

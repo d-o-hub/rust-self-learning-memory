@@ -1,13 +1,13 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-10-30
+- **Last Updated**: 2026-11-01
 - **Version**: workspace `0.1.48` (development bump restored in #1228) · latest tag `v0.1.47` (`854f6f8d`, GitHub Release published 2026-10-28T20:41:48Z)
-- **Branch**: `main` (`18b713bd`) — no release branch; the only open PR is this evidence refresh (#1231)
-- **Open PRs**: 1 (`gh pr list --state open`): #1231, this refresh. Merges are serial:
-  `strict_required_status_checks_policy` puts every other branch `BEHIND` and re-queues their required runs
-- **Open issues**: 0 (`gh issue list --state open`); the drift issue #1223 closed itself when 0.1.48 landed
-- **Active plan**: **post-`v0.1.47` hardening** — released-CLI dogfood follow-ups (#1225, #1226), advisory #1224,
-  generated-lockfile alert #1227, version restore #1228, toolchain pin #1222; ADR-079 stage 4 proven (#1229, closed)
+- **Branch**: `main` at audit baseline `d5d8f463` (#1232/#1233 merged); no release branch
+- **Open PRs**: 0 at the audit baseline; this tracker refresh is the only review PR and is excluded from the post-merge count
+- **Open issues**: 0 (`gh issue list --state open`); #1205, #1109 and drift issue #1223 are closed
+- **Active plan**: release closeout complete — `v0.1.47` shipped and released-CLI dogfood verified; ACT-368/#1109 settings and ACT-403 nightly are complete; #1232/#1233 CLI output contract merged
+  Remaining: upstream-blocked Dependabot ACT-404 (18 alerts / 9 advisories), next release preparation for `0.1.48`, and maintainer-external ADR lifecycle acceptance
+- **Audit baseline**: main SHA `d5d8f463`; no `0.1.48` release has been created
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
 - **Release**: `v0.1.47` shipped and **reached crates.io** (core, redb, turso, mcp). The released `do-memory-cli`
   was dogfooded against a persistent database (asset digest `76621912…ee58`, `--version` 0.1.47, episode
@@ -51,24 +51,20 @@ Adjacent merges: #1128 docs-integrity, #1133 local hook sensors, #1136 dependabo
 
 ## Next queue
 
-- **Serial merges only**: `strict_required_status_checks_policy` sends every other open branch `BEHIND`, so one
-  rebase + CI cycle per merge. #1226 is the last PR in flight; it needs one rebase after #1228.
-- **Next release**: `0.1.48` is a development bump, not a release. Cut it through
-  `./scripts/release-manager.sh ship --execute` once `main` is green and the CHANGELOG has the release heading;
-  the released-CLI dogfood is now a mandatory post-ship step (`.agents/skills/release-guard/SKILL.md`).
-- **Dependabot (ACT-404)**: still upstream-blocked — `rustls-webpki 0.102.8` only via
-  `libsql → hyper-rustls 0.25 → rustls 0.22.4`, `lru <0.16.3` via `augurs-changepoint`/`agentfs-sdk` (both newest),
-  `libsql-sqlite3-parser` with no patch. The one fixable advisory (RUSTSEC-2026-0418, `libz-sys`) is cleared by #1224.
+- **Merge policy**: `strict_required_status_checks_policy` keeps merges serial and requires current-head checks. No other PRs or issues were open at the audit baseline; this tracker refresh is the sole review PR.
+- **Next release**: `0.1.48` is a development bump, not a release. Do not cut it now. When cadence and release-preparation requirements pass, use `./scripts/release-manager.sh ship --execute`; released-CLI dogfood remains mandatory.
+- **Dependabot (ACT-404)**: 18 open alert rows across 9 advisory IDs and two lockfiles. `rustls`/`rustls-webpki`, `lru`, and `libsql-sqlite3-parser` remain pinned by upstream dependency chains; see `ACTIONS.md` and `STATUS/GAP_ANALYSIS_LATEST.md`.
+- **Nightly (ACT-403)**: scheduled 2026-11-01 run #41288205136 succeeded; the isolated Turso dimension suite passed 20/20 with 0 skipped.
 - **Watermark / embedding follow-ups**: #1068, #1089 and #1076 closed on 2026-10-19/20 with the release evidence.
-- **#1109 external steps**: ✅ done (crates.io environment restricted, registry secret deleted, issue closed).
+- **#1109 external steps**: ✅ all complete — four crates.io trusted publishers, `v*` tag-only environment, registry secret removed; issue closed.
+- **ADR lifecycle**: ADR-080/081/082 acceptance remains maintainer-external, not a code-side blocker.
 
 ## Current truth flags
 
 ```text
 release_current                   = true  (v0.1.47 tagged 2026-10-28 on 854f6f8d; workspace bumped to 0.1.48 in #1228)
 crates_io_publish_truthful        = true  (0.1.46 and 0.1.47 both published for core/redb/turso/mcp; the #1179 guard fix held twice)
-nightly_turso_green               = repaired in #1180 (that run: 86 + 20 = 106, 0 failures, nothing ignored); no fresh
-                                    scheduled run was re-verified in this refresh — consult the latest nightly run
+nightly_turso_green               = true  (scheduled run #41288205136, 2026-11-01: 20/20 isolated Turso native tests passed; see ACT-403)
 audit_backlog_registered          = true  (#1129 — every #1063–#1092 issue has a verdict in GAP_ANALYSIS_LATEST.md)
 w1_ranking_guard_released         = true  (#1131)
 w2_subsecond_latency_released     = true  (#1135)
@@ -93,7 +89,7 @@ release_dispatch_truthful         = true  (#1179 guard + #1223 self-close + two 
 
 | Campaign | Result |
 |----------|--------|
-| Release-pipeline hardening #1109 C1–C7 | ✅ code-side merged (#1121, #1123, #1125); manual crates.io registrations + secret deletion remain maintainer-external |
+| Release-pipeline hardening #1109 C1–C7 | ✅ code-side merged (#1121, #1123, #1125); external registrations, `v*` environment and registry-secret deletion verified; issue closed 2026-10-29 |
 | ADR-079/CIT/PTA/RAT CI-trust + attribution | ✅ code-side closed (#947, 2026-08-12); ADR-079 **stage 4 proven 2026-10-30** (probe #1229: failing `CI / Required` → `mergeStateStatus=BLOCKED`, `merge-pr.sh` exit 1); ADR-080/081/082 lifecycle = maintainer-external |
 | Retrieval judgment + rerank | ✅ #1041, #1042 (2026-09-24) |
 | Feedback-to-ranking adaptation (ADR-082) | ✅ #952 (2026-08-13); lifecycle `Proposed` |

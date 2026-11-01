@@ -1,15 +1,33 @@
-# Validation Latest — 2026-10-30 (v0.1.47 shipped, dogfood follow-ups landed)
+# Validation Latest — 2026-11-01 (backlog closeout and CLI contract follow-up)
 
-**Goal**: record the verified state of the release closeout — what shipped, what is in review, and the CI/local
-evidence attached to each head SHA (PR monitoring guardrail from the `goap-agent` skill).
+**Goal**: record the verified main state after release dogfood closeout and CLI contract merges, with current
+GitHub, registry, nightly, dependency and gate evidence. The 2026-10-30 validation record remains below.
 
-**Workspace**: `0.1.48` · **Branch**: `main` @ `18b713bd` · **Tag**: `v0.1.47` (`854f6f8d`, GitHub Release 2026-10-28T20:41:48Z)
+**Workspace**: `0.1.48` · **Main audit baseline**: `d5d8f463` · **Tag**: `v0.1.47` (`854f6f8d`, GitHub Release 2026-10-28T20:41:48Z)
 **Plan**: [`../GOAP_RELEASE_CLOSEOUT_2026-10-16.md`](../GOAP_RELEASE_CLOSEOUT_2026-10-16.md)
 **Previous record**: [`archive/2026/VALIDATION_2026-10-09.md`](archive/2026/VALIDATION_2026-10-09.md) (audit-backlog wave A)
 
-## Verified on `main` (2026-10-30)
+## Verified on `main` (2026-11-01; audit baseline `d5d8f463`)
 
-Each row is a command that was actually run in this session; nothing here is inferred from a tracker.
+| Artifact | Evidence |
+|----------|----------|
+| `v0.1.47` release and crates.io | GitHub release is published and immutable; crates.io API reports all four registered packages (`do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`) at `0.1.47`. No `0.1.48` release was created. |
+| Released-CLI dogfood | Previously recorded exact-tag run: asset digest matched, `--version` was `0.1.47`, and a persistent DB retained an episode with 3 steps and 5 learned patterns. This is the shipped CLI baseline; no newer release exists to dogfood. |
+| Release issue #1205 | CLOSED 2026-10-28 after the `v0.1.47` release/crates.io verification and dogfood closeout. |
+| crates.io publishing issue #1109 | CLOSED 2026-10-29; issue comments record four trusted publishers and successful OIDC publication run #40765601238. Environment API reports `custom_branch_policies=true` with a `v*` tag policy; `gh secret list` contains no `CARGO_REGISTRY_TOKEN`. |
+| Development version and toolchain | Workspace version is `0.1.48` (development only); `rustc --version` reports `1.99.1`. |
+| Dependabot alert #35 | State `fixed`; `.opencode/package-lock.json` is untracked following #1227. |
+| ADR-079 stage 4 | Probe #1229 is CLOSED unmerged; failed `CI / Required` produced `mergeStateStatus=BLOCKED` and `merge-pr.sh` exited 1. |
+| ACT-403 nightly | Scheduled run #41288205136 (2026-11-01, head `60741604`): Full Test Suite, Slow Tests, Isolated Turso Native Tests and Nightly Summary succeeded; isolated suite ran 20 tests, 20 passed, 0 skipped. |
+| CLI output contract | #1232/#1233 merged; #1233 had 30 successful checks, one expected structural skip, Codecov covered all modified coverable lines and Codacy reported no issues. Local strict verification and tests passed for the PR head. |
+| Release-guard and gate fixtures | `./scripts/run-evals.sh --fixtures` passed all schema fixtures; `./scripts/validate-gate-contract.sh --ci-parity` passed after merge. |
+| Local tracker-refresh verification | Plan validators, docs integrity, plan-evidence fixtures, YAML frontmatter, skill schema fixtures, CI gate parity and `quality-gates.sh` passed. Strict harness sensors passed except `test`: 4,254/4,255 passed, 142 skipped; `test_pattern_discovery` timed out under `profile.ci` at 90s × 3 = 270s. `do-harness status` is red and `.do-harness/agent_state.db` records `sensor:test` attempt_count=1. LESSON-028 records this test at 400.5s uncapped on a slow dev box. |
+| Dependabot inventory | 18 open alert rows across 9 distinct advisory IDs, duplicated across `Cargo.lock` and `fuzz/Cargo.lock`; the current dependency chains remain upstream-blocked (ACT-404, details in `GAP_ANALYSIS_LATEST.md`). |
+| Work queue | `gh pr list --state open` and `gh issue list --state open` were both empty at the audit baseline; this tracker refresh is the only review PR and post-merge count is 0. |
+
+## Previous verification record (2026-10-30)
+
+The following rows preserve evidence actually collected for the 2026-10-30 record; they are historical, not claims of a rerun on 2026-11-01.
 
 | Artifact | Evidence |
 |----------|----------|

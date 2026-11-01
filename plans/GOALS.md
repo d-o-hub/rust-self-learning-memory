@@ -1,18 +1,15 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-10-30
-- **Status**: **post-`v0.1.47` hardening — closed.** `v0.1.47` shipped (tag `854f6f8d`) and the released CLI was
-  dogfooded; the two defects it found are fixed (#1225 persisted pattern counts, #1226 same-domain retrieval
-  ranking), alongside the fixable advisory (#1224), the generated-lockfile alert (#1227), the workspace bump
-  restore (#1228) and the toolchain pin (#1222). ADR-079 stage 4 is proven (#1229, closed unmerged).
-  The earlier audit-backlog wave is fully merged (see the tables below); ADR-080/081/082 lifecycle acceptance
-  remains maintainer-external.
-- **Workspace**: `0.1.48` · **Tag**: `v0.1.47` · **Plan**: post-`v0.1.47` hardening (`ACTIONS.md` ACT-413...ACT-419)
+- **Last Updated**: 2026-11-01
+- **Status**: **post-`v0.1.47` release closeout complete.** The release was dogfooded on a persistent DB; the defects it exposed are fixed (#1225 persisted pattern counts, #1226 same-domain retrieval ranking).
+  The advisory (#1224), generated-lockfile alert (#1227), workspace bump (#1228), toolchain pin (#1222), crates.io OIDC settings (#1109), and ADR-079 stage-4 proof (#1229) are complete. CLI output contract follow-up #1232/#1233 is merged.
+  ACT-403 nightly is green; ACT-404 remains upstream-blocked (18 alerts / 9 advisories). ADR-080/081/082 lifecycle acceptance remains maintainer-external.
+- **Workspace**: `0.1.48` · **Tag**: `v0.1.47` · **Plan**: release closeout and CLI contract follow-up (`ACTIONS.md`)
 - **Queued chains**: none open — the watermark chain (#1067→#1068→#1089) and the embedding chain
   (#1073→#1074→#1076) are closed.
 - **Archive**: `plans/archive/2026-07-consolidation/`
 
-## Active goals — post-`v0.1.47` hardening (2026-10-30, closed)
+## Active goals — post-`v0.1.47` closeout (2026-11-01, code work closed; ACT-404 upstream-blocked)
 
 | Goal | Rec | Priority | Status |
 |------|-----|----------|--------|
@@ -33,8 +30,8 @@
 | G-A2 sub-second MCP latency is real, not truncated to 0 | #1086 / M05 | P2 | ✅ merged #1135 (`75007b51`) |
 | G-A3 a failed tag transaction cannot leave partial state | #1088 / M07 | P2 | ✅ merged #1134 (`347b3296`) |
 | G-A4 the redb episode→session index follows recency, not write order | #1066 / S07 | P1 | ✅ merged #1139 (`f1c31699` + repair pass) |
-| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | 🔄 in review #1138 — roast MAJORs fixed (query-only tokens, context double-count), CI re-running |
-| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | 🔄 in review #1140 — roast MAJOR fixed (live retrieval-cache metrics); includes escalation E1 (raw `TURSO_DATABASE_URL` in the response) |
+| G-A5 pattern-search lexical fallback is query-aware (no constant `0.5`) | #1075 / R04 | P1 | ✅ merged #1138 |
+| G-A6 MCP health reflects probed state and leaks nothing | #1085 / M04 | P1 | ✅ merged #1140 |
 | G-A7 trackers match `gh issue list` | governance | P0 | ✅ #1129 — `GAP_ANALYSIS_LATEST.md` is the repo-wide register |
 | G-A8 ignored-test inventory + fail-visible isolated native job | #1091 / Q02 | P1 | ✅ merged #1130 (2026-10-06) — 159-entry inventory, 14 tests un-ignored, isolated job fail-visible (JSON flag follow-up #1159); issue closed with evidence |
 

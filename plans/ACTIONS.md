@@ -1,11 +1,8 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-10-30
-- **Active plan**: **post-`v0.1.47` hardening** — ACT-413...ACT-419 are all closed by merged PRs (advisory #1224,
-  dogfood fixes #1225/#1226, generated-lockfile alert #1227, version restore #1228, release-guard dogfood rule,
-  ADR-079 stage-4 probe #1229) plus the toolchain pin #1222 (ACT-410). `v0.1.47` shipped and **reached crates.io**.
-  Remaining: the upstream-blocked Dependabot register (ACT-404), the next scheduled nightly check (ACT-403), and the
-  maintainer-external ADR-080/081 lifecycle acceptance.
+- **Last Updated**: 2026-11-01
+- **Active plan**: **post-`v0.1.47` closeout** — release dogfood fixes ACT-413...ACT-419 and toolchain pin ACT-410 are complete; CLI output contract follow-up #1232/#1233 is merged. `v0.1.47` shipped, reached crates.io, and was dogfooded against a persistent database.
+  ACT-403 nightly and ACT-368/#1109 external settings are complete. Remaining: upstream-blocked Dependabot ACT-404 (18 alerts / 9 advisories) and maintainer-external ADR lifecycle acceptance. `0.1.48` remains a development version, not a release.
 - **Previous plan**: **release closeout** — `GOAP_RELEASE_CLOSEOUT_2026-10-16.md` (ACT-399...ACT-412); landed.
 - **Earlier plan**: **audit-backlog wave** — `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`; W1–W6, Q02 and the wave-A
   slices all merged (ACT-370…ACT-398 closed), including #1153 as `b6326d90`.
@@ -54,8 +51,8 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 | ACT-400 | Merge #1177: readiness gate counts the latest check run per name so superseded failures stop shadowing current ones | CI trust | after ACT-399 | ✅ merged (#1177) |
 | ACT-401 | Merge #1175 → #1180 **serially** (strict up-to-date invalidates the others on every merge) | guardrails/tests | after ACT-400 | ✅ merged (#1175, #1180) |
 | ACT-402 | **`0.1.46` bump, landed in the closeout PR**: `Cargo.toml` + `Cargo.lock` + version references across the active plan set (template `b3d1b944`; the CHANGELOG heading moves at release time, not here). This is what makes the drift gate clean instead of overriding it | release | — | ✅ merged (#1185) — `check-release-drift.sh` → `severity=clean`; the post-release `0.1.47` bump followed in #1193 |
-| ACT-403 | Next nightly green (schedule + dispatch) with the new `turso_multi_dimension` step reporting 20/20 | #1091 (Q02) | after #1180 merges | ⏳ |
-| ACT-404 | Dependabot register is **upstream-blocked**: 12 alerts = 6 advisories × 2 lockfiles (`Cargo.lock`, `fuzz/Cargo.lock`) — 8 `rustls-webpki 0.102.8` (2 high, via `libsql → hyper-rustls 0.25 → rustls 0.22.4`), 2 `lru <0.16.3` (via `augurs-changepoint 0.10.2` + `agentfs-sdk 0.6.4`, both newest), 2 `libsql-sqlite3-parser` (no patch). Do **not** open the `libsql 0.10.0` bump PR: 0.10.0 pulls the same chain (verified by `cargo tree` in a scratch crate). **Updated 2026-10-20 (#1204)**: the *direct* `webpki-roots`/`rustls-webpki`/`webpki-root-certs` advisories (RUSTSEC-2026-0381/0382/0383, published 2026-10-19/20) are fixed by bumping to 1.0.10/0.103.16/1.0.10 — the **root** graph goes `cargo audit` 4 → 0 and `cargo deny` FAILED → `advisories ok`, measured against a **fresh** advisory DB. Only the transitive `rustls-webpki 0.102.8` remains, waived in **both** `deny.toml` and `.cargo/audit.toml` because rustls 0.22 pins webpki to the 0.102 series and the fix needs libsql on a hyper 1.x line. The **fuzz** graph is still unaudited and still fails — that is #1208 | Dependabot | — | 🔄 root graph clean; the fuzz graph is #1208 and the transitive `0.102.8` stays blocked upstream — re-test when libsql moves to hyper 1.x |
+| ACT-403 | Scheduled nightly green with the fail-visible isolated Turso job | #1091 (Q02) | after #1180 merges | ✅ 2026-10-21…28 schedule streak; latest scheduled run #41288205136 (2026-11-01, head `60741604`) — isolated Turso native tests 20/20 passed |
+| ACT-404 | Dependabot register remains **upstream-blocked**: 18 open alerts = 9 advisory IDs × 2 lockfiles (`Cargo.lock`, `fuzz/Cargo.lock`). Current root/fuzz trees confirm `rustls 0.22.4` → `hyper-rustls 0.25` → `libsql 0.9.30` (first rustls fix 0.23.46; `rustls-webpki 0.102.8` needs 0.103.x), `lru` 0.9.0 via `augurs-changepoint`/`rv` and 0.12.5 via `agentfs-sdk` (fix ≥0.16.3), and `libsql-sqlite3-parser 0.13.0` with no patch. Do not open a no-op `libsql 0.10.0` bump; see the live GHSA inventory in `STATUS/GAP_ANALYSIS_LATEST.md`. | Dependabot | — | ⏸ upstream — re-test when the dependency chains move |
 | ACT-410 | Pin a dated `stable` for the advisory/lint gates so a floating toolchain cannot break compilation or invent deny lints between releases | toolchain | — (local hygiene) | ✅ merged (#1222, `16a31396`) — `rust-toolchain.toml` + `setup-rust` default = `1.99.1`; `cargo check -p do-memory-core --all-targets` on 1.99.1 passed |
 | ACT-411 | Strip the auto-applied `release-preparation` label from the non-release PRs once the bump is on `main`; review any parked PR on its own merits (tip-vs-merge-base diff first) | release drift | after ACT-402 | ✅ done — removed from #1194 and #1222; #1204 never carried it; the drift gate is `severity=clean` since #1228 |
 | ACT-405 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering). Hardening only — never weaken the gate at ship time | release | after ACT-403 | ✅ decision + ADR-083 — `schedule`/`workflow_dispatch` are advisory; `push`/`pull_request` gate; SHA-only queries include tag-ref runs on the same commit, covered by the regression fixture |
@@ -65,7 +62,7 @@ Full context, evidence and acceptance criteria: [`GOAP_RELEASE_CLOSEOUT_2026-10-
 | ACT-412 | **Release-prep PR before the tag**: `CHANGELOG.md` `## [0.1.46]` section + the `Released Version`/version-doc flip, because `release-manager.sh` Phase 0 runs `verify-release-state.sh --check-unreleased`. Also install `parse-changelog-cli` so the local check uses the parser `release.yml` uses | release | after ACT-401 (#1180) | ✅ done for `0.1.46` (#1185) **and** `0.1.47` (tag `854f6f8d`, release published 2026-10-28T20:41:48Z); the docs now name `0.1.48` as the development version |
 | ACT-408 | Close #1165 with the release evidence; re-queue #1068/#1089/#1076 behind the closeout | release drift | after ACT-409 | ✅ done — #1165, #1068, #1089 and #1076 all closed 2026-10-19/20 |
 
-## Active actions (2026-10-30 — v0.1.47 dogfood follow-ups + toolchain pin)
+## Completed actions (2026-10-30 — v0.1.47 dogfood follow-ups + toolchain pin)
 
 Every row is backed by a merged PR or a closed probe; evidence strings are measured, not inferred.
 
@@ -79,31 +76,31 @@ Every row is backed by a merged PR or a closed probe; evidence strings are measu
 | ACT-418 | Make exact-tag released-CLI dogfooding mandatory in the release-guard skill: asset digest, `--version`, cross-process episode/pattern/`storage stats` parity, fix forward on a new release | release | ✅ `.agents/skills/release-guard/SKILL.md` — `run-evals.sh release-guard` 7/7, schema fixtures pass, gate contract consistent |
 | ACT-419 | Prove ADR-079 stage 4 with a live fault-injection probe and close it unmerged | CI trust | ✅ #1229 closed unmerged — `Quick PR Check` + `CI / Required` failed, `mergeStateStatus=BLOCKED` while `mergeable=MERGEABLE`, `merge-pr.sh` exit 1; branch and worktree deleted |
 
-## Queued actions (2026-10-04 — validated backlog, sequenced)
+## Actions from the validated 2026-10-04 queue (closed; reconciled 2026-11-01)
 
 | ID | Action | Rec | Depends on | Status |
 |----|--------|-----|-----------|--------|
-| ACT-376 | Modification watermark: `Episode.updated_at` + Turso column + redb `SCHEMA_VERSION` 4→5, keyset pages on `(updated_at, episode_id)`, cursor through the sync loop; add a defaulted `query_episodes_modified_since` (E5) | #1067 (S08) | — | ⏳ |
-| ACT-377 | Revision-aware merge: one helper used by `get_all_episodes` and retrieval backfill; wire the orphan `resolve_episode_conflict`; document the missing-revision policy | #1068 (S09) | ACT-376 | ⏳ |
-| ACT-378 | Single-transaction redb `store_episodes_batch` override, then batch the synchronizer and honor the dead `SyncConfig.batch_size` | #1089 (M08) | ACT-376 | ✅ code merged #1171 (`16426d08`); criteria 1–3 evidenced, 4 open |
-| ACT-379 | Identity-scoped `EmbeddingStorageBackend` adapter over `Arc<dyn StorageBackend>`, namespaces + `kind:model:dims`/revision in the key, truthful ephemeral mode | #1073 (R02) | — | ⏳ |
-| ACT-380 | Route the 5 remaining pattern/management sites through `live_semantic_service()` — closes E2 | #1074 (R03) | ACT-379, after ACT-374 | ⏳ |
-| ACT-381 | Reuse stored pattern vectors and batch only the misses; coalescing keyed on full provider identity/revision | #1076 (R05) | ACT-379, ACT-380 | ⏳ |
-| ACT-382 | Capability truth for the 23 faking `StorageBackend` defaults — **4 PRs**: cleanup pair (+ delete dead `redb_cache.rs` impl), procedural ×4, relationships ×9, inventory doc + lint | #1087 (M06) | — | ⏳ |
-| ACT-383 | Ignored-test integrity — **3 PRs**: inventory artifact + ADR-027 truth (in review #1130), un-ignore the ~11 validation-only `security_tests.rs` cases, isolated nightly Turso job | #1091 (Q02) | — | 🔄 1/3 |
-| ACT-384 | Lint-suppression integrity — **4 PRs**: turso `unsafe_code` peel, `#![allow]` ceiling ratchet in `ci.yml`, per-crate `#![expect]` conversion, re-enable `unwrap_used`/`expect_used` | #1092 (Q03) | — | ⏳ |
-| ACT-385 | Remaining validated P1s: #1063 adaptive pool monitor/permits/cooldown (E4), #1064 scoped `with_connection`, #1070 capacity eviction, #1071 strict row decode, #1065 ms recommendation timestamps, #1078 incremental ranking, #1079 execution-backed provenance | see GAP file | — | ⏳ |
-| ACT-368 | OIDC-only crates.io publish — manual steps: 4 crates.io registrations, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` env to `v*` | #1109 C1/C2 | — | ✅ code merged #1123; ⏸ maintainer |
+| ACT-376 | Modification watermark: `Episode.updated_at` + Turso column + redb `SCHEMA_VERSION` 4→5, keyset pages on `(updated_at, episode_id)`, cursor through the sync loop; add a defaulted `query_episodes_modified_since` (E5) | #1067 (S08) | — | ✅ merged #1149 |
+| ACT-377 | Revision-aware merge: one helper used by `get_all_episodes` and retrieval backfill; wire the orphan `resolve_episode_conflict`; document the missing-revision policy | #1068 (S09) | ACT-376 | ✅ merged #1184 |
+| ACT-378 | Single-transaction redb `store_episodes_batch` override, then batch the synchronizer and honor the dead `SyncConfig.batch_size` | #1089 (M08) | ACT-376 | ✅ merged #1171; criterion 4 keyset ordering tests merged #1192 |
+| ACT-379 | Identity-scoped `EmbeddingStorageBackend` adapter over `Arc<dyn StorageBackend>`, namespaces + `kind:model:dims`/revision in the key, truthful ephemeral mode | #1073 (R02) | — | ✅ merged #1151 |
+| ACT-380 | Route the 5 remaining pattern/management sites through `live_semantic_service()` — closes E2 | #1074 (R03) | ACT-379, after ACT-374 | ✅ merged #1160 |
+| ACT-381 | Reuse stored pattern vectors and batch only the misses; coalescing keyed on full provider identity/revision | #1076 (R05) | ACT-379, ACT-380 | ✅ merged #1198 |
+| ACT-382 | Capability truth for the 23 faking `StorageBackend` defaults — **4 PRs**: cleanup pair (+ delete dead `redb_cache.rs` impl), procedural ×4, relationships ×9, inventory doc + lint | #1087 (M06) | — | ✅ merged #1144/#1152/#1158 |
+| ACT-383 | Ignored-test integrity — **3 PRs**: inventory artifact + ADR-027 truth, un-ignore validation-only `security_tests.rs` cases, isolated nightly Turso job | #1091 (Q02) | — | ✅ merged #1130/#1159; isolated job repaired in #1180 |
+| ACT-384 | Lint-suppression integrity — **4 PRs**: turso `unsafe_code` peel, `#![allow]` ceiling ratchet in `ci.yml`, per-crate `#![expect]` conversion, re-enable `unwrap_used`/`expect_used` | #1092 (Q03) | — | ✅ merged #1143/#1153; `unwrap_used`/`expect_used` warn at `Cargo.toml:129-130` under `-D warnings` |
+| ACT-385 | Remaining validated P1s: #1063 adaptive pool monitor/permits/cooldown (E4), #1064 scoped `with_connection`, #1070 capacity eviction, #1071 strict row decode, #1065 ms recommendation timestamps, #1078 incremental ranking, #1079 execution-backed provenance | see GAP file | — | ✅ merged #1142/#1145/#1146/#1147/#1148/#1150/#1154 |
+| ACT-368 | OIDC-only crates.io publish — 4 trusted publishers, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` environment to `v*` tags | #1109 C1/C2 | — | ✅ completed 2026-10-29; issue #1109 closed, environment and secret verified |
 | ACT-369 | Release-path C5–C7: verify-a-release page, trigger slimming, publish-path hygiene | #1109 C5/C6/C7 | — | ✅ merged #1125 (`4fb0e20f`) |
 
-**ACT-378 evidence (2026-10-17)** — code half: `memory-storage-redb/src/backend_impl.rs:20` +
+**ACT-378 evidence (reconciled 2026-11-01; code evidence originally recorded 2026-10-17)** — code half:
 `episodes.rs:99-127` (one write transaction per batch), `memory-core/src/sync/synchronizer.rs:298`
 (`page.chunks(batch_size)`) and `:48`/`:67` (`SyncConfig.batch_size` is no longer dead). Acceptance
 criteria for #1089, each named to the test that proves it: 1 → `storage_sync.rs:68`, `:794`
 (100/1,000 volume); 2 → `storage_sync.rs:278`, `sync_watermark.rs:383`; 3 → `sync_watermark.rs:306`
 and `:383` **plus** `sync_partial_failure_cursor.rs` (#1187), where the batch path and the cursor are
-finally asserted together; **4 → still open** — `sync_watermark.rs:268` proves exactly-once delivery
-("no duplicates or omissions") but no sync test asserts page **order**, so that box stays unchecked.
+finally asserted together; **4 → complete** — `memory-core/tests/sync_keyset_cursor.rs` (#1192) adds
+`should_sync_every_tied_episode_once_across_pages` and `should_renormalize_a_page_delivered_out_of_keyset_order`, covering tied timestamps and keyset page ordering.
 
 ## Completed actions (pointer)
 

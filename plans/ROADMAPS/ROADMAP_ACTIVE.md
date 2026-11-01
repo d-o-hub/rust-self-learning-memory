@@ -1,14 +1,26 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-10-30
+**Last Updated**: 2026-11-01
 **Released Version**: v0.1.47 (tag `854f6f8d`, 2026-10-28; GitHub Release 2026-10-28T20:41:48Z)
 **Workspace Version**: 0.1.48 (development bump; drift gate `severity=clean`, `reason=within_cadence`)
-**Active plan**: post-`v0.1.47` hardening — the released-CLI dogfood defects (`storage stats` persisted counts #1225, same-domain retrieval ranking #1226), the fixable advisory #1224, the generated-lockfile alert #1227, the workspace bump restore #1228 and the toolchain pin #1222 are landed. Next: keep `main` green, clear the upstream-blocked Dependabot register, then cut the next release through `release-manager.sh`.
+**Active plan**: release closeout is complete — `v0.1.47` release dogfood exposed and closed #1225/#1226; #1109 settings, toolchain pin, version restore, generated-lockfile alert, and ADR-079 stage 4 are complete; CLI output contract follow-up #1232/#1233 is merged. ACT-403 nightly is green; ACT-404 remains upstream-blocked. `0.1.48` is still a development bump; no new tag is authorized by this status refresh.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: `main` (`7dd67587`) — no release branch open
-**Open PRs**: 1 — this evidence refresh (PR 1231); #1222, #1224–#1228 and #1230 are merged. Check GitHub for the live queue.
-**Open issues**: none; the drift issue closes itself once the workspace version advances, and it did (#1223).
+**Branch**: `main` at audit baseline `d5d8f463` — no release branch open
+**Open PRs**: 0 at the 2026-11-01 audit baseline; this final tracker refresh is the only review PR, so the post-merge count returns to 0
+**Open issues**: 0 (`gh issue list --state open`)
+
+
+## Sprint 2026-10-28–2026-11-01 — release closeout and CLI output contract
+
+| Area | Outcome | Evidence |
+|------|---------|----------|
+| v0.1.47 release dogfood | ✅ Immutable release and all four registered crates verified; released CLI persisted an episode with 3 steps and 5 learned patterns; dogfood defects fixed forward | release-guard record; #1225/#1226 |
+| crates.io OIDC (#1109) | ✅ Four trusted publishers registered; `v*` tag-only environment; `CARGO_REGISTRY_TOKEN` removed; issue closed | #1109 closure evidence |
+| Development version and toolchain | ✅ `0.1.48` restored; Rust pinned to `1.99.1` | #1228, #1222 |
+| Dependabot alert #35 | ✅ Generated lockfile untracked; alert fixed | #1227 |
+| ADR-079 stage 4 | ✅ Live failing-check probe blocked merge; probe closed unmerged | #1229 |
+| CLI output contract | ✅ Episode-create contract and tests unified across feature configurations | #1232, #1233 |
 
 ## Sprint 2026-10-04 — audit-backlog wave W1–W6
 
@@ -118,7 +130,7 @@
 | Priority | Item | Description | Status |
 |----------|------|-------------|--------|
 | P0 | ADR-079 / CIT-A1 | Same-run `CI / Required` aggregate, fail-closed evaluator, staged ruleset migration | ✅ same-run fast gate + commitlint; `ci-required-evaluate.sh` rejects `skipped`; ruleset `9591004` requires `CI / Required` (stage 3 live); waiter/anchor removed (stage 5) |
-| P0 | ADR-079 stage 4 | Deliberate live fault-injection merge-block proof | ⏸ external maintainer evidence — not performed in #947 |
+| P0 | ADR-079 stage 4 | Deliberate live fault-injection merge-block proof | ✅ proved 2026-10-30 on #1229: `CI / Required` failed, merge was blocked, and the probe closed unmerged |
 | P0 | CIT-A2 | Fail closed on cancellation/missing/commitlint; Dependabot/fork parity | ✅ waiters fail closed + actor parity (2026-08-10) |
 | P0 | PTA-A1 cascade truth | Non-`csm` retrieval returns typed `CapabilityUnavailable` instead of successful empty | ✅ #916 |
 | P0 | PTA-A2 storage metric truth | Label measured/estimated/unavailable via `MetricValue` provenance; remove fabricated telemetry | ✅ #916 |
@@ -136,7 +148,7 @@
 |----------|-------|-------|--------|
 | P2 | Research | WG-108 / WG-110 / WG-125 / WG-135 | ⏸ DEFER |
 | P2 | Vision | Distributed sync, multi-tenancy, OTel | Future |
-| P2 | Release eng | Trusted Publishing (OIDC) for crates.io + release-path hardening | ✅ ACT-325 + ACT-368 + ACT-369 (official action, no token fallback, truthful triggers; 2026-10-04) |
+| P2 | Release eng | Trusted Publishing (OIDC) for crates.io + release-path hardening | ✅ ACT-325 + ACT-368 + ACT-369; four publishers, tag-only environment, no token fallback; external steps closed 2026-10-29 |
 | P2 | CI cost | Reusable workflows/artifact handoff after required-gate correctness | Blocked by CIT-A1…A3 |
 | P2 | Security | Transitive Dependabot advisories | Monitor |
 | P2 | CLI | ADR-076 §5 `pattern extract` error-arm coverage | ✅ Done (#891) |

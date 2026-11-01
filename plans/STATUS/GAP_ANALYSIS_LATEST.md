@@ -5,6 +5,23 @@
 **Workspace Version**: `0.1.48` · **Released Tag**: `v0.1.47` (`854f6f8d`)
 **Active Focus**: GAP03 — repo-wide issue register (previous focus DOC02, archived at `archive/2026/GAP_ANALYSIS_2026-10-02.md`)
 
+## Live addendum (2026-11-01) — closeout complete; dependency advisories remain upstream-blocked
+
+- Audit baseline: `main` at `d5d8f463` after #1232/#1233. The original 22 issue findings below are closed; open issues are 0. No other PRs were open at the audit baseline; this tracker refresh is the only review PR and the post-merge open-PR count is 0.
+- Dependabot currently reports **18 alert rows = 9 advisory IDs × 2 lockfiles** (`Cargo.lock`, `fuzz/Cargo.lock`). Root and fuzz `cargo tree --locked` output confirms these current dependency chains:
+
+| Package family | Advisory IDs | Current pinned dependency | First patched version / status |
+|----------------|---------------|---------------------------|--------------------------------|
+| `rustls` | GHSA-w44r-93j7-qv28, GHSA-c8m5-c952-6cm4, GHSA-h2v8-394m-p7vv | `rustls 0.22.4` → `hyper-rustls 0.25.0` → `libsql 0.9.30` | `rustls 0.23.46`; blocked by the libsql/hyper chain |
+| `rustls-webpki` | GHSA-82j2-j2ch-gfr8, GHSA-xgp8-3hg3-c2mh, GHSA-965h-392x-2mh5, GHSA-pwjx-qhcg-rvj4 | `rustls-webpki 0.102.8` under `rustls 0.22.4` | `0.103.10`, `0.103.12` or `0.103.13` by advisory; blocked by the same chain |
+| `lru` | GHSA-rhfx-m35p-ff5j | `lru 0.9.0` via `augurs-changepoint`/`rv`; `lru 0.12.5` via `agentfs-sdk` | `0.16.3`; both dependency paths remain upstream |
+| `libsql-sqlite3-parser` | GHSA-8m95-fffc-h4c5 | `0.13.0` via `libsql 0.9.30` | No patched release |
+
+- Alert #35 is fixed by #1227; `.opencode/package-lock.json` is no longer tracked.
+- Release issue #1109 is closed (2026-10-29): all four trusted publishers, `v*` tag-only environment and registry-secret removal were verified. Release issue #1205 is also closed (2026-10-28).
+- ACT-403 is complete: scheduled run #41288205136 (2026-11-01) passed; the isolated Turso multi-dimension suite was 20/20 with zero skipped.
+
+
 ## Why this register exists
 
 Every tracker in `plans/` reported "no active plan" and "P0 plan gaps: 0 open code-side" while
@@ -13,7 +30,7 @@ static-analysis swarm at `9f50c607` and were never entered into `GOALS.md` / `AC
 so each subsequent refresh restated "0 gaps" from completed-campaign evidence instead of from the live issue
 list. Five parallel read-only validation agents re-checked every finding against the current tree.
 
-**Headline result: 20 OPEN, 2 PARTIAL, 0 fixed.** No commit in `9f50c607..HEAD` references any of these issue
+**Audit snapshot at 2026-10-04: 20 OPEN, 2 PARTIAL, 0 fixed.** No commit in `9f50c607..HEAD` references any of these issue
 numbers, and `git log 9f50c607..HEAD -- <cited path>` shows the cited regions untouched. The prior "0 open
 gaps" claim was campaign-scoped (ADR-079 / CIT / PTA / RAT) and remains true only for that campaign.
 
@@ -62,7 +79,7 @@ New gaps found **after** the audit, i.e. not covered by any verdict below — tr
 | 12 Dependabot alerts = **6 advisories × 2 lockfiles** (`Cargo.lock`, `fuzz/Cargo.lock`), **all upstream-blocked**: 8 × `rustls-webpki 0.102.8` (2 high) via `libsql 0.9.30/0.10.0 → hyper-rustls 0.25 → rustls 0.22.4`; 2 × `lru <0.16.3` via `augurs-changepoint 0.10.2 → changepoint 0.14.2 → rv 0.16.5` and `agentfs-sdk 0.6.4`; 2 × `libsql-sqlite3-parser ≤0.13.0` with **no patched release** (CVE-2025-47736). `cargo audit`/`cargo deny` were cleared separately by #1174, which closed none of these | `gh api repos/:owner/:repo/dependabot/alerts?state=open --paginate` + `cargo tree` on a scratch `libsql 0.10.0` crate | ACT-404 (wait for upstream: tursodatabase/libsql, Manishearth/llru-rs, augurs-project/augurs) |
 | The tag cannot be cut straight after #1180: `release-manager.sh` Phase 0 fails on docs/CHANGELOG state | `./scripts/verify-release-state.sh --check-unreleased` → `❌ 3 version mismatches` (`ROADMAP_ACTIVE says v0.1.45`, `CURRENT references v0.1.45`, `CHANGELOG.md missing entry for v0.1.46`), plus `⚠️ parse-changelog not installed` while `release.yml` depends on that parser | ACT-412 (release-prep PR: CHANGELOG `[0.1.46]` + version-doc flip, then `ship`) |
 
-## Register — 22 open issues
+## Original issue register — 22 findings at the 2026-10-04 audit baseline (historical)
 
 `Verdict` is the state at `74a44a15`. `Wave` is the queue position from `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`.
 
@@ -90,7 +107,7 @@ New gaps found **after** the audit, i.e. not covered by any verdict below — tr
 | #1087 | M06 | P1 | OPEN | `storage/backend.rs` byte-identical to baseline; 27 default methods, only 2 capability-gated → **23 can fake durable success**; `cleanup_episodes`/`count_cleanup_candidates` overridden by no production backend and called from no production path; `relationships/mod.rs:94`, `api.rs:346,371` discard with `let _ =`; dead duplicate `impl StorageBackend for RedbStorage` in `redb_cache.rs` (never declared in `lib.rs`) | typed `CapabilityUnavailable`; gate relationships (9) / procedural (4) / cleanup (2); update turso+redb+resilient+cached; delete `redb_cache.rs` | L → **4 PRs** | later |
 | #1091 | Q02 | P1 | OPEN — mitigated only by count ratchet | **173** `#[ignore]` attrs (turso 118 / core 38 / mcp 11 / cli 2); ADR-027 claims 121/71/37/9 (stale by 52) and omits `monitoring_capacity_tests.rs` (30); `nightly-tests.yml` `--run-ignored only` jobs both exclude `do-memory-storage-turso` → **118 ignored Turso tests run nowhere**; `check-ignored-tests.sh` is a ceiling-only ratchet (200) | un-ignore the ~11 validation-only `security_tests.rs` cases, machine-readable inventory artifact, isolated nightly turso job with non-green crash/timeout signal, refresh ADR-027 | S+M → **3 PRs** | later |
 | #1092 | Q03 | P2 | OPEN | 395 crate-root `#![allow(...)]` in `*/src` (cli 66 + `main.rs` 62, mcp 64, turso 57, redb 25, core 23), +76 inline; `memory-storage-turso/src/lib.rs:3` **allows `unsafe_code`** while the other four deny it; `Cargo.toml:113` sets `allow_attributes = "deny"` and `HARNESS.md:36` claims "No `#[allow(...)]`" — sensor inert; no suppression checker in `scripts/` | peel turso unsafe to sites, add a `#![allow]` ceiling ratchet to `ci.yml:93`, convert to `#![expect]` per crate, then re-enable `unwrap_used`/`expect_used` | L → **4 PRs** | later |
-| #1109 | R-F10 | P2 | **code complete**, manual steps open | C1/C2 #1123 (`68eda3d0`), C3/C4 #1121, C5–C7 #1125 (`4fb0e20f`) | crates.io: 4 trusted-publisher registrations, delete `CARGO_REGISTRY_TOKEN`, restrict the `crates.io` environment to `v*` tags; then enable immutable releases | manual | maintainer |
+| #1109 | R-F10 | P2 | ✅ closed 2026-10-29 | C1/C2 #1123 (`68eda3d0`), C3/C4 #1121, C5–C7 #1125 (`4fb0e20f`); closure evidence records four trusted publishers, `v*` environment, secret deletion and successful OIDC publication | None — all external steps verified; issue closed | — | closed |
 | #1127 | DOC03 | P1 | ✅ **fixed in #1128** (`b5c87ec1`) | `check-docs-integrity.sh` exits 2 on clean `74a44a15` with 15 false positives; `quality-gates.sh:196-211` runs it non-blocking (ADR-037) so CI is green, but `release-manager.sh:240` runs it via `run_cmd` under `set -euo pipefail` | confirmed by the #1128 merge; `ship --execute` clears the docs-integrity step on the next release | S | **W0 ✅** |
 
 ## Escalations found by validation (no issue body states these)

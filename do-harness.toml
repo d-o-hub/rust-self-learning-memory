@@ -17,6 +17,7 @@ verification = [
   "clippy",
   "loc",
   "deny",
+  "lockfile-sync",
   "docs",
   "test",
   "csm-feature",
@@ -71,6 +72,13 @@ argv = ["bash", "scripts/check-doctests.sh"]
 [[sensors]]
 name = "deny"
 argv = ["bash", "scripts/check-dependency-audit.sh"]
+
+# Lockfile freshness for both graphs plus the libsql single-version alignment
+# constraint. Without it a stale fuzz/Cargo.lock is only discovered when
+# 'deny' rewrites it mid-scan (LESSON-077).
+[[sensors]]
+name = "lockfile-sync"
+argv = ["bash", "scripts/check-lockfile-sync.sh"]
 
 [[sensors]]
 name = "loc"

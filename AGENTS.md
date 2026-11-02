@@ -69,19 +69,21 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 - **Tests**: ≥70% coverage floor (90% target); `#[tokio::test]` for async; AAA pattern.
 - **Docs**: URLs wrapped in `<...>`; new public types re-exported from `lib.rs`.
 - **Fail-closed code execution**: `execute_agent_code` is unavailable and fails closed.
+- **Dependency alignment**: version comments in `Cargo.toml` are constraints (Dependabot does not read them). `libsql` must resolve to one version per graph — `chaotic_semantic_memory` pins 0.9.x and two libsql versions duplicate its exported C symbols under `csm`. Any requirement change also re-resolves `fuzz/Cargo.lock` (`cd fuzz && cargo metadata --format-version 1 >/dev/null`), else the audit gate fails with *0 vulnerabilities*. Sensor: `lockfile-sync`. See `agent_docs/dependency_upgrades.md`, LESSON-077.
 
 ## Workflow Traps (2026-10, full evidence in `agent_docs/LESSONS.md`)
 
-Before merges or releases, review LESSON-035 and LESSON-039…067. These cover
+Before merges or releases, review LESSON-035 and LESSON-039…077. These cover
 stale-tip/dependency loss, toolchain/test/CI-rollup failures, release event
-filtering, advisory databases, version state, and publish-chain traps.
+filtering, advisory databases, version state, publish-chain traps, and
+Dependabot group bumps carrying a member that must be dropped (LESSON-077).
 
 ## Dev Harness (do-harness)
 
 Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`.
 `do-harness.toml` defines two explicit signal sets:
 - **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`).
-- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
+- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
 
 `do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
@@ -90,7 +92,7 @@ Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` a
 ## Required Checks Before Commit
 
 - [ ] `do-harness verify --set feedback` (cheap edit-loop check during coding)
-- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
+- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
 - [ ] `do-harness status --set verification` (confirm green local evidence boundary)
 - [ ] `git status` — only intended changes staged
 

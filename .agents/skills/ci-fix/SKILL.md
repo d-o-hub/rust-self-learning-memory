@@ -105,6 +105,50 @@ cargo update -p <pkg> --precise <min-patched>
 # See .agents/skills/code-quality/SKILL.md, LESSON-046..048
 ```
 
+### Supply Chain Audit red while reporting 0 vulnerabilities
+
+```bash
+# Symptom: the Security > Supply Chain Audit log ends with
+#   Audit result for Cargo.lock: 0 vulnerabilities found
+#   Audit result for fuzz/Cargo.lock: 0 vulnerabilities found
+#   ERROR: Lockfiles were modified during the audit scan!
+# This is NOT an advisory finding. scripts/check-dependency-audit.sh snapshots
+# `git diff Cargo.lock fuzz/Cargo.lock` before and after the scan, and
+# `cargo deny --manifest-path fuzz/Cargo.toml` lets cargo re-resolve a lockfile
+# that no longer matches its manifests - the diff then differs and the gate fails.
+# Cause: a dependency requirement changed (usually a Dependabot bump of a crate
+# used by memory-mcp/memory-cli/tests) and only the ROOT lock was updated.
+# `fuzz` is `exclude`d from the root workspace, so `cargo check --workspace` and
+# every other fast gate never looks at fuzz/Cargo.lock.
+cd fuzz && cargo metadata --format-version 1 >/dev/null   # re-resolves fuzz/Cargo.lock
+git diff --stat fuzz/Cargo.lock                            # expect a minimal diff
+./scripts/check-lockfile-sync.sh                           # sensor: lockfile-sync
+```
+
+`cargo metadata --locked` is the read-only proof of freshness: it refuses to
+rewrite, so a stale lock fails immediately. Same gate exists for the root graph.
+See LESSON-077.
+
+### A Dependabot group bump where one member must be dropped
+
+Group PRs (`rust-major`) bundle several majors; one member can be blocked
+in-tree even when it compiles. libsql 0.10 is the standing example:
+`chaotic_semantic_memory` 0.3.8 requires libsql 0.9.x, so taking the bump puts
+two libsql versions in the graph and duplicates libsql's exported C symbols
+when the `csm` feature links.
+- Read the root `Cargo.toml` comments before applying any bump. Alignment
+  constraints live there ("Keep aligned with ..."); Dependabot does not read them.
+- `cargo check --features csm` is **not** evidence of compatibility: rlibs do not
+  link, so a duplicate-symbol conflict only surfaces when a binary or test target
+  links. Verify with a linking build, or detect it from the lockfile.
+- The fix is to split the group, not to waive: revert the blocked member to the
+  constrained version, re-resolve **both** lockfiles, keep the members that do
+  work, and retitle the PR. Prior art: #1217 (`fix(deps): align libsql and
+  refresh fuzz lockfile`), PR #1240 the same shape.
+- Check the bump actually buys something before paying for it. libsql 0.10.0 is
+  still on `hyper 0.14` / `hyper-rustls 0.25`, so it does not clear the
+  `rustls-webpki` 0.102 waiver that needs a hyper 1.x line.
+
 ### Drift check (`Check for unreleased changes`) will not clear on re-run
 ```bash
 # Symptom: fails while cadence is critical; the workflow auto-adds

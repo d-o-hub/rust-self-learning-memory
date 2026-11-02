@@ -60,6 +60,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to 1.1.31 in `fuzz/Cargo.lock`, fixing RUSTSEC-2026-0418 (build-script
   environment leakage when `cc` 1.6 or later compiles on Unix).
 
+### CI/CD
+
+- New harness sensor `lockfile-sync` (`scripts/check-lockfile-sync.sh`, added to
+  the `verification` set). It runs `cargo metadata --locked` against both the
+  root and the `fuzz` graphs, so a lockfile that no longer matches its manifests
+  fails locally instead of being rewritten mid-scan by
+  `cargo deny --manifest-path fuzz/Cargo.toml` — the failure that turned the
+  Supply Chain Audit red on PR #1240 while reporting 0 vulnerabilities. It also
+  asserts `libsql` resolves to exactly one version per lockfile, because the
+  two-version state that a `libsql` 0.10 bump produces is a *link-time*
+  duplicate-C-symbol conflict under the `csm` feature that `cargo check` cannot
+  see (rlibs do not link). `fuzz` is `exclude`d from the root workspace, so
+  before this sensor no gate ever resolved that graph.
+
+
 ## [0.1.47] - 2026-10-28
 
 ### Added

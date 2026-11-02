@@ -2,7 +2,7 @@
 
 Compact log for non-obvious workflow learnings. Pair each entry here with a short distilled note in the nearest `AGENTS.md`.
 
-## LESSON-011: NEVER rush merges — wait for ALL CI, never use --admin
+## LESSON-078: NEVER rush merges — wait for ALL CI, never use --admin
 
 - Issue: PR #806 merged when `mergeStateStatus` was `UNSTABLE` (not `CLEAN`) using `gh pr merge --admin`. This bypassed branch protection and caused pre-existing CI failures to ship to main. Required follow-up PRs (#810, #811) to fix the failures.
 - Root Cause: Agent rushed to "complete the task" instead of following the mandatory PR health check procedure. The pr-readiness skill was never loaded. The `--admin` flag was used as a shortcut instead of fixing the underlying issues.
@@ -11,7 +11,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   2. NEVER use `--admin` or `--force` — fix the code, don't bypass the gate
   3. NEVER merge when `mergeStateStatus` is anything other than `CLEAN`
   4. Wait for ALL checks to reach terminal state before merging
-  5. Follow the Mandatory Pre-Merge Checklist in AGENTS.md
+  5. Follow the **PR Health Check** section in AGENTS.md
 
 ## LESSON-010: Coderabbitai review loop — verify each finding against current code
 
@@ -93,7 +93,8 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Issue: `cleanup_yaml.py` and `remove_redundant_cache.py` were committed to the repository root as one-off CI cleanup utilities.
 - Root Cause: Ad-hoc scripts created during CI fixes were committed directly to root without considering long-term maintenance or placement conventions.
 - Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
-- Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.
+- Reference: `agent_docs/disk_hygiene.md` — "No Temporary Files in Root" guard rail
+  (`AGENTS.md` no longer carries a Disk Space section).
 
 ## LESSON-015: Feature-gated test code requires matching cfg on ALL imports
 
@@ -1059,12 +1060,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `set -e` scripts; never rely on a bare `((VAR++))`. Treat a summary tool's
   output length as an assertion, not an assumption — the sweep must report
   `N` PRs where `N == gh pr list --state open | wc -l`, or say plainly that it
-  stopped early. Same rule as the empty-report trap in AGENTS.md's
-  machine-readable-output bullet: a short report is a broken report until proven
-  otherwise, and fixing it here turned "2 PRs, nothing else to see" into 9 PRs
-  with one genuinely red branch.
-- References: `scripts/check-pr-readiness.sh`, PR #1177, PR #1171,
-  AGENTS.md (machine-readable-output trap), LESSON-026, LESSON-036
+  stopped early. Same rule as the empty-report trap (LESSON-026, LESSON-036):
+  a short report is a broken report until proven otherwise, and fixing it here
+  turned "2 PRs, nothing else to see" into 9 PRs with one genuinely red branch.
+  The counter form is now a gate: sensor `shell-counters`
+  (`scripts/check-shell-counters.sh`) ratchets bare `((VAR++))` in tracked
+  shell.
+- References: `scripts/check-pr-readiness.sh`, `scripts/check-shell-counters.sh`,
+  PR #1177, PR #1171,
+  LESSON-026, LESSON-036
   (vacuous-green / empty-artifact class).
 
 ## LESSON-060: a package-scoped clippy run turns `#![expect(...)]` gates into false errors (2026-10-16)
@@ -1587,7 +1591,9 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `Cargo.toml` `exclude = ["fuzz"]` makes it a separate workspace and no CI job builds the repo
   with `--locked`), so a version bump PR is *not* expected to touch it.
 - References: PRs #1192/#1193, `scripts/release-cadence-manager.sh`,
-  `scripts/check-release-drift.sh`, AGENTS.md "Shared `CARGO_TARGET_DIR`", LESSON-056.
+  `scripts/check-release-drift.sh`, AGENTS.md Core Invariants → **Build
+  isolation** (shared `CARGO_TARGET_DIR`, LESSON-038), `agent_docs/disk_hygiene.md`,
+  LESSON-056.
 
 ## LESSON-074: a two-dot diff against `main` manufactures "the bot branch reverted merged work" findings (2026-10-19)
 
@@ -1815,3 +1821,49 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `agent_docs/dependency_upgrades.md`, LESSON-046..048 (a green audit only means
   nothing un-ignored reached `.vulnerabilities`), LESSON-050 (the ruleset decides
   what blocks a merge).
+
+## LESSON-079: a routing doc that states a rule the tools contradict is worse than no rule (2026-11-02)
+
+- Issue: distilling this log into the routing layer surfaced five defects of the
+  same class, all verified against the tree rather than inferred:
+  1. `ci-poll/SKILL.md` still read *"Exit 0 = all listed checks passed"* — the
+     exact sentence LESSON-072 asked be replaced. The lesson was written; the
+     doc was never changed.
+  2. `commit/SKILL.md` said *"never add an empty re-trigger commit"* while
+     `pr-readiness/SKILL.md` said *"re-trigger on a fresh SHA
+     (`--allow-empty` commit + push)"* — opposite instructions for one decision,
+     both routed from `AGENTS.md`.
+  3. `ci-fix/SKILL.md`'s fix command was `cargo clippy --workspace --fix`, which
+     omits `--tests` and the repo's `-A` allow-list, contradicting the gate
+     itself (`scripts/code-quality.sh`) and LESSON-068/069.
+  4. `AGENTS.md` §Workflow Traps and LESSON-064/074 cite a bot/agent-branch trap
+     section that no longer exists: it was dropped in `81a2076a` during a
+     shrink of `AGENTS.md`, and every citation was left behind.
+  5. `LESSON-011` was the id of two different entries, so any citation of it is
+     ambiguous — and nothing in the harness could notice.
+- Why it matters: an agent treats the routing layer as ground truth, so a wrong
+  rule produces *confident* wrong action, which costs more than a missing rule.
+  The lesson-entry channel made this look handled: each lesson recorded its own
+  fix, and a later refactor removed that fix from the doc while the log kept
+  pointing at it. "I wrote a lesson about it" is not "the routed doc says it".
+- Detection (repeatable, deterministic):
+  1. `scripts/check-lesson-distillation.sh` — duplicate ids fail outright; the
+     count of lessons with no citation outside `LESSONS.md` is a ratchet
+     baseline.
+  2. Pointer rot: for every quoted section name in the log, confirm the heading
+     still exists —
+     `grep -ohE 'AGENTS\.md [“"][^”"]+[”"]' agent_docs/LESSONS.md | sort -u`
+     then check each against `grep -n '^#' AGENTS.md`. Four such pointers were
+     dead; all four are now re-anchored.
+  3. Contradiction sweep: grep the routing layer for the *command* a lesson
+     corrects and diff it against the script that implements the gate. Three of
+     the five above were found this way, none by reading prose.
+- Fix/prevention: contradictions resolve **toward the enforcing script**, never
+  toward whichever doc was edited last; a re-trigger commit is legitimate only to
+  clear stale rollup rows (LESSON-052), not to hide a real failure; a shrink of
+  `AGENTS.md` is not done until every inbound citation is re-pointed. Guards
+  added with this lesson: `commit-ci-tokens`, `changelog-headings`,
+  `shell-counters`, `agents-md-ids`, `lesson-distillation`.
+- References: PR #1240, PR #1241, this PR, LESSON-063 (phantom affordances — the
+  same class, previously only about release docs), LESSON-072, LESSON-068/069,
+  LESSON-052, `HARNESS.md`, `do-harness.toml`.

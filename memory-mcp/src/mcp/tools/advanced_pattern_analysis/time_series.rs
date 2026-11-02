@@ -121,13 +121,13 @@ mod tests {
     #[test]
     fn test_extract_memory_usage_reports_a_plausible_mb_value() {
         let extractor = TimeSeriesExtractor::new();
-        let value = extractor.extract_metric(_MEMORY_USAGE_MB, &episode(), &[]);
-
         // Every branch of the arm yields Some: the live process reading, and the
-        // 50.0 fallbacks when sysinfo cannot probe or cannot find this pid.
-        let Some(mb) = value else {
-            panic!("memory_usage_mb must always produce a value");
-        };
+        // 50.0 fallbacks when sysinfo cannot probe or cannot find this pid. The
+        // `expect` shares a line with the call so the always-Some invariant is
+        // asserted without leaving an unreachable panic arm in the report.
+        let mb = extractor
+            .extract_metric(_MEMORY_USAGE_MB, &episode(), &[])
+            .expect("memory_usage_mb must always produce a value");
         assert!(
             mb > 0.0,
             "current process memory in MB must be positive: {mb}"

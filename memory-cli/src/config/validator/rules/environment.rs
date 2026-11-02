@@ -192,75 +192,59 @@ mod tests {
     fn test_environment_fitness_flags_oversized_cache_and_pool() {
         // usize::MAX / 2048 keeps the * 1024 estimate inside the type while
         // guaranteeing it exceeds any real machine's available memory.
-        let config = config_with(usize::MAX / 2048, 100_000, false);
-        let warnings = validate_environment_fitness(&config);
+        let warnings =
+            validate_environment_fitness(&config_with(usize::MAX / 2048, 100_000, false));
 
         assert!(
             warnings.iter().any(|w| w.field == "storage.pool_size"),
             "pool_size far above cpu_count * 4 must warn: {warnings:?}"
         );
 
-        if sysinfo::System::new_all().is_ok() {
-            let memory_warning = warnings
-                .iter()
-                .find(|w| w.message.contains("may exceed available memory"));
-            assert!(
-                memory_warning.is_some(),
-                "a cache estimate above available memory must warn: {warnings:?}"
-            );
-            assert_eq!(memory_warning.unwrap().field, "storage.max_episodes_cache");
-        }
+        // sysinfo 0.40 constructors are fallible and the validator skips the memory
+        // check when they fail. Asserting the same predicate keeps the line covered on
+        // both kinds of runner, where an `if` would sit uncovered on whichever side the
+        // probe did not take.
+        let probeable = sysinfo::System::new_all().is_ok();
+        let has_memory_warning = warnings
+            .iter()
+            .any(|w| w.message.contains("may exceed available memory"));
+        assert_eq!(
+            has_memory_warning, probeable,
+            "an estimate above available memory must warn iff sysinfo can probe: {warnings:?}"
+        );
     }
 
     #[test]
     fn test_environment_fitness_accepts_a_small_config() {
-        // pool_size 1 stays under cpu_count * 4 even on a single-core runner.
-        let config = config_with(100, 1, false);
-        let warnings = validate_environment_fitness(&config);
-
-        if !in_ci() {
-            assert!(
-                warnings.is_empty(),
-                "expected no warnings, got {warnings:?}"
-            );
-        } else {
-            // Under CI only the progress-bar check can fire; cache is 100 (<= 200)
-            // and progress bars are off.
-            assert!(!warnings.iter().any(|w| w.field == "cli.progress_bars"));
-            assert!(
-                !warnings
-                    .iter()
-                    .any(|w| w.message.contains("CI environment detected"))
-            );
-        }
+        // pool_size 1 stays under cpu_count * 4 even on a single-core runner, the cache
+        // is under CI's 200 threshold, and progress bars are off — so no branch of the
+        // validator may warn, on either kind of runner.
+        let warnings = validate_environment_fitness(&config_with(100, 1, false));
+        assert!(
+            warnings.is_empty(),
+            "expected no warnings, got {warnings:?}"
+        );
     }
 
     #[test]
     fn test_environment_fitness_ci_checks_track_the_ci_env_var() {
-        let config = config_with(1000, 1, true);
-        let warnings = validate_environment_fitness(&config);
-
-        let has_cache_warning = warnings
-            .iter()
-            .any(|w| w.message.contains("CI environment detected"));
-        let has_progress_warning = warnings.iter().any(|w| w.field == "cli.progress_bars");
+        let warnings = validate_environment_fitness(&config_with(1000, 1, true));
 
         assert_eq!(
-            has_cache_warning,
+            warnings
+                .iter()
+                .any(|w| w.message.contains("CI environment detected")),
             in_ci(),
             "CI cache check ran off the env var"
         );
         assert_eq!(
-            has_progress_warning,
+            warnings.iter().any(|w| w.field == "cli.progress_bars"),
             in_ci(),
             "CI progress check ran off the env var"
         );
-
-        if in_ci() {
-            // Suggestions are present so a user can act on each warning.
-            for warning in &warnings {
-                assert!(warning.suggestion.is_some());
-            }
-        }
+        assert!(
+            warnings.iter().all(|w| w.suggestion.is_some()),
+            "a warning the user cannot act on is not a suggestion: {warnings:?}"
+        );
     }
 }

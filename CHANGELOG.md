@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Shell completion and configuration setup (`config init`, `show-template`,
+  and `wizard`) now run without loading the existing config or opening storage.
+  A missing or broken config no longer blocks setup or recovery, and setup
+  never attempts database connections; `config init` still refuses to overwrite
+  existing files.
+
 - `storage stats` counted only the process-local pattern fallback, so a fresh
   process reported zero patterns even though `pattern list` and `pattern search`
   returned the patterns persisted by an earlier process. It now counts the

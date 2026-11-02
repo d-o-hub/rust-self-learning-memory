@@ -141,6 +141,8 @@ rows (Codacy, SonarCloud, CodeQL) are not CI, and they post before the first
 nothing one minute after a push is a race, not a verdict: re-query, and read the
 per-commit truth with
 `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[] | .name'`.
+That filter wants the **full 40-character** sha: an 8-character prefix silently
+returns zero rows, which looks exactly like a CI that never ran.
 Do not explain an empty list with the trigger config without testing the
 explanation — seven gating workflows filter `pull_request` to `main`/`develop`,
 which *looks* like it must suppress a PR based on another PR's branch, and that

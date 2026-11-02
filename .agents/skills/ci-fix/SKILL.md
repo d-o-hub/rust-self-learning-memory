@@ -302,7 +302,10 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   after a push means "not yet", not "never". Re-query, and get the per-commit
   truth from the API rather than the rollup:
   `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
-  | "\(.event) \(.name) \(.created_at)"'`. Do **not** infer a cause from one
+  | "\(.event) \(.name) \(.created_at)"'`. Pass the **full 40-character** sha —
+  `head_sha=2657fcbb` returned zero rows for a head that had 10 runs queued, and
+  an empty list from a truncated sha is indistinguishable from no CI.
+  Do **not** infer a cause from one
   snapshot: seven gating workflows here filter
   `pull_request: branches: [main, develop]`, which looks like the reason a
   feature-branch-based PR has no runs, and that inference was wrong — runs did

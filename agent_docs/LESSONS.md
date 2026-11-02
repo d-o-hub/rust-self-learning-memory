@@ -1966,7 +1966,13 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   1. Re-query before diagnosing: `gh run list --branch <br>` empty at t+60s means
      "not yet", so read it again after a couple of minutes, and use
      `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
-     | "\(.event) \(.name) \(.created_at)"'` for the per-commit truth.
+     | "\(.event) \(.name) \(.created_at)"'` for the per-commit truth. **The
+     `head_sha` filter needs the full 40-character sha**: `head_sha=2657fcbb`
+     (8 chars, taken straight from `gh pr view --json headRefOid` output that had
+     been sliced) returned zero rows for a head that in fact had 10 runs queued.
+     A truncated sha and a genuinely-absent CI produce the same empty answer, so
+     the query itself is a failure mode — never conclude anything from an empty
+     result without checking that the argument was the full sha.
   2. Always compare the remote tip with the local one in the same breath:
      `gh pr view <n> --json headRefOid` vs `git ls-remote origin <br>`. Different
      shas = someone rebased or merged; stop and reconcile before pushing.

@@ -31,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `sysinfo` 0.39.6 → 0.40.1. Every `System` constructor is fallible in 0.40, so
+  the resource-probing call sites now degrade instead of assuming success: the
+  MCP time-series `memory_usage_mb` metric keeps its 50.0 fallback, CLI config
+  defaults fall back to the values the `suggest_*` helpers already clamp to, and
+  environment-fitness validation skips only the memory warning (the CPU and CI
+  checks do not need a live snapshot). The soak memory-capture block dropped
+  `sysinfo::SystemExt`, removed in 0.40.
+- `libsql` 0.10.0 was dropped from the same Dependabot `rust-major` group.
+  `chaotic_semantic_memory` 0.3.8 still requires libsql `0.9.30`, so taking the
+  bump links two libsql versions under the `csm` feature and duplicates its
+  exported C symbols — the constraint recorded in the root `Cargo.toml`. libsql
+  0.10.0 is still on `hyper 0.14` / `hyper-rustls 0.25`, so it does not clear the
+  `rustls-webpki` 0.102 waiver either. `fuzz/Cargo.lock` is re-resolved so the
+  supply-chain audit no longer mutates a stale lockfile mid-scan.
 - `episode create --format json|yaml` emits one shape in every build. Compiling
   with the `turso` feature used to rename the id field: redb-only builds printed
   `{"id": ...}` while turso builds printed `{"episode_id": ..., "status": "created"}`.

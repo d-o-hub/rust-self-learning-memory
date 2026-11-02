@@ -39,8 +39,8 @@ Two modes:
 ## Feedback Sensors
 
 Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`):
-- `feedback`: `fmt`, `loc`, `check` (fast local edit loop)
-- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+- `feedback`: `fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids` (fast local edit loop)
+- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
 
 Local evidence boundary command:
 ```bash
@@ -55,6 +55,16 @@ do-harness verify --set verification --strict --record && do-harness status --se
 | `cargo clippy -D warnings` | verification + CI | `.clippy.toml` | Fix all warnings; see `.clippy.toml` for exceptions |
 | `cargo deny check` | verification + CI | `deny.toml` | Check crate layering diagram in `Cargo.toml` comments |
 | `check-lockfile-sync.sh` (`lockfile-sync`) | verification | `scripts/check-lockfile-sync.sh` | Stale `Cargo.lock`/`fuzz/Cargo.lock`: re-resolve that graph with `cargo metadata`; a 2-version `libsql` means the workspace drifted off `chaotic_semantic_memory`'s constraint |
+| `check-changelog-headings.sh` (`changelog-headings`) | verification | `scripts/check-changelog-headings.sh` | Duplicate `## [x.y.z]` heading or a non-descending order: parse-changelog rejects the file, so merge the sections under one heading |
+| `check-shell-counters.sh` (`shell-counters`) | verification | `scripts/shell-counters-baseline.txt` | New bare `((i++))`: write `i=$((i + 1))`; a 0-valued increment exits 1 and truncates the script under `set -e` |
+| `check-lesson-distillation.sh` (`lesson-distillation`) | verification | `scripts/lesson-distillation-baseline.txt` | Cite the new lesson id from the file that carries the rule (AGENTS.md, a skill, or the enforcing script); never reuse an existing id |
+| `check-commit-ci-tokens.sh` (`commit-ci-tokens`) | feedback + verification + commit-msg hook | `scripts/check-commit-ci-tokens.sh` | Reword the message so the bracketed token never appears, `git commit --amend -F <file>`, prove it with `git rev-parse 'HEAD^{tree}'` |
+| `check-agents-md-ids.sh` (`agents-md-ids`) | feedback + verification | `scripts/check-agents-md-ids.sh` | Move the raw API id to `agent_docs/LESSONS.md` and cite the CI run number in `AGENTS.md`; never add `.codacy.yml` to silence it |
+| `check-ignored-tests.sh` (`ignored-tests`) | verification | `scripts/check-ignored-tests.sh` | An added `#[ignore]` needs its reason recorded; run the ignored set per feature (`--run-ignored only` force-runs only ignored tests) |
+| `check-lint-suppressions.sh` (`lint-suppressions`) | verification | `scripts/lint-suppressions-baseline.txt` | New crate-root `#![allow]`: prefer a per-site `#[expect]` with a reason; run `--update` only after review |
+| `check-yaml-frontmatter.sh` (`yaml-frontmatter`) | verification | `scripts/check-yaml-frontmatter.sh` | Give the skill/doc its required `---` frontmatter block |
+| `check-storage-backend-capabilities.sh` (`storage-backend-capabilities`) | verification | `scripts/check-storage-backend-capabilities.sh --check` | Keep declared backend capabilities and the feature-gated implementations in sync |
+| `quality-gates.sh` (`quality-gates`) | verification | `scripts/quality-gates.sh` | Runs the consolidated gate suite; doctests and LOC are skipped here because `docs` and `loc` own them |
 | `cargo test --doc` / `doc` (`docs`) | verification + CI | `scripts/check-doctests.sh` | Wrap URLs in `<...>`, re-export public types, fix broken doctests |
 | `cargo nextest run` (`test`) | verification + CI | `.config/nextest.toml` | Fix failing unit/integration tests before opening PR |
 | `csm` feature tests (`csm-feature`) | verification + CI | `do-memory-core` | Fix failing CSM cascade/rerank/evidence tests |

@@ -351,23 +351,23 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "augurs-changepoint"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7471e5e48a5feb1887271686e3ecd4d0aa893c69c77efd575968207d7312705c"
+checksum = "67de7706354a20cb5ec0f4750d44fb540a685b1914b815ace2549fc9c3503c0c"
 dependencies = [
  "augurs-core",
  "changepoint 0.14.2",
  "distrs",
- "itertools 0.14.0",
+ "itertools 0.15.0",
  "thiserror 2.0.21",
  "tracing",
 ]
 
 [[package]]
 name = "augurs-core"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "304774394b274d23e2440648709efd47ccffa94e03ccc26fa4501cf69f52300c"
+checksum = "29168108f767a3c6a28a97d667e0e8e5d180a49b651667b7d3372a6a3fe919bc"
 dependencies = [
  "num-traits",
 ]
@@ -3269,6 +3269,15 @@ name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
 dependencies = [
  "either",
 ]
@@ -7131,9 +7140,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.28.0"
+version = "1.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cc1186384beb7dd8eedea376413fd654937285ea6c9cfbb928dc3043ea4b606"
+checksum = "4a0e2d11620c50695fe12bbbfde96b3477fe606e7284c22d505c12ce51214514"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",

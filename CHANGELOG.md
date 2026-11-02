@@ -118,14 +118,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   previously uncited lessons (010, 016, 020, 029, 056, 062, 078) are now routed
   into the skills that enforce them.
 
-- New lesson LESSON-080 and its two routed rules: PR #1242 is stacked on #1241,
-  so its base is a feature branch — and `ci.yml`, `coverage.yml`, `security.yml`,
-  `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
-  `skill-evals.yml` all filter `pull_request: branches: [main, develop]`, so the
-  child PR gets **zero workflow runs** while Codacy and SonarCloud still post
-  green App rows. `pr-readiness` now requires a run to exist before a rollup can
-  be called green, and `ci-fix` names both causes of an empty rollup (base filter,
-  and the head-commit skip token from LESSON-067).
+- New lesson LESSON-080 — a retraction, recorded because the wrong rule was
+  committed first. PR #1242 is stacked on #1241, so its base is a feature branch,
+  and `ci.yml`, `coverage.yml`, `security.yml`, `storage-matrix.yml`,
+  `yaml-lint.yml`, `file-structure.yml` and `skill-evals.yml` all declare
+  `pull_request: branches: [main, develop]`. From one `gh run list` taken ~60s
+  after the push (empty, while Codacy and SonarCloud already showed green App
+  rows) I concluded the child PR could never get CI and routed that as a rule.
+  It is refuted by the same API: `pull_request` runs exist for the PR's own
+  commits (`99e56446` created 6s after its push, `3c1aaf4b` 74min after), so the
+  rollup went from 2 rows to 30. The entry now records the trigger config plus
+  the open question about the base filter, **not** a causal rule, and the two
+  routed sentences in `pr-readiness` and `ci-fix` say instead: confirm a run
+  exists before calling a rollup green, and re-query before concluding CI never
+  will. The investigation's usable finding is that another session had rewritten
+  both branches mid-work; containment was proved by an empty diff of the touched
+  files before resetting to the remote tip (LESSON-035).
 
 
 ## [0.1.47] - 2026-10-28

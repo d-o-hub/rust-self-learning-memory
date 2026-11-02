@@ -79,10 +79,9 @@ Before merges or releases, review LESSON-035 and LESSON-039…080. These cover
 stale-tip/dependency loss, toolchain/test/CI-rollup failures, release event
 filtering, advisory databases, version state, publish-chain traps, Dependabot
 group bumps carrying a member that must be dropped (LESSON-077), self-suppressed
-CI from a commit-message token (LESSON-065), a stacked PR whose base is not
-`main`/`develop` running zero CI because every workflow filters the event
-(LESSON-080), and routing docs that assert checks which do not exist
-(LESSON-063, LESSON-079).
+CI from a commit-message token (LESSON-065), concluding "CI never ran" from one
+Actions query a minute after a push (LESSON-080), and routing docs that assert
+checks which do not exist (LESSON-063, LESSON-079).
 
 ## Dev Harness (do-harness)
 

@@ -136,11 +136,18 @@ unresolved review thread / extra-approval rule is holding the PR
 `require_extra_approval_for_unattributed_changes=true`).
 
 Before calling any rollup green, confirm a **workflow run exists** — green App
-rows (Codacy, SonarCloud, CodeQL) are not CI. `gh run list --branch <head-branch>`
-returning nothing means the required aggregate was never created, most often
-because the PR's **base** is another PR's branch and every gating workflow filters
-`pull_request: branches: [main, develop]` (LESSON-080). A stacked PR is unverified
-until its parent merges and it is retargeted at `main`.
+rows (Codacy, SonarCloud, CodeQL) are not CI, and they post before the first
+`pull_request` run is created. `gh run list --branch <head-branch>` returning
+nothing one minute after a push is a race, not a verdict: re-query, and read the
+per-commit truth with
+`gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[] | .name'`.
+Do not explain an empty list with the trigger config without testing the
+explanation — seven gating workflows filter `pull_request` to `main`/`develop`,
+which *looks* like it must suppress a PR based on another PR's branch, and that
+inference produced a confidently wrong rule (LESSON-080). Also compare
+`gh pr view --json headRefOid` against `git ls-remote origin <head-branch>`: if
+they differ, someone rebased or merged under you and the rollup you are reading
+is not for the commit you have locally (LESSON-035).
 
 **Which checks are required is a ruleset, not branch protection** (ruleset
 `main-protection`, id 9591004; `/branches/main/protection` 404s). The endpoint

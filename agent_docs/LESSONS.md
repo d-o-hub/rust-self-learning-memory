@@ -1909,32 +1909,55 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   same class, previously only about release docs), LESSON-072, LESSON-068/069,
   LESSON-052, `HARNESS.md`, `do-harness.toml`.
 
-## LESSON-080: a stacked PR whose base is not `main`/`develop` runs zero CI (2026-11-02)
+## LESSON-080: an empty Actions list one minute after a push is a race, not a verdict (2026-11-02)
 
-- Issue: PR #1242 was opened against `ci/lockfile-sync-guardrail` (deliberately
-  stacked on PR #1241 to avoid same-line conflicts). `gh pr checks 1242` reported
-  two green rows and nothing else, and `mergeStateStatus` sat at `BLOCKED`.
-- Root Cause: every gating workflow filters the event, not the branch content —
-  `ci.yml`, `coverage.yml`, `file-structure.yml`, `security.yml`,
-  `skill-evals.yml`, `storage-matrix.yml` and `yaml-lint.yml` all declare
-  `pull_request: branches: [main, develop]` (`pages.yml`, `release-drift.yml` and
-  `supply-chain.yml` are `main` only). A PR whose **base** is a feature branch
-  matches no filter, so no `pull_request` run is ever created. The two rows that
-  did appear are App-based (Codacy, SonarCloud), which ignore the filter.
-- Detection (deterministic, before concluding "CI is green"):
-  `gh run list --branch <pr-head-branch> --json workflowName,status` — an empty
-  result with App-only check rows means CI never ran, not that it passed. Then
-  read the base: `gh pr view <n> --json baseRefName`.
-- Solution: keep the stack for conflict reasons, but treat CI as **absent** until
-  the base merges; retarget the child PR at that point
-  (`gh pr edit <n> --base main`) so the workflows' filters match and the diff
-  shrinks to the child's own commits. Never cite "N pass, 0 fail" for a PR with
-  zero workflow runs.
-- Key insight: `mergeStateStatus=BLOCKED` with *no* pending rows has at least two
-  distinct causes — a head-commit CI skip-control token (LESSON-067) and a base
-  branch excluded by every workflow's `pull_request` filter. Both produce the same
-  healthy-looking-but-empty rollup, and neither is a skipped gate.
-- Prevention: the `ci-fix` skill's "zero pending rows" bullet now names both
-  causes; `pr-readiness` requires a workflow run to exist, not just green rows.
-- References: PR #1240, PR #1241, PR #1242, LESSON-067, LESSON-050,
-  `.github/workflows/ci.yml`.
+- Issue: PR #1242 was pushed at 11:52Z; `gh run list --branch docs/lesson-distillation`
+  returned nothing while `gh pr checks` already showed two green rows (Codacy,
+  SonarCloud), and `mergeStateStatus` was `BLOCKED`. I concluded CI would never
+  run for a PR based on a feature branch, wrote that up as this lesson, and
+  routed it into two skills — all from a single query taken ~60s after the push.
+- What is actually verified:
+  1. The trigger config. `ci.yml`, `coverage.yml`, `security.yml`,
+     `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
+     `skill-evals.yml` declare `pull_request: branches: [main, develop]`;
+     `pages.yml`, `release-drift.yml` and `supply-chain.yml` are `main` only.
+  2. The App rows (Codacy/SonarCloud) post before any workflow run exists, so the
+     rollup genuinely looks green-and-empty for a minute.
+  3. The refutation: `pull_request` runs **do** exist for this PR's own commits
+     (`actions/runs?head_sha=…` shows CI, Coverage, Security, Storage Matrix,
+     YAML Lint, … for `99e56446`, created 6s after that push, and for `3c1aaf4b`,
+     created 74 min after its push). The rollup is now 30 rows, not 2. So "no
+     runs yet" was never sufficient evidence for "CI cannot run here".
+- Not resolved, and deliberately not written as a rule: whether the base filter
+  suppressed anything at all. GitHub evaluates `pull_request.branches` against
+  the PR's **base**, and #1242's base has been `ci/lockfile-sync-guardrail` since
+  it was opened — which the observed runs contradict. The escape hatch would be
+  the base having differed at event time, and both #1241 and #1242 moved within 5
+  seconds of each other, consistent with a concurrent automation touching them.
+  The REST run list does not expose the event payload's base ref, so this could
+  not be settled read-only. **A hypothesis that survives only in one direction
+  must not be committed as a rule an agent will act on** — that is LESSON-079's
+  failure, this time produced by me in the same session that documented it.
+- What the investigation did prove, and is the useful part: **another session
+  rewrote both branches under me.** `docs/lesson-distillation` went
+  `3c1aaf4b → 99e56446` with all seven commits replayed at one timestamp, and
+  PR #1240's branch gained a `Merge branch 'main'` commit `85455b06`. My local
+  tip was stale. Recovery that worked: prove containment before touching it
+  (`git diff --stat 3c1aaf4b 99e56446 -- <my files>` printed nothing, so my
+  content survived the replay byte-for-byte), tag a backup, then reset the
+  worktree to the remote — never force-push a stale local over a rewritten one
+  (same family as LESSON-035).
+- Detection (deterministic):
+  1. Re-query before diagnosing: `gh run list --branch <br>` empty at t+60s means
+     "not yet", so read it again after a couple of minutes, and use
+     `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
+     | "\(.event) \(.name) \(.created_at)"'` for the per-commit truth.
+  2. Always compare the remote tip with the local one in the same breath:
+     `gh pr view <n> --json headRefOid` vs `git ls-remote origin <br>`. Different
+     shas = someone rebased or merged; stop and reconcile before pushing.
+- Solution applied: the two skill sentences this entry caused are rewritten to
+  say "confirm a run exists, and re-query before concluding it never will"; the
+  base-filter mechanism is recorded as configuration plus an open question, not
+  as a cause.
+- References: PR #1240, PR #1241, PR #1242, LESSON-035, LESSON-050, LESSON-067,
+  LESSON-079 (the class this is an instance of), `.github/workflows/ci.yml`.

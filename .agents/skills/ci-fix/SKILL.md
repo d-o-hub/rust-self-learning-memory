@@ -287,23 +287,26 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   anything, and an unresolved review thread can keep `mergeStateStatus` at
   `BLOCKED` with every check passing (LESSON-050).
 - A `BLOCKED` merge with **zero pending rows** and only App-based rows (Codacy,
-  CodeQL) present means CI never ran — it is not slow. `statusCheckRollup`
+  CodeQL) present is not slow CI — it is either a self-suppressed head commit or
+  a run that has not been created yet. `statusCheckRollup`
   omits `action_required` rows entirely, so a green rollup can be an empty one.
   Probe the commit directly: `gh api
   "repos/{owner}/{repo}/commits/<head_sha>/check-runs" -q '.total_count'`
   (0 = self-suppressed, see the commit-token rule above); the per-job form is
   `gh api repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status,.conclusion'`
-  (LESSON-067, LESSON-065).
-- The second cause of an empty rollup is the **base branch**, not the head commit.
-  Every gating workflow here filters the event: `ci.yml`, `coverage.yml`,
-  `security.yml`, `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
-  `skill-evals.yml` all say `pull_request: branches: [main, develop]`. A stacked
-  PR based on another PR's branch therefore matches nothing and gets zero runs
-  while Codacy and SonarCloud still post green App rows. Check with
-  `gh pr view <n> --json baseRefName` and
-  `gh run list --branch <head-branch>` (empty = never ran), then retarget at
-  `main` once the parent merges — never report "N pass, 0 fail" for such a PR
-  (LESSON-080).
+  (LESSON-067, LESSON-065). Only a token in the head message proves "never
+  ran"; without one, re-query — see the next bullet.
+- The second cause of an empty rollup is **timing**. App-based rows (Codacy,
+  SonarCloud) post within seconds, while the first `pull_request` run may take a
+  minute or more to appear — so `gh run list --branch <br>` returning nothing 60s
+  after a push means "not yet", not "never". Re-query, and get the per-commit
+  truth from the API rather than the rollup:
+  `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
+  | "\(.event) \(.name) \(.created_at)"'`. Do **not** infer a cause from one
+  snapshot: seven gating workflows here filter
+  `pull_request: branches: [main, develop]`, which looks like the reason a
+  feature-branch-based PR has no runs, and that inference was wrong — runs did
+  exist for the same head SHA (LESSON-080).
 
 ## Fix Commands
 

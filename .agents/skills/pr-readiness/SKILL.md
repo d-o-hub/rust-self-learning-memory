@@ -171,6 +171,22 @@ review. A green row outside this list does not
 unblock a merge; changing the list is a ruleset change, never a workflow edit
 (LESSON-050).
 
+**The same ruleset also decides the merge method.** `main-protection` carries
+`required_linear_history`, so `--method merge` is refused — and refused *late*: the
+synchronous GraphQL call may fail first for an unrelated reason (`part of a stack`), and
+the rule only reports itself on the asynchronous merge's uuid, after a `202 pending` that
+looks like acceptance. Read `.rules` for `required_linear_history` before choosing, and
+treat `squash` as the default (LESSON-081).
+
+**A PR inside a stack loses the two convenience endpoints.** `GET /repos/{owner}/{repo}/stacks`
+lists membership and order — note `pulls/{n}.stack.number` is the *stack's* number, not a
+PR (`gh pr view` on it 404s). For stacked PRs, `update-branch` returns
+`403 Updating a stacked PR's branch via this endpoint is not supported` (so
+`check-pr-readiness.sh --fix` prints the 403 and leaves the branch `BEHIND`) and
+`gh pr edit --base` is refused. Update the branch with git instead: back up the local tip,
+confirm the remote supersedes it with `git range-diff` (`=` per commit), reset, merge
+`main`, push (LESSON-082).
+
 **`CI / Required` will not show up in `gh pr checks` until late.** It is the
 aggregate job `required` in `ci.yml` (`needs:` fast-gate, commitlint, test,
 csm-tests, mcp-build, multi-platform, quality-gates; `if: always()`), which

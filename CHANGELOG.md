@@ -180,12 +180,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from `codecov[bot]` comments only, so an evidence reply never clears it, and
   `:207-211` turns it into a counted issue exactly when every other gate is
   `✅ READY`. Clearing it needs either a head that Codecov reports as fully
-  covered or `merge-pr.sh --accept-codecov-waiver` (`merge-pr.sh:91-95`), which
-  relaxes that heuristic and nothing else. While writing this I claimed the line
-  also prints at 100% patch coverage; three merged PRs showed Codecov switches to
+  covered or `merge-pr.sh --accept-codecov-waiver`, which relaxes that heuristic
+  and nothing else. While writing this I claimed the line also prints at 100% patch
+  coverage; three merged PRs showed Codecov switches to
   "All modified and coverable lines are covered by tests" there, which matches no
   pattern in the heuristic — the refutation is recorded in LESSON-079 rather than
-  quietly dropped.
+  quietly dropped. The second half of that sentence was also wrong and is corrected
+  here: `--accept-codecov-waiver` did **not** relax the heuristic, because its guard
+  could never be satisfied — it read the script's own aggregate
+  `⚠️ 1 issue(s) found` line as a second failure, and its case-sensitive
+  `grep -v 'Codecov'` left the uppercase `Verdict: ⚠️ CODECOV FEEDBACK` in place.
+  PR #1240 is where it surfaced: the PR was genuinely waivable, the flag was passed,
+  and the gate still refused, which is the same exit 1 a real blocker produces.
+
+- Merge mechanics from landing #1240–#1242, recorded as LESSON-081 and LESSON-082
+  and fixed in `scripts/merge-pr.sh`. The default `--method merge` is refused by the
+  active `required_linear_history` rule on ruleset `main-protection`, but only at
+  execution time: a stacked PR first fails GraphQL with `part of a stack`, the
+  documented `merge-async` retry answers `202 status=pending` (accepted for
+  evaluation, not merged), and the rule violation appears solely on the returned
+  uuid. The script now defaults to `squash`, falls back to `merge-async` pinned to
+  the head SHA the gates verified with `bypass_rules` never sent, polls the uuid to
+  a terminal state, and prints any other merge error verbatim. `rebase` is rejected
+  as a default on purpose: `check-pr-readiness.sh --fix` brings a `BEHIND` branch up
+  to date with `update_method=merge`, and #1240's head carried two such merge
+  commits, which a rebase would have dropped. Stacked PRs also refuse
+  `update-branch` (`403 Updating a stacked PR's branch via this endpoint is not
+  supported`) and `gh pr edit --base`, so the branch must be updated with git after
+  proving with `git range-diff` that the remote supersedes the local tip. The waiver
+  guard above is now case-insensitive over the Codecov family, ignores the aggregate
+  count line, requires the residual failure set to be empty, and prints what it
+  found when it refuses. One thing this changelog does *not* claim: the ruleset's
+  `updated_at` (2026-08-10) cannot date the rule, because merge commits landed on
+  `main` as late as `ce42900e` (2026-11-01) under it — the contradiction is recorded
+  rather than explained away.
 
 
 ## [0.1.47] - 2026-10-28

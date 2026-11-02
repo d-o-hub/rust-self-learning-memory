@@ -1993,3 +1993,99 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   as a cause.
 - References: PR #1240, PR #1241, PR #1242, LESSON-035, LESSON-050, LESSON-067,
   LESSON-079 (the class this is an instance of), `.github/workflows/ci.yml`.
+
+## LESSON-081: "Gates passed" and "merge accepted" are not "merged" — an active ruleset rule sat behind the stack error (2026-11-02)
+
+- Issue: `./scripts/merge-pr.sh 1241 --execute` printed `✅ Gates passed — PR #1241 @
+  bfdc69c8…` and then died on the GraphQL merge: `This pull request is part of a stack
+  and must be merged using the asynchronous merge REST API`. That sentence is accurate
+  and completely misleading: it is a door in front of a second, unrelated rejection. Fix
+  only the first and the merge still fails.
+- Evidence chain, in the order it appeared:
+  1. `PUT /repos/{repo}/pulls/1241/merge-async -f sha=<verified head> -f
+     merge_method=merge -f merge_action=direct_merge` → **HTTP 202**
+     `{"status":"pending","details":{"message":"Merge request enqueued.","uuid":"78a257bc-…",
+     "bypass_rules":false}}`. A 202 means *accepted for evaluation*, not merged.
+  2. `GET /repos/{repo}/pulls/1241/merge-async/<uuid>` → `{"status":"failed","details":
+     {"message":"Repository rule violations found\n\nThis branch must not contain merge
+     commits.\n"}}`. The rules are evaluated **during** execution, so nothing in the
+     request path ever told us the method was impossible.
+  3. `GET /repos/{repo}/rulesets` → ruleset `main-protection` (id 9591004, `enforcement:
+     active`) carries `required_linear_history` alongside `deletion`,
+     `non_fast_forward`, `required_review_thread_resolution: true`,
+     `strict_required_status_checks_policy: true`, and required contexts
+     `CI / Required` + `Codacy Static Code Analysis`.
+- **Do not try to date a ruleset rule from its timestamps.** The ruleset reports
+  `created 2025-11-07 / updated 2026-08-10`, yet merge commits landed on `main` as
+  recently as `ce42900e` (2026-11-01, PR #1235). One of those two readings is wrong and
+  neither API says which, so this entry records the contradiction instead of a cause.
+  What is proven: on 2026-11-02 `merge_method=merge` cannot land on `main` and `squash`
+  can (`3e10aad0`, PR #1240).
+- Why the default became `squash` and not `rebase`: rebase is linear too, but it drops
+  merge commits — and `check-pr-readiness.sh --fix` *creates* them by bringing a branch
+  up to date with `update_method=merge`. PR #1240's head carried two of them
+  (`85455b06`, `2657fcbb`, both `Merge branch 'main' into dependabot/…`), so rebasing
+  that branch would have quietly discarded the side that the merge commit brought in.
+  Squash collapses to one linear commit and is what the recent history on `main`
+  (`#1233`…`#1239`, all single-parent `… (#NNNN)`) already uses.
+- Detection (deterministic, before merging anything):
+  1. `gh api repos/{owner}/{repo}/rulesets -q '.[] | .name'` then
+     `gh api repos/{owner}/{repo}/rulesets/<id> -q '.rules'` and read for
+     `required_linear_history` — the ruleset, not the PR, picks the method (LESSON-050).
+  2. `gh api repos/{owner}/{repo}/pulls/<n>/commits --paginate -q
+     '.[] | select((.parents|length)>1) | .sha'` — if it prints anything, `rebase` is unsafe.
+  3. After any merge request, poll the uuid and then confirm
+     `gh pr view <n> --json state,mergedAt,mergeCommit`; the exit status of the request
+     is not the outcome.
+- Solution applied in `scripts/merge-pr.sh`: default method is now `squash` with the
+  rule cited; a `part of a stack` refusal falls back to `merge-async` pinned to the
+  `$HEAD_SHA` the gates verified, `merge_action=direct_merge`, `bypass_rules` never sent;
+  the uuid is polled to a terminal state and only `merged` (or `enqueued`, said out loud)
+  counts as success; any other merge error is printed verbatim instead of swallowed.
+- References: PR #1240 (merged `3e10aad0`), PR #1241, PR #1242, ruleset 9591004,
+  https://docs.github.com/rest/pulls/pulls#merge-a-pull-request-asynchronously,
+  LESSON-050, LESSON-063, LESSON-082.
+
+## LESSON-082: a flag documented in three places that could never fire, and the endpoints that stacked PRs refuse (2026-11-02)
+
+- Issue: PR #1240 was finally `CLEAN` with 33 passing checks, `codecov/patch` success and
+  its Codecov thread answered with artifact evidence — exactly the case
+  `--accept-codecov-waiver` exists for. The flag was documented in the script header, in
+  `AGENTS.md` → PR Health Check and in `agent_docs/coding_workflow.md`, and this session
+  had itself written "relaxes precisely that heuristic" into two of those places. It has
+  never worked, for two independent reasons, in the guard
+  `! grep -qE 'issue\(s\) found' <(grep -v 'Codecov' "$READINESS_LOG" | grep -E '⚠️|❌')`:
+  1. `⚠️ 1 issue(s) found across 1 PR(s).` is the aggregate line *produced by the Codecov
+     finding itself*, and it does not contain the word "Codecov", so the filter keeps it
+     and the guard concludes "another problem exists".
+  2. The per-PR verdict is uppercase — `Verdict: ⚠️ CODECOV FEEDBACK` — so a
+     case-sensitive `grep -v 'Codecov'` does not remove it either.
+  Both failures land in the `else` branch, which exits 1 — the same visible outcome a real
+  blocker produces, which is why the flag survived review while never being exercised.
+- Stacked PRs also refuse the two endpoints the workflow assumes are always available:
+  - `PUT /pulls/<n>/update-branch -f update_method=merge` → `403 Updating a stacked PR's
+    branch via this endpoint is not supported.` `check-pr-readiness.sh --fix` pipes that
+    through `jq -r '.message // "Updated"'`, prints the message, and the branch stays
+    `BEHIND`: the fix runs, reports nothing wrong, and does nothing.
+  - `gh pr edit 1242 --base main` → GraphQL `Cannot change the base branch because the
+    pull request is part of a stack.` You cannot un-stack it from the child side.
+  Recovery is the manual path the readiness script already names for conflicts: back up
+  the local tip, prove the remote superseded it (`git range-diff` printed `=` for both
+  commits), reset to the remote, `git merge origin/main`, push.
+- Finding the stack at all: `pulls/{n}` now carries a `stack` object
+  (`{id, number, position, size, base}`) — and `#1243` is **the stack, not a PR**
+  (`gh pr view 1243` → "Could not resolve to a PullRequest").
+  `GET /repos/{owner}/{repo}/stacks` lists membership and order, which is what made the
+  async merge safe to request: stack 1243 = `[1241 position 1 (base main), 1242 position 2
+  (base ci/lockfile-sync-guardrail)]`, and merge-async "includes all open downstack pull
+  requests" — the bottom PR has none, and `#1242` was observed unchanged afterwards.
+- Detection: treat "a documented flag changed nothing" as evidence the flag is dead, not
+  that the input was wrong; when `--fix` reports the same state it started with, read its
+  raw API output instead of its summary.
+- Solution applied: the waiver guard now excludes the Codecov family case-insensitively
+  and the aggregate count line, requires the residual failure set to be empty, and prints
+  whatever residual failures it found before failing; `merge-pr.sh` and the readiness
+  guidance name the stacked-PR endpoints that do not work and the git path that does.
+- References: PR #1240, PR #1241, PR #1242, stack 1243, LESSON-063 (phantom affordances —
+  this is the tool-flag variant), LESSON-079 (docs asserting what the code does not do),
+  LESSON-081.

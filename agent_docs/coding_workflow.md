@@ -150,7 +150,10 @@ body. "Should pass" is not evidence.
   (`Verdict: ⚠️ CODECOV FEEDBACK`). The two legitimate ways forward are a later head
   that Codecov reports as "All modified and coverable lines are covered by tests",
   or `merge-pr.sh --accept-codecov-waiver`, which relaxes exactly this heuristic
-  (`merge-pr.sh:91-95`) while re-checking every hard gate against the live head.
+  and nothing else — it proceeds only when the residual `⚠️`/`❌` set, after the
+  Codecov family and the aggregate count line are removed, is empty, and every hard
+  gate is re-checked against the live head. That guard had been unreachable before
+  its fix (LESSON-082), so verify it fires rather than assuming the flag is wired up.
   Editing the heuristic to go quiet is a gate bypass.
 - Skill: `.agents/skills/pr-readiness/SKILL.md` (supersedes the short summary in
   [`AGENTS.md#pr-health-check`](../AGENTS.md#pr-health-check)).
@@ -183,13 +186,29 @@ the re-run gate output.
 ./scripts/merge-pr.sh <PR> --execute     # readiness gate + independent re-check
 ```
 
-- Never `--admin`, never force, never bypass a red check.
-- `BEHIND` → `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge`,
-  wait for the new head's checks, then merge.
+- Never `--admin`, never force, never bypass a red check. Never send
+  `bypass_rules=true` to the merge API either.
+- **The method is `squash`, not `merge`.** Ruleset `main-protection` carries an active
+  `required_linear_history`, so GitHub refuses a merge commit — but it refuses it *while
+  executing* an asynchronous request, which is why the failure surfaces as
+  `Repository rule violations found / This branch must not contain merge commits` on the
+  returned uuid long after `✅ Gates passed`. `rebase` is linear too yet drops the merge
+  commits that `update_method=merge` puts on a `BEHIND` branch, so it is only safe once
+  you have confirmed the branch has none (LESSON-081).
+- **A stacked PR cannot use the two endpoints this workflow otherwise assumes.**
+  `update-branch` answers `403 Updating a stacked PR's branch via this endpoint is not
+  supported` and `gh pr edit --base` refuses while the PR is in a stack; discover
+  membership and order with `GET /repos/{owner}/{repo}/stacks` (the `stack.number` on a PR
+  is the stack's number, not a PR). Bring such a branch up to date with git — back up the
+  local tip, prove the remote supersedes it with `git range-diff`, reset, merge `main`,
+  push — then merge through `merge-pr.sh`, which falls back to
+  `PUT /pulls/{n}/merge-async` pinned to the verified head (LESSON-081, LESSON-082).
+- "The request returned 202/`pending`" is not merged. Poll the uuid and confirm
+  `state`/`mergedAt`; a `failed` status there is a ruleset rejection, not CI noise.
 - After merge: delete the branch/worktree, sync local `main`.
 
-**Evidence:** the merge commit SHA and a clean `check-pr-readiness.sh` run on the
-merged head.
+**Evidence:** the landing commit SHA (a squash commit on `main`) and a clean
+`check-pr-readiness.sh` run on the merged head.
 
 ## 11. Release (when drift or intent demands it)
 

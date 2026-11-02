@@ -75,13 +75,16 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 
 ## Workflow Traps (2026-10, full evidence in `agent_docs/LESSONS.md`)
 
-Before merges or releases, review LESSON-035 and LESSON-039…080. These cover
+Before merges or releases, review LESSON-035 and LESSON-039…082. These cover
 stale-tip/dependency loss, toolchain/test/CI-rollup failures, release event
 filtering, advisory databases, version state, publish-chain traps, Dependabot
 group bumps carrying a member that must be dropped (LESSON-077), self-suppressed
 CI from a commit-message token (LESSON-065), concluding "CI never ran" from one
-Actions query a minute after a push (LESSON-080), and routing docs that assert
-checks which do not exist (LESSON-063, LESSON-079).
+Actions query a minute after a push (LESSON-080), a `required_linear_history`
+ruleset refusing the merge method the gate defaults to and only reporting itself on
+the async merge's uuid (LESSON-081), stacked PRs rejecting `update-branch` and a
+documented waiver flag that could never fire (LESSON-082), and routing docs that
+assert checks which do not exist (LESSON-063, LESSON-079).
 
 ## Dev Harness (do-harness)
 

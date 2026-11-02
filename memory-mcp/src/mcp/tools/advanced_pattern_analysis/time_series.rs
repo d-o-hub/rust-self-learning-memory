@@ -104,3 +104,68 @@ impl Default for TimeSeriesExtractor {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::{TaskContext, TaskType};
+
+    fn episode() -> do_memory_core::Episode {
+        do_memory_core::Episode::new(
+            "time-series metric".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+    }
+
+    #[test]
+    fn test_extract_memory_usage_reports_a_plausible_mb_value() {
+        let extractor = TimeSeriesExtractor::new();
+        let value = extractor.extract_metric(_MEMORY_USAGE_MB, &episode(), &[]);
+
+        // Every branch of the arm yields Some: the live process reading, and the
+        // 50.0 fallbacks when sysinfo cannot probe or cannot find this pid.
+        let Some(mb) = value else {
+            panic!("memory_usage_mb must always produce a value");
+        };
+        assert!(
+            mb > 0.0,
+            "current process memory in MB must be positive: {mb}"
+        );
+        assert!(mb < 1_000_000.0, "implausible memory reading: {mb} MB");
+    }
+
+    #[test]
+    fn test_extract_execution_time_sums_step_latency() {
+        let mut episode = episode();
+        episode.steps.push(do_memory_core::ExecutionStep {
+            latency_ms: 25,
+            ..do_memory_core::ExecutionStep::new(1, "tool".to_string(), "act".to_string())
+        });
+        episode.steps.push(do_memory_core::ExecutionStep {
+            latency_ms: 17,
+            ..do_memory_core::ExecutionStep::new(2, "tool".to_string(), "act".to_string())
+        });
+
+        let extractor = TimeSeriesExtractor::new();
+        let value = extractor.extract_metric(_EXECUTION_TIME_MS, &episode, &[]);
+        assert_eq!(value, Some(42.0));
+    }
+
+    #[test]
+    fn test_unknown_metric_yields_none() {
+        let extractor = TimeSeriesExtractor::new();
+        assert_eq!(
+            extractor.extract_metric("not_a_metric", &episode(), &[]),
+            None
+        );
+    }
+
+    #[test]
+    fn test_meets_threshold_needs_points() {
+        let extractor = TimeSeriesExtractor::new();
+        assert!(!extractor.meets_threshold(&[], 1));
+        assert!(extractor.meets_threshold(&[1.0, 2.0], 2));
+        assert!(!extractor.meets_threshold(&[1.0], 2));
+    }
+}

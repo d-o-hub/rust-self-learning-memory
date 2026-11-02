@@ -156,4 +156,111 @@ mod tests {
         assert_ne!(issues.len(), 0);
         assert!(issues.iter().any(|i| i.contains("database")));
     }
+
+    fn config_with(max_episodes_cache: usize, pool_size: usize, progress_bars: bool) -> Config {
+        Config {
+            database: crate::config::types::DatabaseConfig {
+                turso_url: None,
+                turso_token: None,
+                redb_path: Some("/tmp/test.redb".to_string()),
+                storage_mode: None,
+                db_path: None,
+            },
+            storage: crate::config::types::StorageConfig {
+                max_episodes_cache,
+                cache_ttl_seconds: 3600,
+                pool_size,
+                storage_mode: None,
+            },
+            cli: crate::config::types::CliConfig {
+                default_format: "json".to_string(),
+                progress_bars,
+                batch_size: 100,
+            },
+            embeddings: crate::config::types::EmbeddingsConfig::default(),
+        }
+    }
+
+    /// `validate_environment_fitness` reads `CI` from the process environment, so
+    /// the assertions follow whatever the runner provides instead of mutating env
+    /// (which is `unsafe` in edition 2024 and would race other tests).
+    fn in_ci() -> bool {
+        std::env::var("CI").is_ok()
+    }
+
+    #[test]
+    fn test_environment_fitness_flags_oversized_cache_and_pool() {
+        // usize::MAX / 2048 keeps the * 1024 estimate inside the type while
+        // guaranteeing it exceeds any real machine's available memory.
+        let config = config_with(usize::MAX / 2048, 100_000, false);
+        let warnings = validate_environment_fitness(&config);
+
+        assert!(
+            warnings.iter().any(|w| w.field == "storage.pool_size"),
+            "pool_size far above cpu_count * 4 must warn: {warnings:?}"
+        );
+
+        if sysinfo::System::new_all().is_ok() {
+            let memory_warning = warnings
+                .iter()
+                .find(|w| w.message.contains("may exceed available memory"));
+            assert!(
+                memory_warning.is_some(),
+                "a cache estimate above available memory must warn: {warnings:?}"
+            );
+            assert_eq!(memory_warning.unwrap().field, "storage.max_episodes_cache");
+        }
+    }
+
+    #[test]
+    fn test_environment_fitness_accepts_a_small_config() {
+        // pool_size 1 stays under cpu_count * 4 even on a single-core runner.
+        let config = config_with(100, 1, false);
+        let warnings = validate_environment_fitness(&config);
+
+        if !in_ci() {
+            assert!(
+                warnings.is_empty(),
+                "expected no warnings, got {warnings:?}"
+            );
+        } else {
+            // Under CI only the progress-bar check can fire; cache is 100 (<= 200)
+            // and progress bars are off.
+            assert!(!warnings.iter().any(|w| w.field == "cli.progress_bars"));
+            assert!(
+                !warnings
+                    .iter()
+                    .any(|w| w.message.contains("CI environment detected"))
+            );
+        }
+    }
+
+    #[test]
+    fn test_environment_fitness_ci_checks_track_the_ci_env_var() {
+        let config = config_with(1000, 1, true);
+        let warnings = validate_environment_fitness(&config);
+
+        let has_cache_warning = warnings
+            .iter()
+            .any(|w| w.message.contains("CI environment detected"));
+        let has_progress_warning = warnings.iter().any(|w| w.field == "cli.progress_bars");
+
+        assert_eq!(
+            has_cache_warning,
+            in_ci(),
+            "CI cache check ran off the env var"
+        );
+        assert_eq!(
+            has_progress_warning,
+            in_ci(),
+            "CI progress check ran off the env var"
+        );
+
+        if in_ci() {
+            // Suggestions are present so a user can act on each warning.
+            for warning in &warnings {
+                assert!(warning.suggestion.is_some());
+            }
+        }
+    }
 }

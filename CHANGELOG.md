@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   *pre*-increment, so incrementing 0 exits 1 and truncates the report it was
   writing under `set -e`; `lesson-distillation` fails on a duplicated lesson id
   (LESSON-011 had been used twice) and ratchets the count of lessons with no
-  citation outside the log — 41 of 77 before this change, 28 after. The two
+  citation outside the log — 41 of 77 before this change, 20 after. The two
   ratchets ship with recorded baselines and can only move down.
 
 - Routing-layer corrections, each verified against the tree before editing:
@@ -105,7 +105,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   proof (`git show :2:`/`:3:` read *before* staging, `LC_ALL=C comm`) that
   LESSON-070 discovered too late. Four dead pointers from the lessons log into
   `AGENTS.md` sections removed by an earlier shrink are re-anchored, and the
-  `HARNESS.md` sensor table gained the nine sensors it was missing.
+  `HARNESS.md` sensor table gained the 11 rows it was missing — six sensors were
+  absent from the file entirely and five appeared only in prose, with no row and
+  therefore no fix hint. Two further contradictions surfaced while routing the
+  rest of the log: `LESSON-016` told agents to run `gh pr merge --squash --auto`
+  and called cancelled checks "non-required noise", which contradicts
+  `merge-pr.sh` and the ruleset evidence in LESSON-041/050, so the entry is now
+  marked superseded with the mechanism struck through; and `scripts/harness-check.sh`
+  was documented as "run all sensors locally" while its `clippy` allows 27 lints
+  over `--lib --tests` against the sensor's 3 over `--workspace --tests`, so both
+  the guide and the script header now say it is not a completion gate. Seven
+  previously uncited lessons (010, 016, 020, 029, 056, 062, 078) are now routed
+  into the skills that enforce them.
 
 
 ## [0.1.47] - 2026-10-28

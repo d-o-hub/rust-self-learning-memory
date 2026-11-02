@@ -106,12 +106,31 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Location: `tests/hybrid_storage_recovery.rs`
 - Reference: Rust Reference §Conditional Compilation; <https://effective-rust.com/features.html>
 
-## LESSON-016: GOAP swarm for PR batch merges with auto-merge
+## LESSON-016: GitHub's merge queue orders dependent PRs — but it is not a merge path
 
-- Issue: 5 PRs with CI still running needed coordinated merge in dependency order
-- Root Cause: Manual sequential merge waiting is wasteful when PRs are independent
-- Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
-- Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
+- Issue: 5 PRs with CI still running needed coordinated merge in dependency order; waiting on each
+  one in sequence wasted wall-clock.
+- Root Cause: Treating "merge in dependency order" as a client-side scheduling problem, when the
+  GitHub auto-merge queue already re-checks branch protection after every merge.
+- Solution (the part that still holds): let the platform sequence the merges instead of polling
+  check-by-check, and monitor with `gh pr view --json state,autoMergeRequest`.
+- **Superseded — do not copy the mechanism as written.** Two claims in the original entry are
+  wrong and one is forbidden here:
+  1. `gh pr merge --squash --auto` is **not** a sanctioned merge path in this repository. Every
+     merge goes through `./scripts/merge-pr.sh <PR> --execute`, which re-evaluates readiness
+     first; a raw `--auto` queues a merge that never passes those gates (AGENTS.md → PR Health
+     Check, `pr-readiness` skill).
+  2. "CANCELLED checks are non-required noise" is false. The ruleset `main-protection`, not
+     branch protection, decides what blocks, and a cancelled row keeps `mergeStateStatus` away
+     from `CLEAN` — which is exactly why you must never cancel a PR you intend to merge
+     (LESSON-041, LESSON-050).
+  3. "Required Check Anchor is the only true merge gate" is stale vocabulary; read the live
+     requirement list from `.rules[].parameters.required_status_checks` (LESSON-050).
+- Key insight: A lesson about *what is efficient* must be re-verified against *what is allowed*
+  before it is routed into a skill — an efficiency trick that bypasses a gate reads as
+  authorization to the next agent that follows it.
+- Prevention: `scripts/check-lesson-distillation.sh` routes every id; the contradiction rule in
+  LESSON-079 (resolve toward the enforcing script).
 
 ## LESSON-021: Never gate cheap CI jobs on a 15m Quick Check wait
 
@@ -1824,7 +1843,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 
 ## LESSON-079: a routing doc that states a rule the tools contradict is worse than no rule (2026-11-02)
 
-- Issue: distilling this log into the routing layer surfaced five defects of the
+- Issue: distilling this log into the routing layer surfaced seven defects of the
   same class, all verified against the tree rather than inferred:
   1. `ci-poll/SKILL.md` still read *"Exit 0 = all listed checks passed"* — the
      exact sentence LESSON-072 asked be replaced. The lesson was written; the
@@ -1841,6 +1860,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
      shrink of `AGENTS.md`, and every citation was left behind.
   5. `LESSON-011` was the id of two different entries, so any citation of it is
      ambiguous — and nothing in the harness could notice.
+  6. `LESSON-016` itself told agents to run `gh pr merge --squash --auto` and
+     called CANCELLED checks "non-required noise". Both contradict the enforced
+     merge path (`merge-pr.sh`) and LESSON-041/050 (a cancelled row keeps
+     `mergeStateStatus` off `CLEAN`). An efficiency note that bypasses a gate
+     reads as authorization to whoever follows it.
+  7. `HARNESS.md` introduced `scripts/harness-check.sh` as "run all sensors
+     locally", but its `clippy` is `--lib --tests` under **27** `-A` suppressions
+     while the `clippy` sensor is `--workspace --tests` under **3**. Green there
+     does not mean green in CI, and the script is not a registered sensor.
 - Why it matters: an agent treats the routing layer as ground truth, so a wrong
   rule produces *confident* wrong action, which costs more than a missing rule.
   The lesson-entry channel made this look handled: each lesson recorded its own
@@ -1856,14 +1884,27 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
      then check each against `grep -n '^#' AGENTS.md`. Four such pointers were
      dead; all four are now re-anchored.
   3. Contradiction sweep: grep the routing layer for the *command* a lesson
-     corrects and diff it against the script that implements the gate. Three of
-     the five above were found this way, none by reading prose.
+     corrects and diff it against the script that implements the gate. Five of
+     the seven above were found this way, none by reading prose.
+  4. Caveat when writing the guard itself: a text-matching ratchet counts its own
+     documentation. `check-shell-counters.sh` went 35 → 37 the moment it was
+     committed, because its header comment spelled `((i++))` and its baseline
+     header echoed `((var++))`. Fix the matcher (skip whole-line comments, don't
+     spell the token in output strings) rather than raising the ceiling — a
+     baseline of 35 with two non-hits inside is 35 real defects, 37 is not.
 - Fix/prevention: contradictions resolve **toward the enforcing script**, never
   toward whichever doc was edited last; a re-trigger commit is legitimate only to
   clear stale rollup rows (LESSON-052), not to hide a real failure; a shrink of
   `AGENTS.md` is not done until every inbound citation is re-pointed. Guards
   added with this lesson: `commit-ci-tokens`, `changelog-headings`,
   `shell-counters`, `agents-md-ids`, `lesson-distillation`.
+- **The distillation step has its own failure mode.** While routing LESSON-010 the
+  paraphrase came out inverted — "bot findings were already fixed by a later
+  commit" instead of "summaries claimed fixes the tree did not contain". Same
+  polarity bug as LESSON-010 itself, produced by writing prose from the *title*
+  instead of re-reading the body. Prevention: after editing a routed doc, diff the
+  new sentence against the lesson's `Solution:` line and check that the sentence
+  would still prevent the original incident.
 - References: PR #1240, PR #1241, this PR, LESSON-063 (phantom affordances — the
   same class, previously only about release docs), LESSON-072, LESSON-068/069,
   LESSON-052, `HARNESS.md`, `do-harness.toml`.

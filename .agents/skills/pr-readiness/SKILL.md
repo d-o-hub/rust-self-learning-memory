@@ -34,7 +34,7 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
 
 1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete.
 2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state.
-3. **NEVER use `gh pr merge --admin` to bypass the `main` guard** — the guard is ruleset `main-protection` (branch protection 404s here); fix the code, don't bypass the gate.
+3. **NEVER use `gh pr merge --admin` to bypass the `main` guard** — the guard is ruleset `main-protection` (branch protection 404s here); fix the code, don't bypass the gate. PR #806 did exactly this at `UNSTABLE` and shipped pre-existing failures to `main`, costing two follow-up PRs (LESSON-078).
 4. **NEVER merge a PR you haven't personally verified** — Run the full check and confirm ALL conditions.
 5. **NEVER skip loading this skill** — Load this skill before any merge recommendation.
 6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue
@@ -214,7 +214,10 @@ Parse and classify every item:
 
 For each actionable comment:
 
-1. **Understand** — reproduce or map to code
+1. **Understand** — reproduce or map to code, against the **current** head. Read the file
+   before acting on or closing a finding: a review thread describes the SHA it was written
+   for, and a summary that says something was fixed is not evidence that the tree says so
+   (LESSON-010).
 2. **Fix or waive** — implement the change, or document why not (with evidence)
 3. **Verify** — tests / clippy / targeted nextest as appropriate
 4. **Close the loop** — push commits; reply on the PR thread summarizing what was done
@@ -453,3 +456,8 @@ When reporting PR readiness, always include:
   against a gate that had already passed. Then re-trigger on a fresh SHA (`--allow-empty` commit + push).
   Do not delete runs or merge around the gate (LESSON-052); the only merge path stays
   `./scripts/merge-pr.sh <PR> --execute` — never `--admin`, never `--force`, never a bypass.
+- **Batch merges: let GitHub sequence them, but never queue around this skill.** For several
+  dependent PRs, the auto-merge queue re-checks protection after each merge, so you can monitor
+  `gh pr view --json state,autoMergeRequest` instead of polling each check — but `gh pr merge
+  --auto` is not a substitute for `merge-pr.sh`, and "cancelled checks are noise" is wrong: a
+  cancelled row holds `mergeStateStatus` at non-`CLEAN` (LESSON-016, LESSON-041, LESSON-050).

@@ -39,7 +39,7 @@ These decide whether a line *can* be covered by CI:
 
 Rule of thumb: if a plain, ungated test can execute the line in the default-feature build, it is not waivable — write the test.
 
-Before calling an error arm "unreachable", try **destructive setup**: on the local
+Before calling an error arm "unreachable", try **destructive setup** (LESSON-062): on the local
 `libsql::Builder::new_local` database, write successfully, then `DROP TABLE` the table the
 next statement needs. The statement prepares against a stale expectation and fails for
 real, which covers the `map_err(...)` arm deterministically — no pool, no race, no

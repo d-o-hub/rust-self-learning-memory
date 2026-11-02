@@ -218,7 +218,7 @@ cargo nextest run -p do-memory-storage-turso --features turso_multi_dimension \
 ```bash
 # Symptom: cargo audit and cargo deny are green in CI while the Security tab
 #          still lists advisories. This is a NORMAL state, not a broken gate —
-#          the two tools and Dependabot read three different registers.
+#          the two tools and Dependabot read three different registers (LESSON-056).
 # Classify the register BEFORE touching any gate:
 gh api "/repos/{owner}/{repo}/dependabot/alerts?state=open" \
   -q '.[] | [.security_advisory.cve_id, .dependency.manifest_path,
@@ -276,7 +276,7 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   `redundant_explicit_links` in 1.99). Diagnose by `rustup update stable` and
   reproducing on **untouched `main`** before bisecting your branch; if `main`
   reproduces it, it is not your PR's failure. The fix is always the lint itself,
-  never a suppression and never relaxing the gate (LESSON-039, LESSON-040).
+  never a suppression and never relaxing the gate (LESSON-029, LESSON-039, LESSON-040).
 - A row stuck at `skipping` forever on a PR is not a skipped gate.
   `Maintain canonical drift issue` is guarded by
   `if: github.event_name != 'pull_request'`, so it only ever runs on schedule

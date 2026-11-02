@@ -108,10 +108,29 @@ When a computational sensor fires:
 
 ## Harness Check Script
 
-Run all sensors locally with structured output:
+A structured-output wrapper for the same categories, useful when you want
+`HARNESS VIOLATION: [category] — fix hint` lines to parse:
 
 ```bash
-bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|all>
+bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|security|all>
 ```
 
 Each failure emits a `HARNESS VIOLATION:` prefix with an agent-parseable fix hint.
+
+**Its `clippy` category is not the gate.** `harness-check.sh clippy` runs
+`cargo clippy --lib --tests` under **27** `-A clippy::…` suppressions (cast losses,
+`doc_markdown`, `manual_let_else`, `if_not_else`, …), while the `clippy` sensor in
+`do-harness.toml` runs `scripts/code-quality.sh clippy --workspace`, which passes
+`--workspace --tests` and suppresses only three lints (`expect_used`,
+`uninlined_format_args`, `unwrap_used`). So `harness-check.sh clippy` can be green while
+CI's clippy fails — on both scope (`--lib` per package vs `--workspace`) and strictness.
+Use it for the parseable hints, never as completion evidence; the authoritative pair is:
+
+```bash
+./scripts/code-quality.sh clippy --workspace   # == sensor "clippy"; this is the gate
+cargo fmt --all -- --check                     # == sensor "fmt"
+```
+
+`harness-check.sh` is not registered as a do-harness sensor, so `do-harness status` will
+not reflect it. Collapsing the two suppression lists is deliberately out of scope here —
+aligning them would change what the wrapper reports, which needs its own measured change.

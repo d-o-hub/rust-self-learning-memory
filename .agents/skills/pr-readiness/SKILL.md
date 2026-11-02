@@ -254,8 +254,27 @@ gh pr update-branch {n}
 ```bash
 gh pr checkout {n}
 git merge origin/main
-# resolve <<<<<<< markers
+# resolve <<<<<<< markers, then PROVE the resolution is lossless — `git diff`
+# cannot answer "did I drop a line from either side?" and nothing fails to
+# compile on a docs merge (LESSON-070).
+#   Read stages 2/3 BEFORE staging: `git add` collapses 1/2/3 into stage 0 and
+#   `git show :2:<f>` then dies with "path is in the index, but not at stage 2".
+#   LC_ALL=C is mandatory — plain `sort` collates by locale and `comm` reports a
+#   bogus missing-lines list.
+export LC_ALL=C
+f=CHANGELOG.md                              # repeat per conflicted file
+git show :2:"$f" | LC_ALL=C sort -u > /tmp/ours
+git show :3:"$f" | LC_ALL=C sort -u > /tmp/theirs
+comm -23 /tmp/ours        <(LC_ALL=C sort -u "$f")   # lost from ours   -> empty
+comm -23 /tmp/theirs      <(LC_ALL=C sort -u "$f")   # lost from theirs -> empty
+comm -13 <(cat /tmp/ours /tmp/theirs | LC_ALL=C sort -u) <(LC_ALL=C sort -u "$f")  # invented
+git grep -n '^<<<<<<<\|^=======\|^>>>>>>' -- "$f"     # leftover markers
+# Never run `git checkout --conflict=merge -- <f>` to re-label markers: it
+# overwrites the working file and destroys your resolution.
 git add <files> && git commit --no-edit && git push
+# Then check the content diff versus the base separately, so a docs merge cannot
+# smuggle a Cargo.toml/Cargo.lock revert (LESSON-064, LESSON-074):
+git diff origin/main HEAD --stat
 ```
 
 #### Cancelled CI

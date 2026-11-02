@@ -18,10 +18,17 @@ Poll GitHub Actions CI status until all checks resolve. Prefer **typed `gh` wait
 
 ```bash
 # Required checks only; blocks until complete.
-# Exit 0 = all listed checks passed
+# Exit 0 = the *listed* rows finished — NOT proof of merge-readiness:
+#   observed exit 0 with 12 of 21 rows still pending, because --required
+#   prints a subset and a ruleset change shrinks it (LESSON-072).
 # Exit 8 = still pending (when not using --watch)
 # Non-zero (other) = failure
 gh pr checks <PR> --required --watch --interval 30
+
+# Never conclude from the exit code alone — re-read the rollup:
+gh pr view <PR> --json mergeStateStatus,statusCheckRollup \
+  -q '"state=" + .mergeStateStatus + " pending=" +
+      ([.statusCheckRollup[] | select(.status=="IN_PROGRESS" or .status=="QUEUED")] | length | tostring)'
 
 # Structured one-shot status
 gh pr checks <PR> --required --json name,state,bucket,workflow,link

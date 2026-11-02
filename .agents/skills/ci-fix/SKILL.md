@@ -63,7 +63,13 @@ cargo tarpaulin --workspace
 
 ### Benchmark Timeout
 ```bash
-# Increase timeout-minutes in workflow YAML
+# Do NOT start by raising timeout-minutes. Measure the real cost first, then set
+# one binary-level override above the slowest measured run (LESSON-028):
+cargo nextest run -p <crate> --test <target> <test_name> -- --exact   # uncapped
+# nextest caps live in .config/nextest.toml ([profile.default] slow-timeout /
+# terminate); a per-test override beats lengthening the whole job, and a job's
+# own `timeout-minutes` must never be its normal exit path — a self-cancelled run
+# counts as a failed run and blocks `release-manager.sh ci-check` (LESSON-027).
 ```
 
 ### Check Quick Check Status CANCELLED after 15m
@@ -158,6 +164,11 @@ when the `csm` feature links.
 gh pr edit <n> --remove-label release-preparation
 gh pr edit <n> --add-label release-preparation   # human actor => `labeled` run
 # See LESSON-049 (and LESSON-044 for the synchronize-event variant)
+# SCOPE: toggling the label is only for the release-preparation PR itself. On a
+# plain version-bump PR a failing `--check-unreleased` is the CORRECT state — the
+# version advanced without a tag (LESSON-057). Fix it by landing the bump, not by
+# overriding the gate, and never write a `## [X.Y.Z]` heading for a version that
+# has not shipped (sensor `changelog-headings`, LESSON-071).
 ```
 
 ### Nightly is red — or "nightly didn't run"
@@ -275,13 +286,26 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   rows outside `.rules[].parameters.required_status_checks` don't unblock
   anything, and an unresolved review thread can keep `mergeStateStatus` at
   `BLOCKED` with every check passing (LESSON-050).
+- A `BLOCKED` merge with **zero pending rows** and only App-based rows (Codacy,
+  CodeQL) present means CI never ran — it is not slow. `statusCheckRollup`
+  omits `action_required` rows entirely, so a green rollup can be an empty one.
+  Probe the commit directly: `gh api
+  "repos/{owner}/{repo}/commits/<head_sha>/check-runs" -q '.total_count'`
+  (0 = self-suppressed, see the commit-token rule above); the per-job form is
+  `gh api repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status,.conclusion'`
+  (LESSON-067, LESSON-065).
 
 ## Fix Commands
 
 ```bash
 # Linting
 cargo fmt --all
-cargo clippy --workspace --fix --allow-dirty
+# Go through the script: it carries the repo's `-A` allow-list, so a bare
+# `cargo clippy --workspace --fix` re-invents both the flag set and the target
+# set (LESSON-069). The canonical CI gate is `--workspace --tests` — a
+# `--lib`-only run can be green while CI fails, because some lints only fire in
+# the `lib test` target (LESSON-068).
+./scripts/code-quality.sh clippy --workspace --fix
 
 # Testing
 cargo test --workspace -- --nocapture

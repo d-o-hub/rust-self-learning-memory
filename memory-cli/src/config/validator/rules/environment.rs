@@ -33,31 +33,34 @@ pub fn quick_validation_check(config: &Config) -> Vec<String> {
 
 /// Validate if the current configuration is suitable for the environment.
 pub fn validate_environment_fitness(config: &Config) -> Vec<ValidationWarning> {
-    let mut system = sysinfo::System::new_all();
-    system.refresh_all();
-
-    let total_memory = system.total_memory();
-    let available_memory = system.available_memory();
+    // sysinfo >=0.40 probing is fallible; skip the memory check rather than the
+    // CPU and CI checks, which do not need a live system snapshot.
+    let memory_totals = sysinfo::System::new_all().ok().map(|mut system| {
+        system.refresh_all();
+        (system.total_memory(), system.available_memory())
+    });
     let cpu_count = sysinfo::System::physical_core_count().unwrap_or(1);
     let is_ci = std::env::var("CI").is_ok();
 
     let mut warnings = Vec::new();
 
     // Check cache size vs available memory
-    let cache_memory_estimate = config.storage.max_episodes_cache * 1024;
-    if cache_memory_estimate > available_memory as usize {
-        warnings.push(ValidationWarning {
-            field: "storage.max_episodes_cache".to_string(),
-            message: format!(
-                "Cache size estimate ({}MB) may exceed available memory ({}MB)",
-                cache_memory_estimate / (1024 * 1024),
-                available_memory / (1024 * 1024)
-            ),
-            suggestion: Some(format!(
-                "Consider reducing cache size to {}",
-                available_memory / (1024 * 1024)
-            )),
-        });
+    if let Some((_total_memory, available_memory)) = memory_totals {
+        let cache_memory_estimate = config.storage.max_episodes_cache * 1024;
+        if cache_memory_estimate > available_memory as usize {
+            warnings.push(ValidationWarning {
+                field: "storage.max_episodes_cache".to_string(),
+                message: format!(
+                    "Cache size estimate ({}MB) may exceed available memory ({}MB)",
+                    cache_memory_estimate / (1024 * 1024),
+                    available_memory / (1024 * 1024)
+                ),
+                suggestion: Some(format!(
+                    "Consider reducing cache size to {}",
+                    available_memory / (1024 * 1024)
+                )),
+            });
+        }
     }
 
     // Check pool size vs CPU cores
@@ -90,9 +93,6 @@ pub fn validate_environment_fitness(config: &Config) -> Vec<ValidationWarning> {
             });
         }
     }
-
-    // Unused variable warning suppression
-    let _ = total_memory;
 
     warnings
 }

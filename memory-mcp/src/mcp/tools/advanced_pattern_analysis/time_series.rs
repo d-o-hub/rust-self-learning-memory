@@ -77,17 +77,17 @@ impl TimeSeriesExtractor {
             }
             _MEMORY_USAGE_MB => {
                 // Estimate memory usage of the current process using sysinfo
-                let mut system = sysinfo::System::new();
-                if let Ok(pid) = sysinfo::get_current_pid() {
-                    system.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), false);
-                    if let Some(process) = system.process(pid) {
-                        Some(process.memory() as f64 / 1024.0 / 1024.0)
-                    } else {
-                        Some(50.0)
-                    }
-                } else {
-                    Some(50.0)
-                }
+                let (Ok(mut system), Ok(pid)) =
+                    (sysinfo::System::new(), sysinfo::get_current_pid())
+                else {
+                    return Some(50.0);
+                };
+                system.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), false);
+                Some(
+                    system
+                        .process(pid)
+                        .map_or(50.0, |process| process.memory() as f64 / 1024.0 / 1024.0),
+                )
             }
             _ => None,
         }

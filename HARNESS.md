@@ -40,7 +40,7 @@ Two modes:
 
 Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`):
 - `feedback`: `fmt`, `loc`, `check` (fast local edit loop)
-- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
 
 Local evidence boundary command:
 ```bash
@@ -54,6 +54,7 @@ do-harness verify --set verification --strict --record && do-harness status --se
 | `cargo fmt --check` | feedback/verification | `do-harness.toml` | Run `cargo fmt --all` |
 | `cargo clippy -D warnings` | verification + CI | `.clippy.toml` | Fix all warnings; see `.clippy.toml` for exceptions |
 | `cargo deny check` | verification + CI | `deny.toml` | Check crate layering diagram in `Cargo.toml` comments |
+| `check-lockfile-sync.sh` (`lockfile-sync`) | verification | `scripts/check-lockfile-sync.sh` | Stale `Cargo.lock`/`fuzz/Cargo.lock`: re-resolve that graph with `cargo metadata`; a 2-version `libsql` means the workspace drifted off `chaotic_semantic_memory`'s constraint |
 | `cargo test --doc` / `doc` (`docs`) | verification + CI | `scripts/check-doctests.sh` | Wrap URLs in `<...>`, re-export public types, fix broken doctests |
 | `cargo nextest run` (`test`) | verification + CI | `.config/nextest.toml` | Fix failing unit/integration tests before opening PR |
 | `csm` feature tests (`csm-feature`) | verification + CI | `do-memory-core` | Fix failing CSM cascade/rerank/evidence tests |

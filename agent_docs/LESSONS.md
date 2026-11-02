@@ -1740,3 +1740,78 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   LESSON-058 (a presence-only fixture punishes the correct wording),
   LESSON-063 (documented affordances that do not exist),
   LESSON-052 (reduce the rollup to the latest run per check name).
+
+## LESSON-077: an audit that reports 0 vulnerabilities still failed the gate — the lockfile changed under it (2026-11-02)
+
+- Issue: Dependabot PR #1240 grouped two majors (`libsql` 0.9.30 → 0.10.0,
+  `sysinfo` 0.39.6 → 0.40.0). Eight checks went red. Six were one root cause:
+  sysinfo 0.40 made `System::new`/`new_all` return `Result`, so
+  `error[E0599]: no method named `refresh_processes` found for enum
+  `std::result::Result<T, E>`` broke `do-memory-mcp` (lib), which cascaded into
+  `Quick PR Check`, all three `Storage Matrix` legs, `Coverage`, and
+  `CI / Required`. The seventh, `Supply Chain Audit`, had nothing to do with
+  either bump and printed a passing audit before failing:
+
+  ```
+  Audit result for Cargo.lock: 0 vulnerabilities found
+  Audit result for fuzz/Cargo.lock: 0 vulnerabilities found
+  ERROR: Lockfiles were modified during the audit scan!
+  ```
+
+- Why it matters:
+  (1) **the message reads like a tamper alert but is a staleness alert.**
+  `scripts/check-dependency-audit.sh` snapshots `git diff Cargo.lock
+  fuzz/Cargo.lock` before the scan and compares after; `cargo deny
+  --manifest-path fuzz/Cargo.toml check advisories` lets cargo re-resolve
+  `fuzz/Cargo.lock`, which still pinned `sysinfo` 0.39.6 while `memory-mcp` now
+  asked for `0.40`. The diff differs, so the gate fails with zero findings. A
+  reader hunting for a new advisory burns the whole cycle on the wrong thing.
+  (2) **the fuzz graph is invisible to every fast gate.** `fuzz` is `exclude`d
+  from the root workspace, so `cargo check --workspace`, clippy, and the
+  `feedback` sensor set never resolve it. Only the audit touches it, and only
+  to mutate it. The same class of failure therefore arrives as a security job
+  rather than a build job.
+  (3) **the second member of the group was blocked in-tree, and `cargo check`
+  cannot say so.** The root `Cargo.toml` already carried the constraint
+  ("Keep aligned with chaotic_semantic_memory's libsql 0.9 dependency: linking
+  both versions with the csm feature duplicates libsql's exported C symbols").
+  `chaotic_semantic_memory` 0.3.8 — the newest release — still requires libsql
+  0.9.x, so the bump splits libsql across 0.9.30 and 0.10.0 in the committed
+  lock. That is a *link-time* duplicate-symbol conflict, and rlibs never link:
+  `cargo check -p do-memory-core --features csm` would report green while the
+  `csm` feature was in fact unbuildable as a binary. Dependabot does not read
+  comments, and the group bundles members, so the green-looking half would have
+  dragged the blocked half in.
+  (4) **the bump bought nothing.** libsql 0.10.0 still resolves `hyper 0.14.32`
+  and `hyper-rustls 0.25.0`, so it does not reach the hyper 1.x line that the
+  `rustls-webpki` 0.102 waiver in `CHANGELOG.md` says is needed to clear it.
+  Same story as the prior attempt: PR #1217 took the identical group bump, then
+  `89490345` reverted libsql to 0.9.30 and re-resolved `fuzz/Cargo.lock` in one
+  commit named `fix(deps): align libsql and refresh fuzz lockfile`. The exact
+  same two fixes were waiting to be rediscovered.
+- Detection: when `Supply Chain Audit` fails, read the last three lines before
+  diagnosing advisories — `0 vulnerabilities` + `Lockfiles were modified` is a
+  freshness bug, not a security bug. Then prove freshness read-only, per graph
+  (`--locked` refuses to rewrite instead of silently re-resolving):
+  ```bash
+  cargo metadata --locked --manifest-path Cargo.toml --format-version 1 >/dev/null
+  cargo metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 >/dev/null
+  grep -A1 '^name = "libsql"' Cargo.lock | grep '^version = ' | sort -u   # 1 line = aligned
+  ```
+  For a grouped Dependabot PR, diff every member against the in-tree constraints
+  *before* touching code: `git log -S"<constraint phrase>" -- Cargo.toml` names
+  the commit that wrote the constraint, and the PR body's
+  `updated-dependencies` list is the member inventory.
+- Fix: re-resolve the stale graph (`cd fuzz && cargo metadata --format-version 1
+  >/dev/null`), never hand-edit a lockfile; drop the blocked member from the
+  group and keep the rest; migrate the fallible call sites to degrade to their
+  existing fallback; retitle the PR to what it now contains. Codify the gate so
+  the next cycle sees it locally: `scripts/check-lockfile-sync.sh` is harness
+  sensor `lockfile-sync` in the `verification` set, and it was verified to fail
+  on a deliberately reverted `fuzz/Cargo.lock` pin and on the pre-revert
+  `Cargo.lock` that carried two libsql versions.
+- References: PR #1240 (heads `c5881e26` red → `8ec8b767`+`9c0a6584`+`eb9ec581`),
+  PR #1217 (`89490345`), `scripts/check-dependency-audit.sh`,
+  `agent_docs/dependency_upgrades.md`, LESSON-046..048 (a green audit only means
+  nothing un-ignored reached `.vulnerabilities`), LESSON-050 (the ruleset decides
+  what blocks a merge).

@@ -38,7 +38,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 matches() {
-  git ls-files -z '*.sh' | xargs -0 grep -nEH "$PATTERN" 2>/dev/null || true
+  # `grep -nE` output is `path:lineno:content`; drop whole-line comments so this
+  # file can *explain* the anti-pattern without counting as a new occurrence.
+  git ls-files -z '*.sh' \
+    | xargs -0 grep -nEH "$PATTERN" 2>/dev/null \
+    | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' \
+    || true
 }
 
 ALL="$(matches)"
@@ -55,7 +60,7 @@ fi
 
 if (( UPDATE )); then
   {
-    echo "# Bare ((var++)) / ((var--)) statements in tracked *.sh for"
+    echo "# Bare post-increment statements in tracked *.sh for"
     echo "#   scripts/check-shell-counters.sh — ratchet ceiling, never raise it"
     echo "# Regenerate with: ./scripts/check-shell-counters.sh --update"
     echo "$COUNT"

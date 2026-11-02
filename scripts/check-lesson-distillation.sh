@@ -59,7 +59,9 @@ routed() {
   local id
   while read -r id; do
     [[ -z "$id" ]] && continue
-    if git grep -l -e "$id" -- ':!agent_docs/LESSONS.md' >/dev/null 2>&1; then
+    # A mention in CHANGELOG.md is a release record, not a routing target, so it
+    # must not count — otherwise writing about a lesson looks like wiring it in.
+    if git grep -l -e "$id" -- ':!agent_docs/LESSONS.md' ':!CHANGELOG.md' >/dev/null 2>&1; then
       printf '%s\n' "$id"
     fi
   done <<< "$(printf '%s\n' "$ids")"

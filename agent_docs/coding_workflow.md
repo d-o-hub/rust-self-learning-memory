@@ -157,7 +157,12 @@ risky changes, get an **independent** opinion before merge:
   `analysis-swarm` skill for competing designs.
 - Treat agent findings as claims: verify each with primary evidence (source,
   empirical command) before acting; refuting a finding with evidence is a valid
-  outcome, and the evidence goes in the PR.
+  outcome, and the evidence goes in the PR. The same discipline applies to
+  *spec* prose: check a test against the production path it pins, not against
+  the issue text that asked for it — LESSON-075 had a tracker demanding a
+  `(updated_at, episode_id)` cursor while `episodes/query.rs` orders by
+  `modified_at_ms`, so "fixing" the test to the tracker would have
+  desynchronised it from the code.
 - Apply accepted findings, re-run the gates, then merge.
 
 **Evidence:** findings list (severity, location), disposition per finding, and

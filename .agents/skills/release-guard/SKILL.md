@@ -161,7 +161,10 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
   refs** and rely on the workflow's own tag guard (real publishes run only from
   tag refs; branch dispatches can only dry-run).
 - Verify attestations on a **downloaded** asset (the digest binding is only
-  meaningful for the file you actually hold):
+  meaningful for the file you actually hold). `--signer-workflow` is not
+  optional: without it the default policy checks owner/repo identity only, so
+  *any* workflow in the repository that can request an attestation satisfies the
+  check while the prose reads as though the artifact were pinned (LESSON-034):
 
   ```bash
   for app in do-memory-cli do-memory-mcp do-memory-examples; do

@@ -125,15 +125,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `pull_request: branches: [main, develop]`. From one `gh run list` taken ~60s
   after the push (empty, while Codacy and SonarCloud already showed green App
   rows) I concluded the child PR could never get CI and routed that as a rule.
-  It is refuted by the same API: `pull_request` runs exist for the PR's own
+  It is refuted twice by the same API: `pull_request` runs exist for the PR's own
   commits (`99e56446` created 6s after its push, `3c1aaf4b` 74min after), so the
-  rollup went from 2 rows to 30. The entry now records the trigger config plus
-  the open question about the base filter, **not** a causal rule, and the two
+  rollup went from 2 rows to 30 — and those runs carry
+  `head_branch=docs/lesson-distillation` with `pull_requests[].number=1242`, i.e.
+  they fired for the PR based on a feature branch, which the naive reading of the
+  filter predicts is impossible. The entry now records the trigger config plus the
+  unresolved question about what `pull_request.branches` actually gates, **not** a
+  causal rule, and the two
   routed sentences in `pr-readiness` and `ci-fix` say instead: confirm a run
   exists before calling a rollup green, and re-query before concluding CI never
   will. The investigation's usable finding is that another session had rewritten
   both branches mid-work; containment was proved by an empty diff of the touched
   files before resetting to the remote tip (LESSON-035).
+
+- Every remaining uncited lesson is routed, so the
+  `scripts/check-lesson-distillation.sh` ceiling drops 19 → 0: a new lesson that
+  is not wired into a skill, guide or code comment now fails the gate instead of
+  accumulating. Notable placements, each checked against the tree before writing:
+  LESSON-031/032/036 in `agent_docs/github_actions_patterns.md` (the
+  `workflow_ref`-vs-`job_workflow_ref` boundary, `needs:` without `always()`
+  skipping a whole release run, and a new subsection for machine-readable output
+  redirected to a file — `if-no-files-found: error` cannot catch a 0-byte report
+  because the shell created the file, and `nightly-tests.yml:91,251` use `warn`,
+  so a green nightly report step is unproven until the artifact is read);
+  LESSON-015 in `test-patterns`, where the lesson's own advice to add an
+  `--all-features --tests` clippy run is **rejected** because
+  `storage-matrix.yml:36,41,45` deliberately avoid `--all-features`; LESSON-006
+  against the live `benchmarks.yml:5-25` filter shape (`paths` on
+  `pull_request`, `paths-ignore` on `push`, never both on one trigger);
+  LESSON-013 in the CLI troubleshooting path table, after confirming
+  `combination.rs:33-40` really does leak a `tempfile::tempdir()` for an unset
+  `redb_path`; LESSON-034 where `--signer-workflow` already appears; LESSON-042
+  inside a rule that existed but was only reachable through the section header's
+  `LESSON-039…052` ellipsis; LESSON-009 as a doc comment on `effective_size()`
+  itself (`peek()` on `lru::LruCache` measures without promoting recency);
+  LESSON-073 as a "measure in the tree you are reporting about" precondition in
+  `release-cadence-manager`; and LESSON-033 as a warning beside the still-true
+  `create-missing = true` in `book/book.toml`, which is what turns a
+  `- [Title](#anchor)` placeholder into a committed `book/src/#anchor` file.
+  LESSON-073's aside that `fuzz/Cargo.lock` needs no attention is corrected in
+  place: it stops being true the moment PR #1241's `lockfile-sync` sensor
+  merges, since that guard runs `cargo metadata --locked` on the fuzz graph too.
 
 
 ## [0.1.47] - 2026-10-28

@@ -426,8 +426,11 @@ When reporting PR readiness, always include:
 
 - **Serial merges**: the strict up-to-date policy means each merge invalidates the
   other PRs' runs. Land the *structural* PR first when branches split the same
-  files (`backend.rs` in #1149/#1151 vs #1152) and rebuild the rest on the
-  winner's layout; never merge a stacked PR before its base.
+  files (`backend.rs` in #1149/#1151 vs #1152 — LESSON-042: two PRs chose
+  `backend_trait.rs` and a third `backend/mod.rs` + `capabilities.rs`, so any
+  pair conflicted on layout and the later branches took four manual rebuilds,
+  each costing a local verification cycle plus a CI cycle) and rebuild the rest
+  on the winner's layout; never merge a stacked PR before its base.
 - **Head SHAs are ephemeral**: that same policy re-queues every run on every other branch,
   so a `headRefOid` pinned in a doc, plan, or PR comment is stale **one merge** later
   (#1179 `3056b560`→`c36a874d`, #1177 `479eb16d`→`826f5c7f`). Re-read

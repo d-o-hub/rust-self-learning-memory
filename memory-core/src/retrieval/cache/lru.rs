@@ -285,6 +285,11 @@ impl QueryCache {
     ///
     /// This returns the logical size of the cache, excluding entries that
     /// are marked for lazy invalidation.
+    ///
+    /// The subtraction must be *intersected* with what is still physically
+    /// present: an invalidated hash can already have been evicted by the LRU,
+    /// so counting the whole invalidated set under-reports the size (LESSON-009).
+    /// `peek()` is deliberate — it must not disturb recency while measuring.
     #[must_use]
     pub fn effective_size(&self) -> usize {
         let cache = self.cache.read();

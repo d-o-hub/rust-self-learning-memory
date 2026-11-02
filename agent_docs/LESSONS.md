@@ -1609,6 +1609,13 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `fuzz/Cargo.lock` pins the local crates at `0.1.39` (stale by 7 releases, harmless because
   `Cargo.toml` `exclude = ["fuzz"]` makes it a separate workspace and no CI job builds the repo
   with `--locked`), so a version bump PR is *not* expected to touch it.
+  **This last clause is superseded by PR #1241** (the guard is on that branch, not yet on
+  `main`): `scripts/check-lockfile-sync.sh:31` lists `fuzz/Cargo.toml|fuzz/Cargo.lock` in its
+  `GRAPHS` and `:51` runs `cargo metadata --locked --manifest-path fuzz/Cargo.toml`, and the
+  sensor is registered in `do-harness.toml:85`. Once it merges, the fuzz graph *is* checked
+  with `--locked`, so a bump that changes a path dependency's version must re-resolve
+  `fuzz/Cargo.lock` — which PR #1240 already did in `9c0a6584`. The tree-identity rule above
+  is unaffected; only the aside about the fuzz lock was time-bound.
 - References: PRs #1192/#1193, `scripts/release-cadence-manager.sh`,
   `scripts/check-release-drift.sh`, AGENTS.md Core Invariants → **Build
   isolation** (shared `CARGO_TARGET_DIR`, LESSON-038), `agent_docs/disk_hygiene.md`,
@@ -1928,11 +1935,19 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
      YAML Lint, … for `99e56446`, created 6s after that push, and for `3c1aaf4b`,
      created 74 min after its push). The rollup is now 30 rows, not 2. So "no
      runs yet" was never sufficient evidence for "CI cannot run here".
-- Not resolved, and deliberately not written as a rule: whether the base filter
-  suppressed anything at all. GitHub evaluates `pull_request.branches` against
-  the PR's **base**, and #1242's base has been `ci/lockfile-sync-guardrail` since
-  it was opened — which the observed runs contradict. The escape hatch would be
-  the base having differed at event time, and both #1241 and #1242 moved within 5
+  4. The refutation of the *mechanism* too, checked afterwards: those runs carry
+     `event=pull_request`, `head_branch=docs/lesson-distillation` and
+     `pull_requests[].number=1242` — the PR whose base is `ci/lockfile-sync-guardrail` —
+     and were created 3s after the 14:52:26Z `head_ref_force_pushed` timeline event.
+     So `pull_request: branches: [main, develop]` did **not** suppress a
+     feature-branch-based PR, which is the opposite of what reading the filter as
+     "base must be main/develop" predicts. (GitHub does not record base-ref edits
+     in the issue timeline, so "the base was `main` at event time" cannot be
+     excluded outright — but nothing observed supports it either.)
+- Not resolved, and deliberately not written as a rule: what `pull_request.branches`
+  actually gates here. #1242's base has been `ci/lockfile-sync-guardrail` since it
+  was opened, and the observed runs contradict the naive reading. Both #1241 and
+  #1242 moved within 5
   seconds of each other, consistent with a concurrent automation touching them.
   The REST run list does not expose the event payload's base ref, so this could
   not be settled read-only. **A hypothesis that survives only in one direction

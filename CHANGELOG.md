@@ -74,6 +74,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   see (rlibs do not link). `fuzz` is `exclude`d from the root workspace, so
   before this sensor no gate ever resolved that graph.
 
+- Five more harness sensors, each encoding a lesson that was previously only
+  prose an agent had to remember (full reasoning in `agent_docs/LESSONS.md`
+  LESSON-079):
+  `commit-ci-tokens` (`scripts/check-commit-ci-tokens.sh`, also a `commit-msg`
+  pre-commit hook and part of `feedback`) rejects a GitHub CI skip-control token
+  anywhere in a commit message, since the matcher reads the whole head message
+  and the branch then has zero runs while the rollup still looks healthy;
+  `agents-md-ids` keeps bare 10-15 digit runs out of `AGENTS.md`, which parks the
+  required Codacy context at `action_required` (also in `feedback`);
+  `changelog-headings` enforces the same duplicate-heading invariant
+  `update-changelog.sh` only checked while it ran, because a duplicate makes
+  parse-changelog reject the file and a release ships with empty notes;
+  `shell-counters` ratchets bare `((VAR++))`, whose value is the
+  *pre*-increment, so incrementing 0 exits 1 and truncates the report it was
+  writing under `set -e`; `lesson-distillation` fails on a duplicated lesson id
+  (LESSON-011 had been used twice) and ratchets the count of lessons with no
+  citation outside the log — 41 of 77 before this change, 28 after. The two
+  ratchets ship with recorded baselines and can only move down.
+
+- Routing-layer corrections, each verified against the tree before editing:
+  `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved
+  merge-readiness (it was observed exiting 0 with 12 of 21 rows pending);
+  `commit` forbade empty re-trigger commits while `pr-readiness` prescribed one,
+  now split by intent — legitimate to clear stale rollup rows, never to hide a
+  real failure; `ci-fix`'s clippy command omitted `--tests` and the repo's `-A`
+  allow-list, contradicting `scripts/code-quality.sh`, so it now calls the
+  script; the drift-check label override is scoped to release-preparation PRs
+  only; and `pr-readiness`'s conflict recipe gained the lossless index-stage
+  proof (`git show :2:`/`:3:` read *before* staging, `LC_ALL=C comm`) that
+  LESSON-070 discovered too late. Four dead pointers from the lessons log into
+  `AGENTS.md` sections removed by an earlier shrink are re-anchored, and the
+  `HARNESS.md` sensor table gained the nine sensors it was missing.
+
 
 ## [0.1.47] - 2026-10-28
 

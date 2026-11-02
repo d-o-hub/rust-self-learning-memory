@@ -63,27 +63,31 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 
 - **Async**: Tokio everywhere. No blocking in async (use `spawn_blocking`).
 - **Storage**: parameterized SQL only; short transactions; no locks across `.await`.
-- **Serialization**: Postcard required (not bincode).
+- **Serialization**: Postcard required (not bincode). Any type that reaches postcard storage must stay **externally tagged**: postcard cannot deserialize `#[serde(tag = "...")]` internally-tagged enums, which made stored patterns unreadable (issue #831, LESSON-017). Internally tagged enums are fine for JSON-only wire types that never hit storage.
 - **Clippy**: zero warnings (`-D warnings`). Fix, don't suppress.
 - **Files**: ≤500 LOC per source file (enforced in CI).
 - **Tests**: ≥70% coverage floor (90% target); `#[tokio::test]` for async; AAA pattern.
 - **Docs**: URLs wrapped in `<...>`; new public types re-exported from `lib.rs`.
 - **Fail-closed code execution**: `execute_agent_code` is unavailable and fails closed.
 - **Dependency alignment**: version comments in `Cargo.toml` are constraints (Dependabot does not read them). `libsql` must resolve to one version per graph — `chaotic_semantic_memory` pins 0.9.x and two libsql versions duplicate its exported C symbols under `csm`. Any requirement change also re-resolves `fuzz/Cargo.lock` (`cd fuzz && cargo metadata --format-version 1 >/dev/null`), else the audit gate fails with *0 vulnerabilities*. Sensor: `lockfile-sync`. See `agent_docs/dependency_upgrades.md`, LESSON-077.
+- **Commit messages**: never write a GitHub CI skip-control token in a commit message or PR body, not even inside prose or backticks — the matcher scans the whole head message, so the branch gets zero runs and the merge stays `BLOCKED` with nothing pending; a squash-merge also copies the body onto main, blinding the commit the release gate counts. Describe it as a *skip-ci marker*. Sensor + commit-msg hook: `commit-ci-tokens`. See LESSON-065.
+- **Build isolation**: do not share one `CARGO_TARGET_DIR` across worktrees while tests run — a sibling build replaces the test binaries under a running suite and produces fake mass failures. Re-run in an isolated target dir before believing any mass test failure, and keep per-worktree dirs (`agent_docs/disk_hygiene.md`, LESSON-038).
 
 ## Workflow Traps (2026-10, full evidence in `agent_docs/LESSONS.md`)
 
-Before merges or releases, review LESSON-035 and LESSON-039…077. These cover
+Before merges or releases, review LESSON-035 and LESSON-039…079. These cover
 stale-tip/dependency loss, toolchain/test/CI-rollup failures, release event
-filtering, advisory databases, version state, publish-chain traps, and
-Dependabot group bumps carrying a member that must be dropped (LESSON-077).
+filtering, advisory databases, version state, publish-chain traps, Dependabot
+group bumps carrying a member that must be dropped (LESSON-077), self-suppressed
+CI from a commit-message token (LESSON-065), and routing docs that assert checks
+which do not exist (LESSON-063, LESSON-079).
 
 ## Dev Harness (do-harness)
 
 Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`.
 `do-harness.toml` defines two explicit signal sets:
-- **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`).
-- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
+- **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids`).
+- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
 
 `do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
@@ -92,13 +96,20 @@ Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` a
 ## Required Checks Before Commit
 
 - [ ] `do-harness verify --set feedback` (cheap edit-loop check during coding)
-- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
+- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, changelog-headings, shell-counters, lesson-distillation, commit-ci-tokens, agents-md-ids, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
 - [ ] `do-harness status --set verification` (confirm green local evidence boundary)
 - [ ] `git status` — only intended changes staged
 
 ## PR Health Check
 
 Before recommending or performing a merge, verify **all** of: `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`, every required check terminal and green, and every conversation/review thread (human **and** bot — Codacy/Codecov included) addressed or waived with evidence on the thread. Use the `pr-readiness` skill + `./scripts/check-pr-readiness.sh`; merge only via `./scripts/merge-pr.sh <PR> --execute`. **Never** `--admin`, `--force`, or any bypass.
+
+On a bot or long-lived branch, `MERGEABLE` says nothing about lost work. Diff the
+head against its **merge base**, not the moving `main` tip
+(`MB=$(git merge-base origin/main HEAD); git diff --name-only "$MB" HEAD`), and
+treat any `Cargo.toml` / `Cargo.lock` hunk you did not author as a revert: a
+`Merge branch 'main'` resolution on a bot branch rolled back a dependency bump
+that CI then re-shipped (LESSON-064, LESSON-035, LESSON-074).
 
 ## Release Process
 

@@ -118,6 +118,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   previously uncited lessons (010, 016, 020, 029, 056, 062, 078) are now routed
   into the skills that enforce them.
 
+- New lesson LESSON-080 and its two routed rules: PR #1242 is stacked on #1241,
+  so its base is a feature branch — and `ci.yml`, `coverage.yml`, `security.yml`,
+  `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
+  `skill-evals.yml` all filter `pull_request: branches: [main, develop]`, so the
+  child PR gets **zero workflow runs** while Codacy and SonarCloud still post
+  green App rows. `pr-readiness` now requires a run to exist before a rollup can
+  be called green, and `ci-fix` names both causes of an empty rollup (base filter,
+  and the head-commit skip token from LESSON-067).
+
 
 ## [0.1.47] - 2026-10-28
 

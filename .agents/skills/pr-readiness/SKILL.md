@@ -135,6 +135,13 @@ unresolved review thread / extra-approval rule is holding the PR
 (`required_review_thread_resolution=true`,
 `require_extra_approval_for_unattributed_changes=true`).
 
+Before calling any rollup green, confirm a **workflow run exists** — green App
+rows (Codacy, SonarCloud, CodeQL) are not CI. `gh run list --branch <head-branch>`
+returning nothing means the required aggregate was never created, most often
+because the PR's **base** is another PR's branch and every gating workflow filters
+`pull_request: branches: [main, develop]` (LESSON-080). A stacked PR is unverified
+until its parent merges and it is retargeted at `main`.
+
 **Which checks are required is a ruleset, not branch protection** (ruleset
 `main-protection`, id 9591004; `/branches/main/protection` 404s). The endpoint
 returns an **array of rule objects**, and the contexts live at

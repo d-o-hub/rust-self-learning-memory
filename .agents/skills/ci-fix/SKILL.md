@@ -294,6 +294,16 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   (0 = self-suppressed, see the commit-token rule above); the per-job form is
   `gh api repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status,.conclusion'`
   (LESSON-067, LESSON-065).
+- The second cause of an empty rollup is the **base branch**, not the head commit.
+  Every gating workflow here filters the event: `ci.yml`, `coverage.yml`,
+  `security.yml`, `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
+  `skill-evals.yml` all say `pull_request: branches: [main, develop]`. A stacked
+  PR based on another PR's branch therefore matches nothing and gets zero runs
+  while Codacy and SonarCloud still post green App rows. Check with
+  `gh pr view <n> --json baseRefName` and
+  `gh run list --branch <head-branch>` (empty = never ran), then retarget at
+  `main` once the parent merges — never report "N pass, 0 fail" for such a PR
+  (LESSON-080).
 
 ## Fix Commands
 

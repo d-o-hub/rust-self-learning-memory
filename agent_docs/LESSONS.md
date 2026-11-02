@@ -1908,3 +1908,33 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: PR #1240, PR #1241, this PR, LESSON-063 (phantom affordances — the
   same class, previously only about release docs), LESSON-072, LESSON-068/069,
   LESSON-052, `HARNESS.md`, `do-harness.toml`.
+
+## LESSON-080: a stacked PR whose base is not `main`/`develop` runs zero CI (2026-11-02)
+
+- Issue: PR #1242 was opened against `ci/lockfile-sync-guardrail` (deliberately
+  stacked on PR #1241 to avoid same-line conflicts). `gh pr checks 1242` reported
+  two green rows and nothing else, and `mergeStateStatus` sat at `BLOCKED`.
+- Root Cause: every gating workflow filters the event, not the branch content —
+  `ci.yml`, `coverage.yml`, `file-structure.yml`, `security.yml`,
+  `skill-evals.yml`, `storage-matrix.yml` and `yaml-lint.yml` all declare
+  `pull_request: branches: [main, develop]` (`pages.yml`, `release-drift.yml` and
+  `supply-chain.yml` are `main` only). A PR whose **base** is a feature branch
+  matches no filter, so no `pull_request` run is ever created. The two rows that
+  did appear are App-based (Codacy, SonarCloud), which ignore the filter.
+- Detection (deterministic, before concluding "CI is green"):
+  `gh run list --branch <pr-head-branch> --json workflowName,status` — an empty
+  result with App-only check rows means CI never ran, not that it passed. Then
+  read the base: `gh pr view <n> --json baseRefName`.
+- Solution: keep the stack for conflict reasons, but treat CI as **absent** until
+  the base merges; retarget the child PR at that point
+  (`gh pr edit <n> --base main`) so the workflows' filters match and the diff
+  shrinks to the child's own commits. Never cite "N pass, 0 fail" for a PR with
+  zero workflow runs.
+- Key insight: `mergeStateStatus=BLOCKED` with *no* pending rows has at least two
+  distinct causes — a head-commit CI skip-control token (LESSON-067) and a base
+  branch excluded by every workflow's `pull_request` filter. Both produce the same
+  healthy-looking-but-empty rollup, and neither is a skipped gate.
+- Prevention: the `ci-fix` skill's "zero pending rows" bullet now names both
+  causes; `pr-readiness` requires a workflow run to exist, not just green rows.
+- References: PR #1240, PR #1241, PR #1242, LESSON-067, LESSON-050,
+  `.github/workflows/ci.yml`.

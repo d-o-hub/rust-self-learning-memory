@@ -22,7 +22,15 @@
 # the thread has been answered with per-file evidence. Gates 2 still apply in
 # full. Use it deliberately, never as a convenience.
 #
-# This script NEVER uses `gh pr merge --admin` or any bypass mechanism.
+# This script NEVER uses `gh pr merge --admin` or any bypass mechanism, and never
+# sends `bypass_rules=true` to the asynchronous merge API.
+#
+# Landing a PR here takes one of two paths, chosen by GitHub, not by the caller:
+#   - a PR outside a stack merges through `gh pr merge` (GraphQL);
+#   - a PR inside a stack is refused there and must use
+#     `PUT /repos/{owner}/{repo}/pulls/{n}/merge-async`, which returns 202
+#     "pending" *before* repository rules run — the verdict arrives on the
+#     returned uuid. Both paths are gated identically (LESSON-081).
 
 set -euo pipefail
 
@@ -32,7 +40,12 @@ cd "$ROOT"
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "d-o-hub/rust-self-learning-memory")"
 
 PR_NUMBER=""
-METHOD="merge"
+# `main` is guarded by ruleset `main-protection` with `required_linear_history`
+# active, so GitHub rejects a merge commit at execution time; `squash` is the only
+# method that always lands here. `rebase` is linear too, but it silently drops the
+# merge commits that `check-pr-readiness.sh --fix` puts on a branch with
+# `update_method=merge`, so it is safe only for branches that have none (LESSON-081).
+METHOD="squash"
 EXECUTE=false
 ACCEPT_CODECOV_WAIVER=false
 
@@ -41,7 +54,10 @@ usage() {
 Usage: ./scripts/merge-pr.sh <PR> [options]
 
 Options:
-  --method <merge|squash|rebase>   Merge method (default: merge).
+  --method <merge|squash|rebase>   Merge method (default: squash — `main`
+                                   enforces required_linear_history, so a merge
+                                   commit is rejected; rebase drops merge commits
+                                   that an up-to-date branch may carry).
   --accept-codecov-waiver          Allow a Codecov conversation heuristic to be
                                    the only readiness failure (thread answered
                                    with evidence). All hard gates still apply.
@@ -88,12 +104,20 @@ set -e
 cat "$READINESS_LOG"
 
 if [[ "$READINESS_RC" -ne 0 ]]; then
+  # Gate 1 may be relaxed for exactly one failure class: the Codecov conversation
+  # heuristic. Two traps decide this filter. The aggregate "N issue(s) found" line
+  # is produced *by* that same Codecov finding, so reading it as an additional
+  # failure makes the waiver unreachable. And the verdict is spelled uppercase
+  # CODECOV while the detail line is "Codecov", so a case-sensitive filter lets the
+  # verdict itself survive as a "second" failure (LESSON-082).
+  OTHER_FAILURES="$(grep -E '⚠️|❌' "$READINESS_LOG" | grep -viE 'codecov' | grep -vE 'issue\(s\) found' || true)"
   if [[ "$ACCEPT_CODECOV_WAIVER" == true ]] \
     && grep -q 'Codecov reports missing coverage' "$READINESS_LOG" \
-    && ! grep -qE 'issue\(s\) found' <(grep -v 'Codecov' "$READINESS_LOG" | grep -E '⚠️|❌' || true); then
+    && [[ -z "$OTHER_FAILURES" ]]; then
     echo "ℹ️  Readiness reported a Codecov coverage prompt; --accept-codecov-waiver set."
     echo "    Gates below are re-checked independently against the live head."
   else
+    if [[ -n "$OTHER_FAILURES" ]]; then printf '%s\n' "$OTHER_FAILURES" >&2; fi
     fail "readiness gate failed (exit $READINESS_RC). Fix the reported items, reply on the PR threads, or pass --accept-codecov-waiver for a documented Codecov waiver."
   fi
 fi
@@ -147,7 +171,45 @@ if [[ "$EXECUTE" != true ]]; then
   exit 0
 fi
 
-# ── Merge (standard method only; never --admin) ──────────────────────────────
-gh pr merge "$PR_NUMBER" --repo "$REPO" --"$METHOD"
+# ── Merge (standard method only; never --admin, never bypass_rules) ──────────
+set +e
+MERGE_OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --"$METHOD" 2>&1)"
+MERGE_RC=$?
+set -e
+
+if [[ "$MERGE_RC" != 0 ]]; then
+  # GitHub refuses the synchronous merge for every PR that belongs to a stack and
+  # points at the asynchronous merge API. Same verified method, same head SHA the
+  # gates checked, `bypass_rules` left at its default: only the endpoint differs.
+  if grep -q "part of a stack" <<<"$MERGE_OUT"; then
+    echo "  ↪ part of a stack — using the asynchronous merge API"
+    REQ="$(gh api -X PUT "repos/$REPO/pulls/$PR_NUMBER/merge-async" \
+      -f sha="$HEAD_SHA" -f merge_method="$METHOD" -f merge_action=direct_merge 2>&1)" \
+      || { echo "$REQ" >&2; fail "asynchronous merge request rejected"; }
+    UUID="$(jq -r '.details.uuid // empty' <<<"$REQ")"
+    [[ -n "$UUID" ]] || { echo "$REQ" >&2; fail "asynchronous merge returned no uuid"; }
+    # The request is accepted before rules are evaluated: the response only means
+    # "enqueued", so the truth is on the uuid, and it is the uuid that reports a
+    # ruleset rejection (LESSON-081).
+    STATUS="pending"
+    RESULT=""
+    for _ in $(seq 1 40); do
+      RESULT="$(gh api "repos/$REPO/pulls/$PR_NUMBER/merge-async/$UUID" 2>/dev/null || true)"
+      [[ -n "$RESULT" ]] || { sleep 3; continue; }
+      STATUS="$(jq -r '.status // "pending"' <<<"$RESULT")"
+      [[ "$STATUS" == "pending" ]] || break
+      sleep 3
+    done
+    case "$STATUS" in
+      merged)   echo "✅ Asynchronous merge completed for PR #$PR_NUMBER @ ${HEAD_SHA:0:12}" ;;
+      enqueued) echo "✅ PR #$PR_NUMBER added to the merge queue (not yet merged): $(jq -r '.details.message // "?"' <<<"$RESULT")" ;;
+      *) echo "$RESULT" >&2; fail "asynchronous merge $STATUS: $(jq -r '.details.message // "?"' <<<"$RESULT")" ;;
+    esac
+  else
+    echo "$MERGE_OUT" >&2
+    fail "gh pr merge failed (exit $MERGE_RC)"
+  fi
+fi
+
 gh pr view "$PR_NUMBER" --repo "$REPO" --json state,mergedAt,mergeCommit \
   --jq '"Merged: " + .state + " at " + (.mergedAt // "?") + " commit " + (.mergeCommit.oid // "?")'

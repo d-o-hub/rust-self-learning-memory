@@ -168,6 +168,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   place: it stops being true the moment PR #1241's `lockfile-sync` sensor
   merges, since that guard runs `cargo metadata --locked` on the fuzz graph too.
 
+- LESSON-080 gained a second refutation, found by making the query wrongly:
+  `actions/runs?head_sha=2657fcbb` returned zero rows for a head that had 10 runs
+  queued, because the sha had been sliced to 8 characters. A truncated argument and
+  a CI that never ran are indistinguishable in the response, so the detection step
+  and both skills that tell an agent to query runs now require the full
+  40-character sha.
+
+- Documented what `check-pr-readiness.sh`'s Codecov line actually does, in
+  `coding_workflow.md` and the `coverage-waivers` anti-patterns: `:107` derives it
+  from `codecov[bot]` comments only, so an evidence reply never clears it, and
+  `:207-211` turns it into a counted issue exactly when every other gate is
+  `✅ READY`. Clearing it needs either a head that Codecov reports as fully
+  covered or `merge-pr.sh --accept-codecov-waiver` (`merge-pr.sh:91-95`), which
+  relaxes that heuristic and nothing else. While writing this I claimed the line
+  also prints at 100% patch coverage; three merged PRs showed Codecov switches to
+  "All modified and coverable lines are covered by tests" there, which matches no
+  pattern in the heuristic — the refutation is recorded in LESSON-079 rather than
+  quietly dropped.
+
 
 ## [0.1.47] - 2026-10-28
 

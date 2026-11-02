@@ -143,6 +143,15 @@ body. "Should pass" is not evidence.
   Codacy/Codecov included) addressed or waived with evidence on the thread.
 - Coverage finding you are waiving? Classify it with the `coverage-waivers` skill,
   reply on the thread, and pass `--accept-codecov-waiver` to the merge command.
+  Know what the readiness script's `⚠️ Codecov reports missing coverage` line can and
+  cannot do: `check-pr-readiness.sh:107` derives it from **`codecov[bot]` comments
+  only**, so answering the thread never clears it — and once every other gate is
+  `✅ READY`, `:207-211` converts it into a counted issue with exit 1
+  (`Verdict: ⚠️ CODECOV FEEDBACK`). The two legitimate ways forward are a later head
+  that Codecov reports as "All modified and coverable lines are covered by tests",
+  or `merge-pr.sh --accept-codecov-waiver`, which relaxes exactly this heuristic
+  (`merge-pr.sh:91-95`) while re-checking every hard gate against the live head.
+  Editing the heuristic to go quiet is a gate bypass.
 - Skill: `.agents/skills/pr-readiness/SKILL.md` (supersedes the short summary in
   [`AGENTS.md#pr-health-check`](../AGENTS.md#pr-health-check)).
 

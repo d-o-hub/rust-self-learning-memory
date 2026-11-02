@@ -1912,6 +1912,17 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   instead of re-reading the body. Prevention: after editing a routed doc, diff the
   new sentence against the lesson's `Solution:` line and check that the sentence
   would still prevent the original incident.
+  A second instance of the same shape was caught before it shipped: while routing
+  the Codecov behaviour of `check-pr-readiness.sh` I wrote that its
+  `⚠️ Codecov reports missing coverage` line "still prints at 100% patch coverage".
+  It does not — at full coverage Codecov's comment reads
+  `All modified and coverable lines are covered by tests`, which matches none of the
+  patterns at `:107`; three recently merged PRs' comments settled that in one query.
+  The true statement is narrower and more useful, and is what the docs now say: the
+  heuristic reads **only `codecov[bot]` comments**, so a human reply can never clear
+  it, and `:207-211` promotes it to a counted issue precisely when every other gate
+  is `✅ READY`. Writing the confident version ("every report contains that phrase")
+  would have been the third wrong rule of this session.
 - References: PR #1240, PR #1241, this PR, LESSON-063 (phantom affordances — the
   same class, previously only about release docs), LESSON-072, LESSON-068/069,
   LESSON-052, `HARNESS.md`, `do-harness.toml`.

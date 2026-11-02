@@ -133,6 +133,15 @@ Never claim a line is covered without a test that runs under `coverage.yml`'s fi
 ## Anti-Patterns
 
 - ❌ "CI green, ready to merge" while an unanswered Codecov comment stands — the repository treats bot findings as actionable.
+- ❌ Expecting an evidence reply to clear `⚠️ Codecov reports missing coverage` in
+  `check-pr-readiness.sh`. `:107` reads **only `codecov[bot]` comments**, so a human
+  answer cannot change it; and once every other gate is `✅ READY`, `:207-211` promotes
+  it to a counted issue (`Verdict: ⚠️ CODECOV FEEDBACK`, exit 1). The deliverable is the
+  reply itself; the merge path is `merge-pr.sh --accept-codecov-waiver`, which relaxes
+  precisely this heuristic (`merge-pr.sh:91-95`) and still re-checks every hard gate.
+  It clears by itself only when a newer head gets Codecov's
+  "All modified and coverable lines are covered by tests" wording. Loosening the
+  heuristic is a gate bypass, not a fix.
 - ❌ Adding feature-gated tests to close a patch-coverage gap (`csm`, `turso_multi_dimension`, `compression`) — the coverage job instruments only `do-memory-mcp/oauth`, so they cannot move the patch number.
 - ❌ Waiving a Turso line as "needs a live instance" when `tests/pool_integration_test.rs`-style local `new_local` tests already run it in CI.
 - ❌ Chasing 100% by testing defensive arms with contrived inputs.

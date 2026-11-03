@@ -24,11 +24,13 @@ Pinned compatible harness version: `v0.1.0`. Signal sets defined in `do-harness.
 
 | Signal Set / Mode | Command | Stage |
 |-------------------|---------|-------|
-| feedback | `do-harness verify --set feedback` | cheap edit loop (`fmt`, `loc`, `check`) |
+| feedback | `do-harness verify --set feedback` | cheap edit loop (`fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids`) |
 | verification boundary | `do-harness verify --set verification --strict --record` | pre-completion contract (all quality gates) |
 | verification status | `do-harness status --set verification` | confirm green evidence boundary |
 | individual | `do-harness verify --only <name>` | targeted re-runs |
 | diagnostics | `bash scripts/harness-check.sh arch` / `… security` | focused look at one property; never completion evidence |
+| harness binary | `./scripts/check-do-harness-compat.sh --offline` | which binary resolves, prose pin vs `scripts/do-harness-version.txt`, documented flags, sensor/set parity |
+| harness status contract | `./scripts/check-do-harness-doctrine.sh` | exit-code doctrine and JSON fields, exercised on fixture sensors in a temp root |
 
 `scripts/harness-check.sh` is a shim, not a second harness: `fmt|clippy|deny|test`
 delegate to those sensors with `--strict`, `all` runs the canonical verification set, and
@@ -39,6 +41,16 @@ gates (a private `--lib --tests` clippy with 27 suppressions, `PASS` for skipped
 CI; that is issue #1246 and `scripts/test-harness-entrypoint.sh` pins the contract now.
 
 Sensors are defined in `do-harness.toml`; run `do-harness list` to see them.
+
+The version above is not a guess and not a hope: `scripts/do-harness-version.txt`
+carries the pin plus the newest release the probes have actually been measured green
+against, and the `harness-compat` sensor goes red the moment the installed binary, that
+file, and any routing doc disagree. CI re-runs the same two probes against published
+binaries (`.github/workflows/skill-evals.yml`, `harness-compat` job), each
+checksum-verified from the release's `checksums.txt`, and `scripts/test-do-harness-compat.sh`
+proves with 18 fixture mutations that neither probe can pass vacuously. Upgrading the
+CLI is therefore a deliberate change: run the probe against the new binary, record the
+result, and only then raise the number.
 
 ## Self-Correction Protocol
 1. Read the full error output — it includes the failing check.
@@ -64,6 +76,12 @@ signature in `.do-harness/agent_state.db`, and surface a diagnostic.
 - Never trust LLM self-assessment over a computational sensor's exit code.
 - Fix the sensor that fired; do not refactor unrelated code in the same pass.
 - An empty sensor suite passes vacuously; that is not evidence.
+- Exit codes carry the doctrine: **0 = ran and passed, 1 = ran and failed, 2 = could
+  not run**. A gate that never started must never be readable as a pass, so the harness
+  probes exit 2 (`HARNESS BLOCKED …`) when no binary resolves.
+- An unspawnable sensor argv is reported by `do-harness` as a *failed* sensor with
+  `exit_code: null` — the exit code alone cannot tell "gate red" from "gate never ran",
+  so read the JSON, not the number.
 
 ## Steering Loop
 

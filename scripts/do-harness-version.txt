@@ -1,0 +1,14 @@
+# do-harness CLI version contract — the single tracked reference for the harness
+# binary this repository's agent workflow is validated against (issue #1247).
+#
+# `pin` is what `scripts/check-do-harness-compat.sh` requires locally (>= pin) and
+# what `.github/workflows/harness-compat.yml` downloads exactly, with the sha256 from
+# the release's `checksums.txt`. AGENTS.md, HARNESS.md and the harness skill must name
+# this same number — the probe fails if they name anything else.
+#
+# `validated_through` is the newest upstream release the same probe has been measured
+# green against. Raising it is a deliberate change: run
+#   ./scripts/check-do-harness-compat.sh --bin <binary-of-that-version>
+# and record the output on the PR. Prose may not cite a version above this line.
+pin = "0.1.0"
+validated_through = "0.4.1"

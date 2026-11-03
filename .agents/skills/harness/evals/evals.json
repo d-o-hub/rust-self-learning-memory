@@ -44,6 +44,21 @@
       "name": "state-db-ignored",
       "description": ".do-harness/ local state DB is gitignored",
       "exec": "rg -q '^\\.do-harness/$' .gitignore"
+    },
+    {
+      "name": "harness-pin-single-source",
+      "description": "the harness version pin has one tracked source and the routing doc points at it",
+      "exec": "rg -q '^pin = ' scripts/do-harness-version.txt && rg -q 'scripts/do-harness-version.txt' AGENTS.md"
+    },
+    {
+      "name": "compat-probes-documented-and-runnable",
+      "description": "the skill names both CLI-contract probes and the scripts it names exist",
+      "exec": "rg -q 'check-do-harness-compat\\.sh' .agents/skills/harness/SKILL.md && rg -q 'check-do-harness-doctrine\\.sh' .agents/skills/harness/SKILL.md && test -x scripts/check-do-harness-compat.sh && test -x scripts/check-do-harness-doctrine.sh"
+    },
+    {
+      "name": "compat-probes-are-sensors",
+      "description": "both probes are declared sensors, so they run in the completion contract rather than only as manual commands",
+      "exec": "rg -q '^name = \"harness-compat\"' do-harness.toml && rg -q '^name = \"harness-doctrine\"' do-harness.toml && rg -q 'harness-compat' AGENTS.md && rg -q 'harness-doctrine' AGENTS.md"
     }
   ]
 }

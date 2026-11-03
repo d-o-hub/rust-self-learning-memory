@@ -108,6 +108,16 @@ design preserves.
 
 - CI is the second pair of eyes, not the first: reproduce CI's exact command
   (toolchain, feature set) when a gate disagrees with local results.
+- The harness CLI is part of what is being verified, so it is verified too:
+  `harness-compat` (`./scripts/check-do-harness-compat.sh`) pins the binary in
+  `scripts/do-harness-version.txt`, requires every routing doc to state that same
+  number, and checks the flags this file documents actually exist on the installed
+  binary; `harness-doctrine` (`./scripts/check-do-harness-doctrine.sh`) proves the
+  exit-code and JSON contract on fixture sensors in a temp root. Both are in the
+  `verification` set, so they are already in the run above. An upgrade is a deliberate
+  change: `./scripts/check-do-harness-compat.sh --bin <new binary> --expect-version
+  <x.y.z>`, and only raise the pin once that is green (LESSON-063 — a documented
+  invocation nobody ever executed is a phantom affordance).
 - Changing a skill or `plans/GATE_CONTRACT.md`? Also run
   `./scripts/run-evals.sh --fixtures` and
   `./scripts/validate-gate-contract.sh --ci-parity` locally — the Skill Evals

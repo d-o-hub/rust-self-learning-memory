@@ -73,7 +73,18 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning']
+        # `style` is the lowest shellcheck tier, and the threshold has to sit at or
+        # below the one the required Codacy check uses: Codacy gates on *new* issues at
+        # any severity, and pre-commit only ever passes the files this commit touched,
+        # so the two scopes match. At `warning` the SC2030/SC2031/SC2086 classes are
+        # invisible locally and the required check is the first place that says so.
+        # There is deliberately no .shellcheckrc: shellcheck ignores a `severity=` key
+        # there, so the threshold can only live in these args; `source-path=SCRIPTDIR`
+        # would fix 0 findings (SC1091 only appears under `-x`, which neither this hook
+        # nor Codacy passes); and a global `disable=` would mute exactly the classes
+        # this raise exists to catch. Recorded here because an absent file is otherwise
+        # indistinguishable from an unmade decision.
+        args: ['--severity=style']
         files: '^scripts/.*\.sh$'
 
   # YAML linting

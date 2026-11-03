@@ -134,3 +134,104 @@ jobs:
             echo ""
             echo "Event: \`${{ github.event_name }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Issue #1247 - the routing docs name a pinned do-harness version and write the
+  # completion contract as `do-harness verify --set verification --strict --record`.
+  # This job provisions that published binary from its release checksum and asks the
+  # CLI whether the contract is still true. No cargo, no sensor suite: the expensive
+  # validation stays in ci.yml, and the probes here prove option/config/JSON/exit-code
+  # compatibility against the pin floor and the newest measured release.
+  harness-compat:
+    name: Harness CLI contract (${{ matrix.version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Matrix values reach the shell only through the environment, never interpolated
+      # into a command line.
+      DH_VERSION: ${{ matrix.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep in step with scripts/do-harness-version.txt; the step below fails loudly
+        # rather than silently testing nothing when the two drift apart.
+        version: ['0.1.0', '0.4.1']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install jq
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends jq
+
+      - name: Matrix matches the tracked version reference
+        run: |
+          set -euo pipefail
+          want="$DH_VERSION"
+          pin=$(sed -n 's/^pin *= *"\([^"]*\)".*/\1/p' scripts/do-harness-version.txt)
+          ceiling=$(sed -n 's/^validated_through *= *"\([^"]*\)".*/\1/p' scripts/do-harness-version.txt)
+          if [[ "$want" != "$pin" && "$want" != "$ceiling" ]]; then
+            echo "::error::matrix entry $want is neither the pin ($pin) nor validated_through ($ceiling) from scripts/do-harness-version.txt"
+            exit 1
+          fi
+          echo "Provisioning do-harness $want (pin=$pin, validated_through=$ceiling)"
+
+      - name: Download and checksum-verify the published binary
+        run: |
+          set -euo pipefail
+          v="$DH_VERSION"
+          asset="do-harness-v${v}-x86_64-unknown-linux-musl.tar.gz"
+          work="$RUNNER_TEMP/do-harness"
+          mkdir -p "$work"
+          cd "$work"
+          gh release download "v${v}" --repo d-o-hub/do-harness --pattern "$asset" --pattern checksums.txt
+          # Fail closed: `sha256sum --check` on an empty filter input exits 0, so the
+          # checksums entry has to be proven present before it is trusted.
+          if ! grep -qF "$asset" checksums.txt; then
+            echo "::error::checksums.txt for v${v} has no entry for $asset"
+            exit 1
+          fi
+          grep -F "$asset" checksums.txt | sha256sum --check --strict
+          tar -xzf "$asset"
+          bin=$(find . -type f -name do-harness | head -1)
+          test -n "$bin"
+          chmod +x "$bin"
+          {
+            echo "DO_HARNESS_BIN=$work/$bin"
+            echo "DH_BINARY_SHA256=$(sha256sum "$bin" | cut -d' ' -f1)"
+          } >> "$GITHUB_ENV"
+          echo "Installed $("$bin" --version) at $work/$bin"
+
+      - name: Compatibility probe (pin, prose, option surface, sensor pack)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/check-do-harness-compat.sh
+          # --offline, deliberately: the probe's last step executes a real workspace
+          # sensor, and fmt's argv is `cargo fmt`, so on this cargo-free runner the
+          # sensor cannot spawn and exit_code comes back null - a violation by design,
+          # because an unspawnable configured sensor is exactly what the probe exists
+          # to catch. Real execution is proven in CI by the status-contract probe,
+          # which runs its fixture sensors through `bash`.
+          ./scripts/check-do-harness-compat.sh \
+            --offline \
+            --bin "$DO_HARNESS_BIN" \
+            --expect-version "$DH_VERSION" \
+            --expect-sha256 "$DH_BINARY_SHA256"
+
+      - name: Status-contract probe (exit codes, JSON schema, --strict, --record)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/check-do-harness-doctrine.sh
+          ./scripts/check-do-harness-doctrine.sh \
+            --bin "$DO_HARNESS_BIN" \
+            --expect-version "$DH_VERSION"
+
+      - name: Contract cases (fixture-proven detectors)
+        # The stub-driven mutations do not use the provisioned binary; they prove the
+        # two probes above cannot pass vacuously.
+        run: |
+          set -euo pipefail
+          chmod +x scripts/test-do-harness-compat.sh
+          ./scripts/test-do-harness-compat.sh

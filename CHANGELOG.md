@@ -140,6 +140,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acceptance), and a comment that merely *mentions* `bypass_rules=true` was
   verified not to trip it.
 
+- New harness sensors `harness-compat` and `harness-doctrine`, with the version
+  contract they enforce now tracked in `scripts/do-harness-version.txt` (issue #1247).
+  The repository documented `do-harness verify --set verification --strict --record`
+  and "Pinned compatible harness version: `v0.1.0`" in four routing surfaces, and
+  nothing anywhere checked that the binary on PATH accepts those flags, emits the JSON
+  those commands parse, or is that version at all (LESSON-063 — an invocation nobody
+  executed). `check-do-harness-compat.sh` resolves the binary independently of PATH
+  (a second `do-harness` on PATH is itself a violation: the probe would then certify a
+  binary the workflow does not run), requires the installed binary to satisfy the tracked
+  pin (and, under `--expect-version`, to be exactly the version the job downloaded),
+  requires every doc's claim to equal that reference, asserts the subcommands and flags
+  this repository's own commands cite still exist, checks `do-harness.toml` set/sensor
+  parity plus `explain --set` agreement, and fails on a script-backed sensor whose path
+  is gone. `check-do-harness-doctrine.sh` is repo-independent: it builds a throwaway
+  fixture root and exercises the status contract there — 0 ran-and-passed, 1
+  ran-and-failed, 2 could-not-run, an unspawnable `argv` reported as
+  `exit_code: null`, `--strict` refusing weak evidence, `--record` then
+  `status --set` turning green. Both exit **2**, never 1, when nothing could be
+  verified, so an absent binary cannot read as a pass. `scripts/test-do-harness-compat.sh`
+  runs 18 fixture mutations against the two probes (older-than-pin, prose drift, a dropped
+  subcommand, a dropped `--strict`, set-membership drift, a missing sensor path, a red
+  sensor reported as green, PATH shadowing, a checksum mismatch, a dirty build, blocked
+  cases, and four doctrine inversions) and fails if any probe passes vacuously.
+  `.github/workflows/skill-evals.yml` gained a `harness-compat` job that downloads
+  0.1.0 and 0.4.1 from the published releases, verifies each against the release's
+  `checksums.txt` before executing it, refuses to start if the matrix drifts from
+  `scripts/do-harness-version.txt`, and runs both probes plus the contract suite —
+  so the pin is evidence rather than a claim. Both the sensor and the CI step pass
+  `--offline`, which skips the probe's own real-sensor step: that step runs `cargo fmt`,
+  so inside a `verification` run it would duplicate work, and on the deliberately
+  cargo-free Skill Evals runner the sensor could not spawn at all — an unspawnable
+  configured sensor is exactly what the probe reports as a violation, so the flag is
+  what keeps the job honest rather than accidentally red. Real execution is proven in CI
+  by the doctrine probe, whose fixture sensors run through `bash` (a green one, one that
+  exits 3, and one whose program does not exist). Two upstream defects found while
+  measuring are filed against `d-o-hub/do-harness`: #446 (`verify --dry-run` spawns the
+  sensor processes, so a preview silently executes) and #447 (an unspawnable `argv` exits
+  1, the same code as a real gate failure, so a PATH or `argv` typo reads as red tests).
+  A third measured no-op — `--output <FILE>` documented as "Default output file path"
+  while writing nothing on 0.1.0/0.1.1 — is already fixed upstream: 0.4.1 rewords the
+  help and creates the file, so it is recorded here rather than filed.
+
 - `merge-pr.sh` refuses `--method merge` outright — exit 2, before any API call —
   and its usage text now lists only `squash|rebase`. Advertising an option that
   cannot land on a linear-history branch is a phantom affordance (LESSON-063),

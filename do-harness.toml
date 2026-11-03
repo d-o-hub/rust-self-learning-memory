@@ -25,6 +25,8 @@ verification = [
   "agents-md-ids",
   "merge-method",
   "release-blockers",
+  "harness-compat",
+  "harness-doctrine",
   "docs",
   "test",
   "csm-feature",
@@ -132,6 +134,21 @@ argv = ["bash", "scripts/check-merge-method.sh"]
 [[sensors]]
 name = "release-blockers"
 argv = ["bash", "scripts/check-release-blockers.sh", "--self-test"]
+
+# The docs name a pinned harness version and the completion contract is written as
+# `do-harness verify --set verification --strict --record`. Nothing checked that the
+# binary on PATH accepts those flags or emits the JSON agents parse, so a silent CLI
+# change would read as a green run (LESSON-063). `--offline` skips the probe's own
+# real-sensor step, which would otherwise run `cargo fmt` inside a run that already
+# runs it; CI passes `--offline` too (its runner is cargo-free by design) and the
+# doctrine sensor proves real execution on fixture sensors.
+[[sensors]]
+name = "harness-compat"
+argv = ["bash", "scripts/check-do-harness-compat.sh", "--offline"]
+
+[[sensors]]
+name = "harness-doctrine"
+argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
 
 [[sensors]]
 name = "loc"

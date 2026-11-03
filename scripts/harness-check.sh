@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # harness-check.sh — Structured HARNESS VIOLATION output for agents
 # Usage: bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|security|all>
+#
+# NOT a completion gate. The `clippy` here allows 27 lints over `--lib --tests`; the
+# do-harness `clippy` sensor allows 3 over `--workspace --tests` via
+# `scripts/code-quality.sh clippy --workspace`. Green here does not mean green in CI.
 set -euo pipefail
 
 RED='\033[0;31m'

@@ -63,7 +63,13 @@ cargo tarpaulin --workspace
 
 ### Benchmark Timeout
 ```bash
-# Increase timeout-minutes in workflow YAML
+# Do NOT start by raising timeout-minutes. Measure the real cost first, then set
+# one binary-level override above the slowest measured run (LESSON-028):
+cargo nextest run -p <crate> --test <target> <test_name> -- --exact   # uncapped
+# nextest caps live in .config/nextest.toml ([profile.default] slow-timeout /
+# terminate); a per-test override beats lengthening the whole job, and a job's
+# own `timeout-minutes` must never be its normal exit path — a self-cancelled run
+# counts as a failed run and blocks `release-manager.sh ci-check` (LESSON-027).
 ```
 
 ### Check Quick Check Status CANCELLED after 15m
@@ -158,6 +164,11 @@ when the `csm` feature links.
 gh pr edit <n> --remove-label release-preparation
 gh pr edit <n> --add-label release-preparation   # human actor => `labeled` run
 # See LESSON-049 (and LESSON-044 for the synchronize-event variant)
+# SCOPE: toggling the label is only for the release-preparation PR itself. On a
+# plain version-bump PR a failing `--check-unreleased` is the CORRECT state — the
+# version advanced without a tag (LESSON-057). Fix it by landing the bump, not by
+# overriding the gate, and never write a `## [X.Y.Z]` heading for a version that
+# has not shipped (sensor `changelog-headings`, LESSON-071).
 ```
 
 ### Nightly is red — or "nightly didn't run"
@@ -207,7 +218,7 @@ cargo nextest run -p do-memory-storage-turso --features turso_multi_dimension \
 ```bash
 # Symptom: cargo audit and cargo deny are green in CI while the Security tab
 #          still lists advisories. This is a NORMAL state, not a broken gate —
-#          the two tools and Dependabot read three different registers.
+#          the two tools and Dependabot read three different registers (LESSON-056).
 # Classify the register BEFORE touching any gate:
 gh api "/repos/{owner}/{repo}/dependabot/alerts?state=open" \
   -q '.[] | [.security_advisory.cve_id, .dependency.manifest_path,
@@ -265,7 +276,7 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   `redundant_explicit_links` in 1.99). Diagnose by `rustup update stable` and
   reproducing on **untouched `main`** before bisecting your branch; if `main`
   reproduces it, it is not your PR's failure. The fix is always the lint itself,
-  never a suppression and never relaxing the gate (LESSON-039, LESSON-040).
+  never a suppression and never relaxing the gate (LESSON-029, LESSON-039, LESSON-040).
 - A row stuck at `skipping` forever on a PR is not a skipped gate.
   `Maintain canonical drift issue` is guarded by
   `if: github.event_name != 'pull_request'`, so it only ever runs on schedule
@@ -275,13 +286,42 @@ grep -n 'informational' ~/.cargo/advisory-dbs/*/crates/*/RUSTSEC-*.md | head
   rows outside `.rules[].parameters.required_status_checks` don't unblock
   anything, and an unresolved review thread can keep `mergeStateStatus` at
   `BLOCKED` with every check passing (LESSON-050).
+- A `BLOCKED` merge with **zero pending rows** and only App-based rows (Codacy,
+  CodeQL) present is not slow CI — it is either a self-suppressed head commit or
+  a run that has not been created yet. `statusCheckRollup`
+  omits `action_required` rows entirely, so a green rollup can be an empty one.
+  Probe the commit directly: `gh api
+  "repos/{owner}/{repo}/commits/<head_sha>/check-runs" -q '.total_count'`
+  (0 = self-suppressed, see the commit-token rule above); the per-job form is
+  `gh api repos/{owner}/{repo}/actions/jobs/<job_id> --jq '.status,.conclusion'`
+  (LESSON-067, LESSON-065). Only a token in the head message proves "never
+  ran"; without one, re-query — see the next bullet.
+- The second cause of an empty rollup is **timing**. App-based rows (Codacy,
+  SonarCloud) post within seconds, while the first `pull_request` run may take a
+  minute or more to appear — so `gh run list --branch <br>` returning nothing 60s
+  after a push means "not yet", not "never". Re-query, and get the per-commit
+  truth from the API rather than the rollup:
+  `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
+  | "\(.event) \(.name) \(.created_at)"'`. Pass the **full 40-character** sha —
+  `head_sha=2657fcbb` returned zero rows for a head that had 10 runs queued, and
+  an empty list from a truncated sha is indistinguishable from no CI.
+  Do **not** infer a cause from one
+  snapshot: seven gating workflows here filter
+  `pull_request: branches: [main, develop]`, which looks like the reason a
+  feature-branch-based PR has no runs, and that inference was wrong — runs did
+  exist for the same head SHA (LESSON-080).
 
 ## Fix Commands
 
 ```bash
 # Linting
 cargo fmt --all
-cargo clippy --workspace --fix --allow-dirty
+# Go through the script: it carries the repo's `-A` allow-list, so a bare
+# `cargo clippy --workspace --fix` re-invents both the flag set and the target
+# set (LESSON-069). The canonical CI gate is `--workspace --tests` — a
+# `--lib`-only run can be green while CI fails, because some lints only fire in
+# the `lib test` target (LESSON-068).
+./scripts/code-quality.sh clippy --workspace --fix
 
 # Testing
 cargo test --workspace -- --nocapture

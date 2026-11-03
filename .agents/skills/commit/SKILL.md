@@ -130,8 +130,15 @@ git push --force-with-lease origin <branch>
 
 Also:
 - Run `cargo fmt --all` before pushing — CI Quick Check fails on fmt drift.
-- Never add `chore(ci): re-trigger workflow runs` empty commits; instead fix
-  the underlying failure or re-run the workflow from the Actions UI.
+- Never add an empty commit to make a **real** failure go away; fix the
+  underlying cause. An empty commit *is* the sanctioned re-trigger when
+  `statusCheckRollup` is holding stale `FAILURE` rows for a name that already
+  reports `SUCCESS`, because those rows only clear on a fresh SHA (LESSON-052).
+  Say which in the message: `chore: re-trigger CI after <reason>`.
+- Never put a GitHub CI skip-control token in a commit message or PR body — not
+  even quoted in prose describing it, since the matcher scans the whole head
+  message and the branch then has zero runs (sensor `commit-ci-tokens`,
+  commit-msg hook, LESSON-065).
 
 ## References
 

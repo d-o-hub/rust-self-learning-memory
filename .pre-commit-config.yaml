@@ -60,6 +60,14 @@ repos:
         stages: [commit-msg]
         additional_dependencies: ['@commitlint/config-conventional']
 
+      # A CI control token anywhere in the message body self-suppresses the
+      # branch's runs and blocks the merge with nothing pending (LESSON-065).
+      - id: commit-ci-tokens
+        name: Commit message CI tokens
+        entry: bash scripts/check-commit-ci-tokens.sh --file
+        language: system
+        stages: [commit-msg]
+
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1

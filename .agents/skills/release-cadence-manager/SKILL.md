@@ -76,6 +76,29 @@ Phase 5: Update Plans & Documentation [Documentation]
 
 ## Drift Detection
 
+### Measure in the tree you are reporting about (LESSON-073)
+
+Every number this skill prints is a function of `HEAD`, the tag set and the
+working tree — so a stale checkout produces a confident wrong answer, and it is
+the *comfortable* wrong answer (`severity=clean reason=within_cadence`) that gets
+believed. Observed: local `detect` said `clean` from `d85efb5c` (the `v0.1.46`
+tag, 4 commits behind `origin/main`) while CI's `Check for unreleased changes` on
+a branch containing that same `main` said `critical reason=version_not_advanced`;
+after a fast-forward both agreed.
+
+```bash
+git fetch origin main
+git rev-parse HEAD origin/main            # equal, or say which one you measured
+git rev-list --count HEAD..origin/main    # 0 expected
+git merge-base --is-ancestor <latest-tag> origin/main
+```
+
+For a one-off measurement, prefer a detached worktree at `origin/main`
+(`git worktree add --detach <path> origin/main`, removed afterwards) over the
+long-lived checkout, and always name the SHA in any release number reported. The
+same trap covers `git status` "working-tree cleanliness unknown" and a shared
+`CARGO_TARGET_DIR` (LESSON-038).
+
 ### Severity Levels
 
 | Severity | Condition | Action |

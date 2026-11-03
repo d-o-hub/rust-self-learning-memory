@@ -219,8 +219,8 @@ async fn test_network_dependent() {
 **Problem**: Plans reported stale metrics (e.g., "50 dead_code" when actual was 46; "76 snapshots" when actual was 80). Multiple plan files had inconsistent data.
 
 **Prevention**:
-- Always verify metrics by running actual commands, not trusting plan docs
-- Update ALL plan files (CURRENT.md, GOAP_STATE.md, ROADMAP_ACTIVE.md) together
+- Always verify metrics by running actual commands, not trusting plan docs (LESSON-001: `gh release view <tag>` and `cargo metadata --no-deps --format-version 1` before any roadmap or version-bump edit)
+- Update ALL plan files (CURRENT.md, GOAP_STATE.md, ROADMAP_ACTIVE.md, GOALS.md, ACTIONS.md) in one pass — a reprioritization landed in only one of them leaves the others describing the old sprint goal (LESSON-002)
 - Metrics to verify: `grep -r '#[allow(dead_code)]' | wc -l`, `find -name "*.snap" | wc -l`, `cargo nextest run --all 2>&1 | tail -5`
 
 ### 4. PR Supersession Tracking

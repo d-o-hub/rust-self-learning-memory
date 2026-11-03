@@ -92,7 +92,7 @@ do-memory-cli storage sync
 
 **Root causes** (issues #830 / #831):
 
-1. **Different DB path across processes** — `--db-path` / `MEMORY_DB_PATH` must be the same for create, complete, and list. The flag always sets `redb_path` (local default backend). Without it, each process may open a different XDG cache path.
+1. **Different DB path across processes** — `--db-path` / `MEMORY_DB_PATH` must be the same for create, complete, and list. The flag always sets `redb_path` (local default backend). Without it, each process may open a different XDG cache path, and an unset `redb_path` gets a leaked `tempfile::tempdir()` cache that dies with the process (LESSON-013: `:memory:` is **not** special to redb — `RedbStorage::new(":memory:")` creates a file literally named `:memory:`; the trap surfaced as "episodes saved" that were gone in the next invocation, so test storage paths across process boundaries, never in one process only).
 2. **In-memory-only pattern map** — a fresh CLI process must load patterns from redb/Turso (`get_all_patterns`). If list is empty after complete logged "Successfully cached pattern", verify durable store + same `--db-path`.
 3. **No steps logged** — create+complete alone still yields **ContextPattern**; tool-sequence patterns need `log-step --success`.
 4. **Missing `--success` on log-step** — without the flag, steps are recorded as failures; tool-sequence extractors may skip them.

@@ -1,0 +1,4 @@
+# Lessons in agent_docs/LESSONS.md with no citation outside that file
+#   for scripts/check-lesson-distillation.sh — ratchet ceiling, never raise it
+# Regenerate with: ./scripts/check-lesson-distillation.sh --update
+0

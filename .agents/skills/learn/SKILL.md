@@ -44,7 +44,7 @@ Every new non-obvious insight must be recorded in two places:
 1. **Verbose Log**: Add a full `LESSON-NNN` entry to `agent_docs/LESSONS.md` with Issue/Root Cause/Solution.
 2. **Distilled Note**: Add a 1–3 line note to the nearest `AGENTS.md` (this is what `learn` automates).
 
-If `agent_docs/LESSONS.md` does not exist yet, create it before relying on the dual-write workflow.
+If `agent_docs/LESSONS.md` does not exist yet, create it before relying on the dual-write workflow (LESSON-003: the contract was documented before the log file existed). Keep the log verbose and root `AGENTS.md` compact — the distilled note is a pointer, not a copy.
 
 ### Format
 

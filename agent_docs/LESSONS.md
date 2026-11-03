@@ -2,7 +2,7 @@
 
 Compact log for non-obvious workflow learnings. Pair each entry here with a short distilled note in the nearest `AGENTS.md`.
 
-## LESSON-011: NEVER rush merges — wait for ALL CI, never use --admin
+## LESSON-078: NEVER rush merges — wait for ALL CI, never use --admin
 
 - Issue: PR #806 merged when `mergeStateStatus` was `UNSTABLE` (not `CLEAN`) using `gh pr merge --admin`. This bypassed branch protection and caused pre-existing CI failures to ship to main. Required follow-up PRs (#810, #811) to fix the failures.
 - Root Cause: Agent rushed to "complete the task" instead of following the mandatory PR health check procedure. The pr-readiness skill was never loaded. The `--admin` flag was used as a shortcut instead of fixing the underlying issues.
@@ -11,7 +11,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   2. NEVER use `--admin` or `--force` — fix the code, don't bypass the gate
   3. NEVER merge when `mergeStateStatus` is anything other than `CLEAN`
   4. Wait for ALL checks to reach terminal state before merging
-  5. Follow the Mandatory Pre-Merge Checklist in AGENTS.md
+  5. Follow the **PR Health Check** section in AGENTS.md
 
 ## LESSON-010: Coderabbitai review loop — verify each finding against current code
 
@@ -93,7 +93,8 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Issue: `cleanup_yaml.py` and `remove_redundant_cache.py` were committed to the repository root as one-off CI cleanup utilities.
 - Root Cause: Ad-hoc scripts created during CI fixes were committed directly to root without considering long-term maintenance or placement conventions.
 - Solution: Place reusable scripts in `scripts/`, delete one-off scripts after use, and never commit `.py` or `.sh` files to the repository root. Use `plans/` for design notes, `target/` for build artifacts.
-- Reference: `AGENTS.md` "Disk Space" section — "No Temporary Files in Root" guard rail.
+- Reference: `agent_docs/disk_hygiene.md` — "No Temporary Files in Root" guard rail
+  (`AGENTS.md` no longer carries a Disk Space section).
 
 ## LESSON-015: Feature-gated test code requires matching cfg on ALL imports
 
@@ -105,12 +106,31 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Location: `tests/hybrid_storage_recovery.rs`
 - Reference: Rust Reference §Conditional Compilation; <https://effective-rust.com/features.html>
 
-## LESSON-016: GOAP swarm for PR batch merges with auto-merge
+## LESSON-016: GitHub's merge queue orders dependent PRs — but it is not a merge path
 
-- Issue: 5 PRs with CI still running needed coordinated merge in dependency order
-- Root Cause: Manual sequential merge waiting is wasteful when PRs are independent
-- Solution: Enable `gh pr merge --squash --auto` on all PRs simultaneously. GitHub handles merge ordering via branch protection. Required Check Anchor is the only true merge gate; CANCELLED checks (Coverage, YAML Lint) are non-required noise.
-- Key insight: Auto-merge + squash is safe for independent PRs. Monitor via `gh pr view --json state,autoMergeRequest` rather than polling individual checks.
+- Issue: 5 PRs with CI still running needed coordinated merge in dependency order; waiting on each
+  one in sequence wasted wall-clock.
+- Root Cause: Treating "merge in dependency order" as a client-side scheduling problem, when the
+  GitHub auto-merge queue already re-checks branch protection after every merge.
+- Solution (the part that still holds): let the platform sequence the merges instead of polling
+  check-by-check, and monitor with `gh pr view --json state,autoMergeRequest`.
+- **Superseded — do not copy the mechanism as written.** Two claims in the original entry are
+  wrong and one is forbidden here:
+  1. `gh pr merge --squash --auto` is **not** a sanctioned merge path in this repository. Every
+     merge goes through `./scripts/merge-pr.sh <PR> --execute`, which re-evaluates readiness
+     first; a raw `--auto` queues a merge that never passes those gates (AGENTS.md → PR Health
+     Check, `pr-readiness` skill).
+  2. "CANCELLED checks are non-required noise" is false. The ruleset `main-protection`, not
+     branch protection, decides what blocks, and a cancelled row keeps `mergeStateStatus` away
+     from `CLEAN` — which is exactly why you must never cancel a PR you intend to merge
+     (LESSON-041, LESSON-050).
+  3. "Required Check Anchor is the only true merge gate" is stale vocabulary; read the live
+     requirement list from `.rules[].parameters.required_status_checks` (LESSON-050).
+- Key insight: A lesson about *what is efficient* must be re-verified against *what is allowed*
+  before it is routed into a skill — an efficiency trick that bypasses a gate reads as
+  authorization to the next agent that follows it.
+- Prevention: `scripts/check-lesson-distillation.sh` routes every id; the contradiction rule in
+  LESSON-079 (resolve toward the enforcing script).
 
 ## LESSON-021: Never gate cheap CI jobs on a 15m Quick Check wait
 
@@ -1059,12 +1079,15 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `set -e` scripts; never rely on a bare `((VAR++))`. Treat a summary tool's
   output length as an assertion, not an assumption — the sweep must report
   `N` PRs where `N == gh pr list --state open | wc -l`, or say plainly that it
-  stopped early. Same rule as the empty-report trap in AGENTS.md's
-  machine-readable-output bullet: a short report is a broken report until proven
-  otherwise, and fixing it here turned "2 PRs, nothing else to see" into 9 PRs
-  with one genuinely red branch.
-- References: `scripts/check-pr-readiness.sh`, PR #1177, PR #1171,
-  AGENTS.md (machine-readable-output trap), LESSON-026, LESSON-036
+  stopped early. Same rule as the empty-report trap (LESSON-026, LESSON-036):
+  a short report is a broken report until proven otherwise, and fixing it here
+  turned "2 PRs, nothing else to see" into 9 PRs with one genuinely red branch.
+  The counter form is now a gate: sensor `shell-counters`
+  (`scripts/check-shell-counters.sh`) ratchets bare `((VAR++))` in tracked
+  shell.
+- References: `scripts/check-pr-readiness.sh`, `scripts/check-shell-counters.sh`,
+  PR #1177, PR #1171,
+  LESSON-026, LESSON-036
   (vacuous-green / empty-artifact class).
 
 ## LESSON-060: a package-scoped clippy run turns `#![expect(...)]` gates into false errors (2026-10-16)
@@ -1586,8 +1609,17 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `fuzz/Cargo.lock` pins the local crates at `0.1.39` (stale by 7 releases, harmless because
   `Cargo.toml` `exclude = ["fuzz"]` makes it a separate workspace and no CI job builds the repo
   with `--locked`), so a version bump PR is *not* expected to touch it.
+  **This last clause is superseded by PR #1241** (the guard is on that branch, not yet on
+  `main`): `scripts/check-lockfile-sync.sh:31` lists `fuzz/Cargo.toml|fuzz/Cargo.lock` in its
+  `GRAPHS` and `:51` runs `cargo metadata --locked --manifest-path fuzz/Cargo.toml`, and the
+  sensor is registered in `do-harness.toml:85`. Once it merges, the fuzz graph *is* checked
+  with `--locked`, so a bump that changes a path dependency's version must re-resolve
+  `fuzz/Cargo.lock` — which PR #1240 already did in `9c0a6584`. The tree-identity rule above
+  is unaffected; only the aside about the fuzz lock was time-bound.
 - References: PRs #1192/#1193, `scripts/release-cadence-manager.sh`,
-  `scripts/check-release-drift.sh`, AGENTS.md "Shared `CARGO_TARGET_DIR`", LESSON-056.
+  `scripts/check-release-drift.sh`, AGENTS.md Core Invariants → **Build
+  isolation** (shared `CARGO_TARGET_DIR`, LESSON-038), `agent_docs/disk_hygiene.md`,
+  LESSON-056.
 
 ## LESSON-074: a two-dot diff against `main` manufactures "the bot branch reverted merged work" findings (2026-10-19)
 
@@ -1815,3 +1847,245 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `agent_docs/dependency_upgrades.md`, LESSON-046..048 (a green audit only means
   nothing un-ignored reached `.vulnerabilities`), LESSON-050 (the ruleset decides
   what blocks a merge).
+
+## LESSON-079: a routing doc that states a rule the tools contradict is worse than no rule (2026-11-02)
+
+- Issue: distilling this log into the routing layer surfaced seven defects of the
+  same class, all verified against the tree rather than inferred:
+  1. `ci-poll/SKILL.md` still read *"Exit 0 = all listed checks passed"* — the
+     exact sentence LESSON-072 asked be replaced. The lesson was written; the
+     doc was never changed.
+  2. `commit/SKILL.md` said *"never add an empty re-trigger commit"* while
+     `pr-readiness/SKILL.md` said *"re-trigger on a fresh SHA
+     (`--allow-empty` commit + push)"* — opposite instructions for one decision,
+     both routed from `AGENTS.md`.
+  3. `ci-fix/SKILL.md`'s fix command was `cargo clippy --workspace --fix`, which
+     omits `--tests` and the repo's `-A` allow-list, contradicting the gate
+     itself (`scripts/code-quality.sh`) and LESSON-068/069.
+  4. `AGENTS.md` §Workflow Traps and LESSON-064/074 cite a bot/agent-branch trap
+     section that no longer exists: it was dropped in `81a2076a` during a
+     shrink of `AGENTS.md`, and every citation was left behind.
+  5. `LESSON-011` was the id of two different entries, so any citation of it is
+     ambiguous — and nothing in the harness could notice.
+  6. `LESSON-016` itself told agents to run `gh pr merge --squash --auto` and
+     called CANCELLED checks "non-required noise". Both contradict the enforced
+     merge path (`merge-pr.sh`) and LESSON-041/050 (a cancelled row keeps
+     `mergeStateStatus` off `CLEAN`). An efficiency note that bypasses a gate
+     reads as authorization to whoever follows it.
+  7. `HARNESS.md` introduced `scripts/harness-check.sh` as "run all sensors
+     locally", but its `clippy` is `--lib --tests` under **27** `-A` suppressions
+     while the `clippy` sensor is `--workspace --tests` under **3**. Green there
+     does not mean green in CI, and the script is not a registered sensor.
+- Why it matters: an agent treats the routing layer as ground truth, so a wrong
+  rule produces *confident* wrong action, which costs more than a missing rule.
+  The lesson-entry channel made this look handled: each lesson recorded its own
+  fix, and a later refactor removed that fix from the doc while the log kept
+  pointing at it. "I wrote a lesson about it" is not "the routed doc says it".
+- Detection (repeatable, deterministic):
+  1. `scripts/check-lesson-distillation.sh` — duplicate ids fail outright; the
+     count of lessons with no citation outside `LESSONS.md` is a ratchet
+     baseline.
+  2. Pointer rot: for every quoted section name in the log, confirm the heading
+     still exists —
+     `grep -ohE 'AGENTS\.md [“"][^”"]+[”"]' agent_docs/LESSONS.md | sort -u`
+     then check each against `grep -n '^#' AGENTS.md`. Four such pointers were
+     dead; all four are now re-anchored.
+  3. Contradiction sweep: grep the routing layer for the *command* a lesson
+     corrects and diff it against the script that implements the gate. Five of
+     the seven above were found this way, none by reading prose.
+  4. Caveat when writing the guard itself: a text-matching ratchet counts its own
+     documentation. `check-shell-counters.sh` went 35 → 37 the moment it was
+     committed, because its header comment spelled `((i++))` and its baseline
+     header echoed `((var++))`. Fix the matcher (skip whole-line comments, don't
+     spell the token in output strings) rather than raising the ceiling — a
+     baseline of 35 with two non-hits inside is 35 real defects, 37 is not.
+- Fix/prevention: contradictions resolve **toward the enforcing script**, never
+  toward whichever doc was edited last; a re-trigger commit is legitimate only to
+  clear stale rollup rows (LESSON-052), not to hide a real failure; a shrink of
+  `AGENTS.md` is not done until every inbound citation is re-pointed. Guards
+  added with this lesson: `commit-ci-tokens`, `changelog-headings`,
+  `shell-counters`, `agents-md-ids`, `lesson-distillation`.
+- **The distillation step has its own failure mode.** While routing LESSON-010 the
+  paraphrase came out inverted — "bot findings were already fixed by a later
+  commit" instead of "summaries claimed fixes the tree did not contain". Same
+  polarity bug as LESSON-010 itself, produced by writing prose from the *title*
+  instead of re-reading the body. Prevention: after editing a routed doc, diff the
+  new sentence against the lesson's `Solution:` line and check that the sentence
+  would still prevent the original incident.
+  A second instance of the same shape was caught before it shipped: while routing
+  the Codecov behaviour of `check-pr-readiness.sh` I wrote that its
+  `⚠️ Codecov reports missing coverage` line "still prints at 100% patch coverage".
+  It does not — at full coverage Codecov's comment reads
+  `All modified and coverable lines are covered by tests`, which matches none of the
+  patterns at `:107`; three recently merged PRs' comments settled that in one query.
+  The true statement is narrower and more useful, and is what the docs now say: the
+  heuristic reads **only `codecov[bot]` comments**, so a human reply can never clear
+  it, and `:207-211` promotes it to a counted issue precisely when every other gate
+  is `✅ READY`. Writing the confident version ("every report contains that phrase")
+  would have been the third wrong rule of this session.
+- References: PR #1240, PR #1241, this PR, LESSON-063 (phantom affordances — the
+  same class, previously only about release docs), LESSON-072, LESSON-068/069,
+  LESSON-052, `HARNESS.md`, `do-harness.toml`.
+
+## LESSON-080: an empty Actions list one minute after a push is a race, not a verdict (2026-11-02)
+
+- Issue: PR #1242 was pushed at 11:52Z; `gh run list --branch docs/lesson-distillation`
+  returned nothing while `gh pr checks` already showed two green rows (Codacy,
+  SonarCloud), and `mergeStateStatus` was `BLOCKED`. I concluded CI would never
+  run for a PR based on a feature branch, wrote that up as this lesson, and
+  routed it into two skills — all from a single query taken ~60s after the push.
+- What is actually verified:
+  1. The trigger config. `ci.yml`, `coverage.yml`, `security.yml`,
+     `storage-matrix.yml`, `yaml-lint.yml`, `file-structure.yml` and
+     `skill-evals.yml` declare `pull_request: branches: [main, develop]`;
+     `pages.yml`, `release-drift.yml` and `supply-chain.yml` are `main` only.
+  2. The App rows (Codacy/SonarCloud) post before any workflow run exists, so the
+     rollup genuinely looks green-and-empty for a minute.
+  3. The refutation: `pull_request` runs **do** exist for this PR's own commits
+     (`actions/runs?head_sha=…` shows CI, Coverage, Security, Storage Matrix,
+     YAML Lint, … for `99e56446`, created 6s after that push, and for `3c1aaf4b`,
+     created 74 min after its push). The rollup is now 30 rows, not 2. So "no
+     runs yet" was never sufficient evidence for "CI cannot run here".
+  4. The refutation of the *mechanism* too, checked afterwards: those runs carry
+     `event=pull_request`, `head_branch=docs/lesson-distillation` and
+     `pull_requests[].number=1242` — the PR whose base is `ci/lockfile-sync-guardrail` —
+     and were created 3s after the 14:52:26Z `head_ref_force_pushed` timeline event.
+     So `pull_request: branches: [main, develop]` did **not** suppress a
+     feature-branch-based PR, which is the opposite of what reading the filter as
+     "base must be main/develop" predicts. (GitHub does not record base-ref edits
+     in the issue timeline, so "the base was `main` at event time" cannot be
+     excluded outright — but nothing observed supports it either.)
+- Not resolved, and deliberately not written as a rule: what `pull_request.branches`
+  actually gates here. #1242's base has been `ci/lockfile-sync-guardrail` since it
+  was opened, and the observed runs contradict the naive reading. Both #1241 and
+  #1242 moved within 5
+  seconds of each other, consistent with a concurrent automation touching them.
+  The REST run list does not expose the event payload's base ref, so this could
+  not be settled read-only. **A hypothesis that survives only in one direction
+  must not be committed as a rule an agent will act on** — that is LESSON-079's
+  failure, this time produced by me in the same session that documented it.
+- What the investigation did prove, and is the useful part: **another session
+  rewrote both branches under me.** `docs/lesson-distillation` went
+  `3c1aaf4b → 99e56446` with all seven commits replayed at one timestamp, and
+  PR #1240's branch gained a `Merge branch 'main'` commit `85455b06`. My local
+  tip was stale. Recovery that worked: prove containment before touching it
+  (`git diff --stat 3c1aaf4b 99e56446 -- <my files>` printed nothing, so my
+  content survived the replay byte-for-byte), tag a backup, then reset the
+  worktree to the remote — never force-push a stale local over a rewritten one
+  (same family as LESSON-035).
+- Detection (deterministic):
+  1. Re-query before diagnosing: `gh run list --branch <br>` empty at t+60s means
+     "not yet", so read it again after a couple of minutes, and use
+     `gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[]
+     | "\(.event) \(.name) \(.created_at)"'` for the per-commit truth. **The
+     `head_sha` filter needs the full 40-character sha**: `head_sha=2657fcbb`
+     (8 chars, taken straight from `gh pr view --json headRefOid` output that had
+     been sliced) returned zero rows for a head that in fact had 10 runs queued.
+     A truncated sha and a genuinely-absent CI produce the same empty answer, so
+     the query itself is a failure mode — never conclude anything from an empty
+     result without checking that the argument was the full sha.
+  2. Always compare the remote tip with the local one in the same breath:
+     `gh pr view <n> --json headRefOid` vs `git ls-remote origin <br>`. Different
+     shas = someone rebased or merged; stop and reconcile before pushing.
+- Solution applied: the two skill sentences this entry caused are rewritten to
+  say "confirm a run exists, and re-query before concluding it never will"; the
+  base-filter mechanism is recorded as configuration plus an open question, not
+  as a cause.
+- References: PR #1240, PR #1241, PR #1242, LESSON-035, LESSON-050, LESSON-067,
+  LESSON-079 (the class this is an instance of), `.github/workflows/ci.yml`.
+
+## LESSON-081: "Gates passed" and "merge accepted" are not "merged" — an active ruleset rule sat behind the stack error (2026-11-02)
+
+- Issue: `./scripts/merge-pr.sh 1241 --execute` printed `✅ Gates passed — PR #1241 @
+  bfdc69c8…` and then died on the GraphQL merge: `This pull request is part of a stack
+  and must be merged using the asynchronous merge REST API`. That sentence is accurate
+  and completely misleading: it is a door in front of a second, unrelated rejection. Fix
+  only the first and the merge still fails.
+- Evidence chain, in the order it appeared:
+  1. `PUT /repos/{repo}/pulls/1241/merge-async -f sha=<verified head> -f
+     merge_method=merge -f merge_action=direct_merge` → **HTTP 202**
+     `{"status":"pending","details":{"message":"Merge request enqueued.","uuid":"78a257bc-…",
+     "bypass_rules":false}}`. A 202 means *accepted for evaluation*, not merged.
+  2. `GET /repos/{repo}/pulls/1241/merge-async/<uuid>` → `{"status":"failed","details":
+     {"message":"Repository rule violations found\n\nThis branch must not contain merge
+     commits.\n"}}`. The rules are evaluated **during** execution, so nothing in the
+     request path ever told us the method was impossible.
+  3. `GET /repos/{repo}/rulesets` → ruleset `main-protection` (id 9591004, `enforcement:
+     active`) carries `required_linear_history` alongside `deletion`,
+     `non_fast_forward`, `required_review_thread_resolution: true`,
+     `strict_required_status_checks_policy: true`, and required contexts
+     `CI / Required` + `Codacy Static Code Analysis`.
+- **Do not try to date a ruleset rule from its timestamps.** The ruleset reports
+  `created 2025-11-07 / updated 2026-08-10`, yet merge commits landed on `main` as
+  recently as `ce42900e` (2026-11-01, PR #1235). One of those two readings is wrong and
+  neither API says which, so this entry records the contradiction instead of a cause.
+  What is proven: on 2026-11-02 `merge_method=merge` cannot land on `main` and `squash`
+  can (`3e10aad0`, PR #1240).
+- Why the default became `squash` and not `rebase`: rebase is linear too, but it drops
+  merge commits — and `check-pr-readiness.sh --fix` *creates* them by bringing a branch
+  up to date with `update_method=merge`. PR #1240's head carried two of them
+  (`85455b06`, `2657fcbb`, both `Merge branch 'main' into dependabot/…`), so rebasing
+  that branch would have quietly discarded the side that the merge commit brought in.
+  Squash collapses to one linear commit and is what the recent history on `main`
+  (`#1233`…`#1239`, all single-parent `… (#NNNN)`) already uses.
+- Detection (deterministic, before merging anything):
+  1. `gh api repos/{owner}/{repo}/rulesets -q '.[] | .name'` then
+     `gh api repos/{owner}/{repo}/rulesets/<id> -q '.rules'` and read for
+     `required_linear_history` — the ruleset, not the PR, picks the method (LESSON-050).
+  2. `gh api repos/{owner}/{repo}/pulls/<n>/commits --paginate -q
+     '.[] | select((.parents|length)>1) | .sha'` — if it prints anything, `rebase` is unsafe.
+  3. After any merge request, poll the uuid and then confirm
+     `gh pr view <n> --json state,mergedAt,mergeCommit`; the exit status of the request
+     is not the outcome.
+- Solution applied in `scripts/merge-pr.sh`: default method is now `squash` with the
+  rule cited; a `part of a stack` refusal falls back to `merge-async` pinned to the
+  `$HEAD_SHA` the gates verified, `merge_action=direct_merge`, `bypass_rules` never sent;
+  the uuid is polled to a terminal state and only `merged` (or `enqueued`, said out loud)
+  counts as success; any other merge error is printed verbatim instead of swallowed.
+- References: PR #1240 (merged `3e10aad0`), PR #1241, PR #1242, ruleset 9591004,
+  https://docs.github.com/rest/pulls/pulls#merge-a-pull-request-asynchronously,
+  LESSON-050, LESSON-063, LESSON-082.
+
+## LESSON-082: a flag documented in three places that could never fire, and the endpoints that stacked PRs refuse (2026-11-02)
+
+- Issue: PR #1240 was finally `CLEAN` with 33 passing checks, `codecov/patch` success and
+  its Codecov thread answered with artifact evidence — exactly the case
+  `--accept-codecov-waiver` exists for. The flag was documented in the script header, in
+  `AGENTS.md` → PR Health Check and in `agent_docs/coding_workflow.md`, and this session
+  had itself written "relaxes precisely that heuristic" into two of those places. It has
+  never worked, for two independent reasons, in the guard
+  `! grep -qE 'issue\(s\) found' <(grep -v 'Codecov' "$READINESS_LOG" | grep -E '⚠️|❌')`:
+  1. `⚠️ 1 issue(s) found across 1 PR(s).` is the aggregate line *produced by the Codecov
+     finding itself*, and it does not contain the word "Codecov", so the filter keeps it
+     and the guard concludes "another problem exists".
+  2. The per-PR verdict is uppercase — `Verdict: ⚠️ CODECOV FEEDBACK` — so a
+     case-sensitive `grep -v 'Codecov'` does not remove it either.
+  Both failures land in the `else` branch, which exits 1 — the same visible outcome a real
+  blocker produces, which is why the flag survived review while never being exercised.
+- Stacked PRs also refuse the two endpoints the workflow assumes are always available:
+  - `PUT /pulls/<n>/update-branch -f update_method=merge` → `403 Updating a stacked PR's
+    branch via this endpoint is not supported.` `check-pr-readiness.sh --fix` pipes that
+    through `jq -r '.message // "Updated"'`, prints the message, and the branch stays
+    `BEHIND`: the fix runs, reports nothing wrong, and does nothing.
+  - `gh pr edit 1242 --base main` → GraphQL `Cannot change the base branch because the
+    pull request is part of a stack.` You cannot un-stack it from the child side.
+  Recovery is the manual path the readiness script already names for conflicts: back up
+  the local tip, prove the remote superseded it (`git range-diff` printed `=` for both
+  commits), reset to the remote, `git merge origin/main`, push.
+- Finding the stack at all: `pulls/{n}` now carries a `stack` object
+  (`{id, number, position, size, base}`) — and `#1243` is **the stack, not a PR**
+  (`gh pr view 1243` → "Could not resolve to a PullRequest").
+  `GET /repos/{owner}/{repo}/stacks` lists membership and order, which is what made the
+  async merge safe to request: stack 1243 = `[1241 position 1 (base main), 1242 position 2
+  (base ci/lockfile-sync-guardrail)]`, and merge-async "includes all open downstack pull
+  requests" — the bottom PR has none, and `#1242` was observed unchanged afterwards.
+- Detection: treat "a documented flag changed nothing" as evidence the flag is dead, not
+  that the input was wrong; when `--fix` reports the same state it started with, read its
+  raw API output instead of its summary.
+- Solution applied: the waiver guard now excludes the Codecov family case-insensitively
+  and the aggregate count line, requires the residual failure set to be empty, and prints
+  whatever residual failures it found before failing; `merge-pr.sh` and the readiness
+  guidance name the stacked-PR endpoints that do not work and the git path that does.
+- References: PR #1240, PR #1241, PR #1242, stack 1243, LESSON-063 (phantom affordances —
+  this is the tool-flag variant), LESSON-079 (docs asserting what the code does not do),
+  LESSON-081.

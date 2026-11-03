@@ -34,7 +34,7 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
 
 1. **NEVER merge when `mergeStateStatus` is `UNSTABLE`** — Wait for all checks to complete.
 2. **NEVER merge when checks are `pending`** — Wait for ALL checks to reach a terminal state.
-3. **NEVER use `gh pr merge --admin` to bypass the `main` guard** — the guard is ruleset `main-protection` (branch protection 404s here); fix the code, don't bypass the gate.
+3. **NEVER use `gh pr merge --admin` to bypass the `main` guard** — the guard is ruleset `main-protection` (branch protection 404s here); fix the code, don't bypass the gate. PR #806 did exactly this at `UNSTABLE` and shipped pre-existing failures to `main`, costing two follow-up PRs (LESSON-078).
 4. **NEVER merge a PR you haven't personally verified** — Run the full check and confirm ALL conditions.
 5. **NEVER skip loading this skill** — Load this skill before any merge recommendation.
 6. **NEVER ignore PR comments** — Fetch inline reviews, review bodies, and issue
@@ -135,6 +135,22 @@ unresolved review thread / extra-approval rule is holding the PR
 (`required_review_thread_resolution=true`,
 `require_extra_approval_for_unattributed_changes=true`).
 
+Before calling any rollup green, confirm a **workflow run exists** — green App
+rows (Codacy, SonarCloud, CodeQL) are not CI, and they post before the first
+`pull_request` run is created. `gh run list --branch <head-branch>` returning
+nothing one minute after a push is a race, not a verdict: re-query, and read the
+per-commit truth with
+`gh api "repos/{owner}/{repo}/actions/runs?head_sha=<sha>" --jq '.workflow_runs[] | .name'`.
+That filter wants the **full 40-character** sha: an 8-character prefix silently
+returns zero rows, which looks exactly like a CI that never ran.
+Do not explain an empty list with the trigger config without testing the
+explanation — seven gating workflows filter `pull_request` to `main`/`develop`,
+which *looks* like it must suppress a PR based on another PR's branch, and that
+inference produced a confidently wrong rule (LESSON-080). Also compare
+`gh pr view --json headRefOid` against `git ls-remote origin <head-branch>`: if
+they differ, someone rebased or merged under you and the rollup you are reading
+is not for the commit you have locally (LESSON-035).
+
 **Which checks are required is a ruleset, not branch protection** (ruleset
 `main-protection`, id 9591004; `/branches/main/protection` 404s). The endpoint
 returns an **array of rule objects**, and the contexts live at
@@ -154,6 +170,22 @@ batch a cosmetic fix with the substantive change instead of adding it after the
 review. A green row outside this list does not
 unblock a merge; changing the list is a ruleset change, never a workflow edit
 (LESSON-050).
+
+**The same ruleset also decides the merge method.** `main-protection` carries
+`required_linear_history`, so `--method merge` is refused — and refused *late*: the
+synchronous GraphQL call may fail first for an unrelated reason (`part of a stack`), and
+the rule only reports itself on the asynchronous merge's uuid, after a `202 pending` that
+looks like acceptance. Read `.rules` for `required_linear_history` before choosing, and
+treat `squash` as the default (LESSON-081).
+
+**A PR inside a stack loses the two convenience endpoints.** `GET /repos/{owner}/{repo}/stacks`
+lists membership and order — note `pulls/{n}.stack.number` is the *stack's* number, not a
+PR (`gh pr view` on it 404s). For stacked PRs, `update-branch` returns
+`403 Updating a stacked PR's branch via this endpoint is not supported` (so
+`check-pr-readiness.sh --fix` prints the 403 and leaves the branch `BEHIND`) and
+`gh pr edit --base` is refused. Update the branch with git instead: back up the local tip,
+confirm the remote supersedes it with `git range-diff` (`=` per commit), reset, merge
+`main`, push (LESSON-082).
 
 **`CI / Required` will not show up in `gh pr checks` until late.** It is the
 aggregate job `required` in `ci.yml` (`needs:` fast-gate, commitlint, test,
@@ -214,7 +246,10 @@ Parse and classify every item:
 
 For each actionable comment:
 
-1. **Understand** — reproduce or map to code
+1. **Understand** — reproduce or map to code, against the **current** head. Read the file
+   before acting on or closing a finding: a review thread describes the SHA it was written
+   for, and a summary that says something was fixed is not evidence that the tree says so
+   (LESSON-010).
 2. **Fix or waive** — implement the change, or document why not (with evidence)
 3. **Verify** — tests / clippy / targeted nextest as appropriate
 4. **Close the loop** — push commits; reply on the PR thread summarizing what was done
@@ -254,8 +289,27 @@ gh pr update-branch {n}
 ```bash
 gh pr checkout {n}
 git merge origin/main
-# resolve <<<<<<< markers
+# resolve <<<<<<< markers, then PROVE the resolution is lossless — `git diff`
+# cannot answer "did I drop a line from either side?" and nothing fails to
+# compile on a docs merge (LESSON-070).
+#   Read stages 2/3 BEFORE staging: `git add` collapses 1/2/3 into stage 0 and
+#   `git show :2:<f>` then dies with "path is in the index, but not at stage 2".
+#   LC_ALL=C is mandatory — plain `sort` collates by locale and `comm` reports a
+#   bogus missing-lines list.
+export LC_ALL=C
+f=CHANGELOG.md                              # repeat per conflicted file
+git show :2:"$f" | LC_ALL=C sort -u > /tmp/ours
+git show :3:"$f" | LC_ALL=C sort -u > /tmp/theirs
+comm -23 /tmp/ours        <(LC_ALL=C sort -u "$f")   # lost from ours   -> empty
+comm -23 /tmp/theirs      <(LC_ALL=C sort -u "$f")   # lost from theirs -> empty
+comm -13 <(cat /tmp/ours /tmp/theirs | LC_ALL=C sort -u) <(LC_ALL=C sort -u "$f")  # invented
+git grep -n '^<<<<<<<\|^=======\|^>>>>>>' -- "$f"     # leftover markers
+# Never run `git checkout --conflict=merge -- <f>` to re-label markers: it
+# overwrites the working file and destroys your resolution.
 git add <files> && git commit --no-edit && git push
+# Then check the content diff versus the base separately, so a docs merge cannot
+# smuggle a Cargo.toml/Cargo.lock revert (LESSON-064, LESSON-074):
+git diff origin/main HEAD --stat
 ```
 
 #### Cancelled CI
@@ -390,8 +444,11 @@ When reporting PR readiness, always include:
 
 - **Serial merges**: the strict up-to-date policy means each merge invalidates the
   other PRs' runs. Land the *structural* PR first when branches split the same
-  files (`backend.rs` in #1149/#1151 vs #1152) and rebuild the rest on the
-  winner's layout; never merge a stacked PR before its base.
+  files (`backend.rs` in #1149/#1151 vs #1152 — LESSON-042: two PRs chose
+  `backend_trait.rs` and a third `backend/mod.rs` + `capabilities.rs`, so any
+  pair conflicted on layout and the later branches took four manual rebuilds,
+  each costing a local verification cycle plus a CI cycle) and rebuild the rest
+  on the winner's layout; never merge a stacked PR before its base.
 - **Head SHAs are ephemeral**: that same policy re-queues every run on every other branch,
   so a `headRefOid` pinned in a doc, plan, or PR comment is stale **one merge** later
   (#1179 `3056b560`→`c36a874d`, #1177 `479eb16d`→`826f5c7f`). Re-read
@@ -434,3 +491,8 @@ When reporting PR readiness, always include:
   against a gate that had already passed. Then re-trigger on a fresh SHA (`--allow-empty` commit + push).
   Do not delete runs or merge around the gate (LESSON-052); the only merge path stays
   `./scripts/merge-pr.sh <PR> --execute` — never `--admin`, never `--force`, never a bypass.
+- **Batch merges: let GitHub sequence them, but never queue around this skill.** For several
+  dependent PRs, the auto-merge queue re-checks protection after each merge, so you can monitor
+  `gh pr view --json state,autoMergeRequest` instead of polling each check — but `gh pr merge
+  --auto` is not a substitute for `merge-pr.sh`, and "cancelled checks are noise" is wrong: a
+  cancelled row holds `mergeStateStatus` at non-`CLEAN` (LESSON-016, LESSON-041, LESSON-050).

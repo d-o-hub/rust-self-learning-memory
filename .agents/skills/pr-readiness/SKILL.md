@@ -172,11 +172,16 @@ unblock a merge; changing the list is a ruleset change, never a workflow edit
 (LESSON-050).
 
 **The same ruleset also decides the merge method.** `main-protection` carries
-`required_linear_history`, so `--method merge` is refused — and refused *late*: the
-synchronous GraphQL call may fail first for an unrelated reason (`part of a stack`), and
-the rule only reports itself on the asynchronous merge's uuid, after a `202 pending` that
-looks like acceptance. Read `.rules` for `required_linear_history` before choosing, and
-treat `squash` as the default (LESSON-081).
+`required_linear_history`, so a `merge` commit cannot land — and GitHub refuses it
+*late*: the synchronous GraphQL call may fail first for an unrelated reason
+(`part of a stack`), and the rule only reports itself on the asynchronous merge's
+uuid, after a `202 pending` that looks like acceptance. `merge-pr.sh` therefore
+refuses `--method merge` outright, before any API call, and its usage text lists
+only `squash|rebase`. Read `.rules` for `required_linear_history` before choosing,
+and treat `squash` as the default (LESSON-081). `do-harness verify --set
+verification` enforces all of it via the `merge-method` sensor
+(`scripts/check-merge-method.sh`), which also asserts `merge-pr.sh` never sends
+`bypass_rules` and keeps its async stacked-PR path pinned to the verified head.
 
 **A PR inside a stack loses the two convenience endpoints.** `GET /repos/{owner}/{repo}/stacks`
 lists membership and order — note `pulls/{n}.stack.number` is the *stack's* number, not a

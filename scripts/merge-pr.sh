@@ -2,7 +2,7 @@
 # merge-pr.sh — the sanctioned merge path: readiness gate first, then merge.
 #
 # Usage:
-#   ./scripts/merge-pr.sh <PR> [--method merge|squash|rebase] [--accept-codecov-waiver] [--execute]
+#   ./scripts/merge-pr.sh <PR> [--method squash|rebase] [--accept-codecov-waiver] [--execute]
 #
 # Default is a dry run: the script runs every gate, prints the verdict, and the
 # exact `gh pr merge` command it would run. Pass --execute to actually merge.
@@ -54,10 +54,12 @@ usage() {
 Usage: ./scripts/merge-pr.sh <PR> [options]
 
 Options:
-  --method <merge|squash|rebase>   Merge method (default: squash — `main`
-                                   enforces required_linear_history, so a merge
-                                   commit is rejected; rebase drops merge commits
-                                   that an up-to-date branch may carry).
+  --method <squash|rebase>         Merge method (default: squash). `merge` is
+                                   refused outright: `main` enforces
+                                   required_linear_history, so GitHub rejects a
+                                   merge commit only while executing the merge;
+                                   rebase is linear too, but it drops the merge
+                                   commits an up-to-date branch may carry.
   --accept-codecov-waiver          Allow a Codecov conversation heuristic to be
                                    the only readiness failure (thread answered
                                    with evidence). All hard gates still apply.
@@ -80,8 +82,16 @@ done
 
 [[ -n "$PR_NUMBER" ]] || { echo "ERROR: PR number is required." >&2; usage >&2; exit 2; }
 case "$METHOD" in
-  merge|squash|rebase) ;;
-  *) echo "ERROR: --method must be merge, squash, or rebase (got: $METHOD)" >&2; exit 2 ;;
+  squash|rebase) ;;
+  merge)
+    # merge-method-refusal - asserted by scripts/check-merge-method.sh
+    echo "ERROR: --method merge cannot land on a branch guarded by required_linear_history." >&2
+    echo "       GitHub refuses the merge commit only while *executing* the merge, so the" >&2
+    echo "       rejection arrives after every gate is green (LESSON-081, PR #1241)." >&2
+    echo "       Use squash; rebase is linear too but drops the merge commits an" >&2
+    echo "       up-to-date branch may carry." >&2
+    exit 2 ;;
+  *) echo "ERROR: --method must be squash or rebase (got: $METHOD)" >&2; exit 2 ;;
 esac
 
 fail() {

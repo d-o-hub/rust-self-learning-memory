@@ -2042,6 +2042,11 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `$HEAD_SHA` the gates verified, `merge_action=direct_merge`, `bypass_rules` never sent;
   the uuid is polled to a terminal state and only `merged` (or `enqueued`, said out loud)
   counts as success; any other merge error is printed verbatim instead of swallowed.
+  `--method merge` is now refused outright, before any API call, because advertising a
+  flag that cannot land is itself a defect (LESSON-063); the `merge-method` harness
+  sensor (`scripts/check-merge-method.sh`, `verification` set) asserts the default
+  method, that refusal, the async path with its `$HEAD_SHA` pin, and the absence of any
+  bypass — statically always, plus a live-ruleset cross-check when a token is present.
 - References: PR #1240 (merged `3e10aad0`), PR #1241, PR #1242, ruleset 9591004,
   https://docs.github.com/rest/pulls/pulls#merge-a-pull-request-asynchronously,
   LESSON-050, LESSON-063, LESSON-082.

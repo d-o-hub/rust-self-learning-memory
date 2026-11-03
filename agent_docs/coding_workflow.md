@@ -98,6 +98,14 @@ design preserves.
   git status                          # everything intended is staged
   ```
 
+- Name the tier of any green you report. `feedback` is an edit loop, `verification`
+  is the completion contract, and a **diagnostic** (`harness-check.sh arch`,
+  `harness-check.sh security`, `quality-gates.sh`) inspects one property and is not a
+  merge verdict. `scripts/harness-check.sh` adds no checks of its own: its sensor names
+  delegate to `do-harness verify --only <sensor> --strict` and `all` runs the
+  verification set, so exit `2` from it means the check never ran (CLI or tool absent) —
+  a blocked result, never a pass (issue #1246; pinned by `scripts/test-harness-entrypoint.sh`).
+
 - CI is the second pair of eyes, not the first: reproduce CI's exact command
   (toolchain, feature set) when a gate disagrees with local results.
 - Changing a skill or `plans/GATE_CONTRACT.md`? Also run

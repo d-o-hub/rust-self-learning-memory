@@ -81,6 +81,14 @@ jobs:
       - name: Gate contract (CI parity)
         run: ./scripts/validate-gate-contract.sh --ci-parity
 
+      - name: Harness entrypoint contract
+        # cargo-free stubs on a private PATH: the compatibility shim must delegate with
+        # the exact sensor argv, propagate failures, and never report PASS for a check
+        # that could not run (issue #1246).
+        run: |
+          chmod +x scripts/test-harness-entrypoint.sh
+          ./scripts/test-harness-entrypoint.sh
+
       - name: Schema/SQL column contract (ACT-406)
         # Hand-written INSERT column lists must exist in the Turso CREATE TABLE
         # DDL. Cargo-free; a self-test proves the check is load-bearing before

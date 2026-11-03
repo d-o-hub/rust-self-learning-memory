@@ -281,21 +281,20 @@ run_compat() {
     local r="$1"
     shift
     RUN_RC=0
-    # Assignments are exported inside the subshell: a newline after `VAR=value` ends
-    # the assignment list, so a prefix spread across lines silently stops reaching the
-    # child and the probe measures nothing.
+    # env, never an assignment prefix or a subshell export: a newline ends a prefix list,
+    # so a prefix spread across lines silently stops reaching the child and the probe
+    # measures nothing, and `export` inside `$( )` only scopes to a subshell the parent
+    # cannot read back.
     RUN_OUT=$(
-        PATH="$PATH_EXTRA$BIN:$FLOOR_PATH"
-        export DO_HARNESS_BIN="$PROBE"
-        bash "$COMPAT" --root "$r" "$@" 2>&1
+        env PATH="$PATH_EXTRA$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$COMPAT" --root "$r" "$@" 2>&1
     ) || RUN_RC=$?
 }
 run_doctrine() {
     RUN_RC=0
     RUN_OUT=$(
-        PATH="$BIN:$FLOOR_PATH"
-        export DO_HARNESS_BIN="$PROBE"
-        bash "$DOCTRINE" 2>&1
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$DOCTRINE" 2>&1
     ) || RUN_RC=$?
 }
 
@@ -421,9 +420,8 @@ expect_blocked "a missing version file blocks the probe" "no tracked version ref
 build_repo_fixture "$ROOT_OK"
 RUN_RC=0
 RUN_OUT=$(
-    PATH="$FLOOR_PATH"
-    export DO_HARNESS_BIN="$WORK/no-such-binary"
-    bash "$COMPAT" --root "$ROOT_OK" 2>&1
+    env PATH="$FLOOR_PATH" DO_HARNESS_BIN="$WORK/no-such-binary" \
+        bash "$COMPAT" --root "$ROOT_OK" 2>&1
 ) || RUN_RC=$?
 expect_blocked "an unusable binary blocks rather than passes" "HARNESS BLOCKED"
 

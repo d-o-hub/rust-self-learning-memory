@@ -125,6 +125,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rejection this work exists to prevent. `squash` and `rebase` are both permitted
   by the ruleset, and nothing in the repository ever passed `merge`.
 
+- New pre-release blocker gate (`scripts/check-release-blockers.sh`): a tag is
+  public, `release.yml` publishes, and the version gets written into the
+  changelog, so the repository policy is now executable rather than remembered —
+  *every* open pull request and *every* open issue must be merged or explicitly
+  closed before a release ships, so nothing still under review is frozen into a
+  published version. It reads `pulls?state=open` and `issues?state=open`, drops
+  the pull-request rows the issues endpoint also returns (counting them twice
+  would misreport what is outstanding), and sets aside the auto-maintained
+  `release-drift` issue by label — that workflow keeps its issue open until the
+  release happens, so counting it would make the gate unsatisfiable; the excluded
+  issue is *named* in the output rather than hidden. There is deliberately no
+  bypass flag: `release-manager.sh` already carries `--skip-local-tests` and
+  `--skip-ci-check`, and a third switch meaning "ignore the tracker" is the one
+  reached for by habit. It runs at the head of `ship` (dry-run included, because
+  learning what would block is the point of a dry run, and it is cheaper than the
+  local test phase) and again inside `publish`, since `prepare` + `publish` is a
+  supported path on its own and the tag push is the first irreversible act. Exit
+  codes: 0 clear, 1 blockers, 2 the tracker could not be read — a blocker gate
+  that silently skipped would be a way to ship unreviewed work. The new harness
+  sensor `release-blockers` runs the offline fixtures (`--self-test`, 8 cases)
+  through the same decision function the live path uses, so a release-time gate
+  cannot rot unseen between releases. One fixture found a real bug before this
+  shipped: labels are objects in the API response, so the hand-written
+  string-shaped fixture yielded an empty name list and the drift exclusion never
+  matched — the case had been passing for the wrong reason.
+
 - Routing-layer corrections, each verified against the tree before editing:
   `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved
   merge-readiness (it was observed exiting 0 with 12 of 21 rows pending);

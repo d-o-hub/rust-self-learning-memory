@@ -55,6 +55,7 @@ merge-required** by the ruleset.
 | Cargo audit | `cargo audit` | informational if deny is blocking | optional structured reporting | No | no ignored vulns without justification | prefer deny for gating |
 | Semver | cargo-semver-checks | CI-only informational | `continue-on-error: true` and Dependabot excluded | No | no accidental breaks | CI Semver Check |
 | Skill evals | `./scripts/run-evals.sh` | fixtures recommended before skill PRs | Skill Evals runs fixtures always, changed on PR, full on schedule/dispatch | No | all skills strict schema | `.github/workflows/skill-evals.yml` + `./scripts/run-evals.sh --fixtures` |
+| Harness CLI contract | `./scripts/check-do-harness-compat.sh` + `./scripts/check-do-harness-doctrine.sh` (matrix `0.1.0` + `0.4.1`, each binary checksum-verified from the release's `checksums.txt`) | verification set, so required before completion | `harness-compat` job in `.github/workflows/skill-evals.yml`; `./scripts/test-do-harness-compat.sh` proves the two probes cannot pass vacuously | No | every documented invocation proven against a published binary, not asserted | `scripts/do-harness-version.txt` (pin + `validated_through`) |
 | Release cadence | `./scripts/check-release-drift.sh` | warning@20 / critical@30 | Release Drift Check | No | tag before hard limit | release-drift workflow |
 | Gate contract integrity | `./scripts/validate-gate-contract.sh` | required when editing gates | Skill Evals runs default + `--ci-parity`; parity checks same-run fast-gate commands, aggregate needs set, evaluator, and absence of waiter/anchor topology | No | semantic matrix ↔ scripts ↔ workflows ↔ ruleset alignment | `./scripts/validate-gate-contract.sh --ci-parity` |
 | Schema/SQL column contract | `./scripts/validate-schema-sql.sh` (ACT-406) | hand-written INSERT columns must exist in the Turso `CREATE TABLE` DDL | Skill Evals runs `--self-test` then the real crate scan (cargo-free, always) | No | catch nightly-red column drift pre-merge | `.github/workflows/skill-evals.yml` + `./scripts/validate-schema-sql.sh` |
@@ -80,6 +81,7 @@ merge-required** by the ruleset.
 | quality bundle | `./scripts/quality-gates.sh` | Quality Gates job duplicates only a subset; **not parity** |
 | deny advisories | `cargo deny check` | Cargo Deny / Supply Chain (`security.yml` / `supply-chain.yml`) |
 | skill schema | `./scripts/run-evals.sh --fixtures` | Skill Evals workflow (`skill-evals.yml`) always |
+| harness CLI contract | `./scripts/check-do-harness-compat.sh --offline` (sensor) + `./scripts/check-do-harness-doctrine.sh` | `harness-compat` job downloads the published release assets, verifies each digest against the release `checksums.txt`, then runs the compat probe `--offline --expect-version --expect-sha256`, the doctrine probe against that binary, and `./scripts/test-do-harness-compat.sh` |
 | changed skill evals | `./scripts/run-evals.sh --changed` | Skill Evals on `pull_request` |
 | full skill suite | `./scripts/run-evals.sh` | Skill Evals on `schedule` / `workflow_dispatch` |
 | release drift | `./scripts/check-release-drift.sh` | `release-drift.yml` |

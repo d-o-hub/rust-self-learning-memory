@@ -31,6 +31,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- CI guard parity: three gaps where the required checks were the first place to
+  tell you what the local harness should have caught. The `shellcheck` pre-commit
+  hook now runs at `--severity=style` instead of `warning`, because SC2030, SC2031
+  and SC2086 are *note*-tier findings and the required Codacy check gates new
+  issues at any severity — at `warning` they were invisible locally and only
+  surfaced as a red required check (PR #1250). The `commit-ci-tokens` sensor and
+  commit-msg hook now reject the full documented suppressor set: all five bracket
+  tokens (the three `ci` spellings plus both `actions` variants) and the
+  `skip-checks` trailer, which skips every check for a commit exactly as the
+  brackets skip runs. Prose that merely names either form, and the
+  `request-checks` counterpart that forces checks back, stay writable.
+- `.agents/skills/ci-poll` — the check-run reduction is now fail-closed. It groups
+  across pages (`--paginate` applies `--jq` to each page independently, so
+  latest-run-per-name could split one check across two reductions), prints an
+  explicit `NO_ROWS` verdict instead of nothing when the query failed, and always
+  reports `pending=` beside `failed=` so a still-queued suite cannot be read as
+  green. Documented from the official status-check vocabulary: `queued`, `pending`,
+  `in_progress`, `requested`, `waiting` and `expected` are not terminal; `stale`,
+  `timed_out`, `cancelled` and `action_required` are terminal *non*-successes; and
+  a skipped job reports Success even when it is a required check, so green proves a
+  check reported, never that its steps ran.
+
 - `sysinfo` 0.39.6 → 0.40.1. Every `System` constructor is fallible in 0.40, so
   the resource-probing call sites now degrade instead of assuming success: the
   MCP time-series `memory_usage_mb` metric keeps its 50.0 fallback, CLI config

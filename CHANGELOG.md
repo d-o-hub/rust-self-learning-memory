@@ -109,11 +109,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   also cross-checks the live ruleset (`allowed_merge_methods` plus the presence
   of `required_linear_history`) and fails rather than skipping, following
   `scripts/validate-gate-contract.sh`'s fail-closed-with-token /
-  NOTE-without-token split. All six failure modes were verified to fire on a
-  mutated copy of `merge-pr.sh` (default `merge`, a `bypass_rules` code line, a
-  lost `merge-async` path, a lost `sha=` pin, an unrecognised method, a missing
-  `merge-pr.sh`), and a comment that merely *mentions* `bypass_rules=true` was
+  NOTE-without-token split; `skill-evals.yml`'s CI-parity step already proves
+  that read works with `secrets.GITHUB_TOKEN` under `permissions: contents:
+  read`. Eight failure modes were verified to fire on a mutated copy of
+  `merge-pr.sh` (default `merge`, a `bypass_rules` code line, a lost
+  `merge-async` path, a lost `sha=` pin, an unrecognised method, a missing
+  `merge-pr.sh`, a removed `--method merge` refusal, a restored `merge`
+  acceptance), and a comment that merely *mentions* `bypass_rules=true` was
   verified not to trip it.
+
+- `merge-pr.sh` refuses `--method merge` outright — exit 2, before any API call —
+  and its usage text now lists only `squash|rebase`. Advertising an option that
+  cannot land on a linear-history branch is a phantom affordance (LESSON-063),
+  and leaving it wired meant an operator override still ate the mid-merge
+  rejection this work exists to prevent. `squash` and `rebase` are both permitted
+  by the ruleset, and nothing in the repository ever passed `merge`.
 
 - Routing-layer corrections, each verified against the tree before editing:
   `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved

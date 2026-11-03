@@ -192,13 +192,16 @@ the re-run gate output.
   `required_linear_history`, so GitHub refuses a merge commit — but it refuses it *while
   executing* an asynchronous request, which is why the failure surfaces as
   `Repository rule violations found / This branch must not contain merge commits` on the
-  returned uuid long after `✅ Gates passed`. `rebase` is linear too yet drops the merge
-  commits that `update_method=merge` puts on a `BEHIND` branch, so it is only safe once
-  you have confirmed the branch has none (LESSON-081).
+  returned uuid long after `✅ Gates passed`. `merge-pr.sh` therefore refuses
+  `--method merge` outright (exit 2, before any API call) and advertises only
+  `squash|rebase`; `rebase` is linear too yet drops the merge commits that
+  `update_method=merge` puts on a `BEHIND` branch, so it is only safe once you have
+  confirmed the branch has none (LESSON-081).
   The `merge-method` sensor (`scripts/check-merge-method.sh`, in the
-  `verification` set) checks this statically against `merge-pr.sh` and, when a
-  token is present, against the live ruleset — so it fails before a merge is
-  attempted rather than on the uuid.
+  `verification` set) checks this statically against `merge-pr.sh` — default
+  method, the refusal, the async path and its head pin, and the absence of any
+  bypass — and, when a token is present, against the live ruleset, so it fails
+  before a merge is attempted rather than on the uuid.
 - **A stacked PR cannot use the two endpoints this workflow otherwise assumes.**
   `update-branch` answers `403 Updating a stacked PR's branch via this endpoint is not
   supported` and `gh pr edit --base` refuses while the PR is in a stack; discover

@@ -51,6 +51,17 @@ case "$METHOD" in
     *) fail "$SCRIPT has an unrecognised default METHOD='$METHOD'" ;;
 esac
 
+# 1b. The override path must be refused too. An advertised `--method merge` is a
+#     flag that cannot fire on a linear-history branch, and the rejection only
+#     arrives mid-merge - the same round-trip as check 1, just operator-selected
+#     (LESSON-081; a flag that cannot fire is a phantom affordance, LESSON-063).
+grep -q 'merge-method-refusal' "$SCRIPT" ||
+    fail "$SCRIPT no longer refuses \`--method merge\`; the ruleset rejection would again surface only while GitHub executes the merge - LESSON-081"
+if grep -vE '^[[:space:]]*#' "$SCRIPT" | grep -qF 'merge|squash|rebase)'; then
+    fail "$SCRIPT's method validation accepts \`merge\` again"
+fi
+echo "OK: $SCRIPT refuses an explicit --method merge before touching the API"
+
 # 2. No bypass may ever be requested. Whole-line comments are stripped first: this
 #    file and the script both *describe* the prohibition, and a matcher that reads
 #    those mentions as violations makes the guard useless (LESSON-079).

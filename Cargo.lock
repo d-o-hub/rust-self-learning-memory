@@ -1964,7 +1964,6 @@ dependencies = [
  "governor",
  "insta",
  "libsql",
- "predicates",
  "regex",
  "serde_json",
  "serial_test",

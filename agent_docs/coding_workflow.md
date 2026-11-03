@@ -230,6 +230,12 @@ the re-run gate output.
 - One path only: `.agents/skills/release-guard/SKILL.md` +
   `./scripts/release-manager.sh ship --execute`; the tag push builds and
   publishes the GitHub Release (`release.yml`, draft-first + attested).
+- Empty tracker first: `./scripts/check-release-blockers.sh` runs at the head of
+  `ship` and again before `publish` pushes the tag, so every open pull request
+  and every open issue must be merged or explicitly closed beforehand. It is a
+  list of work, not a warning to re-read — and it deliberately has no bypass
+  flag, with the auto-maintained `release-drift` issue excluded by label so the
+  gate cannot deadlock on its own bookkeeping.
 - Drift detected (`version_not_advanced`, `commit_limit`, `age_limit`) →
   `.agents/skills/release-cadence-manager/SKILL.md` +
   `./scripts/release-cadence-manager.sh`.

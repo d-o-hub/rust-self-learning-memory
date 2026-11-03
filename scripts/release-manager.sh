@@ -40,10 +40,16 @@ Actions:
   validate                Version/docs check + local quality gates
   ci-check                Fail if origin/main HEAD has incomplete/failed CI
   prepare                 validate + create annotated tag v\${version} (local)
-  publish                 Verify tag on HEAD, push tag only (triggers release.yml)
-  ship | full             validate + ci-check + prepare + publish
+  publish                 Blocker gate + verify tag on HEAD, push tag only (triggers release.yml)
+  ship | full             blocker gate + validate + ci-check + prepare + publish
   wait-release            Poll until Release workflow for the tag completes
   rollback                Delete local tag only (--tag required)
+
+Pre-flight blocker gate (scripts/check-release-blockers.sh):
+  ship and publish both refuse to run while any pull request is open, or while any
+  issue is open beyond the auto-maintained `release-drift` one. Implement/close that
+  work first; there is deliberately no bypass flag, because a switch meaning "ignore
+  the tracker" is the one that gets reached for by habit.
 
 Options:
   --tag <tag>             Tag for rollback (e.g. v0.1.35)
@@ -347,6 +353,10 @@ do_publish() {
   version=$(workspace_version)
   tag="v${version}"
 
+  # Chokepoint, checked here as well as in ship: `prepare` then `publish` is a
+  # supported path on its own, and the tag push is the first irreversible act.
+  ./scripts/check-release-blockers.sh
+
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] ./scripts/verify-release-state.sh --check-tag  # after tag exists"
     echo "[dry-run] git push origin refs/tags/${tag}"
@@ -391,6 +401,9 @@ do_ship() {
   echo " Canonical release: ship v$(workspace_version)"
   echo " Dry-run: $DRY_RUN"
   echo "════════════════════════════════════════════════════════"
+  # Runs in dry-run too: knowing what would block is the point of a dry run, and it
+  # is cheap to learn before the local test phase burns half an hour.
+  ./scripts/check-release-blockers.sh
   do_validate
   do_ci_check
   do_prepare

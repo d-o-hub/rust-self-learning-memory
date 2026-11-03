@@ -40,7 +40,7 @@ Two modes:
 
 Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`):
 - `feedback`: `fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids` (fast local edit loop)
-- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `release-blockers`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
 
 Local evidence boundary command:
 ```bash
@@ -61,6 +61,7 @@ do-harness verify --set verification --strict --record && do-harness status --se
 | `check-commit-ci-tokens.sh` (`commit-ci-tokens`) | feedback + verification + commit-msg hook | `scripts/check-commit-ci-tokens.sh` | Reword the message so the bracketed token never appears, `git commit --amend -F <file>`, prove it with `git rev-parse 'HEAD^{tree}'` |
 | `check-agents-md-ids.sh` (`agents-md-ids`) | feedback + verification | `scripts/check-agents-md-ids.sh` | Move the raw API id to `agent_docs/LESSONS.md` and cite the CI run number in `AGENTS.md`; never add `.codacy.yml` to silence it |
 | `check-merge-method.sh` (`merge-method`) | verification | `scripts/check-merge-method.sh` | `merge-pr.sh` defaults to a method the base ruleset refuses, dropped its async stacked-PR path or its `$HEAD_SHA` pin, dropped the `--method merge` refusal, or requests `bypass_rules`: `main-protection` has `required_linear_history`, so keep `squash` and never bypass (LESSON-081) |
+| `check-release-blockers.sh --self-test` (`release-blockers`) | verification | `scripts/check-release-blockers.sh` | Offline fixtures only: this proves the blocker classifier still fires. The live read runs inside `release-manager.sh ship`, which refuses while any pull request or issue is open; the auto-maintained `release-drift` issue is excluded by label so the gate cannot deadlock |
 | `check-ignored-tests.sh` (`ignored-tests`) | verification | `scripts/check-ignored-tests.sh` | An added `#[ignore]` needs its reason recorded; run the ignored set per feature (`--run-ignored only` force-runs only ignored tests) |
 | `check-lint-suppressions.sh` (`lint-suppressions`) | verification | `scripts/lint-suppressions-baseline.txt` | New crate-root `#![allow]`: prefer a per-site `#[expect]` with a reason; run `--update` only after review |
 | `check-yaml-frontmatter.sh` (`yaml-frontmatter`) | verification | `scripts/check-yaml-frontmatter.sh` | Give the skill/doc its required `---` frontmatter block |

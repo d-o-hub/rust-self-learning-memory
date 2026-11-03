@@ -28,8 +28,17 @@ Pinned compatible harness version: `v0.1.0`. Signal sets defined in `do-harness.
 | verification boundary | `do-harness verify --set verification --strict --record` | pre-completion contract (all quality gates) |
 | verification status | `do-harness status --set verification` | confirm green evidence boundary |
 | individual | `do-harness verify --only <name>` | targeted re-runs |
+| diagnostics | `bash scripts/harness-check.sh arch` / `… security` | focused look at one property; never completion evidence |
 | harness binary | `./scripts/check-do-harness-compat.sh --offline` | which binary resolves, prose pin vs `scripts/do-harness-version.txt`, documented flags, sensor/set parity |
 | harness status contract | `./scripts/check-do-harness-doctrine.sh` | exit-code doctrine and JSON fields, exercised on fixture sensors in a temp root |
+
+`scripts/harness-check.sh` is a shim, not a second harness: `fmt|clippy|deny|test`
+delegate to those sensors with `--strict`, `all` runs the canonical verification set, and
+`arch`/`security` are labelled diagnostics. Exit `2` means nothing was checked (the CLI or
+the tool is absent) — never read it as a pass. It used to run its own weaker copies of the
+gates (a private `--lib --tests` clippy with 27 suppressions, `PASS` for skipped
+`cargo-deny`/`gitleaks`), which is how an agent could report CI readiness against a red
+CI; that is issue #1246 and `scripts/test-harness-entrypoint.sh` pins the contract now.
 
 Sensors are defined in `do-harness.toml`; run `do-harness list` to see them.
 

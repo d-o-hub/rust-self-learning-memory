@@ -84,6 +84,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CI/CD
 
+- `scripts/harness-check.sh` is a shim over the canonical sensors (issue #1246). It
+  had become a second, weaker harness: its `clippy` was a private
+  `cargo clippy --lib --tests` under 27 `-A clippy::…` suppressions while the `clippy`
+  sensor runs `scripts/code-quality.sh clippy --workspace` under three, so the wrapper
+  could be green against a red CI on scope and strictness at once; `deny` printed
+  `deny: PASS` when cargo-deny was absent and `security` printed `security: PASS` when
+  gitleaks was absent; and `arch` ran `cargo nextest run -p tests --test arch_fitness`
+  — a package that does not exist (the package is `e2e-tests`), so the subcommand had
+  been reporting a verdict about nothing. Now `fmt|clippy|deny|test` run
+  `do-harness verify --only <sensor> --strict`, `all` runs
+  `do-harness verify --set verification --strict --record`, `arch` targets the real
+  package and labels itself a subset of the `test` sensor, and `security` stays a local
+  diagnostic. Exit codes are `0` passed, `1` the check ran and failed, `2` it could not
+  run at all — a missing CLI or tool is reported as `HARNESS BLOCKED`, never as success.
+  Suppression lists were not merged; the weaker command was deleted, so nothing can
+  report it. `scripts/test-harness-entrypoint.sh` pins the contract with stub binaries on
+  a private PATH (47 cases: exact delegated argv, propagated failure, absent CLI, absent
+  gitleaks, the `arch` package name, and doc↔handler parity over the subcommand list) and
+  runs in `.github/workflows/skill-evals.yml`, cargo-free. Eight regressions were
+  verified to make it fail, one restored at a time: `PASS` on absent gitleaks, `-p tests`
+  in the arch command, a dropped `--strict`, a dropped `--record`, the private clippy
+  command restored, absent CLI exiting 0, unknown subcommand exiting 0, and the violation
+  line removed. Its doc-parity case caught a bug in itself while being written: matching
+  `-p tests` across the whole file tripped on the comment that documents the prohibition,
+  so matchers strip whole-line comments first (LESSON-079). Routing: `HARNESS.md` gained
+  the feedback / verification / diagnostics tier table, and the harness skill,
+  `AGENTS.md` and `agent_docs/coding_workflow.md` now say which tier a green belongs to.
+
 - New harness sensor `lockfile-sync` (`scripts/check-lockfile-sync.sh`, added to
   the `verification` set). It runs `cargo metadata --locked` against both the
   root and the `fuzz` graphs, so a lockfile that no longer matches its manifests

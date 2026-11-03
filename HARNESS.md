@@ -112,36 +112,46 @@ O(N·M)→O(min(N,M)) claim was already true before) must be routed through
 
 When a computational sensor fires:
 1. Read the full error message — it includes a fix hint
-2. Identify category: fmt / lint / test / arch / security
+2. Identify the sensor by its `do-harness.toml` name (`fmt`, `clippy`, `test`,
+   `lockfile-sync`, …) — `arch` and `security` are diagnostics, not sensors
 3. Apply the minimal fix (do not refactor unrelated code)
-4. Re-run the specific sensor: `cargo clippy`, `cargo nextest run`, etc.
+4. Re-run that sensor: `do-harness verify --only <sensor> --strict`
 5. Only commit when the sensor is green
 
-## Harness Check Script
+## Harness Check Script (a shim, not a second harness)
 
-A structured-output wrapper for the same categories, useful when you want
-`HARNESS VIOLATION: [category] — fix hint` lines to parse:
+`scripts/harness-check.sh` exists so older agent docs and muscle memory keep working.
+Every subcommand delegates, so there is exactly one definition of green:
 
 ```bash
 bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|security|all>
 ```
 
-Each failure emits a `HARNESS VIOLATION:` prefix with an agent-parseable fix hint.
+| Subcommand | What actually runs |
+|---|---|
+| `fmt`, `clippy`, `deny`, `test` | `do-harness verify --only <sensor> --strict` — the same sensors CI and the completion set use |
+| `all` | `do-harness verify --set verification --strict --record` — the canonical completion contract |
+| `arch` | `cargo nextest run -p e2e-tests --test arch_fitness` — a focused subset of the `test` sensor |
+| `security` | `gitleaks detect --config .gitleaks.toml …` — a local diagnostic; the `Security` workflow owns the authoritative scan |
 
-**Its `clippy` category is not the gate.** `harness-check.sh clippy` runs
-`cargo clippy --lib --tests` under **27** `-A clippy::…` suppressions (cast losses,
-`doc_markdown`, `manual_let_else`, `if_not_else`, …), while the `clippy` sensor in
-`do-harness.toml` runs `scripts/code-quality.sh clippy --workspace`, which passes
-`--workspace --tests` and suppresses only three lints (`expect_used`,
-`uninlined_format_args`, `unwrap_used`). So `harness-check.sh clippy` can be green while
-CI's clippy fails — on both scope (`--lib` per package vs `--workspace`) and strictness.
-Use it for the parseable hints, never as completion evidence; the authoritative pair is:
+Three tiers exist, and only one is completion evidence:
 
-```bash
-./scripts/code-quality.sh clippy --workspace   # == sensor "clippy"; this is the gate
-cargo fmt --all -- --check                     # == sensor "fmt"
-```
+| Tier | Command | Meaning |
+|---|---|---|
+| feedback | `do-harness verify --set feedback` | cheap edit loop; never completion |
+| **verification** | `do-harness verify --set verification --strict --record` then `do-harness status --set verification` | **the completion contract** |
+| diagnostics | `harness-check.sh arch`, `harness-check.sh security`, `./scripts/quality-gates.sh` | a focused look at one property; a pass here is not a merge verdict |
 
-`harness-check.sh` is not registered as a do-harness sensor, so `do-harness status` will
-not reflect it. Collapsing the two suppression lists is deliberately out of scope here —
-aligning them would change what the wrapper reports, which needs its own measured change.
+Exit codes are `0` the delegated check passed, `1` it ran and failed, `2` it could not run
+at all (CLI or tool absent). The `2` is deliberate: this script used to print `deny: PASS`
+with no `cargo-deny` installed and `security: PASS` with no `gitleaks`, and its `clippy`
+was a private `cargo clippy --lib --tests` under 27 suppressions while the `clippy` sensor
+runs `scripts/code-quality.sh clippy --workspace` under three. Two notions of green was the
+bug (issue #1246) — `harness-check.sh clippy` could be green while CI's clippy was red, on
+scope (`--lib` per package vs `--workspace`) and strictness at the same time. The
+suppression lists were not merged; the weaker command was removed, so nothing can report it.
+
+`scripts/test-harness-entrypoint.sh` pins this contract with stub binaries on a private
+PATH (47 cases: the exact delegated argv, propagated failures, absent CLI, absent
+gitleaks, the `arch` package name, and doc↔handler parity for the subcommand list). It
+needs no Rust compile and runs in CI under `.github/workflows/skill-evals.yml`.

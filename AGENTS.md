@@ -95,7 +95,7 @@ binary, `scripts/do-harness-version.txt` and this file disagree — the number a
 not a claim. Raising it is a deliberate change with a recorded compat run.
 `do-harness.toml` defines two explicit signal sets:
 - **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids`).
-- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), merge-method/no-bypass contract against the base ruleset (`merge-method`), the pinned harness binary and prose pin (`harness-compat`), the harness exit-code/JSON contract (`harness-doctrine`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
+- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), merge-method/no-bypass contract against the base ruleset (`merge-method`), release-blocker classifier fixtures (`release-blockers`), the pinned harness binary and prose pin (`harness-compat`), the harness exit-code/JSON contract (`harness-doctrine`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
 
 `do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
@@ -104,7 +104,7 @@ not a claim. Raising it is a deliberate change with a recorded compat run.
 ## Required Checks Before Commit
 
 - [ ] `do-harness verify --set feedback` (cheap edit-loop check during coding)
-- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, changelog-headings, shell-counters, lesson-distillation, commit-ci-tokens, agents-md-ids, merge-method, harness-compat, harness-doctrine, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
+- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, changelog-headings, shell-counters, lesson-distillation, commit-ci-tokens, agents-md-ids, merge-method, release-blockers, harness-compat, harness-doctrine, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
 - [ ] `do-harness status --set verification` (confirm green local evidence boundary)
 - [ ] `git status` — only intended changes staged
 
@@ -121,7 +121,7 @@ that CI then re-shipped (LESSON-064, LESSON-035, LESSON-074).
 
 ## Release Process
 
-One path only: skill `release-guard`, CLI `./scripts/release-manager.sh ship --execute` (tag `v` + workspace version → `.github/workflows/release.yml` publishes draft-first with attestations). **NEVER** manual `gh release create`, tagging off `main`, or `--admin` merges. Version + CHANGELOG + `Released Version` docs land on `main` (green CI) first; post-release, bump the workspace in a follow-up PR — drift treats workspace == latest-tag with unreleased commits as `version_not_advanced` (LESSON-020).
+One path only: skill `release-guard`, CLI `./scripts/release-manager.sh ship --execute` (tag `v` + workspace version → `.github/workflows/release.yml` publishes draft-first with attestations). **The tracker must be empty before any release**: `scripts/check-release-blockers.sh` runs at the head of `ship` and again before the tag push, refusing while any pull request or any issue is open — implement it or explicitly close it; there is no bypass flag, and the auto-maintained `release-drift` issue is excluded by label so the gate cannot deadlock on its own bookkeeping. **NEVER** manual `gh release create`, tagging off `main`, or `--admin` merges. Version + CHANGELOG + `Released Version` docs land on `main` (green CI) first; post-release, bump the workspace in a follow-up PR — drift treats workspace == latest-tag with unreleased commits as `version_not_advanced` (LESSON-020).
 
 ## Release Cadence Management
 

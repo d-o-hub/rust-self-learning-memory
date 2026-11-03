@@ -24,6 +24,7 @@ verification = [
   "commit-ci-tokens",
   "agents-md-ids",
   "merge-method",
+  "release-blockers",
   "harness-compat",
   "harness-doctrine",
   "docs",
@@ -125,6 +126,14 @@ argv = ["bash", "scripts/check-agents-md-ids.sh"]
 [[sensors]]
 name = "merge-method"
 argv = ["bash", "scripts/check-merge-method.sh"]
+
+# The blocker gate only reads the tracker at ship time, so its classifier could
+# rot silently and first surface on the release it was supposed to protect. This
+# sensor runs the offline fixtures on every verification pass; the live read stays
+# inside release-manager.sh, which refuses to ship with any open PR or open issue.
+[[sensors]]
+name = "release-blockers"
+argv = ["bash", "scripts/check-release-blockers.sh", "--self-test"]
 
 # The docs name a pinned harness version and the completion contract is written as
 # `do-harness verify --set verification --strict --record`. Nothing checked that the

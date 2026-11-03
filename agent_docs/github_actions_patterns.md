@@ -61,7 +61,7 @@ needs: [check-quick-check]
 if: ${{ always() && (github.event_name != 'pull_request' || needs.check-quick-check.result == 'success') }}
 ```
 
-**Pattern**: If job A only runs on PR → it's skipped on push → job B needing A skips → use `always()`
+**Pattern**: If job A only runs on PR → it's skipped on push → job B needing A skips → use `always()` (LESSON-032: `needs:` without `always()` propagates skips, so `release.yml` ran preflight→plan→build→announce all-`skipped` on every PR — a no-op that still showed up as a check. Before adding a trigger, run it once and confirm at least one job executes)
 
 ## Quick Check Wait Gate (CRITICAL — 2026-07-18)
 
@@ -151,6 +151,29 @@ smaller than the fresh-file count, and on duplicate benchmark names. See LESSON-
 
 Reference: <https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions>.
 
+### Machine-readable output redirected to a file (LESSON-036)
+
+`if-no-files-found: error` cannot save a step that redirected its output to a
+file and got nothing: the shell creates the file, so it is *found*, uploaded, and
+empty. `cargo nextest run --message-format libtest-json > report.json` is the
+concrete case — nextest refuses that flag unless `NEXTEST_EXPERIMENTAL_LIBTEST_JSON=1`
+is set on the step, so the job died during startup, both uploaded reports were
+0 bytes, and the run looked like a test failure instead of a configuration
+failure (three nightlies proved nothing about the ignored-test population).
+
+Two rules:
+
+- Copy the env from a job in the same repository that already uses the flag
+  (`nightly-tests.yml:60` and `:165` set it; grep before adding a new
+  machine-readable run).
+- Assert `-s` on the redirected file before the upload, exactly as the staging
+  step above does for `bench_results.txt`.
+
+Note that `nightly-tests.yml:91` and `:251` upload with
+`if-no-files-found: warn`, so neither an empty nor a missing report fails the
+job there — treat a green nightly report step as unproven until the artifact has
+been read.
+
 ## Bash Subshell Pitfall in Workflows
 
 Avoid `find ... | while read` in workflow scripts — the pipe creates a subshell. Use process substitution instead:
@@ -195,7 +218,11 @@ add it, then push). **Main branch** always runs benchmarks with regression
 detection.
 
 **Key insight**: GitHub Actions does not support `paths` + `paths-ignore` at the
-same trigger level — use `paths` only.
+same trigger level — use one key per trigger (LESSON-006, which cut a ~54-minute
+benchmark run off docs-only PRs). `benchmarks.yml:5-25` is the working shape:
+`push` filters with `paths-ignore` (docs, plans, `*.md`, `.agents`, agent_docs)
+and `pull_request` filters with `paths` (the perf-critical sources, `Cargo.toml`,
+`Cargo.lock`, the workflow itself).
 
 Related skills: `.agents/skills/github-workflows/SKILL.md`,
 `.agents/skills/ci-fix/SKILL.md`. Full plan (archived):
@@ -241,4 +268,9 @@ crates.io publishing (`publish-crates.yml`, trigger `release: [published]` or
 crates.io for each crate with repository `d-o-hub/rust-self-learning-memory`,
 workflow filename `publish-crates.yml`, environment `crates.io`. crates.io
 matches the **calling** workflow (`workflow_ref`), so moving the steps into a
-composite action or reusable workflow does not change the registered filename.
+composite action or reusable workflow does not change the registered filename
+(LESSON-031: for a job in a *called* workflow it is still the caller's filename —
+`job_workflow_ref` is never read, so a rename to a new file is what breaks the
+exchange). It does **not** validate the git ref, which is why the environment is
+restricted to `v*` tags and the workflow gates real publishes on
+`github.ref_type == 'tag'`.

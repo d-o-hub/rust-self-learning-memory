@@ -7,6 +7,11 @@ src = "src"
 
 [build]
 build-dir = "book"
+# Kept true so new chapters can be added by hand, but it makes `mdbook build`
+# resolve a SUMMARY.md anchor placeholder (`- [Title](#architecture)`) as a
+# *path* and create `book/src/#architecture` — which a `git add -A` then commits
+# (LESSON-033). Placeholder chapters must use mdBook draft syntax `- [Title]()`,
+# and `git status` must be checked before staging after any book build.
 create-missing = true
 
 [output.html]

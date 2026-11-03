@@ -77,13 +77,14 @@ impl MemoryUsageStats {
         // Get memory usage from sysinfo if available
         #[cfg(feature = "sysinfo")]
         {
-            use sysinfo::{System, SystemExt};
-            let mut system = System::new_all();
-            system.refresh_all();
-            if let Some(process) = system.process(std::process::id()) {
-                self.rss = Some(process.memory() * 1024); // Convert KB to bytes
-                self.vms = Some(process.virtual_memory() * 1024);
-                self.threads = None; // sysinfo doesn't always provide thread count
+            use sysinfo::System;
+            if let Ok(mut system) = System::new_all() {
+                system.refresh_all();
+                if let Some(process) = system.process(std::process::id()) {
+                    self.rss = Some(process.memory() * 1024); // Convert KB to bytes
+                    self.vms = Some(process.virtual_memory() * 1024);
+                    self.threads = None; // sysinfo doesn't always provide thread count
+                }
             }
         }
     }

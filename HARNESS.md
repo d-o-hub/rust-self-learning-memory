@@ -39,8 +39,8 @@ Two modes:
 ## Feedback Sensors
 
 Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`):
-- `feedback`: `fmt`, `loc`, `check` (fast local edit loop)
-- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+- `feedback`: `fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids` (fast local edit loop)
+- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
 
 Local evidence boundary command:
 ```bash
@@ -54,6 +54,18 @@ do-harness verify --set verification --strict --record && do-harness status --se
 | `cargo fmt --check` | feedback/verification | `do-harness.toml` | Run `cargo fmt --all` |
 | `cargo clippy -D warnings` | verification + CI | `.clippy.toml` | Fix all warnings; see `.clippy.toml` for exceptions |
 | `cargo deny check` | verification + CI | `deny.toml` | Check crate layering diagram in `Cargo.toml` comments |
+| `check-lockfile-sync.sh` (`lockfile-sync`) | verification | `scripts/check-lockfile-sync.sh` | Stale `Cargo.lock`/`fuzz/Cargo.lock`: re-resolve that graph with `cargo metadata`; a 2-version `libsql` means the workspace drifted off `chaotic_semantic_memory`'s constraint |
+| `check-changelog-headings.sh` (`changelog-headings`) | verification | `scripts/check-changelog-headings.sh` | Duplicate `## [x.y.z]` heading or a non-descending order: parse-changelog rejects the file, so merge the sections under one heading |
+| `check-shell-counters.sh` (`shell-counters`) | verification | `scripts/shell-counters-baseline.txt` | New bare `((i++))`: write `i=$((i + 1))`; a 0-valued increment exits 1 and truncates the script under `set -e` |
+| `check-lesson-distillation.sh` (`lesson-distillation`) | verification | `scripts/lesson-distillation-baseline.txt` | Cite the new lesson id from the file that carries the rule (AGENTS.md, a skill, or the enforcing script); never reuse an existing id |
+| `check-commit-ci-tokens.sh` (`commit-ci-tokens`) | feedback + verification + commit-msg hook | `scripts/check-commit-ci-tokens.sh` | Reword the message so the bracketed token never appears, `git commit --amend -F <file>`, prove it with `git rev-parse 'HEAD^{tree}'` |
+| `check-agents-md-ids.sh` (`agents-md-ids`) | feedback + verification | `scripts/check-agents-md-ids.sh` | Move the raw API id to `agent_docs/LESSONS.md` and cite the CI run number in `AGENTS.md`; never add `.codacy.yml` to silence it |
+| `check-merge-method.sh` (`merge-method`) | verification | `scripts/check-merge-method.sh` | `merge-pr.sh` defaults to a method the base ruleset refuses, dropped its async stacked-PR path or its `$HEAD_SHA` pin, dropped the `--method merge` refusal, or requests `bypass_rules`: `main-protection` has `required_linear_history`, so keep `squash` and never bypass (LESSON-081) |
+| `check-ignored-tests.sh` (`ignored-tests`) | verification | `scripts/check-ignored-tests.sh` | An added `#[ignore]` needs its reason recorded; run the ignored set per feature (`--run-ignored only` force-runs only ignored tests) |
+| `check-lint-suppressions.sh` (`lint-suppressions`) | verification | `scripts/lint-suppressions-baseline.txt` | New crate-root `#![allow]`: prefer a per-site `#[expect]` with a reason; run `--update` only after review |
+| `check-yaml-frontmatter.sh` (`yaml-frontmatter`) | verification | `scripts/check-yaml-frontmatter.sh` | Give the skill/doc its required `---` frontmatter block |
+| `check-storage-backend-capabilities.sh` (`storage-backend-capabilities`) | verification | `scripts/check-storage-backend-capabilities.sh --check` | Keep declared backend capabilities and the feature-gated implementations in sync |
+| `quality-gates.sh` (`quality-gates`) | verification | `scripts/quality-gates.sh` | Runs the consolidated gate suite; doctests and LOC are skipped here because `docs` and `loc` own them |
 | `cargo test --doc` / `doc` (`docs`) | verification + CI | `scripts/check-doctests.sh` | Wrap URLs in `<...>`, re-export public types, fix broken doctests |
 | `cargo nextest run` (`test`) | verification + CI | `.config/nextest.toml` | Fix failing unit/integration tests before opening PR |
 | `csm` feature tests (`csm-feature`) | verification + CI | `do-memory-core` | Fix failing CSM cascade/rerank/evidence tests |
@@ -97,10 +109,29 @@ When a computational sensor fires:
 
 ## Harness Check Script
 
-Run all sensors locally with structured output:
+A structured-output wrapper for the same categories, useful when you want
+`HARNESS VIOLATION: [category] — fix hint` lines to parse:
 
 ```bash
-bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|all>
+bash scripts/harness-check.sh <fmt|clippy|deny|test|arch|security|all>
 ```
 
 Each failure emits a `HARNESS VIOLATION:` prefix with an agent-parseable fix hint.
+
+**Its `clippy` category is not the gate.** `harness-check.sh clippy` runs
+`cargo clippy --lib --tests` under **27** `-A clippy::…` suppressions (cast losses,
+`doc_markdown`, `manual_let_else`, `if_not_else`, …), while the `clippy` sensor in
+`do-harness.toml` runs `scripts/code-quality.sh clippy --workspace`, which passes
+`--workspace --tests` and suppresses only three lints (`expect_used`,
+`uninlined_format_args`, `unwrap_used`). So `harness-check.sh clippy` can be green while
+CI's clippy fails — on both scope (`--lib` per package vs `--workspace`) and strictness.
+Use it for the parseable hints, never as completion evidence; the authoritative pair is:
+
+```bash
+./scripts/code-quality.sh clippy --workspace   # == sensor "clippy"; this is the gate
+cargo fmt --all -- --check                     # == sensor "fmt"
+```
+
+`harness-check.sh` is not registered as a do-harness sensor, so `do-harness status` will
+not reflect it. Collapsing the two suppression lists is deliberately out of scope here —
+aligning them would change what the wrapper reports, which needs its own measured change.

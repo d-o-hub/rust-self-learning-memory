@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Shell completion and configuration setup (`config init`, `show-template`,
+  and `wizard`) now run without loading the existing config or opening storage.
+  A missing or broken config no longer blocks setup or recovery, and setup
+  never attempts database connections; `config init` still refuses to overwrite
+  existing files.
+
 - `storage stats` counted only the process-local pattern fallback, so a fresh
   process reported zero patterns even though `pattern list` and `pattern search`
   returned the patterns persisted by an earlier process. It now counts the
@@ -25,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `sysinfo` 0.39.6 → 0.40.1. Every `System` constructor is fallible in 0.40, so
+  the resource-probing call sites now degrade instead of assuming success: the
+  MCP time-series `memory_usage_mb` metric keeps its 50.0 fallback, CLI config
+  defaults fall back to the values the `suggest_*` helpers already clamp to, and
+  environment-fitness validation skips only the memory warning (the CPU and CI
+  checks do not need a live snapshot). The soak memory-capture block dropped
+  `sysinfo::SystemExt`, removed in 0.40.
+- `libsql` 0.10.0 was dropped from the same Dependabot `rust-major` group.
+  `chaotic_semantic_memory` 0.3.8 still requires libsql `0.9.30`, so taking the
+  bump links two libsql versions under the `csm` feature and duplicates its
+  exported C symbols — the constraint recorded in the root `Cargo.toml`. libsql
+  0.10.0 is still on `hyper 0.14` / `hyper-rustls 0.25`, so it does not clear the
+  `rustls-webpki` 0.102 waiver either. `fuzz/Cargo.lock` is re-resolved so the
+  supply-chain audit no longer mutates a stale lockfile mid-scan.
 - `episode create --format json|yaml` emits one shape in every build. Compiling
   with the `turso` feature used to rename the id field: redb-only builds printed
   `{"id": ...}` while turso builds printed `{"episode_id": ..., "status": "created"}`.
@@ -39,6 +59,194 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29
   to 1.1.31 in `fuzz/Cargo.lock`, fixing RUSTSEC-2026-0418 (build-script
   environment leakage when `cc` 1.6 or later compiles on Unix).
+
+### CI/CD
+
+- New harness sensor `lockfile-sync` (`scripts/check-lockfile-sync.sh`, added to
+  the `verification` set). It runs `cargo metadata --locked` against both the
+  root and the `fuzz` graphs, so a lockfile that no longer matches its manifests
+  fails locally instead of being rewritten mid-scan by
+  `cargo deny --manifest-path fuzz/Cargo.toml` — the failure that turned the
+  Supply Chain Audit red on PR #1240 while reporting 0 vulnerabilities. It also
+  asserts `libsql` resolves to exactly one version per lockfile, because the
+  two-version state that a `libsql` 0.10 bump produces is a *link-time*
+  duplicate-C-symbol conflict under the `csm` feature that `cargo check` cannot
+  see (rlibs do not link). `fuzz` is `exclude`d from the root workspace, so
+  before this sensor no gate ever resolved that graph.
+
+- Five more harness sensors, each encoding a lesson that was previously only
+  prose an agent had to remember (full reasoning in `agent_docs/LESSONS.md`
+  LESSON-079):
+  `commit-ci-tokens` (`scripts/check-commit-ci-tokens.sh`, also a `commit-msg`
+  pre-commit hook and part of `feedback`) rejects a GitHub CI skip-control token
+  anywhere in a commit message, since the matcher reads the whole head message
+  and the branch then has zero runs while the rollup still looks healthy;
+  `agents-md-ids` keeps bare 10-15 digit runs out of `AGENTS.md`, which parks the
+  required Codacy context at `action_required` (also in `feedback`);
+  `changelog-headings` enforces the same duplicate-heading invariant
+  `update-changelog.sh` only checked while it ran, because a duplicate makes
+  parse-changelog reject the file and a release ships with empty notes;
+  `shell-counters` ratchets bare `((VAR++))`, whose value is the
+  *pre*-increment, so incrementing 0 exits 1 and truncates the report it was
+  writing under `set -e`; `lesson-distillation` fails on a duplicated lesson id
+  (LESSON-011 had been used twice) and ratchets the count of lessons with no
+  citation outside the log — 41 of 77 before this change, 20 after. The two
+  ratchets ship with recorded baselines and can only move down.
+
+- New harness sensor `merge-method` (`scripts/check-merge-method.sh`, added to
+  the `verification` set) fails closed on the merge-path trap that cost a whole
+  round-trip on PR #1241 (LESSON-081). Ruleset `main-protection` carries
+  `required_linear_history`, and GitHub evaluates its rules only while
+  *executing* a merge: a `merge`-method attempt first refused by GraphQL as
+  `part of a stack`, then answered the documented asynchronous retry with
+  `202 status=pending` — which means "accepted for evaluation", not merged —
+  while the real verdict (`This branch must not contain merge commits`) sat on
+  the returned uuid. The gate parses `merge-pr.sh`'s default `METHOD` and
+  rejects `merge`, asserts the async stacked-PR path and its `-f
+  sha="$HEAD_SHA"` pin are still present, and asserts no `bypass_rules` ever
+  reaches the request — whole-line comments are stripped first, so the prose
+  that documents the prohibition cannot trip it (LESSON-079). With a token it
+  also cross-checks the live ruleset (`allowed_merge_methods` plus the presence
+  of `required_linear_history`) and fails rather than skipping, following
+  `scripts/validate-gate-contract.sh`'s fail-closed-with-token /
+  NOTE-without-token split; `skill-evals.yml`'s CI-parity step already proves
+  that read works with `secrets.GITHUB_TOKEN` under `permissions: contents:
+  read`. Eight failure modes were verified to fire on a mutated copy of
+  `merge-pr.sh` (default `merge`, a `bypass_rules` code line, a lost
+  `merge-async` path, a lost `sha=` pin, an unrecognised method, a missing
+  `merge-pr.sh`, a removed `--method merge` refusal, a restored `merge`
+  acceptance), and a comment that merely *mentions* `bypass_rules=true` was
+  verified not to trip it.
+
+- `merge-pr.sh` refuses `--method merge` outright — exit 2, before any API call —
+  and its usage text now lists only `squash|rebase`. Advertising an option that
+  cannot land on a linear-history branch is a phantom affordance (LESSON-063),
+  and leaving it wired meant an operator override still ate the mid-merge
+  rejection this work exists to prevent. `squash` and `rebase` are both permitted
+  by the ruleset, and nothing in the repository ever passed `merge`.
+
+- Routing-layer corrections, each verified against the tree before editing:
+  `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved
+  merge-readiness (it was observed exiting 0 with 12 of 21 rows pending);
+  `commit` forbade empty re-trigger commits while `pr-readiness` prescribed one,
+  now split by intent — legitimate to clear stale rollup rows, never to hide a
+  real failure; `ci-fix`'s clippy command omitted `--tests` and the repo's `-A`
+  allow-list, contradicting `scripts/code-quality.sh`, so it now calls the
+  script; the drift-check label override is scoped to release-preparation PRs
+  only; and `pr-readiness`'s conflict recipe gained the lossless index-stage
+  proof (`git show :2:`/`:3:` read *before* staging, `LC_ALL=C comm`) that
+  LESSON-070 discovered too late. Four dead pointers from the lessons log into
+  `AGENTS.md` sections removed by an earlier shrink are re-anchored, and the
+  `HARNESS.md` sensor table gained the 11 rows it was missing — six sensors were
+  absent from the file entirely and five appeared only in prose, with no row and
+  therefore no fix hint. Two further contradictions surfaced while routing the
+  rest of the log: `LESSON-016` told agents to run `gh pr merge --squash --auto`
+  and called cancelled checks "non-required noise", which contradicts
+  `merge-pr.sh` and the ruleset evidence in LESSON-041/050, so the entry is now
+  marked superseded with the mechanism struck through; and `scripts/harness-check.sh`
+  was documented as "run all sensors locally" while its `clippy` allows 27 lints
+  over `--lib --tests` against the sensor's 3 over `--workspace --tests`, so both
+  the guide and the script header now say it is not a completion gate. Seven
+  previously uncited lessons (010, 016, 020, 029, 056, 062, 078) are now routed
+  into the skills that enforce them.
+
+- New lesson LESSON-080 — a retraction, recorded because the wrong rule was
+  committed first. PR #1242 is stacked on #1241, so its base is a feature branch,
+  and `ci.yml`, `coverage.yml`, `security.yml`, `storage-matrix.yml`,
+  `yaml-lint.yml`, `file-structure.yml` and `skill-evals.yml` all declare
+  `pull_request: branches: [main, develop]`. From one `gh run list` taken ~60s
+  after the push (empty, while Codacy and SonarCloud already showed green App
+  rows) I concluded the child PR could never get CI and routed that as a rule.
+  It is refuted twice by the same API: `pull_request` runs exist for the PR's own
+  commits (`99e56446` created 6s after its push, `3c1aaf4b` 74min after), so the
+  rollup went from 2 rows to 30 — and those runs carry
+  `head_branch=docs/lesson-distillation` with `pull_requests[].number=1242`, i.e.
+  they fired for the PR based on a feature branch, which the naive reading of the
+  filter predicts is impossible. The entry now records the trigger config plus the
+  unresolved question about what `pull_request.branches` actually gates, **not** a
+  causal rule, and the two
+  routed sentences in `pr-readiness` and `ci-fix` say instead: confirm a run
+  exists before calling a rollup green, and re-query before concluding CI never
+  will. The investigation's usable finding is that another session had rewritten
+  both branches mid-work; containment was proved by an empty diff of the touched
+  files before resetting to the remote tip (LESSON-035).
+
+- Every remaining uncited lesson is routed, so the
+  `scripts/check-lesson-distillation.sh` ceiling drops 19 → 0: a new lesson that
+  is not wired into a skill, guide or code comment now fails the gate instead of
+  accumulating. Notable placements, each checked against the tree before writing:
+  LESSON-031/032/036 in `agent_docs/github_actions_patterns.md` (the
+  `workflow_ref`-vs-`job_workflow_ref` boundary, `needs:` without `always()`
+  skipping a whole release run, and a new subsection for machine-readable output
+  redirected to a file — `if-no-files-found: error` cannot catch a 0-byte report
+  because the shell created the file, and `nightly-tests.yml:91,251` use `warn`,
+  so a green nightly report step is unproven until the artifact is read);
+  LESSON-015 in `test-patterns`, where the lesson's own advice to add an
+  `--all-features --tests` clippy run is **rejected** because
+  `storage-matrix.yml:36,41,45` deliberately avoid `--all-features`; LESSON-006
+  against the live `benchmarks.yml:5-25` filter shape (`paths` on
+  `pull_request`, `paths-ignore` on `push`, never both on one trigger);
+  LESSON-013 in the CLI troubleshooting path table, after confirming
+  `combination.rs:33-40` really does leak a `tempfile::tempdir()` for an unset
+  `redb_path`; LESSON-034 where `--signer-workflow` already appears; LESSON-042
+  inside a rule that existed but was only reachable through the section header's
+  `LESSON-039…052` ellipsis; LESSON-009 as a doc comment on `effective_size()`
+  itself (`peek()` on `lru::LruCache` measures without promoting recency);
+  LESSON-073 as a "measure in the tree you are reporting about" precondition in
+  `release-cadence-manager`; and LESSON-033 as a warning beside the still-true
+  `create-missing = true` in `book/book.toml`, which is what turns a
+  `- [Title](#anchor)` placeholder into a committed `book/src/#anchor` file.
+  LESSON-073's aside that `fuzz/Cargo.lock` needs no attention is corrected in
+  place: it stops being true the moment PR #1241's `lockfile-sync` sensor
+  merges, since that guard runs `cargo metadata --locked` on the fuzz graph too.
+
+- LESSON-080 gained a second refutation, found by making the query wrongly:
+  `actions/runs?head_sha=2657fcbb` returned zero rows for a head that had 10 runs
+  queued, because the sha had been sliced to 8 characters. A truncated argument and
+  a CI that never ran are indistinguishable in the response, so the detection step
+  and both skills that tell an agent to query runs now require the full
+  40-character sha.
+
+- Documented what `check-pr-readiness.sh`'s Codecov line actually does, in
+  `coding_workflow.md` and the `coverage-waivers` anti-patterns: `:107` derives it
+  from `codecov[bot]` comments only, so an evidence reply never clears it, and
+  `:207-211` turns it into a counted issue exactly when every other gate is
+  `✅ READY`. Clearing it needs either a head that Codecov reports as fully
+  covered or `merge-pr.sh --accept-codecov-waiver`, which relaxes that heuristic
+  and nothing else. While writing this I claimed the line also prints at 100% patch
+  coverage; three merged PRs showed Codecov switches to
+  "All modified and coverable lines are covered by tests" there, which matches no
+  pattern in the heuristic — the refutation is recorded in LESSON-079 rather than
+  quietly dropped. The second half of that sentence was also wrong and is corrected
+  here: `--accept-codecov-waiver` did **not** relax the heuristic, because its guard
+  could never be satisfied — it read the script's own aggregate
+  `⚠️ 1 issue(s) found` line as a second failure, and its case-sensitive
+  `grep -v 'Codecov'` left the uppercase `Verdict: ⚠️ CODECOV FEEDBACK` in place.
+  PR #1240 is where it surfaced: the PR was genuinely waivable, the flag was passed,
+  and the gate still refused, which is the same exit 1 a real blocker produces.
+
+- Merge mechanics from landing #1240–#1242, recorded as LESSON-081 and LESSON-082
+  and fixed in `scripts/merge-pr.sh`. The default `--method merge` is refused by the
+  active `required_linear_history` rule on ruleset `main-protection`, but only at
+  execution time: a stacked PR first fails GraphQL with `part of a stack`, the
+  documented `merge-async` retry answers `202 status=pending` (accepted for
+  evaluation, not merged), and the rule violation appears solely on the returned
+  uuid. The script now defaults to `squash`, falls back to `merge-async` pinned to
+  the head SHA the gates verified with `bypass_rules` never sent, polls the uuid to
+  a terminal state, and prints any other merge error verbatim. `rebase` is rejected
+  as a default on purpose: `check-pr-readiness.sh --fix` brings a `BEHIND` branch up
+  to date with `update_method=merge`, and #1240's head carried two such merge
+  commits, which a rebase would have dropped. Stacked PRs also refuse
+  `update-branch` (`403 Updating a stacked PR's branch via this endpoint is not
+  supported`) and `gh pr edit --base`, so the branch must be updated with git after
+  proving with `git range-diff` that the remote supersedes the local tip. The waiver
+  guard above is now case-insensitive over the Codecov family, ignores the aggregate
+  count line, requires the residual failure set to be empty, and prints what it
+  found when it refuses. One thing this changelog does *not* claim: the ruleset's
+  `updated_at` (2026-08-10) cannot date the rule, because merge commits landed on
+  `main` as late as `ce42900e` (2026-11-01) under it — the contradiction is recorded
+  rather than explained away.
+
 
 ## [0.1.47] - 2026-10-28
 

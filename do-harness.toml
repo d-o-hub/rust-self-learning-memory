@@ -10,13 +10,20 @@ pre-commit = ["fmt", "loc"]
 pre-push = []
 
 [signal-sets]
-feedback = ["fmt", "loc", "check"]
+feedback = ["fmt", "loc", "check", "commit-ci-tokens", "agents-md-ids"]
 verification = [
   "fmt",
   "check",
   "clippy",
   "loc",
   "deny",
+  "lockfile-sync",
+  "changelog-headings",
+  "shell-counters",
+  "lesson-distillation",
+  "commit-ci-tokens",
+  "agents-md-ids",
+  "merge-method",
   "docs",
   "test",
   "csm-feature",
@@ -71,6 +78,51 @@ argv = ["bash", "scripts/check-doctests.sh"]
 [[sensors]]
 name = "deny"
 argv = ["bash", "scripts/check-dependency-audit.sh"]
+
+# Lockfile freshness for both graphs plus the libsql single-version alignment
+# constraint. Without it a stale fuzz/Cargo.lock is only discovered when
+# 'deny' rewrites it mid-scan (LESSON-077).
+[[sensors]]
+name = "lockfile-sync"
+argv = ["bash", "scripts/check-lockfile-sync.sh"]
+
+# Duplicate / misordered CHANGELOG version headings make parse-changelog reject
+# the file, which is how a release shipped with empty notes (LESSON-066).
+[[sensors]]
+name = "changelog-headings"
+argv = ["bash", "scripts/check-changelog-headings.sh"]
+
+# Bare ((i++)) under `set -e` exits 1 on the 0th increment and truncates the
+# report it was writing (LESSON-059). Ratchet ceiling.
+[[sensors]]
+name = "shell-counters"
+argv = ["bash", "scripts/check-shell-counters.sh"]
+
+# LESSONS.md pairs each entry with a routed note; nothing enforced it, so 41 of
+# 77 lessons were unreachable from AGENTS.md/skills and one id was duplicated.
+[[sensors]]
+name = "lesson-distillation"
+argv = ["bash", "scripts/check-lesson-distillation.sh"]
+
+# A CI control token in a commit message gives the branch zero runs, so the
+# required aggregate can never report and the merge stays BLOCKED (LESSON-065).
+[[sensors]]
+name = "commit-ci-tokens"
+argv = ["bash", "scripts/check-commit-ci-tokens.sh"]
+
+# A bare 10-15 digit run in AGENTS.md parks the required Codacy context at
+# action_required with every other check green (LESSON-076).
+[[sensors]]
+name = "agents-md-ids"
+argv = ["bash", "scripts/check-agents-md-ids.sh"]
+
+# Ruleset `main-protection` carries required_linear_history, so a `merge` commit
+# is refused only while GitHub *executes* the merge - which cost a whole
+# round-trip on PR #1241 (LESSON-081). Asserts merge-pr.sh's default method, its
+# async stacked-PR path, and that no bypass is ever requested.
+[[sensors]]
+name = "merge-method"
+argv = ["bash", "scripts/check-merge-method.sh"]
 
 [[sensors]]
 name = "loc"

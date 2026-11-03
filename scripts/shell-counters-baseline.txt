@@ -1,0 +1,4 @@
+# Bare ((var++)) / ((var--)) statements in tracked *.sh for
+#   scripts/check-shell-counters.sh — ratchet ceiling, never raise it
+# Regenerate with: ./scripts/check-shell-counters.sh --update
+35

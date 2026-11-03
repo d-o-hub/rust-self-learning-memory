@@ -46,7 +46,9 @@ See **[process.md](process.md)** for detailed phases and **[patterns.md](pattern
   `docs/generated/storage-backend-capabilities.json` with `--write`).
 - Use `fail-closed` when the default returns `Error::CapabilityUnavailable` but
   there is no predicate to name; `capability-gated` requires a real
-  `supports_*`/`can_*` predicate in the trait source.
+  `supports_*`/`can_*` predicate in the trait source (LESSON-043: `list_embedding_ids`
+  fit neither class, so the checker gained `fail-closed` rather than the gate
+  blocking a correct default or the inventory staying noisy).
 - A new capability predicate belongs on `StorageBackendCapabilities` (default
   `false`), and every cache/durability caller gates on it before treating a write
   as durable (ADR-081 style).

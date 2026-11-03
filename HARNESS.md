@@ -38,9 +38,16 @@ Two modes:
 
 ## Feedback Sensors
 
-Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`):
+Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`,
+the number tracked in `scripts/do-harness-version.txt`):
 - `feedback`: `fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids` (fast local edit loop)
-- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+- `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `harness-compat`, `harness-doctrine`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)
+
+The same two probes are measured green against the published binaries up to 0.4.1,
+which is what `validated_through` in `scripts/do-harness-version.txt` records. The
+prose above is not a claim: `scripts/check-do-harness-compat.sh` compares the version
+each routing doc states against the tracked reference and goes red on disagreement, so
+raising the number is a deliberate change that has to carry a recorded compat run.
 
 Local evidence boundary command:
 ```bash
@@ -61,6 +68,8 @@ do-harness verify --set verification --strict --record && do-harness status --se
 | `check-commit-ci-tokens.sh` (`commit-ci-tokens`) | feedback + verification + commit-msg hook | `scripts/check-commit-ci-tokens.sh` | Reword the message so the bracketed token never appears, `git commit --amend -F <file>`, prove it with `git rev-parse 'HEAD^{tree}'` |
 | `check-agents-md-ids.sh` (`agents-md-ids`) | feedback + verification | `scripts/check-agents-md-ids.sh` | Move the raw API id to `agent_docs/LESSONS.md` and cite the CI run number in `AGENTS.md`; never add `.codacy.yml` to silence it |
 | `check-merge-method.sh` (`merge-method`) | verification | `scripts/check-merge-method.sh` | `merge-pr.sh` defaults to a method the base ruleset refuses, dropped its async stacked-PR path or its `$HEAD_SHA` pin, dropped the `--method merge` refusal, or requests `bypass_rules`: `main-protection` has `required_linear_history`, so keep `squash` and never bypass (LESSON-081) |
+| `check-do-harness-compat.sh` (`harness-compat`) | verification (`--offline`) + CI (`harness-compat` job in `skill-evals.yml`) | `scripts/do-harness-version.txt` | Resolves the binary independently of PATH (a second `do-harness` on PATH is a violation), then checks the stated version against the tracked reference, the prose pin in every routing doc, the subcommands and flags this repo's own commands cite, `do-harness.toml` set/sensor parity, and that each script-backed sensor's path exists. Exit 2 means nothing was verified — an absent binary is never a pass. Fix: install a version in the validated range, or raise the pin in a PR that carries a recorded compat run |
+| `check-do-harness-doctrine.sh` (`harness-doctrine`) | verification | `scripts/check-do-harness-doctrine.sh` | Runs the status contract against throwaway fixture sensors in a temp root, so a real green run is exercised rather than asserted: 0 = ran and passed, 1 = ran and failed, 2 = could not run; an unspawnable sensor must report `exit_code: null`, `--strict` must refuse weak evidence, and `--record` then `status --set` must report green. Repo-independent, so it also works on a fresh clone |
 | `check-ignored-tests.sh` (`ignored-tests`) | verification | `scripts/check-ignored-tests.sh` | An added `#[ignore]` needs its reason recorded; run the ignored set per feature (`--run-ignored only` force-runs only ignored tests) |
 | `check-lint-suppressions.sh` (`lint-suppressions`) | verification | `scripts/lint-suppressions-baseline.txt` | New crate-root `#![allow]`: prefer a per-site `#[expect]` with a reason; run `--update` only after review |
 | `check-yaml-frontmatter.sh` (`yaml-frontmatter`) | verification | `scripts/check-yaml-frontmatter.sh` | Give the skill/doc its required `---` frontmatter block |

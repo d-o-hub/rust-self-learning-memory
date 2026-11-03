@@ -176,7 +176,9 @@ unblock a merge; changing the list is a ruleset change, never a workflow edit
 synchronous GraphQL call may fail first for an unrelated reason (`part of a stack`), and
 the rule only reports itself on the asynchronous merge's uuid, after a `202 pending` that
 looks like acceptance. Read `.rules` for `required_linear_history` before choosing, and
-treat `squash` as the default (LESSON-081).
+treat `squash` as the default (LESSON-081). `do-harness verify --set verification`
+enforces it via the `merge-method` sensor (`scripts/check-merge-method.sh`), which also
+asserts `merge-pr.sh` never sends `bypass_rules` and keeps its async stacked-PR path.
 
 **A PR inside a stack loses the two convenience endpoints.** `GET /repos/{owner}/{repo}/stacks`
 lists membership and order — note `pulls/{n}.stack.number` is the *stack's* number, not a

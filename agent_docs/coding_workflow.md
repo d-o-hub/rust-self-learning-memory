@@ -195,6 +195,10 @@ the re-run gate output.
   returned uuid long after `✅ Gates passed`. `rebase` is linear too yet drops the merge
   commits that `update_method=merge` puts on a `BEHIND` branch, so it is only safe once
   you have confirmed the branch has none (LESSON-081).
+  The `merge-method` sensor (`scripts/check-merge-method.sh`, in the
+  `verification` set) checks this statically against `merge-pr.sh` and, when a
+  token is present, against the live ruleset — so it fails before a merge is
+  attempted rather than on the uuid.
 - **A stacked PR cannot use the two endpoints this workflow otherwise assumes.**
   `update-branch` answers `403 Updating a stacked PR's branch via this endpoint is not
   supported` and `gh pr edit --base` refuses while the PR is in a stack; discover

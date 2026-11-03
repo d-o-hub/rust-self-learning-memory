@@ -23,6 +23,7 @@ verification = [
   "lesson-distillation",
   "commit-ci-tokens",
   "agents-md-ids",
+  "merge-method",
   "docs",
   "test",
   "csm-feature",
@@ -114,6 +115,14 @@ argv = ["bash", "scripts/check-commit-ci-tokens.sh"]
 [[sensors]]
 name = "agents-md-ids"
 argv = ["bash", "scripts/check-agents-md-ids.sh"]
+
+# Ruleset `main-protection` carries required_linear_history, so a `merge` commit
+# is refused only while GitHub *executes* the merge - which cost a whole
+# round-trip on PR #1241 (LESSON-081). Asserts merge-pr.sh's default method, its
+# async stacked-PR path, and that no bypass is ever requested.
+[[sensors]]
+name = "merge-method"
+argv = ["bash", "scripts/check-merge-method.sh"]
 
 [[sensors]]
 name = "loc"

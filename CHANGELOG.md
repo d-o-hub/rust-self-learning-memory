@@ -93,6 +93,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   citation outside the log — 41 of 77 before this change, 20 after. The two
   ratchets ship with recorded baselines and can only move down.
 
+- New harness sensor `merge-method` (`scripts/check-merge-method.sh`, added to
+  the `verification` set) fails closed on the merge-path trap that cost a whole
+  round-trip on PR #1241 (LESSON-081). Ruleset `main-protection` carries
+  `required_linear_history`, and GitHub evaluates its rules only while
+  *executing* a merge: a `merge`-method attempt first refused by GraphQL as
+  `part of a stack`, then answered the documented asynchronous retry with
+  `202 status=pending` — which means "accepted for evaluation", not merged —
+  while the real verdict (`This branch must not contain merge commits`) sat on
+  the returned uuid. The gate parses `merge-pr.sh`'s default `METHOD` and
+  rejects `merge`, asserts the async stacked-PR path and its `-f
+  sha="$HEAD_SHA"` pin are still present, and asserts no `bypass_rules` ever
+  reaches the request — whole-line comments are stripped first, so the prose
+  that documents the prohibition cannot trip it (LESSON-079). With a token it
+  also cross-checks the live ruleset (`allowed_merge_methods` plus the presence
+  of `required_linear_history`) and fails rather than skipping, following
+  `scripts/validate-gate-contract.sh`'s fail-closed-with-token /
+  NOTE-without-token split. All six failure modes were verified to fire on a
+  mutated copy of `merge-pr.sh` (default `merge`, a `bypass_rules` code line, a
+  lost `merge-async` path, a lost `sha=` pin, an unrecognised method, a missing
+  `merge-pr.sh`), and a comment that merely *mentions* `bypass_rules=true` was
+  verified not to trip it.
+
 - Routing-layer corrections, each verified against the tree before editing:
   `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved
   merge-readiness (it was observed exiting 0 with 12 of 21 rows pending);

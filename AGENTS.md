@@ -91,7 +91,7 @@ assert checks which do not exist (LESSON-063, LESSON-079).
 Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`.
 `do-harness.toml` defines two explicit signal sets:
 - **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids`).
-- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
+- **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), merge-method/no-bypass contract against the base ruleset (`merge-method`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
 
 `do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
@@ -100,7 +100,7 @@ Pinned compatible harness version: `v0.1.0`. Sensors live in `do-harness.toml` a
 ## Required Checks Before Commit
 
 - [ ] `do-harness verify --set feedback` (cheap edit-loop check during coding)
-- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, changelog-headings, shell-counters, lesson-distillation, commit-ci-tokens, agents-md-ids, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
+- [ ] `do-harness verify --set verification --strict --record` (pre-completion contract: fmt, check, clippy, loc, deny, lockfile-sync, changelog-headings, shell-counters, lesson-distillation, commit-ci-tokens, agents-md-ids, merge-method, docs, test, csm-feature, ignored-tests, lint-suppressions, yaml-frontmatter, storage-backend-capabilities, quality-gates)
 - [ ] `do-harness status --set verification` (confirm green local evidence boundary)
 - [ ] `git status` — only intended changes staged
 

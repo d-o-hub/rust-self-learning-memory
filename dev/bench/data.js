@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793664978955,
+  "lastUpdate": 1793696863783,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -103645,6 +103645,738 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 53047.18,
             "range": "± 1209.19",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "548acc1603cd7c82880ec7ab8bce34f1d8615549",
+          "message": "ci(harness): encode seven lessons as sensors and correct five routing contradictions (#1242)\n\n* ci(harness): add five sensors that encode lessons as gates\n\nEach guards a failure previously carried only as prose an agent had to\nremember: a CI skip-control token in a commit message (self-suppresses the\nbranch, so the required aggregate never reports), bare numeric runs in\nAGENTS.md (park the required Codacy context at action_required), duplicate\nCHANGELOG version headings (parse-changelog rejects the file and the\nrelease ships empty), bare ((VAR++)) under set -e (incrementing 0 exits 1\nand truncates the report), and the lessons log's own pairing contract.\n\ncommit-ci-tokens also lands as a commit-msg hook, because .pre-commit-config.yaml\nowns hooks here and do-harness hook install is forbidden by AGENTS.md.\nshell-counters and lesson-distillation ship ratchet baselines (35 counter\nsites, 28 unrouted lessons) that can only move down.\n\n* docs(agents): route four invariants that existed only in the lessons log\n\nPostcard cannot deserialize internally-tagged enums, so any type reaching\nstorage must stay externally tagged (issue #831, LESSON-017); the rule lived\nonly as a code comment in memory-core/src/patterns/types.rs.\n\nA CI skip-control token in a commit message or PR body is now a core\ninvariant, not just a diagnosis tip, because the matcher reads the whole head\nmessage and a squash-merge copies the body onto main.\n\nShared CARGO_TARGET_DIR across worktrees replaces test binaries under a\nrunning suite and yields fake mass failures (LESSON-038). AGENTS.md lost a\nsection on this in an earlier shrink while LESSON-073 kept citing it.\n\nPR Health Check gains the merge-base rule that LESSON-064 and LESSON-074 both\ncite but which no longer exists: MERGEABLE says nothing about lost work, so\ndiff against git merge-base origin/main HEAD and treat an unexplained\nCargo.toml/Cargo.lock hunk as a revert.\n\n* docs(skills): correct routing rules that contradict the enforcing scripts\n\nFour verified drifts, each found by grepping the routing layer for the command\na lesson corrects and comparing it to the script that implements the gate:\n\nci-poll asserted that gh pr checks --required --watch exit 0 means all listed\nchecks passed; it was observed exiting 0 with 12 of 21 rows pending. ci-fix\noffered cargo clippy --workspace --fix, which omits --tests and the repo's -A\nallow-list, so it now calls scripts/code-quality.sh. commit forbade empty\nre-trigger commits while pr-readiness prescribed one; the two are split by\nintent, since a fresh SHA is the only thing that clears stale rollup rows.\nci-fix's drift-check label override is scoped to release-preparation PRs, so a\nplain version bump cannot override the gate.\n\npr-readiness's conflict recipe gains the lossless index-stage proof (stages 2/3\nread before staging, LC_ALL=C comm) that LESSON-070 discovered after a silent\ndocs loss, and ci-fix gains the rule that a BLOCKED merge with zero pending\nrows and only App-based rows present means CI never ran, because\nstatusCheckRollup omits action_required rows.\n\n* docs(lessons): renumber the duplicated id and re-anchor dead pointers\n\nLESSON-011 was the id of two different entries, which makes every citation of\nit ambiguous; the out-of-sequence top entry becomes LESSON-078.\n\nFour references pointed at AGENTS.md sections removed by an earlier shrink\n(Mandatory Pre-Merge Checklist, Disk Space, machine-readable-output, Shared\nCARGO_TARGET_DIR) and are re-pointed at what carries the rule now.\n\nLESSON-079 records the class: a lesson that says \"update doc X\" is not the same\nas doc X saying it, and a routing doc stating a rule the tools contradict\nproduces confident wrong action.\n\n* docs(changelog): record the lesson sensors and the routing corrections\n\n* fix(scripts): stop the new guards from matching their own text\n\nTwo self-inflicted false positives found by running the guards against the\ncommitted tree rather than a scratch one:\n\n- check-shell-counters.sh went 35 -> 37 the moment it was tracked, because its\n  header comment spelled the anti-pattern and its baseline header echoed it.\n  Skip whole-line comments in the matcher and drop the token from the generated\n  header, so the ceiling stays 35 real defects instead of 37 padded ones.\n- check-lesson-distillation.sh counted a CHANGELOG.md mention as routing. It is\n  a release record, so writing about a lesson looked like wiring it in; exclude\n  it and keep the invariant about the files agents actually read.\n\n* docs(lessons): route the remaining citable lessons and strike two false rules\n\nLESSON-016 told agents to run gh pr merge --squash --auto and called cancelled\nchecks \"non-required noise\". Both contradict what is enforced here: merges go\nthrough merge-pr.sh, and a cancelled row keeps mergeStateStatus off CLEAN. The\nentry keeps the useful part (let the queue sequence dependent PRs) and marks the\nmechanism superseded.\n\nHARNESS.md presented harness-check.sh as \"run all sensors locally\", but its\nclippy allows 27 lints over --lib --tests while the clippy sensor allows 3 over\n--workspace --tests, so green there can hide a red gate. Documented in the guide\nand in the script header; the lists are left divergent on purpose because\naligning them changes what the wrapper reports.\n\nAlso routes LESSON-010/020/029/056/062/078 into the skills that already carry the\nrule, and records that paraphrasing a lesson from its title inverted LESSON-010\nwhile routing it — the check is to diff the new sentence against the Solution\nline, not to trust the rewrite.\n\n* docs(lessons): record that a stacked PR on a filtered base runs zero CI\n\nPR #1242 is based on ci/lockfile-sync-guardrail to dodge a same-line conflict\nwith #1241. Its rollup showed two green rows and no failures, which reads as a\npassing PR, but gh run list for the branch is empty: ci.yml, coverage.yml,\nsecurity.yml, storage-matrix.yml, yaml-lint.yml, file-structure.yml and\nskill-evals.yml all filter pull_request to main/develop, so a child PR whose\nbase is a feature branch matches nothing and never gets a run. The two green\nrows are App-based (Codacy, SonarCloud) and ignore that filter.\n\npr-readiness now asks whether a run exists before it will call a rollup green,\nand ci-fix lists both causes of an empty rollup alongside the head-commit skip\ntoken. The PR stays unverified until #1241 merges and #1242 is retargeted.\n\n* docs(lessons): retract the stacked-PR CI rule and record the race instead\n\nThe previous commit turned one Actions query taken ~60s after a push into a\nrule: a PR based on a feature branch gets zero workflow runs. The per-commit\nAPI refutes it -- pull_request runs do exist for the same head shas (created\n6s and 74min after their pushes) and the rollup grew from 2 rows to 30.\n\nLESSON-080 now records the verified trigger config plus the unresolved\nquestion about the base filter, not a causal rule, together with what the\ninvestigation did prove: another session rewrote both branches mid-work. The\nsentences this caused in pr-readiness and ci-fix ask for a re-query and a\nper-commit run lookup instead of a config-based verdict, and CHANGELOG names\nthe entry as a retraction.\n\n* docs(lessons): route the last 19 uncited lessons and set the ceiling to zero\n\nEvery lesson in agent_docs/LESSONS.md now has a citation outside it, so\nscripts/check-lesson-distillation.sh --update ratchets the baseline 19 -> 0: an\nnew lesson that is not wired into a skill, guide or code comment fails the gate\ninstead of joining the backlog.\n\nPlacements were checked against the tree before writing, not against the lesson\nprose:\n\n- LESSON-015 keeps the cfg rule (gate every import/helper a feature-gated test\n  uses, because scripts/code-quality.sh:158 clippies --tests on default features)\n  and rejects the lesson's own advice to add an --all-features run, which\n  storage-matrix.yml:36,41,45 deliberately avoid.\n- LESSON-036 gains a github_actions_patterns section: if-no-files-found cannot\n  catch a 0-byte file the shell itself created, and nightly-tests.yml:91,251\n  upload with warn.\n- LESSON-006 is stated against the live benchmarks.yml:5-25 shape (paths on\n  pull_request, paths-ignore on push, never both on one trigger).\n- LESSON-013 verified against combination.rs:33-40, LESSON-009 against\n  lru::LruCache::peek, LESSON-034 and LESSON-042 where the rule already existed\n  but was uncited or hidden behind a section header's ellipsis range.\n- LESSON-033 is a warning beside the still-true create-missing = true.\n- LESSON-073's fuzz-lock aside is corrected in place: PR #1241's lockfile-sync\n  sensor runs cargo metadata --locked on the fuzz graph too.\n\nLESSON-080 gains the mechanism-level refutation (the runs carry\nhead_branch=docs/lesson-distillation and pull_requests[].number=1242, so the\nbase filter did not suppress them) and the CHANGELOG retraction is aligned.\n\n* docs(ci): the head_sha filter needs the full 40-character sha\n\nCaught while verifying PR #1240: `actions/runs?head_sha=2657fcbb` returned zero\nrows for a head with 10 runs queued, because the sha had been sliced to 8\ncharacters. An empty result from a truncated argument is indistinguishable from\na CI that never ran, which is the exact false conclusion LESSON-080 retracts, so\nthe detection step now names the query itself as a failure mode and both skills\nthat tell an agent to query runs carry the caveat.\n\n* docs(coverage): state what the readiness Codecov line can and cannot do\n\ncheck-pr-readiness.sh:107 derives the Codecov warning from codecov[bot] comments\nalone, so an evidence reply never clears it, and :207-211 promotes it to a\ncounted issue exactly when every other gate is READY. coding_workflow.md and the\ncoverage-waivers anti-patterns now say that, plus the two legitimate exits: a\nhead Codecov reports as fully covered, or merge-pr.sh --accept-codecov-waiver\n(merge-pr.sh:91-95), which relaxes that heuristic and nothing else.\n\nThe first draft claimed the line also prints at 100% patch coverage. It does\nnot: Codecov switches to \"All modified and coverable lines are covered by\ntests\", which matches none of the patterns. That refutation is recorded as a\nLESSON-079 instance instead of being dropped, because writing the confident\nversion would have been this session's third wrong rule.\n\n* fix(ci): teach merge-pr.sh the linear-history rule and stacked-PR merges\n\n`main` is guarded by ruleset `main-protection` with `required_linear_history`\nactive, so the script's default `--method merge` is refused. It is refused at\nexecution time: a stacked PR fails GraphQL with `part of a stack` first, the\ndocumented `merge-async` retry answers `202 status=pending`, and the rule\nviolation only appears on the returned uuid.\n\nDefault to `squash` (the method the recent history on `main` already uses),\nfall back to `PUT /pulls/{n}/merge-async` pinned to the head SHA the gates\nverified with `bypass_rules` never sent, poll the uuid to a terminal state, and\nprint any other merge error verbatim instead of swallowing it. `rebase` is not\nthe default because `check-pr-readiness.sh --fix` brings a BEHIND branch up to\ndate with `update_method=merge`, and a rebase drops those merge commits.\n\nAlso repair Gate 1's `--accept-codecov-waiver`, which could never fire: its\nguard read the script's own aggregate `1 issue(s) found` line as a second\nfailure and its case-sensitive filter left the uppercase `CODECOV FEEDBACK`\nverdict standing. It now requires the residual non-Codecov failure set to be\nempty and prints what it found when it refuses.\n\nLESSON-081, LESSON-082 (PR #1240, PR #1241)\n\n* docs(lessons): record LESSON-081/082 and correct the waiver claim they expose\n\nTwo merge-path lessons from landing #1240-#1242, routed so they are reachable\nbefore the next merge rather than only from the section header's ellipsis:\n`coding_workflow.md` step 10 (method choice, stacked-PR endpoints, \"202 is not\nmerged\"), the `pr-readiness` ruleset section, and AGENTS.md's Workflow Traps\nrange extended to 082.\n\nThe changelog and workflow text that described `--accept-codecov-waiver` as\nrelaxing \"exactly this heuristic\" were wrong, and I wrote them this session;\nthey now say the flag was unreachable until this fix, with the two filter defects\nnamed. LESSON-081 declines to date the `required_linear_history` rule: the\nruleset reports `updated 2026-08-10` while merge commits landed on `main` as\nrecently as `ce42900e` (2026-11-01), so the contradiction is recorded rather\nthan explained away.",
+          "timestamp": "2026-11-03T09:08:06+01:00",
+          "tree_id": "5f71c4f1d8a1ec056ed5e19deb924622b68384dd",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/548acc1603cd7c82880ec7ab8bce34f1d8615549"
+        },
+        "date": 1793696862687,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "broadcast_fan_out_fan_out_10_receivers",
+            "value": 47179.26,
+            "range": "± 182.68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_1_receivers",
+            "value": 18316.85,
+            "range": "± 537.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_50_receivers",
+            "value": 176396.72,
+            "range": "± 1302.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_fan_out_fan_out_5_receivers",
+            "value": 31201.99,
+            "range": "± 124.4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "broadcast_single_receiver_send_1000_events",
+            "value": 154577.03,
+            "range": "± 889.72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 42130295.98,
+            "range": "± 2504236.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 417116837.6,
+            "range": "± 4867492.58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 200211132.03,
+            "range": "± 1535567.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 419061781.55,
+            "range": "± 5081990.77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 78541806.26,
+            "range": "± 1183514.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 22973632.72,
+            "range": "± 1007631.4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 180.97,
+            "range": "± 1.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 335.91,
+            "range": "± 1545.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_all",
+            "value": 10,
+            "range": "± 0.06",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_cleanup_clear_connection",
+            "value": 15.46,
+            "range": "± 0.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_concurrent_concurrent_access",
+            "value": 2395041.4,
+            "range": "± 25676.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 5566693.32,
+            "range": "± 33240.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 551.55,
+            "range": "± 44.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 3713.19,
+            "range": "± 88.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 190.75,
+            "range": "± 1.28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 235.01,
+            "range": "± 1.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 283.21,
+            "range": "± 1.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 209.83,
+            "range": "± 1.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 3763.06,
+            "range": "± 24.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 42290.69,
+            "range": "± 380.99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 448391.67,
+            "range": "± 6444.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 2288223.23,
+            "range": "± 7230.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 184.36,
+            "range": "± 1.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 12846.01,
+            "range": "± 54.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 1233.28,
+            "range": "± 3.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 404.93,
+            "range": "± 10.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 432.02,
+            "range": "± 16.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 494.23,
+            "range": "± 28.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 411.52,
+            "range": "± 16.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_parameterized_queries",
+            "value": 538.98,
+            "range": "± 6.99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 720.42,
+            "range": "± 15.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_statistics_stats_calculation",
+            "value": 6.22,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 58.85,
+            "range": "± 0.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 2804.03,
+            "range": "± 117.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 74872.66,
+            "range": "± 490.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 331.93,
+            "range": "± 1.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 7540.52,
+            "range": "± 126.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 1427.53,
+            "range": "± 6.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 37188.27,
+            "range": "± 182.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 8915559.62,
+            "range": "± 321504.95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 8820623.56,
+            "range": "± 230401.38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 6.89,
+            "range": "± 0.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 6.89,
+            "range": "± 0.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 6.88,
+            "range": "± 0.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 6.88,
+            "range": "± 0.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 6.88,
+            "range": "± 0.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.31,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 148482.25,
+            "range": "± 2802.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 23371.73,
+            "range": "± 1063.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 22128.28,
+            "range": "± 759.77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 23328,
+            "range": "± 646.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 69189.54,
+            "range": "± 1010.68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_latest_concurrency_1_read_latest@1",
+            "value": 5016008386.9,
+            "range": "± 26766090.28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 5675365437.4,
+            "range": "± 42603339.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 4990307320.5,
+            "range": "± 43462202.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 5155416965.3,
+            "range": "± 35490356.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 5321144992.4,
+            "range": "± 28227847.05",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_16_read_only@16",
+            "value": 5362377562.5,
+            "range": "± 21372442.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 4985781330.5,
+            "range": "± 26368719.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 5056367331.8,
+            "range": "± 22248083.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 5167178544.3,
+            "range": "± 26779692.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 9434047743,
+            "range": "± 31230054.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 5233219519.2,
+            "range": "± 46052636.53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 6095120759.8,
+            "range": "± 47298139.86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 7156405047.3,
+            "range": "± 51418510.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 33611.16,
+            "range": "± 1033.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 33478.48,
+            "range": "± 445.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 931464.63,
+            "range": "± 8720.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 18839.3,
+            "range": "± 2055.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 50178.39,
+            "range": "± 2288.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 105059.44,
+            "range": "± 10369.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 151938.99,
+            "range": "± 5316.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 334.46,
+            "range": "± 2.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 2777.32,
+            "range": "± 12.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 1426.03,
+            "range": "± 8.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 7526.01,
+            "range": "± 277.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 74519.97,
+            "range": "± 117.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 37111.07,
+            "range": "± 58.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 24179.7,
+            "range": "± 131",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 41253.84,
+            "range": "± 2995.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 49957.72,
+            "range": "± 3391.93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 6.13,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 1146.44,
+            "range": "± 10.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 1147.24,
+            "range": "± 4.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 1086.41,
+            "range": "± 15.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 680.98,
+            "range": "± 21.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 544.98,
+            "range": "± 10.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 4895814.66,
+            "range": "± 384909.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 2388515.83,
+            "range": "± 170140.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 19803.41,
+            "range": "± 262",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 1080.65,
+            "range": "± 9.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "send_event",
+            "value": 34.9,
+            "range": "± 0.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 28390.84,
+            "range": "± 348.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 13018.38,
+            "range": "± 205.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 58417.44,
+            "range": "± 969.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 1928000.95,
+            "range": "± 92283.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 1904461.46,
+            "range": "± 71778.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 1931441.73,
+            "range": "± 91551.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 1870542.89,
+            "range": "± 39437.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 1872036.14,
+            "range": "± 59910",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 1873523.98,
+            "range": "± 48726.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "subscribe",
+            "value": 30.09,
+            "range": "± 0.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 7736.3,
+            "range": "± 134.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 5202.19,
+            "range": "± 79.88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 13828.25,
+            "range": "± 98.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 3841.76,
+            "range": "± 90.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 35469.68,
+            "range": "± 1470.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 349636.82,
+            "range": "± 7622.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 53413.78,
+            "range": "± 1688.19",
             "unit": "ns/iter"
           }
         ]

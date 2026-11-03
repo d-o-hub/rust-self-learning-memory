@@ -50,7 +50,6 @@ sysinfo = "0.40"
 # Test utilities dependencies
 assert_cmd = "2.2"
 tempfile = { workspace = true }
-do-memory-test-utils = { path = "../test-utils" }
 
 [features]
 default = ["redb"]
@@ -66,8 +65,6 @@ full = ["turso", "redb", "embeddings-full"]
 
 [dev-dependencies]
 # Testing framework
-tempfile = { workspace = true }
-assert_cmd = "2.2"
 predicates = "3.1"
 serial_test = "4.0"
 

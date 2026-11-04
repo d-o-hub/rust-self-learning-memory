@@ -140,7 +140,7 @@ type_complexity = "allow"  # Complex types are common in this codebase
 timeout = 300
 jobs = 4
 examine_re = [
-    "memory-core/src/pattern/similarity\\.rs",
+    "memory-core/src/patterns/similarity\\.rs",
     "memory-core/src/embeddings/similarity\\.rs",
     "memory-core/src/extraction/utils\\.rs",
     "memory-mcp/src/jsonrpc\\.rs",

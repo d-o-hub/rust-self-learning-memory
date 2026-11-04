@@ -1,21 +1,21 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-11-01
-**Released Version**: v0.1.47 (tag `854f6f8d`, 2026-10-28; GitHub Release published 2026-10-28T20:41:48Z)
-**Workspace Version**: 0.1.48 (development bump; drift gate `severity=clean`, `reason=within_cadence`)
+**Last Updated**: 2026-11-04
+**Released Version**: v0.1.48 (release target; tag and publication pending green main CI)
+**Workspace Version**: 0.1.48 (release preparation; latest published tag is v0.1.47, `854f6f8d`, 2026-10-28)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
-**Active plan**: **post-release closeout** — `v0.1.47` shipped and its released CLI was dogfooded on a persistent database; the observed `storage stats` and retrieval-ranking defects are fixed in #1225/#1226.
-The advisory fix (#1224), generated-lockfile alert (#1227), version restore (#1228), toolchain pin (#1222), and crates.io publishing settings (#1109) are complete. CLI output contract follow-up #1232/#1233 is merged; ACT-403 nightly is green.
-Remaining: upstream-blocked Dependabot ACT-404, release preparation for development version `0.1.48`, and maintainer-external ADR lifecycle acceptance.
-**Branch**: `main` at audit baseline `d5d8f463` — no release branch open.
+**Active plan**: **release preparation for `0.1.48`** — `v0.1.47` shipped and its released CLI was dogfooded on a persistent database; the observed `storage stats` and retrieval-ranking defects are fixed in #1225/#1226,
+the advisory fix (#1224), generated-lockfile alert (#1227), version restore (#1228), toolchain pin (#1222), and crates.io publishing settings (#1109) are complete, and the harness wave (#1241, #1242, #1244, #1248, #1250, #1251, #1249) is merged.
+Remaining: land this preparation, verify green main CI, ship `v0.1.48`, then verify the GitHub Release, the released-CLI dogfood, and all four crates the publish chain owns. Upstream-blocked Dependabot ACT-404 and maintainer-external ADR lifecycle acceptance stay open.
+**Branch**: release preparation based on `main` @ `2426638a`.
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | 0 at the 2026-11-01 audit baseline; this tracker refresh is the only review PR, so the post-merge count returns to 0. |
-| Open issues | **0** — #1205, #1109 and version-drift issue #1223 are closed; `gh issue list --state open` is the live source. |
-| Dependency audit | 18 open Dependabot alert rows across 9 advisory IDs and two lockfiles; all remaining rows are upstream-blocked (ACT-404). Alert #35 is fixed in #1227. |
+| Open PRs | The release-preparation PR is the only open pull request; `gh pr list --state open` is the live source. Merged since `v0.1.47`: #1220, #1222, #1232/#1233, #1237, #1238, #1239, #1240, #1241, #1242, #1244, #1245, #1248, #1250, #1251, #1249. |
+| Open issues | #1236, the auto-maintained release-drift issue (32 commits / 6 days since `v0.1.47`); `check-release-blockers.sh` excludes it by label so the gate cannot deadlock on its own bookkeeping, and it closes when this version ships. `gh issue list --state open` is the live source. |
+| Dependency audit | The remaining Dependabot alert rows are upstream-blocked (ACT-404); consult the security workflow's latest run for current advisory status. |
 
 ## Corrected claim (2026-10-04)
 
@@ -128,8 +128,8 @@ restated at each refresh. Read any campaign claim as campaign-scoped; the repo-w
 
 | Priority | Item | ID | Status |
 |----------|------|-----|--------|
-| P0 | Land the **release-prep PR** for `0.1.47` and verify green main CI | ACT-412 | ✅ release preparation merged and shipped as `v0.1.47`; workspace `0.1.48` restored in #1228 |
-| P0 | Cut tag `v0.1.47` and verify the four owned crates resolve on crates.io | ACT-409 | ✅ tag `854f6f8d`; all four published; mandatory released-CLI dogfood performed (see snapshot) |
+| P0 | Land the **release-prep PR** for `0.1.48` and verify green main CI | ACT-412 | ⏳ this PR; `v0.1.47` preparation and ship are recorded below as done |
+| P0 | Then cut tag `v0.1.48` and verify the four owned crates resolve on crates.io | ACT-409 | ⏳ `v0.1.47` shipped at tag `854f6f8d` with all four published and the released-CLI dogfood performed |
 | P1 | Dependabot register is **upstream-blocked, not a bump away**: 18 open alerts across 9 advisory IDs and two lockfiles; see `ACTIONS.md` / `GAP_ANALYSIS_LATEST.md` for pinned chains | ACT-404 | ⏸ upstream; alert #35 is fixed, and RUSTSEC-2026-0418 (`libz-sys`) was cleared by #1224 |
 | P1 | Sensors so this class of bug fails locally: schema-vs-SQL column check; LESSON + AGENTS trap entries for `required-features` vs `cfg_attr(..., ignore)` and error-swallowing asserts | ACT-406, ACT-407 | ✅ schema/SQL sensor landed in #1201; LESSON/AGENTS entries in #1203 |
 | P2 | Decide whether scheduled/tag nightly runs gate releases (`do_ci_check` `.event` filtering) — hardening only, never weakened at ship time | ACT-405 | ✅ decision + ADR-083 — only `push`/`pull_request` gate; a tag-triggered nightly (a `push`) still gates |

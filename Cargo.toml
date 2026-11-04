@@ -52,21 +52,11 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # Testing
 tempfile = "3.27.0"
-proptest = "1.11"
 insta = { version = "1.47", features = ["json"] }
-serial_test = "4.0"
-assert_cmd = "2.2"
-predicates = "3.1"
-
-# Benchmarking
-criterion = "0.8"
 
 # Additional utilities
-parking_lot = "0.13.0"
-url = "2.5.8"
 rand = { version = "0.10", features = ["thread_rng"] }
 rand_chacha = "0.10"
-clap = { version = "4.6.1", features = ["derive"] }
 
 # Async utilities
 futures = "0.3.32"
@@ -78,9 +68,6 @@ cargo_metadata = "0.23"
 base64 = "0.23.0"
 lru = "0.19.0"
 regex = "1.12"
-
-# Configuration
-toml = "1.1"
 
 # Note: Some duplicates are from transitive dependencies we cannot easily control:
 # - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv

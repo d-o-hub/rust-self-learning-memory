@@ -40,12 +40,19 @@ pub fn detect_cache_directory() -> PathBuf {
 
 /// Get system resource information for smart configuration
 pub fn get_system_info() -> SystemInfo {
-    let mut system = System::new_all();
-    system.refresh_all();
+    // sysinfo >=0.40 can fail to probe; fall back to the smallest values the
+    // suggest_* helpers already clamp to rather than inventing a machine profile.
+    let (total_memory, available_memory) = match System::new_all() {
+        Ok(mut system) => {
+            system.refresh_all();
+            (system.total_memory(), system.available_memory())
+        }
+        Err(_) => (0, 0),
+    };
 
     SystemInfo {
-        total_memory: system.total_memory(),
-        available_memory: system.available_memory(),
+        total_memory,
+        available_memory,
         cpu_count: System::physical_core_count().unwrap_or(1),
         is_ci: env::var("CI").is_ok(),
         is_development: env::var("DEVELOPMENT").is_ok() || env::var("DEV").is_ok(),

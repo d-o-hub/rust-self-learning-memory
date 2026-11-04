@@ -35,6 +35,7 @@ description: "Canonical release workflow for this repo. One path every time: mai
 | Tag when `Cargo.toml` ≠ tag (`v0.1.35` ↔ `0.1.35`) | release.yml preflight fails |
 | `--admin` / force merge | `main` is guarded by ruleset `main-protection` (not branch protection) for a reason; `required_status_checks` there are the only checks that unblock a merge |
 | Ship while main CI pending/failed | Broken release |
+| Ship while an issue or a PR is still open | The tracker is the pre-release contract: unreleased review gets frozen into a published version. `scripts/check-release-blockers.sh` refuses, and there is **no bypass flag** — implement or explicitly close the work first |
 | Weakening `do_ci_check` at ship time | The gate is the release's only CI proof; weakening it at ship time is forbidden. Per ADR-083, `do_ci_check` machine-filters `schedule`/`workflow_dispatch` as advisory in code |
 | `--skip-local-tests` without `ci-check` parity | Skips the local `validate`/`prepare` gates; only acceptable when a `ci-check` on the **exact** release commit is green (full `ship` already runs it) |
 | Multiple competing “release procedures” | This skill + `release-manager.sh` only |
@@ -45,20 +46,24 @@ description: "Canonical release workflow for this repo. One path every time: mai
 # 0) Status
 ./scripts/release-manager.sh status
 
-# 1) On clean main, synced
+# 1) Nothing open — merge or explicitly close every PR and every issue.
+#    `ship` runs this too, and there is no bypass flag.
+./scripts/check-release-blockers.sh
+
+# 2) On clean main, synced
 git checkout main && git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-# 2) Version consistency (docs + crates)
+# 3) Version consistency (docs + crates)
 ./scripts/verify-release-state.sh --check-unreleased   # exit 0 (warnings OK)
 
-# 3) Main CI green (also enforced by ship)
+# 4) Main CI green (also enforced by ship)
 ./scripts/release-manager.sh ci-check
 
-# 4) Ship (local quality + CI re-check + tag + push tag)
+# 5) Ship (blockers + local quality + CI re-check + tag + push tag)
 ./scripts/release-manager.sh ship --execute
 
-# 5) Watch release.yml
+# 6) Watch release.yml
 ./scripts/release-manager.sh wait-release
 # or: gh run list --workflow=release.yml --limit 3
 ```
@@ -81,7 +86,9 @@ Semver for this 0.x line: prefer **patch** for fixes, **minor** for features (te
 
 ### Ship preflight — a version bump alone does NOT make the repo shippable
 
-`ship` Phase 0 is `./scripts/verify-release-state.sh --check-unreleased`, which validates `CHANGELOG.md` +
+Before `ship` reaches Phase 0 it runs `./scripts/check-release-blockers.sh`, which refuses while any pull request
+or any issue is still open and offers no bypass flag. `ship` Phase 0 is then
+`./scripts/verify-release-state.sh --check-unreleased`, which validates `CHANGELOG.md` +
 `ROADMAP_ACTIVE.md` + `STATUS/CURRENT.md` **against `workspace_version`**. A bump-only branch therefore still
 fails, and no tag date may be promised until all three agree:
 
@@ -117,13 +124,17 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 ## What `ship` does
 
-1. `verify-release-state.sh --check-unreleased`
-2. Local: fmt, clippy, build check, nextest, doctest, quality-gates  
+1. `check-release-blockers.sh` — **no open PR and no open issue** (auto-maintained
+   `release-drift` issue excluded so it cannot deadlock; runs in dry-run too)
+2. `verify-release-state.sh --check-unreleased`
+3. Local: fmt, clippy, build check, nextest, doctest, quality-gates  
    (note: quality-gates defaults `QUALITY_GATE_SKIP_OPTIONAL=true` locally; optional tool gates like coverage/audit run when tools are installed or explicit `QUALITY_GATE_SKIP_OPTIONAL=false` is set. Skip local checks with `--skip-local-tests` only in documented emergencies)
-3. `ci-check` on `origin/main` HEAD (all runs completed success/skipped)
-4. `git tag -a vX.Y.Z -m "Release vX.Y.Z"` on that HEAD
-5. `git push origin refs/tags/vX.Y.Z` only (does **not** push commits)
-6. Prints how to monitor `release.yml`
+4. `ci-check` on `origin/main` HEAD (all runs completed success/skipped)
+5. `git tag -a vX.Y.Z -m "Release vX.Y.Z"` on that HEAD
+6. `check-release-blockers.sh` again, then `git push origin refs/tags/vX.Y.Z` only (does **not** push commits) —
+   the gate re-runs at this chokepoint because `prepare` + `publish` is a supported path on its own and the tag
+   push is the first irreversible act
+7. Prints how to monitor `release.yml`
 
 ## After ship
 
@@ -161,7 +172,10 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
   refs** and rely on the workflow's own tag guard (real publishes run only from
   tag refs; branch dispatches can only dry-run).
 - Verify attestations on a **downloaded** asset (the digest binding is only
-  meaningful for the file you actually hold):
+  meaningful for the file you actually hold). `--signer-workflow` is not
+  optional: without it the default policy checks owner/repo identity only, so
+  *any* workflow in the repository that can request an attestation satisfies the
+  check while the prose reads as though the artifact were pinned (LESSON-034):
 
   ```bash
   for app in do-memory-cli do-memory-mcp do-memory-examples; do
@@ -203,6 +217,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 | Symptom | Fix |
 |---------|-----|
+| `check-release-blockers.sh` refuses (an open PR or issue) | Not a gate bug — close the tracker first: merge each PR through `./scripts/merge-pr.sh <PR> --execute` (never `--admin`) and implement or explicitly close each issue, then re-run. The auto-maintained `release-drift` issue is excluded by label so the gate cannot deadlock on its own bookkeeping |
 | verify-release-state fails docs | PR: set `Released Version: vX.Y.Z` in ROADMAP + STATUS |
 | ci-check pending | Wait; re-run `ci-check` |
 | ci-check failed | Fix main CI first |
@@ -233,6 +248,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 
 ```bash
 ./scripts/release-manager.sh status
+./scripts/check-release-blockers.sh          # open PR/issue gate; no bypass flag
 ./scripts/release-manager.sh validate
 ./scripts/release-manager.sh ci-check
 ./scripts/release-manager.sh ship              # dry-run
@@ -246,3 +262,4 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 - CI wait patterns: [ci-reference.md](ci-reference.md)
 - Workflow definition: `.github/workflows/release.yml`
 - Version consistency: `./scripts/verify-release-state.sh`
+- Open-work gate (what `ship` refuses before anything else): `./scripts/check-release-blockers.sh`

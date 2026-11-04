@@ -85,6 +85,16 @@ impl StorageBackend for MockTursoStorage {
   (LESSON-045).
 - Every storage test double must implement `StorageBackendCapabilities` (the
   supertrait); an empty impl is correct when it advertises no optional capability.
+- Gate **every** item a feature-gated test depends on, not just the `#[test]`
+  function: with only the function gated, the file's `use` lines, helper structs
+  and `impl` blocks become unused-import and dead-code errors, and because
+  `scripts/code-quality.sh:158` runs `cargo clippy --workspace --tests` on
+  **default features**, one ungated import in one test file blocks clippy for
+  every open PR (LESSON-015). Use the same or broader `cfg` predicate as the most
+  restrictive consumer. Do not "fix" this by adding an `--all-features` clippy
+  run: this repo deliberately avoids `--all-features` (see the comments at
+  `.github/workflows/storage-matrix.yml:36,41,45`), so the gate stays the
+  default-features one and the code must satisfy it.
 
 ## Pre-Commit Checklist
 

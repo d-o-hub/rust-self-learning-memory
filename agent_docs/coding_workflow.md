@@ -98,8 +98,26 @@ design preserves.
   git status                          # everything intended is staged
   ```
 
+- Name the tier of any green you report. `feedback` is an edit loop, `verification`
+  is the completion contract, and a **diagnostic** (`harness-check.sh arch`,
+  `harness-check.sh security`, `quality-gates.sh`) inspects one property and is not a
+  merge verdict. `scripts/harness-check.sh` adds no checks of its own: its sensor names
+  delegate to `do-harness verify --only <sensor> --strict` and `all` runs the
+  verification set, so exit `2` from it means the check never ran (CLI or tool absent) —
+  a blocked result, never a pass (issue #1246; pinned by `scripts/test-harness-entrypoint.sh`).
+
 - CI is the second pair of eyes, not the first: reproduce CI's exact command
   (toolchain, feature set) when a gate disagrees with local results.
+- The harness CLI is part of what is being verified, so it is verified too:
+  `harness-compat` (`./scripts/check-do-harness-compat.sh`) pins the binary in
+  `scripts/do-harness-version.txt`, requires every routing doc to state that same
+  number, and checks the flags this file documents actually exist on the installed
+  binary; `harness-doctrine` (`./scripts/check-do-harness-doctrine.sh`) proves the
+  exit-code and JSON contract on fixture sensors in a temp root. Both are in the
+  `verification` set, so they are already in the run above. An upgrade is a deliberate
+  change: `./scripts/check-do-harness-compat.sh --bin <new binary> --expect-version
+  <x.y.z>`, and only raise the pin once that is green (LESSON-063 — a documented
+  invocation nobody ever executed is a phantom affordance).
 - Changing a skill or `plans/GATE_CONTRACT.md`? Also run
   `./scripts/run-evals.sh --fixtures` and
   `./scripts/validate-gate-contract.sh --ci-parity` locally — the Skill Evals
@@ -143,6 +161,18 @@ body. "Should pass" is not evidence.
   Codacy/Codecov included) addressed or waived with evidence on the thread.
 - Coverage finding you are waiving? Classify it with the `coverage-waivers` skill,
   reply on the thread, and pass `--accept-codecov-waiver` to the merge command.
+  Know what the readiness script's `⚠️ Codecov reports missing coverage` line can and
+  cannot do: `check-pr-readiness.sh:107` derives it from **`codecov[bot]` comments
+  only**, so answering the thread never clears it — and once every other gate is
+  `✅ READY`, `:207-211` converts it into a counted issue with exit 1
+  (`Verdict: ⚠️ CODECOV FEEDBACK`). The two legitimate ways forward are a later head
+  that Codecov reports as "All modified and coverable lines are covered by tests",
+  or `merge-pr.sh --accept-codecov-waiver`, which relaxes exactly this heuristic
+  and nothing else — it proceeds only when the residual `⚠️`/`❌` set, after the
+  Codecov family and the aggregate count line are removed, is empty, and every hard
+  gate is re-checked against the live head. That guard had been unreachable before
+  its fix (LESSON-082), so verify it fires rather than assuming the flag is wired up.
+  Editing the heuristic to go quiet is a gate bypass.
 - Skill: `.agents/skills/pr-readiness/SKILL.md` (supersedes the short summary in
   [`AGENTS.md#pr-health-check`](../AGENTS.md#pr-health-check)).
 
@@ -157,7 +187,12 @@ risky changes, get an **independent** opinion before merge:
   `analysis-swarm` skill for competing designs.
 - Treat agent findings as claims: verify each with primary evidence (source,
   empirical command) before acting; refuting a finding with evidence is a valid
-  outcome, and the evidence goes in the PR.
+  outcome, and the evidence goes in the PR. The same discipline applies to
+  *spec* prose: check a test against the production path it pins, not against
+  the issue text that asked for it — LESSON-075 had a tracker demanding a
+  `(updated_at, episode_id)` cursor while `episodes/query.rs` orders by
+  `modified_at_ms`, so "fixing" the test to the tracker would have
+  desynchronised it from the code.
 - Apply accepted findings, re-run the gates, then merge.
 
 **Evidence:** findings list (severity, location), disposition per finding, and
@@ -169,19 +204,48 @@ the re-run gate output.
 ./scripts/merge-pr.sh <PR> --execute     # readiness gate + independent re-check
 ```
 
-- Never `--admin`, never force, never bypass a red check.
-- `BEHIND` → `gh api repos/{owner}/{repo}/pulls/{n}/update-branch -X PUT -f update_method=merge`,
-  wait for the new head's checks, then merge.
+- Never `--admin`, never force, never bypass a red check. Never send
+  `bypass_rules=true` to the merge API either.
+- **The method is `squash`, not `merge`.** Ruleset `main-protection` carries an active
+  `required_linear_history`, so GitHub refuses a merge commit — but it refuses it *while
+  executing* an asynchronous request, which is why the failure surfaces as
+  `Repository rule violations found / This branch must not contain merge commits` on the
+  returned uuid long after `✅ Gates passed`. `merge-pr.sh` therefore refuses
+  `--method merge` outright (exit 2, before any API call) and advertises only
+  `squash|rebase`; `rebase` is linear too yet drops the merge commits that
+  `update_method=merge` puts on a `BEHIND` branch, so it is only safe once you have
+  confirmed the branch has none (LESSON-081).
+  The `merge-method` sensor (`scripts/check-merge-method.sh`, in the
+  `verification` set) checks this statically against `merge-pr.sh` — default
+  method, the refusal, the async path and its head pin, and the absence of any
+  bypass — and, when a token is present, against the live ruleset, so it fails
+  before a merge is attempted rather than on the uuid.
+- **A stacked PR cannot use the two endpoints this workflow otherwise assumes.**
+  `update-branch` answers `403 Updating a stacked PR's branch via this endpoint is not
+  supported` and `gh pr edit --base` refuses while the PR is in a stack; discover
+  membership and order with `GET /repos/{owner}/{repo}/stacks` (the `stack.number` on a PR
+  is the stack's number, not a PR). Bring such a branch up to date with git — back up the
+  local tip, prove the remote supersedes it with `git range-diff`, reset, merge `main`,
+  push — then merge through `merge-pr.sh`, which falls back to
+  `PUT /pulls/{n}/merge-async` pinned to the verified head (LESSON-081, LESSON-082).
+- "The request returned 202/`pending`" is not merged. Poll the uuid and confirm
+  `state`/`mergedAt`; a `failed` status there is a ruleset rejection, not CI noise.
 - After merge: delete the branch/worktree, sync local `main`.
 
-**Evidence:** the merge commit SHA and a clean `check-pr-readiness.sh` run on the
-merged head.
+**Evidence:** the landing commit SHA (a squash commit on `main`) and a clean
+`check-pr-readiness.sh` run on the merged head.
 
 ## 11. Release (when drift or intent demands it)
 
 - One path only: `.agents/skills/release-guard/SKILL.md` +
   `./scripts/release-manager.sh ship --execute`; the tag push builds and
   publishes the GitHub Release (`release.yml`, draft-first + attested).
+- Empty tracker first: `./scripts/check-release-blockers.sh` runs at the head of
+  `ship` and again before `publish` pushes the tag, so every open pull request
+  and every open issue must be merged or explicitly closed beforehand. It is a
+  list of work, not a warning to re-read — and it deliberately has no bypass
+  flag, with the auto-maintained `release-drift` issue excluded by label so the
+  gate cannot deadlock on its own bookkeeping.
 - Drift detected (`version_not_advanced`, `commit_limit`, `age_limit`) →
   `.agents/skills/release-cadence-manager/SKILL.md` +
   `./scripts/release-cadence-manager.sh`.

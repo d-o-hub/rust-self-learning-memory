@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.48] - 2026-11-04
+
 ### Fixed
+
+- Shell completion and configuration setup (`config init`, `show-template`,
+  and `wizard`) now run without loading the existing config or opening storage.
+  A missing or broken config no longer blocks setup or recovery, and setup
+  never attempts database connections; `config init` still refuses to overwrite
+  existing files.
 
 - `storage stats` counted only the process-local pattern fallback, so a fresh
   process reported zero patterns even though `pattern list` and `pattern search`
@@ -25,6 +33,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- CI guard parity: three gaps where the required checks were the first place to
+  tell you what the local harness should have caught. The `shellcheck` pre-commit
+  hook now runs at `--severity=style` instead of `warning`, because SC2030, SC2031
+  and SC2086 are *note*-tier findings and the required Codacy check gates new
+  issues at any severity — at `warning` they were invisible locally and only
+  surfaced as a red required check (PR #1250). The `commit-ci-tokens` sensor and
+  commit-msg hook now reject the full documented suppressor set: all five bracket
+  tokens (the three `ci` spellings plus both `actions` variants) and the
+  `skip-checks` trailer, which skips every check for a commit exactly as the
+  brackets skip runs. Prose that merely names either form, and the
+  `request-checks` counterpart that forces checks back, stay writable.
+- `.agents/skills/ci-poll` — the check-run reduction is now fail-closed. It groups
+  across pages (`--paginate` applies `--jq` to each page independently, so
+  latest-run-per-name could split one check across two reductions), prints an
+  explicit `NO_ROWS` verdict instead of nothing when the query failed, and always
+  reports `pending=` beside `failed=` so a still-queued suite cannot be read as
+  green. Documented from the official status-check vocabulary: `queued`, `pending`,
+  `in_progress`, `requested`, `waiting` and `expected` are not terminal; `stale`,
+  `timed_out`, `cancelled` and `action_required` are terminal *non*-successes; and
+  a skipped job reports Success even when it is a required check, so green proves a
+  check reported, never that its steps ran.
+
+- `sysinfo` 0.39.6 → 0.40.1. Every `System` constructor is fallible in 0.40, so
+  the resource-probing call sites now degrade instead of assuming success: the
+  MCP time-series `memory_usage_mb` metric keeps its 50.0 fallback, CLI config
+  defaults fall back to the values the `suggest_*` helpers already clamp to, and
+  environment-fitness validation skips only the memory warning (the CPU and CI
+  checks do not need a live snapshot). The soak memory-capture block dropped
+  `sysinfo::SystemExt`, removed in 0.40.
+- `libsql` 0.10.0 was dropped from the same Dependabot `rust-major` group.
+  `chaotic_semantic_memory` 0.3.8 still requires libsql `0.9.30`, so taking the
+  bump links two libsql versions under the `csm` feature and duplicates its
+  exported C symbols — the constraint recorded in the root `Cargo.toml`. libsql
+  0.10.0 is still on `hyper 0.14` / `hyper-rustls 0.25`, so it does not clear the
+  `rustls-webpki` 0.102 waiver either. `fuzz/Cargo.lock` is re-resolved so the
+  supply-chain audit no longer mutates a stale lockfile mid-scan.
 - `episode create --format json|yaml` emits one shape in every build. Compiling
   with the `turso` feature used to rename the id field: redb-only builds printed
   `{"id": ...}` while turso builds printed `{"episode_id": ..., "status": "created"}`.
@@ -39,6 +83,318 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `libz-sys` from 1.1.28 to 1.1.31 in `Cargo.lock` and from 1.1.29
   to 1.1.31 in `fuzz/Cargo.lock`, fixing RUSTSEC-2026-0418 (build-script
   environment leakage when `cc` 1.6 or later compiles on Unix).
+
+### CI/CD
+
+- `scripts/harness-check.sh` is a shim over the canonical sensors (issue #1246). It
+  had become a second, weaker harness: its `clippy` was a private
+  `cargo clippy --lib --tests` under 27 `-A clippy::…` suppressions while the `clippy`
+  sensor runs `scripts/code-quality.sh clippy --workspace` under three, so the wrapper
+  could be green against a red CI on scope and strictness at once; `deny` printed
+  `deny: PASS` when cargo-deny was absent and `security` printed `security: PASS` when
+  gitleaks was absent; and `arch` ran `cargo nextest run -p tests --test arch_fitness`
+  — a package that does not exist (the package is `e2e-tests`), so the subcommand had
+  been reporting a verdict about nothing. Now `fmt|clippy|deny|test` run
+  `do-harness verify --only <sensor> --strict`, `all` runs
+  `do-harness verify --set verification --strict --record`, `arch` targets the real
+  package and labels itself a subset of the `test` sensor, and `security` stays a local
+  diagnostic. Exit codes are `0` passed, `1` the check ran and failed, `2` it could not
+  run at all — a missing CLI or tool is reported as `HARNESS BLOCKED`, never as success.
+  Suppression lists were not merged; the weaker command was deleted, so nothing can
+  report it. `scripts/test-harness-entrypoint.sh` pins the contract with stub binaries on
+  a private PATH (47 cases: exact delegated argv, propagated failure, absent CLI, absent
+  gitleaks, the `arch` package name, and doc↔handler parity over the subcommand list) and
+  runs in `.github/workflows/skill-evals.yml`, cargo-free. Eight regressions were
+  verified to make it fail, one restored at a time: `PASS` on absent gitleaks, `-p tests`
+  in the arch command, a dropped `--strict`, a dropped `--record`, the private clippy
+  command restored, absent CLI exiting 0, unknown subcommand exiting 0, and the violation
+  line removed. Its doc-parity case caught a bug in itself while being written: matching
+  `-p tests` across the whole file tripped on the comment that documents the prohibition,
+  so matchers strip whole-line comments first (LESSON-079). Routing: `HARNESS.md` gained
+  the feedback / verification / diagnostics tier table, and the harness skill,
+  `AGENTS.md` and `agent_docs/coding_workflow.md` now say which tier a green belongs to.
+
+- New harness sensor `lockfile-sync` (`scripts/check-lockfile-sync.sh`, added to
+  the `verification` set). It runs `cargo metadata --locked` against both the
+  root and the `fuzz` graphs, so a lockfile that no longer matches its manifests
+  fails locally instead of being rewritten mid-scan by
+  `cargo deny --manifest-path fuzz/Cargo.toml` — the failure that turned the
+  Supply Chain Audit red on PR #1240 while reporting 0 vulnerabilities. It also
+  asserts `libsql` resolves to exactly one version per lockfile, because the
+  two-version state that a `libsql` 0.10 bump produces is a *link-time*
+  duplicate-C-symbol conflict under the `csm` feature that `cargo check` cannot
+  see (rlibs do not link). `fuzz` is `exclude`d from the root workspace, so
+  before this sensor no gate ever resolved that graph.
+
+- Five more harness sensors, each encoding a lesson that was previously only
+  prose an agent had to remember (full reasoning in `agent_docs/LESSONS.md`
+  LESSON-079):
+  `commit-ci-tokens` (`scripts/check-commit-ci-tokens.sh`, also a `commit-msg`
+  pre-commit hook and part of `feedback`) rejects a GitHub CI skip-control token
+  anywhere in a commit message, since the matcher reads the whole head message
+  and the branch then has zero runs while the rollup still looks healthy;
+  `agents-md-ids` keeps bare 10-15 digit runs out of `AGENTS.md`, which parks the
+  required Codacy context at `action_required` (also in `feedback`);
+  `changelog-headings` enforces the same duplicate-heading invariant
+  `update-changelog.sh` only checked while it ran, because a duplicate makes
+  parse-changelog reject the file and a release ships with empty notes;
+  `shell-counters` ratchets bare `((VAR++))`, whose value is the
+  *pre*-increment, so incrementing 0 exits 1 and truncates the report it was
+  writing under `set -e`; `lesson-distillation` fails on a duplicated lesson id
+  (LESSON-011 had been used twice) and ratchets the count of lessons with no
+  citation outside the log — 41 of 77 before this change, 20 after. The two
+  ratchets ship with recorded baselines and can only move down.
+
+- New harness sensor `merge-method` (`scripts/check-merge-method.sh`, added to
+  the `verification` set) fails closed on the merge-path trap that cost a whole
+  round-trip on PR #1241 (LESSON-081). Ruleset `main-protection` carries
+  `required_linear_history`, and GitHub evaluates its rules only while
+  *executing* a merge: a `merge`-method attempt first refused by GraphQL as
+  `part of a stack`, then answered the documented asynchronous retry with
+  `202 status=pending` — which means "accepted for evaluation", not merged —
+  while the real verdict (`This branch must not contain merge commits`) sat on
+  the returned uuid. The gate parses `merge-pr.sh`'s default `METHOD` and
+  rejects `merge`, asserts the async stacked-PR path and its `-f
+  sha="$HEAD_SHA"` pin are still present, and asserts no `bypass_rules` ever
+  reaches the request — whole-line comments are stripped first, so the prose
+  that documents the prohibition cannot trip it (LESSON-079). With a token it
+  also cross-checks the live ruleset (`allowed_merge_methods` plus the presence
+  of `required_linear_history`) and fails rather than skipping, following
+  `scripts/validate-gate-contract.sh`'s fail-closed-with-token /
+  NOTE-without-token split; `skill-evals.yml`'s CI-parity step already proves
+  that read works with `secrets.GITHUB_TOKEN` under `permissions: contents:
+  read`. Eight failure modes were verified to fire on a mutated copy of
+  `merge-pr.sh` (default `merge`, a `bypass_rules` code line, a lost
+  `merge-async` path, a lost `sha=` pin, an unrecognised method, a missing
+  `merge-pr.sh`, a removed `--method merge` refusal, a restored `merge`
+  acceptance), and a comment that merely *mentions* `bypass_rules=true` was
+  verified not to trip it.
+
+- New harness sensors `harness-compat` and `harness-doctrine`, with the version
+  contract they enforce now tracked in `scripts/do-harness-version.txt` (issue #1247).
+  The repository documented `do-harness verify --set verification --strict --record`
+  and "Pinned compatible harness version: `v0.1.0`" in four routing surfaces, and
+  nothing anywhere checked that the binary on PATH accepts those flags, emits the JSON
+  those commands parse, or is that version at all (LESSON-063 — an invocation nobody
+  executed). `check-do-harness-compat.sh` resolves the binary independently of PATH
+  (a second `do-harness` on PATH is itself a violation: the probe would then certify a
+  binary the workflow does not run), requires the installed binary to satisfy the tracked
+  pin (and, under `--expect-version`, to be exactly the version the job downloaded),
+  requires every doc's claim to equal that reference, asserts the subcommands and flags
+  this repository's own commands cite still exist, checks `do-harness.toml` set/sensor
+  parity plus `explain --set` agreement, and fails on a script-backed sensor whose path
+  is gone. `check-do-harness-doctrine.sh` is repo-independent: it builds a throwaway
+  fixture root and exercises the status contract there — 0 ran-and-passed, 1
+  ran-and-failed, 2 could-not-run, an unspawnable `argv` reported as
+  `exit_code: null`, `--strict` refusing weak evidence, `--record` then
+  `status --set` turning green. Both exit **2**, never 1, when nothing could be
+  verified, so an absent binary cannot read as a pass. `scripts/test-do-harness-compat.sh`
+  runs 18 fixture mutations against the two probes (older-than-pin, prose drift, a dropped
+  subcommand, a dropped `--strict`, set-membership drift, a missing sensor path, a red
+  sensor reported as green, PATH shadowing, a checksum mismatch, a dirty build, blocked
+  cases, and four doctrine inversions) and fails if any probe passes vacuously.
+  `.github/workflows/skill-evals.yml` gained a `harness-compat` job that downloads
+  0.1.0 and 0.4.1 from the published releases, verifies each against the release's
+  `checksums.txt` before executing it, refuses to start if the matrix drifts from
+  `scripts/do-harness-version.txt`, and runs both probes plus the contract suite —
+  so the pin is evidence rather than a claim. Both the sensor and the CI step pass
+  `--offline`, which skips the probe's own real-sensor step: that step runs `cargo fmt`,
+  so inside a `verification` run it would duplicate work, and on the deliberately
+  cargo-free Skill Evals runner the sensor could not spawn at all — an unspawnable
+  configured sensor is exactly what the probe reports as a violation, so the flag is
+  what keeps the job honest rather than accidentally red. Real execution is proven in CI
+  by the doctrine probe, whose fixture sensors run through `bash` (a green one, one that
+  exits 3, and one whose program does not exist). Two upstream defects found while
+  measuring are filed against `d-o-hub/do-harness`: #446 (`verify --dry-run` spawns the
+  sensor processes, so a preview silently executes) and #447 (an unspawnable `argv` exits
+  1, the same code as a real gate failure, so a PATH or `argv` typo reads as red tests).
+  A third measured no-op — `--output <FILE>` documented as "Default output file path"
+  while writing nothing on 0.1.0/0.1.1 — is already fixed upstream: 0.4.1 rewords the
+  help and creates the file, so it is recorded here rather than filed.
+
+- `merge-pr.sh` refuses `--method merge` outright — exit 2, before any API call —
+  and its usage text now lists only `squash|rebase`. Advertising an option that
+  cannot land on a linear-history branch is a phantom affordance (LESSON-063),
+  and leaving it wired meant an operator override still ate the mid-merge
+  rejection this work exists to prevent. `squash` and `rebase` are both permitted
+  by the ruleset, and nothing in the repository ever passed `merge`.
+
+- New pre-release blocker gate (`scripts/check-release-blockers.sh`): a tag is
+  public, `release.yml` publishes, and the version gets written into the
+  changelog, so the repository policy is now executable rather than remembered —
+  *every* open pull request and *every* open issue must be merged or explicitly
+  closed before a release ships, so nothing still under review is frozen into a
+  published version. It reads `pulls?state=open` and `issues?state=open`, drops
+  the pull-request rows the issues endpoint also returns (counting them twice
+  would misreport what is outstanding), and sets aside the auto-maintained
+  `release-drift` issue by label — that workflow keeps its issue open until the
+  release happens, so counting it would make the gate unsatisfiable; the excluded
+  issue is *named* in the output rather than hidden. There is deliberately no
+  bypass flag: `release-manager.sh` already carries `--skip-local-tests` and
+  `--skip-ci-check`, and a third switch meaning "ignore the tracker" is the one
+  reached for by habit. It runs at the head of `ship` (dry-run included, because
+  learning what would block is the point of a dry run, and it is cheaper than the
+  local test phase) and again inside `publish`, since `prepare` + `publish` is a
+  supported path on its own and the tag push is the first irreversible act. Exit
+  codes: 0 clear, 1 blockers, 2 the tracker could not be read — a blocker gate
+  that silently skipped would be a way to ship unreviewed work. The new harness
+  sensor `release-blockers` runs the offline fixtures (`--self-test`, 8 cases)
+  through the same decision function the live path uses, so a release-time gate
+  cannot rot unseen between releases. One fixture found a real bug before this
+  shipped: labels are objects in the API response, so the hand-written
+  string-shaped fixture yielded an empty name list and the drift exclusion never
+  matched — the case had been passing for the wrong reason.
+
+- Routing-layer corrections, each verified against the tree before editing:
+  `ci-poll` claimed `gh pr checks --required --watch` exit 0 proved
+  merge-readiness (it was observed exiting 0 with 12 of 21 rows pending);
+  `commit` forbade empty re-trigger commits while `pr-readiness` prescribed one,
+  now split by intent — legitimate to clear stale rollup rows, never to hide a
+  real failure; `ci-fix`'s clippy command omitted `--tests` and the repo's `-A`
+  allow-list, contradicting `scripts/code-quality.sh`, so it now calls the
+  script; the drift-check label override is scoped to release-preparation PRs
+  only; and `pr-readiness`'s conflict recipe gained the lossless index-stage
+  proof (`git show :2:`/`:3:` read *before* staging, `LC_ALL=C comm`) that
+  LESSON-070 discovered too late. Four dead pointers from the lessons log into
+  `AGENTS.md` sections removed by an earlier shrink are re-anchored, and the
+  `HARNESS.md` sensor table gained the 11 rows it was missing — six sensors were
+  absent from the file entirely and five appeared only in prose, with no row and
+  therefore no fix hint. Two further contradictions surfaced while routing the
+  rest of the log: `LESSON-016` told agents to run `gh pr merge --squash --auto`
+  and called cancelled checks "non-required noise", which contradicts
+  `merge-pr.sh` and the ruleset evidence in LESSON-041/050, so the entry is now
+  marked superseded with the mechanism struck through; and `scripts/harness-check.sh`
+  was documented as "run all sensors locally" while its `clippy` allows 27 lints
+  over `--lib --tests` against the sensor's 3 over `--workspace --tests`, so both
+  the guide and the script header now say it is not a completion gate. Seven
+  previously uncited lessons (010, 016, 020, 029, 056, 062, 078) are now routed
+  into the skills that enforce them.
+
+- New lesson LESSON-080 — a retraction, recorded because the wrong rule was
+  committed first. PR #1242 is stacked on #1241, so its base is a feature branch,
+  and `ci.yml`, `coverage.yml`, `security.yml`, `storage-matrix.yml`,
+  `yaml-lint.yml`, `file-structure.yml` and `skill-evals.yml` all declare
+  `pull_request: branches: [main, develop]`. From one `gh run list` taken ~60s
+  after the push (empty, while Codacy and SonarCloud already showed green App
+  rows) I concluded the child PR could never get CI and routed that as a rule.
+  It is refuted twice by the same API: `pull_request` runs exist for the PR's own
+  commits (`99e56446` created 6s after its push, `3c1aaf4b` 74min after), so the
+  rollup went from 2 rows to 30 — and those runs carry
+  `head_branch=docs/lesson-distillation` with `pull_requests[].number=1242`, i.e.
+  they fired for the PR based on a feature branch, which the naive reading of the
+  filter predicts is impossible. The entry now records the trigger config plus the
+  unresolved question about what `pull_request.branches` actually gates, **not** a
+  causal rule, and the two
+  routed sentences in `pr-readiness` and `ci-fix` say instead: confirm a run
+  exists before calling a rollup green, and re-query before concluding CI never
+  will. The investigation's usable finding is that another session had rewritten
+  both branches mid-work; containment was proved by an empty diff of the touched
+  files before resetting to the remote tip (LESSON-035).
+
+- Every remaining uncited lesson is routed, so the
+  `scripts/check-lesson-distillation.sh` ceiling drops 19 → 0: a new lesson that
+  is not wired into a skill, guide or code comment now fails the gate instead of
+  accumulating. Notable placements, each checked against the tree before writing:
+  LESSON-031/032/036 in `agent_docs/github_actions_patterns.md` (the
+  `workflow_ref`-vs-`job_workflow_ref` boundary, `needs:` without `always()`
+  skipping a whole release run, and a new subsection for machine-readable output
+  redirected to a file — `if-no-files-found: error` cannot catch a 0-byte report
+  because the shell created the file, and `nightly-tests.yml:91,251` use `warn`,
+  so a green nightly report step is unproven until the artifact is read);
+  LESSON-015 in `test-patterns`, where the lesson's own advice to add an
+  `--all-features --tests` clippy run is **rejected** because
+  `storage-matrix.yml:36,41,45` deliberately avoid `--all-features`; LESSON-006
+  against the live `benchmarks.yml:5-25` filter shape (`paths` on
+  `pull_request`, `paths-ignore` on `push`, never both on one trigger);
+  LESSON-013 in the CLI troubleshooting path table, after confirming
+  `combination.rs:33-40` really does leak a `tempfile::tempdir()` for an unset
+  `redb_path`; LESSON-034 where `--signer-workflow` already appears; LESSON-042
+  inside a rule that existed but was only reachable through the section header's
+  `LESSON-039…052` ellipsis; LESSON-009 as a doc comment on `effective_size()`
+  itself (`peek()` on `lru::LruCache` measures without promoting recency);
+  LESSON-073 as a "measure in the tree you are reporting about" precondition in
+  `release-cadence-manager`; and LESSON-033 as a warning beside the still-true
+  `create-missing = true` in `book/book.toml`, which is what turns a
+  `- [Title](#anchor)` placeholder into a committed `book/src/#anchor` file.
+  LESSON-073's aside that `fuzz/Cargo.lock` needs no attention is corrected in
+  place: it stops being true the moment PR #1241's `lockfile-sync` sensor
+  merges, since that guard runs `cargo metadata --locked` on the fuzz graph too.
+
+- LESSON-080 gained a second refutation, found by making the query wrongly:
+  `actions/runs?head_sha=2657fcbb` returned zero rows for a head that had 10 runs
+  queued, because the sha had been sliced to 8 characters. A truncated argument and
+  a CI that never ran are indistinguishable in the response, so the detection step
+  and both skills that tell an agent to query runs now require the full
+  40-character sha.
+
+- Documented what `check-pr-readiness.sh`'s Codecov line actually does, in
+  `coding_workflow.md` and the `coverage-waivers` anti-patterns: `:107` derives it
+  from `codecov[bot]` comments only, so an evidence reply never clears it, and
+  `:207-211` turns it into a counted issue exactly when every other gate is
+  `✅ READY`. Clearing it needs either a head that Codecov reports as fully
+  covered or `merge-pr.sh --accept-codecov-waiver`, which relaxes that heuristic
+  and nothing else. While writing this I claimed the line also prints at 100% patch
+  coverage; three merged PRs showed Codecov switches to
+  "All modified and coverable lines are covered by tests" there, which matches no
+  pattern in the heuristic — the refutation is recorded in LESSON-079 rather than
+  quietly dropped. The second half of that sentence was also wrong and is corrected
+  here: `--accept-codecov-waiver` did **not** relax the heuristic, because its guard
+  could never be satisfied — it read the script's own aggregate
+  `⚠️ 1 issue(s) found` line as a second failure, and its case-sensitive
+  `grep -v 'Codecov'` left the uppercase `Verdict: ⚠️ CODECOV FEEDBACK` in place.
+  PR #1240 is where it surfaced: the PR was genuinely waivable, the flag was passed,
+  and the gate still refused, which is the same exit 1 a real blocker produces.
+
+- Merge mechanics from landing #1240–#1242, recorded as LESSON-081 and LESSON-082
+  and fixed in `scripts/merge-pr.sh`. The default `--method merge` is refused by the
+  active `required_linear_history` rule on ruleset `main-protection`, but only at
+  execution time: a stacked PR first fails GraphQL with `part of a stack`, the
+  documented `merge-async` retry answers `202 status=pending` (accepted for
+  evaluation, not merged), and the rule violation appears solely on the returned
+  uuid. The script now defaults to `squash`, falls back to `merge-async` pinned to
+  the head SHA the gates verified with `bypass_rules` never sent, polls the uuid to
+  a terminal state, and prints any other merge error verbatim. `rebase` is rejected
+  as a default on purpose: `check-pr-readiness.sh --fix` brings a `BEHIND` branch up
+  to date with `update_method=merge`, and #1240's head carried two such merge
+  commits, which a rebase would have dropped. Stacked PRs also refuse
+  `update-branch` (`403 Updating a stacked PR's branch via this endpoint is not
+  supported`) and `gh pr edit --base`, so the branch must be updated with git after
+  proving with `git range-diff` that the remote supersedes the local tip. The waiver
+  guard above is now case-insensitive over the Codecov family, ignores the aggregate
+  count line, requires the residual failure set to be empty, and prints what it
+  found when it refuses. One thing this changelog does *not* claim: the ruleset's
+  `updated_at` (2026-08-10) cannot date the rule, because merge commits landed on
+  `main` as late as `ce42900e` (2026-11-01) under it — the contradiction is recorded
+  rather than explained away.
+
+### Performance
+
+- Lexical pattern search no longer allocates a `String` per token (#1220).
+  `tokenize` and `calculate_keyword_similarity` return `HashSet<&str>` borrowed from
+  the `Cow<'_, str>` lowercased input, removing O(T) heap allocations from every
+  pattern evaluation.
+- `cli_update_test` spawns the binary that is already built via `CARGO_BIN_EXE`
+  instead of `cargo run` (#1232). Each case used to pay a cargo invocation plus the
+  workspace lock — 61–64 s for five serial cases, which also produced the 60 s
+  slow-test warnings in the nightly — and the suite now runs in 0.02–2.4 s.
+
+### Maintenance
+
+- Rust is pinned to `1.99.1` in `rust-toolchain.toml`, the `setup-rust` composite
+  action, and `fuzz.yml` (#1222), so a toolchain channel drifting between releases
+  cannot silently change what the required checks gate (LESSON-040).
+- Nine workspace dependency declarations with no `workspace = true` inheritor were
+  removed, `do-memory-test-utils` moved from a runtime to a dev dependency in
+  `memory-cli`, and the duplicate dev-dependency declarations (`assert_cmd`,
+  `tempfile`, `tracing-subscriber`, `do-memory-storage-redb`, `serde_json`) plus the
+  unused direct `predicates` edge in `e2e-tests` were dropped (#1245).
+- `.opencode/package-lock.json` is generated by opencode tooling and is no longer
+  tracked (#1227); committing it opened a Dependabot alert against a dependency no
+  source change can bump.
+- Dependency bumps landed through the group updates: `uuid` 1.28.0 → 1.29.0 and
+  `augurs-changepoint` 0.10.2 → 0.10.3 (`rust-patch-minor`, #1239), and
+  `taiki-e/install-action` 2.87.31 → 2.88.1 with `reviewdog/actionlint`
+  (`actions-all`, #1238).
 
 ## [0.1.47] - 2026-10-28
 

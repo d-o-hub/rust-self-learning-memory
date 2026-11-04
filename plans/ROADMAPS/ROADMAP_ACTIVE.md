@@ -1,14 +1,14 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-11-01
-**Released Version**: v0.1.47 (tag `854f6f8d`, 2026-10-28; GitHub Release 2026-10-28T20:41:48Z)
-**Workspace Version**: 0.1.48 (development bump; drift gate `severity=clean`, `reason=within_cadence`)
-**Active plan**: release closeout is complete — `v0.1.47` release dogfood exposed and closed #1225/#1226; #1109 settings, toolchain pin, version restore, generated-lockfile alert, and ADR-079 stage 4 are complete; CLI output contract follow-up #1232/#1233 is merged. ACT-403 nightly is green; ACT-404 remains upstream-blocked. `0.1.48` is still a development bump; no new tag is authorized by this status refresh.
+**Last Updated**: 2026-11-04
+**Released Version**: v0.1.48 (release target; tag and publication pending green main CI)
+**Workspace Version**: 0.1.48 (release preparation; latest published tag is v0.1.47, `854f6f8d`, 2026-10-28)
+**Active plan**: prepare v0.1.48 — the `## [0.1.48]` changelog section and this version-doc flip land together, then verify green main CI and ship through `release-manager.sh ship --execute`. Post-release, bump the workspace to 0.1.49 in a follow-up PR so the drift gate does not read unreleased commits on a shipped version.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: `main` at audit baseline `d5d8f463` — no release branch open
-**Open PRs**: 0 at the 2026-11-01 audit baseline; this final tracker refresh is the only review PR, so the post-merge count returns to 0
-**Open issues**: 0 (`gh issue list --state open`)
+**Branch**: release preparation based on `main` @ `2426638a`
+**Open PRs**: the release-preparation PR is the only open pull request; `gh pr list --state open` is the live source
+**Open issues**: the auto-maintained release-drift issue #1236 (32 commits / 6 days since v0.1.47), which the blocker gate excludes by label and which closes itself when this version ships
 
 
 ## Sprint 2026-10-28–2026-11-01 — release closeout and CLI output contract

@@ -67,7 +67,9 @@ Coverage runs can leave substantial artifacts. `standard` and `full` cleanup mod
 
 - **No temporary files in the repository root** — no logs, trial outputs, or
   one-off scripts (`.py`, `.sh`, …). Use `plans/` for design notes, `target/`
-  for build/test artifacts, `scripts/` for reusable tooling.
+  for build/test artifacts, `scripts/` for reusable tooling. Delete a one-off
+  helper when the fix that needed it lands (LESSON-012: `cleanup_yaml.py` and
+  `remove_redundant_cache.py` were committed to root and never removed).
 - Dev profile: `debug = "line-tables-only"`, dependency `debug = false`.
 - Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set).
 - To offload builds to another disk, set `CARGO_TARGET_DIR`

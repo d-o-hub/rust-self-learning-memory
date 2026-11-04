@@ -345,7 +345,9 @@ let result = {
 - Use env vars (never hardcode secrets)
 - Parameterized SQL only
 - **OAuth/JWT**: always `jsonwebtoken` with signature verification; mandatory
-  `MCP_OAUTH_TOKEN_SECRET` for production HMAC verification
+  `MCP_OAUTH_TOKEN_SECRET` for production HMAC verification (LESSON-005: a
+  dev-only parser that decoded claims without verifying the signature made any
+  token forgeable — test `iss`/`aud`/`exp`/`sub` and the signature itself)
 - Clippy `-D warnings`, no `unsafe` without an audited, documented reason
 
 Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
@@ -361,3 +363,10 @@ Local dev: `TURSO_DATABASE_URL="http://127.0.0.1:8080"` with an empty
 Treat these as budgets: measure the changed path (`benches/`, `quality-gates.sh`,
 the retrieval eval harness) rather than assuming a micro-optimization lands
 inside them.
+
+When choosing *where* to optimize, work the retrieval path first (LESSON-004):
+cache wiring and its contention, bounded context assembly, then ranking — that
+is where a request spends its time, so a win there dwarfs an equal win in the
+logging or admin paths. The opportunities are split between implementation gaps
+and prompt/context assembly, so grep both the code and the skill/doc sizes before
+concluding there is nothing left.

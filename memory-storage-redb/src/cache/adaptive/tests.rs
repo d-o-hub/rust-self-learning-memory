@@ -1,8 +1,8 @@
 //! Tests for adaptive cache implementation
 
 use super::{AdaptiveCache, AdaptiveCacheConfig};
-use tokio::time::sleep as async_sleep;
 use tokio::time::Duration as TokioDuration;
+use tokio::time::sleep as async_sleep;
 use uuid::Uuid;
 
 fn create_test_config() -> AdaptiveCacheConfig {
@@ -316,4 +316,38 @@ async fn test_nonexistent_entry() {
     assert!(cache.access_count(id).await.is_none());
     assert!(cache.ttl(id).await.is_none());
     assert!(cache.get(id).await.is_none());
+}
+
+/// `AdaptiveCache::new` is a synchronous constructor, so it is reachable from
+/// sync contexts (a `Default` impl, a `Lazy` static, a plain `#[test]`). It
+/// must not panic when no Tokio runtime is present: background cleanup used to
+/// call `tokio::spawn` unconditionally, which aborted the caller with
+/// "there is no reactor running".
+#[test]
+fn test_new_without_runtime_does_not_panic() {
+    let config = AdaptiveCacheConfig {
+        enable_background_cleanup: true,
+        cleanup_interval_secs: 1,
+        ..create_test_config()
+    };
+
+    // No runtime on this thread: this is the sync-construction path.
+    let cache = AdaptiveCache::<String>::new(config);
+
+    // The cache stays usable once a runtime exists. Expiry is enforced on
+    // access, so skipping the reclamation task is not a correctness gap.
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("build runtime");
+    rt.block_on(async {
+        let id = Uuid::new_v4();
+        assert!(
+            !cache
+                .record_access(id, false, Some("value".to_string()))
+                .await
+        );
+        assert!(cache.record_access(id, true, None).await);
+        assert_eq!(cache.get(id).await.as_deref(), Some("value"));
+    });
 }

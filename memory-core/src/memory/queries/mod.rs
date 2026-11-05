@@ -346,18 +346,6 @@ pub async fn list_episodes_filtered(
     Ok(filtered)
 }
 
-/// Get patterns extracted from a specific episode
-#[expect(clippy::unused_async)]
-pub async fn get_episode_patterns(
-    _episode_id: Uuid,
-    _patterns_fallback: &tokio::sync::RwLock<HashMap<crate::episode::PatternId, Pattern>>,
-) -> Result<Vec<Pattern>> {
-    // For now, return empty vector
-    // In a real implementation, this would query the storage backend
-    // to find patterns that were extracted from the given episode
-    Ok(vec![])
-}
-
 /// Check if Turso storage is configured
 pub fn has_turso_storage(turso_storage: &Option<Arc<dyn crate::StorageBackend>>) -> bool {
     turso_storage.is_some()

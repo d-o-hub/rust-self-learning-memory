@@ -145,6 +145,39 @@ mod tests {
         assert!(capabilities.get("tools").is_some());
     }
 
+    /// Standard capabilities must match what the server really implements.
+    ///
+    /// `task/*` and `elicitation/*` are handled as custom methods; advertising
+    /// the standard `tasks` / `elicitation` capability keys would claim a
+    /// protocol surface that does not exist (issue: stale capability adverts).
+    #[tokio::test]
+    async fn test_initialize_advertises_only_implemented_capabilities() {
+        let req = JsonRpcRequest {
+            jsonrpc: Some("2.0".to_string()),
+            id: Some(json!(8)),
+            method: "initialize".into(),
+            params: Some(json!({"protocolVersion": "2025-11-25"})),
+        };
+
+        let capabilities = handle_initialize(req, &OAuthConfig::default())
+            .await
+            .unwrap()
+            .result
+            .unwrap()["capabilities"]
+            .clone();
+
+        assert!(capabilities.get("tools").is_some());
+        assert!(capabilities.get("completions").is_some());
+        assert!(
+            capabilities.get("tasks").is_none(),
+            "standard tasks capability is not implemented"
+        );
+        assert!(
+            capabilities.get("elicitation").is_none(),
+            "standard elicitation capability is not implemented"
+        );
+    }
+
     #[cfg(feature = "oauth")]
     #[tokio::test]
     async fn test_initialize_advertises_authorization_only_when_enforced() {

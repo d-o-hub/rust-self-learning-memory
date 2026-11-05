@@ -39,6 +39,65 @@ pub enum EmbeddingCommands {
     Rebuild,
 }
 
+/// Activate the configured embedding provider on a memory instance.
+///
+/// This is the runtime seam used by `episode list --semantic-search`,
+/// `episode search --semantic`, and `embedding rebuild`: without it the memory
+/// keeps its construction-time provider (if any) and semantic requests would
+/// either fail or silently ignore `[embeddings]` settings.
+///
+/// The provider identity and configuration revision come from the same
+/// [`ProviderConfig`](do_memory_core::embeddings::ProviderConfig) used to build
+/// the provider, so the embedding storage scope matches the vectors written.
+///
+/// # Errors
+///
+/// Returns an error when embeddings are disabled, the provider cannot be built
+/// (missing credential, unknown model, unsupported transport), or the service
+/// activation rejects the provider identity.
+pub(crate) async fn activate_configured_semantic_service(
+    memory: &do_memory_core::SelfLearningMemory,
+    config: &Config,
+) -> Result<()> {
+    if !config.embeddings.enabled {
+        anyhow::bail!(
+            "Embeddings are disabled in configuration. Enable them with [embeddings] enabled = true"
+        );
+    }
+
+    let (provider_config, _api_key) = provider::map_provider_config(config)?;
+    let provider = provider::create_provider_from_config(config).await?;
+
+    let provider_identity = provider_config.cache_identity();
+    let scope = do_memory_core::embeddings::EmbeddingStorageScope::new(
+        provider_identity.clone(),
+        provider_config.config_revision(),
+    );
+    let selected_storage = memory.embedding_storage(scope);
+
+    let embedding_config = do_memory_core::embeddings::EmbeddingConfig {
+        provider: provider_config,
+        similarity_threshold: config.embeddings.similarity_threshold,
+        batch_size: config.embeddings.batch_size,
+        cache_embeddings: config.embeddings.cache_embeddings,
+        timeout_seconds: config.embeddings.timeout_seconds,
+        ..Default::default()
+    };
+
+    let service = std::sync::Arc::new(do_memory_core::embeddings::SemanticService::new(
+        provider,
+        selected_storage.storage,
+        embedding_config,
+    ));
+
+    memory
+        .try_activate_semantic_service(service, provider_identity)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to activate semantic service: {e}"))?;
+
+    Ok(())
+}
+
 /// Test embedding provider connectivity and configuration
 ///
 /// This command validates that the configured embedding provider is working correctly

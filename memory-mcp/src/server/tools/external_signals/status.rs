@@ -32,34 +32,8 @@ impl MemoryMCPServer {
         // Build provider status list
         let mut providers = vec![];
 
-        // Check AgentFS provider status
         let db_path = std::env::var("AGENTFS_DB_PATH").ok();
-        let configured = db_path.is_some();
-        let enabled = configured;
-        let (connected, last_error) = if let Some(ref path) = db_path {
-            match agentfs_sdk::ToolCalls::new(path).await {
-                Ok(_) => (true, None),
-                Err(e) => (false, Some(format!("Connection failed: {e}"))),
-            }
-        } else {
-            (false, None)
-        };
-        let agentfs_status = crate::mcp::tools::external_signals::ProviderStatus {
-            name: "agentfs".to_string(),
-            configured,
-            enabled,
-            connected,
-            last_error,
-            signal_count: 0,
-            weight: 0.3,
-            metadata: json!({
-                "db_path": db_path,
-                "sanitize": true,
-                "sdk_integrated": true,
-                "stub_implementation": false,
-                "sdk_version": "0.6.4",
-            }),
-        };
+        let agentfs_status = build_agentfs_status(db_path.as_deref()).await;
 
         // Filter by provider if specified
         if let Some(ref provider_filter) = input.provider {
@@ -85,6 +59,46 @@ impl MemoryMCPServer {
     }
 }
 
+/// Build the AgentFS provider status from the configured database path.
+///
+/// `None` (unset/blank `AGENTFS_DB_PATH`) means the provider is not configured;
+/// a path only proves configuration, never that rewards are merged into
+/// completion — that integration is not wired, so `enabled` stays `false` and
+/// `weight` stays `None`.
+async fn build_agentfs_status(
+    db_path: Option<&str>,
+) -> crate::mcp::tools::external_signals::ProviderStatus {
+    let db_path = db_path
+        .filter(|path| !path.trim().is_empty())
+        .map(str::to_string);
+    let configured = db_path.is_some();
+
+    let (connected, last_error, signal_count) = match db_path.as_deref() {
+        None => (false, None, None),
+        Some(path) => match agentfs_sdk::ToolCalls::new(path).await {
+            Ok(tc) => match tc.stats().await {
+                Ok(stats) => (true, None, Some(stats.len())),
+                Err(e) => (false, Some(format!("Stats query failed: {e}")), None),
+            },
+            Err(e) => (false, Some(format!("Connection failed: {e}")), None),
+        },
+    };
+
+    crate::mcp::tools::external_signals::ProviderStatus {
+        name: "agentfs".to_string(),
+        configured,
+        enabled: false,
+        connected,
+        last_error,
+        signal_count,
+        weight: None,
+        metadata: json!({
+            "db_path": db_path,
+            "reward_integration": false,
+        }),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,27 +117,25 @@ mod tests {
         let _ = method_signature; // Use the function to avoid unused warnings
     }
 
-    #[test]
-    fn test_agentfs_status_has_sdk_unavailable_info() {
-        // Verify status output includes SDK unavailability information
-        let status = crate::mcp::tools::external_signals::ProviderStatus {
-            name: "agentfs".to_string(),
-            configured: false,
-            enabled: false,
-            connected: false,
-            last_error: Some("SDK not integrated".to_string()),
-            signal_count: 0,
-            weight: 0.3,
-            metadata: json!({"sdk_integrated": false}),
-        };
+    #[tokio::test]
+    async fn test_agentfs_status_unconfigured_reports_no_signal() {
+        let status = build_agentfs_status(None).await;
 
-        // Should have error message
-        assert!(status.last_error.is_some());
-        // Should indicate SDK not integrated
-        if let serde_json::Value::Object(map) = status.metadata {
-            assert!(map.contains_key("sdk_integrated"));
-            assert_eq!(map.get("sdk_integrated"), Some(&json!(false)));
-        }
+        assert!(!status.configured);
+        assert!(!status.enabled);
+        assert!(!status.connected);
+        assert_eq!(status.signal_count, None);
+        assert_eq!(status.weight, None);
+        assert_eq!(status.metadata["reward_integration"], json!(false));
+    }
+
+    #[tokio::test]
+    async fn test_agentfs_status_blank_path_is_unconfigured() {
+        let status = build_agentfs_status(Some("   ")).await;
+
+        assert!(!status.configured);
+        assert!(!status.connected);
+        assert_eq!(status.signal_count, None);
     }
 }
 

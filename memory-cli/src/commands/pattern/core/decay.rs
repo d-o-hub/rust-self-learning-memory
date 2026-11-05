@@ -27,13 +27,9 @@ pub async fn decay_patterns(
     dry_run: bool,
     force: bool,
 ) -> anyhow::Result<()> {
-    // Note: In a real implementation, we'd have an EffectivenessTracker instance
-    // For now, we'll simulate decay analysis
-
-    // Get all patterns
-    let patterns = memory
-        .retrieve_relevant_patterns(&do_memory_core::types::TaskContext::default(), 1000)
-        .await;
+    // Analyze the full stored inventory, not a ranked top-N sample: decay must
+    // consider every pattern the store can reach, including never-retrieved ones.
+    let patterns = memory.get_all_patterns().await?;
 
     // Analyze which patterns would be decayed
     let mut patterns_to_decay = Vec::new();
@@ -183,7 +179,15 @@ pub async fn decay_patterns(
         }
     }
 
-    // Perform actual decay (in real implementation, this would remove from storage)
+    // Perform the decay: delete each ineffective pattern from every backend.
+    let mut decayed_count = 0usize;
+    for pattern in &result.patterns_to_decay {
+        let pattern_id = uuid::Uuid::parse_str(&pattern.pattern_id)
+            .map_err(|e| anyhow::anyhow!("Invalid pattern id '{}': {}", pattern.pattern_id, e))?;
+        memory.delete_pattern(pattern_id).await?;
+        decayed_count += 1;
+    }
+
     if format == OutputFormat::Human {
         use colored::*;
 
@@ -198,7 +202,7 @@ pub async fn decay_patterns(
         } else {
             println!(
                 "Successfully decayed {} ineffective patterns.",
-                result.would_decay_count.to_string().green().bold()
+                decayed_count.to_string().green().bold()
             );
             println!();
             println!("Decayed patterns:");

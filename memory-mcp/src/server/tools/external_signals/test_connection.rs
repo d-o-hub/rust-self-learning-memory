@@ -3,7 +3,7 @@
 //! This module provides the tool for testing connectivity to the
 //! AgentFS external signal provider.
 //!
-//! **NOTE**: SDK is not currently integrated - returns stub test results.
+//! Uses the AgentFS SDK to open the configured database and read toolcall stats.
 
 use crate::server::MemoryMCPServer;
 use anyhow::Result;
@@ -47,7 +47,7 @@ impl MemoryMCPServer {
                 readable: false,
                 writable: false,
                 toolcall_count: None,
-                version: Some("0.6.4".to_string()),
+                version: None,
                 message: "AgentFS database path not configured".to_string(),
                 error: Some(
                     "Set AGENTFS_DB_PATH environment variable or provide db_path in request"
@@ -60,15 +60,20 @@ impl MemoryMCPServer {
         // Attempt real connection test using SDK
         let (success, message, error, toolcall_count) =
             match agentfs_sdk::ToolCalls::new(&db_path).await {
-                Ok(tc) => {
-                    let count = tc.stats().await.ok().map(|s| s.len());
-                    (
+                Ok(tc) => match tc.stats().await {
+                    Ok(stats) => (
                         true,
                         "Successfully connected to AgentFS database".to_string(),
                         None,
-                        count,
-                    )
-                }
+                        Some(stats.iter().map(|s| s.total_calls.max(0) as usize).sum()),
+                    ),
+                    Err(e) => (
+                        false,
+                        "Connected to AgentFS database but the stats query failed".to_string(),
+                        Some(format!("Stats query failed: {e}")),
+                        None,
+                    ),
+                },
                 Err(e) => (
                     false,
                     "Failed to connect to AgentFS database".to_string(),
@@ -87,7 +92,7 @@ impl MemoryMCPServer {
             readable: success,
             writable: false, // Audit trail is read-only for memory system
             toolcall_count,
-            version: Some("0.6.4".to_string()),
+            version: None,
             message,
             error,
         };
@@ -112,31 +117,6 @@ mod tests {
             async { Ok(json!({})) }
         }
         let _ = method_signature; // Use the function to avoid unused warnings
-    }
-
-    #[test]
-    fn test_stub_result_indicates_sdk_unavailable() {
-        // Verify stub result properly indicates SDK unavailability
-        let result = crate::mcp::tools::external_signals::TestAgentFsConnectionOutput {
-            success: false,
-            provider: "agentfs".to_string(),
-            db_path: "/tmp/test.db".to_string(),
-            connection_time_ms: 0,
-            readable: false,
-            writable: false,
-            toolcall_count: None,
-            version: None,
-            message: "SDK not integrated".to_string(),
-            error: Some("SDK unavailable".to_string()),
-        };
-
-        assert!(!result.success, "Stub should report unsuccessful test");
-        assert!(result.error.is_some(), "Should have error message");
-        assert!(!result.readable, "Should report not readable");
-        assert!(
-            result.toolcall_count.is_none(),
-            "Should have no toolcall count"
-        );
     }
 }
 
@@ -166,5 +146,32 @@ mod functional_tests {
 
         assert!(!output.success);
         assert!(output.error.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_execute_test_agentfs_connection_reports_real_toolcall_count() {
+        let temp_db = tempfile::NamedTempFile::new().unwrap();
+        let db_path = temp_db.path().to_str().unwrap().to_string();
+
+        let tc = agentfs_sdk::ToolCalls::new(&db_path).await.unwrap();
+        tc.record("tool_a", 0, 10, None, None, None).await.unwrap();
+        tc.record("tool_a", 0, 20, None, None, Some("boom"))
+            .await
+            .unwrap();
+        tc.record("tool_b", 0, 5, None, None, None).await.unwrap();
+
+        let server = create_test_server().await;
+        let input = crate::mcp::tools::external_signals::TestAgentFsConnectionInput {
+            db_path: Some(db_path),
+        };
+
+        let result = server.execute_test_agentfs_connection(input).await.unwrap();
+        let output: crate::mcp::tools::external_signals::TestAgentFsConnectionOutput =
+            serde_json::from_value(result).unwrap();
+
+        assert!(output.success);
+        assert!(output.readable);
+        assert_eq!(output.toolcall_count, Some(3));
+        assert!(output.version.is_none(), "no database version was read");
     }
 }

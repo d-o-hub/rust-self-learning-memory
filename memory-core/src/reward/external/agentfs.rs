@@ -6,7 +6,9 @@
 //!
 //! - **SDK Integrated**: Yes (v0.6.4)
 //! - **Functional**: Fetches real tool statistics from AgentFS SQLite database
-//! - **Error Handling**: Graceful degradation if database is unavailable
+//! - **Error Handling**: A disabled provider returns an empty set; an enabled
+//!   provider whose database cannot be read returns
+//!   [`ExternalSignalError::Provider`], never a fabricated empty set
 //!
 //! See ADR-050 for full integration plan.
 
@@ -143,7 +145,7 @@ impl ExternalSignalProvider for AgentFsProvider {
             ));
         }
 
-        let tool_signals = self.fetch_tool_stats(episode).await;
+        let tool_signals = self.fetch_tool_stats(episode).await?;
 
         // Calculate confidence based on sample sizes
         let total_samples: usize = tool_signals.iter().map(|t| t.sample_count).sum();
@@ -199,21 +201,27 @@ impl AgentFsProvider {
     ///
     /// This method queries the AgentFS database via the SDK for toolcall statistics
     /// matching the tools used in the provided episode.
-    async fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Vec<ToolSignal> {
-        let Ok(tc) = ToolCalls::new(&self.config.db_path).await else {
-            return Vec::new();
-        };
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExternalSignalError::Provider`] when the database cannot be
+    /// opened or queried. An unreadable provider must not masquerade as "no
+    /// external signals available".
+    async fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Result<Vec<ToolSignal>> {
+        let tc = ToolCalls::new(&self.config.db_path).await.map_err(|e| {
+            ExternalSignalError::Provider(format!("AgentFS connection failed: {e}"))
+        })?;
 
         // Get unique tool names from episode steps as &str for efficient lookups
         let episode_tools: std::collections::HashSet<&str> =
             episode.steps.iter().map(|s| s.tool.as_str()).collect();
 
         // Query all tool stats once for efficiency
-        let Ok(all_stats) = tc.stats().await else {
-            return Vec::new();
-        };
+        let all_stats = tc.stats().await.map_err(|e| {
+            ExternalSignalError::Provider(format!("AgentFS stats query failed: {e}"))
+        })?;
 
-        all_stats
+        Ok(all_stats
             .into_iter()
             .filter(|stats| {
                 episode_tools.contains(stats.name.as_str())
@@ -235,7 +243,7 @@ impl AgentFsProvider {
                     metadata,
                 }
             })
-            .collect()
+            .collect())
     }
 }
 

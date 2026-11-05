@@ -111,6 +111,21 @@ pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
         Ok(Vec::new())
     }
 
+    /// Delete a pattern by ID.
+    ///
+    /// Removes the pattern record together with its derived data (embedding and
+    /// episode-pattern relationships) where the backend persists them.
+    ///
+    /// # Errors
+    ///
+    /// The default returns [`Error::CapabilityUnavailable`]: a backend that
+    /// cannot delete must not report success. Backends that persist patterns
+    /// override this.
+    async fn delete_pattern(&self, id: PatternId) -> Result<()> {
+        let _ = id;
+        Err(Error::capability_unavailable("delete_pattern"))
+    }
+
     /// Store a heuristic
     ///
     /// # Arguments

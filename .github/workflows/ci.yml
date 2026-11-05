@@ -168,6 +168,14 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      # `episode search --semantic` needs the OpenAI-compatible transport, which
+      # the default-feature workspace run above cannot compile. Run the CLI e2e
+      # test with the feature its `required-features` declares.
+      - name: Semantic CLI tests (openai feature)
+        run: |
+          nix develop --command cargo nextest run --profile ci \
+            -p do-memory-cli --features openai --test semantic_search_cli
+
   # CSM feature tests (issue #1045): the cascade, rerank and evidence suites are
   # compiled only with the `csm` feature, which no other job enables.
   csm-tests:

@@ -1,6 +1,6 @@
 {
   "name": "do-memory-mcp-server",
-  "version": "0.1.26",
+  "version": "0.1.49",
   "description": "Self-Learning Memory MCP Server - Episodic memory with pattern extraction and intelligent retrieval",
   "repository": {
     "type": "git",
@@ -10,30 +10,218 @@
     "tools": true,
     "resources": false,
     "prompts": false,
-    "logging": true
+    "logging": false
   },
   "tools": [
-    {"name": "create_episode", "description": "Create a new episode"},
-    {"name": "log_step", "description": "Log a step to an episode"},
-    {"name": "complete_episode", "description": "Complete an episode"},
-    {"name": "get_episode", "description": "Get episode details"},
-    {"name": "list_episodes", "description": "List episodes with filters"},
-    {"name": "extract_patterns", "description": "Extract patterns from episodes"},
-    {"name": "search_patterns", "description": "Search for patterns"},
-    {"name": "store_memory", "description": "Store a memory"},
-    {"name": "retrieve_memory", "description": "Retrieve memories"},
-    {"name": "search_memory", "description": "Semantic search in memories"},
-    {"name": "record_recommendation_session", "description": "Record a recommendation session"},
-    {"name": "record_recommendation_feedback", "description": "Record feedback on a recommendation"},
-    {"name": "recommend_playbook", "description": "Get playbook recommendations"},
-    {"name": "checkpoint_episode", "description": "Create episode checkpoint"},
-    {"name": "get_handoff_pack", "description": "Get handoff pack for agent transfer"},
-    {"name": "resume_from_handoff", "description": "Resume from a handoff pack"}
+    {
+      "name": "query_memory",
+      "description": "Query episodic memory for relevant past experiences and learned patterns"
+    },
+    {
+      "name": "analyze_patterns",
+      "description": "Analyze patterns from past episodes to identify successful strategies"
+    },
+    {
+      "name": "health_check",
+      "description": "Check the health status of the MCP server and its components"
+    },
+    {
+      "name": "get_metrics",
+      "description": "Get monitoring metrics and statistics. Use metric_type 'retrieval' for CSM tier distribution, cache hit rates, embedding-call rates, fallback reasons, and P95 latencies."
+    },
+    {
+      "name": "advanced_pattern_analysis",
+      "description": "Perform advanced statistical analysis, predictive modeling, and causal inference on time series data from memory episodes"
+    },
+    {
+      "name": "quality_metrics",
+      "description": "Retrieve memory quality metrics and noise reduction statistics from the PREMem system"
+    },
+    {
+      "name": "configure_embeddings",
+      "description": "Configure semantic embedding provider for enhanced memory retrieval."
+    },
+    {
+      "name": "query_semantic_memory",
+      "description": "Search episodic memory using semantic similarity with embeddings."
+    },
+    {
+      "name": "test_embeddings",
+      "description": "Test embedding provider connectivity."
+    },
+    {
+      "name": "generate_embedding",
+      "description": "Generate an embedding vector for text using the configured embedding provider."
+    },
+    {
+      "name": "search_by_embedding",
+      "description": "Search episodes by embedding similarity using a pre-computed embedding vector."
+    },
+    {
+      "name": "embedding_provider_status",
+      "description": "Get detailed status information about the configured embedding provider."
+    },
+    {
+      "name": "search_patterns",
+      "description": "Search for patterns semantically similar to a query using multi-signal ranking"
+    },
+    {
+      "name": "recommend_patterns",
+      "description": "Get pattern recommendations for a specific task with high-quality filtering"
+    },
+    {
+      "name": "recommend_playbook",
+      "description": "Get an actionable playbook with step-by-step guidance for a task (ADR-044 Feature 1)"
+    },
+    {
+      "name": "explain_pattern",
+      "description": "Get a human-readable explanation of a pattern including when to use it and expected outcomes"
+    },
+    {
+      "name": "record_recommendation_session",
+      "description": "Record a recommendation session when patterns/playbooks are suggested to an agent"
+    },
+    {
+      "name": "record_recommendation_feedback",
+      "description": "Record feedback about which recommendations were used and the outcome"
+    },
+    {
+      "name": "get_recommendation_stats",
+      "description": "Get statistics about recommendation effectiveness and adoption rates"
+    },
+    {
+      "name": "checkpoint_episode",
+      "description": "Create a checkpoint for an in-progress episode. Use this when switching agents, pausing long-running tasks, or before risky operations."
+    },
+    {
+      "name": "get_handoff_pack",
+      "description": "Generate a handoff pack from a checkpoint. Compact mode (default) returns a byte-budgeted profile with findings, decisions, pending actions, and omission receipts; full mode returns the unbounded pack for audit/debug."
+    },
+    {
+      "name": "resume_from_handoff",
+      "description": "Resume work from a handoff pack. Creates a new episode initialized with context from a previous checkpoint for seamless task continuation."
+    },
+    {
+      "name": "bulk_episodes",
+      "description": "Retrieve multiple episodes by their IDs in a single efficient operation"
+    },
+    {
+      "name": "create_episode",
+      "description": "Create a new episode to track task execution programmatically"
+    },
+    {
+      "name": "add_episode_step",
+      "description": "Add an execution step to an ongoing episode to track progress"
+    },
+    {
+      "name": "complete_episode",
+      "description": "Complete an episode with an outcome and trigger the learning cycle (reward, reflection, patterns)"
+    },
+    {
+      "name": "get_episode",
+      "description": "Get complete details of an episode including steps, outcome, reflection, and patterns"
+    },
+    {
+      "name": "delete_episode",
+      "description": "Delete an episode permanently from all storage backends (requires confirmation)"
+    },
+    {
+      "name": "update_episode",
+      "description": "Update episode fields (description, tags, metadata)"
+    },
+    {
+      "name": "get_episode_timeline",
+      "description": "Get a chronological timeline view of all steps in an episode"
+    },
+    {
+      "name": "add_episode_tags",
+      "description": "Add tags to an episode. Tags are validated and normalized (lowercase, trimmed). Duplicate tags are ignored."
+    },
+    {
+      "name": "remove_episode_tags",
+      "description": "Remove tags from an episode. Non-existent tags are silently ignored. Matching is case-insensitive."
+    },
+    {
+      "name": "set_episode_tags",
+      "description": "Set/replace all tags on an episode. Useful for complete tag reorganization. Empty tag list will clear all tags."
+    },
+    {
+      "name": "get_episode_tags",
+      "description": "Get tags for an episode"
+    },
+    {
+      "name": "search_episodes_by_tags",
+      "description": "Search episodes by tags using AND or OR logic. Matching is case-insensitive."
+    },
+    {
+      "name": "add_episode_relationship",
+      "description": "Add a relationship between two episodes with validation"
+    },
+    {
+      "name": "remove_episode_relationship",
+      "description": "Remove a relationship by ID"
+    },
+    {
+      "name": "get_episode_relationships",
+      "description": "Get relationships for an episode"
+    },
+    {
+      "name": "find_related_episodes",
+      "description": "Find episodes related to a given episode"
+    },
+    {
+      "name": "check_relationship_exists",
+      "description": "Check if a specific relationship exists"
+    },
+    {
+      "name": "get_dependency_graph",
+      "description": "Get relationship graph for visualization"
+    },
+    {
+      "name": "validate_no_cycles",
+      "description": "Check if adding a relationship would create a cycle"
+    },
+    {
+      "name": "get_topological_order",
+      "description": "Get topological ordering of episodes"
+    },
+    {
+      "name": "configure_agentfs",
+      "description": "Configure AgentFS external signal provider for reward system integration."
+    },
+    {
+      "name": "external_signal_status",
+      "description": "Get status of configured external signal providers for the reward system."
+    },
+    {
+      "name": "test_agentfs_connection",
+      "description": "Test connectivity to the AgentFS external signal provider."
+    },
+    {
+      "name": "resume_from_compact",
+      "description": "Resume work from a compact handoff pack. Creates a new episode initialized with the compact goal, findings, decisions, and pending actions."
+    }
   ],
-  "embedding_providers": ["openai", "cohere", "ollama", "local"],
-  "storage_backends": ["turso", "redb"],
+  "embedding_providers": [
+    "local",
+    "openai",
+    "mistral"
+  ],
+  "storage_backends": [
+    "turso",
+    "redb"
+  ],
   "license": "MIT",
-  "authors": ["d-o-hub"],
+  "authors": [
+    "d-o-hub"
+  ],
   "homepage": "https://github.com/d-o-hub/rust-self-learning-memory",
-  "keywords": ["mcp", "memory", "ai", "episodic", "patterns", "self-learning"]
+  "keywords": [
+    "mcp",
+    "memory",
+    "ai",
+    "episodic",
+    "patterns",
+    "self-learning"
+  ]
 }

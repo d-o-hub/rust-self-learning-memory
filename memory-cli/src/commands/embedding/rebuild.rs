@@ -18,6 +18,12 @@ pub async fn rebuild_index(
         ));
     }
 
+    crate::commands::embedding::activate_configured_semantic_service(memory, config).await?;
+    let semantic = memory
+        .live_semantic_service()
+        .await
+        .ok_or_else(|| anyhow::anyhow!("Semantic service unavailable after activation"))?;
+
     println!("📥 Fetching all episodes...");
     let episodes = memory.get_all_episodes().await?;
     println!("✅ Found {} episodes.", episodes.len());
@@ -26,25 +32,26 @@ pub async fn rebuild_index(
     println!("🧠 Generating embeddings and updating index...");
     let mut count = 0;
     for episode in episodes {
-        // Semantic service will handle embedding generation if missing
-        if let Some(semantic) = memory.semantic_service() {
-            match semantic.embed_episode(&episode).await {
-                Ok(_) => {
-                    if let Ok(embeddings) =
-                        semantic.get_embeddings_batch(&[episode.episode_id]).await
-                    {
-                        if let Some(Some(embedding)) = embeddings.first() {
-                            if let Some(retriever) = &memory.semantic_retriever() {
-                                retriever
-                                    .upsert(&episode.episode_id.to_string(), embedding.clone())?;
-                                count += 1;
-                            }
-                        }
-                    }
-                }
-                Err(e) => println!("⚠️  Failed to embed episode {}: {}", episode.episode_id, e),
-            }
+        // Missing embeddings are generated and stored by the service; a
+        // provider failure aborts the rebuild instead of reporting a count it
+        // never reached.
+        semantic.embed_episode(&episode).await?;
+
+        let embeddings = semantic.get_embeddings_batch(&[episode.episode_id]).await?;
+        let embedding = embeddings
+            .first()
+            .and_then(|entry| entry.as_ref())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Embedding for episode {} missing after generation",
+                    episode.episode_id
+                )
+            })?;
+
+        if let Some(retriever) = &memory.semantic_retriever() {
+            retriever.upsert(&episode.episode_id.to_string(), embedding.clone())?;
         }
+        count += 1;
     }
 
     println!("✅ Rebuilt index with {} episodes.", count);
@@ -109,17 +116,24 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rebuild_index_empty_memory_without_semantic_service() {
-        // Enabled path with no semantic service: fetch episodes, skip embed loop body,
-        // save snapshot (no-op without ANN path).
+    async fn rebuild_index_rejects_unactivatible_provider() {
         let memory = SelfLearningMemory::new();
-        rebuild_index(&memory, &config(true))
+        let mut cfg = config(true);
+        cfg.embeddings.provider = "openai".to_string();
+        cfg.embeddings.model = "text-embedding-3-small".to_string();
+        cfg.embeddings.api_key_env = None;
+
+        let err = rebuild_index(&memory, &cfg)
             .await
-            .expect("empty rebuild succeeds");
+            .expect_err("a provider that cannot be activated must fail the rebuild");
+        assert!(
+            err.to_string().contains("api_key_env") || err.to_string().contains("not set"),
+            "unexpected error: {err}"
+        );
     }
 
     #[tokio::test]
-    async fn rebuild_index_with_episode_no_semantic_service() {
+    async fn rebuild_index_fails_closed_without_provider_feature() {
         let memory = SelfLearningMemory::new();
         let _id = memory
             .start_episode(
@@ -128,8 +142,15 @@ mod tests {
                 TaskType::Testing,
             )
             .await;
-        rebuild_index(&memory, &config(true))
+
+        let err = rebuild_index(&memory, &config(true))
             .await
-            .expect("rebuild with episodes but no semantic service");
+            .expect_err("local provider needs the local-embeddings feature");
+        assert!(
+            err.to_string().contains("Local embeddings not available")
+                || err.to_string().contains("Failed to load")
+                || err.to_string().contains("model"),
+            "unexpected error: {err}"
+        );
     }
 }

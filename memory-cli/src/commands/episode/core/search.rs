@@ -28,10 +28,7 @@ const MIN_SEARCH_LIMIT: usize = 1;
 pub async fn search_episodes(
     query: String,
     mut limit: usize,
-    _semantic: bool,
-    _enable_embeddings: bool,
-    _embedding_provider: Option<String>,
-    _embedding_model: Option<String>,
+    semantic: bool,
     fuzzy: bool,
     fuzzy_threshold: f64,
     regex: bool,
@@ -40,24 +37,16 @@ pub async fn search_episodes(
     domain: Option<String>,
     task_type: Option<String>,
     memory: &SelfLearningMemory,
-    _config: &Config,
+    config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     // Clamp limit to prevent resource exhaustion
     limit = limit.clamp(MIN_SEARCH_LIMIT, MAX_SEARCH_LIMIT);
 
-    // Build filter with search mode
-    let mut filter_builder = EpisodeFilter::builder().search_text(query.clone());
-
-    // Add domain filter if provided
-    if let Some(d) = domain {
-        filter_builder = filter_builder.domains(vec![d]);
-    }
-
-    // Add task type filter if provided
-    if let Some(tt) = task_type {
-        // Parse the task type string to TaskType enum
-        let parsed_type = match tt.to_lowercase().as_str() {
+    // Parse the task type filter once; both search paths apply it.
+    let parsed_task_type = match task_type.as_deref() {
+        None => None,
+        Some(tt) => Some(match tt.to_lowercase().as_str() {
             "code-generation" | "code_generation" => TaskType::CodeGeneration,
             "debugging" => TaskType::Debugging,
             "refactoring" => TaskType::Refactoring,
@@ -71,54 +60,92 @@ pub async fn search_episodes(
                     tt
                 ));
             }
-        };
-        filter_builder = filter_builder.task_types(vec![parsed_type]);
-    }
+        }),
+    };
 
-    // Configure search mode (priority: regex > fuzzy > exact)
-    if regex {
-        // Validate regex pattern before using it
-        if let Err(e) = do_memory_core::search::validate_regex_pattern(&query) {
-            return Err(anyhow::anyhow!("Invalid regex pattern: {}", e));
+    let mut episodes = if semantic {
+        crate::commands::embedding::activate_configured_semantic_service(memory, config).await?;
+        let semantic_service = memory
+            .live_semantic_service()
+            .await
+            .ok_or_else(|| anyhow::anyhow!("Semantic service unavailable after activation"))?;
+
+        // Semantic search matches by meaning; lexical mode/field options are
+        // rejected by clap, so only the metadata filters apply here.
+        let results = semantic_service
+            .find_similar_episodes(
+                &query,
+                &do_memory_core::types::TaskContext::default(),
+                MAX_SEARCH_LIMIT,
+            )
+            .await?;
+        let mut candidates: Vec<Episode> = results.into_iter().map(|result| result.item).collect();
+
+        if let Some(domain_filter) = domain.as_deref() {
+            candidates.retain(|episode| episode.context.domain == domain_filter);
         }
-        filter_builder = filter_builder.search_mode(SearchMode::Regex);
-    } else if fuzzy {
-        filter_builder = filter_builder.search_mode(SearchMode::Fuzzy {
-            threshold: fuzzy_threshold,
-        });
+        if let Some(expected_type) = parsed_task_type {
+            candidates.retain(|episode| episode.task_type == expected_type);
+        }
+        candidates.truncate(limit);
+        candidates
     } else {
-        filter_builder = filter_builder.search_mode(SearchMode::Exact);
-    }
+        // Build filter with search mode
+        let mut filter_builder = EpisodeFilter::builder().search_text(query.clone());
 
-    // Configure search fields
-    if let Some(fields) = search_fields {
-        let parsed_fields: Vec<SearchField> = fields
-            .iter()
-            .filter_map(|f| match f.to_lowercase().as_str() {
-                "description" => Some(SearchField::Description),
-                "steps" => Some(SearchField::Steps),
-                "outcome" => Some(SearchField::Outcome),
-                "tags" => Some(SearchField::Tags),
-                "domain" => Some(SearchField::Domain),
-                "all" => Some(SearchField::All),
-                _ => {
-                    eprintln!("Warning: Unknown field '{}', ignoring", f);
-                    None
-                }
-            })
-            .collect();
-
-        if !parsed_fields.is_empty() {
-            filter_builder = filter_builder.search_fields(parsed_fields);
+        // Add domain filter if provided
+        if let Some(d) = domain {
+            filter_builder = filter_builder.domains(vec![d]);
         }
-    }
 
-    let filter = filter_builder.build();
+        // Add task type filter if provided
+        if let Some(parsed_type) = parsed_task_type {
+            filter_builder = filter_builder.task_types(vec![parsed_type]);
+        }
 
-    // Search using the filter
-    let mut episodes = memory
-        .list_episodes_filtered(filter, Some(limit), None)
-        .await?;
+        // Configure search mode (priority: regex > fuzzy > exact)
+        if regex {
+            // Validate regex pattern before using it
+            if let Err(e) = do_memory_core::search::validate_regex_pattern(&query) {
+                return Err(anyhow::anyhow!("Invalid regex pattern: {}", e));
+            }
+            filter_builder = filter_builder.search_mode(SearchMode::Regex);
+        } else if fuzzy {
+            filter_builder = filter_builder.search_mode(SearchMode::Fuzzy {
+                threshold: fuzzy_threshold,
+            });
+        } else {
+            filter_builder = filter_builder.search_mode(SearchMode::Exact);
+        }
+
+        // Configure search fields
+        if let Some(fields) = search_fields {
+            let parsed_fields: Vec<SearchField> = fields
+                .iter()
+                .filter_map(|f| match f.to_lowercase().as_str() {
+                    "description" => Some(SearchField::Description),
+                    "steps" => Some(SearchField::Steps),
+                    "outcome" => Some(SearchField::Outcome),
+                    "tags" => Some(SearchField::Tags),
+                    "domain" => Some(SearchField::Domain),
+                    "all" => Some(SearchField::All),
+                    _ => {
+                        eprintln!("Warning: Unknown field '{}', ignoring", f);
+                        None
+                    }
+                })
+                .collect();
+
+            if !parsed_fields.is_empty() {
+                filter_builder = filter_builder.search_fields(parsed_fields);
+            }
+        }
+
+        let filter = filter_builder.build();
+        memory
+            .list_episodes_filtered(filter, Some(limit), None)
+            .await?
+    };
     let total_count = episodes.len();
 
     // Apply sorting
@@ -210,5 +237,141 @@ pub async fn search_episodes(
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::types::TaskContext;
+
+    fn default_config() -> Config {
+        Config::default()
+    }
+
+    #[tokio::test]
+    async fn keyword_search_applies_filters_and_success_sort() {
+        let memory = SelfLearningMemory::new();
+        memory
+            .start_episode(
+                "Deploy authentication service".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        search_episodes(
+            "authentication".to_string(),
+            10,
+            false,
+            true,
+            0.8,
+            false,
+            Some(vec!["description".to_string()]),
+            SearchSortOrder::Success,
+            None,
+            Some("testing".to_string()),
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect("keyword search succeeds");
+    }
+
+    #[tokio::test]
+    async fn search_rejects_unknown_task_type() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            false,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            Some("bogus".to_string()),
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("unknown task type must fail");
+        assert!(err.to_string().contains("Unknown task type"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn search_rejects_invalid_regex() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "[".to_string(),
+            10,
+            false,
+            false,
+            0.8,
+            true,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("invalid regex must fail");
+        assert!(err.to_string().contains("Invalid regex"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn semantic_search_requires_enabled_embeddings() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            true,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("disabled embeddings must fail semantic search");
+        assert!(err.to_string().contains("Embeddings are disabled"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn semantic_search_rejects_unknown_provider() {
+        let memory = SelfLearningMemory::new();
+        let mut config = default_config();
+        config.embeddings.enabled = true;
+        config.embeddings.provider = "bogus".to_string();
+
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            true,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("unknown provider must fail");
+        assert!(err.to_string().contains("Unknown provider"), "{err}");
     }
 }

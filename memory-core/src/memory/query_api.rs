@@ -117,9 +117,25 @@ impl SelfLearningMemory {
         .await
     }
 
-    /// Get patterns extracted from a specific episode
+    /// Get patterns extracted from a specific episode.
+    ///
+    /// Resolves the [`crate::episode::PatternId`]s recorded on the episode's `patterns` field
+    /// through [`Self::get_pattern`]. IDs whose pattern record no longer exists
+    /// (for example after pattern decay) are omitted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::error::Error::NotFound`] when the episode itself does
+    /// not exist, and propagates storage errors raised while resolving patterns.
     pub async fn get_episode_patterns(&self, episode_id: Uuid) -> Result<Vec<Pattern>> {
-        queries::get_episode_patterns(episode_id, &self.patterns_fallback).await
+        let episode = self.get_episode(episode_id).await?;
+        let mut patterns = Vec::with_capacity(episode.patterns.len());
+        for pattern_id in episode.patterns {
+            if let Some(pattern) = self.get_pattern(pattern_id).await? {
+                patterns.push(pattern);
+            }
+        }
+        Ok(patterns)
     }
 
     /// Get multiple episodes by their IDs in a single operation.

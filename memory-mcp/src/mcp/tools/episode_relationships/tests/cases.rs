@@ -627,3 +627,52 @@ async fn test_find_related_with_type_filter() {
     assert_eq!(result.related_episodes[0].episode_id, ep2.to_string());
     assert_eq!(result.related_episodes[0].relationship_type, "depends_on");
 }
+
+#[tokio::test]
+async fn test_validate_no_cycles_detects_real_cycle() {
+    use do_memory_core::episode::{RelationshipMetadata, RelationshipType};
+
+    let memory = create_test_memory();
+    let tools = EpisodeRelationshipTools::new(memory.clone());
+
+    let ep_a = create_test_episode(&memory, "Episode A").await;
+    let ep_b = create_test_episode(&memory, "Episode B").await;
+    let ep_c = create_test_episode(&memory, "Episode C").await;
+
+    memory
+        .add_episode_relationship(
+            ep_a,
+            ep_b,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .expect("A depends on B");
+    memory
+        .add_episode_relationship(
+            ep_b,
+            ep_c,
+            RelationshipType::DependsOn,
+            RelationshipMetadata::default(),
+        )
+        .await
+        .expect("B depends on C");
+
+    let input = ValidateNoCyclesInput {
+        from_episode_id: ep_c.to_string(),
+        to_episode_id: ep_a.to_string(),
+        relationship_type: "depends_on".to_string(),
+    };
+
+    let output = tools
+        .validate_no_cycles(input)
+        .await
+        .expect("cycle validation should read stored relationships");
+
+    assert!(output.would_create_cycle);
+    assert!(!output.is_valid);
+    assert_eq!(
+        output.cycle_path,
+        Some(vec![ep_a.to_string(), ep_b.to_string(), ep_c.to_string()])
+    );
+}

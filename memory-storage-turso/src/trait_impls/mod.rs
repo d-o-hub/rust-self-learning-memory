@@ -66,6 +66,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_all_patterns(self).await
     }
 
+    async fn delete_pattern(&self, id: do_memory_core::episode::PatternId) -> Result<()> {
+        super::TursoStorage::delete_pattern(self, id).await
+    }
+
     async fn store_heuristic(&self, heuristic: &do_memory_core::Heuristic) -> Result<()> {
         super::TursoStorage::store_heuristic(self, heuristic).await
     }

@@ -55,6 +55,10 @@ impl StorageBackend for RedbStorage {
             .await
     }
 
+    async fn delete_pattern(&self, id: PatternId) -> Result<()> {
+        self.delete_pattern(id).await
+    }
+
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         self.store_heuristic(heuristic).await
     }

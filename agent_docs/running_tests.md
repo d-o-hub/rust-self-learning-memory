@@ -141,7 +141,7 @@ cargo mutants
 cargo mutants --package do-memory-core
 
 # Run for a specific module (overrides workspace defaults)
-cargo mutants -f memory-core/src/pattern/similarity.rs
+cargo mutants -f memory-core/src/patterns/similarity.rs
 ```
 
 Mutation testing is integrated into a dedicated GitHub Actions workflow (`mutants.yml`) that runs nightly and can be triggered manually.

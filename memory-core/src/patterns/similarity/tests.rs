@@ -73,6 +73,176 @@ fn test_context_similarity() {
     assert!(similarity > 0.7);
 }
 
+fn rust_web_ctx() -> TaskContext {
+    TaskContext {
+        domain: "web-api".to_string(),
+        language: Some("rust".to_string()),
+        tags: str_vec(&["async", "http"]),
+        ..Default::default()
+    }
+}
+
+/// A context sharing nothing with [`rust_web_ctx`].
+fn unrelated_ctx() -> TaskContext {
+    TaskContext {
+        domain: "data-pipeline".to_string(),
+        language: Some("python".to_string()),
+        tags: str_vec(&["batch", "etl"]),
+        ..Default::default()
+    }
+}
+
+fn assert_close(actual: f32, expected: f32, what: &str) {
+    assert!(
+        (actual - expected).abs() < 1e-5,
+        "{what}: expected {expected}, got {actual}"
+    );
+}
+
+#[test]
+fn test_tool_sequence_similarity_identical_patterns_score_one() {
+    let tools = str_vec(&["read", "edit", "test"]);
+
+    assert_close(
+        tool_sequence_similarity(&tools, &rust_web_ctx(), &tools, &rust_web_ctx()),
+        1.0,
+        "identical tool sequences in identical contexts",
+    );
+}
+
+#[test]
+fn test_tool_sequence_similarity_weights_tools_above_context() {
+    let tools = str_vec(&["read", "edit", "test"]);
+
+    let identical = tool_sequence_similarity(&tools, &unrelated_ctx(), &tools, &unrelated_ctx());
+    assert_close(identical, 1.0, "identical everything, shared context");
+
+    // Tools identical, contexts share nothing: only the 0.7 tool weight survives.
+    let differing_context =
+        tool_sequence_similarity(&tools, &rust_web_ctx(), &tools, &unrelated_ctx());
+    assert_close(
+        differing_context,
+        0.7,
+        "identical tools with unrelated contexts",
+    );
+
+    // Context identical, tools disjoint: only the 0.3 context weight remains.
+    let differing_tools = tool_sequence_similarity(
+        &str_vec(&["alpha"]),
+        &rust_web_ctx(),
+        &str_vec(&["omega"]),
+        &rust_web_ctx(),
+    );
+    assert_close(
+        differing_tools,
+        0.3,
+        "disjoint tools with identical context",
+    );
+}
+
+#[test]
+fn test_decision_point_similarity_identical_patterns_score_one() {
+    let ctx = rust_web_ctx();
+
+    assert_close(
+        decision_point_similarity(
+            "queue is full",
+            "apply backpressure",
+            &ctx,
+            "queue is full",
+            "apply backpressure",
+            &ctx,
+        ),
+        1.0,
+        "identical decision points in identical contexts",
+    );
+}
+
+#[test]
+fn test_decision_point_similarity_weights_condition_and_action_equally() {
+    let ctx = rust_web_ctx();
+
+    // Only the action differs, so the score is 0.4*1 + 0.4*0 + 0.2*1.
+    // Single-character actions keep the action similarity at exactly 0.
+    let score = decision_point_similarity("queue is full", "a", &ctx, "queue is full", "b", &ctx);
+
+    assert_close(score, 0.6, "different action, same condition and context");
+}
+
+#[test]
+fn test_error_recovery_similarity_identical_patterns_score_one() {
+    let ctx = rust_web_ctx();
+    let steps = str_vec(&["inspect logs", "roll back", "retest"]);
+
+    assert_close(
+        error_recovery_similarity("timeout", &steps, &ctx, "timeout", &steps, &ctx),
+        1.0,
+        "identical error recoveries in identical contexts",
+    );
+}
+
+#[test]
+fn test_context_pattern_similarity_identical_patterns_score_one() {
+    let features = str_vec(&["queue saturated", "latency spike"]);
+
+    assert_close(
+        context_pattern_similarity(&features, "scale consumers", &features, "scale consumers"),
+        1.0,
+        "identical context patterns",
+    );
+}
+
+/// Scores feed threshold comparisons (`> 0.8` style), so anything outside
+/// `[0.0, 1.0]` would silently merge or split patterns.
+#[test]
+fn test_pattern_similarity_scores_stay_within_unit_interval() {
+    let contexts = [rust_web_ctx(), unrelated_ctx(), TaskContext::default()];
+    let tool_sets = [
+        str_vec(&[]),
+        str_vec(&["a"]),
+        str_vec(&["a", "b", "c"]),
+        str_vec(&["c", "b", "a"]),
+    ];
+    let texts = ["", "alpha", "queue is full", "queues are full"];
+
+    let mut scores = Vec::new();
+    for ctx1 in &contexts {
+        for ctx2 in &contexts {
+            for tools1 in &tool_sets {
+                for tools2 in &tool_sets {
+                    scores.push(tool_sequence_similarity(tools1, ctx1, tools2, ctx2));
+                }
+            }
+            for t1 in texts {
+                for t2 in texts {
+                    scores.push(decision_point_similarity(t1, t2, ctx1, t2, t1, ctx2));
+                    scores.push(error_recovery_similarity(
+                        t1,
+                        &tool_sets[1],
+                        ctx1,
+                        t2,
+                        &tool_sets[2],
+                        ctx2,
+                    ));
+                    scores.push(context_pattern_similarity(
+                        &tool_sets[1],
+                        t1,
+                        &tool_sets[2],
+                        t2,
+                    ));
+                }
+            }
+        }
+    }
+
+    for score in scores {
+        assert!(
+            (0.0..=1.0).contains(&score),
+            "similarity score {score} escaped the unit interval"
+        );
+    }
+}
+
 /// Reference: true Jaccard counts via deduplicated sets.
 /// Independent of the linear-scan fast path, used for cross-checking.
 fn reference_jaccard_counts(tags1: &[String], tags2: &[String]) -> (usize, usize) {

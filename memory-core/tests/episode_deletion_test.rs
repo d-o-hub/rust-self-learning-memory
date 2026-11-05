@@ -1,7 +1,18 @@
 //! Integration tests for episode deletion functionality
 
-use do_memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{
+    BatchConfig, Error, ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory,
+    TaskContext, TaskOutcome, TaskType,
+};
 use uuid::Uuid;
+
+/// Batching on so steps sit in the per-episode buffer instead of storage.
+fn batching_memory() -> SelfLearningMemory {
+    SelfLearningMemory::with_config(MemoryConfig {
+        batch_config: Some(BatchConfig::manual_only()),
+        ..Default::default()
+    })
+}
 
 #[tokio::test]
 async fn test_delete_episode_success() {
@@ -238,4 +249,86 @@ async fn test_restore_non_archived_episode() {
     let result = memory.restore_episode(episode_id).await;
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("not archived"));
+}
+
+/// Deleting an episode must also discard steps that never reached storage.
+/// A surviving buffer would let a later flush write a deleted episode back.
+#[tokio::test]
+async fn test_delete_episode_with_unflushed_buffered_steps_stays_deleted() {
+    let memory = batching_memory();
+    let episode_id = memory
+        .start_episode(
+            "Episode deleted before flush".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+        .await;
+
+    for i in 1..=3 {
+        memory
+            .log_step(
+                episode_id,
+                ExecutionStep::new(i, "tool".to_string(), format!("Buffered {i}")),
+            )
+            .await;
+    }
+    // Steps stay buffered: flush_steps is deliberately not called.
+    memory.delete_episode(episode_id).await.unwrap();
+
+    let flush = memory.flush_steps(episode_id).await;
+    assert!(flush.is_ok(), "flushing a deleted episode must not error");
+    assert!(
+        memory.get_episode(episode_id).await.is_err(),
+        "flush must not resurrect a deleted episode from buffered steps"
+    );
+
+    let completion = memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "Done".to_string(),
+                artifacts: Vec::new(),
+            },
+        )
+        .await;
+    assert!(
+        matches!(completion, Err(Error::NotFound(id)) if id == episode_id),
+        "completing a deleted episode must fail with NotFound, got {completion:?}"
+    );
+    assert!(memory.get_episode(episode_id).await.is_err());
+}
+
+/// Late steps for a deleted episode are dropped in both buffered and
+/// immediate-write modes instead of recreating the record.
+#[tokio::test]
+async fn test_log_step_after_delete_does_not_recreate_episode() {
+    for memory in [
+        batching_memory(),
+        SelfLearningMemory::with_config(MemoryConfig {
+            batch_config: None,
+            ..Default::default()
+        }),
+    ] {
+        let episode_id = memory
+            .start_episode(
+                "Late step after delete".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+        memory.delete_episode(episode_id).await.unwrap();
+
+        memory
+            .log_step(
+                episode_id,
+                ExecutionStep::new(1, "tool".to_string(), "Late".to_string()),
+            )
+            .await;
+        memory.flush_steps(episode_id).await.unwrap();
+
+        assert!(
+            memory.get_episode(episode_id).await.is_err(),
+            "a step logged after deletion must not recreate the episode"
+        );
+    }
 }

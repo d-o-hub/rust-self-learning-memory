@@ -13,6 +13,12 @@ fail-fast = false
 
 [profile.ci]
 retries = 2
+# Hard wall for the whole run, below the CI job/step timeouts. nextest
+# terminates the run and each test's process group, so it still works when the
+# external `timeout` binary is absent (macOS) or the wrapper cannot reap
+# children. The longest observed CI run is ~27 min (macOS multi-platform).
+# https://nexte.st/docs/features/slow-tests/#setting-a-global-timeout
+global-timeout = "35m"
 slow-timeout = { period = "60s", terminate-after = 3 }
 failure-output = "immediate-final"
 

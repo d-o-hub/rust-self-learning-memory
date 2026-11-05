@@ -309,26 +309,34 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 
       - name: Run tests on ${{ matrix.os }}
+        # Layer the limits from innermost to outermost. nextest's
+        # `global-timeout` (35m, .config/nextest.toml) kills the run and its test
+        # process groups; this step's timeout makes the runner kill the step; the
+        # job's `timeout-minutes` (45) cancels the job. GitHub's job default is
+        # 360 minutes, so the timeouts must be explicit.
+        # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idtimeout-minutes
+        # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsteps_timeout-minutes
+        timeout-minutes: 42
         run: |
-          # Cross-platform timeout wrapper with extended time (1800s = 30min)
-          # macOS has `gtimeout` from coreutils, or use perl as fallback
+          # Outer wrapper (38m) is a backstop for hangs outside nextest's run
+          # (network/compile); `-k` forces SIGKILL if SIGTERM is ignored.
           if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             if command -v timeout >/dev/null 2>&1; then
-              timeout 1800s nix develop --command cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
+              timeout -k 30s 2280s nix develop --command cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             else
               nix develop --command cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             fi
           else
             if command -v timeout >/dev/null 2>&1; then
               # Linux with GNU timeout
-              timeout 1800s cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
+              timeout -k 30s 2280s cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             elif command -v gtimeout >/dev/null 2>&1; then
               # macOS with GNU timeout (coreutils)
-              gtimeout 1800s cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
+              gtimeout -k 30s 2280s cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             else
               # macOS fallback: use perl for portable timeout
               # Use -- to separate perl args from command args
-              perl -e 'alarm 1800; exec @ARGV' -- cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
+              perl -e 'alarm 2280; exec @ARGV' -- cargo nextest run --profile ci --workspace --exclude do-memory-benches --exclude do-memory-examples --exclude do-memory-test-utils
             fi
           fi
       - name: Upload nextest JUnit (multi-platform)

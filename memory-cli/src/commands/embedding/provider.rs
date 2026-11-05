@@ -395,4 +395,69 @@ mod tests {
             "unexpected error: {err}"
         );
     }
+
+    #[test]
+    fn parse_openai_model_rejects_unknown_name() {
+        assert_eq!(
+            parse_openai_model("text-embedding-3-small").expect("known model"),
+            OpenAIModel::TextEmbedding3Small
+        );
+        let err = parse_openai_model("text-embedding-4").expect_err("unknown model");
+        assert!(
+            err.to_string().contains("Unknown OpenAI embedding model"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn openai_config_enforces_model_dimension_rules() {
+        let custom = openai_config(OpenAIModel::TextEmbedding3Small, 512).expect("custom dims");
+        assert_eq!(custom.dimensions, Some(512));
+
+        let err = openai_config(OpenAIModel::Ada002, 768).expect_err("fixed-dimension model");
+        assert!(
+            err.to_string().contains("cannot produce 768 dimensions"),
+            "{err}"
+        );
+
+        let err =
+            openai_config(OpenAIModel::TextEmbedding3Small, 4000).expect_err("oversized dimension");
+        assert!(err.to_string().contains("exceeds the maximum"), "{err}");
+    }
+
+    #[test]
+    fn parse_mistral_model_rejects_unknown_name() {
+        assert_eq!(
+            parse_mistral_model("mistral-embed").expect("known model"),
+            MistralModel::MistralEmbed
+        );
+        let err = parse_mistral_model("nomic-embed").expect_err("unknown model");
+        assert!(
+            err.to_string().contains("Unknown Mistral embedding model"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn map_provider_config_rejects_mistral_dimension_mismatch() {
+        let mut config = base_config("mistral", None);
+        config.embeddings.model = "mistral-embed".to_string();
+        config.embeddings.dimension = 512;
+
+        let err = map_provider_config(&config).expect_err("fixed-dimension model");
+        assert!(
+            err.to_string().contains("cannot produce 512 dimensions"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn map_provider_config_rejects_openai_dimension_overflow() {
+        let mut config = base_config("openai", None);
+        config.embeddings.model = "text-embedding-3-small".to_string();
+        config.embeddings.dimension = 4000;
+
+        let err = map_provider_config(&config).expect_err("oversized dimension");
+        assert!(err.to_string().contains("exceeds the maximum"), "{err}");
+    }
 }

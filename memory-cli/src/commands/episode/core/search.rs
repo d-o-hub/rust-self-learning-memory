@@ -239,3 +239,139 @@ pub async fn search_episodes(
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::types::TaskContext;
+
+    fn default_config() -> Config {
+        Config::default()
+    }
+
+    #[tokio::test]
+    async fn keyword_search_applies_filters_and_success_sort() {
+        let memory = SelfLearningMemory::new();
+        memory
+            .start_episode(
+                "Deploy authentication service".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        search_episodes(
+            "authentication".to_string(),
+            10,
+            false,
+            true,
+            0.8,
+            false,
+            Some(vec!["description".to_string()]),
+            SearchSortOrder::Success,
+            None,
+            Some("testing".to_string()),
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect("keyword search succeeds");
+    }
+
+    #[tokio::test]
+    async fn search_rejects_unknown_task_type() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            false,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            Some("bogus".to_string()),
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("unknown task type must fail");
+        assert!(err.to_string().contains("Unknown task type"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn search_rejects_invalid_regex() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "[".to_string(),
+            10,
+            false,
+            false,
+            0.8,
+            true,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("invalid regex must fail");
+        assert!(err.to_string().contains("Invalid regex"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn semantic_search_requires_enabled_embeddings() {
+        let memory = SelfLearningMemory::new();
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            true,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &default_config(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("disabled embeddings must fail semantic search");
+        assert!(err.to_string().contains("Embeddings are disabled"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn semantic_search_rejects_unknown_provider() {
+        let memory = SelfLearningMemory::new();
+        let mut config = default_config();
+        config.embeddings.enabled = true;
+        config.embeddings.provider = "bogus".to_string();
+
+        let err = search_episodes(
+            "query".to_string(),
+            10,
+            true,
+            false,
+            0.8,
+            false,
+            None,
+            SearchSortOrder::Relevance,
+            None,
+            None,
+            &memory,
+            &config,
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("unknown provider must fail");
+        assert!(err.to_string().contains("Unknown provider"), "{err}");
+    }
+}

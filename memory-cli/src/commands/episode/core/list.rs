@@ -248,3 +248,32 @@ pub async fn list_episodes(
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn semantic_list_requires_enabled_embeddings() {
+        let memory = SelfLearningMemory::new();
+        let err = list_episodes(
+            None,
+            10,
+            None,
+            Some("query".to_string()),
+            None,
+            None,
+            EpisodeSortOrder::Newest,
+            None,
+            None,
+            None,
+            0,
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+        )
+        .await
+        .expect_err("disabled embeddings must fail semantic list");
+        assert!(err.to_string().contains("Embeddings are disabled"), "{err}");
+    }
+}

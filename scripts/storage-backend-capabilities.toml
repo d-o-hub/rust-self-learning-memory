@@ -41,6 +41,11 @@ name = "get_all_patterns"
 classification = "value-returning-with-typed-fallback"
 justification = "Typed empty-list fallback for single-pattern-only backends; durable backends override it."
 
+[[method]]
+name = "delete_pattern"
+classification = "fail-closed"
+justification = "The default body raises Error::CapabilityUnavailable; backends supporting deletion override it."
+
 # ---------------------------------------------------------------------------
 # Relationships (slice 2 of #1087 gates these with supports_relationship_persistence)
 # ---------------------------------------------------------------------------

@@ -388,4 +388,83 @@ mod tests {
         // This is a soft assertion - we just want to ensure it's not worse
         assert!(avg_batch.as_millis() < 100, "Batch operation too slow");
     }
+
+    // `delete_pattern` must remove the pattern together with its derived rows so a
+    // decayed pattern cannot resurface through a relationship or stale vector.
+    #[tokio::test]
+    async fn test_delete_pattern_removes_relationships_and_embedding() {
+        use do_memory_core::embeddings::EmbeddingStorageBackend;
+        use do_memory_core::episode::{
+            EpisodePatternRelationship, RelationshipMetadata, RelationshipType,
+        };
+
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let pattern = create_test_pattern("delete-single");
+        let pattern_id = pattern.id();
+
+        storage.store_pattern(&pattern).await.unwrap();
+        storage
+            .store_pattern_embedding(pattern_id, vec![0.1; 384])
+            .await
+            .unwrap();
+
+        // The relationship has a foreign key to the episode row.
+        let episode = do_memory_core::Episode::new(
+            "delete pattern".to_string(),
+            do_memory_core::TaskContext::default(),
+            do_memory_core::TaskType::Testing,
+        );
+        let episode_id = episode.episode_id;
+        storage.store_episode(&episode).await.unwrap();
+
+        let relationship = EpisodePatternRelationship::new(
+            episode_id,
+            pattern_id,
+            RelationshipType::References,
+            RelationshipMetadata::default(),
+        );
+        storage
+            .store_episode_pattern_relationship(&relationship)
+            .await
+            .unwrap();
+
+        assert!(storage.get_pattern(pattern_id).await.unwrap().is_some());
+        assert_eq!(
+            storage
+                .get_episode_pattern_relationships(episode_id)
+                .await
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(
+            storage
+                .get_pattern_embedding(pattern_id)
+                .await
+                .unwrap()
+                .is_some()
+        );
+
+        storage.delete_pattern(pattern_id).await.unwrap();
+
+        assert!(storage.get_pattern(pattern_id).await.unwrap().is_none());
+        assert_eq!(
+            storage
+                .get_episode_pattern_relationships(episode_id)
+                .await
+                .unwrap()
+                .len(),
+            0
+        );
+        assert!(
+            storage
+                .get_pattern_embedding(pattern_id)
+                .await
+                .unwrap()
+                .is_none()
+        );
+
+        // Deletion is idempotent: decay retries must not fail on a removed row.
+        storage.delete_pattern(pattern_id).await.unwrap();
+    }
 }

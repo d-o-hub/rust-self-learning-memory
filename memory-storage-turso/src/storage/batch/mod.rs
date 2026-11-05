@@ -9,6 +9,7 @@
 //! - `combined_batch` - Combined episode + pattern batch
 //! - `query_batch` - Batch query operations
 //! - `pattern_core` - Pattern storage batch operations
+//! - `pattern_delete` - Single-pattern deletion
 //! - `pattern_types` - Pattern batch types
 //! - `heuristic_core` - Heuristic storage batch operations
 //! - `heuristic_types` - Heuristic batch types
@@ -19,6 +20,7 @@ pub mod query_batch;
 
 // Pattern batch modules
 pub mod pattern_core;
+pub mod pattern_delete;
 pub mod pattern_types;
 
 // Heuristic batch modules

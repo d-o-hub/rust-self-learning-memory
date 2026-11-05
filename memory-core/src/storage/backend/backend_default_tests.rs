@@ -310,3 +310,14 @@ async fn storage_backend_default_watermark_query_fails_loudly() {
     assert!(backend.load_sync_watermark().await.unwrap().is_none());
     backend.save_sync_watermark(Utc::now()).await.unwrap();
 }
+
+/// The default `delete_pattern` must fail closed: a backend that cannot delete
+/// must never report success, so decay cannot print "decayed" for a no-op.
+#[tokio::test]
+async fn storage_backend_default_delete_pattern_fails_closed() {
+    let backend = StubBackend;
+    assert_capability_unavailable(
+        "delete_pattern",
+        backend.delete_pattern(Uuid::new_v4()).await,
+    );
+}

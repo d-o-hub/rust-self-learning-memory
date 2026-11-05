@@ -143,6 +143,13 @@ impl CachedTursoStorage {
         Ok(episode)
     }
 
+    /// Drop a pattern from the cache after its durable record was deleted.
+    pub(crate) async fn invalidate_pattern_cache(&self, id: do_memory_core::episode::PatternId) {
+        if let Some(cache) = &self.pattern_cache {
+            cache.remove(id).await;
+        }
+    }
+
     /// Get pattern with caching
     pub async fn get_pattern_cached(
         &self,

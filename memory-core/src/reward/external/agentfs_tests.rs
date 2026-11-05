@@ -275,7 +275,10 @@ async fn test_fetch_tool_stats_with_real_sdk() {
     step.latency_ms = 100;
     episode.add_step(step);
 
-    let stats = provider.fetch_tool_stats(&episode).await;
+    let stats = provider
+        .fetch_tool_stats(&episode)
+        .await
+        .expect("stats query must succeed");
 
     assert_eq!(stats.len(), 1);
     assert_eq!(stats[0].tool_name, "test_tool");

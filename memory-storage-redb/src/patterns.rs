@@ -1,6 +1,8 @@
 //! Pattern storage operations for redb cache
 
-use crate::{Error, PATTERNS_TABLE, RedbStorage};
+use crate::{
+    EMBEDDINGS_TABLE, EPISODE_PATTERN_RELATIONSHIPS_TABLE, Error, PATTERNS_TABLE, RedbStorage,
+};
 use do_memory_core::{Pattern, Result, episode::PatternId};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
@@ -78,6 +80,89 @@ impl RedbStorage {
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+    }
+
+    /// Delete a pattern and its derived records from the cache.
+    ///
+    /// Removes the pattern row, its embedding (`pattern_{id}`), and every
+    /// episode-pattern relationship that references the pattern. Deleting a
+    /// missing pattern is a no-op.
+    pub async fn delete_pattern(&self, pattern_id: PatternId) -> Result<()> {
+        debug!("Deleting pattern from cache: {}", pattern_id);
+        let db = Arc::clone(&self.db);
+        let pattern_id_str = pattern_id.to_string();
+        let embedding_key = format!("pattern_{}", pattern_id);
+
+        tokio::task::spawn_blocking(move || {
+            let write_txn = db
+                .begin_write()
+                .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
+
+            {
+                let mut table = write_txn
+                    .open_table(PATTERNS_TABLE)
+                    .map_err(|e| Error::Storage(format!("Failed to open patterns table: {}", e)))?;
+                table
+                    .remove(pattern_id_str.as_str())
+                    .map_err(|e| Error::Storage(format!("Failed to remove pattern: {}", e)))?;
+            }
+
+            {
+                let mut table = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open embeddings table: {}", e))
+                })?;
+                table
+                    .remove(embedding_key.as_str())
+                    .map_err(|e| Error::Storage(format!("Failed to remove embedding: {}", e)))?;
+            }
+
+            {
+                let mut table = write_txn
+                    .open_table(EPISODE_PATTERN_RELATIONSHIPS_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open episode-pattern relationships table: {}",
+                            e
+                        ))
+                    })?;
+
+                let mut stale_keys = Vec::new();
+                {
+                    let read = table.iter().map_err(|e| {
+                        Error::Storage(format!("Failed to iterate relationships: {}", e))
+                    })?;
+                    for item in read {
+                        let (key, value) = item.map_err(|e| {
+                            Error::Storage(format!("Failed to read relationship: {}", e))
+                        })?;
+                        let relationship: do_memory_core::episode::EpisodePatternRelationship =
+                            postcard::from_bytes(value.value()).map_err(|e| {
+                                Error::Storage(format!("Failed to deserialize relationship: {}", e))
+                            })?;
+                        if relationship.pattern_id == pattern_id {
+                            stale_keys.push(key.value().to_string());
+                        }
+                    }
+                }
+
+                for key in stale_keys {
+                    table.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove relationship: {}", e))
+                    })?;
+                }
+            }
+
+            write_txn
+                .commit()
+                .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
+
+            Ok::<(), Error>(())
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+
+        info!("Successfully deleted pattern from cache: {}", pattern_id);
+        Ok(())
     }
 
     /// Get all patterns from cache (with optional limit)
@@ -179,5 +264,62 @@ mod pattern_persistence_tests {
             .expect("trait list");
         assert_eq!(via_trait.len(), 1);
         assert_eq!(via_trait[0].id(), id);
+    }
+
+    /// Deletion must remove the derived embedding and episode-pattern links so a
+    /// decayed pattern cannot come back through either path.
+    #[tokio::test]
+    async fn delete_pattern_removes_pattern_embedding_and_relationship() {
+        use do_memory_core::embeddings::EmbeddingStorageBackend;
+        use do_memory_core::episode::{
+            EpisodePatternRelationship, RelationshipMetadata, RelationshipType,
+        };
+        use uuid::Uuid;
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("delete.redb");
+        let storage = RedbStorage::new(&path).await.expect("open redb");
+
+        let pattern = sample_pattern();
+        let id = pattern.id();
+        storage.store_pattern(&pattern).await.expect("store");
+        storage
+            .store_pattern_embedding(id, vec![0.1, 0.2, 0.3])
+            .await
+            .expect("store embedding");
+
+        let episode_id = Uuid::new_v4();
+        let relationship = EpisodePatternRelationship::new(
+            episode_id,
+            id,
+            RelationshipType::References,
+            RelationshipMetadata::default(),
+        );
+        storage
+            .store_episode_pattern_relationship(&relationship)
+            .await
+            .expect("store relationship");
+
+        storage.delete_pattern(id).await.expect("delete pattern");
+
+        assert!(storage.get_pattern(id).await.expect("get").is_none());
+        assert!(
+            storage
+                .get_pattern_embedding(id)
+                .await
+                .expect("get embedding")
+                .is_none()
+        );
+        assert_eq!(
+            storage
+                .get_episode_pattern_relationships(episode_id)
+                .await
+                .expect("get relationships")
+                .len(),
+            0
+        );
+
+        // Deleting again is a no-op, so a retried decay succeeds.
+        storage.delete_pattern(id).await.expect("idempotent");
     }
 }

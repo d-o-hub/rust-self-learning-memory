@@ -52,6 +52,15 @@ impl StorageBackend for CachedTursoStorage {
             .map_err(|e| Error::Storage(format!("Cache get-all error: {}", e)))
     }
 
+    async fn delete_pattern(&self, id: PatternId) -> Result<()> {
+        self.storage
+            .delete_pattern(id)
+            .await
+            .map_err(|e| Error::Storage(format!("Cache delete error: {}", e)))?;
+        self.invalidate_pattern_cache(id).await;
+        Ok(())
+    }
+
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         self.store_heuristic_cached(heuristic)
             .await

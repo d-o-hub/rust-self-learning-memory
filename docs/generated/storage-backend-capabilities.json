@@ -7,13 +7,13 @@
     "memory-core/src/storage/backend/mod.rs"
   ],
   "summary": {
-    "methods_total": 46,
+    "methods_total": 47,
     "required": 14,
-    "defaulted": 32,
+    "defaulted": 33,
     "capability_gated": 23,
     "value_returning_with_typed_fallback": 1,
     "genuinely_safe_default": 2,
-    "fail_closed": 1,
+    "fail_closed": 2,
     "capability_declaration": 5
   },
   "methods": [
@@ -55,6 +55,16 @@
       "gate_kind": null,
       "default_body": null,
       "justification": null,
+      "pending": null
+    },
+    {
+      "name": "delete_pattern",
+      "signature": "defaulted",
+      "classification": "fail-closed",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; backends supporting deletion override it.",
       "pending": null
     },
     {

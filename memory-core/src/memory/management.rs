@@ -106,6 +106,53 @@ impl SelfLearningMemory {
         Ok(())
     }
 
+    /// Delete a pattern permanently from every storage backend.
+    ///
+    /// Removes the pattern from the durable backend, the cache layer (when it is
+    /// a distinct backend), and the in-memory fallback, then invalidates the
+    /// derived ranking weights so no learned boost outlives the record.
+    ///
+    /// Historical episodes that still list the pattern ID in
+    /// [`Episode::patterns`](crate::Episode) are left untouched; lookups such as
+    /// [`Self::get_episode_patterns`] omit dangling IDs.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Storage`] if a backend fails to delete. Deletion is
+    /// idempotent, so the caller can retry a failed attempt.
+    pub async fn delete_pattern(&self, pattern_id: crate::episode::PatternId) -> Result<()> {
+        debug!("Deleting pattern: {}", pattern_id);
+
+        if let Some(turso) = &self.turso_storage {
+            turso.delete_pattern(pattern_id).await?;
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            let same_backend = self
+                .turso_storage
+                .as_ref()
+                .is_some_and(|turso| Arc::ptr_eq(turso, cache));
+            if !same_backend {
+                cache.delete_pattern(pattern_id).await?;
+            }
+        }
+
+        {
+            let mut patterns = self.patterns_fallback.write().await;
+            patterns.remove(&pattern_id);
+        }
+
+        self.ranking_index
+            .write()
+            .await
+            .replace_with(super::attribution::RankingIndex::default());
+        self.ranking_loaded
+            .store(false, std::sync::atomic::Ordering::Release);
+
+        info!("Successfully deleted pattern: {}", pattern_id);
+        Ok(())
+    }
+
     /// Archive an episode by marking it as archived.
     ///
     /// This sets the `archived_at` timestamp in both the episode's metadata

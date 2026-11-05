@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `StorageBackend::delete_pattern` (fail-closed default) with Turso and redb
+  implementations that remove the pattern row, its embedding, and every
+  episode-pattern relationship. `SelfLearningMemory::delete_pattern` chains the
+  backends, drops the in-memory fallback, and invalidates the derived ranking
+  index.
+
 ### Fixed
 
 - The redb adaptive cache panicked with "there is no reactor running" when
@@ -19,6 +27,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   access, so skipping the reclamation task costs memory headroom, not
   correctness. The module's test file was also never declared, so its 14 tests
   had never run; it is now wired up and passing.
+
+- `pattern decay` reports and performs real deletion. It inventories the full
+  stored pattern set (not a ranked top-1000 sample), deletes each ineffective
+  pattern through `SelfLearningMemory::delete_pattern`, and prints the number
+  actually removed instead of claiming success without a write.
+
+- MCP cycle validation reads the stored relationship graph, so
+  `validate_no_cycles` detects real cycles and returns their path;
+  `get_topological_order` propagates storage and episode-read failures instead
+  of silently returning an incomplete acyclic graph.
+
+- `get_episode_patterns` resolves the pattern IDs recorded on the episode
+  through `get_pattern` instead of unconditionally returning an empty vector;
+  IDs whose record was deleted are omitted, and a missing episode returns
+  `NotFound`.
+
+- `episode list --semantic-search` and `episode search --semantic` activate the
+  configured embedding provider and query it. The ignored
+  `--enable-embeddings` / `--embedding-provider` / `--embedding-model` flags are
+  removed in favour of `[embeddings]` configuration, and `--semantic` now
+  conflicts with `--fuzzy`, `--regex`, and `--search-fields`.
+  `embedding rebuild` activates the same provider, aborts on embedding failure,
+  and counts only episodes it actually indexed.
+
+- Runtime AgentFS configuration is rejected with an explicit error in both the
+  MCP tool and the CLI instead of reporting simulated success; the provider is
+  configured from `AGENTFS_DB_PATH` at startup only. AgentFS status now reports
+  truthful `configured`/`connected` state with nullable `signal_count` and
+  `weight` plus `reward_integration: false`, the connection probe sums real
+  toolcall records, and reward-provider read failures propagate as
+  `ExternalSignalError::Provider` instead of an empty signal set.
+
+- MCP `initialize` no longer advertises the standard `tasks` and `elicitation`
+  capabilities, which have custom-method implementations only.
+  `.well-known/mcp.json` is refreshed for 0.1.49: 47 registered tools, accurate
+  capabilities (`logging: false`), and the supported providers.
 
 ## [0.1.48] - 2026-11-04
 

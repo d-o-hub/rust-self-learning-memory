@@ -73,5 +73,7 @@ ollama pull nomic-embed-text
 ## Known Limitations
 
 - `enable`/`disable` commands affect current session only (no persistence)
-- `--semantic-search` flag on `episode list` is declared but not yet wired
+- `episode list --semantic-search` and `episode search --semantic` activate the
+  `[embeddings]` provider at runtime; per-call provider/model overrides were
+  removed, so change the config file (or use `embedding rebuild`) instead
 - HNSW index `save()` is a no-op when `hnsw` feature is enabled

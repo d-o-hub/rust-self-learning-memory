@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-11-04
-**Released Version**: v0.1.48 (tag on `c00f71cc`, 2026-11-04; GitHub Release published 12:16:47Z, 37 assets; `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso` and `do-memory-mcp` all verified at `0.1.48` on the crates.io index)
-**Workspace Version**: 0.1.49 (the post-`v0.1.48` development bump — **ahead** of the shipped tag, so `verify-release-state.sh --check-unreleased` is *expected* to fail until a `0.1.49` release-prep PR lands)
+**Last Updated**: 2026-11-05
+**Released Version**: v0.1.49 (release-prep on `main`; tag and GitHub Release pending)
+**Workspace Version**: 0.1.49 (release commit for `v0.1.49`; the `0.1.50` development bump follows the tag)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
 **Active plan**: **post-release closeout of `0.1.48`** — `v0.1.47` shipped and its released CLI was dogfooded on a persistent database; the observed `storage stats` and retrieval-ranking defects are fixed in #1225/#1226,
 the advisory fix (#1224), generated-lockfile alert (#1227), version restore (#1228), toolchain pin (#1222), and crates.io publishing settings (#1109) are complete, and the harness wave (#1241, #1242, #1244, #1248, #1250, #1251, #1249) is merged.

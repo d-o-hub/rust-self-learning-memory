@@ -19,6 +19,9 @@ mod entry;
 mod state;
 mod types;
 
+#[cfg(test)]
+mod tests;
+
 pub use types::{AdaptiveCacheConfig, AdaptiveCacheMetrics};
 
 use self::entry::AdaptiveCacheEntry;
@@ -57,10 +60,7 @@ impl<V: Clone + Send + Sync + 'static> AdaptiveCache<V> {
         let state = Arc::new(RwLock::new(AdaptiveCacheState::<V>::new()));
 
         let cleanup_task = if config.enable_background_cleanup && config.cleanup_interval_secs > 0 {
-            Some(Self::start_cleanup_task(
-                Arc::clone(&state),
-                config.cleanup_interval_secs,
-            ))
+            Self::start_cleanup_task(Arc::clone(&state), config.cleanup_interval_secs)
         } else {
             None
         };
@@ -278,12 +278,26 @@ impl<V: Clone + Send + Sync + 'static> AdaptiveCache<V> {
         self.len().await == 0
     }
 
-    /// Start background cleanup task
+    /// Start background cleanup task.
+    ///
+    /// Returns `None` when called outside a Tokio runtime. [`Self::new`] is a
+    /// synchronous constructor, so it is reachable from sync contexts (a
+    /// `Default` impl, a `Lazy` static, a plain `#[test]`); `tokio::spawn`
+    /// panics there. Expiry is still enforced on every access, so skipping the
+    /// reclamation task costs memory headroom, never correctness.
     fn start_cleanup_task(
         state: Arc<RwLock<AdaptiveCacheState<V>>>,
         interval_secs: u64,
-    ) -> JoinHandle<()> {
-        tokio::spawn(async move {
+    ) -> Option<JoinHandle<()>> {
+        let Ok(handle) = tokio::runtime::Handle::try_current() else {
+            debug!(
+                "No Tokio runtime at construction; background cleanup disabled \
+                 (expiry is still enforced on access)"
+            );
+            return None;
+        };
+
+        Some(handle.spawn(async move {
             let mut ticker = interval(TokioDuration::from_secs(interval_secs));
             loop {
                 ticker.tick().await;
@@ -315,7 +329,7 @@ impl<V: Clone + Send + Sync + 'static> AdaptiveCache<V> {
                     debug!("Background cleanup removed {} expired entries", count);
                 }
             }
-        })
+        }))
     }
 
     /// Stop the background cleanup task

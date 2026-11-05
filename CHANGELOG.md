@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The redb adaptive cache panicked with "there is no reactor running" when
+  constructed outside a Tokio runtime. `AdaptiveCache::new` is a synchronous
+  constructor, so it is reachable from sync contexts (a `Default` impl, a
+  `Lazy` static, a plain `#[test]`), and the unconditional `tokio::spawn` in
+  its background-cleanup setup aborted the caller. This broke
+  `cargo test --all-targets` through `benches/cache_benchmarks.rs`. Cleanup now
+  starts only when a runtime is present; expiry is still enforced on every
+  access, so skipping the reclamation task costs memory headroom, not
+  correctness. The module's test file was also never declared, so its 14 tests
+  had never run; it is now wired up and passing.
+
 ## [0.1.48] - 2026-11-04
 
 ### Fixed

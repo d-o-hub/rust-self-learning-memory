@@ -8,6 +8,9 @@
 //! and fails with a HARNESS VIOLATION message if any forbidden edge exists.
 
 use std::collections::HashMap;
+use std::path::Path;
+
+use regex::Regex;
 
 /// Forbidden dependency edges: (from, to)
 /// The "from" crate must NOT depend on the "to" crate.
@@ -68,4 +71,81 @@ fn enforce_crate_layering() {
             violations.join("\n")
         );
     }
+}
+
+/// Collect workspace-relative `.rs` paths, skipping build output and VCS data.
+fn collect_rust_files(root: &Path) -> Vec<String> {
+    fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if path.is_dir() {
+                if matches!(name.as_str(), "target" | ".git" | "node_modules") {
+                    continue;
+                }
+                walk(&path, root, out);
+            } else if path
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("rs"))
+            {
+                if let Ok(rel) = path.strip_prefix(root) {
+                    out.push(rel.to_string_lossy().replace('\\', "/"));
+                }
+            }
+        }
+    }
+
+    let mut out = Vec::new();
+    walk(root, root, &mut out);
+    out
+}
+
+/// The `cargo-mutants` config in `Cargo.toml` selects files by regex. A pattern
+/// that matches nothing — a renamed module, a plural typo — disables that shard
+/// silently: the run reports success while testing none of it. This gate makes
+/// such a pattern a hard failure.
+#[test]
+fn mutation_config_patterns_resolve_to_real_files() {
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .exec()
+        .expect("Failed to read cargo metadata");
+
+    let config = &metadata.workspace_metadata["cargo-mutants"];
+    let examine = config["examine_re"]
+        .as_array()
+        .expect("Cargo.toml is missing [workspace.metadata.cargo-mutants] examine_re");
+    let exclude: Vec<Regex> = config["exclude_re"]
+        .as_array()
+        .expect("exclude_re must be an array")
+        .iter()
+        .map(|entry| {
+            let pattern = entry.as_str().expect("exclude_re entries must be strings");
+            Regex::new(pattern).expect("exclude_re entry is not a valid regex")
+        })
+        .collect();
+
+    let files = collect_rust_files(metadata.workspace_root.as_std_path());
+    let mut problems = Vec::new();
+
+    for entry in examine {
+        let pattern = entry.as_str().expect("examine_re entries must be strings");
+        let regex = Regex::new(pattern).expect("examine_re entry is not a valid regex");
+        let selected = files
+            .iter()
+            .any(|file| regex.is_match(file) && !exclude.iter().any(|ex| ex.is_match(file)));
+        if !selected {
+            problems.push(format!("  examine_re pattern selects no file: {pattern}"));
+        }
+    }
+
+    assert!(
+        problems.is_empty(),
+        "HARNESS VIOLATION: [mutation-config] — cargo-mutants examines nothing for:\n{}\n\
+         Fix: point each pattern at an existing module, relative to the workspace root.",
+        problems.join("\n")
+    );
 }

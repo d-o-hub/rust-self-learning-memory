@@ -81,10 +81,10 @@ pub struct ProviderStatus {
     pub connected: bool,
     /// Last error message (if any)
     pub last_error: Option<String>,
-    /// Number of signals available from this provider
-    pub signal_count: usize,
-    /// Weight for signal merging
-    pub weight: f32,
+    /// Number of signals available from this provider, when it is readable
+    pub signal_count: Option<usize>,
+    /// Weight for signal merging, when a provider is registered in the merger
+    pub weight: Option<f32>,
     /// Provider-specific metadata
     pub metadata: Value,
 }

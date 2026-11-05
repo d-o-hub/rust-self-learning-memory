@@ -184,12 +184,15 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
+    async fn delete_pattern(&self, id: do_memory_core::episode::PatternId) -> Result<()> {
+        self.circuit_call(move |s| async move { s.delete_pattern(id).await })
+            .await
+    }
     async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         let heuristic = heuristic.clone();
         self.circuit_call(move |s| async move { s.store_heuristic(&heuristic).await })
             .await
     }
-
     async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
         self.circuit_call(move |s| async move { s.get_heuristic(id).await })
             .await

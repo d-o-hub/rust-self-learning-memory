@@ -128,10 +128,7 @@ List episodes with optional filtering and semantic search.
 - `--task-type <TYPE>`: Filter by task type (code_generation, debugging, testing, analysis, documentation, refactoring, other)
 - `--limit <NUM>`: Maximum episodes to return (default: 10)
 - `--status <STATUS>`: Filter by status (in_progress, completed)
-- `--semantic-search <QUERY>`: Search episodes semantically by meaning
-- `--enable-embeddings`: Enable embeddings for this operation (overrides config)
-- `--embedding-provider <PROVIDER>`: Override embedding provider (openai, local, cohere, ollama, custom)
-- `--embedding-model <MODEL>`: Override embedding model
+- `--semantic-search <QUERY>`: Search episodes semantically by meaning through the provider configured in `[embeddings]` (requires `enabled = true`)
 
 **Examples:**
 ```bash
@@ -147,8 +144,8 @@ do-memory-cli episode list --task-type debugging --limit 20
 # Semantic search within list (if embeddings enabled in config)
 do-memory-cli episode list --semantic-search "authentication issues" --limit 10
 
-# Override provider for this operation
-do-memory-cli episode list --semantic-search "database errors" --enable-embeddings --embedding-provider openai
+# Semantic search uses [embeddings] from the config file
+do-memory-cli episode list --semantic-search "database errors"
 
 # JSON output for scripting
 do-memory-cli --format json episode list
@@ -201,10 +198,7 @@ Search episodes by content with optional semantic similarity.
 
 **Options:**
 - `--limit <NUM>`: Maximum results to return (default: 10)
-- `--semantic`: Enable semantic search using embeddings (if configured)
-- `--enable-embeddings`: Enable embeddings for this operation (overrides config)
-- `--embedding-provider <PROVIDER>`: Override embedding provider (openai, local, cohere, ollama, custom)
-- `--embedding-model <MODEL>`: Override embedding model
+- `--semantic`: Search by meaning through the provider configured in `[embeddings]` (requires `enabled = true`; conflicts with `--fuzzy`, `--regex`, and `--search-fields`)
 
 **Examples:**
 ```bash
@@ -214,11 +208,12 @@ do-memory-cli episode search "authentication"
 # Semantic search (if embeddings enabled in config)
 do-memory-cli episode search "user login problems" --semantic --limit 10
 
-# Force semantic search with specific provider
-do-memory-cli episode search "database connection issues" --semantic --enable-embeddings --embedding-provider openai
-
-# Override embedding model for this search
-do-memory-cli episode search "API errors" --semantic --embedding-model text-embedding-3-large
+# Semantic search uses the configured provider; set it once in the config file:
+#   [embeddings]
+#   enabled = true
+#   provider = "openai"
+#   model = "text-embedding-3-small"
+do-memory-cli episode search "database connection issues" --semantic
 
 # Limit results
 do-memory-cli episode search "database" --limit 5
@@ -980,12 +975,15 @@ export AZURE_API_VERSION="2023-05-15"
 [embeddings]
 enabled = true
 provider = "custom"
-model = "text-embedding-model"
+model = "text-embedding-3-small"
 dimension = 768
 base_url = "http://localhost:1234/v1"
 ```
 
-**Works with:** LM Studio, Ollama, LocalAI, or any OpenAI-compatible API
+**Works with:** LM Studio, Ollama, LocalAI, or any OpenAI-compatible API.
+`model` must be one the OpenAI-compatible transport recognizes
+(`text-embedding-ada-002`, `text-embedding-3-small`, `text-embedding-3-large`)
+and `dimension` must not exceed that model's maximum.
 
 ### Using Semantic Search
 

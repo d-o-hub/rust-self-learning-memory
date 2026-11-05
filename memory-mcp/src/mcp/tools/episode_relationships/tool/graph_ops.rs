@@ -93,7 +93,7 @@ impl EpisodeRelationshipTools {
         }
 
         let mut adjacency_list: HashMap<Uuid, Vec<EpisodeRelationship>> = HashMap::new();
-        let all_rels = self.get_all_relationships().await?;
+        let all_rels = self.memory.get_all_relationships().await?;
 
         for rel in all_rels {
             adjacency_list
@@ -164,19 +164,17 @@ impl EpisodeRelationshipTools {
         let mut adjacency_list: HashMap<Uuid, Vec<EpisodeRelationship>> = HashMap::new();
 
         for episode_id in &episode_ids {
-            if let Ok(rels) = self
+            let rels = self
                 .memory
                 .get_episode_relationships(*episode_id, Direction::Outgoing)
-                .await
-            {
-                let filtered_rels: Vec<_> = rels
-                    .into_iter()
-                    .filter(|r| episode_ids.contains(&r.to_episode_id))
-                    .collect();
+                .await?;
+            let filtered_rels: Vec<_> = rels
+                .into_iter()
+                .filter(|r| episode_ids.contains(&r.to_episode_id))
+                .collect();
 
-                if !filtered_rels.is_empty() {
-                    adjacency_list.insert(*episode_id, filtered_rels);
-                }
+            if !filtered_rels.is_empty() {
+                adjacency_list.insert(*episode_id, filtered_rels);
             }
         }
 
@@ -196,24 +194,22 @@ impl EpisodeRelationshipTools {
 
         let mut order = Vec::new();
         for (position, id) in sorted_ids.iter().enumerate() {
-            if let Ok(episode) = self.memory.get_episode(*id).await {
-                order.push(TopologicalEpisode {
-                    episode_id: id.to_string(),
-                    task_description: episode.task_description.clone(),
-                    position: position + 1,
-                });
-            }
+            let episode = self.memory.get_episode(*id).await?;
+            order.push(TopologicalEpisode {
+                episode_id: id.to_string(),
+                task_description: episode.task_description.clone(),
+                position: position + 1,
+            });
         }
 
         for id in &episode_ids {
             if !sorted_ids.contains(id) {
-                if let Ok(episode) = self.memory.get_episode(*id).await {
-                    order.push(TopologicalEpisode {
-                        episode_id: id.to_string(),
-                        task_description: episode.task_description.clone(),
-                        position: order.len() + 1,
-                    });
-                }
+                let episode = self.memory.get_episode(*id).await?;
+                order.push(TopologicalEpisode {
+                    episode_id: id.to_string(),
+                    task_description: episode.task_description.clone(),
+                    position: order.len() + 1,
+                });
             }
         }
 
@@ -227,11 +223,6 @@ impl EpisodeRelationshipTools {
             has_cycles: false,
             message: format!("Episodes in topological order ({} total)", count),
         })
-    }
-
-    #[expect(clippy::unused_async, clippy::unused_async_trait_impl)]
-    async fn get_all_relationships(&self) -> Result<Vec<EpisodeRelationship>> {
-        Ok(Vec::new())
     }
 }
 

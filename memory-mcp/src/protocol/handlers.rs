@@ -46,18 +46,15 @@ pub async fn handle_initialize(
 
     info!("Negotiated protocol version: {}", protocol_version);
 
-    // Build capabilities object
+    // Build capabilities object. Only capabilities backed by standard
+    // implementations are advertised: `task/*` and `elicitation/*` exist here as
+    // custom JSON-RPC methods, not as the standard `tasks` / `elicitation`
+    // capabilities, so claiming those keys would misrepresent the protocol.
     let mut capabilities = json!({
         "tools": {
             "listChanged": false
         },
-        "completions": {},
-        "elicitation": {},
-        "tasks": {
-            "list": {},
-            "create": {},
-            "update": {}
-        }
+        "completions": {}
     });
 
     // Advertise OAuth 2.1 authorization only when enforcement is real.

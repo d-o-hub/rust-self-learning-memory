@@ -1,11 +1,11 @@
-//! Configure AgentFS external signal provider tool handler
+//! AgentFS configuration tool handler.
 //!
-//! This module provides the tool for configuring the AgentFS endpoint
-//! and settings for external signal integration with the reward system.
+//! The AgentFS provider is constructed at server startup from `AGENTFS_DB_PATH`;
+//! there is no runtime reconfiguration path. This handler therefore fails closed
+//! instead of reporting a configuration it did not apply.
 
 use crate::server::MemoryMCPServer;
 use anyhow::Result;
-use serde_json::json;
 use tracing::debug;
 
 impl MemoryMCPServer {
@@ -25,43 +25,25 @@ impl MemoryMCPServer {
         self.track_tool_usage("configure_agentfs").await;
 
         debug!(
-            "Configuring AgentFS provider: db_path='{}', enabled={}",
+            "Rejecting runtime AgentFS configuration: db_path='{}', enabled={}",
             input.db_path, input.enabled
         );
 
-        // Validate weight is within bounds
-        let weight = input.weight.clamp(0.0, 1.0);
-        let min_samples = input.min_samples.max(1);
-
-        // Create configuration response
-        let result = crate::mcp::tools::external_signals::ConfigureAgentFsOutput {
-            success: true,
-            provider: "agentfs".to_string(),
-            db_path: input.db_path.clone(),
-            enabled: input.enabled,
-            weight,
-            min_samples,
-            sanitize: input.sanitize,
-            message: format!(
-                "AgentFS provider configured successfully. Enabled: {}, Weight: {:.2}",
-                input.enabled, weight
-            ),
-            warnings: vec![],
-        };
-
-        // In a full implementation, this would:
-        // 1. Store configuration in the database
-        // 2. Initialize/refresh the AgentFS provider connection
-        // 3. Register with the external signal registry
-
-        // Convert result to JSON
-        Ok(json!(result))
+        // The server has no runtime AgentFS configuration path: the provider is
+        // constructed at startup from `AGENTFS_DB_PATH` and the external signal
+        // registry is never rewired afterwards (see `memory-core/src/reward/
+        // external/agentfs.rs`). Reporting success here would tell the caller a
+        // provider is active when no reward signal can be produced.
+        anyhow::bail!(
+            "Runtime AgentFS configuration is unavailable; set AGENTFS_DB_PATH before starting the server"
+        )
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
     #[expect(clippy::manual_async_fn)]
@@ -92,7 +74,7 @@ mod functional_tests {
     }
 
     #[tokio::test]
-    async fn test_execute_configure_agentfs_success() {
+    async fn test_execute_configure_agentfs_fails_closed() {
         let server = create_test_server().await;
         let input = crate::mcp::tools::external_signals::ConfigureAgentFsInput {
             db_path: "/tmp/agentfs.db".to_string(),
@@ -102,31 +84,14 @@ mod functional_tests {
             sanitize: true,
         };
 
-        let result = server.execute_configure_agentfs(input).await.unwrap();
-        let output: crate::mcp::tools::external_signals::ConfigureAgentFsOutput =
-            serde_json::from_value(result).unwrap();
-
-        assert!(output.success);
-        assert_eq!(output.weight, 0.5);
-        assert_eq!(output.min_samples, 20);
-    }
-
-    #[tokio::test]
-    async fn test_execute_configure_agentfs_clamping() {
-        let server = create_test_server().await;
-        let input = crate::mcp::tools::external_signals::ConfigureAgentFsInput {
-            db_path: "/tmp/agentfs.db".to_string(),
-            enabled: true,
-            weight: 1.5,    // Should clamp to 1.0
-            min_samples: 0, // Should clamp to 1
-            sanitize: true,
-        };
-
-        let result = server.execute_configure_agentfs(input).await.unwrap();
-        let output: crate::mcp::tools::external_signals::ConfigureAgentFsOutput =
-            serde_json::from_value(result).unwrap();
-
-        assert_eq!(output.weight, 1.0);
-        assert_eq!(output.min_samples, 1);
+        let err = server
+            .execute_configure_agentfs(input)
+            .await
+            .expect_err("runtime AgentFS configuration must fail closed");
+        assert!(
+            err.to_string()
+                .contains("Runtime AgentFS configuration is unavailable"),
+            "unexpected error: {err}"
+        );
     }
 }

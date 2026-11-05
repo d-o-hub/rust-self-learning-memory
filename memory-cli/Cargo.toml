@@ -90,6 +90,13 @@ path = "src/lib.rs"
 name = "do-memory-cli"
 path = "src/main.rs"
 
+# Semantic search CLI test drives the real binary against a fixture endpoint;
+# the custom provider speaks the OpenAI wire format, hence the feature.
+[[test]]
+name = "semantic_search_cli"
+path = "tests/semantic_search_cli.rs"
+required-features = ["openai"]
+
 # Inherit workspace lints
 
 [lints]

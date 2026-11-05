@@ -34,28 +34,29 @@ impl ShardRouter {
         let mut scored_candidates: Vec<(uuid::Uuid, f32)> = Vec::new();
 
         for ep in episodes {
-            let score = self.compute_route_score(filter, ep);
-
-            // Apply hard filters
+            // Apply hard filters before scoring to early-exit on non-matching candidates.
+            // Avoids redundant temporal decay, weighting, and tag overlap arithmetic.
             if !self.passes_hard_filters(filter, ep) {
                 continue;
             }
 
+            let score = self.compute_route_score(filter, ep);
             if score > 0.0 {
                 scored_candidates.push((ep.episode_id, score));
             }
         }
 
-        // Sort by score descending
-        scored_candidates
-            .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-
-        // Cap to max_candidates
         let capped = scored_candidates.len() > self.config.max_candidates;
-        scored_candidates.truncate(self.config.max_candidates);
 
-        let candidates: Vec<uuid::Uuid> = scored_candidates.iter().map(|(id, _)| *id).collect();
-        let scores: Vec<f32> = scored_candidates.iter().map(|(_, s)| *s).collect();
+        // Select top-k scored candidates using partitioned PDQSort without sorting the tail.
+        let top_candidates = crate::search::select_top_k(
+            &mut scored_candidates,
+            self.config.max_candidates,
+            |a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal),
+        );
+
+        let candidates: Vec<uuid::Uuid> = top_candidates.iter().map(|(id, _)| *id).collect();
+        let scores: Vec<f32> = top_candidates.iter().map(|(_, s)| *s).collect();
         let filtered_count = candidates.len();
 
         RoutingResult {
@@ -168,17 +169,17 @@ impl ShardRouter {
 
     /// Check if episode passes hard filters (must-match constraints).
     fn passes_hard_filters(&self, filter: &ScopeFilter, ep: &EpisodeMetadata) -> bool {
-        // Check required tags - must have at least one matching
-        if !filter.required_tags.is_empty() {
-            let has_match = filter.required_tags.intersection(&ep.tags).count() > 0;
-            if !has_match {
+        // Fast numeric/timestamp filters first
+        if let Some(min_rate) = filter.min_success_rate {
+            if ep.success_rate < min_rate {
                 return false;
             }
         }
 
-        // Check excluded tags - must not have any
-        if filter.excluded_tags.iter().any(|t| ep.has_tag(t)) {
-            return false;
+        if let Some(range) = &filter.time_range {
+            if !range.contains(ep.created_at) {
+                return false;
+            }
         }
 
         // Check required task types - must match at least one
@@ -191,16 +192,26 @@ impl ShardRouter {
             return false;
         }
 
-        // Check time range - must be within range if specified
-        if let Some(range) = &filter.time_range {
-            if !range.contains(ep.created_at) {
+        // Check required tags - short-circuit on first match across the smaller set: O(min(|A|, |B|))
+        if !filter.required_tags.is_empty() {
+            let has_match = if filter.required_tags.len() <= ep.tags.len() {
+                filter.required_tags.iter().any(|t| ep.tags.contains(t))
+            } else {
+                ep.tags.iter().any(|t| filter.required_tags.contains(t))
+            };
+            if !has_match {
                 return false;
             }
         }
 
-        // Check min success rate if specified
-        if let Some(min_rate) = filter.min_success_rate {
-            if ep.success_rate < min_rate {
+        // Check excluded tags - must not have any. Filter excluded tags are normalized.
+        if !filter.excluded_tags.is_empty() {
+            let has_excluded = if filter.excluded_tags.len() <= ep.tags.len() {
+                filter.excluded_tags.iter().any(|t| ep.tags.contains(t))
+            } else {
+                ep.tags.iter().any(|t| filter.excluded_tags.contains(t))
+            };
+            if has_excluded {
                 return false;
             }
         }

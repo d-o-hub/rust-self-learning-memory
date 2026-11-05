@@ -208,6 +208,53 @@ fn test_route_tag_filter() {
 }
 
 #[test]
+fn test_case_insensitive_matching_and_has_tag_direct() {
+    let ep_id = Uuid::new_v4();
+    let tags: HashSet<String> = ["performance", "caching"]
+        .iter()
+        .map(|s| (*s).to_string())
+        .collect();
+    let meta = EpisodeMetadata::new(ep_id, tags, "DeBuGgInG".to_string(), Utc::now());
+
+    assert!(meta.has_tag("performance"));
+    assert!(meta.has_tag("PERFORMANCE"));
+    assert!(meta.has_tag("Caching"));
+    assert!(!meta.has_tag("missing"));
+    assert!(meta.matches_task_type("debugging"));
+    assert!(meta.matches_task_type("DEBUGGING"));
+    assert!(!meta.matches_task_type("implementation"));
+}
+
+#[test]
+fn test_early_exit_hard_filter_ranking_order() {
+    let router = ShardRouter::default_config();
+    let mut filter = ScopeFilter::new();
+    filter.require_tag("core");
+
+    let ep1 = Uuid::new_v4();
+    let mut meta1 = EpisodeMetadata::new(
+        ep1,
+        ["core"].iter().map(|s| (*s).to_string()).collect(),
+        "task".to_string(),
+        Utc::now(),
+    );
+    meta1.set_success_rate(0.9);
+
+    let ep2 = Uuid::new_v4();
+    let mut meta2 = EpisodeMetadata::new(
+        ep2,
+        ["other"].iter().map(|s| (*s).to_string()).collect(),
+        "task".to_string(),
+        Utc::now(),
+    );
+    meta2.set_success_rate(1.0);
+
+    let result = router.route(&filter, &[meta1, meta2]);
+    assert_eq!(result.len(), 1);
+    assert_eq!(result.candidates[0], ep1);
+}
+
+#[test]
 fn test_route_excluded_tag() {
     let router = ShardRouter::default_config();
     let mut filter = ScopeFilter::new();

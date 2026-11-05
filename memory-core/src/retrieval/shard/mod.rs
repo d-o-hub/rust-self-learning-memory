@@ -332,15 +332,33 @@ impl EpisodeMetadata {
     }
 
     /// Check if has a specific tag.
+    ///
+    /// Checks direct containment first to eliminate O(1) heap allocation when
+    /// the queried tag is already normalized (e.g. from `ScopeFilter`).
     #[must_use]
     pub fn has_tag(&self, tag: &str) -> bool {
-        self.tags.contains(&tag.to_lowercase())
+        if self.tags.contains(tag) {
+            return true;
+        }
+        // Fall back to zero-allocation ASCII check or lowercase allocation for non-ASCII.
+        if tag.is_ascii() {
+            self.tags.iter().any(|t| t.eq_ignore_ascii_case(tag))
+        } else {
+            self.tags.contains(&tag.to_lowercase())
+        }
     }
 
     /// Check if matches task type.
+    ///
+    /// Uses `eq_ignore_ascii_case` to bypass 2 temporary `String` heap allocations
+    /// per check on standard ASCII task identifiers.
     #[must_use]
     pub fn matches_task_type(&self, task_type: &str) -> bool {
-        self.task_type.to_lowercase() == task_type.to_lowercase()
+        if self.task_type.is_ascii() && task_type.is_ascii() {
+            self.task_type.eq_ignore_ascii_case(task_type)
+        } else {
+            self.task_type.to_lowercase() == task_type.to_lowercase()
+        }
     }
 
     /// Get age in days.

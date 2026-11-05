@@ -62,7 +62,7 @@ check_required_aggregate() {
 
   # (1) All-success arguments must exit zero with exactly one success line.
   out=$("$ev" "Fast Gate=success" "Commit Message Lint=success" "Tests=success" \
-    "MCP Build=success" "Multi-Platform=success" "Quality Gates=success") || \
+    "MCP Build=success" "Multi-Platform=success" "Quality Gates=success" "Docs=success") || \
     fail "all-success arguments to ci-required-evaluate.sh must exit 0"
   [[ "$(printf '%s\n' "$out" | rg -c 'CI / Required aggregate passed')" -eq 1 ]] || \
     fail "all-success must print exactly one success line"
@@ -100,8 +100,8 @@ check_required_aggregate() {
   # (3) Current ci.yml references every evaluator dependency: the CI / Required
   #     needs set (same-run fast gate + substantive jobs) and the script name.
   [[ -f "$ci" ]] || fail "missing $ci"
-  if ! rg -q 'needs: \[fast-gate, commitlint, test, csm-tests, mcp-build, multi-platform, quality-gates\]' "$ci"; then
-    fail "ci.yml CI / Required aggregate needs set must be exactly [fast-gate, commitlint, test, csm-tests, mcp-build, multi-platform, quality-gates]"
+  if ! rg -q 'needs: \[fast-gate, commitlint, docs, test, csm-tests, mcp-build, multi-platform, quality-gates\]' "$ci"; then
+    fail "ci.yml CI / Required aggregate needs set must be exactly [fast-gate, commitlint, docs, test, csm-tests, mcp-build, multi-platform, quality-gates]"
   fi
   rg -q 'ci-required-evaluate\.sh' "$ci" || fail "ci.yml required job does not invoke scripts/ci-required-evaluate.sh"
 

@@ -34,21 +34,9 @@ pub enum EpisodeCommands {
         #[arg(short, long)]
         status: Option<EpisodeStatus>,
 
-        /// Enable semantic search using embeddings
-        #[arg(long)]
+        /// Semantic search using the configured embedding provider
+        #[arg(long, value_name = "QUERY")]
         semantic_search: Option<String>,
-
-        /// Enable embeddings for this operation
-        #[arg(long)]
-        enable_embeddings: bool,
-
-        /// Override embedding provider (openai, local, cohere, ollama, custom)
-        #[arg(long)]
-        embedding_provider: Option<String>,
-
-        /// Override embedding model
-        #[arg(long)]
-        embedding_model: Option<String>,
 
         /// Filter episodes created after this date (ISO 8601)
         #[arg(long)]
@@ -167,21 +155,9 @@ pub enum EpisodeCommands {
         #[arg(short, long, default_value = "10")]
         limit: usize,
 
-        /// Enable semantic search using embeddings
-        #[arg(long)]
+        /// Semantic search using the configured embedding provider
+        #[arg(long, conflicts_with_all = ["fuzzy", "regex", "search_fields"])]
         semantic: bool,
-
-        /// Enable embeddings for this operation
-        #[arg(long)]
-        enable_embeddings: bool,
-
-        /// Override embedding provider (openai, local, cohere, ollama, custom)
-        #[arg(long)]
-        embedding_provider: Option<String>,
-
-        /// Override embedding model
-        #[arg(long)]
-        embedding_model: Option<String>,
 
         /// Enable fuzzy search (typo-tolerant)
         #[arg(long)]

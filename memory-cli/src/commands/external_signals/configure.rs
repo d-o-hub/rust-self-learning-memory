@@ -16,54 +16,20 @@ use super::types::{
 pub async fn configure_agentfs(
     args: ConfigureAgentFsArgs,
     _config: &Config,
-    format: OutputFormat,
+    _format: OutputFormat,
 ) -> Result<()> {
-    // Validate db_path exists or is accessible
-    let db_path_expanded = args.db_path.clone();
-    let path = std::path::Path::new(&db_path_expanded);
+    tracing::debug!(
+        "Rejecting runtime AgentFS configuration for db_path='{}'",
+        args.db_path
+    );
 
-    if !path.exists() && !args.db_path.starts_with("http") {
-        // For local paths, warn if file doesn't exist yet
-        // (it might be created on first connection)
-        tracing::warn!(
-            "AgentFS database path does not exist yet: {}",
-            db_path_expanded
-        );
-    }
-
-    // Build provider configuration
-    let provider_config = ProviderConfig {
-        name: "agentfs".to_string(),
-        provider_type: "agentfs".to_string(),
-        enabled: args.enabled,
-        weight: args.weight.clamp(0.0, 1.0),
-        timeout: args.timeout,
-        auto_reconnect: Some(args.auto_reconnect),
-        max_retries: Some(args.max_retries),
-        poll_interval: None,
-        endpoint: None,
-        db_path: Some(db_path_expanded.clone()),
-    };
-
-    // In a real implementation, this would:
-    // 1. Validate the database connection
-    // 2. Store the configuration
-    // 3. Initialize the provider
-    // For now, we simulate success
-
-    let result = ProviderConfigResult {
-        name: "agentfs".to_string(),
-        success: true,
-        message: format!(
-            "AgentFS provider configured with {} (weight: {:.2})",
-            if args.enabled { "enabled" } else { "disabled" },
-            args.weight
-        ),
-        config: Some(provider_config),
-    };
-
-    format.print_output(&result)?;
-    Ok(())
+    // The CLI installs external signal providers when `SelfLearningMemory` is
+    // constructed from configuration; there is no runtime reconfiguration path
+    // and no store to persist one into. Reporting success would advertise an
+    // active provider that produces no reward signal.
+    anyhow::bail!(
+        "Runtime AgentFS configuration is unavailable; set AGENTFS_DB_PATH before starting the CLI"
+    )
 }
 
 /// Configure custom external provider

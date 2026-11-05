@@ -1,8 +1,6 @@
 //! List episodes command implementation
 
-use super::types::{
-    AppliedFilters, EpisodeList, EpisodeListFiltered, EpisodeSortOrder, EpisodeSummary,
-};
+use super::types::{AppliedFilters, EpisodeListFiltered, EpisodeSortOrder, EpisodeSummary};
 use crate::config::Config;
 use crate::output::OutputFormat;
 use chrono::Utc;
@@ -19,10 +17,7 @@ pub async fn list_episodes(
     task_type: Option<String>,
     mut limit: usize,
     status: Option<super::types::EpisodeStatus>,
-    _semantic_search: Option<String>,
-    _enable_embeddings: bool,
-    _embedding_provider: Option<String>,
-    _embedding_model: Option<String>,
+    semantic_search: Option<String>,
     since: Option<String>,
     until: Option<String>,
     sort: EpisodeSortOrder,
@@ -31,7 +26,7 @@ pub async fn list_episodes(
     outcome: Option<super::types::TaskOutcome>,
     offset: usize,
     memory: &SelfLearningMemory,
-    _config: &Config,
+    config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     if let Some(ref task_type_str) = task_type {
@@ -64,10 +59,28 @@ pub async fn list_episodes(
         _ => None,
     };
 
-    let mut episodes = memory
-        .list_episodes(Some(limit * 2 + offset), None, completed_only)
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to list episodes: {}", e))?;
+    let mut episodes = match semantic_search {
+        Some(semantic_query) => {
+            crate::commands::embedding::activate_configured_semantic_service(memory, config)
+                .await?;
+            let semantic = memory
+                .live_semantic_service()
+                .await
+                .ok_or_else(|| anyhow::anyhow!("Semantic service unavailable after activation"))?;
+            let results = semantic
+                .find_similar_episodes(
+                    &semantic_query,
+                    &do_memory_core::types::TaskContext::default(),
+                    MAX_LIST_LIMIT,
+                )
+                .await?;
+            results.into_iter().map(|result| result.item).collect()
+        }
+        None => memory
+            .list_episodes(Some(limit * 2 + offset), None, completed_only)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to list episodes: {}", e))?,
+    };
 
     episodes.retain(|episode| match status {
         Some(super::types::EpisodeStatus::InProgress) => !episode.is_complete(),
@@ -219,139 +232,6 @@ pub async fn list_episodes(
                 println!("Total count: {}", filtered_list.total_count);
                 println!();
                 for episode in &filtered_list.episodes {
-                    println!("ID: {}", episode.episode_id);
-                    println!("Task: {}", episode.task_description);
-                    println!("Status: {}", episode.status);
-                    println!("Created: {}", episode.created_at);
-                    if let Some(duration) = episode.duration_ms {
-                        println!("Duration: {}ms", duration);
-                    }
-                    println!("Steps: {}", episode.steps_count);
-                    println!();
-                }
-            }
-        }
-
-        Ok(())
-    }
-}
-
-#[expect(clippy::too_many_arguments)]
-pub async fn list_episodes_basic(
-    task_type: Option<String>,
-    mut limit: usize,
-    status: Option<super::types::EpisodeStatus>,
-    _semantic_search: Option<String>,
-    _enable_embeddings: bool,
-    _embedding_provider: Option<String>,
-    _embedding_model: Option<String>,
-    memory: &SelfLearningMemory,
-    _config: &Config,
-    format: OutputFormat,
-) -> anyhow::Result<()> {
-    if let Some(ref task_type_str) = task_type {
-        match task_type_str.as_str() {
-            "code_generation" | "debugging" | "testing" | "analysis" | "documentation"
-            | "refactoring" | "other" => {}
-            _ => {
-                return Err(anyhow::anyhow!(
-                    "Invalid task type: '{}'.\n\
-                 \nValid task types:\n\
-                 • code_generation - Code generation tasks\n\
-                 • debugging - Debugging and troubleshooting\n\
-                 • testing - Test writing and execution\n\
-                 • analysis - Code analysis and review\n\
-                 • documentation - Documentation tasks\n\
-                 • refactoring - Code refactoring\n\
-                 • other - Other task types\n\
-                 \nExample: memory-cli episode list --task-type debugging",
-                    task_type_str
-                ));
-            }
-        };
-    }
-
-    // Clamp limit to prevent resource exhaustion BEFORE any operations
-    limit = limit.clamp(MIN_LIST_LIMIT, MAX_LIST_LIMIT);
-
-    let completed_only = match status {
-        Some(super::types::EpisodeStatus::Completed) => Some(true),
-        _ => None,
-    };
-
-    let mut episodes = memory
-        .list_episodes(Some(limit * 2), None, completed_only)
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to list episodes: {}", e))?;
-
-    episodes.retain(|episode| match status {
-        Some(super::types::EpisodeStatus::InProgress) => !episode.is_complete(),
-        Some(super::types::EpisodeStatus::Completed) => episode.is_complete(),
-        None => true,
-    });
-
-    if let Some(ref tt) = task_type {
-        let tt_lower = tt.to_lowercase();
-        episodes.retain(|episode| {
-            episode
-                .task_type
-                .to_string()
-                .to_lowercase()
-                .contains(&tt_lower)
-        });
-    }
-
-    let mut episode_summaries: Vec<EpisodeSummary> = episodes
-        .into_iter()
-        .map(|episode| {
-            let ep_status = if episode.is_complete() {
-                "completed"
-            } else {
-                "in_progress"
-            };
-            let duration_ms = episode
-                .end_time
-                .map(|end| (end - episode.start_time).num_milliseconds() as u64);
-
-            EpisodeSummary {
-                episode_id: episode.episode_id.to_string(),
-                task_description: episode.task_description,
-                status: ep_status.to_string(),
-                created_at: episode.start_time.to_rfc3339(),
-                duration_ms,
-                steps_count: episode.steps.len(),
-            }
-        })
-        .collect();
-
-    episode_summaries.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-    let total_count = episode_summaries.len();
-    episode_summaries.truncate(limit);
-
-    let list = EpisodeList {
-        episodes: episode_summaries,
-        total_count,
-    };
-
-    #[cfg(feature = "turso")]
-    {
-        format.print_output(&list)
-    }
-
-    #[cfg(not(feature = "turso"))]
-    {
-        match format {
-            OutputFormat::Json => {
-                println!("{}", serde_json::to_string_pretty(&list)?);
-            }
-            OutputFormat::Yaml => {
-                println!("{}", serde_yaml::to_string(&list)?);
-            }
-            OutputFormat::Human => {
-                println!("Episodes ({} shown)", list.episodes.len());
-                println!("Total count: {}", list.total_count);
-                println!();
-                for episode in &list.episodes {
                     println!("ID: {}", episode.episode_id);
                     println!("Task: {}", episode.task_description);
                     println!("Status: {}", episode.status);

@@ -2,122 +2,214 @@
 
 use crate::config::Config;
 use anyhow::Result;
-#[allow(unused_imports)] // All configs are used in match statements
+use do_memory_core::embeddings::config::{MistralModel, OpenAIModel};
 use do_memory_core::embeddings::{
-    AzureOpenAIConfig, CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig,
+    CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig, ProviderConfig,
 };
 use std::env;
+
+/// Map CLI embedding settings onto a core [`ProviderConfig`].
+///
+/// This is the single source of truth for provider identity: the returned
+/// config drives both the runtime provider and the embedding storage scope
+/// (`cache_identity()` / `config_revision()`), so a query can never read vectors
+/// written under a different model or dimension.
+///
+/// The second tuple element is the resolved credential, `None` for providers
+/// that need none (local) and optional for OpenAI-compatible custom endpoints.
+///
+/// # Errors
+///
+/// Returns an error for an unknown provider name, an unsupported Azure
+/// transport, a missing API key environment variable, a model name the provider
+/// does not know, or a dimension the model cannot produce.
+pub(crate) fn map_provider_config(config: &Config) -> Result<(ProviderConfig, Option<String>)> {
+    let settings = &config.embeddings;
+    match settings.provider.as_str() {
+        "local" => {
+            let local = LocalConfig::new(settings.model.as_str(), settings.dimension)
+                .with_allow_mock_fallback(false);
+            Ok((ProviderConfig::Local(local), None))
+        }
+        "openai" => {
+            let model = parse_openai_model(&settings.model)?;
+            let openai = openai_config(model, settings.dimension)?;
+            let api_key = get_api_key(config)?;
+            Ok((ProviderConfig::OpenAI(openai), Some(api_key)))
+        }
+        "mistral" => {
+            let model = parse_mistral_model(&settings.model)?;
+            let mut mistral = MistralConfig::new(model);
+            if settings.dimension != model.default_dimension() {
+                if !model.supports_output_dimension() {
+                    anyhow::bail!(
+                        "Model '{}' cannot produce {} dimensions (fixed at {})",
+                        settings.model,
+                        settings.dimension,
+                        model.default_dimension()
+                    );
+                }
+                if settings.dimension > model.max_dimension() {
+                    anyhow::bail!(
+                        "Dimension {} exceeds the maximum {} for model '{}'",
+                        settings.dimension,
+                        model.max_dimension(),
+                        settings.model
+                    );
+                }
+                mistral = mistral.with_output_dimension(settings.dimension);
+            }
+            let api_key = get_api_key(config)?;
+            Ok((ProviderConfig::Mistral(mistral), Some(api_key)))
+        }
+        "custom" => {
+            let base_url = settings
+                .base_url
+                .as_deref()
+                .ok_or_else(|| anyhow::anyhow!("base_url required for custom provider"))?;
+            let custom = CustomConfig::new(settings.model.as_str(), settings.dimension, base_url);
+            let api_key = get_api_key(config).ok();
+            Ok((ProviderConfig::Custom(custom), api_key))
+        }
+        "azure" => anyhow::bail!(
+            "Azure OpenAI transport is currently unsupported due to URL query formatting limitations; use custom with an OpenAI-compatible endpoint"
+        ),
+        other => anyhow::bail!(
+            "Unknown provider: {}. Valid providers: local, openai, mistral, custom",
+            other
+        ),
+    }
+}
+
+/// Parse a configured OpenAI model name into the typed model enum.
+fn parse_openai_model(name: &str) -> Result<OpenAIModel> {
+    match name {
+        "text-embedding-ada-002" => Ok(OpenAIModel::Ada002),
+        "text-embedding-3-small" => Ok(OpenAIModel::TextEmbedding3Small),
+        "text-embedding-3-large" => Ok(OpenAIModel::TextEmbedding3Large),
+        _ => anyhow::bail!(
+            "Unknown OpenAI embedding model '{}'. Valid models: text-embedding-ada-002, text-embedding-3-small, text-embedding-3-large",
+            name
+        ),
+    }
+}
+
+/// Parse a configured Mistral model name into the typed model enum.
+fn parse_mistral_model(name: &str) -> Result<MistralModel> {
+    match name {
+        "mistral-embed" => Ok(MistralModel::MistralEmbed),
+        "codestral-embed" => Ok(MistralModel::CodestralEmbed),
+        _ => anyhow::bail!(
+            "Unknown Mistral embedding model '{}'. Valid models: mistral-embed, codestral-embed",
+            name
+        ),
+    }
+}
+
+/// Build an OpenAI config for `model`, requesting `dimension` when it differs
+/// from the model default.
+fn openai_config(model: OpenAIModel, dimension: usize) -> Result<OpenAIConfig> {
+    if dimension > model.max_dimension() {
+        anyhow::bail!(
+            "Dimension {} exceeds the maximum {} for model '{}'",
+            dimension,
+            model.max_dimension(),
+            model.model_name()
+        );
+    }
+    let config = OpenAIConfig::new(model);
+    if dimension == model.default_dimension() {
+        return Ok(config);
+    }
+    if !model.supports_dimensions() {
+        anyhow::bail!(
+            "Model '{}' cannot produce {} dimensions (fixed at {})",
+            model.model_name(),
+            dimension,
+            model.default_dimension()
+        );
+    }
+    Ok(config.with_dimensions(dimension))
+}
 
 /// Create embedding provider from configuration
 pub(crate) async fn create_provider_from_config(
     config: &Config,
 ) -> Result<Box<dyn EmbeddingProvider>> {
-    match config.embeddings.provider.as_str() {
-        "local" => {
+    let (provider_config, api_key) = map_provider_config(config)?;
+
+    match provider_config {
+        ProviderConfig::Local(local) => {
             #[cfg(feature = "local-embeddings")]
             {
                 use do_memory_core::embeddings::LocalEmbeddingProvider;
-                let model_config = LocalConfig::default();
-                let provider = LocalEmbeddingProvider::new(model_config).await?;
+                let provider = LocalEmbeddingProvider::new(local).await?;
                 Ok(Box::new(provider))
             }
             #[cfg(not(feature = "local-embeddings"))]
             {
+                let _ = local;
                 Err(anyhow::anyhow!(
                     "Local embeddings not available. Compile with --features local-embeddings"
                 ))
             }
         }
-        "openai" => {
+        ProviderConfig::OpenAI(openai) => {
             #[cfg(feature = "openai")]
             {
                 use do_memory_core::embeddings::OpenAIEmbeddingProvider;
-                let api_key = get_api_key(config)?;
-                let model_config = OpenAIConfig::text_embedding_3_small();
-                let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
+                let api_key =
+                    api_key.ok_or_else(|| anyhow::anyhow!("OpenAI API key not resolved"))?;
+                let provider = OpenAIEmbeddingProvider::new(api_key, openai)?;
                 Ok(Box::new(provider))
             }
             #[cfg(not(feature = "openai"))]
             {
+                let _ = (openai, api_key);
                 Err(anyhow::anyhow!(
                     "OpenAI embeddings not available. Compile with --features openai"
                 ))
             }
         }
-        "mistral" => {
+        ProviderConfig::Mistral(mistral) => {
             #[cfg(feature = "mistral")]
             {
                 use do_memory_core::embeddings::MistralEmbeddingProvider;
-                let api_key = get_api_key(config)?;
-                let model_config = MistralConfig::mistral_embed();
-                let provider = MistralEmbeddingProvider::new(api_key, model_config)?;
+                let api_key =
+                    api_key.ok_or_else(|| anyhow::anyhow!("Mistral API key not resolved"))?;
+                let provider = MistralEmbeddingProvider::new(api_key, mistral)?;
                 Ok(Box::new(provider))
             }
             #[cfg(not(feature = "mistral"))]
             {
+                let _ = (mistral, api_key);
                 Err(anyhow::anyhow!(
                     "Mistral embeddings not available. Compile with --features mistral"
                 ))
             }
         }
-        "azure" => {
+        ProviderConfig::Custom(custom) => {
             #[cfg(feature = "openai")]
             {
                 use do_memory_core::embeddings::OpenAIEmbeddingProvider;
-                let api_key = get_api_key(config)?;
-                // Azure configuration requires deployment, resource, and version
-                let deployment = env::var("AZURE_DEPLOYMENT")
-                    .unwrap_or_else(|_| config.embeddings.model.clone());
-                let resource = env::var("AZURE_RESOURCE")?;
-                let api_version =
-                    env::var("AZURE_API_VERSION").unwrap_or_else(|_| "2023-05-15".to_string());
-
-                let model_config = OpenAIConfig::text_embedding_3_small()
-                    .with_base_url(format!(
-                        "<https://{}.openai.azure.com/openai/deployments/{}>",
-                        resource, deployment
-                    ))
-                    .with_dimensions(config.embeddings.dimension);
-                // The API version needs to be appended to the URL as a query param in OpenAIEmbeddingProvider
-                // but currently OpenAIConfig::embeddings_url just appends /embeddings.
-                // This is a known limitation in the current CLI implementation.
-                let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
+                // Custom endpoints speak the OpenAI embeddings wire format.
+                let model = parse_openai_model(&custom.model_name)?;
+                let openai = openai_config(model, custom.embedding_dimension)?
+                    .with_base_url(custom.base_url);
+                let api_key = api_key.unwrap_or_else(|| "not-needed".to_string());
+                let provider = OpenAIEmbeddingProvider::new(api_key, openai)?;
                 Ok(Box::new(provider))
             }
             #[cfg(not(feature = "openai"))]
             {
-                Err(anyhow::anyhow!(
-                    "Azure OpenAI embeddings not available. Compile with --features openai"
-                ))
-            }
-        }
-        "custom" => {
-            #[cfg(feature = "openai")]
-            {
-                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
-                let api_key = get_api_key(config).unwrap_or_else(|_| "not-needed".to_string());
-                let base_url = config
-                    .embeddings
-                    .base_url
-                    .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("base_url required for custom provider"))?;
-
-                let model_config = OpenAIConfig::text_embedding_3_small()
-                    .with_base_url(base_url.clone())
-                    .with_dimensions(config.embeddings.dimension);
-                let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
-                Ok(Box::new(provider))
-            }
-            #[cfg(not(feature = "openai"))]
-            {
+                let _ = (custom, api_key);
                 Err(anyhow::anyhow!(
                     "Custom embeddings not available. Compile with --features openai"
                 ))
             }
         }
-        _ => Err(anyhow::anyhow!(
-            "Unknown provider: {}. Valid providers: local, openai, mistral, azure, custom",
-            config.embeddings.provider
+        ProviderConfig::AzureOpenAI(_) => Err(anyhow::anyhow!(
+            "Azure OpenAI transport is currently unsupported due to URL query formatting limitations; use custom with an OpenAI-compatible endpoint"
         )),
     }
 }
@@ -270,19 +362,37 @@ mod tests {
         );
     }
 
+    #[cfg(not(feature = "local-embeddings"))]
     #[tokio::test]
-    async fn create_provider_local_without_or_with_feature() {
+    async fn create_provider_local_requires_feature() {
         let config = base_config("local", None);
-        // May succeed with local-embeddings feature (loads mock) or fail without it.
-        match create_provider_from_config(&config).await {
-            Ok(_) => {}
-            Err(e) => {
-                let msg = e.to_string();
-                assert!(
-                    msg.contains("Local embeddings not available") || msg.contains("local"),
-                    "unexpected: {msg}"
-                );
-            }
-        }
+        assert_provider_err(
+            create_provider_from_config(&config).await,
+            &["Local embeddings not available"],
+        );
+    }
+
+    #[test]
+    fn map_provider_config_honours_model_and_dimension() {
+        let mut config = base_config("custom", None);
+        config.embeddings.base_url = Some("http://127.0.0.1:9/v1".to_string());
+        config.embeddings.dimension = 3;
+
+        let (mapped, credential) = map_provider_config(&config).expect("map custom");
+        assert_eq!(mapped.model_name(), "text-embedding-3-small");
+        assert_eq!(mapped.effective_dimension(), 3);
+        assert_eq!(mapped.cache_identity(), "custom:text-embedding-3-small:3");
+        assert!(credential.is_none());
+    }
+
+    #[test]
+    fn map_provider_config_rejects_azure_transport() {
+        let config = base_config("azure", None);
+        let err = map_provider_config(&config).expect_err("azure unsupported");
+        assert!(
+            err.to_string()
+                .contains("Azure OpenAI transport is currently unsupported"),
+            "unexpected error: {err}"
+        );
     }
 }

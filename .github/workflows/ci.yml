@@ -126,6 +126,13 @@ jobs:
         with:
           job-name: docs
 
+      - name: Check documentation integrity
+        # Catches stale core-doc version references before release preflight:
+        # the v0.1.49 ship stopped on plans/README.md naming 0.1.48.
+        run: |
+          chmod +x scripts/check-docs-integrity.sh
+          ./scripts/check-docs-integrity.sh
+
       - name: Run documentation tests and rustdoc build
         run: |
           chmod +x scripts/*.sh

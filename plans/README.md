@@ -1,10 +1,10 @@
 # Plans Directory
 
-**Workspace**: `v0.1.48` · **Released tag**: `v0.1.47` (`854f6f8d`, GitHub Release 2026-10-28T20:41:48Z, all four registered crates published) · **Main audit baseline**: `d5d8f463`
-**Active plan**: v0.1.47 closeout complete; release dogfood fixes, toolchain/version hygiene and stage-4 merge proof are closed, and CLI output contract follow-up #1232/#1233 is merged. Remaining repository work: upstream-blocked ACT-404 and maintainer-external ADR lifecycle acceptance; `0.1.48` remains a development bump. See [ACTIONS.md](ACTIONS.md) and [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
-**Completed previous wave**: v0.1.47 shipped 2026-10-28 (`854f6f8d`) and was dogfooded with the released CLI; v0.1.44/0.1.45/0.1.46 shipped earlier in the same chain (release pipeline C1–C7 in #1121/#1123/#1125)
-**Last Updated**: 2026-11-01
-**Open PRs**: 0 at the 2026-11-01 audit baseline; this final tracker refresh is the only review PR, so post-merge count returns to 0 · **Open issues**: 0
+**Workspace**: `v0.1.49` · **Released tag**: `v0.1.48` (`c00f71cc`, GitHub Release 2026-11-04T12:16:47Z, all four registered crates published) · **Main audit baseline**: `d5d8f463`
+**Active plan**: `v0.1.49` release prep is on `main`; the truth-fix wave (#1257) and CI hardening (#1260) are merged, the unmeasured shard-routing perf PR (#1255) was closed on guardrail review, and the tracker is empty. Remaining: tag + publish + released-CLI dogfood, then the `0.1.50` development bump. See [ACTIONS.md](ACTIONS.md) and [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
+**Completed previous wave**: v0.1.48 shipped 2026-11-04 (`c00f71cc`) and was dogfooded with the released CLI; v0.1.44/0.1.45/0.1.46/0.1.47 shipped earlier in the same chain (release pipeline C1–C7 in #1121/#1123/#1125)
+**Last Updated**: 2026-11-08
+**Open PRs**: 0 at the 2026-11-08 baseline; this plans README refresh is the only open review PR, so post-merge count returns to 0 · **Open issues**: 0
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

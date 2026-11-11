@@ -2094,3 +2094,60 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - References: PR #1240, PR #1241, PR #1242, stack 1243, LESSON-063 (phantom affordances —
   this is the tool-flag variant), LESSON-079 (docs asserting what the code does not do),
   LESSON-081.
+
+## LESSON-083: release runners are first exercised at tag time, and dist's own default was a retired image (2026-11-11)
+
+- Issue: `ship --execute` pushed `v0.1.49` at `6e6b48d7`. The tag's Release run
+  (43038586280) passed `preflight` and `plan` and built four of the five
+  `build-local-artifacts` legs, then ended `cancelled`: the fifth,
+  `build-local-artifacts (aarch64-apple-darwin)`, started at 14:27:49 and was
+  `cancelled` one second later with an empty `runner_name` and the check-run
+  annotation `The configuration 'macos-14-arm64-us-default' is not supported`.
+  Because that leg produced no artifacts, `host`, `build-global-artifacts`,
+  `announce` and `dispatch-publish` were all `skipped`: no GitHub Release, no
+  binaries, and no crates.io publish — while the tag was already public.
+  Re-running the failed jobs (`gh run rerun <id> --failed`) reproduced it on
+  attempt 2.
+- Why it matters:
+  (1) **nothing in the repo changed.** `git diff v0.1.48 HEAD -- .github/workflows/release.yml
+  dist-workspace.toml` is empty, and v0.1.48's run used the same `macos-14` label
+  successfully on 2026-11-04 (`runner_name: GitHub Actions 1000269610`). GitHub
+  retired the macOS 14 image on 2026-11-02 and the label stopped resolving days
+  later, so the failure arrived with no commit to blame.
+  (2) **the label is not in the workflow.** `release.yml` has
+  `runs-on: ${{ matrix.runner }}`, and that matrix is computed at tag time by
+  `dist host --steps=create --tag=...` from the pinned
+  `cargo-dist-version = "0.30.4"`. That binary still defaults
+  `aarch64-apple-darwin` to `macos-14`, even though its own documentation lists
+  `macOS (Apple Silicon): macos-15`. Reading `release.yml` can never reveal the
+  runner, and the pinned binary — not the docs — is what runs.
+  (3) **the pre-ship check was green.** `ci-check` verified main CI green on
+  `6e6b48d7`, and none of those workflows use `macos-14` (`ci.yml` runs
+  `macos-latest`, which resolved and passed). Release-only runner labels are
+  exercised for the first time at tag time, after the tag is public.
+- Detection: inspect the tag run's jobs before diagnosing the workflow. A job
+  `cancelled` seconds after `started_at` with an empty `runner_name` never ran a
+  step — read its annotation (`gh api repos/<o>/<r>/actions/jobs/<job-id>`, or the
+  check-run annotations) instead of its log. Then resolve the labels the plan
+  would request, per target, with the pinned binary:
+  ```bash
+  dist host --steps=create --tag=vX.Y.Z --output-format=json \
+    | jq -r '.ci.github.artifacts_matrix.include[] | "\(.runner)\t\(.targets|join(","))"'
+  # macos-14  aarch64-apple-darwin   <- retired image, job never starts
+  ```
+  Compare every label against `actions/runner-images`: `macos-15` is the arm64
+  image, `macos-15-intel` the x64 one, and `macos-14` was retired 2026-11-02.
+- Fix: pin every release runner in `dist-workspace.toml` under
+  `[dist.github-custom-runners]`, so no target inherits a default that can be
+  retired under it — `aarch64-apple-darwin = "macos-15"` here, with the other
+  four labels pinned to exactly what the successful legs used. Then re-ship:
+  with no release object existing (the `host` job skipped, so nothing was
+  published anywhere) the tag is safe to delete on both sides and re-push at the
+  fixed commit, which is what the rollback path anticipates. Verified by
+  re-running `dist host --steps=create --tag=v0.1.49` and confirming the four
+  unchanged labels plus `macos-15` for `aarch64-apple-darwin`.
+- References: run 43038586280 (attempt 1 cancelled, attempt 2 cancelled),
+  GitHub changelog 2026-10-02 "macOS 14 runner image retirement",
+  `actions/runner-images` issue #15226, `dist-workspace.toml`,
+  `.agents/skills/release-guard/SKILL.md` (failure playbook), LESSON-080 (an
+  Actions query a minute after a push is a race, not a verdict).

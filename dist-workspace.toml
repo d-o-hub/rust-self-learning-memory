@@ -13,3 +13,16 @@ installers = []
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
 # Allow dirty dist-workspace.toml (during development)
 allow-dirty = ["ci"]
+# Pin every release runner explicitly. The matrix in release.yml is computed at
+# tag time from this config, so an inherited dist default is only ever exercised
+# once the tag is already public: dist 0.30.4 still defaults
+# `aarch64-apple-darwin` to `macos-14`, a label GitHub retired on 2026-11-02,
+# and the job was cancelled before a runner was assigned, so the tag published
+# nothing (LESSON-083). `macos-15` is the arm64 image, `macos-15-intel` the x64
+# one; check `actions/runner-images` before changing any of these.
+[dist.github-custom-runners]
+aarch64-apple-darwin = "macos-15"
+aarch64-unknown-linux-gnu = "ubuntu-22.04-arm"
+x86_64-apple-darwin = "macos-15-intel"
+x86_64-unknown-linux-gnu = "ubuntu-22.04"
+x86_64-pc-windows-msvc = "windows-2022"

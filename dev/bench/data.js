@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794589964134,
+  "lastUpdate": 1794601432169,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -121781,6 +121781,840 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 37651.93,
             "range": "± 752.21",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fa3c561f0cb9eb7ea70d853277fbe5f9093c542c",
+          "message": "fix(harness): declare inputs for every sensor so status can report green (#1269)\n\n* fix(harness): declare inputs for every sensor so status can report green\n\nWithout a declared `inputs` list the harness falls back to\n`input:git-index-and-nonignored-untracked`, whose digest is recorded as null,\nso `do-harness status --set <set>` reports\n`stale (inputs_changed_or_unknown)` for every change - including a no-op on a\nclean tree - and the completion contract's \"confirm green local evidence\nboundary\" step can never pass.\n\n- declare explicit inputs for all 23 sensors (`[]` for commit-ci-tokens, which\n  reads commit messages rather than file content)\n- extend the doctrine sensor's pack contract: every sensor must declare\n  `inputs`, and every declared glob must match at least one non-ignored file\n  (an empty match also records a null digest)\n\nProbed semantics: globs are gitignore-aware, so `target/` never invalidates\nevidence; `inputs = []` and a HEAD change both behave as documented.\n\n* docs(changelog): record the harness sensor-inputs fix\n\n* docs(harness): document the pack input contract in the doctrine sensor row\n\n* test(harness): prove the pack input contract cannot pass vacuously\n\nAdds two stub-driven cases to scripts/test-do-harness-compat.sh (now 20 cases):\na pack whose sensor declares no `inputs`, and one whose declared glob matches no\nfile. Both make the doctrine probe red and name the offending sensor, matching\nthis file's rule that a probe which cannot fail is worthless.\n\n* docs(harness): note the pack contract's git work-tree requirement\n\n* fix(harness): declare a real input for commit-ci-tokens; reject empty lists\n\nMeasured on 0.4.1 against this workspace: `inputs = []` is not 'no inputs'.\nUpstream treats an empty list as the omitted case, keeps the\n`input:git-index-and-nonignored-untracked` declaration, and records a **null**\ndigest here (`input_manifest.sensors.\"commit-ci-tokens\": null`), exactly like\nomitting the key - so the first cut of this pack left that sensor permanently\nstale and the fixture probe that showed `[]` green measured a small repo, where\nthe same fallback resolves to a real digest.\n\n- commit-ci-tokens declares `scripts/check-commit-ci-tokens.sh` (verified:\n  `input:scripts/check-commit-ci-tokens.sh`, digest sha256:1d95f886...)\n- the doctrine pack contract now rejects a missing list, an empty list, and a\n  glob matching no file\n- new stub case (21 total) proves the empty-list detector fires\n\n* fix(harness): fail closed when the pack section's interpreter cannot run\n\nThe pack section is the only place the probe interprets files with an external\ninterpreter, and the probe runs under `set -uo pipefail` with no `-e`: an\nabsent, failing or silent python3 left `pack_out` empty, ran the read loop zero\ntimes, and let the probe print \"Passed\" without asserting the pack - the\nvacuous-green class this probe exists to prevent.\n\n- guard `command -v python3`, and check the substitution's exit status and for\n  empty output, each a violation\n- two stub cases (23 total) prove it: a python3 that exits 3, and one that exits\n  0 with no output, both make the probe red\n\n* fix(harness): declare the file concept_graph.rs embeds, and enforce that coverage\n\n`concept_graph.rs:31` compiles `ontology.json` in with `include_str!`, so the\nJSON changes compiled content while matching no declared `*.rs` pattern, and its\ntests assert the embedded graph is nonempty. With `verify --unchanged=skip`\nreusing recorded passes on declared digests alone, an edited ontology could reuse\na stale pass.\n\n- all 12 sensors that claim Rust sources now declare\n  `memory-core/src/retrieval/cascade/ontology.json` (the contract-running\n  `harness-doctrine` among them, because its new rule reads those sources; `docs`\n  and `check` also gained `**/Cargo.toml`, which doctests and compilation read)\n- the pack contract asserts that a sensor declaring `*.rs` covers every file\n  those sources embed, and that the contract-running sensor declares the sources\n  the contract reads, so a future `include_str!` asset cannot slip past\n- two git-backed stub cases (25 total) prove both detections fire\n\nMeasured on the real workspace: editing ontology.json moves fmt's recorded digest\n(sha256:d821bb9e -> sha256:75302836), a source-only addition of\ninclude_str!(\"nope.bin\") moves harness-doctrine's (sha256:db6fc6df ->\nsha256:e04e3c89), and both return after the tree is restored.\n\n* fix(harness): declare cargo-audit's waiver list and enforce the declaration\n\n`scripts/check-dependency-audit.sh` hands cargo-audit a lockfile and nothing else,\nso cargo-audit reads its waiver list from `.cargo/audit.toml` (cargo's config\ndiscovery, from the workspace root). Nothing declared the file: it is not a harness\npolicy input - appending a comment to it left `policy_fingerprint` at the same\nsha256 - and no sensor listed it, so `verify --unchanged=skip` would reuse `deny`'s\nrecorded pass over a *removed* waiver. Measured on this workspace, the file decides\nthat sensor's verdict: deleting the RUSTSEC-2023-0071 entry took the script's\ncounted vulnerabilities from 3 to 4, and restoring it returned 3.\n\n`deny` now declares it, and the pack input contract rejects any entry whose argv\nruns the audit script without declaring it, so the next sensor wired to that script\ncannot silently reintroduce the gap.\n\n* test(harness): cover the audit-waiver declaration both ways\n\nTwo fixtures run the same pack whose sensor executes\n`scripts/check-dependency-audit.sh`: one omits `.cargo/audit.toml` and must turn the\nprobe red with the new message, one declares it and must go green. The green half is\nwhat stops the rule from being satisfied by rejecting every pack.\n\n* docs(harness): record the audit waiver input and its contract rule\n\n* fix(harness): declare the build config that cargo invocations read\n\nThe harness fingerprints the build *environment* as policy inputs - RUSTFLAGS, RUSTC,\nCARGO_BUILD_TARGET and CARGO_ENCODED_RUSTFLAGS are in its policy list - but not the\nfile that sets the same knobs, and this workspace's rustflags and profile settings\nlive in `.cargo/config.toml`. Appending a comment to that file left\n`policy_fingerprint` at the same sha256 and no sensor declared it, so a build-config\nchange would reuse the recorded pass of every sensor that shells out to cargo.\n\nAll eight sensors whose argv reaches a cargo invocation now declare it, the pack\ndocuments why, and the contract rejects a cargo-invoking sensor that omits it. The\nreach is the argv plus the scripts named in it, which over-approximates when such a\nscript mentions cargo on a branch that sensor does not take: safe in that direction,\nbecause an extra declaration costs a re-run instead of hiding a change. The\ncompatibility test covers both directions (declared -> green, undeclared -> the named\nviolation) so the rule cannot pass by rejecting every pack.\n\nThe detector counts only real subcommands on non-comment lines - a probe that reads\nshell scripts otherwise flags its own prose.\n\n* docs(harness): record the build-config declaration and its contract rule\n\n* docs(harness): list the audit-waiver and build-config rules in the skill row\n\nThe harness skill's row enumerates the pack input contract, so it now names the two\nrules added here: audit-running entries declare `.cargo/audit.toml` (cargo-audit's\nwaiver list, which the script never passes on the command line), and cargo-invoking\nsensors declare `.cargo/config.toml`.\n\n* fix(harness): require .cargo/config.toml everywhere and the pack union for the probe\n\nDeriving the build-config declaration from \"this sensor's argv reaches a cargo\ninvocation\" was measured wrong in both directions. quality-gates runs its script\nthrough a `bash -c` string, which a path-based read can only open as a filename,\nso the sensor whose script runs `RUSTFLAGS=\"-D warnings\" cargo test` was missed;\nand reading every argv-named script made the contract's own validity depend on\nfiles no sensor could declare, so editing one of those scripts could reuse the\nvalidity sensor's recorded pass - the reuse this contract exists to remove.\n\nSo every sensor now declares `.cargo/config.toml` (no shell parsing, nothing\nextra read; an unnecessary declaration costs a re-run on the rare change to that\nfile), and the rule stands down only for a workspace with no such file, which\nkeeps the throwaway fixture packs valid. The same contract now requires the\nsensor that runs the probe to declare every pattern the pack declares, because\nthe match-a-file rule resolves them all against the repository: a change to any\npattern's match set (deleting the last file it matches) flips a verdict. A single\n`**/*` does not cover that union - measured on 0.4.1, a nested edit under docs/\nleft the sensor's recorded digest unchanged - so the union is declared.\n\nBoth rules are covered in both directions by scripts/test-do-harness-compat.sh\n(31 cases), and CHANGELOG.md, HARNESS.md and the harness skill record the\nmeasurements.\n\n* fix(harness): drop the **/*.json glob that nulled the doctrine sensor's digest\n\nThe union declaration added for the match-a-file rule included a `**/*.json`\npattern, which matches this workspace's tracked symlink\n`.antigravitycli/48353faa-....json`. A declared pattern whose resolution includes\na symlink records a **null** digest even when it also matches thousands of\nregular files, so the full verification run recorded `harness-doctrine` with\n`input_manifest.sensors[\"harness-doctrine\"] = null` and\n`do-harness status --set verification` reported red - the exact defect this pack\nchange exists to remove, reintroduced by the declaration itself.\n\nIsolated in a throwaway worktree with a stub sensor declaring `**/*.json`,\nchanging only the tracked symlink (removed from index and worktree):\n\n    symlink tracked                -> digest None\n    same pattern, entry removed    -> digest sha256:ff88c649...\n\nAn earlier reading of the same logs blamed a harness refusal to execute the\nsensor (`execution: not_run`). That was wrong: it was the strike counter - three\nconsecutive failures halt a sensor until `do-harness errors clear` - and that run\nhad accumulated failures from the bisection. A halted sensor still records its\nmanifest digest, so the null digest is attributable to the declaration alone.\n\nThe docs previously claimed `**/*` was \"not recursive\" (that reading came from a\nstale normalised manifest - `verify --only <sensor> --record` does not rewrite\nit). CHANGELOG.md, HARNESS.md, the pack comment and the contract comment now\nstate the measured cause: a pattern whose resolution includes a symlink, or a\npattern matching no file, records a null digest.\n\n* chore(harness): pin the compatibility floor at 0.2.0\n\ndo-harness.toml declares `inputs` on its sensors, which no release before 0.2.0\nunderstands. The tracked pin was 0.1.0, so the `Harness CLI contract (0.1.0)` job\ncould not even read the pack: `TOML parse error at line 72, column 1 ... unknown\nfield 'inputs', expected one of name, argv, retry, timeout, allow_failure,\ntransient_exit_codes, when-changed`. That job failed on every head of this change.\n\nMeasured against the published binaries in a clean workspace (fresh worktree,\nfresh HOME, no .do-harness state), running both probes this repo owns\n(check-do-harness-compat.sh and check-do-harness-doctrine.sh):\n\n    0.1.0  fail  cannot read the pack at all (unknown field `inputs`)\n    0.2.0  pass  compat probe and status-contract probe both green\n    0.4.1  pass\n\n0.2.0 introduced `inputs`, and the recorded-pass reuse that makes declaring it\nsound, so it is the honest floor; `validated_through` stays 0.4.1, and the CI\nmatrix becomes ['0.2.0', '0.4.1'], both entries checksum-verified from their\nrelease checksums.txt as before. AGENTS.md, HARNESS.md, the harness skill,\nscripts/do-harness-version.txt and plans/GATE_CONTRACT.md name the same number,\ngate-contract parity passes, and the stale `.github/workflows/harness-compat.yml`\nreference in the version file is corrected to the job that actually runs it.\n\nDo not measure an older release in a workspace a newer harness has already run:\n`doctor` also checks the state database's applied migrations\n(.do-harness/agent_state.db) and reports `newer than this binary (23 applied,\nmax 21)`. That is local state, not a property of the pack; the version file and\nCHANGELOG record it so the next person does not repeat the detour.\n\n---------\n\nCo-authored-by: omp agent <agent@omp>",
+          "timestamp": "2026-11-13T20:31:19+01:00",
+          "tree_id": "08b642fa9f75ad7473c770729c573ceb121f6db1",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/fa3c561f0cb9eb7ea70d853277fbe5f9093c542c"
+        },
+        "date": 1794601431600,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 22801649.98,
+            "range": "± 214159.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 265979623.8,
+            "range": "± 1193680.19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 126992265.58,
+            "range": "± 1104398.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 266556743.73,
+            "range": "± 2594138.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 48223154.21,
+            "range": "± 391644.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 10853543.76,
+            "range": "± 950258.3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 143.46,
+            "range": "± 2.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 282.07,
+            "range": "± 1291.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_clear_1000_entries",
+            "value": 1026145410.6,
+            "range": "± 28948628.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_clear_100_entries",
+            "value": 104214250.08,
+            "range": "± 1800580.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_disabled",
+            "value": 10092944.12,
+            "range": "± 547245.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_large_10000",
+            "value": 10525567.81,
+            "range": "± 552907.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_medium_1000",
+            "value": 9483607.93,
+            "range": "± 524036.58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_small_100",
+            "value": 10245677.08,
+            "range": "± 756892.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_cached",
+            "value": 3116.95,
+            "range": "± 21.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 2634480.75,
+            "range": "± 7360.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 399.71,
+            "range": "± 13.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 2830.26,
+            "range": "± 24.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 147.1,
+            "range": "± 1.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 229.22,
+            "range": "± 0.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 320.22,
+            "range": "± 1.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 183.73,
+            "range": "± 0.88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_10",
+            "value": 3101.33,
+            "range": "± 21.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_100",
+            "value": 39552.99,
+            "range": "± 257.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_200",
+            "value": 53493662.15,
+            "range": "± 759626.58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_50",
+            "value": 17562.53,
+            "range": "± 119.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_multiple_accesses",
+            "value": 70765783.48,
+            "range": "± 2393413.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_single_access",
+            "value": 71824316.56,
+            "range": "± 2310165.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 3449.04,
+            "range": "± 24.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 37983.47,
+            "range": "± 257.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 382426.15,
+            "range": "± 2800.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 1897752.48,
+            "range": "± 12470.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 154.15,
+            "range": "± 0.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss_vs_hit_first_access_miss",
+            "value": 12960022.38,
+            "range": "± 771558.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss_vs_hit_subsequent_access_hit",
+            "value": 14266153.86,
+            "range": "± 911096.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 10137.49,
+            "range": "± 93.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 969.08,
+            "range": "± 3.98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 311.07,
+            "range": "± 8.85",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 382.78,
+            "range": "± 19.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 472.06,
+            "range": "± 33.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 338.38,
+            "range": "± 14.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 588.49,
+            "range": "± 7.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_stats_stats_calculation",
+            "value": 149746937.42,
+            "range": "± 4737955.98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 46.87,
+            "range": "± 0.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_1000",
+            "value": 46.7,
+            "range": "± 0.18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_500",
+            "value": 46.65,
+            "range": "± 0.12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_5000",
+            "value": 46.74,
+            "range": "± 0.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 2151.51,
+            "range": "± 6.38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 65528.24,
+            "range": "± 295.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 244.16,
+            "range": "± 0.66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 6618.29,
+            "range": "± 13.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 1085.71,
+            "range": "± 5.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 32843.11,
+            "range": "± 128.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 4402709.54,
+            "range": "± 159760.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 4410920.95,
+            "range": "± 130479.88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 5.18,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 5.18,
+            "range": "± 0.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 5.18,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 5.18,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 5.18,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.26,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.26,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.26,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.26,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.26,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 93016.37,
+            "range": "± 1901.32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 8889.43,
+            "range": "± 251.36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 10995.77,
+            "range": "± 407.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 6880.66,
+            "range": "± 468.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 52258.84,
+            "range": "± 778.59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_latest_concurrency_1_read_latest@1",
+            "value": 3181263015.8,
+            "range": "± 10468014.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 3494727034.1,
+            "range": "± 15606587.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 3179413021.8,
+            "range": "± 13407783.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 3182736649.5,
+            "range": "± 138553426.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 3353625557.7,
+            "range": "± 31944025.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_16_read_only@16",
+            "value": 3161756579.8,
+            "range": "± 16078577.46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 3163933174.45,
+            "range": "± 10537976.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 3172302712.35,
+            "range": "± 13929446.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 3175213532.2,
+            "range": "± 19010796.61",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 5896987820.4,
+            "range": "± 22128295.08",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 3330802477.9,
+            "range": "± 13832790.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 3886284532.1,
+            "range": "± 14740855.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 4521707026.7,
+            "range": "± 18664420.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 16882.94,
+            "range": "± 97.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 17073.37,
+            "range": "± 269",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 378554.48,
+            "range": "± 1360.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 23227.55,
+            "range": "± 31212.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 51294.64,
+            "range": "± 7011.93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 104186.5,
+            "range": "± 16806.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 163345,
+            "range": "± 25308.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_1",
+            "value": 3378201.89,
+            "range": "± 249075.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_10",
+            "value": 6891104.9,
+            "range": "± 450922.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_100_100_episodes",
+            "value": 132636437.65,
+            "range": "± 3244379.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_10_episodes",
+            "value": 24635462.54,
+            "range": "± 1439178.4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_50_50_episodes",
+            "value": 71453078.74,
+            "range": "± 1598738.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_uncached_100_episodes",
+            "value": 131221605.65,
+            "range": "± 2606979.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_write_10_episodes",
+            "value": 21974676.32,
+            "range": "± 1154178.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 250.66,
+            "range": "± 0.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 2156.83,
+            "range": "± 5.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 1086.16,
+            "range": "± 0.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 6633.63,
+            "range": "± 14.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 65637.21,
+            "range": "± 97.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 32554.55,
+            "range": "± 71.67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 18152.54,
+            "range": "± 52.35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heuristic_retrieval_cached_50_heuristics",
+            "value": 64439668.76,
+            "range": "± 1725649.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 60624.99,
+            "range": "± 149965.95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 49867.29,
+            "range": "± 5261.99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 15.52,
+            "range": "± 0.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_retrieval_cached_50_patterns",
+            "value": 67642464.03,
+            "range": "± 1535699.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 1069.64,
+            "range": "± 3.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 1064.95,
+            "range": "± 2.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 972.95,
+            "range": "± 4.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 550.06,
+            "range": "± 20.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 422.68,
+            "range": "± 9.51",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 2540298.71,
+            "range": "± 117396.64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 1238602.46,
+            "range": "± 57138.58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 11166.62,
+            "range": "± 133.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 1004.19,
+            "range": "± 1.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 20291.55,
+            "range": "± 340.73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 9356.94,
+            "range": "± 119.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 41363.78,
+            "range": "± 396.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 978157.68,
+            "range": "± 26564.72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 967168.44,
+            "range": "± 22150.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 973600.26,
+            "range": "± 26983.37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 981510.45,
+            "range": "± 28133.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 969040.23,
+            "range": "± 19043.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 973043.04,
+            "range": "± 19949.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 6049.15,
+            "range": "± 133.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 3913.77,
+            "range": "± 49.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 11009.53,
+            "range": "± 85.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 2457.14,
+            "range": "± 19.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 20667.58,
+            "range": "± 85.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 201188.58,
+            "range": "± 1478.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "turso_with_cache_default_cache",
+            "value": 72856.09,
+            "range": "± 3101.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 43971.64,
+            "range": "± 468.81",
             "unit": "ns/iter"
           }
         ]

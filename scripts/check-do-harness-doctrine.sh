@@ -221,6 +221,82 @@ else
 fi
 
 rm -rf "$FIX"
+
+# ---------------------------------------------------------------------------
+# Pack input contract. A sensor that declares no `inputs` falls back to
+# `input:git-index-and-nonignored-untracked`, whose digest is recorded as null,
+# so `do-harness status --set <set>` reports
+# `stale (inputs_changed_or_unknown)` for every change - including a no-op on a
+# clean tree - and the "confirm green local evidence boundary" step of the
+# completion contract can never pass. A declared pattern that matches no file
+# records a null digest the same way. Both halves are asserted here, so the
+# fixture-only status checks above cannot hide a pack that never declares inputs.
+# ---------------------------------------------------------------------------
+echo
+echo "=== do-harness Pack Input Contract ==="
+PACK="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/do-harness.toml"
+if [[ ! -f "$PACK" ]]; then
+    ok "no workspace pack at $PACK; nothing to assert"
+else
+    pack_out=$(python3 - "$PACK" <<'PY'
+import subprocess
+import sys
+import tomllib
+
+pack_path = sys.argv[1]
+root = pack_path.rsplit("/", 1)[0]
+try:
+    with open(pack_path, "rb") as fh:
+        pack = tomllib.load(fh)
+except Exception as exc:  # noqa: BLE001 - reported, not raised
+    print(f"VIOLATION could not parse {pack_path}: {exc}")
+    sys.exit(0)
+
+sensors = pack.get("sensors", [])
+if not sensors:
+    print("VIOLATION the pack declares no sensors")
+    sys.exit(0)
+
+def matches(pattern):
+    out = subprocess.run(
+        ["git", "ls-files", "--", pattern], cwd=root, capture_output=True, text=True
+    ).stdout
+    out += subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "--", pattern],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return bool(out.strip())
+
+missing = [s.get("name", "?") for s in sensors if "inputs" not in s]
+if missing:
+    print("VIOLATION sensors declare no inputs (status can never report green): " + ", ".join(missing))
+else:
+    print(f"OK every one of {len(sensors)} sensors declares inputs")
+
+empty = [
+    f"{s.get('name', '?')}:{pattern}"
+    for s in sensors
+    for pattern in s.get("inputs", [])
+    if not matches(pattern)
+]
+if empty:
+    print("VIOLATION input patterns match no file (record a null digest): " + ", ".join(empty))
+else:
+    print("OK every declared input pattern matches at least one file")
+PY
+    )
+    while IFS= read -r line; do
+        case "$line" in
+            OK\ *) ok "${line#OK }" ;;
+            VIOLATION\ *) violation "${line#VIOLATION }" ;;
+            "") ;;
+            *) violation "pack input contract produced unreadable output: $(head -c 160 <<<"$line")" ;;
+        esac
+    done <<<"$pack_out"
+fi
+
 echo
 if [[ "$VIOLATIONS" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-doctrine - $VIOLATIONS status-contract check(s) failed for ${VERSION:-unknown} at $RESOLVED" >&2

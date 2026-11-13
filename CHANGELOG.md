@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `do-harness status --set <set>` could never report `green` in this workspace.
+  No sensor in `do-harness.toml` declared `inputs`, so the harness recorded the
+  fallback `input:git-index-and-nonignored-untracked` as a **null** digest
+  (`input_manifest.sensors.<name>: null`), and every `status` then reported
+  `stale (inputs_changed_or_unknown)` — including a no-op on a clean tree — so the
+  completion contract's "confirm green local evidence boundary" step was
+  unachievable while the same sensors exited 0 under `verify … --record`. All 23
+  sensors now declare their real input surface (`inputs = []` for
+  `commit-ci-tokens`, which reads commit messages rather than file content; a new
+  commit still invalidates through HEAD), and `check-do-harness-doctrine.sh` fails
+  when a sensor declares no `inputs` or a glob that matches no file — the other
+  route to the same null digest — so the contract cannot regress silently.
+
 ## [0.1.49] - 2026-11-05
 
 ### Added

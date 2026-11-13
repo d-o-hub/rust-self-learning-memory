@@ -1,10 +1,10 @@
 # Plans Directory
 
-**Workspace**: `v0.1.49` · **Released tag**: `v0.1.48` (`c00f71cc`, GitHub Release 2026-11-04T12:16:47Z, all four registered crates published) · **Main audit baseline**: `d5d8f463`
-**Active plan**: `v0.1.49` release prep is on `main`; the truth-fix wave (#1257) and CI hardening (#1260) are merged, the unmeasured shard-routing perf PR (#1255) was closed on guardrail review, and the tracker is empty. Remaining: tag + publish + released-CLI dogfood, then the `0.1.50` development bump. See [ACTIONS.md](ACTIONS.md) and [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
+**Workspace**: `v0.1.50` · **Released tag**: `v0.1.49` (`16d92d22`, GitHub Release 2026-11-12T17:23:40Z with 37 assets; all four registered crates verified at `0.1.49` on crates.io) · **Main audit baseline**: `d5d8f463`
+**Active plan**: `v0.1.49` shipped — the first tag was cancelled by the retired `macos-14` release label, re-cut on the runner-pin fix (#1265), and the Release + publish chains plus released-CLI dogfood are green. This PR carries the `0.1.50` development bump; the tracker is empty. See [ACTIONS.md](ACTIONS.md) and [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md).
 **Completed previous wave**: v0.1.48 shipped 2026-11-04 (`c00f71cc`) and was dogfooded with the released CLI; v0.1.44/0.1.45/0.1.46/0.1.47 shipped earlier in the same chain (release pipeline C1–C7 in #1121/#1123/#1125)
-**Last Updated**: 2026-11-08
-**Open PRs**: 0 at the 2026-11-08 baseline; this plans README refresh is the only open review PR, so post-merge count returns to 0 · **Open issues**: 0
+**Last Updated**: 2026-11-13
+**Open PRs**: 0 at the 2026-11-13 baseline; this development-bump PR is the only open review PR, so post-merge count returns to 0 · **Open issues**: 0
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Quick Navigation

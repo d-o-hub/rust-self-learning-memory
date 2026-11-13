@@ -1,14 +1,14 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-11-05
-**Released Version**: v0.1.49 (release-prep on `main`; tag and GitHub Release follow via `release-manager ship`)
-**Workspace Version**: 0.1.49 (release commit for `v0.1.49`; the post-release development bump to `0.1.50` follows tagging)
-**Active plan**: `v0.1.49` release-prep — the truth-fix wave (#1257) and CI timeout hardening (#1258) are merged, the unmeasured shard-routing perf PR (#1255) was closed on guardrail review, and the tracker is empty. Remaining: tag + publish + released-CLI dogfood + crates.io verification, then the `0.1.50` development bump.
+**Last Updated**: 2026-11-13
+**Released Version**: v0.1.49 (`16d92d22`, GitHub Release published 2026-11-12T17:23:40Z with 37 assets; all four registered crates verified at `0.1.49` on crates.io)
+**Workspace Version**: 0.1.50 (post-release development bump — `v0.1.49` is tagged, so the workspace moves a patch ahead in its own PR)
+**Active plan**: `v0.1.49` shipped end-to-end — the first tag was cancelled by the retired `macos-14` release label and re-cut on the runner-pin fix (#1265); the release and publish chains plus the released-CLI dogfood are green. This PR carries the `0.1.50` development bump. Remaining: upstream-blocked Dependabot ACT-404 and maintainer-external ADR lifecycle acceptance.
 **Sprint 2026-10-02 (closed)**: v0.1.44 shipped 2026-10-02 (tag on `4f4f4ba8`) — checked completion receipts (#1080 → #1107), CLI drain-and-verify (#1081 → #1112), pattern-search input bounds (#1113), clippy 1.99 `assert_is_empty` migration (#1108), LOC gate (#1103), architecture/status docs refresh (#1110), coverage-floor reconciliation (#1090 → #1117); release-pipeline work in #1109 landed as C1/C2 (#1123), C3/C4 (#1121), C5–C7 (#1125)
 **Plan**: #1080 via #1107, #1081 via #1112, #1113 direct, the 1.99 lint migration via #1108, LOC gate via #1103, docs refresh via #1110, coverage policy via #1117; prior waves historical (`GOAP_PR_REVIEW_CI_FIX_WAVE_2026-08-07.md`, `GOAP_CIT_A1_A2_A3_WORKFLOW_WAVE_2026-08-06.md`, `GOAP_CIT_A4_A5_AND_PLAN_TRUTH_2026-08-06.md`, `GOAP_ADR081_CAPABILITY_TRUTH_2026-08-10.md`, `GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, merged #947, #952)
-**Branch**: release preparation based on `main` @ `2db7a6a4`
-**Open PRs**: this release-prep PR is the only open pull request; `gh pr list --state open` is the live source
-**Open issues**: 0 — release-drift #1236 closed itself when `v0.1.48` was tagged, so the tracker is empty again
+**Branch**: post-release development bump based on `main` @ `16d92d22`
+**Open PRs**: this development-bump PR is the only open pull request; `gh pr list --state open` is the live source
+**Open issues**: 0 (`gh issue list --state open` at the 2026-11-13 baseline)
 
 
 ## Sprint 2026-10-28–2026-11-01 — release closeout and CLI output contract

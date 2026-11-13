@@ -163,7 +163,7 @@ jobs:
       matrix:
         # Keep in step with scripts/do-harness-version.txt; the step below fails loudly
         # rather than silently testing nothing when the two drift apart.
-        version: ['0.1.0', '0.4.1']
+        version: ['0.2.0', '0.4.1']
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

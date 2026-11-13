@@ -2,13 +2,27 @@
 # binary this repository's agent workflow is validated against (issue #1247).
 #
 # `pin` is what `scripts/check-do-harness-compat.sh` requires locally (>= pin) and
-# what `.github/workflows/harness-compat.yml` downloads exactly, with the sha256 from
-# the release's `checksums.txt`. AGENTS.md, HARNESS.md and the harness skill must name
-# this same number — the probe fails if they name anything else.
+# what the `harness-compat` job in `.github/workflows/skill-evals.yml` downloads
+# exactly, with the sha256 from the release's `checksums.txt`. AGENTS.md, HARNESS.md
+# and the harness skill must name this same number — the probe fails if they name
+# anything else.
+#
+# The pin is 0.2.0 because `do-harness.toml` declares `inputs` on its sensors: 0.1.0 has
+# no such field and rejects the whole pack (`unknown field 'inputs', expected one of name,
+# argv, retry, timeout, allow_failure, transient_exit_codes, when-changed`), while 0.2.0
+# introduced `inputs` and the recorded-pass reuse that makes declaring it sound. Both
+# probes are recorded green against the published 0.2.0 binary in a clean workspace (fresh
+# HOME, no state database): 0.1.0 fails, 0.2.0 and 0.4.1 pass.
+#
+# Note when validating an older release by hand: `doctor` also checks the applied
+# migrations of the workspace state database (`.do-harness/agent_state.db`). Against a
+# database a *newer* harness has migrated, an older binary reports `doctor check failed:
+# newer than this binary (23 applied, max 21)` — that is local state, not a property of
+# this pack, and it is why an older release is measured in a fresh worktree.
 #
 # `validated_through` is the newest upstream release the same probe has been measured
 # green against. Raising it is a deliberate change: run
 #   ./scripts/check-do-harness-compat.sh --bin <binary-of-that-version>
 # and record the output on the PR. Prose may not cite a version above this line.
-pin = "0.1.0"
+pin = "0.2.0"
 validated_through = "0.4.1"

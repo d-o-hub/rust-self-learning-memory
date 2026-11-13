@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Harness pin raised from `v0.1.0` to `v0.2.0` — `scripts/do-harness-version.txt`, the prose
+  pins in `AGENTS.md`, `HARNESS.md` and the harness skill, and the `skill-evals.yml` matrix.
+  The pack declares `inputs` on its sensors and 0.1.0 has no such field: it refuses to read
+  `do-harness.toml` at all (`unknown field 'inputs', expected one of name, argv, retry,
+  timeout, allow_failure, transient_exit_codes, when-changed`), which is what made the
+  `Harness CLI contract (0.1.0)` job fail on every head of this change. `inputs`, and the
+  recorded-pass reuse that makes declaring it sound, arrived in 0.2.0, and both probes
+  (`check-do-harness-compat.sh` and `check-do-harness-doctrine.sh`) are recorded green against
+  the published 0.2.0 binary in a clean workspace, so the pin is 0.2.0 with `validated_through`
+  still `0.4.1` and the matrix `['0.2.0', '0.4.1']`. Measuring an older release by hand needs a
+  fresh worktree: `doctor` also checks the workspace state database's applied migrations
+  (`.do-harness/agent_state.db`), so an older binary run against a database a newer harness
+  migrated reports `doctor check failed: newer than this binary (23 applied, max 21)` — local
+  state, not a property of this pack.
+
+### Fixed
+
+- `do-harness status --set <set>` could never report `green` in this workspace.
+  No sensor in `do-harness.toml` declared `inputs`, so the harness recorded the
+  fallback `input:git-index-and-nonignored-untracked` as a **null** digest
+  (`input_manifest.sensors.<name>: null`), and every `status` then reported
+  `stale (inputs_changed_or_unknown)` — including a no-op on a clean tree — so the
+  completion contract's "confirm green local evidence boundary" step was
+  unachievable while the same sensors exited 0 under `verify … --record`. All 23
+  sensors now declare their real input surface: a sensor that reads commit
+  messages rather than file content still names the checker script that encodes
+  its rules, because an empty `inputs = []` list is not "no inputs" — upstream
+  treats it as the omitted case and records the same null digest (measured on
+  0.4.1; a small fixture repo resolves that fallback to a real digest, which is
+  why only this workspace showed the defect). `check-do-harness-doctrine.sh` now
+  fails on a missing list, an empty list, or a glob matching no file — all three
+  routes to the null digest — so the contract cannot regress silently. The same
+  contract also requires a sensor that claims Rust sources to claim the files
+  those sources embed with `include_str!`/`include_bytes!`
+  (`memory-core/src/retrieval/cascade/ontology.json` is the workspace's one case):
+  such a file is a compiled input no `*.rs` glob covers, and
+  `verify --unchanged=skip` reuses a recorded pass on the declared digests alone,
+  so an edited embedded asset could otherwise reuse a stale pass. Because that
+  rule reads every Rust source, the `harness-doctrine` sensor declares `**/*.rs`
+  and the embedded asset as well, and the contract rejects a pack whose
+  contract-running sensor declares none of the sources the contract reads: a
+  source-only `include_str!` addition would otherwise reuse the recorded pass of
+  the rule that detects it. The audit sensor also declares `fuzz/Cargo.lock`: the
+  harness fingerprints root `Cargo.lock` as a policy input (`policy:Cargo.lock`
+  appears in every sensor's declaration and invalidates every beat) but not the
+  fuzz graph's lockfile, so a fuzz-lock-only edit could have reused an older,
+  passing audit beat. `shell-counters` scanned every tracked `*.sh` but declared
+  only `scripts/*.sh`, so a bare `((i++))` in `.claude/helpers/*.sh` could have
+  reused its pass; it now declares `**/*.sh`. `deny` also declares
+  `.cargo/audit.toml`: `check-dependency-audit.sh` hands cargo-audit a lockfile and
+  nothing else, so cargo-audit reads its waiver list from that file (cargo's config
+  discovery from the workspace root). It is not a policy input either — a probe edit
+  to it left `policy_fingerprint` unchanged — and it decides the sensor's verdict:
+  deleting the `RUSTSEC-2023-0071` entry took the script's counted vulnerabilities
+  from 3 to 4, so a removed waiver would otherwise reuse the recorded pass. The
+  contract now rejects any entry that runs the audit script without declaring it,
+  and the compatibility test covers both directions (declared → green, undeclared →
+  the named violation) so the rule cannot be satisfied by refusing every pack.
+  `.cargo/config.toml` is declared by every sensor (all 23): the harness fingerprints
+  the build *environment* as policy inputs — `RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`
+  and `CARGO_ENCODED_RUSTFLAGS` are all in its policy list — but not the file that sets
+  the same knobs, and this workspace's rustflags and profile settings live there. A
+  probe edit to that file left `policy_fingerprint` at the same sha256, so an undeclared
+  change would reuse a sensor's recorded pass over a changed build configuration. The
+  declaration started as "derive the sensors whose argv reaches a `cargo` invocation"
+  (8 of them) and that derivation was measured wrong in both directions:
+  `quality-gates` runs its script as a `bash -c` string — whose line 354 is
+  `RUSTFLAGS="-D warnings" cargo test --test quality_gates` — and a path-based read can
+  only open that argv entry as a filename, so the sensor was missed; and reading every
+  argv-named script made this contract's own validity depend on files no sensor
+  declared, so editing one of them could reuse the validity sensor's recorded pass, the
+  reuse this contract exists to remove. The rule is now a uniform declaration: no shell
+  parsing, nothing extra read, and an unnecessary declaration costs a re-run on the rare
+  change to this file. It stands down only for a workspace that has no such file, which
+  keeps the throwaway fixture packs of `scripts/test-do-harness-compat.sh` valid. The
+  same contract now also requires the sensor that runs it to declare the pack's whole
+  pattern union (51 patterns in this workspace), because the other rules here resolve
+  every declared pattern against the repository: a change to any pattern's match set —
+  deleting the last file a pattern matches, say — flips the match-a-file verdict. The
+  union cannot be replaced by one `**/*`: it also matches this workspace's tracked
+  symlinks (`.antigravitycli/<uuid>.json`, `.claude/skills`), and a declared pattern
+  whose resolution includes a symlink records a null digest even when it also matches
+  thousands of regular files — measured on 0.4.1 in a throwaway worktree with a stub
+  sensor, `**/*.json` recorded None while that symlink was tracked and
+  `sha256:ff88c649...` after removing the one entry from the index and worktree, with
+  nothing else changed (that null digest is exactly the defect this contract removes,
+  and it was in the previous version of this very declaration). A pattern matching no
+  file nulls the digest the same way. Both new rules are covered in both directions by
+  `scripts/test-do-harness-compat.sh` (declared → green, undeclared → the named
+  violation), so neither can pass by refusing every pack.
+
 ## [0.1.49] - 2026-11-05
 
 ### Added

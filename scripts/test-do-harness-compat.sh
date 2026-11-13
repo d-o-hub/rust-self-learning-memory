@@ -446,6 +446,274 @@ export STUB_GREEN_RC=1
 run_doctrine
 expect_red "a passing sensor that exits 1 is caught" "contract says 0"
 
+# 14. Pack input contract. A sensor that declares no `inputs` gets the
+# `input:git-index-and-nonignored-untracked` fallback recorded as a null digest,
+# which makes `do-harness status --set <set>` report
+# `stale (inputs_changed_or_unknown)` for every change and breaks the documented
+# "confirm green local evidence boundary" line. The probe asserts the pack of the
+# repository it lives in, so these cases run a copy of it inside a fixture whose
+# pack is the mutation.
+build_pack_fixture() {
+    local r=$1
+    rm -rf "$r"
+    mkdir -p "$r/scripts"
+    cp "$DOCTRINE" "$r/scripts/check-do-harness-doctrine.sh"
+}
+
+build_pack_fixture "$WORK/pack-no-inputs"
+cat >"$WORK/pack-no-inputs/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-no-inputs/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a sensor that declares no 'inputs' is caught" \
+    "sensors declare no inputs (status can never report green): probe-green"
+
+build_pack_fixture "$WORK/pack-empty-inputs"
+cat >"$WORK/pack-empty-inputs/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = []
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-empty-inputs/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "an empty 'inputs' list is caught" \
+    "sensors declare an empty inputs list, which upstream treats as the omitted case"
+
+build_pack_fixture "$WORK/pack-empty-glob"
+cat >"$WORK/pack-empty-glob/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["no/such/glob/**/*.rs"]
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-empty-glob/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "an input glob matching no file is caught" \
+    "input patterns match no file (record a null digest): probe-green:no/such/glob/**/*.rs"
+
+# 15. The pack section's interpreter must fail closed. The probe runs under
+# `set -uo pipefail` with no `-e`, so an absent, failing or silent python3 would
+# otherwise leave the read loop with nothing to consume and let the probe print
+# "Passed" without asserting the pack at all - the vacuous-green class this file
+# exists to prevent.
+mkdir -p "$WORK/py-fail" "$WORK/py-silent"
+printf '#!/usr/bin/env bash\necho "no tomllib" >&2\nexit 3\n' >"$WORK/py-fail/python3"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK/py-silent/python3"
+chmod +x "$WORK/py-fail/python3" "$WORK/py-silent/python3"
+
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$WORK/py-fail:$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" bash "$DOCTRINE" 2>&1
+) || RUN_RC=$?
+expect_red "a failing python3 blocks the pack contract" "could not be evaluated (python3 exited 3)"
+
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$WORK/py-silent:$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" bash "$DOCTRINE" 2>&1
+) || RUN_RC=$?
+expect_red "a silent python3 blocks the pack contract" "could not be evaluated (it produced no output)"
+
+# 16. A file compiled in by include_str!/include_bytes! is a build input that no
+# `*.rs` glob covers, and `verify --unchanged=skip` reuses a recorded pass on the
+# declared digests alone. The probe must catch a sensor that claims the Rust
+# sources but not the file they embed.
+build_pack_fixture "$WORK/pack-embedded"
+mkdir -p "$WORK/pack-embedded/src"
+printf 'const O: &str = include_str!("ontology.json");\n' >"$WORK/pack-embedded/src/a.rs"
+printf '{}\n' >"$WORK/pack-embedded/src/ontology.json"
+cat >"$WORK/pack-embedded/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["**/*.rs"]
+TOML
+git -C "$WORK/pack-embedded" init -q
+git -C "$WORK/pack-embedded" add -A
+git -C "$WORK/pack-embedded" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+    commit -qm init
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-embedded/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a sensor that claims Rust sources but not their embedded file is caught" \
+    "src/ontology.json (embedded by src/a.rs): probe-green"
+
+# 17. The contract reads every Rust source, so a pack whose contract sensor declares
+# none of them cannot invalidate the contract's own recorded pass: a source that adds
+# an undeclared include_str! would be reused, even though that is what the contract
+# detects. The probe must reject the pack that runs it.
+build_pack_fixture "$WORK/pack-selfdecl"
+cat >"$WORK/pack-selfdecl/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "harness-doctrine"
+argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
+inputs = ["scripts/check-do-harness-doctrine.sh"]
+TOML
+git -C "$WORK/pack-selfdecl" init -q
+git -C "$WORK/pack-selfdecl" add -A
+git -C "$WORK/pack-selfdecl" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+    commit -qm init
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-selfdecl/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a pack whose contract sensor declares none of the sources it reads is caught" \
+    "the sensor that runs this probe declares no Rust source pattern"
+
+# 18. `scripts/check-dependency-audit.sh` hands cargo-audit a lockfile and nothing
+# else, so cargo-audit reads its waiver list from `.cargo/audit.toml`. That file is
+# not a harness policy input (a probe edit to it left `policy_fingerprint` unchanged)
+# and it decides the script's verdict (deleting the RUSTSEC-2023-0071 entry took the
+# counted vulnerabilities from 3 to 4), so an entry that runs the script without
+# declaring it can reuse a recorded pass over a removed waiver. The second fixture is
+# the same pack *with* the declaration and must go green, so the rule cannot be
+# satisfied by refusing every pack.
+for waiver_case in undeclared declared; do
+    r="$WORK/pack-audit-$waiver_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo"
+    printf '# waiver list\n' >"$r/.cargo/audit.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/check-dependency-audit.sh"
+    if [[ "$waiver_case" == declared ]]; then
+        inputs='["scripts/check-dependency-audit.sh", ".cargo/audit.toml"]'
+    else
+        inputs='["scripts/check-dependency-audit.sh"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/check-dependency-audit.sh"]
+inputs = $inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$waiver_case" == undeclared ]]; then
+        expect_red "an entry running the audit script without its waiver list is caught" \
+            "declare no .cargo/audit.toml (cargo-audit's waiver list; a waiver edit would be reused): probe-green"
+    else
+        expect_doctrine_green "the same entry declaring cargo-audit's waiver list passes"
+    fi
+done
+
+# 19. `.cargo/config.toml` sets the build knobs the harness records as policy inputs
+# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`) - this workspace's rustflags and
+# profiles live there - but the file is not a policy input itself (a probe edit left
+# `policy_fingerprint` unchanged), so a sensor that omits it reuses a recorded pass
+# over a changed build configuration. The rule is uniform on purpose: deriving
+# "this argv reaches cargo" missed `quality-gates`, whose argv is a `bash -c` string
+# naming its script, so the fixture below uses a plain non-cargo argv and still has
+# to be caught. Both directions, so the rule cannot pass by rejecting every pack.
+for config_case in undeclared declared; do
+    r="$WORK/pack-build-config-$config_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo" "$r/scripts/probe"
+    printf '[build]\njobs = -1\n' >"$r/.cargo/config.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/probe/green.sh"
+    if [[ "$config_case" == declared ]]; then
+        inputs='["scripts/probe/green.sh", ".cargo/config.toml"]'
+    else
+        inputs='["scripts/probe/green.sh"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = $inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$config_case" == undeclared ]]; then
+        expect_red "a sensor without .cargo/config.toml is caught" \
+            "declare no .cargo/config.toml (the harness tracks build flags as policy inputs, not this file): probe-green"
+    else
+        expect_doctrine_green "the same sensor declaring .cargo/config.toml passes"
+    fi
+done
+
+# 20. The pack's other rules resolve every declared pattern (the match-a-file rule)
+# and the probe reads those sources, so a change to any pattern's match set can flip
+# this contract's verdict. The sensor running the probe must therefore declare every
+# pattern the pack declares, or such a change reuses its recorded pass - and the
+# checked list is the pack's own, so a new pattern cannot escape it.
+for union_case in thin complete; do
+    r="$WORK/pack-probe-union-$union_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo" "$r/scripts/probe" "$r/src"
+    printf '[build]\njobs = -1\n' >"$r/.cargo/config.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/probe/green.sh"
+    printf '// fixture crate\n' >"$r/src/lib.rs"
+    if [[ "$union_case" == complete ]]; then
+        probe_inputs='["scripts/check-do-harness-doctrine.sh", "scripts/probe/green.sh", "**/*.rs", ".cargo/config.toml"]'
+    else
+        probe_inputs='["scripts/check-do-harness-doctrine.sh", "**/*.rs", ".cargo/config.toml"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["scripts/probe/green.sh", ".cargo/config.toml"]
+
+[[sensors]]
+name = "probe-doctrine"
+argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
+inputs = $probe_inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$union_case" == thin ]]; then
+        expect_red "the sensor running the probe must declare the pack's own patterns" \
+            "probe-doctrine runs this probe and declares only 3 of the 4 patterns the pack declares, so a change to the others reuses its recorded pass: scripts/probe/green.sh"
+    else
+        expect_doctrine_green "the same sensor declaring the pack's patterns passes"
+    fi
+done
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

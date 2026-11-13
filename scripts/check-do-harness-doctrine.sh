@@ -221,6 +221,298 @@ else
 fi
 
 rm -rf "$FIX"
+
+# ---------------------------------------------------------------------------
+# Pack input contract. A sensor that declares no `inputs`, or an empty
+# `inputs = []` list (upstream's `effective_input_digest` treats an empty list as
+# the omitted case and keeps the same declaration), falls back to
+# `input:git-index-and-nonignored-untracked`, whose digest is recorded as null on
+# this workspace - measured on 0.4.1, where a two-file fixture in a fresh git repo
+# instead resolves that fallback to a real digest, which is why only the real
+# workspace shows the defect. `do-harness status --set <set>` then reports
+# `stale (inputs_changed_or_unknown)` for every change - including a no-op on a
+# clean tree - and the "confirm green local evidence boundary" step of the
+# completion contract can never pass. A declared pattern that matches no file
+# records a null digest the same way. All of them are asserted here, so the
+# fixture-only status checks above cannot hide a pack that never declares inputs.
+# The last one is not about null digests: a file compiled into a crate by
+# `include_str!`/`include_bytes!` is a build input that no `*.rs` glob covers, and
+# `verify --unchanged=skip` reuses a recorded pass on the declared digests alone,
+# so a sensor claiming Rust sources must also claim the files they embed.
+# `git ls-files` resolves the patterns against the repository the probe lives in,
+# so a root that is not a git work tree fails closed (every pattern reads as
+# unmatched) - the intended direction for an evidence check.
+# ---------------------------------------------------------------------------
+echo
+echo "=== do-harness Pack Input Contract ==="
+PACK="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/do-harness.toml"
+if [[ ! -f "$PACK" ]]; then
+    ok "no workspace pack at $PACK; nothing to assert"
+else
+    # Fail closed: this section is the only one that interprets files with an
+    # external interpreter, and `set -uo pipefail` has no `-e`, so an absent or
+    # broken python3 would otherwise leave pack_out empty, run the loop zero
+    # times, and let the probe print "Passed" without asserting anything.
+    pack_out=""
+    if ! command -v python3 >/dev/null 2>&1; then
+        violation "pack input contract could not be evaluated: python3 not found (it parses $PACK)"
+    else
+        pack_out=$(python3 - "$PACK" <<'PY'
+import os
+import re
+import subprocess
+import sys
+import tomllib
+
+pack_path = sys.argv[1]
+root = pack_path.rsplit("/", 1)[0]
+try:
+    with open(pack_path, "rb") as fh:
+        pack = tomllib.load(fh)
+except Exception as exc:  # noqa: BLE001 - reported, not raised
+    print(f"VIOLATION could not parse {pack_path}: {exc}")
+    sys.exit(0)
+
+sensors = pack.get("sensors", [])
+if not sensors:
+    print("VIOLATION the pack declares no sensors")
+    sys.exit(0)
+
+_file_cache = {}
+
+
+def pattern_files(pattern):
+    if pattern not in _file_cache:
+        out = subprocess.run(
+            ["git", "ls-files", "--", pattern], cwd=root, capture_output=True, text=True
+        ).stdout
+        out += subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "--", pattern],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        ).stdout
+        _file_cache[pattern] = {line for line in out.splitlines() if line}
+    return _file_cache[pattern]
+
+
+def matches(pattern):
+    return bool(pattern_files(pattern))
+
+missing = [s.get("name", "?") for s in sensors if "inputs" not in s]
+if missing:
+    print("VIOLATION sensors declare no inputs (status can never report green): " + ", ".join(missing))
+else:
+    print(f"OK every one of {len(sensors)} sensors declares inputs")
+
+empty = [s.get("name", "?") for s in sensors if s.get("inputs") == []]
+if empty:
+    print(
+        "VIOLATION sensors declare an empty inputs list, which upstream treats as the"
+        " omitted case and records as the same null digest: " + ", ".join(empty)
+    )
+else:
+    print("OK no sensor declares an empty inputs list")
+
+unmatched = [
+    f"{s.get('name', '?')}:{pattern}"
+    for s in sensors
+    for pattern in s.get("inputs", [])
+    if not matches(pattern)
+]
+if unmatched:
+    print("VIOLATION input patterns match no file (record a null digest): " + ", ".join(unmatched))
+else:
+    print("OK every declared input pattern matches at least one file")
+
+# A file compiled into a crate by include_str!/include_bytes! is a build input that
+# no `*.rs` glob covers, and `verify --unchanged=skip` reuses a recorded pass on
+# declared digests alone - so a sensor that claims Rust sources as its input must
+# also claim the files those sources embed, or it can reuse a pass whose compiled
+# content changed (ontology.json's embedded concept graph is one).
+# The scan uses the same file universe as a sensor's `**/*.rs` declaration
+# (tracked plus non-ignored untracked), so a stub that a glob already matches
+# cannot hide an embedded asset from this rule.
+embedded = {}
+for rel in sorted(pattern_files("**/*.rs")):
+    try:
+        text = open(os.path.join(root, rel), encoding="utf-8", errors="ignore").read()
+    except OSError:
+        continue
+    for found in re.finditer(r'include_(?:str|bytes)!\s*\(\s*"([^"]+)"\s*\)', text):
+        asset = os.path.normpath(os.path.join(os.path.dirname(rel), found.group(1)))
+        embedded.setdefault(asset, []).append(rel)
+
+gaps = []
+for asset, carriers in sorted(embedded.items()):
+    uncovered = [
+        s.get("name", "?")
+        for s in sensors
+        if any(pattern.endswith(".rs") for pattern in s.get("inputs", []))
+        and not any(asset in pattern_files(pattern) for pattern in s.get("inputs", []))
+    ]
+    if uncovered:
+        gaps.append(f"{asset} (embedded by {', '.join(carriers)}): {', '.join(uncovered)}")
+if gaps:
+    print(
+        "VIOLATION sensors declare Rust sources but not the files they embed"
+        " (a reused pass can cover changed compiled content): " + "; ".join(gaps)
+    )
+else:
+    print(f"OK every sensor declaring Rust sources covers all {len(embedded)} embedded file(s)")
+
+# The rule above reads every Rust source in the workspace and the assets those
+# sources embed, so the sensor that runs this probe must declare them too:
+# `verify --unchanged=skip` compares declared digests only, so a source that adds
+# an undeclared `include_str!` would otherwise reuse the recorded pass of the very
+# rule that detects it. (Declaring a `*.rs` pattern here also puts this sensor
+# under the rule above, which is what keeps the asset itself declared.)
+runs_probe = {
+    s.get("name", "?")
+    for s in sensors
+    if any("check-do-harness-doctrine.sh" in str(arg) for arg in s.get("argv", []))
+}
+declares_sources = {
+    s.get("name", "?")
+    for s in sensors
+    if s.get("name", "?") in runs_probe
+    and any(str(pattern).endswith(".rs") for pattern in s.get("inputs", []))
+}
+if runs_probe - declares_sources:
+    print(
+        "VIOLATION the sensor that runs this probe declares no Rust source pattern"
+        " although the contract reads them (an undeclared source change would be"
+        " reused): " + ", ".join(sorted(runs_probe - declares_sources))
+    )
+else:
+    print(
+        "OK the sensor running this probe declares the sources this contract reads"
+        f" ({', '.join(sorted(runs_probe)) or 'none'})"
+    )
+
+# `scripts/check-dependency-audit.sh` feeds cargo-audit a lockfile and nothing else,
+# so cargo-audit reads its waiver list from `.cargo/audit.toml` (cargo's config
+# discovery, from the workspace root). That file is neither a harness policy input
+# (a probe edit to it left `policy_fingerprint` unchanged) nor covered by any other
+# declaration, and it decides the script's verdict: deleting the RUSTSEC-2023-0071
+# entry took the counted vulnerabilities from 3 to 4. So every entry that runs the
+# script has to declare it, or a removed waiver is reused as a recorded pass.
+audit_config = ".cargo/audit.toml"
+runs_audit_script = {
+    s.get("name", "?"): s
+    for s in sensors
+    if any(str(arg).endswith("check-dependency-audit.sh") for arg in s.get("argv", []))
+}
+audit_undeclared = [
+    name
+    for name, sensor in sorted(runs_audit_script.items())
+    if audit_config not in [str(pattern) for pattern in sensor.get("inputs", [])]
+]
+if audit_undeclared:
+    print(
+        "VIOLATION entries running the dependency audit script declare no"
+        f" {audit_config} (cargo-audit's waiver list; a waiver edit would be reused): "
+        + ", ".join(audit_undeclared)
+    )
+else:
+    print(
+        "OK every entry running the dependency audit script declares cargo-audit's"
+        f" waiver list {audit_config} ({', '.join(sorted(runs_audit_script)) or 'none'})"
+    )
+
+# `.cargo/config.toml` carries the build knobs the harness records as policy inputs
+# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET` and `CARGO_ENCODED_RUSTFLAGS` are all in
+# its policy list; this workspace sets rustflags and profiles in the file) but the file
+# itself is not a policy input: a probe edit to it left `policy_fingerprint` unchanged,
+# and no other rule here covers it. So EVERY sensor declares it, uniformly. Deriving
+# "this argv reaches cargo" was measured wrong in both directions: `quality-gates` runs
+# its script through a `bash -c` string, which a path-based read can only open as a
+# filename (so the sensor running `RUSTFLAGS="-D warnings" cargo test` was missed), and
+# reading every argv-named script made this contract's own validity depend on files no
+# sensor declared, so editing such a script could reuse the validity sensor's recorded
+# pass - the reuse this contract exists to remove. A uniform rule needs no shell parsing
+# and reads nothing new; an unnecessary declaration costs a re-run on the rare change to
+# this file.
+build_config = ".cargo/config.toml"
+build_undeclared = [
+    str(sensor.get("name", "?"))
+    for sensor in sensors
+    if build_config not in [str(pattern) for pattern in sensor.get("inputs", [])]
+]
+if not build_undeclared:
+    print(f"OK every sensor declares {build_config} ({len(sensors)} sensors)")
+elif not os.path.exists(os.path.join(root, build_config)):
+    print(
+        f"OK this workspace has no {build_config}, so there is no build"
+        " configuration a sensor could reuse a recorded pass over"
+    )
+else:
+    print(
+        f"VIOLATION sensors declare no {build_config}"
+        " (the harness tracks build flags as policy inputs, not this file): "
+        + ", ".join(sorted(build_undeclared))
+    )
+
+# The other rules here resolve the pack and the file universe its patterns describe:
+# the match-a-file rule above walks every pattern of every sensor, so a change to any
+# pattern's match set can flip this contract's verdict. The sensor that runs this probe
+# must therefore declare every pattern the pack declares, or such a change reuses its
+# recorded pass. One `**/*` cannot stand in for the union in this workspace: it also
+# matches tracked symlinks (`.antigravitycli/<uuid>.json`, `.claude/skills`), and a
+# declared pattern whose resolution includes a symlink records a null digest even when
+# it also matches thousands of regular files - measured on 0.4.1 in a throwaway worktree
+# with a stub sensor, `**/*.json` recorded None while that symlink was tracked and
+# `sha256:ff88c649...` after removing the one entry from the index and worktree, with
+# nothing else changed. That null digest is the defect this whole contract exists to
+# remove.
+pack_patterns = {
+    str(pattern) for sensor in sensors for pattern in sensor.get("inputs", [])
+}
+probe_gaps = []
+for sensor in sorted(sensors, key=lambda s: str(s.get("name", "?"))):
+    name = str(sensor.get("name", "?"))
+    if name not in runs_probe:
+        continue
+    declared = {str(pattern) for pattern in sensor.get("inputs", [])}
+    if pack_patterns - declared:
+        probe_gaps.append((name, sorted(pack_patterns - declared)))
+if not runs_probe:
+    print(
+        "OK no sensor runs this probe, so the pack union is unasserted here"
+        f" ({len(pack_patterns)} patterns declared by the pack)"
+    )
+elif probe_gaps:
+    for name, gaps in probe_gaps:
+        print(
+            f"VIOLATION {name} runs this probe and declares only"
+            f" {len(pack_patterns) - len(gaps)} of the {len(pack_patterns)} patterns the"
+            " pack declares, so a change to the others reuses its recorded pass: "
+            + ", ".join(gaps)
+        )
+else:
+    print(
+        f"OK every sensor running this probe declares all {len(pack_patterns)}"
+        f" patterns the pack declares ({', '.join(sorted(runs_probe))})"
+    )
+PY
+        )
+        pack_rc=$?
+        if [[ "$pack_rc" -ne 0 ]]; then
+            violation "pack input contract could not be evaluated (python3 exited $pack_rc)"
+        elif [[ -z "$pack_out" ]]; then
+            violation "pack input contract could not be evaluated (it produced no output)"
+        fi
+    fi
+    while IFS= read -r line; do
+        case "$line" in
+            OK\ *) ok "${line#OK }" ;;
+            VIOLATION\ *) violation "${line#VIOLATION }" ;;
+            "") ;;
+            *) violation "pack input contract produced unreadable output: $(head -c 160 <<<"$line")" ;;
+        esac
+    done <<<"$pack_out"
+fi
+
 echo
 if [[ "$VIOLATIONS" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-doctrine - $VIOLATIONS status-contract check(s) failed for ${VERSION:-unknown} at $RESOLVED" >&2

@@ -28,6 +28,17 @@ updates:
       rust-major:
         update-types:
           - "major"
+    # `chaotic_semantic_memory` pins libsql 0.9.x, and a 0.10+ graph compiles
+    # two libsql versions that duplicate the same exported C symbols under
+    # `csm` (LESSON-077). The bump is therefore upstream-blocked, and an open
+    # pull request deadlocks the release gate — scripts/check-release-blockers.sh
+    # refuses to ship while any PR is open — so every such proposal has had to
+    # be closed by hand (#1196, #1264). Patches inside 0.9.x still flow.
+    ignore:
+      - dependency-name: "libsql"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"

@@ -423,66 +423,70 @@ else:
 # `.cargo/config.toml` carries the build knobs the harness records as policy inputs
 # (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET` and `CARGO_ENCODED_RUSTFLAGS` are all in
 # its policy list; this workspace sets rustflags and profiles in the file) but the file
-# itself is not one: a probe edit to it left `policy_fingerprint` unchanged, and no
-# other rule here covers it. So a sensor whose argv reaches a `cargo` invocation must
-# declare it, or `verify --unchanged=skip` reuses a recorded pass over a changed build
-# configuration. The reach is the argv plus the scripts named in it, which
-# over-approximates when such a script mentions cargo on a branch this sensor does not
-# take; the direction is safe, since an extra declaration costs a re-run.
+# itself is not a policy input: a probe edit to it left `policy_fingerprint` unchanged,
+# and no other rule here covers it. So EVERY sensor declares it, uniformly. Deriving
+# "this argv reaches cargo" was measured wrong in both directions: `quality-gates` runs
+# its script through a `bash -c` string, which a path-based read can only open as a
+# filename (so the sensor running `RUSTFLAGS="-D warnings" cargo test` was missed), and
+# reading every argv-named script made this contract's own validity depend on files no
+# sensor declared, so editing such a script could reuse the validity sensor's recorded
+# pass - the reuse this contract exists to remove. A uniform rule needs no shell parsing
+# and reads nothing new; an unnecessary declaration costs a re-run on the rare change to
+# this file.
 build_config = ".cargo/config.toml"
-# Only real subcommands on a non-comment line count: this probe reads shell scripts,
-# and a comment or message that says "cargo invocation" is prose, not a cargo run.
-cargo_subcommands = {
-    "add", "audit", "bench", "build", "check", "clean", "clippy", "deny", "doc",
-    "fetch", "fix", "fmt", "install", "locate-project", "lock", "metadata", "miri",
-    "nextest", "package", "publish", "remove", "report", "run", "rustc", "rustdoc",
-    "test", "tree", "uninstall", "update", "vendor", "verify-project",
-}
-cargo_invocation = re.compile(r"\bcargo\s+([a-z][a-z-]*)")
-
-
-def invokes_cargo(text):
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith("#"):
-            continue
-        found = cargo_invocation.search(line)
-        if found and found.group(1) in cargo_subcommands:
-            return True
-    return False
-
-
-cargo_undeclared = []
-cargo_reaching = []
-for sensor in sorted(sensors, key=lambda s: s.get("name", "?")):
-    argv = [str(arg) for arg in sensor.get("argv", [])]
-    reaches_cargo = invokes_cargo(" ".join(argv))
-    if not reaches_cargo:
-        for arg in argv:
-            if not arg.endswith(".sh"):
-                continue
-            try:
-                script = open(os.path.join(root, arg), encoding="utf-8", errors="ignore").read()
-            except OSError:
-                continue
-            if invokes_cargo(script):
-                reaches_cargo = True
-                break
-    if not reaches_cargo:
-        continue
-    cargo_reaching.append(sensor.get("name", "?"))
-    if build_config not in [str(pattern) for pattern in sensor.get("inputs", [])]:
-        cargo_undeclared.append(sensor.get("name", "?"))
-if cargo_undeclared:
+build_undeclared = [
+    str(sensor.get("name", "?"))
+    for sensor in sensors
+    if build_config not in [str(pattern) for pattern in sensor.get("inputs", [])]
+]
+if not build_undeclared:
+    print(f"OK every sensor declares {build_config} ({len(sensors)} sensors)")
+elif not os.path.exists(os.path.join(root, build_config)):
     print(
-        f"VIOLATION sensors reaching a cargo invocation declare no {build_config}"
-        " (the harness tracks build flags as policy inputs, not this file): "
-        + ", ".join(cargo_undeclared)
+        f"OK this workspace has no {build_config}, so there is no build"
+        " configuration a sensor could reuse a recorded pass over"
     )
 else:
     print(
-        f"OK every sensor reaching a cargo invocation declares {build_config}"
-        f" ({len(cargo_reaching)}: {', '.join(cargo_reaching) or 'none'})"
+        f"VIOLATION sensors declare no {build_config}"
+        " (the harness tracks build flags as policy inputs, not this file): "
+        + ", ".join(sorted(build_undeclared))
+    )
+
+# The other rules here resolve the pack and the file universe its patterns describe:
+# the match-a-file rule above walks every pattern of every sensor, so a change to any
+# pattern's match set can flip this contract's verdict. The sensor that runs this probe
+# must therefore declare every pattern the pack declares, or such a change reuses its
+# recorded pass. `**/*` does not stand in for the union: measured on 0.4.1, a nested
+# edit under docs/ left this sensor's recorded digest unchanged under `**/*`.
+pack_patterns = {
+    str(pattern) for sensor in sensors for pattern in sensor.get("inputs", [])
+}
+probe_gaps = []
+for sensor in sorted(sensors, key=lambda s: str(s.get("name", "?"))):
+    name = str(sensor.get("name", "?"))
+    if name not in runs_probe:
+        continue
+    declared = {str(pattern) for pattern in sensor.get("inputs", [])}
+    if pack_patterns - declared:
+        probe_gaps.append((name, sorted(pack_patterns - declared)))
+if not runs_probe:
+    print(
+        "OK no sensor runs this probe, so the pack union is unasserted here"
+        f" ({len(pack_patterns)} patterns declared by the pack)"
+    )
+elif probe_gaps:
+    for name, gaps in probe_gaps:
+        print(
+            f"VIOLATION {name} runs this probe and declares only"
+            f" {len(pack_patterns) - len(gaps)} of the {len(pack_patterns)} patterns the"
+            " pack declares, so a change to the others reuses its recorded pass: "
+            + ", ".join(gaps)
+        )
+else:
+    print(
+        f"OK every sensor running this probe declares all {len(pack_patterns)}"
+        f" patterns the pack declares ({', '.join(sorted(runs_probe))})"
     )
 PY
         )

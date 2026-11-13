@@ -628,9 +628,11 @@ done
 # 19. `.cargo/config.toml` sets the build knobs the harness records as policy inputs
 # (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`) - this workspace's rustflags and
 # profiles live there - but the file is not a policy input itself (a probe edit left
-# `policy_fingerprint` unchanged), so a cargo-invoking sensor that omits it reuses a
-# recorded pass over a changed build configuration. Again both directions, so the rule
-# cannot pass by rejecting every pack.
+# `policy_fingerprint` unchanged), so a sensor that omits it reuses a recorded pass
+# over a changed build configuration. The rule is uniform on purpose: deriving
+# "this argv reaches cargo" missed `quality-gates`, whose argv is a `bash -c` string
+# naming its script, so the fixture below uses a plain non-cargo argv and still has
+# to be caught. Both directions, so the rule cannot pass by rejecting every pack.
 for config_case in undeclared declared; do
     r="$WORK/pack-build-config-$config_case"
     build_pack_fixture "$r"
@@ -645,7 +647,7 @@ for config_case in undeclared declared; do
     cat >"$r/do-harness.toml" <<TOML
 [[sensors]]
 name = "probe-green"
-argv = ["cargo", "check", "--workspace"]
+argv = ["bash", "scripts/probe/green.sh"]
 inputs = $inputs
 TOML
     git -C "$r" init -q
@@ -659,10 +661,56 @@ TOML
             bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
     ) || RUN_RC=$?
     if [[ "$config_case" == undeclared ]]; then
-        expect_red "a cargo-invoking sensor without .cargo/config.toml is caught" \
+        expect_red "a sensor without .cargo/config.toml is caught" \
             "declare no .cargo/config.toml (the harness tracks build flags as policy inputs, not this file): probe-green"
     else
-        expect_doctrine_green "the same cargo-invoking sensor declaring .cargo/config.toml passes"
+        expect_doctrine_green "the same sensor declaring .cargo/config.toml passes"
+    fi
+done
+
+# 20. The pack's other rules resolve every declared pattern (the match-a-file rule)
+# and the probe reads those sources, so a change to any pattern's match set can flip
+# this contract's verdict. The sensor running the probe must therefore declare every
+# pattern the pack declares, or such a change reuses its recorded pass - and the
+# checked list is the pack's own, so a new pattern cannot escape it.
+for union_case in thin complete; do
+    r="$WORK/pack-probe-union-$union_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo" "$r/scripts/probe" "$r/src"
+    printf '[build]\njobs = -1\n' >"$r/.cargo/config.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/probe/green.sh"
+    printf '// fixture crate\n' >"$r/src/lib.rs"
+    if [[ "$union_case" == complete ]]; then
+        probe_inputs='["scripts/check-do-harness-doctrine.sh", "scripts/probe/green.sh", "**/*.rs", ".cargo/config.toml"]'
+    else
+        probe_inputs='["scripts/check-do-harness-doctrine.sh", "**/*.rs", ".cargo/config.toml"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["scripts/probe/green.sh", ".cargo/config.toml"]
+
+[[sensors]]
+name = "probe-doctrine"
+argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
+inputs = $probe_inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$union_case" == thin ]]; then
+        expect_red "the sensor running the probe must declare the pack's own patterns" \
+            "probe-doctrine runs this probe and declares only 3 of the 4 patterns the pack declares, so a change to the others reuses its recorded pass: scripts/probe/green.sh"
+    else
+        expect_doctrine_green "the same sensor declaring the pack's patterns passes"
     fi
 done
 

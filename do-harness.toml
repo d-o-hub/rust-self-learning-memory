@@ -18,16 +18,20 @@
 # `check-do-harness-doctrine.sh` rejects both a missing and an empty list and
 # requires every declared pattern to match at least one file.
 #
-# `.cargo/config.toml` is declared by every sensor whose argv reaches a `cargo`
-# invocation. The harness fingerprints the build *environment* as policy inputs
-# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`, `CARGO_ENCODED_RUSTFLAGS` are in its
-# policy list) but not the file that sets the same knobs — this workspace's rustflags
-# and profiles live there — and a probe edit to it left `policy_fingerprint`
-# unchanged, so without the declaration a cargo-invoking sensor reuses its recorded
-# pass over a changed build configuration. The contract derives that set from the argv
-# plus the argv-named scripts, which over-approximates when such a script mentions
-# cargo only on a branch this sensor does not take; the direction is safe, because an
-# unnecessary declaration costs a re-run rather than hiding a change.
+# `.cargo/config.toml` is declared by EVERY sensor, not only the cargo-invoking ones.
+# The harness fingerprints the build *environment* as policy inputs (`RUSTFLAGS`,
+# `RUSTC`, `CARGO_BUILD_TARGET`, `CARGO_ENCODED_RUSTFLAGS`) but not the file that sets
+# the same knobs — this workspace's rustflags and profiles live there — and a probe
+# edit to it left `policy_fingerprint` unchanged, so without the declaration a sensor
+# reuses its recorded pass over a changed build configuration. Maybe-uses-cargo was
+# first derived from each sensor's own argv and argv-named scripts, and that
+# derivation is wrong in both directions: `quality-gates` runs its script through a
+# `bash -c` string, which the derivation can only open as a filename (so the sensor
+# that runs `RUSTFLAGS="-D warnings" cargo test` was missed), and reading every argv
+# script made the pack's own validity depend on files no sensor declared, so a change
+# to such a script could reuse the validity sensor's recorded pass. A uniform
+# declaration needs no shell parsing and reads nothing new; an unnecessary one costs a
+# re-run on the rare change to this file.
 language = "rust"
 
 [hooks]
@@ -145,14 +149,14 @@ inputs = ["**/Cargo.toml", "fuzz/Cargo.lock", "scripts/check-lockfile-sync.sh", 
 [[sensors]]
 name = "changelog-headings"
 argv = ["bash", "scripts/check-changelog-headings.sh"]
-inputs = ["CHANGELOG.md", "scripts/check-changelog-headings.sh"]
+inputs = ["CHANGELOG.md", "scripts/check-changelog-headings.sh", ".cargo/config.toml"]
 
 # Bare ((i++)) under `set -e` exits 1 on the 0th increment and truncates the
 # report it was writing (LESSON-059). Ratchet ceiling.
 [[sensors]]
 name = "shell-counters"
 argv = ["bash", "scripts/check-shell-counters.sh"]
-inputs = ["**/*.sh", "scripts/shell-counters-baseline.txt", "scripts/check-shell-counters.sh"]
+inputs = ["**/*.sh", "scripts/shell-counters-baseline.txt", "scripts/check-shell-counters.sh", ".cargo/config.toml"]
 
 # LESSONS.md pairs each entry with a routed note; nothing enforced it, so 41 of
 # 77 lessons were unreachable from AGENTS.md/skills and one id was duplicated.
@@ -165,6 +169,7 @@ inputs = [
   ".agents/**/*.md",
   "scripts/check-lesson-distillation.sh",
   "scripts/lesson-distillation-baseline.txt",
+  ".cargo/config.toml",
 ]
 
 # A CI control token in a commit message gives the branch zero runs, so the
@@ -177,14 +182,14 @@ inputs = [
 [[sensors]]
 name = "commit-ci-tokens"
 argv = ["bash", "scripts/check-commit-ci-tokens.sh"]
-inputs = ["scripts/check-commit-ci-tokens.sh"]
+inputs = ["scripts/check-commit-ci-tokens.sh", ".cargo/config.toml"]
 
 # A bare 10-15 digit run in AGENTS.md parks the required Codacy context at
 # action_required with every other check green (LESSON-076).
 [[sensors]]
 name = "agents-md-ids"
 argv = ["bash", "scripts/check-agents-md-ids.sh"]
-inputs = ["AGENTS.md", "agent_docs/LESSONS.md", "scripts/check-agents-md-ids.sh"]
+inputs = ["AGENTS.md", "agent_docs/LESSONS.md", "scripts/check-agents-md-ids.sh", ".cargo/config.toml"]
 
 # Ruleset `main-protection` carries required_linear_history, so a `merge` commit
 # is refused only while GitHub *executes* the merge - which cost a whole
@@ -198,6 +203,7 @@ inputs = [
   "scripts/validate-gate-contract.sh",
   "scripts/check-merge-method.sh",
   ".github/**",
+  ".cargo/config.toml",
 ]
 
 # The blocker gate only reads the tracker at ship time, so its classifier could
@@ -207,7 +213,7 @@ inputs = [
 [[sensors]]
 name = "release-blockers"
 argv = ["bash", "scripts/check-release-blockers.sh", "--self-test"]
-inputs = ["scripts/check-release-blockers.sh"]
+inputs = ["scripts/check-release-blockers.sh", ".cargo/config.toml"]
 
 # The docs name a pinned harness version and the completion contract is written as
 # `do-harness verify --set verification --strict --record`. Nothing checked that the
@@ -228,20 +234,74 @@ inputs = [
   ".cargo/config.toml",
 ]
 
+# The contract also reads the file universe that every declared pattern resolves
+# against - its match-a-file rule is only meaningful if each pattern still matches a
+# file - so this sensor declares the union of every pattern the pack declares. A single
+# `**/*` does not cover it: measured on 0.4.1, a nested edit under docs/ left this
+# sensor's recorded digest unchanged under `**/*`, so the union is spelled out and the
+# contract requires the sensor running it to keep the union complete.
 [[sensors]]
 name = "harness-doctrine"
 argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
 inputs = [
   "**/*.rs",
+  "**/*.md",
+  "**/*.sh",
+  "**/Cargo.toml",
+  "**/*.json",
+  "AGENTS.md",
+  "CHANGELOG.md",
+  "HARNESS.md",
+  "deny.toml",
+  "rustfmt.toml",
+  ".clippy.toml",
+  ".cargo/audit.toml",
+  ".cargo/config.toml",
+  ".config/nextest.toml",
+  "agent_docs/LESSONS.md",
+  ".agents/**",
+  ".agents/**/*.md",
+  ".agents/skills/harness/SKILL.md",
+  ".github/**",
+  "benches/**",
+  "tests/**",
+  "docs/generated/storage-backend-capabilities.json",
+  "fuzz/Cargo.lock",
+  "plans/ignored_tests_inventory.json",
   "memory-core/src/retrieval/cascade/ontology.json",
+  "scripts/check-agents-md-ids.sh",
+  "scripts/check-changelog-headings.sh",
+  "scripts/check-commit-ci-tokens.sh",
+  "scripts/check-dependency-audit.sh",
+  "scripts/check-do-harness-compat.sh",
   "scripts/check-do-harness-doctrine.sh",
+  "scripts/check-doctests.sh",
+  "scripts/check-ignored-tests.sh",
+  "scripts/check-lesson-distillation.sh",
+  "scripts/check-lint-suppressions.sh",
+  "scripts/check-loc.sh",
+  "scripts/check-lockfile-sync.sh",
+  "scripts/check-merge-method.sh",
+  "scripts/check-release-blockers.sh",
+  "scripts/check-shell-counters.sh",
+  "scripts/check-storage-backend-capabilities.sh",
+  "scripts/check-yaml-frontmatter.sh",
+  "scripts/code-quality.sh",
+  "scripts/do-harness-version.txt",
+  "scripts/lesson-distillation-baseline.txt",
+  "scripts/lint-suppressions-baseline.txt",
+  "scripts/merge-pr.sh",
+  "scripts/quality-gates.sh",
+  "scripts/shell-counters-baseline.txt",
+  "scripts/storage-backend-capabilities.toml",
+  "scripts/validate-gate-contract.sh",
   "do-harness.toml",
 ]
 
 [[sensors]]
 name = "loc"
 argv = ["bash", "scripts/check-loc.sh"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "tests/**", "benches/**", "scripts/check-loc.sh", "scripts/quality-gates.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "tests/**", "benches/**", "scripts/check-loc.sh", "scripts/quality-gates.sh", ".cargo/config.toml"]
 
 [[sensors]]
 name = "ignored-tests"
@@ -251,6 +311,7 @@ inputs = [
   "memory-core/src/retrieval/cascade/ontology.json",
   "plans/ignored_tests_inventory.json",
   "scripts/check-ignored-tests.sh",
+  ".cargo/config.toml",
 ]
 
 [[sensors]]
@@ -261,12 +322,13 @@ inputs = [
   "memory-core/src/retrieval/cascade/ontology.json",
   "scripts/check-lint-suppressions.sh",
   "scripts/lint-suppressions-baseline.txt",
+  ".cargo/config.toml",
 ]
 
 [[sensors]]
 name = "yaml-frontmatter"
 argv = ["bash", "scripts/check-yaml-frontmatter.sh"]
-inputs = ["**/*.md", ".github/**", ".agents/**", "scripts/check-yaml-frontmatter.sh"]
+inputs = ["**/*.md", ".github/**", ".agents/**", "scripts/check-yaml-frontmatter.sh", ".cargo/config.toml"]
 
 [[sensors]]
 name = "storage-backend-capabilities"
@@ -277,11 +339,15 @@ inputs = [
   "docs/generated/storage-backend-capabilities.json",
   "scripts/storage-backend-capabilities.toml",
   "scripts/check-storage-backend-capabilities.sh",
+  ".cargo/config.toml",
 ]
 
 # Quality gates runner. Sets QUALITY_GATE_SKIP_DOCTEST=true and QUALITY_GATE_SKIP_LOC=true
 # because doctest validation and LOC checks are executed by dedicated sensors 'docs' and 'loc'.
+# The script runs `RUSTFLAGS="-D warnings" cargo test --test quality_gates` (line ~354), which
+# is why the uniform `.cargo/config.toml` declaration matters here: this argv is a `bash -c`
+# string, and any derivation that reads argv entries as file paths never sees the script.
 [[sensors]]
 name = "quality-gates"
 argv = ["bash", "-c", "QUALITY_GATE_SKIP_DOCTEST=true QUALITY_GATE_SKIP_LOC=true scripts/quality-gates.sh"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", "benches/**", "scripts/quality-gates.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", "benches/**", "scripts/quality-gates.sh", ".cargo/config.toml"]

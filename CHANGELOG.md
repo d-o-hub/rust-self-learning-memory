@@ -50,17 +50,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contract now rejects any entry that runs the audit script without declaring it,
   and the compatibility test covers both directions (declared → green, undeclared →
   the named violation) so the rule cannot be satisfied by refusing every pack.
-  `.cargo/config.toml` is declared by every sensor whose argv reaches a `cargo`
-  invocation (8 of them): the harness fingerprints the build *environment* as policy
-  inputs — `RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET` and `CARGO_ENCODED_RUSTFLAGS`
-  are all in its policy list — but not the file that sets the same knobs, and this
-  workspace's rustflags and profile settings live there. A probe edit to that file
-  left `policy_fingerprint` at the same sha256, so an undeclared change would reuse
-  a cargo-invoking sensor's recorded pass over a changed build configuration. The
-  contract derives the set from the sensor's argv plus the scripts named in it, which
-  over-approximates when such a script mentions cargo on a branch that sensor does not
-  take; that direction is safe, since an unnecessary declaration costs a re-run rather
-  than hiding a change.
+  `.cargo/config.toml` is declared by every sensor (all 23): the harness fingerprints
+  the build *environment* as policy inputs — `RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`
+  and `CARGO_ENCODED_RUSTFLAGS` are all in its policy list — but not the file that sets
+  the same knobs, and this workspace's rustflags and profile settings live there. A
+  probe edit to that file left `policy_fingerprint` at the same sha256, so an undeclared
+  change would reuse a sensor's recorded pass over a changed build configuration. The
+  declaration started as "derive the sensors whose argv reaches a `cargo` invocation"
+  (8 of them) and that derivation was measured wrong in both directions:
+  `quality-gates` runs its script as a `bash -c` string — whose line 354 is
+  `RUSTFLAGS="-D warnings" cargo test --test quality_gates` — and a path-based read can
+  only open that argv entry as a filename, so the sensor was missed; and reading every
+  argv-named script made this contract's own validity depend on files no sensor
+  declared, so editing one of them could reuse the validity sensor's recorded pass, the
+  reuse this contract exists to remove. The rule is now a uniform declaration: no shell
+  parsing, nothing extra read, and an unnecessary declaration costs a re-run on the rare
+  change to this file. It stands down only for a workspace that has no such file, which
+  keeps the throwaway fixture packs of `scripts/test-do-harness-compat.sh` valid. The
+  same contract now also requires the sensor that runs it to declare the pack's whole
+  pattern union (52 patterns in this workspace), because the other rules here resolve
+  every declared pattern against the repository: a change to any pattern's match set —
+  deleting the last file a pattern matches, say — flips the match-a-file verdict, and a
+  single `**/*` does not cover it (measured on 0.4.1, a nested edit under `docs/` left
+  that sensor's recorded digest unchanged under `**/*`). Both new rules are covered in
+  both directions by `scripts/test-do-harness-compat.sh` (declared → green, undeclared →
+  the named violation), so neither can pass by refusing every pack.
 
 ## [0.1.49] - 2026-11-05
 

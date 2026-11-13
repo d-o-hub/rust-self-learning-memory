@@ -17,6 +17,17 @@
 # the declaration stays `input:git-index-and-nonignored-untracked`), which is why
 # `check-do-harness-doctrine.sh` rejects both a missing and an empty list and
 # requires every declared pattern to match at least one file.
+#
+# `.cargo/config.toml` is declared by every sensor whose argv reaches a `cargo`
+# invocation. The harness fingerprints the build *environment* as policy inputs
+# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`, `CARGO_ENCODED_RUSTFLAGS` are in its
+# policy list) but not the file that sets the same knobs — this workspace's rustflags
+# and profiles live there — and a probe edit to it left `policy_fingerprint`
+# unchanged, so without the declaration a cargo-invoking sensor reuses its recorded
+# pass over a changed build configuration. The contract derives that set from the argv
+# plus the argv-named scripts, which over-approximates when such a script mentions
+# cargo only on a branch this sensor does not take; the direction is safe, because an
+# unnecessary declaration costs a re-run rather than hiding a change.
 language = "rust"
 
 [hooks]
@@ -54,17 +65,17 @@ verification = [
 [[sensors]]
 name = "fmt"
 argv = ["cargo", "fmt", "--all", "--", "--check"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "rustfmt.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "rustfmt.toml", ".cargo/config.toml"]
 
 [[sensors]]
 name = "check"
 argv = ["cargo", "check", "--workspace"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml", ".cargo/config.toml"]
 
 [[sensors]]
 name = "clippy"
 argv = ["bash", "scripts/code-quality.sh", "clippy", "--workspace"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".clippy.toml", "scripts/code-quality.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".clippy.toml", "scripts/code-quality.sh", ".cargo/config.toml"]
 
 # Normal unit + integration test suite. Matches CI test job selection:
 # excludes benches/examples/test-utils to keep runtime stable and uses profile ci.
@@ -84,19 +95,19 @@ argv = [
   "--exclude",
   "do-memory-test-utils",
 ]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", ".config/nextest.toml", ".cargo/config.toml"]
 
 # Dedicated CSM feature test suite matching CI csm-tests job (issue #1045).
 [[sensors]]
 name = "csm-feature"
 argv = ["cargo", "nextest", "run", "--profile", "ci", "-p", "do-memory-core", "--features", "csm"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml", ".cargo/config.toml"]
 
 # Doctest execution and rustdoc build validation matching check-doctests.sh.
 [[sensors]]
 name = "docs"
 argv = ["bash", "scripts/check-doctests.sh"]
-inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "scripts/check-doctests.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "scripts/check-doctests.sh", ".cargo/config.toml"]
 
 # Audits both dependency graphs; the script refuses to pass if a lockfile changes
 # mid-scan. Root Cargo.lock needs no entry: the harness fingerprints it as a policy
@@ -117,6 +128,7 @@ inputs = [
   "**/Cargo.toml",
   "fuzz/Cargo.lock",
   "scripts/check-dependency-audit.sh",
+  ".cargo/config.toml",
 ]
 
 # Lockfile freshness for both graphs plus the libsql single-version alignment
@@ -126,7 +138,7 @@ inputs = [
 [[sensors]]
 name = "lockfile-sync"
 argv = ["bash", "scripts/check-lockfile-sync.sh"]
-inputs = ["**/Cargo.toml", "fuzz/Cargo.lock", "scripts/check-lockfile-sync.sh"]
+inputs = ["**/Cargo.toml", "fuzz/Cargo.lock", "scripts/check-lockfile-sync.sh", ".cargo/config.toml"]
 
 # Duplicate / misordered CHANGELOG version headings make parse-changelog reject
 # the file, which is how a release shipped with empty notes (LESSON-066).
@@ -213,6 +225,7 @@ inputs = [
   "AGENTS.md",
   ".agents/skills/harness/SKILL.md",
   "scripts/check-do-harness-compat.sh",
+  ".cargo/config.toml",
 ]
 
 [[sensors]]

@@ -419,6 +419,71 @@ else:
         "OK every entry running the dependency audit script declares cargo-audit's"
         f" waiver list {audit_config} ({', '.join(sorted(runs_audit_script)) or 'none'})"
     )
+
+# `.cargo/config.toml` carries the build knobs the harness records as policy inputs
+# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET` and `CARGO_ENCODED_RUSTFLAGS` are all in
+# its policy list; this workspace sets rustflags and profiles in the file) but the file
+# itself is not one: a probe edit to it left `policy_fingerprint` unchanged, and no
+# other rule here covers it. So a sensor whose argv reaches a `cargo` invocation must
+# declare it, or `verify --unchanged=skip` reuses a recorded pass over a changed build
+# configuration. The reach is the argv plus the scripts named in it, which
+# over-approximates when such a script mentions cargo on a branch this sensor does not
+# take; the direction is safe, since an extra declaration costs a re-run.
+build_config = ".cargo/config.toml"
+# Only real subcommands on a non-comment line count: this probe reads shell scripts,
+# and a comment or message that says "cargo invocation" is prose, not a cargo run.
+cargo_subcommands = {
+    "add", "audit", "bench", "build", "check", "clean", "clippy", "deny", "doc",
+    "fetch", "fix", "fmt", "install", "locate-project", "lock", "metadata", "miri",
+    "nextest", "package", "publish", "remove", "report", "run", "rustc", "rustdoc",
+    "test", "tree", "uninstall", "update", "vendor", "verify-project",
+}
+cargo_invocation = re.compile(r"\bcargo\s+([a-z][a-z-]*)")
+
+
+def invokes_cargo(text):
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("#"):
+            continue
+        found = cargo_invocation.search(line)
+        if found and found.group(1) in cargo_subcommands:
+            return True
+    return False
+
+
+cargo_undeclared = []
+cargo_reaching = []
+for sensor in sorted(sensors, key=lambda s: s.get("name", "?")):
+    argv = [str(arg) for arg in sensor.get("argv", [])]
+    reaches_cargo = invokes_cargo(" ".join(argv))
+    if not reaches_cargo:
+        for arg in argv:
+            if not arg.endswith(".sh"):
+                continue
+            try:
+                script = open(os.path.join(root, arg), encoding="utf-8", errors="ignore").read()
+            except OSError:
+                continue
+            if invokes_cargo(script):
+                reaches_cargo = True
+                break
+    if not reaches_cargo:
+        continue
+    cargo_reaching.append(sensor.get("name", "?"))
+    if build_config not in [str(pattern) for pattern in sensor.get("inputs", [])]:
+        cargo_undeclared.append(sensor.get("name", "?"))
+if cargo_undeclared:
+    print(
+        f"VIOLATION sensors reaching a cargo invocation declare no {build_config}"
+        " (the harness tracks build flags as policy inputs, not this file): "
+        + ", ".join(cargo_undeclared)
+    )
+else:
+    print(
+        f"OK every sensor reaching a cargo invocation declares {build_config}"
+        f" ({len(cargo_reaching)}: {', '.join(cargo_reaching) or 'none'})"
+    )
 PY
         )
         pack_rc=$?

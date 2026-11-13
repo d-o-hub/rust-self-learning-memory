@@ -625,6 +625,47 @@ TOML
     fi
 done
 
+# 19. `.cargo/config.toml` sets the build knobs the harness records as policy inputs
+# (`RUSTFLAGS`, `RUSTC`, `CARGO_BUILD_TARGET`) - this workspace's rustflags and
+# profiles live there - but the file is not a policy input itself (a probe edit left
+# `policy_fingerprint` unchanged), so a cargo-invoking sensor that omits it reuses a
+# recorded pass over a changed build configuration. Again both directions, so the rule
+# cannot pass by rejecting every pack.
+for config_case in undeclared declared; do
+    r="$WORK/pack-build-config-$config_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo" "$r/scripts/probe"
+    printf '[build]\njobs = -1\n' >"$r/.cargo/config.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/probe/green.sh"
+    if [[ "$config_case" == declared ]]; then
+        inputs='["scripts/probe/green.sh", ".cargo/config.toml"]'
+    else
+        inputs='["scripts/probe/green.sh"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["cargo", "check", "--workspace"]
+inputs = $inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$config_case" == undeclared ]]; then
+        expect_red "a cargo-invoking sensor without .cargo/config.toml is caught" \
+            "declare no .cargo/config.toml (the harness tracks build flags as policy inputs, not this file): probe-green"
+    else
+        expect_doctrine_green "the same cargo-invoking sensor declaring .cargo/config.toml passes"
+    fi
+done
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

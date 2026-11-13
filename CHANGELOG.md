@@ -40,7 +40,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fuzz graph's lockfile, so a fuzz-lock-only edit could have reused an older,
   passing audit beat. `shell-counters` scanned every tracked `*.sh` but declared
   only `scripts/*.sh`, so a bare `((i++))` in `.claude/helpers/*.sh` could have
-  reused its pass; it now declares `**/*.sh`.
+  reused its pass; it now declares `**/*.sh`. `deny` also declares
+  `.cargo/audit.toml`: `check-dependency-audit.sh` hands cargo-audit a lockfile and
+  nothing else, so cargo-audit reads its waiver list from that file (cargo's config
+  discovery from the workspace root). It is not a policy input either — a probe edit
+  to it left `policy_fingerprint` unchanged — and it decides the sensor's verdict:
+  deleting the `RUSTSEC-2023-0071` entry took the script's counted vulnerabilities
+  from 3 to 4, so a removed waiver would otherwise reuse the recorded pass. The
+  contract now rejects any entry that runs the audit script without declaring it,
+  and the compatibility test covers both directions (declared → green, undeclared →
+  the named violation) so the rule cannot be satisfied by refusing every pack.
 
 ## [0.1.49] - 2026-11-05
 

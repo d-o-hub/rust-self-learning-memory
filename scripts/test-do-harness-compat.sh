@@ -507,6 +507,30 @@ RUN_OUT=$(
 expect_red "an input glob matching no file is caught" \
     "input patterns match no file (record a null digest): probe-green:no/such/glob/**/*.rs"
 
+# 15. The pack section's interpreter must fail closed. The probe runs under
+# `set -uo pipefail` with no `-e`, so an absent, failing or silent python3 would
+# otherwise leave the read loop with nothing to consume and let the probe print
+# "Passed" without asserting the pack at all - the vacuous-green class this file
+# exists to prevent.
+mkdir -p "$WORK/py-fail" "$WORK/py-silent"
+printf '#!/usr/bin/env bash\necho "no tomllib" >&2\nexit 3\n' >"$WORK/py-fail/python3"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK/py-silent/python3"
+chmod +x "$WORK/py-fail/python3" "$WORK/py-silent/python3"
+
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$WORK/py-fail:$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" bash "$DOCTRINE" 2>&1
+) || RUN_RC=$?
+expect_red "a failing python3 blocks the pack contract" "could not be evaluated (python3 exited 3)"
+
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$WORK/py-silent:$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" bash "$DOCTRINE" 2>&1
+) || RUN_RC=$?
+expect_red "a silent python3 blocks the pack contract" "could not be evaluated (it produced no output)"
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

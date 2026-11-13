@@ -245,7 +245,15 @@ PACK="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/do-harness.toml"
 if [[ ! -f "$PACK" ]]; then
     ok "no workspace pack at $PACK; nothing to assert"
 else
-    pack_out=$(python3 - "$PACK" <<'PY'
+    # Fail closed: this section is the only one that interprets files with an
+    # external interpreter, and `set -uo pipefail` has no `-e`, so an absent or
+    # broken python3 would otherwise leave pack_out empty, run the loop zero
+    # times, and let the probe print "Passed" without asserting anything.
+    pack_out=""
+    if ! command -v python3 >/dev/null 2>&1; then
+        violation "pack input contract could not be evaluated: python3 not found (it parses $PACK)"
+    else
+        pack_out=$(python3 - "$PACK" <<'PY'
 import subprocess
 import sys
 import tomllib
@@ -302,7 +310,14 @@ if unmatched:
 else:
     print("OK every declared input pattern matches at least one file")
 PY
-    )
+        )
+        pack_rc=$?
+        if [[ "$pack_rc" -ne 0 ]]; then
+            violation "pack input contract could not be evaluated (python3 exited $pack_rc)"
+        elif [[ -z "$pack_out" ]]; then
+            violation "pack input contract could not be evaluated (it produced no output)"
+        fi
+    fi
     while IFS= read -r line; do
         case "$line" in
             OK\ *) ok "${line#OK }" ;;

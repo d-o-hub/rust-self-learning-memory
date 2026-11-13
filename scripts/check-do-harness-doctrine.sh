@@ -389,6 +389,36 @@ else:
         "OK the sensor running this probe declares the sources this contract reads"
         f" ({', '.join(sorted(runs_probe)) or 'none'})"
     )
+
+# `scripts/check-dependency-audit.sh` feeds cargo-audit a lockfile and nothing else,
+# so cargo-audit reads its waiver list from `.cargo/audit.toml` (cargo's config
+# discovery, from the workspace root). That file is neither a harness policy input
+# (a probe edit to it left `policy_fingerprint` unchanged) nor covered by any other
+# declaration, and it decides the script's verdict: deleting the RUSTSEC-2023-0071
+# entry took the counted vulnerabilities from 3 to 4. So every entry that runs the
+# script has to declare it, or a removed waiver is reused as a recorded pass.
+audit_config = ".cargo/audit.toml"
+runs_audit_script = {
+    s.get("name", "?"): s
+    for s in sensors
+    if any(str(arg).endswith("check-dependency-audit.sh") for arg in s.get("argv", []))
+}
+audit_undeclared = [
+    name
+    for name, sensor in sorted(runs_audit_script.items())
+    if audit_config not in [str(pattern) for pattern in sensor.get("inputs", [])]
+]
+if audit_undeclared:
+    print(
+        "VIOLATION entries running the dependency audit script declare no"
+        f" {audit_config} (cargo-audit's waiver list; a waiver edit would be reused): "
+        + ", ".join(audit_undeclared)
+    )
+else:
+    print(
+        "OK every entry running the dependency audit script declares cargo-audit's"
+        f" waiver list {audit_config} ({', '.join(sorted(runs_audit_script)) or 'none'})"
+    )
 PY
         )
         pack_rc=$?

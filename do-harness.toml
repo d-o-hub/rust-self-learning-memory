@@ -103,11 +103,17 @@ inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Carg
 # input (`policy:Cargo.lock` in input_manifest.declarations), which invalidates every
 # beat. fuzz/Cargo.lock is not a policy input, so without the entry below a
 # fuzz-lock-only edit would reuse this sensor's recorded passing beat.
+# `.cargo/audit.toml` is cargo-audit's waiver list (cargo's config discovery, from
+# the workspace root). It is not a policy input either - a probe edit to it left
+# `policy_fingerprint` unchanged - and it decides this sensor's verdict: deleting the
+# RUSTSEC-2023-0071 entry took the script's counted vulnerabilities from 3 to 4. An
+# undeclared waiver removal would therefore reuse the recorded pass.
 [[sensors]]
 name = "deny"
 argv = ["bash", "scripts/check-dependency-audit.sh"]
 inputs = [
   "deny.toml",
+  ".cargo/audit.toml",
   "**/Cargo.toml",
   "fuzz/Cargo.lock",
   "scripts/check-dependency-audit.sh",

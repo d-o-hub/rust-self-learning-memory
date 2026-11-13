@@ -231,6 +231,9 @@ rm -rf "$FIX"
 # completion contract can never pass. A declared pattern that matches no file
 # records a null digest the same way. Both halves are asserted here, so the
 # fixture-only status checks above cannot hide a pack that never declares inputs.
+# `git ls-files` resolves the patterns against the repository the probe lives in,
+# so a root that is not a git work tree fails closed (every pattern reads as
+# unmatched) - the intended direction for an evidence check.
 # ---------------------------------------------------------------------------
 echo
 echo "=== do-harness Pack Input Contract ==="

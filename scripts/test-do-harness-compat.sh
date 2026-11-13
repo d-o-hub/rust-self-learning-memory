@@ -582,6 +582,49 @@ RUN_OUT=$(
 expect_red "a pack whose contract sensor declares none of the sources it reads is caught" \
     "the sensor that runs this probe declares no Rust source pattern"
 
+# 18. `scripts/check-dependency-audit.sh` hands cargo-audit a lockfile and nothing
+# else, so cargo-audit reads its waiver list from `.cargo/audit.toml`. That file is
+# not a harness policy input (a probe edit to it left `policy_fingerprint` unchanged)
+# and it decides the script's verdict (deleting the RUSTSEC-2023-0071 entry took the
+# counted vulnerabilities from 3 to 4), so an entry that runs the script without
+# declaring it can reuse a recorded pass over a removed waiver. The second fixture is
+# the same pack *with* the declaration and must go green, so the rule cannot be
+# satisfied by refusing every pack.
+for waiver_case in undeclared declared; do
+    r="$WORK/pack-audit-$waiver_case"
+    build_pack_fixture "$r"
+    mkdir -p "$r/.cargo"
+    printf '# waiver list\n' >"$r/.cargo/audit.toml"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$r/scripts/check-dependency-audit.sh"
+    if [[ "$waiver_case" == declared ]]; then
+        inputs='["scripts/check-dependency-audit.sh", ".cargo/audit.toml"]'
+    else
+        inputs='["scripts/check-dependency-audit.sh"]'
+    fi
+    cat >"$r/do-harness.toml" <<TOML
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/check-dependency-audit.sh"]
+inputs = $inputs
+TOML
+    git -C "$r" init -q
+    git -C "$r" add -A
+    git -C "$r" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -qm init
+    clear_env
+    RUN_RC=0
+    RUN_OUT=$(
+        env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+            bash "$r/scripts/check-do-harness-doctrine.sh" 2>&1
+    ) || RUN_RC=$?
+    if [[ "$waiver_case" == undeclared ]]; then
+        expect_red "an entry running the audit script without its waiver list is caught" \
+            "declare no .cargo/audit.toml (cargo-audit's waiver list; a waiver edit would be reused): probe-green"
+    else
+        expect_doctrine_green "the same entry declaring cargo-audit's waiver list passes"
+    fi
+done
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

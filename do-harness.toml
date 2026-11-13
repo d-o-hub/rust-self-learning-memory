@@ -236,10 +236,17 @@ inputs = [
 
 # The contract also reads the file universe that every declared pattern resolves
 # against - its match-a-file rule is only meaningful if each pattern still matches a
-# file - so this sensor declares the union of every pattern the pack declares. A single
-# `**/*` does not cover it: measured on 0.4.1, a nested edit under docs/ left this
-# sensor's recorded digest unchanged under `**/*`, so the union is spelled out and the
-# contract requires the sensor running it to keep the union complete.
+# file - so this sensor declares the union of every pattern the pack declares. One
+# `**/*` cannot stand in for that union here: it also matches this workspace's tracked
+# symlinks (`.antigravitycli/<uuid>.json`, `.claude/skills`,
+# `.opencode/skills/web-doc-resolver`), and a declared pattern whose resolution includes
+# a symlink records a null digest even when it also matches thousands of regular files -
+# measured on 0.4.1 in a throwaway worktree with a stub sensor, `**/*.json` recorded
+# None while that symlink was tracked and `sha256:ff88c649...` after removing the one
+# entry from the index and worktree, with nothing else changed. A pattern that matches
+# no file nulls the digest the same way. So the union is spelled out, every pattern in it
+# matches only regular files, and the contract requires the sensor running it to keep the
+# union complete.
 [[sensors]]
 name = "harness-doctrine"
 argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
@@ -248,7 +255,6 @@ inputs = [
   "**/*.md",
   "**/*.sh",
   "**/Cargo.toml",
-  "**/*.json",
   "AGENTS.md",
   "CHANGELOG.md",
   "HARNESS.md",

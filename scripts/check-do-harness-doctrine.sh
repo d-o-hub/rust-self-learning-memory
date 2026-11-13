@@ -457,8 +457,14 @@ else:
 # the match-a-file rule above walks every pattern of every sensor, so a change to any
 # pattern's match set can flip this contract's verdict. The sensor that runs this probe
 # must therefore declare every pattern the pack declares, or such a change reuses its
-# recorded pass. `**/*` does not stand in for the union: measured on 0.4.1, a nested
-# edit under docs/ left this sensor's recorded digest unchanged under `**/*`.
+# recorded pass. One `**/*` cannot stand in for the union in this workspace: it also
+# matches tracked symlinks (`.antigravitycli/<uuid>.json`, `.claude/skills`), and a
+# declared pattern whose resolution includes a symlink records a null digest even when
+# it also matches thousands of regular files - measured on 0.4.1 in a throwaway worktree
+# with a stub sensor, `**/*.json` recorded None while that symlink was tracked and
+# `sha256:ff88c649...` after removing the one entry from the index and worktree, with
+# nothing else changed. That null digest is the defect this whole contract exists to
+# remove.
 pack_patterns = {
     str(pattern) for sensor in sensors for pattern in sensor.get("inputs", [])
 }

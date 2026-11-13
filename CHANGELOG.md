@@ -68,13 +68,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   change to this file. It stands down only for a workspace that has no such file, which
   keeps the throwaway fixture packs of `scripts/test-do-harness-compat.sh` valid. The
   same contract now also requires the sensor that runs it to declare the pack's whole
-  pattern union (52 patterns in this workspace), because the other rules here resolve
+  pattern union (51 patterns in this workspace), because the other rules here resolve
   every declared pattern against the repository: a change to any pattern's match set —
-  deleting the last file a pattern matches, say — flips the match-a-file verdict, and a
-  single `**/*` does not cover it (measured on 0.4.1, a nested edit under `docs/` left
-  that sensor's recorded digest unchanged under `**/*`). Both new rules are covered in
-  both directions by `scripts/test-do-harness-compat.sh` (declared → green, undeclared →
-  the named violation), so neither can pass by refusing every pack.
+  deleting the last file a pattern matches, say — flips the match-a-file verdict. The
+  union cannot be replaced by one `**/*`: it also matches this workspace's tracked
+  symlinks (`.antigravitycli/<uuid>.json`, `.claude/skills`), and a declared pattern
+  whose resolution includes a symlink records a null digest even when it also matches
+  thousands of regular files — measured on 0.4.1 in a throwaway worktree with a stub
+  sensor, `**/*.json` recorded None while that symlink was tracked and
+  `sha256:ff88c649...` after removing the one entry from the index and worktree, with
+  nothing else changed (that null digest is exactly the defect this contract removes,
+  and it was in the previous version of this very declaration). A pattern matching no
+  file nulls the digest the same way. Both new rules are covered in both directions by
+  `scripts/test-do-harness-compat.sh` (declared → green, undeclared → the named
+  violation), so neither can pass by refusing every pack.
 
 ## [0.1.49] - 2026-11-05
 

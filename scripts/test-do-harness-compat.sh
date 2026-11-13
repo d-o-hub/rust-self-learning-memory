@@ -475,6 +475,22 @@ RUN_OUT=$(
 expect_red "a sensor that declares no 'inputs' is caught" \
     "sensors declare no inputs (status can never report green): probe-green"
 
+build_pack_fixture "$WORK/pack-empty-inputs"
+cat >"$WORK/pack-empty-inputs/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = []
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-empty-inputs/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "an empty 'inputs' list is caught" \
+    "sensors declare an empty inputs list, which upstream treats as the omitted case"
+
 build_pack_fixture "$WORK/pack-empty-glob"
 cat >"$WORK/pack-empty-glob/do-harness.toml" <<'TOML'
 [[sensors]]

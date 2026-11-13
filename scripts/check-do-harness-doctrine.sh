@@ -223,13 +223,17 @@ fi
 rm -rf "$FIX"
 
 # ---------------------------------------------------------------------------
-# Pack input contract. A sensor that declares no `inputs` falls back to
-# `input:git-index-and-nonignored-untracked`, whose digest is recorded as null,
-# so `do-harness status --set <set>` reports
+# Pack input contract. A sensor that declares no `inputs`, or an empty
+# `inputs = []` list (upstream's `effective_input_digest` treats an empty list as
+# the omitted case and keeps the same declaration), falls back to
+# `input:git-index-and-nonignored-untracked`, whose digest is recorded as null on
+# this workspace - measured on 0.4.1, where a two-file fixture in a fresh git repo
+# instead resolves that fallback to a real digest, which is why only the real
+# workspace shows the defect. `do-harness status --set <set>` then reports
 # `stale (inputs_changed_or_unknown)` for every change - including a no-op on a
 # clean tree - and the "confirm green local evidence boundary" step of the
 # completion contract can never pass. A declared pattern that matches no file
-# records a null digest the same way. Both halves are asserted here, so the
+# records a null digest the same way. All three are asserted here, so the
 # fixture-only status checks above cannot hide a pack that never declares inputs.
 # `git ls-files` resolves the patterns against the repository the probe lives in,
 # so a root that is not a git work tree fails closed (every pattern reads as
@@ -278,14 +282,23 @@ if missing:
 else:
     print(f"OK every one of {len(sensors)} sensors declares inputs")
 
-empty = [
+empty = [s.get("name", "?") for s in sensors if s.get("inputs") == []]
+if empty:
+    print(
+        "VIOLATION sensors declare an empty inputs list, which upstream treats as the"
+        " omitted case and records as the same null digest: " + ", ".join(empty)
+    )
+else:
+    print("OK no sensor declares an empty inputs list")
+
+unmatched = [
     f"{s.get('name', '?')}:{pattern}"
     for s in sensors
     for pattern in s.get("inputs", [])
     if not matches(pattern)
 ]
-if empty:
-    print("VIOLATION input patterns match no file (record a null digest): " + ", ".join(empty))
+if unmatched:
+    print("VIOLATION input patterns match no file (record a null digest): " + ", ".join(unmatched))
 else:
     print("OK every declared input pattern matches at least one file")
 PY

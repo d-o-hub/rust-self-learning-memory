@@ -12,9 +12,11 @@
 # clean tree — so the "confirm green local evidence boundary" step of the
 # completion contract can never pass. Declared globs are gitignore-aware
 # (`target/` is ignored, so build output never invalidates evidence), and a
-# pattern matching no file records a null digest too, which is why
-# `check-do-harness-doctrine.sh` asserts both properties. `inputs = []` is the
-# correct declaration for a sensor that reads no repository file content.
+# pattern matching no file records a null digest too, and an empty `inputs = []`
+# takes the same null-digest fallback as omitting the key (measured on 0.4.1:
+# the declaration stays `input:git-index-and-nonignored-untracked`), which is why
+# `check-do-harness-doctrine.sh` rejects both a missing and an empty list and
+# requires every declared pattern to match at least one file.
 language = "rust"
 
 [hooks]
@@ -138,13 +140,15 @@ inputs = [
 
 # A CI control token in a commit message gives the branch zero runs, so the
 # required aggregate can never report and the merge stays BLOCKED (LESSON-065).
-# The sensor reads commit messages, not file content, so it declares no file
-# input; a new commit still invalidates the evidence, because HEAD is part of
-# the recorded input set.
+# The sensor reads commit messages rather than file content. It still declares a
+# file: an empty list is NOT "no inputs" - upstream treats `inputs.is_empty()` as
+# the omitted case, records the same `input:git-index-and-nonignored-untracked`
+# declaration, and in this workspace that digest resolves to null (measured on
+# 0.4.1), which is the staleness this pack exists to remove.
 [[sensors]]
 name = "commit-ci-tokens"
 argv = ["bash", "scripts/check-commit-ci-tokens.sh"]
-inputs = []
+inputs = ["scripts/check-commit-ci-tokens.sh"]
 
 # A bare 10-15 digit run in AGENTS.md parks the required Codacy context at
 # action_required with every other check green (LESSON-076).

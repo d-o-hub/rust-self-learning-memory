@@ -16,11 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `stale (inputs_changed_or_unknown)` — including a no-op on a clean tree — so the
   completion contract's "confirm green local evidence boundary" step was
   unachievable while the same sensors exited 0 under `verify … --record`. All 23
-  sensors now declare their real input surface (`inputs = []` for
-  `commit-ci-tokens`, which reads commit messages rather than file content; a new
-  commit still invalidates through HEAD), and `check-do-harness-doctrine.sh` fails
-  when a sensor declares no `inputs` or a glob that matches no file — the other
-  route to the same null digest — so the contract cannot regress silently.
+  sensors now declare their real input surface: a sensor that reads commit
+  messages rather than file content still names the checker script that encodes
+  its rules, because an empty `inputs = []` list is not "no inputs" — upstream
+  treats it as the omitted case and records the same null digest (measured on
+  0.4.1; a small fixture repo resolves that fallback to a real digest, which is
+  why only this workspace showed the defect). `check-do-harness-doctrine.sh` now
+  fails on a missing list, an empty list, or a glob matching no file — all three
+  routes to the null digest — so the contract cannot regress silently.
 
 ## [0.1.49] - 2026-11-05
 

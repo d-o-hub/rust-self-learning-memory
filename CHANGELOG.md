@@ -23,7 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   0.4.1; a small fixture repo resolves that fallback to a real digest, which is
   why only this workspace showed the defect). `check-do-harness-doctrine.sh` now
   fails on a missing list, an empty list, or a glob matching no file — all three
-  routes to the null digest — so the contract cannot regress silently.
+  routes to the null digest — so the contract cannot regress silently. The same
+  contract also requires a sensor that claims Rust sources to claim the files
+  those sources embed with `include_str!`/`include_bytes!`
+  (`memory-core/src/retrieval/cascade/ontology.json` is the workspace's one case):
+  such a file is a compiled input no `*.rs` glob covers, and
+  `verify --unchanged=skip` reuses a recorded pass on the declared digests alone,
+  so an edited embedded asset could otherwise reuse a stale pass. Because that
+  rule reads every Rust source, the `harness-doctrine` sensor declares `**/*.rs`
+  and the embedded asset as well, and the contract rejects a pack whose
+  contract-running sensor declares none of the sources the contract reads: a
+  source-only `include_str!` addition would otherwise reuse the recorded pass of
+  the rule that detects it. The audit sensor also declares `fuzz/Cargo.lock`: the
+  harness fingerprints root `Cargo.lock` as a policy input (`policy:Cargo.lock`
+  appears in every sensor's declaration and invalidates every beat) but not the
+  fuzz graph's lockfile, so a fuzz-lock-only edit could have reused an older,
+  passing audit beat. `shell-counters` scanned every tracked `*.sh` but declared
+  only `scripts/*.sh`, so a bare `((i++))` in `.claude/helpers/*.sh` could have
+  reused its pass; it now declares `**/*.sh`.
 
 ## [0.1.49] - 2026-11-05
 

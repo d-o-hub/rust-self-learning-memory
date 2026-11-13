@@ -233,8 +233,12 @@ rm -rf "$FIX"
 # `stale (inputs_changed_or_unknown)` for every change - including a no-op on a
 # clean tree - and the "confirm green local evidence boundary" step of the
 # completion contract can never pass. A declared pattern that matches no file
-# records a null digest the same way. All three are asserted here, so the
+# records a null digest the same way. All of them are asserted here, so the
 # fixture-only status checks above cannot hide a pack that never declares inputs.
+# The last one is not about null digests: a file compiled into a crate by
+# `include_str!`/`include_bytes!` is a build input that no `*.rs` glob covers, and
+# `verify --unchanged=skip` reuses a recorded pass on the declared digests alone,
+# so a sensor claiming Rust sources must also claim the files they embed.
 # `git ls-files` resolves the patterns against the repository the probe lives in,
 # so a root that is not a git work tree fails closed (every pattern reads as
 # unmatched) - the intended direction for an evidence check.
@@ -254,6 +258,8 @@ else
         violation "pack input contract could not be evaluated: python3 not found (it parses $PACK)"
     else
         pack_out=$(python3 - "$PACK" <<'PY'
+import os
+import re
 import subprocess
 import sys
 import tomllib
@@ -272,17 +278,26 @@ if not sensors:
     print("VIOLATION the pack declares no sensors")
     sys.exit(0)
 
+_file_cache = {}
+
+
+def pattern_files(pattern):
+    if pattern not in _file_cache:
+        out = subprocess.run(
+            ["git", "ls-files", "--", pattern], cwd=root, capture_output=True, text=True
+        ).stdout
+        out += subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "--", pattern],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        ).stdout
+        _file_cache[pattern] = {line for line in out.splitlines() if line}
+    return _file_cache[pattern]
+
+
 def matches(pattern):
-    out = subprocess.run(
-        ["git", "ls-files", "--", pattern], cwd=root, capture_output=True, text=True
-    ).stdout
-    out += subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard", "--", pattern],
-        cwd=root,
-        capture_output=True,
-        text=True,
-    ).stdout
-    return bool(out.strip())
+    return bool(pattern_files(pattern))
 
 missing = [s.get("name", "?") for s in sensors if "inputs" not in s]
 if missing:
@@ -309,6 +324,71 @@ if unmatched:
     print("VIOLATION input patterns match no file (record a null digest): " + ", ".join(unmatched))
 else:
     print("OK every declared input pattern matches at least one file")
+
+# A file compiled into a crate by include_str!/include_bytes! is a build input that
+# no `*.rs` glob covers, and `verify --unchanged=skip` reuses a recorded pass on
+# declared digests alone - so a sensor that claims Rust sources as its input must
+# also claim the files those sources embed, or it can reuse a pass whose compiled
+# content changed (ontology.json's embedded concept graph is one).
+# The scan uses the same file universe as a sensor's `**/*.rs` declaration
+# (tracked plus non-ignored untracked), so a stub that a glob already matches
+# cannot hide an embedded asset from this rule.
+embedded = {}
+for rel in sorted(pattern_files("**/*.rs")):
+    try:
+        text = open(os.path.join(root, rel), encoding="utf-8", errors="ignore").read()
+    except OSError:
+        continue
+    for found in re.finditer(r'include_(?:str|bytes)!\s*\(\s*"([^"]+)"\s*\)', text):
+        asset = os.path.normpath(os.path.join(os.path.dirname(rel), found.group(1)))
+        embedded.setdefault(asset, []).append(rel)
+
+gaps = []
+for asset, carriers in sorted(embedded.items()):
+    uncovered = [
+        s.get("name", "?")
+        for s in sensors
+        if any(pattern.endswith(".rs") for pattern in s.get("inputs", []))
+        and not any(asset in pattern_files(pattern) for pattern in s.get("inputs", []))
+    ]
+    if uncovered:
+        gaps.append(f"{asset} (embedded by {', '.join(carriers)}): {', '.join(uncovered)}")
+if gaps:
+    print(
+        "VIOLATION sensors declare Rust sources but not the files they embed"
+        " (a reused pass can cover changed compiled content): " + "; ".join(gaps)
+    )
+else:
+    print(f"OK every sensor declaring Rust sources covers all {len(embedded)} embedded file(s)")
+
+# The rule above reads every Rust source in the workspace and the assets those
+# sources embed, so the sensor that runs this probe must declare them too:
+# `verify --unchanged=skip` compares declared digests only, so a source that adds
+# an undeclared `include_str!` would otherwise reuse the recorded pass of the very
+# rule that detects it. (Declaring a `*.rs` pattern here also puts this sensor
+# under the rule above, which is what keeps the asset itself declared.)
+runs_probe = {
+    s.get("name", "?")
+    for s in sensors
+    if any("check-do-harness-doctrine.sh" in str(arg) for arg in s.get("argv", []))
+}
+declares_sources = {
+    s.get("name", "?")
+    for s in sensors
+    if s.get("name", "?") in runs_probe
+    and any(str(pattern).endswith(".rs") for pattern in s.get("inputs", []))
+}
+if runs_probe - declares_sources:
+    print(
+        "VIOLATION the sensor that runs this probe declares no Rust source pattern"
+        " although the contract reads them (an undeclared source change would be"
+        " reused): " + ", ".join(sorted(runs_probe - declares_sources))
+    )
+else:
+    print(
+        "OK the sensor running this probe declares the sources this contract reads"
+        f" ({', '.join(sorted(runs_probe)) or 'none'})"
+    )
 PY
         )
         pack_rc=$?

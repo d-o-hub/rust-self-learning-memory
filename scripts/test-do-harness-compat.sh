@@ -531,6 +531,57 @@ RUN_OUT=$(
 ) || RUN_RC=$?
 expect_red "a silent python3 blocks the pack contract" "could not be evaluated (it produced no output)"
 
+# 16. A file compiled in by include_str!/include_bytes! is a build input that no
+# `*.rs` glob covers, and `verify --unchanged=skip` reuses a recorded pass on the
+# declared digests alone. The probe must catch a sensor that claims the Rust
+# sources but not the file they embed.
+build_pack_fixture "$WORK/pack-embedded"
+mkdir -p "$WORK/pack-embedded/src"
+printf 'const O: &str = include_str!("ontology.json");\n' >"$WORK/pack-embedded/src/a.rs"
+printf '{}\n' >"$WORK/pack-embedded/src/ontology.json"
+cat >"$WORK/pack-embedded/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["**/*.rs"]
+TOML
+git -C "$WORK/pack-embedded" init -q
+git -C "$WORK/pack-embedded" add -A
+git -C "$WORK/pack-embedded" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+    commit -qm init
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-embedded/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a sensor that claims Rust sources but not their embedded file is caught" \
+    "src/ontology.json (embedded by src/a.rs): probe-green"
+
+# 17. The contract reads every Rust source, so a pack whose contract sensor declares
+# none of them cannot invalidate the contract's own recorded pass: a source that adds
+# an undeclared include_str! would be reused, even though that is what the contract
+# detects. The probe must reject the pack that runs it.
+build_pack_fixture "$WORK/pack-selfdecl"
+cat >"$WORK/pack-selfdecl/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "harness-doctrine"
+argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
+inputs = ["scripts/check-do-harness-doctrine.sh"]
+TOML
+git -C "$WORK/pack-selfdecl" init -q
+git -C "$WORK/pack-selfdecl" add -A
+git -C "$WORK/pack-selfdecl" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+    commit -qm init
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-selfdecl/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a pack whose contract sensor declares none of the sources it reads is caught" \
+    "the sensor that runs this probe declares no Rust source pattern"
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

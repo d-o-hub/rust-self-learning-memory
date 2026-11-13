@@ -54,17 +54,17 @@ verification = [
 [[sensors]]
 name = "fmt"
 argv = ["cargo", "fmt", "--all", "--", "--check"]
-inputs = ["**/*.rs", "rustfmt.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "rustfmt.toml"]
 
 [[sensors]]
 name = "check"
 argv = ["cargo", "check", "--workspace"]
-inputs = ["**/*.rs", "**/Cargo.toml", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml"]
 
 [[sensors]]
 name = "clippy"
 argv = ["bash", "scripts/code-quality.sh", "clippy", "--workspace"]
-inputs = ["**/*.rs", "**/Cargo.toml", ".clippy.toml", "scripts/code-quality.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".clippy.toml", "scripts/code-quality.sh"]
 
 # Normal unit + integration test suite. Matches CI test job selection:
 # excludes benches/examples/test-utils to keep runtime stable and uses profile ci.
@@ -84,28 +84,39 @@ argv = [
   "--exclude",
   "do-memory-test-utils",
 ]
-inputs = ["**/*.rs", "**/Cargo.toml", "tests/**", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", ".config/nextest.toml"]
 
 # Dedicated CSM feature test suite matching CI csm-tests job (issue #1045).
 [[sensors]]
 name = "csm-feature"
 argv = ["cargo", "nextest", "run", "--profile", "ci", "-p", "do-memory-core", "--features", "csm"]
-inputs = ["**/*.rs", "**/Cargo.toml", ".config/nextest.toml"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", ".config/nextest.toml"]
 
 # Doctest execution and rustdoc build validation matching check-doctests.sh.
 [[sensors]]
 name = "docs"
 argv = ["bash", "scripts/check-doctests.sh"]
-inputs = ["**/*.rs", "scripts/check-doctests.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "scripts/check-doctests.sh"]
 
+# Audits both dependency graphs; the script refuses to pass if a lockfile changes
+# mid-scan. Root Cargo.lock needs no entry: the harness fingerprints it as a policy
+# input (`policy:Cargo.lock` in input_manifest.declarations), which invalidates every
+# beat. fuzz/Cargo.lock is not a policy input, so without the entry below a
+# fuzz-lock-only edit would reuse this sensor's recorded passing beat.
 [[sensors]]
 name = "deny"
 argv = ["bash", "scripts/check-dependency-audit.sh"]
-inputs = ["deny.toml", "**/Cargo.toml", "scripts/check-dependency-audit.sh"]
+inputs = [
+  "deny.toml",
+  "**/Cargo.toml",
+  "fuzz/Cargo.lock",
+  "scripts/check-dependency-audit.sh",
+]
 
 # Lockfile freshness for both graphs plus the libsql single-version alignment
 # constraint. Without it a stale fuzz/Cargo.lock is only discovered when
-# 'deny' rewrites it mid-scan (LESSON-077).
+# 'deny' rewrites it mid-scan (LESSON-077). Root Cargo.lock is already a policy
+# input, so only fuzz/Cargo.lock is declared here.
 [[sensors]]
 name = "lockfile-sync"
 argv = ["bash", "scripts/check-lockfile-sync.sh"]
@@ -123,7 +134,7 @@ inputs = ["CHANGELOG.md", "scripts/check-changelog-headings.sh"]
 [[sensors]]
 name = "shell-counters"
 argv = ["bash", "scripts/check-shell-counters.sh"]
-inputs = ["scripts/*.sh", "scripts/shell-counters-baseline.txt"]
+inputs = ["**/*.sh", "scripts/shell-counters-baseline.txt", "scripts/check-shell-counters.sh"]
 
 # LESSONS.md pairs each entry with a routed note; nothing enforced it, so 41 of
 # 77 lessons were unreachable from AGENTS.md/skills and one id was duplicated.
@@ -201,18 +212,24 @@ inputs = [
 [[sensors]]
 name = "harness-doctrine"
 argv = ["bash", "scripts/check-do-harness-doctrine.sh"]
-inputs = ["scripts/check-do-harness-doctrine.sh", "do-harness.toml"]
+inputs = [
+  "**/*.rs",
+  "memory-core/src/retrieval/cascade/ontology.json",
+  "scripts/check-do-harness-doctrine.sh",
+  "do-harness.toml",
+]
 
 [[sensors]]
 name = "loc"
 argv = ["bash", "scripts/check-loc.sh"]
-inputs = ["**/*.rs", "tests/**", "benches/**", "scripts/check-loc.sh", "scripts/quality-gates.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "tests/**", "benches/**", "scripts/check-loc.sh", "scripts/quality-gates.sh"]
 
 [[sensors]]
 name = "ignored-tests"
 argv = ["bash", "scripts/check-ignored-tests.sh"]
 inputs = [
   "**/*.rs",
+  "memory-core/src/retrieval/cascade/ontology.json",
   "plans/ignored_tests_inventory.json",
   "scripts/check-ignored-tests.sh",
 ]
@@ -222,6 +239,7 @@ name = "lint-suppressions"
 argv = ["bash", "scripts/check-lint-suppressions.sh"]
 inputs = [
   "**/*.rs",
+  "memory-core/src/retrieval/cascade/ontology.json",
   "scripts/check-lint-suppressions.sh",
   "scripts/lint-suppressions-baseline.txt",
 ]
@@ -236,6 +254,7 @@ name = "storage-backend-capabilities"
 argv = ["bash", "scripts/check-storage-backend-capabilities.sh", "--check"]
 inputs = [
   "**/*.rs",
+  "memory-core/src/retrieval/cascade/ontology.json",
   "docs/generated/storage-backend-capabilities.json",
   "scripts/storage-backend-capabilities.toml",
   "scripts/check-storage-backend-capabilities.sh",
@@ -246,4 +265,4 @@ inputs = [
 [[sensors]]
 name = "quality-gates"
 argv = ["bash", "-c", "QUALITY_GATE_SKIP_DOCTEST=true QUALITY_GATE_SKIP_LOC=true scripts/quality-gates.sh"]
-inputs = ["**/*.rs", "**/Cargo.toml", "tests/**", "benches/**", "scripts/quality-gates.sh"]
+inputs = ["**/*.rs", "memory-core/src/retrieval/cascade/ontology.json", "**/Cargo.toml", "tests/**", "benches/**", "scripts/quality-gates.sh"]

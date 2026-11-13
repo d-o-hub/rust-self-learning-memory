@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Harness pin raised from `v0.1.0` to `v0.2.0` — `scripts/do-harness-version.txt`, the prose
+  pins in `AGENTS.md`, `HARNESS.md` and the harness skill, and the `skill-evals.yml` matrix.
+  The pack declares `inputs` on its sensors and 0.1.0 has no such field: it refuses to read
+  `do-harness.toml` at all (`unknown field 'inputs', expected one of name, argv, retry,
+  timeout, allow_failure, transient_exit_codes, when-changed`), which is what made the
+  `Harness CLI contract (0.1.0)` job fail on every head of this change. `inputs`, and the
+  recorded-pass reuse that makes declaring it sound, arrived in 0.2.0, and both probes
+  (`check-do-harness-compat.sh` and `check-do-harness-doctrine.sh`) are recorded green against
+  the published 0.2.0 binary in a clean workspace, so the pin is 0.2.0 with `validated_through`
+  still `0.4.1` and the matrix `['0.2.0', '0.4.1']`. Measuring an older release by hand needs a
+  fresh worktree: `doctor` also checks the workspace state database's applied migrations
+  (`.do-harness/agent_state.db`), so an older binary run against a database a newer harness
+  migrated reports `doctor check failed: newer than this binary (23 applied, max 21)` — local
+  state, not a property of this pack.
+
 ### Fixed
 
 - `do-harness status --set <set>` could never report `green` in this workspace.

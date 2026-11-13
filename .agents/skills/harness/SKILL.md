@@ -20,7 +20,7 @@ coding).
   changes. Computational output strictly supersedes LLM self-assessment.
 
 ## Feedback Sensors
-Pinned compatible harness version: `v0.1.0`. Signal sets defined in `do-harness.toml`:
+Pinned compatible harness version: `v0.2.0`. Signal sets defined in `do-harness.toml`:
 
 | Signal Set / Mode | Command | Stage |
 |-------------------|---------|-------|

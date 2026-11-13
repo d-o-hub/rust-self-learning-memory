@@ -38,7 +38,7 @@ Two modes:
 
 ## Feedback Sensors
 
-Signal sets are defined in `do-harness.toml` (pinned harness version `v0.1.0`,
+Signal sets are defined in `do-harness.toml` (pinned harness version `v0.2.0`,
 the number tracked in `scripts/do-harness-version.txt`):
 - `feedback`: `fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids` (fast local edit loop)
 - `verification`: `fmt`, `check`, `clippy`, `loc`, `deny`, `lockfile-sync`, `changelog-headings`, `shell-counters`, `lesson-distillation`, `commit-ci-tokens`, `agents-md-ids`, `merge-method`, `release-blockers`, `harness-compat`, `harness-doctrine`, `docs`, `test`, `csm-feature`, `ignored-tests`, `lint-suppressions`, `yaml-frontmatter`, `storage-backend-capabilities`, `quality-gates` (canonical local evidence boundary)

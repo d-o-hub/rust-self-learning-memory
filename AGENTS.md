@@ -88,7 +88,7 @@ assert checks which do not exist (LESSON-063, LESSON-079).
 
 ## Dev Harness (do-harness)
 
-Pinned compatible harness version: `v0.1.0`, tracked in `scripts/do-harness-version.txt`.
+Pinned compatible harness version: `v0.2.0`, tracked in `scripts/do-harness-version.txt`.
 Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`. The same probes are measured
 green through `v0.4.1`, and `scripts/check-do-harness-compat.sh` goes red when the installed
 binary, `scripts/do-harness-version.txt` and this file disagree — the number above is evidence,

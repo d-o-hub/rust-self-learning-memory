@@ -446,6 +446,51 @@ export STUB_GREEN_RC=1
 run_doctrine
 expect_red "a passing sensor that exits 1 is caught" "contract says 0"
 
+# 14. Pack input contract. A sensor that declares no `inputs` gets the
+# `input:git-index-and-nonignored-untracked` fallback recorded as a null digest,
+# which makes `do-harness status --set <set>` report
+# `stale (inputs_changed_or_unknown)` for every change and breaks the documented
+# "confirm green local evidence boundary" line. The probe asserts the pack of the
+# repository it lives in, so these cases run a copy of it inside a fixture whose
+# pack is the mutation.
+build_pack_fixture() {
+    local r=$1
+    rm -rf "$r"
+    mkdir -p "$r/scripts"
+    cp "$DOCTRINE" "$r/scripts/check-do-harness-doctrine.sh"
+}
+
+build_pack_fixture "$WORK/pack-no-inputs"
+cat >"$WORK/pack-no-inputs/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-no-inputs/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "a sensor that declares no 'inputs' is caught" \
+    "sensors declare no inputs (status can never report green): probe-green"
+
+build_pack_fixture "$WORK/pack-empty-glob"
+cat >"$WORK/pack-empty-glob/do-harness.toml" <<'TOML'
+[[sensors]]
+name = "probe-green"
+argv = ["bash", "scripts/probe/green.sh"]
+inputs = ["no/such/glob/**/*.rs"]
+TOML
+clear_env
+RUN_RC=0
+RUN_OUT=$(
+    env PATH="$BIN:$FLOOR_PATH" DO_HARNESS_BIN="$PROBE" \
+        bash "$WORK/pack-empty-glob/scripts/check-do-harness-doctrine.sh" 2>&1
+) || RUN_RC=$?
+expect_red "an input glob matching no file is caught" \
+    "input patterns match no file (record a null digest): probe-green:no/such/glob/**/*.rs"
+
 echo
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "HARNESS VIOLATION: harness-compat-contract - $FAILURES contract case(s) failed" >&2

@@ -1,15 +1,15 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-11-05
-**Released Version**: v0.1.49 (release-prep on `main`; tag and GitHub Release pending)
-**Workspace Version**: 0.1.49 (release commit for `v0.1.49`; the `0.1.50` development bump follows the tag)
+**Last Updated**: 2026-11-13
+**Released Version**: v0.1.49 (`16d92d22`, GitHub Release published 2026-11-12T17:23:40Z with 37 assets; all four registered crates verified at `0.1.49` on crates.io)
+**Workspace Version**: 0.1.50 (post-release development bump)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
-**Active plan**: **post-release closeout of `0.1.48`** — `v0.1.47` shipped and its released CLI was dogfooded on a persistent database; the observed `storage stats` and retrieval-ranking defects are fixed in #1225/#1226,
-the advisory fix (#1224), generated-lockfile alert (#1227), version restore (#1228), toolchain pin (#1222), and crates.io publishing settings (#1109) are complete, and the harness wave (#1241, #1242, #1244, #1248, #1250, #1251, #1249) is merged.
-Shipped: `v0.1.48` tagged on the release-prep commit, release and publish chains green, released-CLI dogfood
-complete (asset digest matched, `--version` = 0.1.48, `storage stats` pattern total equals `pattern list` total in a
-fresh process). Remaining: upstream-blocked Dependabot ACT-404 and maintainer-external ADR lifecycle acceptance.
-**Branch**: release preparation based on `main` @ `2426638a`.
+**Active plan**: **post-release closeout of `0.1.49`** — the tag, the Release chain and the publish chain are green, and the released CLI is dogfooded. This PR carries the `0.1.50` development bump.
+Remaining: upstream-blocked Dependabot ACT-404 and maintainer-external ADR lifecycle acceptance.
+Shipped: `v0.1.49` tagged on `16d92d22` after the first tag was cancelled by the retired `macos-14` release label
+and re-cut on the runner-pin fix (#1265); released-CLI dogfood complete (asset digest matched, `--version` = 0.1.49,
+`pattern list` total equals `storage stats` pattern total in a fresh process).
+**Branch**: post-release development bump on `main` @ `16d92d22`.
 
 ## Open tracker (live)
 

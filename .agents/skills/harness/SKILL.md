@@ -20,7 +20,7 @@ coding).
   changes. Computational output strictly supersedes LLM self-assessment.
 
 ## Feedback Sensors
-Pinned compatible harness version: `v0.2.0`. Signal sets defined in `do-harness.toml`:
+Pinned harness version: `v0.4.6` (the newest upstream release). Signal sets defined in `do-harness.toml`:
 
 | Signal Set / Mode | Command | Stage |
 |-------------------|---------|-------|
@@ -32,6 +32,12 @@ Pinned compatible harness version: `v0.2.0`. Signal sets defined in `do-harness.
 | harness binary | `./scripts/check-do-harness-compat.sh --offline` | which binary resolves, prose pin vs `scripts/do-harness-version.txt`, documented flags, sensor/set parity |
 | harness status contract | `./scripts/check-do-harness-doctrine.sh` | exit-code doctrine and JSON fields, exercised on fixture sensors in a temp root; then this workspace's own pack: every sensor declares a non-empty `inputs` list (`inputs = []` records a null digest like omitting it), every declared glob matches a file, a sensor claiming `*.rs` also claims every file those sources embed with `include_str!`/`include_bytes!` — including the `harness-doctrine` sensor itself, whose rule reads those sources — every entry running `scripts/check-dependency-audit.sh` claims `.cargo/audit.toml` (cargo-audit's waiver list, which the script never passes on the command line), every sensor claims `.cargo/config.toml` (the file form of the `RUSTFLAGS`/`RUSTC`/`CARGO_BUILD_TARGET` policy inputs — uniform, so no shell parsing and no new reads), and the sensor running the probe claims every pattern the pack declares (its match-a-file rule resolves them all) |
 
+`do-harness verify` status contract in the newest release: `0` means all selected sensors
+passed; `1` means a sensor failed (mixed runs stay `1`); `2` means a usage/config/discovery
+error or every selected sensor was unrunnable. Unrunnable sensors appear in JSON
+`.unrunnable` with `exit_code: null`; `--strict` refuses incomplete evidence. The doctrine
+probe exercises these cases.
+
 `scripts/harness-check.sh` is a shim, not a second harness: `fmt|clippy|deny|test`
 delegate to those sensors with `--strict`, `all` runs the canonical verification set, and
 `arch`/`security` are labelled diagnostics. Exit `2` means nothing was checked (the CLI or
@@ -42,15 +48,14 @@ CI; that is issue #1246 and `scripts/test-harness-entrypoint.sh` pins the contra
 
 Sensors are defined in `do-harness.toml`; run `do-harness list` to see them.
 
-The version above is not a guess and not a hope: `scripts/do-harness-version.txt`
-carries the pin plus the newest release the probes have actually been measured green
-against, and the `harness-compat` sensor goes red the moment the installed binary, that
-file, and any routing doc disagree. CI re-runs the same two probes against published
-binaries (`.github/workflows/skill-evals.yml`, `harness-compat` job), each
-checksum-verified from the release's `checksums.txt`, and `scripts/test-do-harness-compat.sh`
-proves with 18 fixture mutations that neither probe can pass vacuously. Upgrading the
-CLI is therefore a deliberate change: run the probe against the new binary, record the
-result, and only then raise the number.
+The version above is not a guess: `scripts/do-harness-version.txt` tracks only the newest
+upstream release, so `pin` and `validated_through` are the same. The compat sensor goes red
+if the installed binary is older than the tracked pin or any routing doc disagrees. CI runs
+both probes against only that published version, checksum-verified from the release's
+`checksums.txt`; `scripts/test-do-harness-compat.sh` exercises the failure paths so neither
+probe can pass vacuously. When upstream publishes a new release, install it, run both
+probes against that binary, record the results, and update the pin, version prose, and
+single-entry matrix together.
 
 ## Self-Correction Protocol
 1. Read the full error output — it includes the failing check.

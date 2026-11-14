@@ -162,8 +162,9 @@ jobs:
       fail-fast: false
       matrix:
         # Keep in step with scripts/do-harness-version.txt; the step below fails loudly
-        # rather than silently testing nothing when the two drift apart.
-        version: ['0.2.0', '0.4.1']
+        # rather than silently testing nothing when the two drift apart. One entry: this
+        # repository uses only the newest upstream release, never an older one.
+        version: ['0.4.6']
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

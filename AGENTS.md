@@ -88,18 +88,16 @@ assert checks which do not exist (LESSON-063, LESSON-079).
 
 ## Dev Harness (do-harness)
 
-Pinned compatible harness version: `v0.2.0`, tracked in `scripts/do-harness-version.txt`.
-Sensors live in `do-harness.toml` and map to guides in `HARNESS.md`. The same probes are measured
-green through `v0.4.1`, and `scripts/check-do-harness-compat.sh` goes red when the installed
-binary, `scripts/do-harness-version.txt` and this file disagree — the number above is evidence,
-not a claim. Raising it is a deliberate change with a recorded compat run.
+Pinned harness version: `v0.4.6` (newest upstream release), tracked in `scripts/do-harness-version.txt`.
+Sensors in `do-harness.toml` map to `HARNESS.md`; compat requires the installed binary and routing-doc prose to match this pin. Use only the latest release; raise the pin only with a recorded compat run.
+
 `do-harness.toml` defines two explicit signal sets:
 - **`feedback`** (`do-harness verify --set feedback`): fast local edit loop (`fmt`, `loc`, `check`, `commit-ci-tokens`, `agents-md-ids`).
 - **`verification`** (`do-harness verify --set verification --strict --record && do-harness status --set verification`): full pre-completion contract covering formatting, compilation, clippy, LOC, dependency deny, lockfile freshness of both graphs and the `libsql` single-version alignment (`lockfile-sync`), changelog heading integrity (`changelog-headings`), shell counter ratchet (`shell-counters`), lesson-routing ratchet (`lesson-distillation`), commit-message CI tokens (`commit-ci-tokens`), AGENTS.md numeric-run ceiling (`agents-md-ids`), merge-method/no-bypass contract against the base ruleset (`merge-method`), release-blocker classifier fixtures (`release-blockers`), the pinned harness binary and prose pin (`harness-compat`), the harness exit-code/JSON contract (`harness-doctrine`), doctests/doc-build (`docs`), normal tests (`test`), CSM feature tests (`csm-feature`), ignored tests, lint suppressions, frontmatter, storage backend capabilities, and quality gates.
 
 `do-harness verify --set verification --strict --record` runs the full verification suite and persists beats; `verify --only <sensor>` re-runs one; `do-harness task done <id>` refuses until its sensor passed. Feedback set is an edit-loop tool and is **not** completion evidence. Sensor fired? Fix that sensor first, then commit.
 
-There is a third tier, **diagnostics**: `scripts/harness-check.sh` is a shim over the canonical sensors — `fmt|clippy|deny|test` delegate with `--strict`, `all` runs the `verification` set, and `arch`/`security` are focused checks that never yield a merge verdict. Exit `2` means nothing was checked (the CLI or a required tool is absent), which is a blocked result, not a pass; the script used to run weaker private copies of these gates and print `PASS` for skipped tools (issue #1246, pinned by `scripts/test-harness-entrypoint.sh`).
+There is a third tier, **diagnostics**: `scripts/harness-check.sh` is a shim over the canonical sensors — `fmt|clippy|deny|test` delegate with `--strict`, `all` runs the `verification` set, and `arch`/`security` are focused checks that never yield a merge verdict. Exit `2` means nothing was checked (the CLI or a required tool is absent), which is a blocked result, not a pass — the same verdict the harness itself returns when *every* selected sensor was unrunnable, while a mixed run stays `1`; the script used to run weaker private copies of these gates and print `PASS` for skipped tools (issue #1246, pinned by `scripts/test-harness-entrypoint.sh`).
 
 **Do NOT run `do-harness hook install`** — `.pre-commit-config.yaml` owns the git hooks, installed via `./scripts/install-hooks.sh`. A fresh clone has none installed (`.git/hooks` holds only `.sample` files), so every declared sensor is inert until that script runs; `./scripts/install-hooks.sh --verify` reports which are missing. The commit stage is the cheap subset (fmt, loc, file hygiene, shellcheck, yamllint) — clippy is `stages: [manual]` (`pre-commit run --hook-stage manual --all-files`), and `commitlint` needs the **commit-msg** hook type, which plain `pre-commit install` does not create. Worktrees share the common hooks dir, so one install covers them all. `do-harness init` must never inject the skill-creator scripts or ignore `.agents/events/`. Steering loop, metrics events and the fired-sensor runbook: [`.agents/skills/harness/SKILL.md`](.agents/skills/harness/SKILL.md).
 

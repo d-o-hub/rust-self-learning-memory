@@ -17,7 +17,8 @@
 #   3. every subcommand and flag this repository's contract cites is still offered;
 #   4. the real do-harness.toml parses, both signal sets resolve to the declared
 #      membership, and every sensor argv path exists on disk;
-#   5. the exit-code doctrine (0 passed / 1 ran-and-failed / 2 could not run) and the
+#   5. the exit-code doctrine (0 passed / 1 a sensor failed, mixed runs stay 1 / 2 nothing
+#      ran or every selected sensor unrunnable) and the
 #      JSON schema agent scripts consume - asserted by the sibling probe
 #      scripts/check-do-harness-doctrine.sh, which runs the same fixture against a
 #      green, a deliberately failing and an unspawnable sensor in a throwaway root;
@@ -222,7 +223,7 @@ check_version_against_pin() {
         violation "binary $VERSION is older than the tracked pin $PIN in $PIN_FILE. The docs contract against $PIN; install it rather than downgrading the pin."
     fi
     if [[ -n "$CEILING" ]] && ! semver_ge "$CEILING" "$VERSION"; then
-        note "binary $VERSION is newer than validated_through $CEILING; raise the ceiling only on a measured compat run"
+        note "binary $VERSION is newer than the tracked release $CEILING; this repository uses only the latest do-harness release - raise pin and validated_through together after a measured compat run"
     fi
     if [[ -n "$EXPECT_SHA" ]]; then
         local actual

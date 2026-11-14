@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Harness tracked as the *latest* upstream release: `pin` and `validated_through` are both
+  `0.4.6` in `scripts/do-harness-version.txt` (was `0.2.0` / `0.4.1`), so this repository
+  uses only the newest do-harness release and never an older one. `AGENTS.md`, `HARNESS.md`,
+  the harness skill and `plans/GATE_CONTRACT.md` name the same number, and the
+  `skill-evals.yml` matrix drops from `['0.2.0', '0.4.1']` to the single entry `['0.4.6']`.
+  Both probes are recorded green against the published 0.4.6 binary, checksum-verified from
+  its release `checksums.txt`: `check-do-harness-compat.sh` reports `Passed (0.4.6 …)`
+  including a real `fmt` sensor run at the workspace root, `check-do-harness-doctrine.sh`
+  reports `Status Contract Passed (0.4.6 …)`, and `do-harness doctor` accepts the existing
+  pack unchanged, so no pack migration was needed. `harness-doctrine` follows the release's
+  current documented status contract: a program that cannot be spawned makes its sensor
+  *unrunnable* (named in the report's `unrunnable` list, with `exit_code: null`), so a
+  selection where every sensor is unrunnable exits `2` while a mixed run stays `1`. The probe
+  now asserts that split — including a mixed run of a failing and an unrunnable sensor — and
+  the doctrine rows in `HARNESS.md`, `AGENTS.md` and the harness skill state it too.
 - Harness pin raised from `v0.1.0` to `v0.2.0` — `scripts/do-harness-version.txt`, the prose
   pins in `AGENTS.md`, `HARNESS.md` and the harness skill, and the `skill-evals.yml` matrix.
   The pack declares `inputs` on its sensors and 0.1.0 has no such field: it refuses to read

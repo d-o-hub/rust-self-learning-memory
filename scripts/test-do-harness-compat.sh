@@ -81,9 +81,11 @@ known_set() { # $1 = set name
 
 json_sensor() { # $1 name, $2 sensor-ok, $3 failed-entry (empty for none), $4 exit_code
     local failed='[]'
+    local unrunnable='[]'
     [[ -z "$3" ]] || failed="[\"$3\"]"
-    printf '{"ok":%s,"failed":%s,"sensors":[{"name":"%s","ok":%s,"exit_code":%s,"duration_ms":7,"allow_failure":false,"warned":false}]}\n' \
-        "$2" "$failed" "$1" "$2" "$4"
+    [[ "$1" != ghost ]] || unrunnable='["ghost"]'
+    printf '{"ok":%s,"failed":%s,"unrunnable":%s,"sensors":[{"name":"%s","ok":%s,"exit_code":%s,"duration_ms":7,"allow_failure":false,"warned":false}]}\n' \
+        "$2" "$failed" "$unrunnable" "$1" "$2" "$4"
 }
 
 write_evidence_if_asked() {
@@ -97,7 +99,7 @@ write_evidence_if_asked() {
 case "$sub" in
     version)
         printf '{"name":"do-harness","version":"%s","commit":"abc1234","commit_date":"2026-09-15","dirty":%s}\n' \
-            "${STUB_VERSION:-0.1.0}" "${STUB_DIRTY:-false}"
+            "${STUB_VERSION:-0.4.6}" "${STUB_DIRTY:-false}"
         exit 0
         ;;
     --help)
@@ -148,9 +150,13 @@ case "$sub" in
                 json_sensor ghost false ghost null
                 echo
                 if [[ "$rest" == *--strict* ]]; then
-                    exit "${STUB_GHOST_STRICT_RC:-1}"
+                    exit "${STUB_GHOST_STRICT_RC:-2}"
                 fi
-                exit "${STUB_GHOST_RC:-1}"
+                exit "${STUB_GHOST_RC:-2}"
+                ;;
+            *--set\ verification*)
+                printf '{"ok":false,"failed":["red","ghost"],"unrunnable":["ghost"],"sensors":[]}\n'
+                exit "${STUB_MIXED_RC:-1}"
                 ;;
             *--only\ fmt*)
                 code="${STUB_FMT_CODE:-0}"
@@ -262,17 +268,17 @@ TOML
     printf 'exit 0\n' >"$r/scripts/probe/green.sh"
     printf 'exit 1\n' >"$r/scripts/probe/red.sh"
     chmod +x "$r/scripts/probe/"*.sh
-    printf 'pin = "0.1.0"\nvalidated_through = "0.4.1"\n' >"$r/scripts/do-harness-version.txt"
-    printf 'Pinned compatible harness version: `v0.1.0`.\n' >"$r/AGENTS.md"
-    printf 'Signal sets (pinned harness version `v0.1.0`):\n' >"$r/HARNESS.md"
-    printf 'Pinned compatible harness version: `v0.1.0`.\n' >"$r/.agents/skills/harness/SKILL.md"
+    printf 'pin = "0.4.6"\nvalidated_through = "0.4.6"\n' >"$r/scripts/do-harness-version.txt"
+    printf 'Pinned harness version: `v0.4.6`.\n' >"$r/AGENTS.md"
+    printf 'Signal sets (pinned harness version `v0.4.6`):\n' >"$r/HARNESS.md"
+    printf 'Pinned harness version: `v0.4.6`.\n' >"$r/.agents/skills/harness/SKILL.md"
 }
 build_repo_fixture "$ROOT_OK"
 
 clear_env() {
     PATH_EXTRA=""
     unset STUB_VERSION STUB_DIRTY STUB_SUBS STUB_VERIFY_FLAGS STUB_SET_RC STUB_ONLY_RC \
-        STUB_GREEN_RC STUB_RED_RC STUB_GHOST_RC STUB_GHOST_STRICT_RC STUB_RECORD_RC \
+        STUB_GREEN_RC STUB_RED_RC STUB_GHOST_RC STUB_GHOST_STRICT_RC STUB_MIXED_RC STUB_RECORD_RC \
         STUB_STATUS_SET_RC STUB_DOCTOR_RC STUB_SETS_MISMATCH STUB_FMT_RC STUB_FMT_CODE \
         STUB_BADROOT_RC 2>/dev/null || true
 }
@@ -343,7 +349,7 @@ echo "=== do-harness Compatibility Contract Cases ==="
 
 # 1. The control. A faithful stub must go green, or every case below proves nothing.
 clear_env
-run_compat "$ROOT_OK" --expect-version 0.1.0
+run_compat "$ROOT_OK" --expect-version 0.4.6
 expect_compat_green "faithful stub: compat passes"
 run_doctrine
 expect_doctrine_green "faithful stub: doctrine passes"
@@ -352,14 +358,14 @@ expect_doctrine_green "faithful stub: doctrine passes"
 clear_env
 export STUB_VERSION=0.0.9
 run_compat "$ROOT_OK"
-expect_red "older-than-pin binary is refused" "older than the tracked pin 0.1.0"
+expect_red "older-than-pin binary is refused" "older than the tracked pin 0.4.6"
 
 # 3. A routing doc naming a version the pin file does not.
 clear_env
 printf 'Pinned compatible harness version: `v9.9.9`.\n' >"$ROOT_OK/AGENTS.md"
 run_compat "$ROOT_OK"
 expect_red "prose pin drift is caught" "claims a pinned harness version 9.9.9"
-printf 'Pinned compatible harness version: `v0.1.0`.\n' >"$ROOT_OK/AGENTS.md"
+printf 'Pinned harness version: `v0.4.6`.\n' >"$ROOT_OK/AGENTS.md"
 
 # 4. A documented subcommand disappears.
 clear_env
@@ -403,13 +409,13 @@ rm -f "$SHADOW/do-harness"
 
 # 10. The binary is not the artifact CI checksum-verified.
 clear_env
-run_compat "$ROOT_OK" --expect-version 0.1.0 --expect-sha256 deadbeef
+run_compat "$ROOT_OK" --expect-version 0.4.6 --expect-sha256 deadbeef
 expect_red "checksum mismatch is caught" "not the checksum this run was told to expect"
 
 # 11. A dirty build cannot back published compat evidence.
 clear_env
 export STUB_DIRTY=true
-run_compat "$ROOT_OK" --expect-version 0.1.0
+run_compat "$ROOT_OK" --expect-version 0.4.6
 expect_red "a dirty build is refused in a pinned run" "dirty build"
 
 # 12. Nothing to verify must never read as a pass: missing version file, no binary.
@@ -434,8 +440,12 @@ expect_red "a failing sensor that exits 0 is caught" "contract says 1"
 clear_env
 export STUB_GHOST_STRICT_RC=0
 run_doctrine
-expect_red "--strict accepting weak evidence is caught" "weak evidence is being accepted"
+expect_red "--strict accepting weak evidence is caught" "expected 2 (unrunnable), never a pass"
 
+clear_env
+export STUB_MIXED_RC=2
+run_doctrine
+expect_red "a mixed run that exits 2 is caught" "contract says 1"
 clear_env
 export STUB_SET_RC=1
 run_doctrine

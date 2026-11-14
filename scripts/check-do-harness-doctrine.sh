@@ -8,15 +8,17 @@
 # against?
 #
 #   exit 0  -> every sensor ran and passed
-#   exit 1  -> a sensor ran and failed (or --strict refused weak evidence)
-#   exit 2  -> nothing ran (unknown set, unknown sensor, bad root, bad flag)
+#   exit 1  -> a sensor failed; a mixed run stays 1 even when other sensors were unrunnable
+#   exit 2  -> nothing ran: unknown set / unknown sensor / bad root / bad flag, or *every*
+#              selected sensor was unrunnable (unspawnable program, empty argv, missing
+#              declared argv path) - upstream's "unrunnable" tier, named in the JSON report
 #
-# Those three tiers are the doctrine in AGENTS.md and .agents/skills/harness/SKILL.md.
+# These tiers follow the latest upstream contract, documented in HARNESS.md and the harness skill.
 # If a release collapses "could not run" into "failed", an agent reads a config typo as
 # a real gate red and fixes code that was never wrong; if it collapses the other way, a
 # broken sensor certifies silently. Both are the vacuous-pass class, so the cases below
-# are exercised against a green sensor, a deliberately failing sensor, and an
-# unspawnable one, in a throwaway root - never against this repository's real suite.
+# are exercised against a green sensor, a deliberately failing sensor, an unspawnable
+# one, and a mixed run, in a throwaway root - never against this repository's real suite.
 #
 # Exit codes: 0 contract holds, 1 contract broken, 2 nothing verified (no binary/jq).
 #
@@ -121,7 +123,7 @@ expect_rc() { # root expected_rc label [args...] -> 0 when the contract held
     shift 3
     run "$root" "$@"
     if [[ "$RC" -ne "$want" ]]; then
-        violation "$label exited $RC, contract says $want (0 passed / 1 ran-and-failed / 2 could not run); cli said: $(head -c 160 <<<"$ERR")"
+        violation "$label exited $RC, contract says $want (0 passed / 1 a sensor failed / 2 nothing ran or every selected sensor unrunnable); cli said: $(head -c 160 <<<"$ERR")"
         return 1
     fi
     return 0
@@ -148,19 +150,29 @@ if expect_rc "$FIX" 1 "'verify --only red'" verify --only red --format json; the
 else
     bad=1
 fi
-# An unspawnable argv reports exit_code null. The exit code alone cannot tell
-# "gate red" from "gate never ran", so the null is the only signal available to a
-# caller - if it disappears, a config typo is silently readable as a genuine failure.
-if expect_rc "$FIX" 1 "'verify --only ghost'" verify --only ghost --format json; then
-    jq -e '.sensors[0].exit_code==null' <<<"$OUT" >/dev/null 2>&1 ||
-        violation "an unspawnable sensor no longer reports exit_code null: $(head -c 160 <<<"$OUT")"
+# An unspawnable argv is "unrunnable": exit_code null in the record, named in the
+# report's `unrunnable` list, and - when it is the only sensor selected - exit 2 rather
+# than 1, so "gate red" stays distinguishable from "gate never ran". If that disappears,
+# a config typo is silently readable as a genuine failure.
+if expect_rc "$FIX" 2 "'verify --only ghost'" verify --only ghost --format json; then
+    jq -e '.sensors[0].exit_code==null and (.unrunnable==["ghost"])' <<<"$OUT" >/dev/null 2>&1 ||
+        violation "an unspawnable sensor no longer reports exit_code null plus .unrunnable==[ghost]: $(head -c 200 <<<"$OUT")"
+else
+    bad=1
+fi
+# A mixed run stays 1: the failing sensor is the signal, and the unrunnable one is
+# reported alongside it rather than promoted into a "nothing ran" verdict, so a
+# selection that gates on something real never reads as a config error.
+if expect_rc "$FIX" 1 "'verify --set verification' (red failed, ghost unrunnable)" verify --set verification --format json; then
+    jq -e '(.failed|index("red")) != null and (.unrunnable==["ghost"])' <<<"$OUT" >/dev/null 2>&1 ||
+        violation "a mixed run did not retain failed sensor red and name unrunnable ghost: $(head -c 200 <<<"$OUT")"
 else
     bad=1
 fi
 expect_rc "$FIX" 2 "'verify --set nosuchset'" verify --set nosuchset --format json || bad=1
 expect_rc "$FIX" 2 "'verify --only nosuchsensor'" verify --only nosuchsensor --format json || bad=1
 expect_rc "/tmp/do-harness-probe-no-such-dir" 2 "a run against a missing root" list || bad=1
-[[ "$bad" -eq 0 ]] && ok "exit-code doctrine holds: 0 pass / 1 ran-and-failed / 2 could-not-run"
+[[ "$bad" -eq 0 ]] && ok "exit-code doctrine holds: 0 pass / 1 sensor failed (mixed runs stay 1) / 2 nothing ran or every selected sensor unrunnable"
 
 run "$FIX" verify --only green --format json
 if ! is_json; then
@@ -193,10 +205,10 @@ else
     violation "'verify --only green --strict' exited $RC; the completion contract's own flag is refused"
 fi
 run "$FIX" verify --only ghost --strict --format json
-if [[ "$RC" -eq 1 ]]; then
-    ok "--strict rejects weak evidence (unspawnable sensor)"
+if [[ "$RC" -eq 2 ]]; then
+    ok "--strict rejects weak evidence (unspawnable sensor: every selected sensor unrunnable)"
 else
-    violation "'--strict' exited $RC on an unspawnable sensor; weak evidence is being accepted"
+    violation "'--strict' exited $RC on an unspawnable sensor; expected 2 (unrunnable), never a pass"
 fi
 
 # schema_version grows across releases (3 -> 4 -> 5 measured), so the assertion names

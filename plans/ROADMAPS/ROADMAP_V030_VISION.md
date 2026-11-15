@@ -1,16 +1,18 @@
 # Self-Learning Memory — Long-Term Vision (0.2 → 1.0)
 
-**Target Date**: 2026–2027  
-**Status**: VISION (not committed sprint work)  
-**Focus**: Distributed systems, multi-tenancy, observability, continuous learning  
-**Active product backlog**: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`
+**Target Date**: 2026–2027
+**Status**: VISION (not committed sprint work)
+**Focus**: Distributed systems, multi-tenancy, observability, continuous learning
+**Active product backlog**: `plans/ROADMAPS/ROADMAP_ACTIVE.md` (R-F work is gated by
+`plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json`; the 2026-07 register is archived at
+`plans/archive/2026-11-consolidation/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`)
 
 ---
 
 ## Executive Summary
 
 This document sketches **post-0.1.x** capabilities after the single-instance
-memory system is stable (currently workspace 0.1.36 / released v0.1.35). It is
+memory system is stable (currently workspace 0.1.50 / released v0.1.49). It is
 aspirational — every item needs a spike and go/no-go before implementation.
 
 **Vision Goals**:

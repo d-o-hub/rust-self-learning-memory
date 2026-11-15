@@ -7,7 +7,8 @@
   "metrics": {},
   "preapproved_thresholds": {},
   "result": "Product epics R-F1..R-F10 remain spike-gated; no GO this sprint",
-  "decision": "DEFER",
+  "decision": "NO-GO",
+  "superseded_by": "R-F-product-backlog-2026-11-15",
   "reviewers": ["recommendations-2026-07-20"],
   "items": [
     "R-F1 distributed sync",

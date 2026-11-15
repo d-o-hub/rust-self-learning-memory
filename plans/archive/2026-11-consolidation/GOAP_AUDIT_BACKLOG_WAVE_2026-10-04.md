@@ -155,4 +155,3 @@ Adjacent merges in the same window: #1128 docs-integrity fix, #1133 local hook s
    the next wave does not have to re-derive it. ✅ (ACT-376…ACT-381).
 5. Next-wave execution follows this doc's queue: independent slices in parallel worktrees; watermark and
    embedding chains sequenced; release `v0.1.45` (#1137) after the wave is green.
-

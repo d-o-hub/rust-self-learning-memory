@@ -15,10 +15,10 @@ The 2026-07-14 → 2026-07-23 GOAP campaign closed the high-priority correctness
 
 This plan is the **single active recommendations register**. It covers:
 
-1. **Code / product gaps** still worth shipping  
-2. **Missing or partial implementations** (verified vs historical)  
-3. **New feature proposals** (evidence-gated)  
-4. **README / AGENTS / agent_docs / skills** hygiene  
+1. **Code / product gaps** still worth shipping
+2. **Missing or partial implementations** (verified vs historical)
+3. **New feature proposals** (evidence-gated)
+4. **README / AGENTS / agent_docs / skills** hygiene
 5. **Plans folder hygiene** (ADR-039 re-applied this sprint)
 
 ### Confidence classes
@@ -49,13 +49,13 @@ This plan is the **single active recommendations register**. It covers:
 
 Prior campaign completion (do not re-open without regression):
 
-- S1.1–S1.7, S1.1b/c, S1.2 remainder, S1.4b, S1.5/S1.5b  
-- W2.1–W2.5 (incl. ci-parity, deny, workflow guards, benches)  
-- K3.1/K3.2 (+ partial K3.3)  
-- F4.1–F4.4 spikes GO; S1.1c NO-GO  
-- Harness #861–#869, release-cadence-manager, release-guard path  
+- S1.1–S1.7, S1.1b/c, S1.2 remainder, S1.4b, S1.5/S1.5b
+- W2.1–W2.5 (incl. ci-parity, deny, workflow guards, benches)
+- K3.1/K3.2 (+ partial K3.3)
+- F4.1–F4.4 spikes GO; S1.1c NO-GO
+- Harness #861–#869, release-cadence-manager, release-guard path
 
-Archived source of truth for that work:  
+Archived source of truth for that work:
 `plans/archive/2026-07-consolidation/completed-sprints/`.
 
 ---
@@ -64,9 +64,9 @@ Archived source of truth for that work:
 
 IDs use prefix **R** (recommendation). Priorities:
 
-- **P0** — correctness, release safety, policy truth  
-- **P1** — operator UX, skills/docs contract, maintainability  
-- **P2** — product features and research epics  
+- **P0** — correctness, release safety, policy truth
+- **P1** — operator UX, skills/docs contract, maintainability
+- **P2** — product features and research epics
 
 ### Track A — Release & version truth (P0)
 
@@ -124,8 +124,8 @@ IDs use prefix **R** (recommendation). Priorities:
 
 Do **not** implement without spike artifacts under `plans/STATUS/spikes/`.
 
-**Status 2026-07-20:** All R-F* **DEFER** — decision artifact  
-`plans/STATUS/spikes/R-F-product-backlog-2026-07-20.json` (`decision: DEFER`).  
+**Status 2026-07-20:** All R-F* **DEFER** — decision artifact
+`plans/STATUS/spikes/R-F-product-backlog-2026-07-20.json` (`decision: DEFER`).
 No product/research implementation this sprint.
 
 | ID | Feature | Status |
@@ -164,41 +164,41 @@ No product/research implementation this sprint.
 
 ### Wave 0 — Docs & plans truth (this change)
 
-- Archive + recommendations + canonical plan refresh  
-- No release; no code behavior change  
+- Archive + recommendations + canonical plan refresh
+- No release; no code behavior change
 
 ### Wave 1 — Release v0.1.36
 
-1. CHANGELOG Unreleased → 0.1.36 notes  
-2. Align Released Version docs  
-3. `release-manager.sh ship --execute`  
-4. Bump to 0.1.37  
+1. CHANGELOG Unreleased → 0.1.36 notes
+2. Align Released Version docs
+3. `release-manager.sh ship --execute`
+4. Bump to 0.1.37
 
 ### Wave 2 — Invariants & skills completeness
 
-- R-B1 LOC split  
-- R-C1/C2/C3 + R-E1/E2  
-- R-B5 ADR aliases  
-- R-D3/D4/D5  
+- R-B1 LOC split
+- R-C1/C2/C3 + R-E1/E2
+- R-B5 ADR aliases
+- R-D3/D4/D5
 
 ### Wave 3 — F4 productization
 
-- R-B2, R-C4, R-C5, R-C6  
-- Operator docs in README + CLI help  
+- R-B2, R-C4, R-C5, R-C6
+- Operator docs in README + CLI help
 
 ### Wave 4 — Product / research (optional)
 
-- Spike R-F* items independently; promote only on GO  
+- Spike R-F* items independently; promote only on GO
 
 ---
 
 ## 5. Explicit non-goals (for now)
 
-- Re-opening Wasmtime/WASI (S1.1c NO-GO stands)  
-- Re-implementing closed harness issues #861–#869  
-- Re-running completed S1/W2 packages without regression evidence  
-- Manual GitHub releases  
-- Raising coverage floor without a dedicated measurement sprint  
+- Re-opening Wasmtime/WASI (S1.1c NO-GO stands)
+- Re-implementing closed harness issues #861–#869
+- Re-running completed S1/W2 packages without regression evidence
+- Manual GitHub releases
+- Raising coverage floor without a dedicated measurement sprint
 
 ---
 

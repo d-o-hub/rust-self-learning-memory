@@ -1,0 +1,64 @@
+{
+  "id": "R-F-product-backlog",
+  "commit": "fa3c561f",
+  "timestamp": "2026-11-15T00:00:00Z",
+  "owner": "maintainers",
+  "commands": [
+    "gh issue list --state open",
+    "gh pr list --state open",
+    "web search: Rust std::simd portable_simd stable status",
+    "web search: OpenTelemetry Rust 0.33.1 OTLP exporter stability",
+    "web search: crates.io trusted publishing OIDC GitHub Actions"
+  ],
+  "metrics": {
+    "open_issues": 0,
+    "open_prs": 0,
+    "r_f1_distributed_sync_implemented": false,
+    "r_f2_otel_implemented": false,
+    "r_f3_multi_tenancy_implemented": false,
+    "r_f4_portable_simd_implemented": false,
+    "r_f5_episode_versioning_implemented": false,
+    "r_f6_moe_routing_implemented": false,
+    "r_f7_federated_hdc_implemented": false,
+    "r_f8_relationship_panel_done": true,
+    "r_f9_ann_hardening_done": true,
+    "r_f10_trusted_publishing_done": true,
+    "portable_simd_stable": false,
+    "opentelemetry_rust_latest": "0.33.1",
+    "opentelemetry_traces_stable": false,
+    "checks": [
+      {
+        "type": "evidence_review",
+        "value": "forced_go_artifacts_have_empty_commands",
+        "pass": true
+      },
+      {
+        "type": "release_slot",
+        "value": "workspace_0.1.50_dev_no_feature_commit",
+        "pass": true
+      }
+    ]
+  },
+  "preapproved_thresholds": {
+    "requires_measured_spike_commands": true,
+    "requires_owner_and_release_slot": true,
+    "requires_adr_for_schema_or_transport_change": true,
+    "requires_go_only_after_thresholds_met": true
+  },
+  "result": "DEFER: R-F1..R-F7 remain gated. The 2026-07-28 artifacts were produced with force_decision=GO and empty commands, so they are feasibility notes, not approved work. R-F8, R-F9 and R-F10 are shipped.",
+  "decision": "NO-GO",
+  "reviewers": [
+    "maintainers"
+  ],
+  "supersedes": [
+    "R-F-product-backlog-2026-07-20",
+    "R-F1",
+    "R-F2",
+    "R-F3",
+    "R-F4",
+    "R-F5",
+    "R-F6",
+    "R-F7"
+  ],
+  "notes": "Corrections against current official documentation (2026-11-15): portable SIMD (`std::simd` / portable-simd) is still nightly-only, so R-F4's 'stabilised in Rust 1.89' premise is false on stable Rust; the existing 8-way unrolled cosine loop remains the supported optimisation. OpenTelemetry Rust 0.33.1 made OTLP logs/metrics stable but traces are still beta, so R-F2 needs a pinned 0.33.x dependency plus an `otel` feature and redaction tests before it can be scheduled. crates.io trusted publishing is live and R-F10 is already shipped (ADR-078). R-F1/R-F3/R-F5/R-F7 need a schema or transport ADR and coordinated releases; R-F6 MoE routing needs its own ADR above ADR-077's exact-provider model. Do not promote any of them from a forced-GO artifact."
+}

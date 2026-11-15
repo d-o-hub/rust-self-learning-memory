@@ -1,0 +1,100 @@
+# GOAP State Snapshot
+
+- **Last Updated**: 2026-11-01
+- **Version**: workspace `0.1.48` (development bump restored in #1228) · latest tag `v0.1.47` (`854f6f8d`, GitHub Release published 2026-10-28T20:41:48Z)
+- **Branch**: `main` at audit baseline `d5d8f463` (#1232/#1233 merged); no release branch
+- **Open PRs**: 0 at the audit baseline; this tracker refresh is the only review PR and is excluded from the post-merge count
+- **Open issues**: 0 (`gh issue list --state open`); #1205, #1109 and drift issue #1223 are closed
+- **Active plan**: release closeout complete — `v0.1.47` shipped and released-CLI dogfood verified; ACT-368/#1109 settings and ACT-403 nightly are complete; #1232/#1233 CLI output contract merged
+  Remaining: upstream-blocked Dependabot ACT-404 (18 alerts / 9 advisories), next release preparation for `0.1.48`, and maintainer-external ADR lifecycle acceptance
+- **Audit baseline**: main SHA `d5d8f463`; no `0.1.48` release has been created
+- **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md) (per-issue verdicts)
+- **Release**: `v0.1.47` shipped and **reached crates.io** (core, redb, turso, mcp). The released `do-memory-cli`
+  was dogfooded against a persistent database (asset digest `76621912…ee58`, `--version` 0.1.47, episode
+  `8c6c3261…236e`, 3 steps, 5 patterns), which is now a mandatory release-guard step.
+- **Archive**: `plans/archive/2026-07-consolidation/`
+
+---
+
+## Wave status — audit backlog (2026-10-12)
+
+| Slice | Issue | PR | Status |
+|-------|-------|-----|--------|
+| W0 | trackers + wave doc | #1129 (`26b12fc8`) | ✅ merged 2026-10-05 |
+| W1 | #1077 ranking guard across await | #1131 (`874df209`) | ✅ merged 2026-10-05 |
+| W2 | #1086 sub-second MCP latency | #1135 (`75007b51`) | ✅ merged 2026-10-05 |
+| W3 | #1088 Turso tag-tx rollback | #1134 (`347b3296`) | ✅ merged 2026-10-05 |
+| W4 | #1066 redb recommendation index order | #1139 (`f1c31699`, `0485bb66`) | ✅ merged 2026-10-05 |
+| W5 | #1075 query-aware lexical fallback | #1138 | ✅ merged 2026-10-09 |
+| W6 | #1085 real MCP health probes + URL redaction (E1) | #1140 | ✅ merged 2026-10-09 |
+| Q02 | #1091 ignored-test inventory + isolation | #1130 (`8a363505`) | ✅ merged 2026-10-06 — 159-entry inventory, 14 tests un-ignored, isolated fail-visible nightly job; issue closed with evidence |
+
+### Wave A (2nd batch) merged
+
+| Issue | PR | Notes |
+|-------|----|-------|
+| #1065 recommendation precision | #1142 (`5054c15a`) | ✅ merged 2026-10-08 |
+| #1079 execution-backed provenance | #1148 (`9fdbc765`) | ✅ merged 2026-10-07 |
+| #1092 lint suppressions (slice 1) | #1143; slice 2 #1153 (`b6326d90`) | ✅ merged; crate-root allows 317 → 0 |
+| #1071 strict row decode + query builder | #1145 | ✅ merged |
+| #1070 capacity eviction | #1150 | ✅ merged |
+| #1063 adaptive pool capacity | #1146 | ✅ merged |
+| #1064 scoped pool checkout | #1147 | ✅ merged |
+| #1067 modification watermark | #1149 | ✅ merged |
+| #1073 identity-scoped embedding adapter | #1151 | ✅ merged |
+| #1078 incremental ranking index | #1154 | ✅ merged |
+| #1087 capability truth | #1144, #1152, #1158 | ✅ merged |
+| #1074 live provider snapshot (pattern sites) | #1160 | ✅ merged |
+| nightly JSON / fuzz toolchain fixes | #1159, #1161 | ✅ merged |
+
+Adjacent merges: #1128 docs-integrity, #1133 local hook sensors, #1136 dependabot.
+
+## Next queue
+
+- **Merge policy**: `strict_required_status_checks_policy` keeps merges serial and requires current-head checks. No other PRs or issues were open at the audit baseline; this tracker refresh is the sole review PR.
+- **Next release**: `0.1.48` is a development bump, not a release. Do not cut it now. When cadence and release-preparation requirements pass, use `./scripts/release-manager.sh ship --execute`; released-CLI dogfood remains mandatory.
+- **Dependabot (ACT-404)**: 18 open alert rows across 9 advisory IDs and two lockfiles. `rustls`/`rustls-webpki`, `lru`, and `libsql-sqlite3-parser` remain pinned by upstream dependency chains; see `ACTIONS.md` and `STATUS/GAP_ANALYSIS_LATEST.md`.
+- **Nightly (ACT-403)**: scheduled 2026-11-01 run #41288205136 succeeded; the isolated Turso dimension suite passed 20/20 with 0 skipped.
+- **Watermark / embedding follow-ups**: #1068, #1089 and #1076 closed on 2026-10-19/20 with the release evidence.
+- **#1109 external steps**: ✅ all complete — four crates.io trusted publishers, `v*` tag-only environment, registry secret removed; issue closed.
+- **ADR lifecycle**: ADR-080/081/082 acceptance remains maintainer-external, not a code-side blocker.
+
+## Current truth flags
+
+```text
+release_current                   = true  (v0.1.47 tagged 2026-10-28 on 854f6f8d; workspace bumped to 0.1.48 in #1228)
+crates_io_publish_truthful        = true  (0.1.46 and 0.1.47 both published for core/redb/turso/mcp; the #1179 guard fix held twice)
+nightly_turso_green               = true  (scheduled run #41288205136, 2026-11-01: 20/20 isolated Turso native tests passed; see ACT-403)
+audit_backlog_registered          = true  (#1129 — every #1063–#1092 issue has a verdict in GAP_ANALYSIS_LATEST.md)
+w1_ranking_guard_released         = true  (#1131)
+w2_subsecond_latency_released     = true  (#1135)
+w3_turso_tag_tx_rollback          = true  (#1134)
+w4_redb_rec_index_ordering        = true  (#1139 — repair pass heals write-order winners without a schema bump)
+w5_lexical_fallback               = true (#1138)
+w6_mcp_health_truthful_and_redacted = true (#1140)
+ignored_test_inventory            = true  (#1130; nightly job fail-visible, JSON flag follow-up in #1159)
+recommendation_precision          = true  (#1142 — ms ordering + UUID tie-break + backfill)
+retrieval_provenance_execution_backed = true (#1148)
+lint_crate_root_allows_zero       = true (#1143/#1153)
+production_pattern_query_relevance = true (#1160 — runtime provider snapshot across pattern paths)
+watermark_source_of_truth         = true (#1149 — revision table + keyset pages + durable watermark)
+storage_stats_pattern_count_truthful = true (#1225 — counts backends via get_all_patterns; 2 == 2 across processes)
+context_subsignal_weights_preserved  = true (#1226 — scaled by the 0.4 budget before the cap; 5/5 Rust on top)
+adr079_stage4_merge_block_proven  = true  (#1229 probe: CI / Required failed → mergeStateStatus BLOCKED, merge-pr exit 1)
+required_ci_causal                = true  (ruleset 9591004 requires Codacy + `CI / Required`; same-run aggregate)
+release_dispatch_truthful         = true  (#1179 guard + #1223 self-close + two consecutive published releases)
+```
+
+## Closed campaigns (pointer)
+
+| Campaign | Result |
+|----------|--------|
+| Release-pipeline hardening #1109 C1–C7 | ✅ code-side merged (#1121, #1123, #1125); external registrations, `v*` environment and registry-secret deletion verified; issue closed 2026-10-29 |
+| ADR-079/CIT/PTA/RAT CI-trust + attribution | ✅ code-side closed (#947, 2026-08-12); ADR-079 **stage 4 proven 2026-10-30** (probe #1229: failing `CI / Required` → `mergeStateStatus=BLOCKED`, `merge-pr.sh` exit 1); ADR-080/081/082 lifecycle = maintainer-external |
+| Retrieval judgment + rerank | ✅ #1041, #1042 (2026-09-24) |
+| Feedback-to-ranking adaptation (ADR-082) | ✅ #952 (2026-08-13); lifecycle `Proposed` |
+| v0.1.44 ship + post-bump | ✅ 2026-10-02 |
+| PR queue cleanup (GOAP swarm) | ✅ 2026-07-27 |
+| v0.1.36 ship + post-bump | ✅ 2026-07-22…23 |
+
+Details: `plans/archive/2026-07-consolidation/completed-sprints/`.

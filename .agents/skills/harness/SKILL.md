@@ -81,12 +81,11 @@ signature in `.do-harness/agent_state.db`, and surface a diagnostic.
 - Never trust LLM self-assessment over a computational sensor's exit code.
 - Fix the sensor that fired; do not refactor unrelated code in the same pass.
 - An empty sensor suite passes vacuously; that is not evidence.
-- Exit codes carry the doctrine: **0 = ran and passed, 1 = ran and failed, 2 = could
-  not run**. A gate that never started must never be readable as a pass, so the harness
-  probes exit 2 (`HARNESS BLOCKED …`) when no binary resolves.
-- An unspawnable sensor argv is reported by `do-harness` as a *failed* sensor with
-  `exit_code: null` — the exit code alone cannot tell "gate red" from "gate never ran",
-  so read the JSON, not the number.
+- Exit codes for the latest harness: **0 = all selected sensors passed; 1 = a sensor
+  failed (mixed runs stay 1); 2 = usage/config/discovery error or every selected sensor
+  was unrunnable**. Unrunnable sensors appear in JSON `.unrunnable` with `exit_code: null`;
+  `--strict` refuses incomplete evidence. The compatibility probe itself exits 2 when
+  nothing was verified (for example, no binary or jq); that is not a pass.
 
 ## Steering Loop
 

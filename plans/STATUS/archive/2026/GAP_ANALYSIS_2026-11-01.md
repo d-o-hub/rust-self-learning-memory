@@ -1,0 +1,128 @@
+# Gap Analysis — 2026-10-04 (audit-backlog reconciliation)
+
+**Generated**: 2026-10-04
+**Audit baseline of the findings**: `9f50c607` (2026-09-28) · **Re-validated at**: `74a44a15` (`main`)
+**Workspace Version**: `0.1.48` · **Released Tag**: `v0.1.47` (`854f6f8d`)
+**Active Focus**: GAP03 — repo-wide issue register (previous focus DOC02, archived at `archive/2026/GAP_ANALYSIS_2026-10-02.md`)
+
+## Live addendum (2026-11-01) — closeout complete; dependency advisories remain upstream-blocked
+
+- Audit baseline: `main` at `d5d8f463` after #1232/#1233. The original 22 issue findings below are closed; open issues are 0. No other PRs were open at the audit baseline; this tracker refresh is the only review PR and the post-merge open-PR count is 0.
+- Dependabot currently reports **18 alert rows = 9 advisory IDs × 2 lockfiles** (`Cargo.lock`, `fuzz/Cargo.lock`). Root and fuzz `cargo tree --locked` output confirms these current dependency chains:
+
+| Package family | Advisory IDs | Current pinned dependency | First patched version / status |
+|----------------|---------------|---------------------------|--------------------------------|
+| `rustls` | GHSA-w44r-93j7-qv28, GHSA-c8m5-c952-6cm4, GHSA-h2v8-394m-p7vv | `rustls 0.22.4` → `hyper-rustls 0.25.0` → `libsql 0.9.30` | `rustls 0.23.46`; blocked by the libsql/hyper chain |
+| `rustls-webpki` | GHSA-82j2-j2ch-gfr8, GHSA-xgp8-3hg3-c2mh, GHSA-965h-392x-2mh5, GHSA-pwjx-qhcg-rvj4 | `rustls-webpki 0.102.8` under `rustls 0.22.4` | `0.103.10`, `0.103.12` or `0.103.13` by advisory; blocked by the same chain |
+| `lru` | GHSA-rhfx-m35p-ff5j | `lru 0.9.0` via `augurs-changepoint`/`rv`; `lru 0.12.5` via `agentfs-sdk` | `0.16.3`; both dependency paths remain upstream |
+| `libsql-sqlite3-parser` | GHSA-8m95-fffc-h4c5 | `0.13.0` via `libsql 0.9.30` | No patched release |
+
+- Alert #35 is fixed by #1227; `.opencode/package-lock.json` is no longer tracked.
+- Release issue #1109 is closed (2026-10-29): all four trusted publishers, `v*` tag-only environment and registry-secret removal were verified. Release issue #1205 is also closed (2026-10-28).
+- ACT-403 is complete: scheduled run #41288205136 (2026-11-01) passed; the isolated Turso multi-dimension suite was 20/20 with zero skipped.
+
+
+## Why this register exists
+
+Every tracker in `plans/` reported "no active plan" and "P0 plan gaps: 0 open code-side" while
+`gh issue list --state open` returned **22 open code issues** (#1063–#1092). Those issues were filed by a
+static-analysis swarm at `9f50c607` and were never entered into `GOALS.md` / `ACTIONS.md` / `ROADMAP_ACTIVE.md`,
+so each subsequent refresh restated "0 gaps" from completed-campaign evidence instead of from the live issue
+list. Five parallel read-only validation agents re-checked every finding against the current tree.
+
+**Audit snapshot at 2026-10-04: 20 OPEN, 2 PARTIAL, 0 fixed.** No commit in `9f50c607..HEAD` references any of these issue
+numbers, and `git log 9f50c607..HEAD -- <cited path>` shows the cited regions untouched. The prior "0 open
+gaps" claim was campaign-scoped (ADR-079 / CIT / PTA / RAT) and remains true only for that campaign.
+
+**Wave progress (2026-10-09)**: W1 #1077 ✅ #1131 · W2 #1086 ✅ #1135 · W3 #1088 ✅ #1134 · W4 #1066 ✅ #1139
+· Q02 #1091 ✅ #1130 · #1065 ✅ #1142 · #1079 ✅ #1148 · #1092 slice 1 ✅ #1143.
+In review: W5 #1075 #1138 · W6 #1085 #1140 · #1063 #1146 · #1064 #1147 · #1067 #1149 · #1070 #1150 · #1071 #1145
+· #1073 #1151 · #1078 #1154 · #1087 #1144/#1152/#1158 · #1092 slice 2 #1153 · #1159.
+Waiting on merges: #1068/#1089 (after #1149), #1074 (in flight), #1076 (after #1074). Verdicts below remain the
+2026-10-04 audit snapshot; see `VALIDATION_LATEST.md` for the live state.
+
+## Live addendum (2026-10-30) — everything above is closed
+
+- `gh issue list --state open` = **0**. The audited #1063–#1092 set, the follow-ups (#1068/#1089/#1076), the
+  release series (#1109, #1165) and the drift issue (#1223, closed by the workflow itself once 0.1.48 landed) are
+  all closed.
+- **New gaps found by the released-CLI dogfood of `v0.1.47`** — both fixed the same day:
+
+| Gap | Evidence | Fix |
+|-----|----------|-----|
+| `storage stats` reported `patterns.total_count = 0` in a fresh process while `pattern list` returned 5 | released 0.1.47 binary on `/tmp/v0147/dogfood/memory.db`; reproduced on a fresh DB as `0` vs `2` | #1225 — count through `get_all_patterns()`; 2 == 2 after |
+| A Rust query over Rust/Python/TypeScript episodes in one domain returned no Rust episodes | `test_matching_language_outranks_nonmatching_language_within_same_domain` failed with `matching language (0.4)` vs `nonmatching (0.4)` | #1226 — sub-signals scaled by the 0.4 budget before the cap; 5/5 Rust on top |
+
+- **Process gaps closed with them**: a released-CLI dogfood step is now mandatory in `release-guard`
+  (#1224-adjacent ACT-418); the generated `.opencode/package-lock.json` is untracked and ignored (#1227, alert #35
+  `fixed`); the toolchain is pinned to 1.99.1 (#1222); ADR-079 stage 4 is proven live (#1229, closed unmerged).
+- **Still upstream-blocked**: the transitive `rustls-webpki 0.102.8` (needs libsql on hyper 1.x), `lru <0.16.3`
+  via `augurs-changepoint`/`agentfs-sdk`, and `libsql-sqlite3-parser` (no patch) — see ACT-404.
+
+## Live addendum (2026-10-16)
+
+`gh issue list --state open` = **5** — of the audited #1063–#1092 set only the three declared follow-ups remain
+(#1068 revision-aware merge, #1089 batch sync writes, #1076 pattern-embedding reuse); everything else in this
+register merged. The other two are release-series: #1109 (manual crates.io registrations — maintainer-external)
+and #1165 (v0.1.45 drift, closes with the `0.1.46` bump).
+
+New gaps found **after** the audit, i.e. not covered by any verdict below — tracked as ACT-399…ACT-412 in
+`ACTIONS.md` with evidence in `../GOAP_RELEASE_CLOSEOUT_2026-10-16.md` and `VALIDATION_LATEST.md`:
+
+| Gap | Evidence | Owner action |
+|-----|----------|--------------|
+| crates.io publish chain was **false-green** since `493cfb01`: two releases (`v0.1.44`, `v0.1.45`) never uploaded | newest published `0.1.34` (mcp `0.1.31`) while `release.yml` run `38883104363` = `success`; publish step `conclusion=skipped` | ACT-399 (#1179) + ACT-402/ACT-409 (first publishing tag `v0.1.46`) |
+| Turso monitoring metrics could never be stored (SQL named columns the DDL does not create; `avg_duration_ms` written in seconds) | nightly run `38883104337`: `106 tests run: 70 passed, 36 failed` | ACT-401 (#1180) + ACT-406 (schema-vs-SQL sensor) |
+| Multi-dimension embedding reads queried a table that feature build never creates | `no such table: embeddings` under `turso_multi_dimension` | ACT-401 (#1180) |
+| Pooled call sites used the direct-connection accessor | `get_connection() is only available in direct-connection mode` | ACT-401 (#1180), residual callers under #1064 follow-up |
+| Nightly test *configuration* could report a schema mismatch as a storage bug | `#[ignore]` + `--run-ignored only` ignores feature gating | ACT-403, ACT-407 |
+| 12 Dependabot alerts = **6 advisories × 2 lockfiles** (`Cargo.lock`, `fuzz/Cargo.lock`), **all upstream-blocked**: 8 × `rustls-webpki 0.102.8` (2 high) via `libsql 0.9.30/0.10.0 → hyper-rustls 0.25 → rustls 0.22.4`; 2 × `lru <0.16.3` via `augurs-changepoint 0.10.2 → changepoint 0.14.2 → rv 0.16.5` and `agentfs-sdk 0.6.4`; 2 × `libsql-sqlite3-parser ≤0.13.0` with **no patched release** (CVE-2025-47736). `cargo audit`/`cargo deny` were cleared separately by #1174, which closed none of these | `gh api repos/:owner/:repo/dependabot/alerts?state=open --paginate` + `cargo tree` on a scratch `libsql 0.10.0` crate | ACT-404 (wait for upstream: tursodatabase/libsql, Manishearth/llru-rs, augurs-project/augurs) |
+| The tag cannot be cut straight after #1180: `release-manager.sh` Phase 0 fails on docs/CHANGELOG state | `./scripts/verify-release-state.sh --check-unreleased` → `❌ 3 version mismatches` (`ROADMAP_ACTIVE says v0.1.45`, `CURRENT references v0.1.45`, `CHANGELOG.md missing entry for v0.1.46`), plus `⚠️ parse-changelog not installed` while `release.yml` depends on that parser | ACT-412 (release-prep PR: CHANGELOG `[0.1.46]` + version-doc flip, then `ship`) |
+
+## Original issue register — 22 findings at the 2026-10-04 audit baseline (historical)
+
+`Verdict` is the state at `74a44a15`. `Wave` is the queue position from `GOAP_AUDIT_BACKLOG_WAVE_2026-10-04.md`.
+
+| Issue | Key | Pri | Verdict | Evidence (file:line at HEAD) | Still to change | Effort | Wave |
+|---|---|---|---|---|---|---|---|
+| #1077 | R06 | P1 | OPEN — invariant violation | `memory/pattern_api.rs:134` guard born → alive across `:135 get_all_patterns().await` and `:136-144 recommend_*(...).await`; blocks `memory/ranking.rs:64` write | clone the snapshot (or `RwLock<Arc<RankingIndex>>`), drop guard before any await | S | **W1** |
+| #1086 | M05 | P2 | OPEN | `monitoring/core.rs:113-114` `elapsed_secs.saturating_mul(1000)` from `as_secs()` values → sub-second ⇒ `0 ms`, inherited by avg/min/max (`:140-147`) and `endpoints.rs:142` | monotonic `Instant`, `as_millis()`; no histogram exists (issue overstates) | S | **W2** |
+| #1088 | M07 | P2 | OPEN | `storage/tag_operations.rs:40 BEGIN`, `?` returns at `:50/:61/:75`, `:79 COMMIT`; `ROLLBACK` absent from the file; `delete_episode_tags` (`:116-145`) also non-atomic | rollback on every error path; cover `delete_episode_tags` | S | **W3** |
+| #1066 | S07 | P1 | OPEN | `memory-storage-redb/src/recommendations.rs:58-59` unconditional index overwrite; value is bare `&str` (`lib.rs:139-140`) | compare `(timestamp, session_id)` in-txn before replacing; keep `TableDefinition` (fail-closed schema check from #1096) | S/M | **W4** |
+| #1075 | R04 | P1 | OPEN | `pattern_search/scoring.rs:132-135` `calculate_keyword_similarity(_pattern, _context) -> f32 { 0.5 }`; `:51` also `0.5` when no service; **the whole branch chain is provably constant — see E2** (no `query_embedding` is ever produced on this path, so `:43` always takes the lexical fallback); only coverage asserts non-empty (`recommendation.rs:299`) | thread query text into scoring; bounded deterministic lexical score reusing `pattern_to_text` + the Jaccard style of `calculate_context_match` (`scoring.rs:85-117`). This is the **only** non-constant input reachable without a provider, so W5 alone restores query sensitivity | S | **W5** |
+| #1085 | M04 | P1 | OPEN — **escalated (E1)** | `bin/server_impl/jsonrpc.rs:117-118` env-var existence == connected; `:120-123` interpolates the raw `TURSO_DATABASE_URL` into the response; `:135-141` cache zeros; `:145-149` `"N/A - using local storage"`; `:152 uptime_seconds = 0` | pass handles in, bounded `health_check` probes per backend (`turso lib_impls/helpers.rs:190`, `redb storage_ops/stats.rs:58`), real `QueryCache::metrics()`, real uptime, redact URL/path/errors | M | **W6** |
+| #1067 | S08 | P1 | OPEN — worse than filed | `storage/backend.rs:103` doc "modified since" vs `:115` `start_time`; turso `episodes/query.rs:108-110`; redb `episodes_queries.rs:63,72`; `sync/synchronizer.rs:141-155` single capped page, no cursor; `:229` last-hour heuristic. **E3**: `episodes.created_at` (`schema/mod.rs:22`) is absent from the INSERT column list (`storage/episodes/crud.rs:16-22`) so it re-defaults every write | add `Episode.updated_at` + Turso column + redb `SCHEMA_VERSION` 4→5; keyset pages on `(updated_at, episode_id)`; cursor through the sync loop; migrate the watermark only after a page succeeds | L | next |
+| #1068 | S09 | P1 | OPEN, hard-blocked by #1067 | `memory/queries/mod.rs:63-68` then `:91-96`, both `entry(id).or_insert_with(...)` → stale redb wins by visit order; same at `retrieval/context.rs:179-181`/`:196-198`; `sync/conflict.rs:20-40 resolve_episode_conflict` exists but is wired to nothing outside its tests | one revision-aware merge helper used by both sites (shapes differ → closure or map borrow) | M | next |
+| #1089 | M08 | P2 | OPEN — understated | `synchronizer.rs:162-181` per-item `redb.store_episode`; **redb has no `store_episodes_batch` override** (`backend_impl.rs:12` overrides only `store_embeddings_batch`); `SyncConfig.batch_size=100` dead (`sync/types.rs:22` vs `StorageSynchronizer::new:35`) | single-transaction redb batch writer, then batch the sync loop; watermark advance stays transactional with the batch | S-M | next |
+| #1073 | R02 | P1 | OPEN | `memory-mcp/.../embeddings/tool/execute/configure.rs:47 Box::new(InMemoryEmbeddingStorage::new())` (comment at `:44-46` admits it); `embeddings/storage.rs:263 EmbeddingStorage<T>` wrapper constructed nowhere; no storage-scope field in `ConfigureEmbeddingsOutput` | `Arc<dyn StorageBackend>`-accepting adapter, episode/pattern namespaces + `kind:model:dims`/revision in the key, defined read/write-through, truthful ephemeral mode. **Risk**: redb slices `&key[8..]` (`embeddings_backend.rs:23,33,101,205`), turso tags by `"episode"|"pattern"` (`embedding_backend.rs:14,24`) → key shape change breaks `find_similar_*` | M | next |
+| #1074 | R03 | P1 | **PARTIAL** | #1097 fixed completion + retrieval (`completion_embedding.rs:20`, `retrieval/context.rs:116`, `context_branches.rs:39`). Still static: `pattern_api.rs:62,82,140,242`, `management.rs:364`. **E2**: `semantic_service` is `None` on every production path (`memory/init.rs:133`, `:288`, `core/builder.rs:72`) | route the 5 pattern sites through `live_semantic_service()`; note `pattern_api.rs:134` also holds the ranking guard (W1). Behavior change: pattern search will really call a paid provider → land with W5 and ahead of #1076 | S/M | next |
+| #1076 | R05 | P1 | OPEN, dormant until R03 | `scoring.rs:48 service.embed_pattern(pattern)` inside the per-candidate loop (`recommendation.rs:69-90`) → provider call + write per candidate per search; `get_pattern_embedding` has no caller outside backend impls; `coalescing.rs:101-103` keys model-name + text | read by pattern ID + identity, batch misses via `get_embeddings_batch`, write once — requires R02 for sound persistent reads | M | next |
+| #1078 | R07 | P2 | OPEN | `memory/api.rs:221`/`:263` full `refresh_ranking_index()`; `ranking.rs:46-51` full-scans both backends, `:63` rebuilds all history via `attribution/ranking.rs:61-94`; no ranking Criterion bench among the 20 `[[bench]]` targets | incremental apply for the changed `session_id`, keep `from_history` for cold start + fallback, benches at 1k/10k/100k | L | later |
+| #1079 | R08 | P1 | OPEN | `retrieval/provenance_api.rs:55`+`:57` two `query_cache.get()` calls each mutating telemetry (`cache/lru.rs:95,106-137`) + a third in `retrieval/context.rs:118`; `:66-68` sets `candidate_count = Some(result_count)` under a comment saying it is unknown; real data exists at `context.rs:435-440` | one lookup + one execution report (return type today is `Vec<Arc<Episode>>`); unknown fields stay `None`; keep ADR-074 redaction | M | later |
+| #1063 | S04 | P1 | OPEN — worse than filed | `pool/adaptive.rs:112,120,133` + `:152,160,173` empty monitor task; `add_permits` grep = 0 hits workspace-wide; `:251`/`:290` store `now.elapsed()` off a fresh `Instant` (≈0 ns) and `:227-228`/`:261-262` rebuild it as "≈now" → cooldown predicate always true → scaling is a permanent no-op; `adaptive_tests.rs:140-146` asserts the broken value | real `check_interval` loop, adjust permits with target, monotonic/testable cooldown clock, task shutdown; update that test | M | later |
+| #1064 | S05 | P1 | OPEN | `lib_impls/helpers.rs:47-57`, `:59-66`, `:68-71` consume the pool guard via `into_inner()` before SQL (`adaptive.rs:453-455` + `Drop:458-482`, `pool/config.rs:173-178`, `keepalive/connection.rs:83-94`); no `with_connection` anywhere | additive closure-scoped `with_connection`, then migrate 27 + 58 call sites | L | later |
+| #1070 | S11 | P1 | OPEN | `storage/capacity.rs:25` persists before `:28 enforce_capacity`; `:101 let _ = self._delete_embeddings_batch_internal(...)` discards `Err` and rows-affected; embeddings has no FK/CASCADE (`schema/mod.rs:89-100`); episode delete on a second connection (`:104-120`); no orphan-repair path in the crate | propagate delete errors; single txn or 2-phase with a durable pending-cleanup record + structured partial-eviction outcome | M | later |
+| #1071 | S12 | P2 | OPEN | `episodes/row.rs:31 unwrap_or_default()` → chrono **year-0** sentinel (not 1970), `:34` → `None`, `:40/:43/:46 .ok()` silently absent, no logging; `episodes/raw_query.rs:59-65,115-121` and `patterns/raw_query.rs:58-65,99-105` skip bad rows, return `Ok(partial)` | strict row decode naming field + row; raw queries fail or return error-plus-results; `row_to_episode` feeds `search/episodes.rs`, `batch/query_batch.rs`, `episodes/crud.rs\|query.rs` → retrieval error behavior changes | M | later |
+| #1065 | S06 | P1 | OPEN | `storage/recommendations.rs:41 timestamp()` (whole seconds), `:93 ORDER BY timestamp DESC LIMIT 1` no tiebreaker; `schema/mod.rs:65` coarse INTEGER; ms precision survives only inside `payload` JSON | epoch-millis column + backfill, `ORDER BY timestamp DESC, session_id DESC LIMIT 1` | M | later |
+| #1087 | M06 | P1 | OPEN | `storage/backend.rs` byte-identical to baseline; 27 default methods, only 2 capability-gated → **23 can fake durable success**; `cleanup_episodes`/`count_cleanup_candidates` overridden by no production backend and called from no production path; `relationships/mod.rs:94`, `api.rs:346,371` discard with `let _ =`; dead duplicate `impl StorageBackend for RedbStorage` in `redb_cache.rs` (never declared in `lib.rs`) | typed `CapabilityUnavailable`; gate relationships (9) / procedural (4) / cleanup (2); update turso+redb+resilient+cached; delete `redb_cache.rs` | L → **4 PRs** | later |
+| #1091 | Q02 | P1 | OPEN — mitigated only by count ratchet | **173** `#[ignore]` attrs (turso 118 / core 38 / mcp 11 / cli 2); ADR-027 claims 121/71/37/9 (stale by 52) and omits `monitoring_capacity_tests.rs` (30); `nightly-tests.yml` `--run-ignored only` jobs both exclude `do-memory-storage-turso` → **118 ignored Turso tests run nowhere**; `check-ignored-tests.sh` is a ceiling-only ratchet (200) | un-ignore the ~11 validation-only `security_tests.rs` cases, machine-readable inventory artifact, isolated nightly turso job with non-green crash/timeout signal, refresh ADR-027 | S+M → **3 PRs** | later |
+| #1092 | Q03 | P2 | OPEN | 395 crate-root `#![allow(...)]` in `*/src` (cli 66 + `main.rs` 62, mcp 64, turso 57, redb 25, core 23), +76 inline; `memory-storage-turso/src/lib.rs:3` **allows `unsafe_code`** while the other four deny it; `Cargo.toml:113` sets `allow_attributes = "deny"` and `HARNESS.md:36` claims "No `#[allow(...)]`" — sensor inert; no suppression checker in `scripts/` | peel turso unsafe to sites, add a `#![allow]` ceiling ratchet to `ci.yml:93`, convert to `#![expect]` per crate, then re-enable `unwrap_used`/`expect_used` | L → **4 PRs** | later |
+| #1109 | R-F10 | P2 | ✅ closed 2026-10-29 | C1/C2 #1123 (`68eda3d0`), C3/C4 #1121, C5–C7 #1125 (`4fb0e20f`); closure evidence records four trusted publishers, `v*` environment, secret deletion and successful OIDC publication | None — all external steps verified; issue closed | — | closed |
+| #1127 | DOC03 | P1 | ✅ **fixed in #1128** (`b5c87ec1`) | `check-docs-integrity.sh` exits 2 on clean `74a44a15` with 15 false positives; `quality-gates.sh:196-211` runs it non-blocking (ADR-037) so CI is green, but `release-manager.sh:240` runs it via `run_cmd` under `set -euo pipefail` | confirmed by the #1128 merge; `ship --execute` clears the docs-integrity step on the next release | S | **W0 ✅** |
+
+## Escalations found by validation (no issue body states these)
+
+| ID | Finding | Why it matters |
+|---|---|---|
+| **E1** | `jsonrpc.rs:120-123` interpolates the raw `TURSO_DATABASE_URL` into health output | Filed as observability (#1085); it is a secret-surface defect. Redaction is mandatory in W6 |
+| **E2** | The `semantic_service` field has **no writer at all**. Every construction site initializes it to `None` (`memory/init.rs:133`, `:288`, `memory/core/builder.rs:72`) and `grep` finds **zero** assignments of `Some` to it anywhere in `memory-core/src` (the only hit is a test writing the private field directly). There is no builder setter. So on the pattern path `recommendation.rs:44` never generates a `query_embedding`, and `scoring.rs` takes the `query_embedding.is_empty()` branch into `calculate_keyword_similarity` (`:132-135`) — the constant `0.5` | Production `search_patterns`/`recommend_patterns` scoring is a **mathematical constant**: the query string contributes nothing to any score, on every call, on every construction path. Results still vary (context match, effectiveness, recency), so the suite stays green and the defect is invisible. `live_semantic_service()` (`embedding_activation.rs:202`) is the accessor that can return `Some` after ADR-077 activation, and the pattern APIs never call it. Makes #1074 + #1075 one coupled fix and forbids landing #1076 before them |
+| **E3** | `episodes.created_at` is missing from the Turso INSERT column list, so `INSERT OR REPLACE` re-defaults it on every write | It is not a creation stamp; any sync design that treats it as a lower bound is wrong. Shapes #1067 |
+| **E4** | The adaptive pool cooldown is dead by inspection **and** `adaptive_tests.rs:140-146` asserts the broken value | #1063's fix must change that test; a green suite here is not evidence of correctness |
+| **E5** | `query_episodes_since` is a *required* trait method — 22 implementations exist (4 production backends, 16 test stubs, 1 dead duplicate) | Changing its signature breaks all 20+ sites; #1067 should add a defaulted `query_episodes_modified_since(since, cursor, limit)` instead |
+| **E6** | The docs-integrity checker's `<...>` handling inverted the AGENTS.md rule: brackets were stripped **after** the `http(s)://` skip, so every spec-compliant URL was misread as a relative path | Worse than the false positives: the link heredoc ran unchecked under `set -euo pipefail`, so the first finding **aborted the script** and the script-reference, version-sync and fail-closed-contract phases silently never ran. Green-looking CI hid it; only the ship path (`run_cmd`) surfaced it. Filed as #1127, fixed in #1128 |
+
+## Cost of delay
+
+Release drift risk: `check-release-drift.sh` fires at ≥30 unreleased commits or ≥14 days. v0.1.44 tagged
+`4f4f4ba8` on 2026-10-02; commits since then are on `main`. W1–W6 plus trackers approach the commit limit, so
+the next release should follow this wave rather than a further docs-only interval.

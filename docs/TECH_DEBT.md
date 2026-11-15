@@ -1,6 +1,6 @@
 # Technical Debt Registry
 
-**Last Updated**: 2026-07-20  
+**Last Updated**: 2026-07-20
 This document tracks known technical debt. Prefer code-verified claims over historical estimates.
 
 ## Architecture
@@ -47,4 +47,4 @@ This document tracks known technical debt. Prefer code-verified claims over hist
 
 ## Tracking
 
-Open product recommendations: `plans/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`.
+Open product recommendations: `plans/archive/2026-11-consolidation/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md` (completed register; R-F product work is gated by `plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json`).

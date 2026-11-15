@@ -6,7 +6,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 
 - Issue: PR #806 merged when `mergeStateStatus` was `UNSTABLE` (not `CLEAN`) using `gh pr merge --admin`. This bypassed branch protection and caused pre-existing CI failures to ship to main. Required follow-up PRs (#810, #811) to fix the failures.
 - Root Cause: Agent rushed to "complete the task" instead of following the mandatory PR health check procedure. The pr-readiness skill was never loaded. The `--admin` flag was used as a shortcut instead of fixing the underlying issues.
-- Solution: 
+- Solution:
   1. ALWAYS load `.agents/skills/pr-readiness/SKILL.md` before any merge action
   2. NEVER use `--admin` or `--force` — fix the code, don't bypass the gate
   3. NEVER merge when `mergeStateStatus` is anything other than `CLEAN`
@@ -482,7 +482,7 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Prevention: before adding or gating a trigger, run it once and confirm at
   least one job executes; `needs:` without `always()` propagates skips.
 - References: `.github/workflows/release.yml`,
-  `plans/GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, PR #1125.
+  `plans/archive/2026-11-consolidation/GOAP_RELEASE_PIPELINE_C5_C7_2026-10-04.md`, PR #1125.
 
 ## LESSON-033: mdBook `create-missing` turns `#anchor` placeholders into files (2026-10-04)
 

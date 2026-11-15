@@ -36,7 +36,6 @@ jobs:
             "AGENTS.md"
             "CHANGELOG.md"
             "CLAUDE.md"
-            "GEMINI.md"
             "CONTRIBUTING.md"
             "SECURITY.md"
             "DEPLOYMENT.md"

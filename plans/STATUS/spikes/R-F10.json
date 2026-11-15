@@ -24,6 +24,8 @@
   },
   "result": "forced_go",
   "decision": "GO",
+  "implementation_status": "implemented",
+  "evidence": "ADR-078; four trusted publishers registered, v* tag-only environment, registry token removed",
   "reviewers": [
     "goap-agent",
     "cicd-engineer"

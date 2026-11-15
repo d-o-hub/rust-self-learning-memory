@@ -82,7 +82,6 @@ echo ""
 # Optional: Non-blocking GOAP checks (documentation hygiene + feedback loop markers)
 run_goap_checks() {
   echo -e "${BLUE}Running optional GOAP checks (non-blocking)...${NC}"
-  local failed=0
 
   # Helper: ensure file exists and under 500 lines
   check_doc() {
@@ -129,7 +128,7 @@ run_goap_checks() {
   for f in *.md *.txt *.rst; do
     [ -e "$f" ] || continue
     case "$f" in
-      README.md|CHANGELOG.md|CONTRIBUTING.md|SECURITY.md|DEPLOYMENT.md|TESTING.md|AGENTS.md|CLAUDE.md|GEMINI.md|ADVANCED_PATTERNS_QUICK_START.md)
+      README.md|CHANGELOG.md|CONTRIBUTING.md|SECURITY.md|DEPLOYMENT.md|TESTING.md|AGENTS.md|CLAUDE.md|ADVANCED_PATTERNS_QUICK_START.md)
         # These are permanent project documentation files allowed in root
         ;;
       *)
@@ -137,13 +136,12 @@ run_goap_checks() {
         ;;
     esac
   done
-  
+
   if [ ${#root_docs[@]} -gt 0 ]; then
     echo -e "  ${YELLOW}⚠${NC} Non-permanent documentation files found in root:"
     for f in "${root_docs[@]}"; do
       echo -e "    - $f (should be in plans/)"
     done
-    failed=1
   else
     echo -e "  ${GREEN}✓${NC} No non-permanent documentation files in root"
   fi

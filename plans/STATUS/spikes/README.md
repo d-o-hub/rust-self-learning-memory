@@ -18,7 +18,9 @@ If the runner is missing, artifacts may be written manually with the same schema
 ./scripts/validate-feature-spike.sh plans/STATUS/spikes/F4.1.json
 ```
 
-**TOML caveat**: `run-feature-spike.sh` uses a minimal line parser — put `required_files` / `reviewers` / `commands` arrays on **one line**.
+**TOML parsing**: `run-feature-spike.sh` parses the config with Python `tomllib`
+(`tomli` fallback), so multi-line arrays and normal TOML are fine. The producer still
+only accepts the fields it knows; keep unknown keys in prose.
 
 ## Schema
 
@@ -55,14 +57,23 @@ Recommended optional fields:
 - `NO-GO` means stay on the prior safe state (e.g. S1.1c NO-GO → keep fail-closed execution; do not start S1.1d).
 - V5.1 / convergence reads **validated** decision artifacts only — never ad-hoc choices.
 
-## Current artifacts (2026-07-18 F4 remainder)
+## Current artifacts (2026-11-15)
 
 | ID | Decision | Notes |
 |----|----------|-------|
-| F4.1 | **GO** | Provenanced retrieval API on branch (PR #874) |
-| F4.2 | **GO** | Operation journal on branch |
-| F4.3 | **GO** | Local model digests/size pins (S1.5b) |
-| F4.4 | **GO** | Skill contract compiler + generated catalog |
+| F4.1 | **GO** | Provenanced retrieval API (PR #874) — shipped |
+| F4.2 | **GO** | Operation journal — shipped |
+| F4.3 | **GO** | Local model digests/size pins (S1.5b) — shipped |
+| F4.4 | **GO** | Skill contract compiler + generated catalog — shipped |
 | S1.1c | **NO-GO** | WASI/Wasmtime remain out; fail-closed retained |
+| R-F8 | **GO** | CLI relationship panel — shipped (#893) |
+| R-F9 | **GO** | HNSW persistence + capacity eviction — shipped (#893) |
+| R-F10 | **GO** | crates.io trusted publishing — shipped (ADR-078) |
+| R-F1…R-F7 | **NO-GO** | Deferred by `R-F-product-backlog-2026-11-15.json`; the 2026-07-28 `forced_go` records are feasibility notes with empty `commands`, not approval |
+| R-F-product-backlog | **NO-GO** | Authoritative product gate; supersedes the 2026-07-20 DEFER record and R-F1…R-F7 |
 
-**Policy for this sprint**: all missing implemented, **no release** (workspace stays `0.1.36` unreleased; tag remains `v0.1.35`).
+**Policy**: a `GO` artifact is approval to implement, not a claim that implementation
+exists. `force_decision` artifacts without measured `commands` are notes only. The
+active plan is `plans/ROADMAPS/ROADMAP_ACTIVE.md`; do not promote an R-F item from an
+artifact alone. The 2026-07-20 register is archived at
+`plans/archive/2026-11-consolidation/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md`.

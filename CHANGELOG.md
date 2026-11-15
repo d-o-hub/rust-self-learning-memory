@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Plans tree compacted under `plans/archive/2026-11-consolidation/`: the completed
+  2026-07/10 GOAP registers, the 2026-11-01 gap/validation records and the prior tracker
+  snapshots are archived, and the active set (`README`, `CURRENT`, `ROADMAP_ACTIVE`,
+  `GOALS`, `ACTIONS`, `GOAP_STATE`, `GAP_ANALYSIS_LATEST`, `VALIDATION_LATEST`) is
+  rewritten forward-only at workspace `0.1.50` / tag `v0.1.49`. The unmeasured
+  `force_decision = "GO"` R-F artifacts are superseded by
+  `plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json` (`NO-GO`): portable SIMD is
+  still nightly-only, and OTel 0.33.x traces remain beta, so R-F1…R-F7 stay gated while
+  R-F8/R-F9/R-F10 remain shipped.
 - Harness tracked as the *latest* upstream release: `pin` and `validated_through` are both
   `0.4.6` in `scripts/do-harness-version.txt` (was `0.2.0` / `0.4.1`), so this repository
   uses only the newest do-harness release and never an older one. `AGENTS.md`, `HARNESS.md`,
@@ -38,6 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`.do-harness/agent_state.db`), so an older binary run against a database a newer harness
   migrated reports `doctor check failed: newer than this binary (23 applied, max 21)` — local
   state, not a property of this pack.
+
+### Removed
+
+- `.jules/` and the one-line `GEMINI.md` shim. `AGENTS.md` is the single agent contract;
+  the `file-structure` workflow and the root-doc allowlist no longer list `GEMINI.md`.
 
 ### Fixed
 

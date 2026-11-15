@@ -26,6 +26,8 @@
   },
   "result": "forced_go",
   "decision": "GO",
+  "implementation_status": "not_implemented",
+  "superseded_by": "R-F-product-backlog-2026-11-15",
   "reviewers": [
     "goap-agent"
   ]

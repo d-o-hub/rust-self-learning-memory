@@ -1,9 +1,9 @@
 # GOAP State Snapshot
 
 - **Last Updated**: 2026-11-15
-- **Version**: workspace `0.1.50` (development bump, #1267) · latest tag `v0.1.49`
-  (`16d92d22`, GitHub Release published 2026-11-12T17:23:40Z)
-- **Branch**: `main` at `fa3c561f`; no release branch
+- **Version**: workspace `0.1.50` (release preparation; latest published tag `v0.1.49`,
+  `16d92d22`, GitHub Release published 2026-11-12T17:23:40Z)
+- **Branch**: release preparation based on `main` @ `4dd1d9aa`
 - **Open PRs / issues**: 0 / 0 (`gh pr list --state open`, `gh issue list --state open`)
 - **Active plan**: post-`v0.1.49` closeout. No code-side gap; the only open items are
   upstream-blocked Dependabot advisories (ACT-404) and maintainer-external ADR lifecycle

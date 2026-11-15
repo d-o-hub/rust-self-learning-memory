@@ -1,8 +1,8 @@
 # Plans Directory
 
-**Workspace**: `v0.1.50` (post-release development bump) · **Released tag**: `v0.1.49`
+**Workspace**: `v0.1.50` (release preparation) · **Latest published tag**: `v0.1.49`
 (`16d92d22`, GitHub Release 2026-11-12T17:23:40Z, 37 assets; all four registered crates
-verified at `0.1.49` on crates.io) · **Main baseline**: `fa3c561f` · **Last updated**: 2026-11-15
+verified at `0.1.49` on crates.io) · **Main baseline**: `4dd1d9aa` · **Last updated**: 2026-11-15
 **Open PRs / issues**: 0 / 0 (`gh pr list --state open`, `gh issue list --state open`)
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 

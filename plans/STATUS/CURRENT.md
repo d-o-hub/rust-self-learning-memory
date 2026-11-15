@@ -1,19 +1,20 @@
 # Project Status — Self-Learning Memory System
 
 **Last Updated**: 2026-11-15
-**Released Version**: v0.1.49 (`16d92d22`, GitHub Release 2026-11-12T17:23:40Z with 37 assets;
-all four registered crates verified at `0.1.49` on crates.io)
-**Workspace Version**: 0.1.50 (post-release development bump)
+**Released Version**: v0.1.50 (release preparation; tag and publication pending green
+main CI; latest published tag is v0.1.49, `16d92d22`)
+**Workspace Version**: 0.1.50 (release preparation)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
-**Active plan**: post-release closeout of `0.1.49`; no open code task. Plans compacted
-2026-11-15; remaining work is upstream-blocked advisories and maintainer-external ADR
-lifecycle acceptance.
+**Active plan**: prepare `v0.1.50` — the `## [0.1.50]` changelog section and the
+version-doc flip land together, then ship through `release-manager.sh ship --execute`
+and dogfood the exact released CLI. Remaining after the release: upstream-blocked
+advisories and maintainer-external ADR lifecycle acceptance.
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | **0** — `gh pr list --state open` is the live source |
+| Open PRs | the release-preparation PR is the only open pull request — `gh pr list --state open` is the live source |
 | Open issues | **0** — `gh issue list --state open` is the live source; the auto-maintained release-drift issue closes itself at a tag push |
 | Dependency audit | Remaining Dependabot rows are upstream-blocked (ACT-404); consult the security workflow's latest run |
 | Feature backlog | R-F1…R-F7 are `NO-GO` for this cycle (`STATUS/spikes/R-F-product-backlog-2026-11-15.json`) |

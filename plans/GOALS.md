@@ -1,7 +1,7 @@
 # GOAP Goals Index
 
 - **Last Updated**: 2026-11-15
-- **Workspace**: `0.1.50` (development) · **Released tag**: `v0.1.49` (`16d92d22`)
+- **Workspace**: `0.1.50` (release preparation) · **Latest published tag**: `v0.1.49` (`16d92d22`)
 - **Status**: post-`v0.1.49` closeout. Every code-side goal in the audited backlogs is
   closed; no PR or issue is open. Remaining: upstream-blocked advisories (ACT-404) and
   maintainer-external ADR lifecycle acceptance.

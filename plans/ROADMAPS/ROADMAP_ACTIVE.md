@@ -1,11 +1,12 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-11-15
-**Released Version**: v0.1.49 (`16d92d22`, GitHub Release 2026-11-12T17:23:40Z; all four
-registered crates verified at `0.1.49` on crates.io)
-**Workspace Version**: 0.1.50 (post-release development bump)
-**Branch**: `main` at `fa3c561f`; no release branch
-**Open PRs / issues**: 0 / 0 (`gh pr list`, `gh issue list` are the live sources)
+**Released Version**: v0.1.50 (release preparation; tag and publication pending green
+main CI)
+**Workspace Version**: 0.1.50 (latest published tag is v0.1.49, `16d92d22`)
+**Branch**: release preparation based on `main` @ `4dd1d9aa`
+**Open PRs / issues**: the release-preparation PR is the only open pull request; 0 open
+issues (`gh pr list`, `gh issue list` are the live sources)
 
 ## Active forward work
 
@@ -14,7 +15,7 @@ registered crates verified at `0.1.49` on crates.io)
 | P1 | Security | Track the four upstream-blocked advisory families; re-test only when a pinning chain moves | `cargo tree` on both graphs proves the chain moved; no no-op bump PR | ⏸ upstream (ACT-404) |
 | P2 | Governance | ADR-080 / ADR-081 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ⏸ external |
 | P2 | Harness | Keep the pin, prose, gate contract and skill-evals matrix on one measured version | both probes green against the published binary | ✅ `v0.4.6` |
-| P3 | Release | Prepare `0.1.50` only when cadence or a feature justifies it | `verify-release-state.sh --check-unreleased` clean, CHANGELOG entry, released-CLI dogfood | not scheduled |
+| P3 | Release | Prepare `0.1.50` (release-prep PR) | `verify-release-state.sh --check-unreleased` clean, CHANGELOG entry, released-CLI dogfood | in progress |
 | P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-15 |
 
 ## Gated product backlog (R-F)

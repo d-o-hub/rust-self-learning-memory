@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.50] - 2026-11-15
+
 ### Changed
 
 - Plans tree compacted under `plans/archive/2026-11-consolidation/`: the completed
@@ -47,6 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`.do-harness/agent_state.db`), so an older binary run against a database a newer harness
   migrated reports `doctor check failed: newer than this binary (23 applied, max 21)` — local
   state, not a property of this pack.
+- Dependabot no longer proposes `libsql 0.10+` (#1268): the `0.10` line still pins the
+  `hyper-rustls 0.25 → rustls 0.22.4` chain that owns the open `rustls`/`rustls-webpki`
+  advisories, so a major bump would create churn without clearing an alert.
+- Dependency and CI maintenance: the Rust patch/minor group (#1270) and the actions group
+  (#1271) were bumped, and `quinn` was raised (#1272) to clear three RUSTSEC advisories
+  that otherwise fail the audit gate.
 
 ### Removed
 

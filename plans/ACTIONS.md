@@ -1,8 +1,8 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-11-15
-- **Active plan**: post-`v0.1.49` closeout. The release, publish chain and released-CLI
-  dogfood are green; the workspace is `0.1.50`. **No code-side action is open.**
+- **Last Updated**: 2026-11-16
+- **Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
+  dogfood are green; the workspace is `0.1.51`. **No code-side action is open.**
 - **Remaining**: upstream-blocked advisories (ACT-404) and maintainer-external ADR
   lifecycle acceptance.
 - **Archive**: `plans/archive/2026-11-consolidation/`
@@ -14,7 +14,13 @@
 |----|--------|-------|--------|
 | ACT-404 | Keep the four upstream-blocked advisory families classified with their pinning chains (`rustls`/`rustls-webpki` via libsql/hyper, `lru` via augurs/agentfs, `libsql-sqlite3-parser` with no patch). Re-test only when a chain moves; never open a no-op `libsql 0.10` bump | Dependabot | ⏸ upstream |
 | ACT-425 | ADR-080 / ADR-081 lifecycle acceptance (record decision, flip `Proposed` with evidence) | maintainer | ⏸ external |
-| ACT-424 | Schedule the next release only when cadence or a feature justifies it; run `release-guard` + `release-manager.sh ship --execute` and dogfood the exact artifact | release | not scheduled |
+| ACT-424 | Schedule the next release only when cadence or a feature justifies it; run `release-guard` + `release-manager.sh ship --execute` and dogfood the exact artifact | release | ✅ `v0.1.50` shipped 2026-11-16; next not scheduled |
+
+## Completed actions (2026-11-16 — v0.1.50 release)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-426 | Release `v0.1.50`: release-prep PR #1275, gated `ship`, release workflow #43829111481, publish chain #43833847807, crates.io verification and released-CLI dogfood | ✅ tag `v0.1.50` on `0fe1b89d`; all four crates at `0.1.50`; dogfood record in `VALIDATION_LATEST.md` |
 
 ## Completed actions (2026-11-15 — harness + plans hygiene)
 

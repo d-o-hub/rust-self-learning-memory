@@ -1,32 +1,31 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-11-15
-**Released Version**: v0.1.50 (release preparation; tag and publication pending green
-main CI; latest published tag is v0.1.49, `16d92d22`)
-**Workspace Version**: 0.1.50 (release preparation)
+**Last Updated**: 2026-11-16
+**Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z with 37
+assets; all four registered crates verified at `0.1.50` on crates.io)
+**Workspace Version**: 0.1.51 (post-release development bump)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
-**Active plan**: prepare `v0.1.50` — the `## [0.1.50]` changelog section and the
-version-doc flip land together, then ship through `release-manager.sh ship --execute`
-and dogfood the exact released CLI. Remaining after the release: upstream-blocked
-advisories and maintainer-external ADR lifecycle acceptance.
+**Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
+dogfood are green; the workspace is `0.1.51`. Remaining: upstream-blocked advisories and
+maintainer-external ADR lifecycle acceptance.
 
 ## Open tracker (live)
 
 | Kind | Items |
 |------|--------|
-| Open PRs | the release-preparation PR is the only open pull request — `gh pr list --state open` is the live source |
-| Open issues | **0** — `gh issue list --state open` is the live source; the auto-maintained release-drift issue closes itself at a tag push |
+| Open PRs | 2 (this post-release bump plus the Dependabot group) — `gh pr list --state open` is the live source |
+| Open issues | **0** — `gh issue list --state open` is the live source; the auto-maintained release-drift issue closed itself at the `v0.1.50` tag push |
 | Dependency audit | Remaining Dependabot rows are upstream-blocked (ACT-404); consult the security workflow's latest run |
 | Feature backlog | R-F1…R-F7 are `NO-GO` for this cycle (`STATUS/spikes/R-F-product-backlog-2026-11-15.json`) |
 
-## Active plan — post-`v0.1.49` closeout
+## Active plan — post-`v0.1.50` closeout
 
 | Area | State | Evidence |
 |------|-------|----------|
-| Release | ✅ `v0.1.49` tagged on `16d92d22`; first tag was cancelled by the retired `macos-14` label and re-cut on the runner-pin fix (#1265) | release workflow + 37 assets |
-| crates.io | ✅ all four registered crates at `0.1.49`; `do-memory-cli` / `do-memory-examples` remain unregistered by policy | crates.io API per crate |
-| Released-CLI dogfood | ✅ asset digest matched, `--version` = 0.1.49, `pattern list` total equals `storage stats` in a fresh process | release-guard record |
-| Development bump | ✅ workspace `0.1.50` in #1267; drift `severity=clean` | `check-release-drift.sh` |
+| Release | ✅ `v0.1.50` tagged on `0fe1b89d`; release workflow green; 37 assets | release workflow + `gh release view` |
+| crates.io | ✅ all four registered crates at `0.1.50`; `do-memory-cli` / `do-memory-examples` remain unregistered by policy | crates.io API per crate |
+| Released-CLI dogfood | ✅ asset digest `ea2da8ed…d4087d` matched, `--version` = 0.1.50, 3 steps, 1 episode, 2 patterns, `storage stats` 2 == `pattern list` 2 | this record |
+| Development bump | ✅ workspace `0.1.51`; drift `severity=clean` | `check-release-drift.sh` |
 | Harness contract | ✅ pin 0.4.6 measured green; doctrine updated to the 0.4.6 exit tiers | `check-do-harness-compat.sh`, `check-do-harness-doctrine.sh` |
 | Plans tree | ✅ compacted; completed registers and prior snapshots archived | `plans/archive/2026-11-consolidation/` |
 | Agent contract | ✅ `.jules/` and the `GEMINI.md` shim removed; `AGENTS.md` is the single contract | root listing, file-structure workflow |
@@ -35,6 +34,8 @@ advisories and maintainer-external ADR lifecycle acceptance.
 
 | Window | Result |
 |--------|--------|
+| 2026-11-16 | `v0.1.50` release, publish chain green, released-CLI dogfood, `0.1.51` bump |
+| 2026-11-15 | plans compaction (#1274), harness 0.4.6 pin (#1273), release-prep CHANGELOG/docs (#1275) |
 | 2026-11-13 | `0.1.50` bump (#1267), Dependabot libsql pin policy (#1268), harness inputs for all sensors (#1269), dependency/action group bumps (#1270…#1272) |
 | 2026-11-12 | `v0.1.49` release, publish chain green, released-CLI dogfood |
 | 2026-11-04 | `v0.1.48` release and dogfood |

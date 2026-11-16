@@ -1,9 +1,9 @@
 # API Documentation
 
 **Document Version**: 1.1
-**Last Updated**: 2026-11-15
-**Workspace Version**: v0.1.50 (Released tag: v0.1.49)
-**Baseline SHA**: `fa3c561f`
+**Last Updated**: 2026-11-16
+**Workspace Version**: v0.1.51 (Released tag: v0.1.50)
+**Baseline SHA**: `0fe1b89d`
 **Status**: Active
 **Target**: Public API consumers and contributors
 
@@ -1351,7 +1351,7 @@ API version follows Semantic Versioning (SemVer):
 - **Minor (0.X.0)**: New features, backward compatible
 - **Patch (0.0.X)**: Bug fixes, backward compatible
 
-Current version: **0.1.50**
+Current version: **0.1.51**
 
 ---
 

@@ -1,9 +1,9 @@
 # GOAP State Snapshot
 
 - **Last Updated**: 2026-11-15
-- **Version**: workspace `0.1.50` (release preparation; latest published tag `v0.1.49`,
-  `16d92d22`, GitHub Release published 2026-11-12T17:23:40Z)
-- **Branch**: release preparation based on `main` @ `4dd1d9aa`
+- **Version**: workspace `0.1.51` (post-release bump; latest published tag `v0.1.50`,
+  `0fe1b89d`, GitHub Release published 2026-11-16T08:45:18Z)
+- **Branch**: post-release bump based on `main` @ `0fe1b89d`
 - **Open PRs / issues**: 0 / 0 (`gh pr list --state open`, `gh issue list --state open`)
 - **Active plan**: post-`v0.1.49` closeout. No code-side gap; the only open items are
   upstream-blocked Dependabot advisories (ACT-404) and maintainer-external ADR lifecycle
@@ -32,9 +32,9 @@
 ## Current truth flags
 
 ```text
-release_current                    = true   (v0.1.49 tagged 2026-11-12 on 16d92d22; workspace 0.1.50)
-crates_io_publish_truthful         = true   (0.1.49 published for core/redb/turso/mcp)
-released_cli_dogfood               = true   (asset digest matched; --version 0.1.49; pattern/stats parity)
+release_current                    = true   (v0.1.50 tagged 2026-11-16 on 0fe1b89d; workspace 0.1.51)
+crates_io_publish_truthful         = true   (0.1.50 published for core/redb/turso/mcp)
+released_cli_dogfood               = true   (digest matched; --version 0.1.50; 3 steps, 2 patterns, stats parity)
 required_ci_causal                 = true   (ruleset 9591004 requires Codacy + CI / Required; same-run aggregate)
 audit_backlog_registered           = true   (all 22 findings closed; archived 2026-11-15)
 ignored_test_inventory             = true   (159 entries matched; ceiling 200; isolated Turso suite)
@@ -50,7 +50,7 @@ product_backlog_gated              = true   (R-F1…R-F7 NO-GO; R-F8/R-F9/R-F10 
 
 | Campaign | Result |
 |----------|--------|
-| v0.1.44…v0.1.49 release chain | ✅ shipped; publish chain verified from `0.1.46` onward |
+| v0.1.44…v0.1.50 release chain | ✅ shipped; publish chain verified from `0.1.46` onward; `0.1.50` dogfooded |
 | Audit-backlog wave (2026-10-04) | ✅ all 22 findings closed; W1–W6 + Wave A merged |
 | Release closeout (2026-10-16) | ✅ ACT-399…ACT-412 landed |
 | ADR-079 CI trust | ✅ ruleset live; stage-4 merge-block proof 2026-10-30 (#1229) |

@@ -1,12 +1,12 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-11-15
-**Released Version**: v0.1.50 (release preparation; tag and publication pending green
-main CI)
-**Workspace Version**: 0.1.50 (latest published tag is v0.1.49, `16d92d22`)
-**Branch**: release preparation based on `main` @ `4dd1d9aa`
-**Open PRs / issues**: the release-preparation PR is the only open pull request; 0 open
-issues (`gh pr list`, `gh issue list` are the live sources)
+**Last Updated**: 2026-11-16
+**Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z; all four
+registered crates verified at `0.1.50` on crates.io)
+**Workspace Version**: 0.1.51 (post-release development bump)
+**Branch**: post-release bump based on `main` @ `0fe1b89d`
+**Open PRs**: 2 (this bump plus the Dependabot group) · `gh pr list` is the live source
+**Open issues**: 0 · `gh issue list` is the live source
 
 ## Active forward work
 
@@ -15,7 +15,7 @@ issues (`gh pr list`, `gh issue list` are the live sources)
 | P1 | Security | Track the four upstream-blocked advisory families; re-test only when a pinning chain moves | `cargo tree` on both graphs proves the chain moved; no no-op bump PR | ⏸ upstream (ACT-404) |
 | P2 | Governance | ADR-080 / ADR-081 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ⏸ external |
 | P2 | Harness | Keep the pin, prose, gate contract and skill-evals matrix on one measured version | both probes green against the published binary | ✅ `v0.4.6` |
-| P3 | Release | Prepare `0.1.50` (release-prep PR) | `verify-release-state.sh --check-unreleased` clean, CHANGELOG entry, released-CLI dogfood | in progress |
+| P3 | Release | `v0.1.50` shipped and dogfooded; bump the workspace to `0.1.51` in the post-release PR | release + publish chains green; four crates at `0.1.50`; dogfood recorded | ✅ 2026-11-16 |
 | P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-15 |
 
 ## Gated product backlog (R-F)
@@ -56,12 +56,12 @@ storage or transport) an ADR.
 
 1. Confirm cadence and a clean tracker: `./scripts/check-release-drift.sh`,
    `./scripts/check-release-blockers.sh`.
-2. Land the release-prep PR: CHANGELOG `## [0.1.50]`, `Released Version` docs, version
+2. Land the release-prep PR: CHANGELOG `## [0.1.51]`, `Released Version` docs, version
    references.
 3. `./scripts/release-manager.sh ship --execute` (never `gh release create`).
 4. Dogfood the exact released CLI artifact and record the digest/version/parity in
    `STATUS/VALIDATION_LATEST.md`.
-5. Bump the workspace to `0.1.51` in a follow-up PR.
+5. Bump the workspace to `0.1.52` in a follow-up PR.
 
 ## History
 

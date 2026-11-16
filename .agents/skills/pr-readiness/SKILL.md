@@ -57,6 +57,9 @@ These rules have NO exceptions. Do not use `--admin`, `--force`, or any bypass m
    title is not a dependency change, every `Cargo.toml`/`Cargo.lock` hunk is a
    red flag; diff the tip against current main for those paths and fix the
    branch (`git checkout origin/main -- Cargo.lock '*/Cargo.toml'`) before merge.
+8. **Merge when the gate is green** — once every condition above passes, run
+   `./scripts/merge-pr.sh <PR> --execute` immediately; do not stop at a
+   recommendation or wait for a separate prompt.
 
 ---
 

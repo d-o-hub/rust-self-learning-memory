@@ -54,7 +54,7 @@ Route every operation: **skill? → script? → Skill + CLI? → task tool.**
 7. **Document** — CHANGELOG, docs, ADR follow-ups, trackers together.
 8. **PR** — `check-pr-readiness.sh`; address **all** comments (bots included).
 9. **Roast** — independent review for risky changes; verify each finding with primary evidence.
-10. **Merge** — `merge-pr.sh <PR> --execute` only (never `--admin`).
+10. **Merge** — when `check-pr-readiness.sh` is green (every required check and Codacy pass, `MERGEABLE`/`CLEAN`, comments addressed), run `merge-pr.sh <PR> --execute` immediately; do not wait for a separate prompt. Red or pending checks mean wait or fix — never `--admin`.
 11. **Release** — see [Release Process](#release-process).
 12. **Cleanup** — remove worktrees/scaffolds; record lessons.
 

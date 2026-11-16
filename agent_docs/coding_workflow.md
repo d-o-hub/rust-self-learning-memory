@@ -216,6 +216,10 @@ the re-run gate output.
 ./scripts/merge-pr.sh <PR> --execute     # readiness gate + independent re-check
 ```
 
+- **Merge as soon as the gate is green.** When every required check and Codacy pass,
+  `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`, and comments are addressed, run the
+  command above; do not stop at "ready to merge" and wait for a separate prompt. A red
+  or pending check means wait/fix — never bypass it.
 - Never `--admin`, never force, never bypass a red check. Never send
   `bypass_rules=true` to the merge API either.
 - **The method is `squash`, not `merge`.** Ruleset `main-protection` carries an active

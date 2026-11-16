@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794855124979,
+  "lastUpdate": 1794873291581,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -128997,6 +128997,816 @@ window.BENCHMARK_DATA = {
             "name": "vector_storage",
             "value": 53653.76,
             "range": "± 224.99",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "07991baf427642dfa8bf217080ed069ec51fa697",
+          "message": "feat(learning): add a LearningOrchestrator for the completion cycle (#1283)\n\n- own RewardCalculator + ReflectionGenerator and expose analyze()\n\n- dispatch pattern extraction to the queue or the caller's sync path\n\n- route complete_episode_checked through the coordinator; API unchanged\n\n- cover reward/reflection parity and both dispatch paths with tests",
+          "timestamp": "2026-11-17T00:03:01+01:00",
+          "tree_id": "a26ad1d26aaf3d57a96277f763f76c7a17aaba31",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/07991baf427642dfa8bf217080ed069ec51fa697"
+        },
+        "date": 1794873290985,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "bulk_episode_operations_10",
+            "value": 33401024.94,
+            "range": "± 3548115.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_100",
+            "value": 526055305.7,
+            "range": "± 331359900.07",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_episode_operations_50",
+            "value": 244311057.5,
+            "range": "± 67281777",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_100",
+            "value": 412312919.7,
+            "range": "± 74461827.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_20",
+            "value": 81872796.46,
+            "range": "± 21656747.53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bulk_pattern_extraction_5",
+            "value": 19870210.16,
+            "range": "± 7918012.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_hit",
+            "value": 150.25,
+            "range": "± 0.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_basic_cache_miss",
+            "value": 402.05,
+            "range": "± 2531.53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_clear_100_entries",
+            "value": 340748218.9,
+            "range": "± 146141452.39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_disabled",
+            "value": 31799971.4,
+            "range": "± 16976182.92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_large_10000",
+            "value": 21210827.35,
+            "range": "± 4452102.69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_medium_1000",
+            "value": 33231232.89,
+            "range": "± 26152586.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_creation_small_100",
+            "value": 41422533.34,
+            "range": "± 13474930.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_cached",
+            "value": 3281.12,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_episode_retrieval_uncached",
+            "value": 4239177.32,
+            "range": "± 18851.34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction",
+            "value": 404.73,
+            "range": "± 42.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_eviction_lru_eviction",
+            "value": 2993.65,
+            "range": "± 109.05",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_1",
+            "value": 151.75,
+            "range": "± 1.01",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_10",
+            "value": 187.13,
+            "range": "± 0.61",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_20",
+            "value": 230.03,
+            "range": "± 0.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_5",
+            "value": 166.18,
+            "range": "± 4.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_10",
+            "value": 3220.64,
+            "range": "± 34.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_100",
+            "value": 41875.25,
+            "range": "± 551.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_200",
+            "value": 85595934.45,
+            "range": "± 1135374.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_50",
+            "value": 17061.14,
+            "range": "± 218.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_multiple_accesses",
+            "value": 255968599.18,
+            "range": "± 107763385.93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_hit_rate_single_access",
+            "value": 201543066.4,
+            "range": "± 174123703.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_10",
+            "value": 3017.28,
+            "range": "± 24.38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_100",
+            "value": 32735.1,
+            "range": "± 304.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_1000",
+            "value": 343275.52,
+            "range": "± 5207.13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_invalidation_5000",
+            "value": 1746799.39,
+            "range": "± 43506.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_miss",
+            "value": 149.56,
+            "range": "± 3.49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_100_connections",
+            "value": 10874.19,
+            "range": "± 53.11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_multi_conn_10_connections",
+            "value": 1032.53,
+            "range": "± 9.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_1",
+            "value": 307.97,
+            "range": "± 11.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_10",
+            "value": 337.01,
+            "range": "± 12.6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_20",
+            "value": 380.55,
+            "range": "± 17.78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_put_5",
+            "value": 318.68,
+            "range": "± 15.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_sql_patterns_repeated_queries",
+            "value": 599.93,
+            "range": "± 8.96",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_stats_stats_calculation",
+            "value": 471159691.08,
+            "range": "± 269835066.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_100",
+            "value": 48.56,
+            "range": "± 0.1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_1000",
+            "value": 48.59,
+            "range": "± 0.28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_500",
+            "value": 48.59,
+            "range": "± 0.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_check_efficiency_5000",
+            "value": 48.62,
+            "range": "± 0.54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_LRU",
+            "value": 2216.26,
+            "range": "± 9.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_1000episodes_RelevanceWeighted",
+            "value": 62385,
+            "range": "± 167.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_LRU",
+            "value": 240.39,
+            "range": "± 3.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_100episodes_RelevanceWeighted",
+            "value": 6357.31,
+            "range": "± 47.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_LRU",
+            "value": 1111.48,
+            "range": "± 48.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "capacity_enforcement_overhead_500episodes_RelevanceWeighted",
+            "value": 31266.04,
+            "range": "± 71.22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_baseline_no_phase2",
+            "value": 9839892.19,
+            "range": "± 4584230.21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "combined_premem_genesis_overhead_genesis_only_summarization",
+            "value": 7806462.85,
+            "range": "± 1345020.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_1",
+            "value": 6.07,
+            "range": "± 0.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_10",
+            "value": 6.06,
+            "range": "± 0.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_100",
+            "value": 6.07,
+            "range": "± 0.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_5",
+            "value": 6.08,
+            "range": "± 0.15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_with_compression_50",
+            "value": 6.06,
+            "range": "± 0.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_1",
+            "value": 0.27,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_10",
+            "value": 0.27,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_100",
+            "value": 0.27,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_5",
+            "value": 0.27,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compression_overhead_without_compression_50",
+            "value": 0.27,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_4_threads",
+            "value": 107567.41,
+            "range": "± 1970.89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_10",
+            "value": 15752.87,
+            "range": "± 1125.55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_20",
+            "value": 17470.35,
+            "range": "± 544.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_access_concurrent_5",
+            "value": 18379.15,
+            "range": "± 497.93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations",
+            "value": 51748.26,
+            "range": "± 787.84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_16_read_mostly@16",
+            "value": 8619158113.1,
+            "range": "± 2765626864.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_1_read_mostly@1",
+            "value": 4989596412.9,
+            "range": "± 83369368.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_4_read_mostly@4",
+            "value": 5333247280.7,
+            "range": "± 164092839.17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_mostly_concurrency_8_read_mostly@8",
+            "value": 6181733240.4,
+            "range": "± 1398762300",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_1_read_only@1",
+            "value": 6040778937.3,
+            "range": "± 2063018696.42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_4_read_only@4",
+            "value": 5972101004.4,
+            "range": "± 799093369.74",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_read_only_concurrency_8_read_only@8",
+            "value": 6474741896.9,
+            "range": "± 1056493926.81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_16_update_heavy@16",
+            "value": 10231594506.7,
+            "range": "± 1014441333.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_1_update_heavy@1",
+            "value": 5383323136.7,
+            "range": "± 349220428.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_4_update_heavy@4",
+            "value": 6200129464.8,
+            "range": "± 250047332.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "concurrent_operations_update_heavy_concurrency_8_update_heavy@8",
+            "value": 8834256523,
+            "range": "± 920348385.85",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_basic_pool",
+            "value": 26683.08,
+            "range": "± 364.87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "connection_overhead_keepalive_pool",
+            "value": 25273.07,
+            "range": "± 301.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "data_filtering",
+            "value": 606296.63,
+            "range": "± 1258.26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_100",
+            "value": 14721.74,
+            "range": "± 3088.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_300",
+            "value": 41511.71,
+            "range": "± 4114.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_600",
+            "value": 82088.08,
+            "range": "± 7365.63",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "domain_invalidation_latency_900",
+            "value": 133411.81,
+            "range": "± 19240.98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_1",
+            "value": 12049975.84,
+            "range": "± 14019641.24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_10",
+            "value": 18300819.05,
+            "range": "± 20200685.56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_100",
+            "value": 63045696.95,
+            "range": "± 10029328.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_creation_50",
+            "value": 32370130.58,
+            "range": "± 8572406.97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_100_100_episodes",
+            "value": 255942469.73,
+            "range": "± 48434181.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_10_episodes",
+            "value": 56655854.15,
+            "range": "± 22463890.1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_cached_50_50_episodes",
+            "value": 198413826.47,
+            "range": "± 145992324.48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_retrieval_uncached_100_episodes",
+            "value": 254326131.07,
+            "range": "± 49750564.9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_write_10_episodes",
+            "value": 50863174.6,
+            "range": "± 15049010.14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_100",
+            "value": 247.79,
+            "range": "± 4.45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_1000",
+            "value": 2182.67,
+            "range": "± 3.94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_LRU_500",
+            "value": 1112.35,
+            "range": "± 8.02",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_100",
+            "value": 6354.64,
+            "range": "± 11.8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_1000",
+            "value": 62790.91,
+            "range": "± 3368.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eviction_algorithm_performance_RelevanceWeighted_500",
+            "value": 31277.61,
+            "range": "± 85.5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "hashmap_storage",
+            "value": 19124.74,
+            "range": "± 129.52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heuristic_retrieval_cached_50_heuristics",
+            "value": 173626924.45,
+            "range": "± 58012882.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_all_300_entries",
+            "value": 32870.69,
+            "range": "± 3332.16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "invalidation_comparison_invalidate_domain_100_entries",
+            "value": 42049.09,
+            "range": "± 5079.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "metrics_collection",
+            "value": 5.45,
+            "range": "± 0.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_retrieval_cached_50_patterns",
+            "value": 152907420.78,
+            "range": "± 36844538.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_10",
+            "value": 929.06,
+            "range": "± 7.7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_20",
+            "value": 930.64,
+            "range": "± 8.59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "phase3_retrieval_accuracy_hierarchical_retrieval_5",
+            "value": 862.7,
+            "range": "± 4.2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_with_domain",
+            "value": 535.47,
+            "range": "± 19.44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "put_overhead_without_domain",
+            "value": 434.97,
+            "range": "± 4.33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_episode_retrieval",
+            "value": 5085152.68,
+            "range": "± 3476314.09",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "redb_storage_init",
+            "value": 2240273.63,
+            "range": "± 447460.79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "regex_pattern_matching",
+            "value": 15308.75,
+            "range": "± 311.77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "retrieval_accuracy_metrics_accuracy_web_api_query",
+            "value": 886.3,
+            "range": "± 3.47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_20",
+            "value": 23268.12,
+            "range": "± 729.76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_5",
+            "value": 10460.46,
+            "range": "± 66.72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_compression_ratio_50",
+            "value": 48365.62,
+            "range": "± 267.82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_10",
+            "value": 2443664.12,
+            "range": "± 1322879.43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_5",
+            "value": 4006465.13,
+            "range": "± 2558700.04",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_with_compression_50",
+            "value": 4549384.77,
+            "range": "± 3558920.03",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_10",
+            "value": 2845771.91,
+            "range": "± 1111604.27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_5",
+            "value": 2351704.98,
+            "range": "± 1026554.71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations_without_compression_50",
+            "value": 3054209.89,
+            "range": "± 1443189.41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_20",
+            "value": 5920.25,
+            "range": "± 66.62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_5",
+            "value": 3936.24,
+            "range": "± 74.25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "summary_generation_time_50",
+            "value": 11116.79,
+            "range": "± 37.75",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_1000",
+            "value": 3005.42,
+            "range": "± 47.23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_10000",
+            "value": 27343.66,
+            "range": "± 212.29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "text_analysis_by_size_100000",
+            "value": 265439.32,
+            "range": "± 10525.57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "vector_storage",
+            "value": 38364.73,
+            "range": "± 195.92",
             "unit": "ns/iter"
           }
         ]

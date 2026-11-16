@@ -1,7 +1,7 @@
-# Codebase Analysis Latest — 2026-11-15
+# Codebase Analysis Latest — 2026-11-16
 
-**Branch**: `main` @ `fa3c561f`
-**Workspace Version**: `0.1.50` (development) · **Released Tag**: `v0.1.49` (`16d92d22`)
+**Branch**: `main` @ `0fe1b89d`
+**Workspace Version**: `0.1.51` (development) · **Released Tag**: `v0.1.50` (`0fe1b89d`)
 **Active Track**: post-release closeout, plans compaction, harness pin
 
 ## Architecture (as implemented)
@@ -21,7 +21,7 @@
 
 | Check | Result |
 |-------|--------|
-| Workspace crates | 9 crates, all synchronized at `0.1.50` |
+| Workspace crates | 9 crates, all synchronized at `0.1.51` |
 | Code execution | `execute_agent_code` fail-closed (no production Wasmtime sandbox) |
 | Serialization | Postcard in production (`do-memory-storage-redb`) |
 | Plan validators | `validate-plans.sh --all` green |

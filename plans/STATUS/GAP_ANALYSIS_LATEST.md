@@ -1,8 +1,8 @@
 # Gap Analysis — Live Register
 
-**Last Updated**: 2026-11-15
-**Workspace Version**: `0.1.50` · **Released Tag**: `v0.1.49` (`16d92d22`)
-**Main baseline**: `fa3c561f` · **Open PRs / issues**: 0 / 0
+**Last Updated**: 2026-11-16
+**Workspace Version**: `0.1.51` · **Released Tag**: `v0.1.50` (`0fe1b89d`)
+**Main baseline**: `0fe1b89d` · **Open PRs**: two Dependabot group PRs · **Open issues**: 0
 **Historical register**: [`archive/2026/GAP_ANALYSIS_2026-11-01.md`](archive/2026/GAP_ANALYSIS_2026-11-01.md)
 (the 2026-10-04 audit snapshot and its 22 verdicts)
 

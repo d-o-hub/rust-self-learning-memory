@@ -1,8 +1,8 @@
 # Current Architecture - Integration & Systems
 
-**Last Updated**: 2026-11-15
-**Workspace Version**: v0.1.50 (Released tag: v0.1.49)
-**Baseline SHA**: `fa3c561f`
+**Last Updated**: 2026-11-16
+**Workspace Version**: v0.1.51 (Released tag: v0.1.50)
+**Baseline SHA**: `0fe1b89d`
 
 ---
 

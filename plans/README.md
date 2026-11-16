@@ -1,15 +1,15 @@
 # Plans Directory
 
-**Workspace**: `v0.1.50` (release preparation) · **Latest published tag**: `v0.1.49`
-(`16d92d22`, GitHub Release 2026-11-12T17:23:40Z, 37 assets; all four registered crates
-verified at `0.1.49` on crates.io) · **Main baseline**: `4dd1d9aa` · **Last updated**: 2026-11-15
-**Open PRs / issues**: 0 / 0 (`gh pr list --state open`, `gh issue list --state open`)
+**Workspace**: `v0.1.51` (post-release development bump) · **Latest published tag**: `v0.1.50`
+(`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z, 37 assets; all four registered crates
+verified at `0.1.50` on crates.io) · **Main baseline**: `0fe1b89d` · **Last updated**: 2026-11-16
+**Open PRs / issues**: this bump PR plus the two Dependabot group PRs; 0 open issues
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Active state
 
-`v0.1.49` shipped and the workspace moved to the `0.1.50` development version in its own
-release-closeout PR. Every code-side task in the audited backlogs is closed; the release
+`v0.1.50` shipped end-to-end and the workspace moved to the `0.1.51` development version in
+its own post-release PR. Every code-side task in the audited backlogs is closed; the release
 and publish chains are green and the released CLI was dogfooded. **There is no open code
 task in this tree.** The only remaining work is external:
 
@@ -18,7 +18,7 @@ task in this tree.** The only remaining work is external:
 | Dependency advisories (rustls / rustls-webpki / lru / libsql-sqlite3-parser) | ⏸ upstream-blocked; do not open a no-op bump | `ACTIONS.md` ACT-404, `STATUS/GAP_ANALYSIS_LATEST.md` |
 | ADR-080 / ADR-081 lifecycle acceptance | ⏸ maintainer-external | `adr/` |
 | R-F1…R-F7 product epics | ⏸ `NO-GO` for this cycle | `STATUS/spikes/R-F-product-backlog-2026-11-15.json` |
-| Next release | not scheduled; cadence is `severity=clean` (6 commits, 0 feat, 2 fix, 3 days) | `ROADMAPS/ROADMAP_ACTIVE.md` |
+| Next release | not scheduled; the `0.1.51` development bump keeps drift `severity=clean` | `ROADMAPS/ROADMAP_ACTIVE.md` |
 
 ## Quick navigation
 

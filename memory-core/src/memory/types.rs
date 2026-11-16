@@ -1,6 +1,7 @@
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
+use crate::learning::LearningOrchestrator;
 use crate::learning::queue::PatternExtractionQueue;
 use crate::memory::attribution::{RankingIndex, RecommendationTracker};
 use crate::memory::playbook::PlaybookGenerator;
@@ -9,8 +10,6 @@ use crate::patterns::extractors::HeuristicExtractor;
 use crate::patterns::{Heuristic, Pattern};
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::procedural::ProceduralMemory;
-use crate::reflection::ReflectionGenerator;
-use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
@@ -63,10 +62,8 @@ pub struct SelfLearningMemory {
     pub(super) quality_assessor: QualityAssessor,
     /// Salient feature extractor for pre-storage reasoning
     pub(super) salient_extractor: SalientExtractor,
-    /// Reward calculator
-    pub(super) reward_calculator: RewardCalculator,
-    /// Reflection generator
-    pub(super) reflection_generator: ReflectionGenerator,
+    /// Learning-cycle coordinator (reward, reflection, pattern dispatch)
+    pub(super) learning: LearningOrchestrator,
     /// Pattern extractor
     pub(super) pattern_extractor: PatternExtractor,
     /// Heuristic extractor

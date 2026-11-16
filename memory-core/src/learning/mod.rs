@@ -1,17 +1,14 @@
 //! # Learning Coordination
 //!
-//! This module is intentionally scoped to **queue coordination only**.
-//! It manages the async pattern extraction pipeline that fires after
-//! episode completion.
+//! Coordinates the post-episode learning cycle:
+//! - [`LearningOrchestrator`] owns reward/reflection analysis and dispatches pattern
+//!   extraction to the async queue or the caller's synchronous path.
+//! - [`queue`] manages the async pattern extraction pipeline.
 //!
-//! The broader learning cycle (reward signals, reflection, consolidation)
-//! is handled by the following sibling modules:
+//! The underlying stages remain in their focused modules:
 //! - [`crate::reward`] — reward signal computation
 //! - [`crate::reflection`] — memory consolidation and reflection
 //! - [`crate::episode`] — episodic memory storage
-//!
-//! A future `LearningOrchestrator` may be introduced here to coordinate
-//! the full cycle. See: `plans/adr/ADR-028-Feature-Enhancement-Roadmap.md`
 //!
 //! This module provides non-blocking pattern extraction through a queue-based
 //! worker pool system, allowing episode completion to return quickly while
@@ -20,8 +17,10 @@
 pub mod queue;
 
 mod config;
+mod orchestrator;
 mod stats;
 
 pub use config::QueueConfig;
+pub use orchestrator::{LearningAnalysis, LearningOrchestrator, PatternDispatch};
 pub use queue::PatternExtractionQueue;
 pub use stats::QueueStats;

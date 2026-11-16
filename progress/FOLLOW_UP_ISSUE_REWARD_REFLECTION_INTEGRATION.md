@@ -18,3 +18,15 @@ Integrate `reward` and `reflection` modules into a unified learning orchestratio
 ## References
 - ADR-028: Feature Enhancement Roadmap
 - Issue: 🟡 learning/mod.rs: Document scope or wire up as orchestration layer for reward-reflection-pattern cycle
+
+## Status (2026-11-16)
+
+Implemented in `memory-core/src/learning/orchestrator.rs`:
+
+- `LearningOrchestrator` owns `RewardCalculator` and `ReflectionGenerator` and
+  exposes `analyze()` for the reward/reflection stages.
+- `extract_patterns()` dispatches to `PatternExtractionQueue` when configured,
+  otherwise awaits the caller's synchronous extraction path.
+- `SelfLearningMemory::complete_episode_checked` now routes reward, reflection,
+  and pattern dispatch through the orchestrator; the public memory API is
+  unchanged.

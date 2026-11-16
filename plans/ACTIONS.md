@@ -25,6 +25,7 @@
 | ID | Action | Status |
 |----|--------|--------|
 | ACT-425 | Accept ADR-080 / ADR-081 / ADR-082 with recorded test evidence; reconcile stale ADR-028 / ADR-042 / ADR-043 statuses; retire ADR-060 | ✅ `ADR-080/081/082 Accepted`; `ADR-028/042/043` rebaselined; `ADR-060` Accepted with the stale `#[allow(deprecated)]` removed |
+| ACT-427 | Implement the `LearningOrchestrator` follow-up (reward + reflection + pattern dispatch in one coordinator) | ✅ `memory-core/src/learning/orchestrator.rs`; 1503 core lib tests pass |
 
 ## Completed actions (2026-11-16 — coding-workflow dogfood)
 

@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   MCP server (`initialize`, `tools/list`, `health_check`, `query_memory`).
 - `memory-harness` `record-trace.sh` plus a trace schema that replay/export consume:
   `task`, `domain`, `project`, `outcome` and `steps` are now recorded and documented.
+- `LearningOrchestrator` in `memory-core/src/learning/orchestrator.rs`: owns reward
+  and reflection analysis and dispatches pattern extraction to the async queue or the
+  caller's synchronous path. `complete_episode_checked` now routes the learning cycle
+  through it; the public memory API is unchanged.
 
 ### Changed
 

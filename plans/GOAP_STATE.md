@@ -46,6 +46,7 @@ plans_active_set_compact           = true   (2026-11-15; dated root files archiv
 single_agent_contract              = true   (AGENTS.md; .jules/ and GEMINI.md removed)
 product_backlog_gated              = true   (R-F1…R-F7 NO-GO; R-F8/R-F9/R-F10 shipped)
 adr_lifecycle_accepted             = true   (ADR-080/081/082 accepted 2026-11-16)
+learning_orchestrator              = true   (reward + reflection + pattern dispatch unified)
 ```
 
 ## Closed campaigns (pointer)

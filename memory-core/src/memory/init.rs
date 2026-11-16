@@ -5,13 +5,12 @@
 
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
+use crate::learning::LearningOrchestrator;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::memory::attribution::RankingIndex;
 use crate::memory::durable_write_queue::{DurableWriteQueue, WriteQueueConfig};
 use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
-use crate::reflection::ReflectionGenerator;
-use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryConfig};
 use std::collections::HashMap;
@@ -149,8 +148,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
         salient_extractor,
-        reward_calculator: RewardCalculator::new(),
-        reflection_generator: ReflectionGenerator::new(),
+        learning: LearningOrchestrator::new(),
         pattern_extractor,
         heuristic_extractor: crate::patterns::extractors::HeuristicExtractor::new(),
         agent_monitor: AgentMonitor::new(),
@@ -307,8 +305,7 @@ pub fn with_storage(
         config: config.clone(),
         quality_assessor,
         salient_extractor,
-        reward_calculator: RewardCalculator::new(),
-        reflection_generator: ReflectionGenerator::new(),
+        learning: LearningOrchestrator::new(),
         pattern_extractor,
         heuristic_extractor: crate::patterns::extractors::HeuristicExtractor::new(),
         agent_monitor,

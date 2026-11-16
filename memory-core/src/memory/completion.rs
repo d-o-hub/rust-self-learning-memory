@@ -201,8 +201,9 @@ impl SelfLearningMemory {
         // Learning Analysis (Existing Workflow)
         // ============================================================================
 
-        // Calculate reward score
-        let reward = self.reward_calculator.calculate(&episode);
+        // Calculate reward and generate reflection through the learning coordinator
+        let analysis = self.learning.analyze(&episode);
+        let reward = analysis.reward;
         episode.reward = Some(reward.clone());
 
         info!(
@@ -213,8 +214,7 @@ impl SelfLearningMemory {
             "Calculated reward score"
         );
 
-        // Generate reflection
-        let reflection = self.reflection_generator.generate(&episode);
+        let reflection = analysis.reflection;
         episode.reflection = Some(reflection.clone());
 
         debug!(
@@ -444,21 +444,28 @@ impl SelfLearningMemory {
             episodes.insert(episode_id, Arc::new(episode));
         }
 
-        // Extract patterns - async if queue enabled, sync otherwise
-        if let Some(queue) = &self.pattern_queue {
-            // Async path: enqueue for background processing
-            queue.enqueue_episode(episode_id).await?;
-            info!(
-                episode_id = %episode_id,
-                "Episode completed, enqueued for async pattern extraction"
-            );
-        } else {
-            // Sync path: extract patterns immediately
-            self.extract_patterns_sync(episode_id).await?;
-            info!(
-                episode_id = %episode_id,
-                "Episode completed and patterns extracted synchronously"
-            );
+        // Dispatch pattern extraction through the learning coordinator
+        let dispatch = self
+            .learning
+            .extract_patterns(
+                self.pattern_queue.as_deref(),
+                episode_id,
+                self.extract_patterns_sync(episode_id),
+            )
+            .await?;
+        match dispatch {
+            crate::learning::PatternDispatch::Enqueued => {
+                info!(
+                    episode_id = %episode_id,
+                    "Episode completed, enqueued for async pattern extraction"
+                );
+            }
+            crate::learning::PatternDispatch::ExtractedSynchronously => {
+                info!(
+                    episode_id = %episode_id,
+                    "Episode completed and patterns extracted synchronously"
+                );
+            }
         }
 
         // Audit log: episode completed

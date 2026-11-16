@@ -305,6 +305,7 @@ pub use indexing::{
     spatiotemporal::{IndexStats, QueryOptions, SpatiotemporalIndex, TimeBucket},
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+pub use learning::{LearningAnalysis, LearningOrchestrator, PatternDispatch};
 pub use memory::checkpoint::{
     CheckpointMeta, CompactHandoff, EvidenceExcerpt, HandoffBudget, HandoffPack, OmissionMetadata,
 };

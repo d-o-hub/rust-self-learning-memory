@@ -16,6 +16,21 @@
       "exec": "rg -qi 'record|replay|benchmark|fixture|session' .agents/skills/memory-harness/SKILL.md"
     },
     {
+      "name": "trace-schema-has-task-domain-outcome",
+      "description": "Trace schema includes the fields replay/export require",
+      "exec": "rg -q '\"task\"' .agents/skills/memory-harness/SKILL.md && rg -q '\"domain\"' .agents/skills/memory-harness/SKILL.md && rg -q '\"outcome\"' .agents/skills/memory-harness/SKILL.md"
+    },
+    {
+      "name": "record-helper-is-syntactically-valid",
+      "description": "record-trace.sh exists and parses",
+      "exec": "test -x .agents/skills/memory-harness/record-trace.sh && bash -n .agents/skills/memory-harness/record-trace.sh"
+    },
+    {
+      "name": "record-helper-writes-required-fields",
+      "description": "record-trace.sh writes task/domain/outcome into the trace",
+      "exec": "rg -q '\"task\"' .agents/skills/memory-harness/record-trace.sh && rg -q '\"domain\"' .agents/skills/memory-harness/record-trace.sh && rg -q '\"outcome\"' .agents/skills/memory-harness/record-trace.sh"
+    },
+    {
       "name": "no-unguarded-gh-release-create",
       "description": "Never presents manual gh release create as the ship path (a line that forbids it is allowed)",
       "exec": "! (rg -n 'gh release create' .agents/skills/memory-harness/SKILL.md | rg -vi 'never|no t|do not|don.t|avoid|forbid|instead')"

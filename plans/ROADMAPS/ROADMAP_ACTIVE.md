@@ -5,8 +5,8 @@
 registered crates verified at `0.1.50` on crates.io)
 **Workspace Version**: 0.1.51 (post-release development bump)
 **Branch**: post-release bump based on `main` @ `0fe1b89d`
-**Open PRs**: 2 (this bump plus the Dependabot group) · `gh pr list` is the live source
-**Open issues**: 0 · `gh issue list` is the live source
+**Open PRs / issues**: `gh pr list` / `gh issue list` are the live sources; Dependabot group
+PRs may be open
 
 ## Active forward work
 

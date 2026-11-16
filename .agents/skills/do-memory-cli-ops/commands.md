@@ -87,26 +87,51 @@ do-memory-cli pat view <PATTERN_ID>
 
 ## Storage Commands
 
+### Statistics
+
+```bash
+do-memory-cli storage stats
+do-memory-cli st stats
+```
+
+### Health
+
+```bash
+do-memory-cli storage health
+do-memory-cli st health
+```
+
 ### Synchronize
 
 ```bash
-do-memory-cli storage sync
-do-memory-cli st sync
+do-memory-cli storage sync [--force] [--dry-run]
+do-memory-cli st sync [--force] [--dry-run]
 ```
 
-### Status
+### Vacuum
 
 ```bash
-do-memory-cli storage status
-do-memory-cli st status
+do-memory-cli storage vacuum [--dry-run]
+do-memory-cli st vacuum [--dry-run]
 ```
 
-### Repair
+### Connections
 
 ```bash
-do-memory-cli storage repair
-do-memory-cli st repair
+do-memory-cli storage connections
+do-memory-cli st connections
 ```
+
+### Operation Journal / Repair
+
+```bash
+do-memory-cli storage journal [--pending] [--repair]
+do-memory-cli st journal [--pending] [--repair]
+```
+
+`storage journal --repair` is the repair entry point. There is no
+`storage status` or `storage repair` command; use `storage stats` / `storage health`
+and `storage journal --repair`.
 
 ## Config Commands
 
@@ -142,13 +167,27 @@ do-memory-cli cfg validate
 ### Check Health
 
 ```bash
-do-memory-cli health
-do-memory-cli hp
+do-memory-cli health check
+do-memory-cli hp check
 ```
 
-### Detailed Check
+The `check` subcommand is required; `do-memory-cli health` alone is rejected.
+
+### Detailed status
 
 ```bash
-do-memory-cli health --detailed
-do-memory-cli hp --detailed
+do-memory-cli health status
+do-memory-cli hp status
 ```
+
+### Monitor
+
+```bash
+do-memory-cli health monitor [--interval SECONDS] [--duration SECONDS]
+do-memory-cli hp monitor [--interval SECONDS] [--duration SECONDS]
+```
+
+## See also
+
+- `agent_docs/LESSONS.md` LESSON-084 — command references are verified against the
+  clap surface, not inferred from the skill prose.

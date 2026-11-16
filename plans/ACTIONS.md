@@ -22,6 +22,12 @@
 |----|--------|--------|
 | ACT-426 | Release `v0.1.50`: release-prep PR #1275, gated `ship`, release workflow #43829111481, publish chain #43833847807, crates.io verification and released-CLI dogfood | ✅ tag `v0.1.50` on `0fe1b89d`; all four crates at `0.1.50`; dogfood record in `VALIDATION_LATEST.md` |
 
+## Completed actions (2026-11-16 — coding-workflow dogfood)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-426 | Dogfood the coding workflow with the product itself (CLI lifecycle, cross-process patterns, durable SQLite parity, tags/journal, MCP stdio, memory-harness trace replay) and fix the drift it exposed | ✅ `scripts/dogfood-coding-workflow.sh`; 23/23 checks; skill evals green |
+
 ## Completed actions (2026-11-15 — harness + plans hygiene)
 
 Every row is backed by a command in `STATUS/VALIDATION_LATEST.md`.

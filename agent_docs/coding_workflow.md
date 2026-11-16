@@ -106,6 +106,18 @@ design preserves.
   verification set, so exit `2` from it means the check never ran (CLI or tool absent) —
   a blocked result, never a pass (issue #1246; pinned by `scripts/test-harness-entrypoint.sh`).
 
+- Dogfood the product when the change touches the CLI, storage, MCP surface, or a
+  skill: `./scripts/dogfood-coding-workflow.sh` (add `--quick` to build debug
+  binaries, `--skip-mcp`/`--skip-harness` for a narrower run). It creates a real
+  episode, logs steps, completes it, checks cross-process pattern/storage parity,
+  reads the durable SQLite sibling, exercises tags/journal, and handshakes the MCP
+  server. A red dogfood run is a finding to fix, not a flaky test to rerun.
+- On a loaded machine, the full `test` sensor can starve the CLI-wave e2e tests
+  (`e2e-tests::cli_workflows::test_pattern_discovery`) past the `ci` profile cap
+  while `quality_gate_pattern_accuracy` compiles a nested crate. Re-run
+  `do-harness verify --only test --strict` once the machine is idle before treating
+  that timeout as a regression (LESSON-028).
+
 - CI is the second pair of eyes, not the first: reproduce CI's exact command
   (toolchain, feature set) when a gate disagrees with local results.
 - The harness CLI is part of what is being verified, so it is verified too:
@@ -204,6 +216,10 @@ the re-run gate output.
 ./scripts/merge-pr.sh <PR> --execute     # readiness gate + independent re-check
 ```
 
+- **Merge as soon as the gate is green.** When every required check and Codacy pass,
+  `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`, and comments are addressed, run the
+  command above; do not stop at "ready to merge" and wait for a separate prompt. A red
+  or pending check means wait/fix — never bypass it.
 - Never `--admin`, never force, never bypass a red check. Never send
   `bypass_rules=true` to the merge API either.
 - **The method is `squash`, not `merge`.** Ruleset `main-protection` carries an active

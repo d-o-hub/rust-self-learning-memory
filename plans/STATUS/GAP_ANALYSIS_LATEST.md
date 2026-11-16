@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-11-16
 **Workspace Version**: `0.1.51` · **Released Tag**: `v0.1.50` (`0fe1b89d`)
-**Main baseline**: `0fe1b89d` · **Open PRs**: two Dependabot group PRs · **Open issues**: 0
+**Main baseline**: `b3f79349` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
 **Historical register**: [`archive/2026/GAP_ANALYSIS_2026-11-01.md`](archive/2026/GAP_ANALYSIS_2026-11-01.md)
 (the 2026-10-04 audit snapshot and its 22 verdicts)
 
@@ -21,6 +21,9 @@
 - **Plans gap closed 2026-11-15:** completed registers archived and the active set
   rewritten forward-only; the unmeasured `forced_go` R-F records are superseded by a
   schema-valid `NO-GO` backlog artifact.
+- **ADR lifecycle closed 2026-11-16:** ADR-080/081/082 are Accepted with test evidence;
+  ADR-028/042/043 were rebaselined to the implemented code and ADR-060 was retired with
+  the last stale `#[allow(deprecated)]` removed.
 
 ## Upstream-blocked dependency advisories (ACT-404)
 
@@ -35,6 +38,11 @@ Dependabot alert.
 | `rustls-webpki` | GHSA-82j2-j2ch-gfr8, GHSA-xgp8-3hg3-c2mh, GHSA-965h-392x-2mh5, GHSA-pwjx-qhcg-rvj4 | `rustls-webpki 0.102.8` under `rustls 0.22.4` | `0.103.10`/`0.103.12`/`0.103.13`; same chain |
 | `lru` | GHSA-rhfx-m35p-ff5j | `lru 0.9.0` via `augurs-changepoint`/`rv`; `0.12.5` via `agentfs-sdk` | `0.16.3`; both paths upstream |
 | `libsql-sqlite3-parser` | GHSA-8m95-fffc-h4c5 | `0.13.0` via `libsql 0.9.30` | no patched release |
+
+**Revalidated 2026-11-16** (no chain moved): `libsql 0.10.0` still resolves
+`hyper-rustls 0.25 → rustls 0.22.4`; `augurs-changepoint 0.10.3` still resolves
+`rv 0.16.5 → lru 0.9.0`; `agentfs-sdk 0.6.4` still resolves `lru 0.12.5`; no patched
+`libsql-sqlite3-parser` release is available. No bump PR is justified.
 
 **Revalidation commands** (run before writing any bump PR):
 

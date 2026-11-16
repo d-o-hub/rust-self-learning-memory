@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `memory-harness` `record-trace.sh` plus a trace schema that replay/export consume:
   `task`, `domain`, `project`, `outcome` and `steps` are now recorded and documented.
 
+### Changed
+
+- ADR lifecycle closeout: ADR-080 / ADR-081 / ADR-082 are now `Accepted` with the
+  attribution, receipt, restart, capability, and ranking tests as evidence. ADR-028 /
+  ADR-042 / ADR-043 were rebaselined to the implemented code, and ADR-060 is `Accepted`
+  after Option 1 (remove `#[deprecated]`) landed.
+- Revalidated ACT-404 on 2026-11-16: `libsql 0.10.0` still pins `rustls 0.22.4`,
+  `augurs`/`agentfs` still pin `lru 0.9`/`0.12`, and no patched
+  `libsql-sqlite3-parser` release exists — no bump is justified.
+
+### Removed
+
+- The last stale `#[allow(deprecated)]` in `memory-mcp` (`server_impl/jsonrpc.rs`);
+  `handle_shutdown` is no longer deprecated and the suppression is gone.
+
 ### Fixed
 
 - `memory-harness` record guidance no longer writes a header replay cannot read, and

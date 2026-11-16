@@ -9,6 +9,13 @@
 
 Full codebase audit on 2026-03-15 against ADR-028 roadmap, ADR-042 coverage plan, and GOAP state. This ADR catalogs all findings across four dimensions: **new features**, **missing implementation**, **code coverage**, and **enhancements**.
 
+## Status update (2026-11-16)
+
+This document is a historical 2026-03-15 snapshot. The pending coverage,
+fuzz, integration, and changelog items have since landed; the remaining rows
+below are marked with their current disposition. Do not treat a 2026-03-15
+"pending" label as live backlog without re-checking the code.
+
 ### Current State Snapshot (2026-03-15)
 
 | Metric | Value | Previous (v0.1.18) | Delta |
@@ -68,11 +75,12 @@ Full codebase audit on 2026-03-15 against ADR-028 roadmap, ADR-042 coverage plan
 | Phase | Status | Completed Actions | Pending Actions |
 |-------|--------|-------------------|-----------------|
 | Phase 1: Critical Paths | ✅ Complete | ACT-026, ACT-027, ACT-028, ACT-029 | — |
-| Phase 2: Property Tests | 🟡 Partial | ACT-030, ACT-031 | **ACT-032** (MCP JSON-RPC fuzz) |
-| Phase 3: Integration | ⏳ Not Started | — | **ACT-033, ACT-034, ACT-035** |
-| Config | ⏳ Pending | — | **ACT-036** (codecov.yml), **ACT-037** (coverage script) |
+| Phase 2: Property Tests | ✅ Complete | ACT-030, ACT-031, ACT-032 | — |
+| Phase 3: Integration | ✅ Complete | ACT-033, ACT-034, ACT-035 | — |
+| Config | ✅ Complete | ACT-036 (`codecov.yml`), ACT-037 (`scripts/check-coverage.sh`) | — |
 
-**Coverage Configuration**: `.codecov.yml` currently at 70% project / 80% patch — reasonable baseline but ADR-042 phased targets not yet applied.
+**Coverage Configuration**: `codecov.yml` is present (70% project / 50% patch),
+and `scripts/check-coverage.sh` is the local runner.
 
 ### D. Dead Code & Quality Debt
 
@@ -85,26 +93,26 @@ Full codebase audit on 2026-03-15 against ADR-028 roadmap, ADR-042 coverage plan
 
 | ID | Goal | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| WG-018 | Reduce dead_code attrs (79→≤20) | P1 | 🟡 Partial (69 remaining) | Need -49 more |
+| WG-018 | Reduce dead_code attrs | P1 | 🟡 Ratcheted | 27 production `#[allow(dead_code)]` attributes; the original ≤20 target is superseded by the ratchet |
 | WG-019 | Remove stale TODOs | P1 | ✅ Complete (0 found) | — |
 | WG-020 | Fix stale #[ignore] on pattern CLI | P1 | ✅ Complete | — |
 | WG-021 | Update ADR-039 "Not Built" table | P2 | ✅ Complete | — |
-| WG-025 | Un-ignore fixable tests | P2 | 🟡 Partial (118→112) | 6 sandbox/WASM pending |
+| WG-025 | Un-ignore fixable tests | P2 | 🟡 Ratcheted | 160 `#[ignore]` entries; 200 ceiling (`scripts/check-ignored-tests.sh`) |
 
 ### F. Infrastructure & Enhancement Opportunities
 
 | ID | Opportunity | Priority | Evidence | Impact |
 |----|-------------|----------|----------|--------|
-| E1 | **ADR-028 status table stale** | P1 | Features #6-#8 implemented but not reflected | Documentation accuracy |
-| E2 | **ROADMAP_ACTIVE.md stale** | P1 | Lists v0.1.17 as released; v0.1.19 is current | Sprint planning accuracy |
-| E3 | **Clippy regression in integration tests** | P0 | 4 errors in test files | CI blocked |
-| E4 | **Changelog automation** | P2 | ADR-034 Phase 4, not started | Release efficiency |
-| E5 | **OpenTelemetry integration** | P2 | ADR-028 #10, partial | Production observability |
-| E6 | **ONNX runtime model loading** | P3 | ADR-028 #13, download exists, no runtime | Custom model support |
-| E7 | **WASM sandbox fix** | P3 | ADR-040 G3.6, disabled since v0.1.14 | Agent code execution |
-| E8 | **Coverage script (ACT-037)** | P2 | Not created | Coverage monitoring |
-| E9 | **MCP JSON-RPC fuzz tests** | P2 | ACT-032 pending | Security/robustness |
-| E10 | **libsql version monitor** | P3 | ADR-041 T5.3 pending | Un-ignore 70 tests when fixed |
+| E1 | **ADR-028 status table stale** | P1 | Fixed 2026-11-16 (ADR-028 rebaselined) | Documentation accuracy |
+| E2 | **ROADMAP_ACTIVE.md stale** | P1 | Fixed; roadmap is forward-only at v0.1.51 | Sprint planning accuracy |
+| E3 | **Clippy regression in integration tests** | P0 | Fixed; `clippy --workspace` is green | CI blocked |
+| E4 | **Changelog automation** | P2 | ✅ Implemented (`git-cliff`, `cliff.toml`, `changelog.yml`) | Release efficiency |
+| E5 | **OpenTelemetry integration** | P2 | ⏳ R-F2 is NO-GO this cycle; planned `otel` feature | Production observability |
+| E6 | **ONNX runtime model loading** | P3 | 🟡 Local ONNX runtime exists behind `local-embeddings`; no user-supplied custom path | Custom model support |
+| E7 | **WASM sandbox fix** | P3 | ⛔ NO-GO; fail-closed `execute_agent_code` retained | Agent code execution |
+| E8 | **Coverage script (ACT-037)** | P2 | ✅ `scripts/check-coverage.sh` exists | Coverage monitoring |
+| E9 | **MCP JSON-RPC fuzz tests** | P2 | ✅ `fuzz/fuzz_targets/fuzz_mcp_jsonrpc.rs` + `jsonrpc_fuzz_tests.rs` | Security/robustness |
+| E10 | **libsql version monitor** | P3 | ⏸ Upstream-blocked (ACT-404); `libsql 0.10` still pins `rustls 0.22.4` | Un-ignore tests when fixed |
 
 ---
 
@@ -181,7 +189,7 @@ Phase A (Parallel, 1h)           Phase B (Parallel, 4h)        Phase C (Sequenti
 └─────────────────────┘          └────────────────────┘        └──────────────────────┘
 ```
 
-**Gate A→B**: Clippy clean, docs updated  
+**Gate A→B**: Clippy clean, docs updated
 **Gate B→C**: Dead code ≤20, coverage tests passing, ignored ≤106
 
 ### Agent Assignment

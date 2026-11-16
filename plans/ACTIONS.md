@@ -3,8 +3,7 @@
 - **Last Updated**: 2026-11-16
 - **Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
   dogfood are green; the workspace is `0.1.51`. **No code-side action is open.**
-- **Remaining**: upstream-blocked advisories (ACT-404) and maintainer-external ADR
-  lifecycle acceptance.
+- **Remaining**: upstream-blocked advisories (ACT-404).
 - **Archive**: `plans/archive/2026-11-consolidation/`
 - **Completed pointer**: `plans/STATUS/archive/2026/` and the archived registers above.
 
@@ -12,8 +11,7 @@
 
 | ID | Action | Owner | Status |
 |----|--------|-------|--------|
-| ACT-404 | Keep the four upstream-blocked advisory families classified with their pinning chains (`rustls`/`rustls-webpki` via libsql/hyper, `lru` via augurs/agentfs, `libsql-sqlite3-parser` with no patch). Re-test only when a chain moves; never open a no-op `libsql 0.10` bump | Dependabot | ⏸ upstream |
-| ACT-425 | ADR-080 / ADR-081 lifecycle acceptance (record decision, flip `Proposed` with evidence) | maintainer | ⏸ external |
+| ACT-404 | Keep the four upstream-blocked advisory families classified with their pinning chains (`rustls`/`rustls-webpki` via libsql/hyper, `lru` via augurs/agentfs, `libsql-sqlite3-parser` with no patch). Re-test only when a chain moves; never open a no-op `libsql 0.10` bump. Revalidated 2026-11-16: `libsql 0.10.0` still resolves `hyper-rustls 0.25 → rustls 0.22.4`; `augurs-changepoint 0.10.3 → rv 0.16.5 → lru 0.9.0`; `agentfs-sdk 0.6.4 → lru 0.12.5` | Dependabot | ⏸ upstream |
 | ACT-424 | Schedule the next release only when cadence or a feature justifies it; run `release-guard` + `release-manager.sh ship --execute` and dogfood the exact artifact | release | ✅ `v0.1.50` shipped 2026-11-16; next not scheduled |
 
 ## Completed actions (2026-11-16 — v0.1.50 release)
@@ -21,6 +19,12 @@
 | ID | Action | Status |
 |----|--------|--------|
 | ACT-426 | Release `v0.1.50`: release-prep PR #1275, gated `ship`, release workflow #43829111481, publish chain #43833847807, crates.io verification and released-CLI dogfood | ✅ tag `v0.1.50` on `0fe1b89d`; all four crates at `0.1.50`; dogfood record in `VALIDATION_LATEST.md` |
+
+## Completed actions (2026-11-16 — ADR lifecycle closeout)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-425 | Accept ADR-080 / ADR-081 / ADR-082 with recorded test evidence; reconcile stale ADR-028 / ADR-042 / ADR-043 statuses; retire ADR-060 | ✅ `ADR-080/081/082 Accepted`; `ADR-028/042/043` rebaselined; `ADR-060` Accepted with the stale `#[allow(deprecated)]` removed |
 
 ## Completed actions (2026-11-16 — coding-workflow dogfood)
 

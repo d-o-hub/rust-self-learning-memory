@@ -4,7 +4,8 @@
 - **Version**: workspace `0.1.51` (post-release bump; latest published tag `v0.1.50`,
   `0fe1b89d`, GitHub Release published 2026-11-16T08:45:18Z)
 - **Branch**: post-release bump based on `main` @ `0fe1b89d`
-- **Open PRs / issues**: 0 / 0 (`gh pr list --state open`, `gh issue list --state open`)
+- **Open PRs / issues**: live sources `gh pr list --state open` / `gh issue list --state open`;
+  Dependabot group PRs may be open
 - **Active plan**: post-`v0.1.49` closeout. No code-side gap; the only open items are
   upstream-blocked Dependabot advisories (ACT-404) and maintainer-external ADR lifecycle
   acceptance (ADR-080/081).

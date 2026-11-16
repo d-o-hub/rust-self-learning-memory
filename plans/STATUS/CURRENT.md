@@ -13,7 +13,7 @@ maintainer-external ADR lifecycle acceptance.
 
 | Kind | Items |
 |------|--------|
-| Open PRs | 2 (this post-release bump plus the Dependabot group) — `gh pr list --state open` is the live source |
+| Open PRs | `gh pr list --state open` is the live source; Dependabot group PRs may be open |
 | Open issues | **0** — `gh issue list --state open` is the live source; the auto-maintained release-drift issue closed itself at the `v0.1.50` tag push |
 | Dependency audit | Remaining Dependabot rows are upstream-blocked (ACT-404); consult the security workflow's latest run |
 | Feature backlog | R-F1…R-F7 are `NO-GO` for this cycle (`STATUS/spikes/R-F-product-backlog-2026-11-15.json`) |

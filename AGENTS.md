@@ -14,6 +14,7 @@ Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso
 | Format / lint | `./scripts/code-quality.sh fmt` · `./scripts/code-quality.sh clippy --workspace` |
 | Tests | `cargo nextest run --all` + `cargo test --doc` |
 | Quality gates | `./scripts/quality-gates.sh` |
+| Product / workflow dogfood | `./scripts/dogfood-coding-workflow.sh` |
 | PR readiness | `./scripts/check-pr-readiness.sh [PR]` |
 | Merge (gated) | `./scripts/merge-pr.sh <PR> [--accept-codecov-waiver] --execute` |
 | Release | `./scripts/release-manager.sh ship --execute` |

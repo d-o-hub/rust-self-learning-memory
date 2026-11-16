@@ -3,7 +3,8 @@
 **Workspace**: `v0.1.51` (post-release development bump) · **Latest published tag**: `v0.1.50`
 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z, 37 assets; all four registered crates
 verified at `0.1.50` on crates.io) · **Main baseline**: `0fe1b89d` · **Last updated**: 2026-11-16
-**Open PRs / issues**: this bump PR plus the two Dependabot group PRs; 0 open issues
+**Open PRs / issues**: `gh pr list --state open` / `gh issue list --state open` are the
+live sources; Dependabot group PRs may be open
 **Policy**: ADR-039 (canonical active set) + ADR-072 (authority / release path)
 
 ## Active state

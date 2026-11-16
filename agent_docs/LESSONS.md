@@ -2151,3 +2151,32 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `actions/runner-images` issue #15226, `dist-workspace.toml`,
   `.agents/skills/release-guard/SKILL.md` (failure playbook), LESSON-080 (an
   Actions query a minute after a push is a race, not a verdict).
+
+## LESSON-084: skill examples and trace schemas drift unless a dogfood gate executes them (2026-11-16)
+
+- Issue: the `memory-harness` skill told agents to record a trace as
+  `{"version","episode_id","steps":[]}`, but `replay-trace.sh` reads `task`,
+  `domain`, `outcome`, and `steps`; `export-fixtures.sh` reads `task`/`domain`
+  too. A recorded trace therefore replayed as "Unknown task" with zero steps, and
+  the record recipe never appended steps to the trace at all. The same pass found
+  `do-memory-cli-ops/commands.md` documenting `do-memory-cli health`,
+  `storage status`, and `storage repair` when the clap surface requires
+  `health check`, `storage stats`, and `storage journal --repair`.
+- Why it matters: the documented workflow and the executable workflow disagreed,
+  and nothing executed the docs. Agents following the skill produced a green
+  `.results.json` from an empty replay; readers following the command reference
+  hit clap errors. This is the LESSON-063 phantom-affordance class applied to
+  skill prose rather than scripts.
+- Detection: run the documented command path against the built binary and inspect
+  the trace consumer's required keys (`replay-trace.sh`, `export-fixtures.sh`).
+  A field present only in prose is a schema claim until a consumer reads it.
+- Fix: add `record-trace.sh` as the single writer of the trace schema, make
+  replay fail loudly on create/step/complete errors, correct the command
+  reference, pin both with skill evals, and run the end-to-end
+  `scripts/dogfood-coding-workflow.sh` gate when the CLI, storage, MCP surface, or
+  a skill changes.
+- References: `.agents/skills/memory-harness/SKILL.md`,
+  `.agents/skills/memory-harness/record-trace.sh`,
+  `.agents/skills/memory-harness/replay-trace.sh`,
+  `.agents/skills/do-memory-cli-ops/commands.md`,
+  `scripts/dogfood-coding-workflow.sh`, LESSON-063.

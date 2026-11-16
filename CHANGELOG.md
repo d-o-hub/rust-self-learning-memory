@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/dogfood-coding-workflow.sh` — an end-to-end workflow gate that creates a
+  real episode, logs steps, completes it, checks cross-process pattern/storage parity,
+  reads the durable SQLite sibling, exercises tags/journal commands, and handshakes the
+  MCP server (`initialize`, `tools/list`, `health_check`, `query_memory`).
+- `memory-harness` `record-trace.sh` plus a trace schema that replay/export consume:
+  `task`, `domain`, `project`, `outcome` and `steps` are now recorded and documented.
+
+### Fixed
+
+- `memory-harness` record guidance no longer writes a header replay cannot read, and
+  replay now fails loudly on create/step/complete errors instead of writing a green
+  `.results.json`.
+- `do-memory-cli-ops/commands.md` now documents the real `health check`, `storage stats`,
+  `storage health`, and `storage journal --repair` commands instead of nonexistent
+  `health`, `storage status`, and `storage repair` forms.
+
 ## [0.1.50] - 2026-11-15
 
 ### Changed

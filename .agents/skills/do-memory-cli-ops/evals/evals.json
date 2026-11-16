@@ -26,6 +26,21 @@
       "exec": "rg -q -- '--config|config' .agents/skills/do-memory-cli-ops/SKILL.md"
     },
     {
+      "name": "health-uses-check-subcommand",
+      "description": "Documents the required health check subcommand",
+      "exec": "rg -q 'health check' .agents/skills/do-memory-cli-ops/commands.md"
+    },
+    {
+      "name": "storage-stats-not-status",
+      "description": "Documents storage stats and not the nonexistent storage status",
+      "exec": "rg -q 'storage stats' .agents/skills/do-memory-cli-ops/commands.md && ! rg -q 'do-memory-cli storage status' .agents/skills/do-memory-cli-ops/commands.md"
+    },
+    {
+      "name": "storage-repair-uses-journal",
+      "description": "Repair is documented through storage journal --repair",
+      "exec": "rg -q 'storage journal --repair' .agents/skills/do-memory-cli-ops/commands.md && ! rg -q 'do-memory-cli storage repair' .agents/skills/do-memory-cli-ops/commands.md"
+    },
+    {
       "name": "no-unguarded-gh-release-create",
       "description": "Never presents manual gh release create as the ship path (a line that forbids it is allowed)",
       "exec": "! (rg -n 'gh release create' .agents/skills/do-memory-cli-ops/SKILL.md | rg -vi 'never|no t|do not|don.t|avoid|forbid|instead')"

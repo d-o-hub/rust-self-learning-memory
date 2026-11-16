@@ -1,7 +1,6 @@
 # ADR-082: Feedback-to-Ranking Adaptation
 
-- **Status**: Proposed — code evidence lands in this PR (`feat/ranking-adaptation`);
-  lifecycle stays `Proposed` until maintainer acceptance
+- **Status**: Accepted (2026-11-16) — code landed in `feat/ranking-adaptation` and was re-verified against the current test suite on 2026-11-16
 - **Date**: 2026-08-12
 - **Deciders**: Project maintainers
 - **Plan**: this PR (feedback-to-ranking adaptation + ADR-025/054 docs cleanup)
@@ -19,6 +18,14 @@
   `memory-storage-redb/src/backend_impl.rs`, `memory-storage-redb/src/recommendations.rs`
 
 ---
+
+## Status update (2026-11-16)
+
+Accepted. The acceptance criteria are covered by the merged implementation and
+tests: `memory-core/tests/ranking_adaptation_e2e.rs` (no-feedback baseline,
+success lift, replaced feedback, cold restart, non-capable backend),
+`memory-core/src/memory/attribution/ranking/tests.rs` (Wilson/calibration and
+proportionality guards), and the capability tests in both storage crates.
 
 ## Status update (2026-08-12)
 

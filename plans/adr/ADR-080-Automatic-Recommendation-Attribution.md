@@ -1,11 +1,25 @@
 # ADR-080: Automatic, Episode-Bound Recommendation Attribution
 
-- **Status**: Proposed
+- **Status**: Accepted (2026-11-16)
 - **Date**: 2026-07-30
 - **Deciders**: Project maintainers
 - **Plan**: [`../GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md`](../archive/2026-09-consolidation/superseded-goap/GOAP_CODEBASE_TRUTH_AND_ATTRIBUTION_2026-07-30.md)
 - **Related**: ADR-039 (plans governance), ADR-044 (recommendation attribution), ADR-072 (authority/evidence), ADR-075 (durability truth)
 - **Code evidence**: `memory-core/src/memory/pattern_api.rs`, `memory-core/src/memory/retrieval/playbooks.rs`, `memory-core/src/memory/api.rs`, `memory-core/src/memory/persistence.rs`, `memory-mcp/src/mcp/tools/pattern_search.rs`, `memory-cli/src/commands/pattern/core/search.rs`
+
+## Status update (2026-11-16)
+
+Accepted after re-review against the merged implementation:
+
+- Attributed pattern/playbook operations and the tagged persistence receipt are
+  implemented in the code paths above.
+- `memory-core/tests/attribution_receipt_matrix.rs` covers the persisted /
+  partially-persisted / memory-only / persistence-failed matrix.
+- `memory-core/tests/attribution_feedback_restart.rs` covers cold-restart
+  retrieval, and `attribution_property_tests.rs` covers the feedback/session
+  invariants.
+- §5 ranking adaptation is no longer deferred: it is implemented and accepted
+  under [ADR-082](ADR-082-Feedback-Ranking-Adaptation.md).
 
 ## Context
 

@@ -236,15 +236,15 @@ cargo mutants --timeout 120 --jobs 4 -- --lib
 |--------|--------|---------|
 | ACT-030 | ✅ Complete | Serialization round-trip tests (proptest) |
 | ACT-031 | ✅ Complete | Calculator property tests (bounds validation) |
-| ACT-032 | ⏳ Pending | MCP JSON-RPC fuzz tests |
+| ACT-032 | ✅ Complete | MCP JSON-RPC fuzz tests (`fuzz/fuzz_targets/fuzz_mcp_jsonrpc.rs`, `memory-mcp/tests/jsonrpc_fuzz_tests.rs`) |
 
 ### Phase 3 Progress
 
 | Action | Status | Details |
 |--------|--------|---------|
-| ACT-033 | ⏳ Pending | CLI integration tests |
-| ACT-034 | ⏳ Pending | MCP tool integration tests |
-| ACT-035 | ⏳ Pending | Cache eviction tests |
+| ACT-033 | ✅ Complete | CLI integration tests (`memory-cli/tests/integration_tests.rs`, `cli_coverage_tests.rs`) |
+| ACT-034 | ✅ Complete | MCP tool integration tests (`memory-mcp/tests/mcp_tool_coverage_tests.rs`, `tool_contract_parity.rs`, domain suites) |
+| ACT-035 | ✅ Complete | Cache eviction tests across redb/turso storage suites |
 
 ### Coverage Fix (2026-03-14)
 

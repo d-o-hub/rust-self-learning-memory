@@ -3,8 +3,8 @@
 - **Last Updated**: 2026-11-15
 - **Workspace**: `0.1.51` (post-release bump) · **Latest published tag**: `v0.1.50` (`0fe1b89d`)
 - **Status**: post-`v0.1.50` closeout. Every code-side goal in the audited backlogs is
-  closed; only Dependabot PRs are open. Remaining: upstream-blocked advisories (ACT-404)
-  and maintainer-external ADR lifecycle acceptance.
+  closed; `gh pr list` / `gh issue list` are the live tracker sources. Remaining:
+  upstream-blocked advisories (ACT-404).
 - **Plan**: `ACTIONS.md` + `ROADMAPS/ROADMAP_ACTIVE.md`
 - **Archive**: `plans/archive/2026-11-consolidation/`
 
@@ -17,7 +17,7 @@
 | G-C3 single agent contract | P3 | `.jules/` and `GEMINI.md` removed; CI no longer lists them | ✅ 2026-11-15 |
 | G-C4 keep the product backlog honest | P2 | authoritative R-F artifact is schema-valid and `NO-GO` | ✅ 2026-11-15 |
 | G-C5 clear upstream dependency advisories when (and only when) the chains move | P1 | `cargo tree` proves the move; no no-op bump | ⏸ upstream |
-| G-C6 accept ADR-080 / ADR-081 | P2 | maintainer lifecycle decision | ⏸ external |
+| G-C6 accept ADR-080 / ADR-081 (and ADR-082) | P2 | maintainer lifecycle decision recorded with test evidence | ✅ 2026-11-16 |
 | G-C7 ship and dogfood `v0.1.50`, then bump the workspace | P0 | release + publish green, four crates on crates.io, CLI dogfood, `0.1.51` bump | ✅ 2026-11-16 |
 
 ## Completed goals (pointer)

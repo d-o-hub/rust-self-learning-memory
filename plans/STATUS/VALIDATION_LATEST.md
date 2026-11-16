@@ -5,6 +5,18 @@
 **Scope**: `v0.1.50` release, crates.io publication, released-CLI dogfood, `0.1.51` bump.
 **Previous full record**: [`archive/2026/VALIDATION_2026-11-01.md`](archive/2026/VALIDATION_2026-11-01.md)
 
+## ADR lifecycle closeout — 2026-11-16
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Attribution/ranking evidence | `cargo nextest run -p do-memory-core --test ranking_adaptation_e2e --test attribution_receipt_matrix --test attribution_feedback_restart --test attribution_property_tests` | ✅ 48 passed, 0 skipped |
+| Turso capability truth | `cargo nextest run -p do-memory-storage-turso --test capability_attribution_test` | ✅ 8 passed |
+| redb capability truth | `cargo nextest run -p do-memory-storage-redb --test capability_attribution_test` | ✅ 5 passed |
+| ADR-060 suppression removal | `cargo check -p do-memory-mcp` | ✅ clean |
+| Formatting | `cargo fmt --all -- --check` | ✅ clean |
+| Plans / docs | `./scripts/validate-plans.sh --all`; `./scripts/check-docs-integrity.sh` | ✅ green; tracker drift 0 |
+| ACT-404 revalidation | `cargo tree --locked -i rustls`; `cargo tree --locked -i lru@0.9.0`; `cargo tree --locked -i lru@0.12.5`; scratch `libsql 0.10.0` tree | ✅ no chain moved; no bump justified |
+
 ## Release evidence — v0.1.50
 
 | Artifact | Evidence |

@@ -1,16 +1,15 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-11-15
+- **Last Updated**: 2026-11-16
 - **Version**: workspace `0.1.51` (post-release bump; latest published tag `v0.1.50`,
   `0fe1b89d`, GitHub Release published 2026-11-16T08:45:18Z)
 - **Branch**: post-release bump based on `main` @ `0fe1b89d`
 - **Open PRs / issues**: live sources `gh pr list --state open` / `gh issue list --state open`;
   Dependabot group PRs may be open
-- **Active plan**: post-`v0.1.49` closeout. No code-side gap; the only open items are
-  upstream-blocked Dependabot advisories (ACT-404) and maintainer-external ADR lifecycle
-  acceptance (ADR-080/081).
+- **Active plan**: post-`v0.1.50` closeout. No code-side gap; the only open item is the
+  upstream-blocked Dependabot advisory set (ACT-404).
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md)
-- **Release**: `v0.1.49` shipped and reached crates.io (core, redb, turso, mcp); the
+- **Release**: `v0.1.50` shipped and reached crates.io (core, redb, turso, mcp); the
   released CLI was dogfooded. Next release is not scheduled.
 - **Harness**: pin `v0.4.6`, measured green; both probes and the 31-case compat contract pass.
 - **Archive**: `plans/archive/2026-11-consolidation/`
@@ -24,7 +23,8 @@
   remains mandatory.
 - **Dependabot (ACT-404)**: four upstream families, two lockfiles. Re-test only when the
   pinning chain moves; see `STATUS/GAP_ANALYSIS_LATEST.md`.
-- **ADR lifecycle**: ADR-080/081 acceptance is maintainer-external, not a code blocker.
+- **ADR lifecycle**: ADR-080/081/082 are Accepted (2026-11-16); stale ADR-028/042/043
+  were rebaselined and ADR-060 retired.
 - **Product backlog**: R-F1…R-F7 are `NO-GO` for this cycle; promote only on a measured
   spike (`STATUS/spikes/R-F-product-backlog-2026-11-15.json`).
 - **Plans hygiene**: keep dated root files ≤5; archive completed waves under
@@ -45,6 +45,7 @@ harness_pin_measured               = true   (v0.4.6; compat + doctrine + 31 cont
 plans_active_set_compact           = true   (2026-11-15; dated root files archived)
 single_agent_contract              = true   (AGENTS.md; .jules/ and GEMINI.md removed)
 product_backlog_gated              = true   (R-F1…R-F7 NO-GO; R-F8/R-F9/R-F10 shipped)
+adr_lifecycle_accepted             = true   (ADR-080/081/082 accepted 2026-11-16)
 ```
 
 ## Closed campaigns (pointer)

@@ -1,6 +1,6 @@
 # ADR-060: `handle_shutdown` Deprecation Cleanup (PR #708 fallout)
 
-- **Status**: 🟡 Proposed
+- **Status**: Accepted (2026-11-16) — Option 1 implemented
 - **Date**: 2026-07-02
 - **Deciders**: Project maintainers
 - **Related**: PR #708 (Strict JSON-RPC Content-Length validation),
@@ -8,6 +8,15 @@
   ADR-038 (Local CI Parity — Clippy/Tests),
   ADR-058 (CI Health — Gitleaks/Release Drift),
   `main` commit `d85d9d10` (the same `#[allow(deprecated)]` suppressions)
+
+## Status update (2026-11-16)
+
+Option 1 is implemented. `handle_shutdown` no longer carries
+`#[deprecated]`; the handler is documented against the JSON-RPC 2.0 contract,
+and `memory-mcp/tests/jsonrpc_shutdown_integration_test.rs` pins the
+request/notification behavior. The last stale site-level
+`#[allow(deprecated)]` (in `server_impl/jsonrpc.rs`) was removed in this change,
+so the suppression debt is gone rather than relocated.
 
 ## Context
 
@@ -178,5 +187,5 @@ PR-708 / PR-616 class of failures on every future bin/server_impl edit.
 - Naming follows the existing ADR-NNN sequence; next number after ADR-059
   (LOC Boundary Splits) is 060.
 - File path mirrors siblings: `plans/adr/ADR-060-handle-shutdown-deprecation-cleanup.md`.
-- Status is **Proposed** until the chosen option is implemented and merged
+- Status is **Accepted** (2026-11-16): Option 1 was implemented and merged
   on `main`.

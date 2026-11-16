@@ -453,19 +453,19 @@ Long-term (Q3-Q4 2026):
 
 ## Implementation Status
 
-🔄 **PARTIALLY COMPLETE** (4 of 14 features shipped — rebaselined 2026-03-06)
+🔄 **PARTIALLY COMPLETE** (rebaselined 2026-11-16)
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
 | 1 | MCP Token Optimization | ✅ Complete | Shipped in v0.1.15 — `list_tool_names()` for 98% token reduction |
 | 2 | Batch Module Rehabilitation | ✅ Complete | Re-enabled in tools/mod.rs (2026-02-25) |
-| 3 | File Size Compliance | ✅ Complete | All source files ≤500 LOC (24 test files >500 LOC, non-blocking) |
-| 4 | Error Handling Improvement | ⬚ Not Started | **921** unwrap/expect total (816 unwrap + 105 expect, incl. test-adjacent) |
-| 5 | Ignored Test Rehabilitation | 📋 Categorized | 58 ignored tests — triaged into fix/keep/convert categories |
-| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Unblocked (#3 complete) |
-| 7 | Embeddings Integration | 🟡 Partial | CLI commands ✅ exist; MCP tools still pending |
-| 8 | Transport Compression | ⬚ Not Started | Unblocked (#2 complete) |
-| 9-14 | Long-term features | ⬚ Not Started | Long-term |
+| 3 | File Size Compliance | ✅ Complete | All source files ≤500 LOC (test files are non-blocking) |
+| 4 | Error Handling Improvement | 🟡 Partial | Crate error types exist; 2,724 `unwrap`/`expect` occurrences remain including tests — the ≤20 target is superseded |
+| 5 | Ignored Test Rehabilitation | 🟡 Ongoing | 160 `#[ignore]` entries with a 200 ceiling ratchet (`scripts/check-ignored-tests.sh`) |
+| 6 | Adaptive TTL Phase 2 | ✅ Complete | `AdaptiveCacheAdapter` in `memory-storage-redb` |
+| 7 | Embeddings Integration | ✅ Complete | CLI commands plus MCP `generate_embedding` / `search_by_embedding` / `embedding_provider_status` |
+| 8 | Transport Compression | ✅ Complete | `compression` feature with `compress_json_field` in `memory-storage-turso` |
+| 9-14 | Long-term features | ⏸ Gated | R-F1…R-F7 are NO-GO this cycle; #10 has Prometheus metrics, #13 has the local ONNX runtime, #12/#14 are not started |
 
 ---
 

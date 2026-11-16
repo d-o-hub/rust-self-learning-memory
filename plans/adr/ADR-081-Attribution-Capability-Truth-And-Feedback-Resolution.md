@@ -1,12 +1,25 @@
 # ADR-081: Attribution Capability Truth, Feedback Resolution, and Tool-Schema Single Source
 
-- **Status**: Proposed — capability slice (§2) landed 2026-08-10 and the residual acceptance evidence is covered by the closure PR from branch `fix/ci-attribution-truth-closure` (see "Status update" below); lifecycle stays `Proposed` until maintainer acceptance
+- **Status**: Accepted (2026-11-16) — capability slice landed 2026-08-10; the residual evidence was closed by the `fix/ci-attribution-truth-closure` PR and re-verified on 2026-11-16
 - **Date**: 2026-08-06
 - **Deciders**: Project maintainers
 - **Plan**: [`../GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md`](../archive/2026-09-consolidation/superseded-goap/GOAP_ATTRIBUTION_COMPLETION_AND_CODEBASE_IMPROVEMENTS_2026-08-06.md)
 - **Supersedes nothing**; **completes** [ADR-080](ADR-080-Automatic-Recommendation-Attribution.md)
 - **Related**: ADR-044 (recommendation attribution), ADR-072 (authority/evidence), ADR-074 (retrieval provenance), ADR-075 (durability truth), ADR-076 (discoverability + empty-result semantics), ADR-079 (fail-closed CI control plane)
 - **Code evidence**: `memory-core/src/memory/attribution/tracker/mod.rs`, `memory-core/src/memory/attribution/tracker/integrity.rs`, `memory-core/src/memory/attribution/tracker/stats.rs`, `memory-core/src/memory/attribution/tracker/tests.rs` (split from the former single `tracker.rs`), `memory-core/src/memory/attribution/receipt.rs`, `memory-core/src/memory/attribution/types.rs`, `memory-core/src/memory/persistence.rs`, `memory-core/src/memory/api.rs`, `memory-core/src/memory/pattern_api.rs`, `memory-core/src/memory/retrieval/playbooks.rs`, `memory-core/src/memory/retrieval/playbooks_attributed.rs`, `memory-core/src/storage/backend.rs`, `memory-mcp/src/bin/server_impl/tools/feature_handlers.rs`, `memory-mcp/src/server/tool_definitions.rs`, `memory-mcp/src/server/recommendation_tool_definitions.rs`, `memory-mcp/src/server/tools/registry/builder.rs`, `memory-cli/src/commands/pattern/core/search.rs`, `memory-cli/src/commands/feedback/core.rs`
+
+## Status update (2026-11-16)
+
+Accepted. The implementation is present and the capability truth is testable:
+
+- `memory-storage-turso/tests/capability_attribution_test.rs` and
+  `memory-storage-redb/tests/capability_attribution_test.rs` cover concrete
+  backend advertisement and the checked recorder.
+- `memory-core/tests/attribution_receipt_matrix.rs` covers the persistence
+  states; `attribution_feedback_restart.rs` covers the cold-restart path.
+- The ranking deferral in §8 is implemented under
+  [ADR-082](ADR-082-Feedback-Ranking-Adaptation.md), so this ADR no longer
+  blocks that loop.
 
 ## Status update (2026-08-11)
 

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `examples/adaptive_source_discovery.rs` — an external-consumer example for adaptive
+  web/source discovery. It records each discovery attempt as an episode (plan, provider,
+  redacted endpoint, outcome class, latency, cost), retrieves prior episodes by query
+  family, and lets a bounded planner keep the static baseline or move to one alternative
+  that the evidence already contains. Includes a deterministic fixture dataset, a
+  cross-process decision-fingerprint restart check, memory-harness trace emission, and a
+  scoring report that is self-checking against dataset expectations (#1281).
+- `docs/ADAPTIVE_SOURCE_DISCOVERY.md` — integration guide for the example: dataset schema,
+  bounded decision rules, redaction contract, scoring definitions, and replay commands.
 - `scripts/dogfood-coding-workflow.sh` — an end-to-end workflow gate that creates a
   real episode, logs steps, completes it, checks cross-process pattern/storage parity,
   reads the durable SQLite sibling, exercises tags/journal commands, and handshakes the

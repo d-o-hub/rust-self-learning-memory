@@ -1834,10 +1834,12 @@ dependencies = [
  "do-memory-storage-redb",
  "do-memory-storage-turso",
  "libsql",
+ "serde",
  "serde_json",
  "tempfile",
  "tokio",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

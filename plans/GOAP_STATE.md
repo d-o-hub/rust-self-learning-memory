@@ -6,7 +6,8 @@
 - **Branch**: post-release bump based on `main` @ `0fe1b89d`
 - **Open PRs / issues**: live sources `gh pr list --state open` / `gh issue list --state open`;
   Dependabot group PRs may be open
-- **Active plan**: post-`v0.1.50` closeout. No code-side gap; the only open item is the
+- **Active plan**: post-`v0.1.50` closeout. The last open product issue (#1281,
+  external-consumer example) landed and is measured; the only open item is the
   upstream-blocked Dependabot advisory set (ACT-404).
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md)
 - **Release**: `v0.1.50` shipped and reached crates.io (core, redb, turso, mcp); the
@@ -48,6 +49,7 @@ product_backlog_gated              = true   (R-F2 promoted by measured spike; R-
 otel_tracing_opt_in                = true   (R-F2; ADR-084; inert unless configured)
 adr_lifecycle_accepted             = true   (ADR-080/081/082 accepted 2026-11-16)
 learning_orchestrator              = true   (reward + reflection + pattern dispatch unified)
+external_consumer_example          = true   (#1281; bounded planner, endpoint redaction, cross-process fingerprint)
 ```
 
 ## Closed campaigns (pointer)

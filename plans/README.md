@@ -21,6 +21,7 @@ backlog after a measured spike and landed as ADR-084; the remaining work is exte
 | ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | ✅ accepted 2026-11-16 | `adr/` |
 | R-F1, R-F3…R-F7 product epics | ⏸ `NO-GO` for this cycle | `STATUS/spikes/R-F-product-backlog-2026-11-15.json` |
 | R-F2 OTel / OTLP tracing | ✅ shipped (ADR-084) | `adr/ADR-084-Opt-In-OpenTelemetry-OTLP-Tracing.md` |
+| External-consumer adaptive-discovery example (#1281) | ✅ shipped 2026-11-17; recall 0.33 → 0.87 on the fixture | `examples/adaptive_source_discovery.rs`, `docs/ADAPTIVE_SOURCE_DISCOVERY.md` |
 | Next release | not scheduled; the `0.1.51` development bump keeps drift `severity=clean` | `ROADMAPS/ROADMAP_ACTIVE.md` |
 
 ## Quick navigation
@@ -48,10 +49,11 @@ backlog after a measured spike and landed as ADR-084; the remaining work is exte
 | [adr/README.md](adr/README.md) | ADR index (including number-collision aliases) |
 | [spikes/](spikes/) + [STATUS/spikes/](STATUS/spikes/) | Spike configs and decision artifacts |
 
-Current lifecycle proposals: [ADR-080](adr/ADR-080-Automatic-Recommendation-Attribution.md)
-and [ADR-081](adr/ADR-081-Attribution-Capability-Truth-And-Feedback-Resolution.md)
-(`Proposed`; code evidence merged, acceptance maintainer-external). ADR-079 (fail-closed
-`CI / Required`) and ADR-083 (release-gate event filtering) are `Accepted`.
+Current lifecycle status: [ADR-080](adr/ADR-080-Automatic-Recommendation-Attribution.md),
+[ADR-081](adr/ADR-081-Attribution-Capability-Truth-And-Feedback-Resolution.md) and
+[ADR-082](adr/ADR-082-Feedback-Ranking-Adaptation.md) are `Accepted` with
+recorded test evidence. ADR-079 (fail-closed `CI / Required`), ADR-083 (release-gate event
+filtering) and ADR-084 (opt-in OTLP tracing) are `Accepted`.
 
 ## Archive
 

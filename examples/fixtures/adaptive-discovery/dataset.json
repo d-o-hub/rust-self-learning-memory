@@ -1,0 +1,468 @@
+{
+  "version": "1.0",
+  "families": [
+    {
+      "id": "basketball-scores",
+      "query": "latest basketball scores and streaming sources for tonight's games",
+      "domain": "sports-research",
+      "baseline": { "strategy": "keyword", "provider": "alpha" },
+      "history": [
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "blocked",
+          "latency_ms": 430,
+          "cost_usd": 0.0,
+          "endpoint": "https://alpha.example/nba/scores?utm_source=feed"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "blocked",
+          "latency_ms": 410,
+          "cost_usd": 0.0,
+          "endpoint": "https://alpha.example/nba/scores?utm_source=feed"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "blocked",
+          "latency_ms": 445,
+          "cost_usd": 0.0,
+          "endpoint": "https://alpha.example/nba/scores?utm_source=feed"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "outcome": "verified",
+          "latency_ms": 600,
+          "cost_usd": 0.004,
+          "endpoint": "https://beta.example/nba/scores?utm_source=feed"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "outcome": "verified",
+          "latency_ms": 615,
+          "cost_usd": 0.004,
+          "endpoint": "https://stats.example/live/nba"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "outcome": "useful",
+          "latency_ms": 590,
+          "cost_usd": 0.004,
+          "endpoint": "https://beta.example/nba/schedule"
+        }
+      ],
+      "attempts": [
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "latency_ms": 430,
+          "cost_usd": 0.0,
+          "discovered": [
+            {
+              "url": "https://reader:demo@alpha.example/nba/scores?session=abc123",
+              "outcome": "blocked",
+              "relevance": 0.0,
+              "authority": 0.4
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "latency_ms": 620,
+          "cost_usd": 0.004,
+          "discovered": [
+            {
+              "url": "https://beta.example/nba/scores?utm_source=feed",
+              "outcome": "verified",
+              "relevance": 0.94,
+              "authority": 0.88
+            },
+            {
+              "url": "https://stats.example/live/nba",
+              "outcome": "verified",
+              "relevance": 0.91,
+              "authority": 0.9
+            },
+            {
+              "url": "https://beta.example/promotions",
+              "outcome": "irrelevant",
+              "relevance": 0.12,
+              "authority": 0.3
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "gamma" },
+          "latency_ms": 980,
+          "cost_usd": 0.011,
+          "discovered": [
+            {
+              "url": "https://gamma.example/nba/live",
+              "outcome": "verified",
+              "relevance": 0.88,
+              "authority": 0.8
+            },
+            {
+              "url": "https://gamma.example/ads",
+              "outcome": "irrelevant",
+              "relevance": 0.1,
+              "authority": 0.2
+            },
+            {
+              "url": "https://gamma.example/terms",
+              "outcome": "irrelevant",
+              "relevance": 0.05,
+              "authority": 0.5
+            }
+          ]
+        }
+      ],
+      "truth": {
+        "verified_urls": [
+          "https://beta.example/nba/scores",
+          "https://stats.example/live/nba",
+          "https://gamma.example/nba/live"
+        ]
+      }
+    },
+    {
+      "id": "rust-async-docs",
+      "query": "rust tokio async runtime documentation and migration guide",
+      "domain": "software-docs",
+      "baseline": { "strategy": "keyword", "provider": "alpha" },
+      "history": [
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "verified",
+          "latency_ms": 300,
+          "cost_usd": 0.003,
+          "endpoint": "https://docs.example/rust/tokio"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "verified",
+          "latency_ms": 310,
+          "cost_usd": 0.003,
+          "endpoint": "https://alpha.example/rust/async"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "verified",
+          "latency_ms": 295,
+          "cost_usd": 0.003,
+          "endpoint": "https://alpha.example/rust/migration"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "outcome": "useful",
+          "latency_ms": 305,
+          "cost_usd": 0.003,
+          "endpoint": "https://blog.example/rust-async"
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "beta" },
+          "outcome": "irrelevant",
+          "latency_ms": 700,
+          "cost_usd": 0.006,
+          "endpoint": "https://beta.example/rust/async"
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "beta" },
+          "outcome": "irrelevant",
+          "latency_ms": 720,
+          "cost_usd": 0.006,
+          "endpoint": "https://beta.example/ads"
+        }
+      ],
+      "attempts": [
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "latency_ms": 300,
+          "cost_usd": 0.003,
+          "discovered": [
+            {
+              "url": "https://docs.example/rust/tokio",
+              "outcome": "verified",
+              "relevance": 0.96,
+              "authority": 0.95
+            },
+            {
+              "url": "https://alpha.example/rust/async?ref=search",
+              "outcome": "verified",
+              "relevance": 0.9,
+              "authority": 0.85
+            },
+            {
+              "url": "https://blog.example/rust-async",
+              "outcome": "useful",
+              "relevance": 0.7,
+              "authority": 0.55
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "beta" },
+          "latency_ms": 700,
+          "cost_usd": 0.006,
+          "discovered": [
+            {
+              "url": "https://beta.example/rust/async",
+              "outcome": "verified",
+              "relevance": 0.72,
+              "authority": 0.6
+            },
+            {
+              "url": "https://beta.example/ads",
+              "outcome": "irrelevant",
+              "relevance": 0.08,
+              "authority": 0.2
+            }
+          ]
+        }
+      ],
+      "truth": {
+        "verified_urls": [
+          "https://docs.example/rust/tokio",
+          "https://alpha.example/rust/async",
+          "https://alpha.example/rust/migration"
+        ]
+      }
+    },
+    {
+      "id": "local-weather",
+      "query": "hourly weather forecast and radar for a local city",
+      "domain": "weather-research",
+      "baseline": { "strategy": "semantic", "provider": "alpha" },
+      "history": [
+        {
+          "plan": { "strategy": "semantic", "provider": "alpha" },
+          "outcome": "transport_error",
+          "latency_ms": 1500,
+          "cost_usd": 0.0,
+          "endpoint": "https://alpha.example/radar"
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "alpha" },
+          "outcome": "transport_error",
+          "latency_ms": 1480,
+          "cost_usd": 0.0,
+          "endpoint": "https://alpha.example/radar"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "gamma" },
+          "outcome": "verified",
+          "latency_ms": 540,
+          "cost_usd": 0.002,
+          "endpoint": "https://gamma.example/weather/hourly"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "gamma" },
+          "outcome": "verified",
+          "latency_ms": 550,
+          "cost_usd": 0.002,
+          "endpoint": "https://radar.example/city"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "gamma" },
+          "outcome": "verified",
+          "latency_ms": 520,
+          "cost_usd": 0.002,
+          "endpoint": "https://gamma.example/weather/hourly"
+        }
+      ],
+      "attempts": [
+        {
+          "plan": { "strategy": "semantic", "provider": "alpha" },
+          "latency_ms": 1500,
+          "cost_usd": 0.0,
+          "discovered": [
+            {
+              "url": "https://alpha.example/radar?city=demo",
+              "outcome": "transport_error",
+              "relevance": 0.0,
+              "authority": 0.6
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "gamma" },
+          "latency_ms": 540,
+          "cost_usd": 0.002,
+          "discovered": [
+            {
+              "url": "https://gamma.example/weather/hourly",
+              "outcome": "verified",
+              "relevance": 0.93,
+              "authority": 0.87
+            },
+            {
+              "url": "https://radar.example/city",
+              "outcome": "verified",
+              "relevance": 0.89,
+              "authority": 0.84
+            }
+          ]
+        }
+      ],
+      "truth": {
+        "verified_urls": [
+          "https://gamma.example/weather/hourly",
+          "https://radar.example/city"
+        ]
+      }
+    },
+    {
+      "id": "arxiv-papers",
+      "query": "recent arxiv papers on retrieval augmented generation evaluation",
+      "domain": "literature-search",
+      "baseline": { "strategy": "semantic", "provider": "alpha" },
+      "history": [
+        {
+          "plan": { "strategy": "semantic", "provider": "alpha" },
+          "outcome": "irrelevant",
+          "latency_ms": 500,
+          "cost_usd": 0.006,
+          "endpoint": "https://alpha.example/papers"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "outcome": "verified",
+          "latency_ms": 700,
+          "cost_usd": 0.005,
+          "endpoint": "https://arxiv.example/abs/2401.00001"
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "outcome": "verified",
+          "latency_ms": 690,
+          "cost_usd": 0.005,
+          "endpoint": "https://papers.example/rag-eval"
+        }
+      ],
+      "attempts": [
+        {
+          "plan": { "strategy": "semantic", "provider": "alpha" },
+          "latency_ms": 500,
+          "cost_usd": 0.006,
+          "discovered": [
+            {
+              "url": "https://alpha.example/papers?q=rag",
+              "outcome": "irrelevant",
+              "relevance": 0.15,
+              "authority": 0.4
+            },
+            {
+              "url": "https://alpha.example/papers?q=evaluation",
+              "outcome": "irrelevant",
+              "relevance": 0.2,
+              "authority": 0.4
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "keyword", "provider": "beta" },
+          "latency_ms": 700,
+          "cost_usd": 0.005,
+          "discovered": [
+            {
+              "url": "https://arxiv.example/abs/2401.00001?ref=search",
+              "outcome": "verified",
+              "relevance": 0.95,
+              "authority": 0.92
+            },
+            {
+              "url": "https://papers.example/rag-eval",
+              "outcome": "verified",
+              "relevance": 0.9,
+              "authority": 0.86
+            },
+            {
+              "url": "https://blog.example/rag",
+              "outcome": "useful",
+              "relevance": 0.65,
+              "authority": 0.5
+            }
+          ]
+        }
+      ],
+      "truth": {
+        "verified_urls": [
+          "https://arxiv.example/abs/2401.00001",
+          "https://papers.example/rag-eval"
+        ]
+      }
+    },
+    {
+      "id": "kubernetes-release-notes",
+      "query": "kubernetes release notes for the current stable minor version",
+      "domain": "software-docs",
+      "baseline": { "strategy": "keyword", "provider": "alpha" },
+      "history": [],
+      "attempts": [
+        {
+          "plan": { "strategy": "keyword", "provider": "alpha" },
+          "latency_ms": 400,
+          "cost_usd": 0.0,
+          "discovered": [
+            {
+              "url": "https://k8s.example/releases/stable",
+              "outcome": "verified",
+              "relevance": 0.97,
+              "authority": 0.96
+            },
+            {
+              "url": "https://k8s.example/ads?campaign=spring",
+              "outcome": "irrelevant",
+              "relevance": 0.05,
+              "authority": 0.2
+            }
+          ]
+        },
+        {
+          "plan": { "strategy": "semantic", "provider": "beta" },
+          "latency_ms": 800,
+          "cost_usd": 0.007,
+          "discovered": [
+            {
+              "url": "https://beta.example/releases",
+              "outcome": "irrelevant",
+              "relevance": 0.2,
+              "authority": 0.3
+            }
+          ]
+        }
+      ],
+      "truth": {
+        "verified_urls": ["https://k8s.example/releases/stable"]
+      }
+    }
+  ],
+  "expectations": {
+    "min_recall_gain": 0.3,
+    "decisions": [
+      {
+        "family": "basketball-scores",
+        "plan": { "strategy": "keyword", "provider": "beta" },
+        "reason": "blocked_alternative"
+      },
+      {
+        "family": "rust-async-docs",
+        "plan": { "strategy": "keyword", "provider": "alpha" },
+        "reason": "baseline_supported"
+      },
+      {
+        "family": "local-weather",
+        "plan": { "strategy": "keyword", "provider": "gamma" },
+        "reason": "blocked_alternative"
+      },
+      {
+        "family": "arxiv-papers",
+        "plan": { "strategy": "keyword", "provider": "beta" },
+        "reason": "blocked_alternative"
+      },
+      {
+        "family": "kubernetes-release-notes",
+        "plan": { "strategy": "keyword", "provider": "alpha" },
+        "reason": "no_evidence"
+      }
+    ]
+  }
+}

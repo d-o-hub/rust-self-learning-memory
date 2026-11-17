@@ -93,6 +93,13 @@ jobs:
       - name: Run clippy (workspace)
         run: ./scripts/code-quality.sh clippy --workspace
 
+      # The workspace clippy run uses `--tests`, so `[[example]]` targets are not
+      # compiled. Lint the adaptive-discovery example explicitly (issue #1281) so
+      # the integration guide cannot silently rot.
+      - name: Lint the adaptive-discovery example
+        run: |
+          cargo clippy -p do-memory-examples --example adaptive_source_discovery -- -D warnings
+
       - name: Check ignored-test ceiling
         run: |
           chmod +x scripts/check-ignored-tests.sh
@@ -198,6 +205,13 @@ jobs:
         run: |
           nix develop --command cargo nextest run --profile ci \
             -p do-memory-cli --features openai --test semantic_search_cli
+
+      # `do-memory-examples` is excluded from the workspace test run above, so the
+      # adaptive-discovery example's unit tests are run explicitly (issue #1281).
+      - name: Adaptive discovery example (unit tests)
+        run: |
+          nix develop --command cargo test -p do-memory-examples \
+            --example adaptive_source_discovery
 
   # CSM feature tests (issue #1045): the cascade, rerank and evidence suites are
   # compiled only with the `csm` feature, which no other job enables.

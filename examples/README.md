@@ -132,11 +132,63 @@ This HTML sample simulates the behavior of the actual Rust memory system. In a r
 
 ---
 
-## Future Examples
+## Adaptive Source Discovery with Episodic Memory
 
-This directory will be expanded with additional examples:
+### `adaptive_source_discovery.rs`
 
-- **Rust CLI Examples**: Direct Rust code demonstrating memory system usage
-- **WebAssembly Integration**: Browser-based memory system interaction
-- **API Server Examples**: REST API implementations
+An external-consumer example: a search application that must decide *how* to discover
+sources for a query family, and that uses episodic memory to notice when its default plan
+has stopped working.
+
+Unlike `local_memory.rs`, which shows the storage lifecycle, this example shows the
+**learning loop**: record attempts, retrieve prior episodes for the same family, and let a
+bounded planner either keep the static baseline or move to one alternative that the
+evidence already contains.
+
+### Features Demonstrated
+
+- ✅ **Episode per attempt**: plan, provider, redacted endpoint, outcome class, latency,
+  cost, and final task outcome
+- ✅ **Tag-based retrieval**: `family_` / `strategy_` / `provider_` / `outcome_` tags make
+  a recommendation explainable
+- ✅ **Bounded recommendation**: no evidence → baseline; an alternative needs ≥2
+  observations and a ≥0.2 useful-rate gain
+- ✅ **Negative evidence retained**: `quality_threshold: 0.0`, because the default quality
+  gate would reject the blocked/transport-error attempts the planner must learn from
+- ✅ **Cross-process restart check**: a later process must recompute the same decision
+  fingerprint from durable storage
+- ✅ **Credential redaction**: only `scheme://host/path` is persisted; URL userinfo, query
+  strings, and fragments are dropped
+- ✅ **Deterministic evaluation**: the same fixture ground truth scores the memory-guided
+  plan against the static baseline
+- ✅ **Memory-harness traces**: recorded attempts replay through `do-memory-cli`
+
+### How to Use
+
+```bash
+# Example unit tests
+cargo test -p do-memory-examples --example adaptive_source_discovery
+
+# Full seed -> recommend -> verify run across three processes
+./scripts/run-adaptive-discovery-example.sh
+```
+
+The runner writes its database, reports, and traces under
+`target/adaptive-discovery-example/`. Integration guide:
+[`docs/ADAPTIVE_SOURCE_DISCOVERY.md`](../docs/ADAPTIVE_SOURCE_DISCOVERY.md).
+
+Memory is advisory throughout: a discovered source is a candidate, and the consuming
+application must verify it before acting on it.
+
+---
+
+## Adding a New Example
+
+1. Put the entry point in `examples/<name>.rs` and register it in `examples/Cargo.toml`
+   (`[[example]]` or `[[bin]]`).
+2. Split supporting modules into `examples/<name>/` so every file stays well under the
+   500-LOC cap.
+3. Keep fixtures under `examples/fixtures/<name>/` and make them deterministic.
+4. Add a section to this README with a runnable command, and keep the harness green
+   (`cargo fmt --all -- --check`, `cargo test -p do-memory-examples --example <name>`).
 - **Performance Benchmarks**: Comparative storage backend analysis

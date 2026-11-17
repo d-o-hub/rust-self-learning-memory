@@ -5,6 +5,21 @@
 **Scope**: `v0.1.50` release, crates.io publication, released-CLI dogfood, `0.1.51` bump.
 **Previous full record**: [`archive/2026/VALIDATION_2026-11-01.md`](archive/2026/VALIDATION_2026-11-01.md)
 
+## Adaptive source-discovery example (#1281) — 2026-11-17
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Lints (examples included) | `cargo clippy -p do-memory-examples --all-targets -- -D warnings` | ✅ clean |
+| Example unit tests | `cargo test -p do-memory-examples --example adaptive_source_discovery` | ✅ 22 passed |
+| End-to-end run | `./scripts/run-adaptive-discovery-example.sh` | ✅ 20 attempts seeded; expectations passed |
+| Measured comparison | same runner, `report-recommend.json` | ✅ recall 0.33 → 0.87, precision 0.23 → 0.70, diversity 0.60 → 1.80, latency 3130 ms → 2560 ms, cost $0.0090 → $0.0140 |
+| Restart check | `--phase verify --expect report-recommend.json` | ✅ fingerprint `56e59a953ba85e6f` identical across processes |
+| Memory-harness replay | `replay-trace.sh` on an emitted trace | ✅ replayed through `do-memory-cli` |
+| Fail-loud contract | rewrote a trace outcome to `in_progress` | ✅ replay rejected it |
+| Formatting / size | `cargo fmt --all -- --check`; `./scripts/check-loc.sh` | ✅ clean; no file over 500 LOC |
+
+Guide: [`../../docs/ADAPTIVE_SOURCE_DISCOVERY.md`](../../docs/ADAPTIVE_SOURCE_DISCOVERY.md).
+
 ## R-F2 opt-in OTLP tracing — 2026-11-17
 
 | Check | Command | Result |

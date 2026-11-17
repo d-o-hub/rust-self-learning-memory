@@ -15,6 +15,7 @@ PRs may be open
 | P1 | Security | Track the four upstream-blocked advisory families; re-test only when a pinning chain moves | `cargo tree` on both graphs proves the chain moved; no no-op bump PR | ⏸ upstream (ACT-404) |
 | P2 | Governance | ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ✅ 2026-11-16 |
 | P2 | Harness | Keep the pin, prose, gate contract and skill-evals matrix on one measured version | both probes green against the published binary | ✅ `v0.4.6` |
+| P2 | Product | External-consumer example: episodic memory drives adaptive web/source discovery (#1281) | deterministic fixture run + restart fingerprint + self-checking expectations | ✅ 2026-11-17 |
 | P3 | Release | `v0.1.50` shipped and dogfooded; bump the workspace to `0.1.51` in the post-release PR | release + publish chains green; four crates at `0.1.50`; dogfood recorded | ✅ 2026-11-16 |
 | P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-15 |
 

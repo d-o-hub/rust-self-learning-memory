@@ -2,7 +2,8 @@
 
 - **Last Updated**: 2026-11-17
 - **Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
-  dogfood are green; the workspace is `0.1.51`. **No code-side action is open.**
+  dogfood are green; the workspace is `0.1.51`. The last open product issue (#1281,
+  external-consumer example) is implemented and measured. **No code-side action is open.**
 - **Remaining**: upstream-blocked advisories (ACT-404).
 - **Archive**: `plans/archive/2026-11-consolidation/`
 - **Completed pointer**: `plans/STATUS/archive/2026/` and the archived registers above.
@@ -19,6 +20,12 @@
 | ID | Action | Status |
 |----|--------|--------|
 | ACT-426 | Release `v0.1.50`: release-prep PR #1275, gated `ship`, release workflow #43829111481, publish chain #43833847807, crates.io verification and released-CLI dogfood | ✅ tag `v0.1.50` on `0fe1b89d`; all four crates at `0.1.50`; dogfood record in `VALIDATION_LATEST.md` |
+
+## Completed actions (2026-11-17 — external-consumer example, #1281)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-429 | Add a fixture-driven external-consumer example for adaptive web/source discovery: record attempts as episodes, retrieve by query family, bound the plan switch, redact endpoints, and self-check the run | ✅ `examples/adaptive_source_discovery.rs`; 22 unit tests; measured recall 0.33 → 0.87, precision 0.23 → 0.70; identical decision fingerprint across processes; trace replay + fail-loud rejection |
 
 ## Completed actions (2026-11-17 — R-F2 opt-in OTLP tracing)
 

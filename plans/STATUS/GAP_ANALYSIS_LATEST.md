@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-11-17
 **Workspace Version**: `0.1.51` · **Released Tag**: `v0.1.50` (`0fe1b89d`)
-**Main baseline**: `b3f79349` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
+**Main baseline**: `f02d81f9` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
 **Historical register**: [`archive/2026/GAP_ANALYSIS_2026-11-01.md`](archive/2026/GAP_ANALYSIS_2026-11-01.md)
 (the 2026-10-04 audit snapshot and its 22 verdicts)
 
@@ -11,6 +11,9 @@
 - **No open code gap.** The audited #1063–#1092 set, the follow-ups (#1068/#1089/#1076),
   the release series (#1109/#1165), the drift issue (#1223/#1236) and the CLI contract
   follow-up (#1232/#1233) are closed.
+- **Tracker empty 2026-11-17:** #1281 (external-consumer adaptive-discovery example) merged
+  as #1285 and dogfooded from `main`; there are no open issues and no open pull requests.
+  The next release is unscheduled — cadence reports `within_cadence`.
 - The 2026-10-04 register claimed 22 open findings because the issues had never been
   entered into the trackers. Every one now has a merged PR or a recorded closure in the
   historical register; do not re-open them without regression evidence.

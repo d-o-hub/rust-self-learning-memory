@@ -1,8 +1,10 @@
-# Validation Latest — 2026-11-16 (v0.1.50 release + 0.1.51 bump)
+# Validation Latest — 2026-11-17 (post-`v0.1.50` features + 0.1.51 development)
 
 **Workspace**: `0.1.51` (post-release development bump) · **Released tag**: `v0.1.50`
-(`0fe1b89d`) · **Main baseline**: `0fe1b89d`
-**Scope**: `v0.1.50` release, crates.io publication, released-CLI dogfood, `0.1.51` bump.
+(`0fe1b89d`) · **Main baseline**: `f02d81f9` (after #1285)
+**Scope**: `v0.1.50` release, crates.io publication, released-CLI dogfood, `0.1.51` bump,
+the R-F2 tracing/lifecycle/learning-orchestrator merges, and the adaptive source-discovery
+example (#1281).
 **Previous full record**: [`archive/2026/VALIDATION_2026-11-01.md`](archive/2026/VALIDATION_2026-11-01.md)
 
 ## Adaptive source-discovery example (#1281) — 2026-11-17
@@ -16,6 +18,7 @@
 | Restart check | `--phase verify --expect report-recommend.json` | ✅ fingerprint `56e59a953ba85e6f` identical across processes |
 | Memory-harness replay | `replay-trace.sh` on an emitted trace | ✅ replayed through `do-memory-cli` |
 | Fail-loud contract | rewrote a trace outcome to `in_progress` | ✅ replay rejected it |
+| Post-merge dogfood | same runner from `main` @ `f02d81f9` | ✅ identical totals and fingerprint `56e59a953ba85e6f`; replay accepted, incomplete trace rejected |
 | Formatting / size | `cargo fmt --all -- --check`; `./scripts/check-loc.sh` | ✅ clean; no file over 500 LOC |
 
 Guide: [`../../docs/ADAPTIVE_SOURCE_DISCOVERY.md`](../../docs/ADAPTIVE_SOURCE_DISCOVERY.md).

@@ -261,6 +261,17 @@ Pattern ranking utilizes the Schwartzian Transform (decorate-sort-undecorate) to
 - **local-embeddings**: CPU-based local embeddings
 - **embeddings-full**: All embedding providers (openai + mistral)
 
+### Optional Observability Dependencies
+- **otel**: Push-based OpenTelemetry OTLP/HTTP tracing (see ADR-084)
+
+```rust,no_run
+// Inert unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+let _guard = do_memory_core::observability::init_otel_from_env(Some("info"))?;
+```
+
+The exporter never leaves the process when the endpoint is unset, and
+`OtelConfig::redacted_endpoint()` strips credentials for logs.
+
 ## Documentation
 
 Comprehensive API documentation is available at [docs.rs/do-memory-core](https://docs.rs/do-memory-core).

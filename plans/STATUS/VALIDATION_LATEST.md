@@ -5,6 +5,18 @@
 **Scope**: `v0.1.50` release, crates.io publication, released-CLI dogfood, `0.1.51` bump.
 **Previous full record**: [`archive/2026/VALIDATION_2026-11-01.md`](archive/2026/VALIDATION_2026-11-01.md)
 
+## R-F2 opt-in OTLP tracing — 2026-11-17
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Feature compiles | `cargo check -p do-memory-core --features otel` | ✅ clean |
+| Lints | `cargo clippy -p do-memory-core --all-targets --features otel-testing -- -D warnings` | ✅ clean |
+| Zero-overhead / redaction / sampler / export | `cargo nextest run -p do-memory-core --features otel-testing -E 'test(observability)'` | ✅ 4 passed |
+| Formatting | `cargo fmt --all -- --check` | ✅ clean |
+
+Spike artifact: `plans/STATUS/spikes/R-F2-otel-2026-11-17.json`; decision record:
+`plans/adr/ADR-084-Opt-In-OpenTelemetry-OTLP-Tracing.md`.
+
 ## ADR lifecycle closeout — 2026-11-16
 
 | Check | Command | Result |

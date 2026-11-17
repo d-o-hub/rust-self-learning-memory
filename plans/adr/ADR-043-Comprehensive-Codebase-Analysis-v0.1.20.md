@@ -107,7 +107,7 @@ and `scripts/check-coverage.sh` is the local runner.
 | E2 | **ROADMAP_ACTIVE.md stale** | P1 | Fixed; roadmap is forward-only at v0.1.51 | Sprint planning accuracy |
 | E3 | **Clippy regression in integration tests** | P0 | Fixed; `clippy --workspace` is green | CI blocked |
 | E4 | **Changelog automation** | P2 | ✅ Implemented (`git-cliff`, `cliff.toml`, `changelog.yml`) | Release efficiency |
-| E5 | **OpenTelemetry integration** | P2 | ⏳ R-F2 is NO-GO this cycle; planned `otel` feature | Production observability |
+| E5 | **OpenTelemetry integration** | P2 | ✅ Implemented 2026-11-17 (ADR-084): `observability::otel` behind the `otel` feature | Production observability |
 | E6 | **ONNX runtime model loading** | P3 | 🟡 Local ONNX runtime exists behind `local-embeddings`; no user-supplied custom path | Custom model support |
 | E7 | **WASM sandbox fix** | P3 | ⛔ NO-GO; fail-closed `execute_agent_code` retained | Agent code execution |
 | E8 | **Coverage script (ACT-037)** | P2 | ✅ `scripts/check-coverage.sh` exists | Coverage monitoring |

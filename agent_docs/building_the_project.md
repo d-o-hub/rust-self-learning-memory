@@ -27,6 +27,8 @@ The project supports the following optional features:
 - `openai` - Enable OpenAI embedding provider (requires `reqwest`)
 - `local-embeddings` - Enable local embedding models with ONNX Runtime
 - `embeddings-full` - Enable all embedding providers (implies `openai`)
+- `otel` - Enable the opt-in OpenTelemetry OTLP tracing pipeline (inert unless
+  `OTEL_EXPORTER_OTLP_ENDPOINT` is set; `otel-testing` adds the in-memory exporter for tests)
 
 **do-memory-cli features:**
 - `turso` - Enable Turso storage backend (implies redb)

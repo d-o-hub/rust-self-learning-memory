@@ -1,0 +1,69 @@
+{
+  "id": "R-F2-otel-2026-11-17",
+  "title": "R-F2 OpenTelemetry / OTLP tracing (opt-in `otel` feature)",
+  "commit": "07991baf427642dfa8bf217080ed069ec51fa697",
+  "timestamp": "2026-11-17T00:00:00Z",
+  "owner": "maintainer",
+  "branch": "feat/rf2-otel-tracing",
+  "producer": "manual (measured with cargo check/clippy/nextest)",
+  "commands": [
+    "cargo check -p do-memory-core --features otel",
+    "cargo clippy -p do-memory-core --all-targets --features otel-testing -- -D warnings",
+    "cargo nextest run -p do-memory-core --features otel-testing -E 'test(observability)'",
+    "cargo fmt --all -- --check"
+  ],
+  "metrics": {
+    "opentelemetry_version": "0.33.1",
+    "opentelemetry_sdk_version": "0.33.1",
+    "opentelemetry_otlp_version": "0.33.1",
+    "tracing_opentelemetry_version": "0.34.0",
+    "pinned_0_33_x": true,
+    "tokio_compat": true,
+    "zero_overhead_when_unconfigured": true,
+    "no_credential_leak": true,
+    "sampler_clamped": true,
+    "existing_instrumentation_api_changes": false,
+    "duplicate_http_stack": false,
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "checks": [
+      {
+        "type": "compiles_with_feature",
+        "value": true,
+        "pass": true
+      },
+      {
+        "type": "clippy_deny_warnings",
+        "value": true,
+        "pass": true
+      },
+      {
+        "type": "otel_feature_tests",
+        "value": 4,
+        "pass": true
+      }
+    ],
+    "evidence_paths": [
+      "memory-core/src/observability/otel.rs",
+      "memory-core/src/observability/mod.rs",
+      "plans/adr/ADR-084-Opt-In-OpenTelemetry-OTLP-Tracing.md"
+    ],
+    "notes": "Push-based OTLP/HTTP exporter behind the `otel` feature. init_otel_from_env returns Ok(None) without building an exporter when OTEL_EXPORTER_OTLP_ENDPOINT is unset or blank, so the unconfigured path adds no thread, network call, or dependency cost. Endpoint userinfo/query/fragment are stripped by redacted_endpoint() and the in-memory exporter test asserts no credential attributes are invented. The reqwest-blocking-client feature reuses the workspace reqwest 0.13.4+ dependency instead of adding a second HTTP stack. Traces remain upstream beta, so the dependency is pinned to 0.33.x and must be re-measured before any upgrade."
+  },
+  "preapproved_thresholds": {
+    "pinned_0_33_x": true,
+    "tokio_compat": true,
+    "zero_overhead_when_unconfigured": true,
+    "no_credential_leak": true,
+    "existing_instrumentation_api_changes": false,
+    "duplicate_http_stack": false
+  },
+  "result": "pass",
+  "decision": "GO",
+  "implementation_status": "implemented",
+  "rationale": "Every pre-approved threshold is measured, not asserted: the feature compiles and lints clean, the unconfigured path builds no exporter, redaction is covered by a unit test, and the exporter is exercised against the SDK in-memory exporter under Tokio. ADR-084 records the transport decision.",
+  "superseded_by": null,
+  "reviewers": [
+    "maintainers"
+  ]
+}

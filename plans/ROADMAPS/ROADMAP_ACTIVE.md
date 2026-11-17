@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-11-16
+**Last Updated**: 2026-11-17
 **Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z; all four
 registered crates verified at `0.1.50` on crates.io)
 **Workspace Version**: 0.1.51 (post-release development bump)
@@ -13,7 +13,7 @@ PRs may be open
 | Priority | Area | Item | Acceptance | Status |
 |----------|------|------|------------|--------|
 | P1 | Security | Track the four upstream-blocked advisory families; re-test only when a pinning chain moves | `cargo tree` on both graphs proves the chain moved; no no-op bump PR | ⏸ upstream (ACT-404) |
-| P2 | Governance | ADR-080 / ADR-081 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ⏸ external |
+| P2 | Governance | ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ✅ 2026-11-16 |
 | P2 | Harness | Keep the pin, prose, gate contract and skill-evals matrix on one measured version | both probes green against the published binary | ✅ `v0.4.6` |
 | P3 | Release | `v0.1.50` shipped and dogfooded; bump the workspace to `0.1.51` in the post-release PR | release + publish chains green; four crates at `0.1.50`; dogfood recorded | ✅ 2026-11-16 |
 | P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-15 |
@@ -22,15 +22,16 @@ PRs may be open
 
 The 2026-07-20 register is archived; its completed tracks are evidence, not backlog.
 The authoritative gate is
-`plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json` (`NO-GO` for this cycle).
-An item moves back into "active forward work" only after a measured spike passes its
-pre-approved thresholds and names an owner, a release slot, and (where it changes
-storage or transport) an ADR.
+`plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json`, which holds R-F1 and
+R-F3…R-F7 at `NO-GO` for this cycle. R-F2 was promoted only after the measured
+spike `plans/STATUS/spikes/R-F2-otel-2026-11-17.json` passed its pre-approved
+thresholds and named an owner, an ADR, and a release slot.
+An item moves back into "active forward work" only on the same evidence.
 
 | ID | Epic | Status | Gate / next evidence |
 |----|------|--------|----------------------|
 | R-F1 | Distributed sync via Turso embedded replicas | ⏸ `NO-GO` | needs R-F3 tenant partition + transport ADR |
-| R-F2 | OpenTelemetry / OTLP tracing | ⏸ `NO-GO` | pin `opentelemetry` 0.33.x; traces are still beta; needs `otel` feature + redaction tests |
+| R-F2 | OpenTelemetry / OTLP tracing | ✅ shipped | ADR-084; `otel` feature pinned to `opentelemetry` 0.33.x, inert unless configured |
 | R-F3 | Multi-tenancy (`tenant_id`, `CacheKey`) | ⏸ `NO-GO` | schema + cache-key ADR; four-PR estimate in the archived register |
 | R-F4 | Portable SIMD cosine | ⏸ `NO-GO` | `std::simd` is still nightly-only; keep the 8-way unrolled auto-vectorized loop |
 | R-F5 | Episode versioning / retention | ⏸ `NO-GO` | schema migration + `StorageBackend` extension + MCP/CLI surface |

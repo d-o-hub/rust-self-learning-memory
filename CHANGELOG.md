@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   MCP server (`initialize`, `tools/list`, `health_check`, `query_memory`).
 - `memory-harness` `record-trace.sh` plus a trace schema that replay/export consume:
   `task`, `domain`, `project`, `outcome` and `steps` are now recorded and documented.
+- `otel` feature in `do-memory-core`: a push-based OTLP/HTTP tracing exporter that is
+  inert unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set, with endpoint credential redaction
+  and a clamped trace-id sampler (ADR-084).
 - `LearningOrchestrator` in `memory-core/src/learning/orchestrator.rs`: owns reward
   and reflection analysis and dispatches pattern extraction to the async queue or the
   caller's synchronous path. `complete_episode_checked` now routes the learning cycle

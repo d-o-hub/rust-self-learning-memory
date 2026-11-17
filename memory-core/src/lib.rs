@@ -262,6 +262,8 @@
 //! - `local-embeddings`: Enable local ONNX-based embeddings
 //! - `turso`: Enable Turso/libSQL storage backend
 //! - `redb`: Enable redb cache storage
+//! - `otel`: Enable the opt-in OpenTelemetry OTLP tracing pipeline
+//! - `otel-testing`: `otel` plus the SDK in-memory exporter for tests
 //! - `full`: Enable all features
 //!
 
@@ -275,6 +277,8 @@ pub mod indexing;
 pub mod learning;
 pub mod memory;
 pub mod monitoring;
+#[cfg(feature = "otel")]
+pub mod observability;
 pub mod patterns;
 pub mod pre_storage;
 pub mod procedural;

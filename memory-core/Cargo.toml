@@ -36,6 +36,10 @@ csm = ["chaotic_semantic_memory"]
 http-emitter = ["reqwest"]
 # Enable WASM compilation (compile-check only, no runtime support)
 wasm32 = []
+# Enable opt-in OpenTelemetry OTLP tracing (push-based; no-op unless configured)
+otel = ["dep:opentelemetry", "dep:opentelemetry_sdk", "dep:opentelemetry-otlp", "dep:tracing-opentelemetry"]
+# `otel` plus the SDK in-memory exporter used by the export test
+otel-testing = ["otel", "opentelemetry_sdk/testing"]
 
 [dependencies]
 # Async runtime - use specific features (no networking needed)
@@ -73,6 +77,12 @@ sha2 = "0.11"
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.13.4", features = ["json"], optional = true }
+
+# OpenTelemetry (optional, behind the `otel` feature)
+opentelemetry = { workspace = true, optional = true }
+opentelemetry_sdk = { workspace = true, optional = true }
+opentelemetry-otlp = { workspace = true, optional = true }
+tracing-opentelemetry = { workspace = true, optional = true }
 
 # ONNX Runtime for local embeddings (optional)
 ort = { version = "2.0.0-rc.12", optional = true }

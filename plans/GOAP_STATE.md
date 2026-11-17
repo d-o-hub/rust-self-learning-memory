@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-11-16
+- **Last Updated**: 2026-11-17
 - **Version**: workspace `0.1.51` (post-release bump; latest published tag `v0.1.50`,
   `0fe1b89d`, GitHub Release published 2026-11-16T08:45:18Z)
 - **Branch**: post-release bump based on `main` @ `0fe1b89d`
@@ -44,7 +44,8 @@ context_subsignal_weights_preserved  = true (#1226; 5/5 Rust on top)
 harness_pin_measured               = true   (v0.4.6; compat + doctrine + 31 contract cases)
 plans_active_set_compact           = true   (2026-11-15; dated root files archived)
 single_agent_contract              = true   (AGENTS.md; .jules/ and GEMINI.md removed)
-product_backlog_gated              = true   (R-F1…R-F7 NO-GO; R-F8/R-F9/R-F10 shipped)
+product_backlog_gated              = true   (R-F2 promoted by measured spike; R-F1/R-F3…R-F7 NO-GO; R-F8/R-F9/R-F10 shipped)
+otel_tracing_opt_in                = true   (R-F2; ADR-084; inert unless configured)
 adr_lifecycle_accepted             = true   (ADR-080/081/082 accepted 2026-11-16)
 learning_orchestrator              = true   (reward + reflection + pattern dispatch unified)
 ```

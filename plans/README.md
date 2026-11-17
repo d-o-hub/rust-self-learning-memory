@@ -12,13 +12,15 @@ live sources; Dependabot group PRs may be open
 `v0.1.50` shipped end-to-end and the workspace moved to the `0.1.51` development version in
 its own post-release PR. Every code-side task in the audited backlogs is closed; the release
 and publish chains are green and the released CLI was dogfooded. **There is no open code
-task in this tree.** The only remaining work is external:
+task from the audited backlogs.** R-F2 (OpenTelemetry) was promoted from the gated product
+backlog after a measured spike and landed as ADR-084; the remaining work is external:
 
 | Item | State | Where |
 |------|-------|-------|
 | Dependency advisories (rustls / rustls-webpki / lru / libsql-sqlite3-parser) | ⏸ upstream-blocked; do not open a no-op bump | `ACTIONS.md` ACT-404, `STATUS/GAP_ANALYSIS_LATEST.md` |
-| ADR-080 / ADR-081 lifecycle acceptance | ⏸ maintainer-external | `adr/` |
-| R-F1…R-F7 product epics | ⏸ `NO-GO` for this cycle | `STATUS/spikes/R-F-product-backlog-2026-11-15.json` |
+| ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | ✅ accepted 2026-11-16 | `adr/` |
+| R-F1, R-F3…R-F7 product epics | ⏸ `NO-GO` for this cycle | `STATUS/spikes/R-F-product-backlog-2026-11-15.json` |
+| R-F2 OTel / OTLP tracing | ✅ shipped (ADR-084) | `adr/ADR-084-Opt-In-OpenTelemetry-OTLP-Tracing.md` |
 | Next release | not scheduled; the `0.1.51` development bump keeps drift `severity=clean` | `ROADMAPS/ROADMAP_ACTIVE.md` |
 
 ## Quick navigation

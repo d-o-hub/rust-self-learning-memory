@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-11-16
+- **Last Updated**: 2026-11-17
 - **Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
   dogfood are green; the workspace is `0.1.51`. **No code-side action is open.**
 - **Remaining**: upstream-blocked advisories (ACT-404).
@@ -19,6 +19,12 @@
 | ID | Action | Status |
 |----|--------|--------|
 | ACT-426 | Release `v0.1.50`: release-prep PR #1275, gated `ship`, release workflow #43829111481, publish chain #43833847807, crates.io verification and released-CLI dogfood | ✅ tag `v0.1.50` on `0fe1b89d`; all four crates at `0.1.50`; dogfood record in `VALIDATION_LATEST.md` |
+
+## Completed actions (2026-11-17 — R-F2 opt-in OTLP tracing)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-428 | Promote R-F2 from the gated backlog with a measured spike and implement opt-in OpenTelemetry OTLP tracing | ✅ `R-F2-otel-2026-11-17.json` passes every threshold; ADR-084; `otel` feature with redaction, sampler clamp, and 4 tests |
 
 ## Completed actions (2026-11-16 — ADR lifecycle closeout)
 

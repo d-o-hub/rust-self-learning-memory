@@ -1,6 +1,6 @@
 # Gap Analysis — Live Register
 
-**Last Updated**: 2026-11-16
+**Last Updated**: 2026-11-17
 **Workspace Version**: `0.1.51` · **Released Tag**: `v0.1.50` (`0fe1b89d`)
 **Main baseline**: `b3f79349` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
 **Historical register**: [`archive/2026/GAP_ANALYSIS_2026-11-01.md`](archive/2026/GAP_ANALYSIS_2026-11-01.md)
@@ -21,6 +21,9 @@
 - **Plans gap closed 2026-11-15:** completed registers archived and the active set
   rewritten forward-only; the unmeasured `forced_go` R-F records are superseded by a
   schema-valid `NO-GO` backlog artifact.
+- **R-F2 promoted 2026-11-17:** opt-in OpenTelemetry OTLP tracing landed behind the
+  `otel` feature (ADR-084) after `R-F2-otel-2026-11-17.json` passed every
+  pre-approved threshold; the backlog row was not flipped on a forced-GO note.
 - **ADR lifecycle closed 2026-11-16:** ADR-080/081/082 are Accepted with test evidence;
   ADR-028/042/043 were rebaselined to the implemented code and ADR-060 was retired with
   the last stale `#[allow(deprecated)]` removed.

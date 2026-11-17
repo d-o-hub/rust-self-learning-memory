@@ -52,7 +52,8 @@ impl DiscoveryMemory {
     pub async fn open(db_path: &Path) -> Result<Self> {
         if let Some(parent) = db_path.parent() {
             if !parent.as_os_str().is_empty() {
-                std::fs::create_dir_all(parent)
+                tokio::fs::create_dir_all(parent)
+                    .await
                     .with_context(|| format!("cannot create {}", parent.display()))?;
             }
         }

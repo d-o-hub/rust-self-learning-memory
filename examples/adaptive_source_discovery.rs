@@ -134,6 +134,10 @@ impl Args {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // The only caller is the operator running the example locally: these values
+    // select a fixture path and an output directory, and nothing downstream
+    // treats them as trusted input for a privilege decision.
+    // nosemgrep: rust.lang.security.args.args
     run(Args::parse(std::env::args().skip(1))?).await
 }
 

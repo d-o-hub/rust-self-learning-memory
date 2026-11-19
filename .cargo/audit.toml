@@ -120,4 +120,8 @@ ignore = [
     # Fix: crypto-bigint >=0.7.6 (semver-incompatible with elliptic-curve 0.13.8's crypto-bigint 0.5 constraint)
     # Mitigation: Transitive dependency of jsonwebtoken (p256/p384 feature); do-memory-mcp uses HS256 HMAC exclusively.
     "RUSTSEC-2026-0387",
+
+    # RUSTSEC-2026-0543: chrono is unmaintained (all versions affected; informational, no vulnerability)
+    # Same dependency, rationale and revisit condition as the entry in deny.toml.
+    "RUSTSEC-2026-0543",
 ]

@@ -56,6 +56,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `storage health`, and `storage journal --repair` commands instead of nonexistent
   `health`, `storage status`, and `storage repair` forms.
 
+### Security
+
+- Updated `libz-sys` from 1.1.31 to 1.1.33 in `Cargo.lock` and `fuzz/Cargo.lock`, fixing
+  RUSTSEC-2026-0544 (zlib heap buffer overflow in `gz_vacate()` on non-blocking `gzwrite()`
+  stalls). It enters the graph only through `turso_core`'s build script (`built` → `git2` →
+  `libgit2-sys`).
+- Waived RUSTSEC-2026-0543 (`chrono` is unmaintained, informational, no safe upgrade) in
+  `deny.toml` and `.cargo/audit.toml`. `chrono` is a direct workspace dependency, so replacing
+  it (RustSec suggests `jiff` or `time`) needs its own ADR and PR.
+
 ## [0.1.50] - 2026-11-15
 
 ### Changed

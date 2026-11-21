@@ -213,6 +213,11 @@ async fn redb_optional_operations_round_trip_through_trait_object() {
     let policy = do_memory_core::episode::EpisodeRetentionPolicy::default()
         .with_criterion(do_memory_core::episode::RetentionCriterion::FailedOnly);
     assert_eq!(backend.count_cleanup_candidates(&policy).await.unwrap(), 1);
+    let dry = backend
+        .cleanup_episodes(&policy.clone().with_dry_run(true))
+        .await
+        .unwrap();
+    assert_eq!(dry.deleted_ids, vec![ep.episode_id]);
     let cleanup = backend.cleanup_episodes(&policy).await.unwrap();
     assert_eq!(cleanup.deleted_ids, vec![ep.episode_id]);
     assert!(backend.get_episode(ep.episode_id).await.unwrap().is_none());

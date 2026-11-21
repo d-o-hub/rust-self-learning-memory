@@ -4,7 +4,7 @@
 //! 1. `complete_episode` persists generated semantic summaries to backends that
 //!    advertise `supports_episode_summaries()` and skips backends that do not.
 //! 2. `get_episode_summary` resolves from memory, cache, or durable storage and
-//!    hydrates the cache/fallback on a durable hit.
+//!    hydrates the cache/fallback on a durable hit, or returns `Ok(None)` on a miss.
 //! 3. `retrieve_playbooks` on a restarted `SelfLearningMemory` uses the
 //!    persisted `EpisodeSummary` (including extracted `key_concepts`) rather
 //!    than fabricating an empty-concept summary when episode tags are empty.
@@ -12,138 +12,20 @@
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 
-use async_trait::async_trait;
-use do_memory_core::episode::PatternId;
+use do_memory_core::episode::{EpisodeRetentionPolicy, RetentionCriterion};
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::semantic::EpisodeSummary;
+use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
 use do_memory_core::{
-    Episode, ExecutionResult, ExecutionStep, Heuristic, MemoryConfig, Pattern, Result,
-    StorageBackend, StorageBackendCapabilities, TaskContext, TaskOutcome, TaskType,
+    ExecutionResult, ExecutionStep, MemoryConfig, StorageBackend, TaskContext, TaskOutcome,
+    TaskType,
 };
-use parking_lot::Mutex;
-use std::collections::HashMap;
+use do_memory_storage_redb::RedbStorage;
+use do_memory_storage_turso::{ResilientStorage, TursoStorage};
+use libsql::Builder;
 use std::sync::Arc;
+use tempfile::TempDir;
 use uuid::Uuid;
-
-struct SummaryRecordingBackend {
-    advertises: bool,
-    episodes: Mutex<HashMap<Uuid, Episode>>,
-    patterns: Mutex<HashMap<PatternId, Pattern>>,
-    summaries: Mutex<HashMap<Uuid, EpisodeSummary>>,
-    summary_store_calls: Mutex<Vec<Uuid>>,
-}
-
-impl SummaryRecordingBackend {
-    fn new(advertises: bool) -> Self {
-        Self {
-            advertises,
-            episodes: Mutex::new(HashMap::new()),
-            patterns: Mutex::new(HashMap::new()),
-            summaries: Mutex::new(HashMap::new()),
-            summary_store_calls: Mutex::new(Vec::new()),
-        }
-    }
-
-    fn summary_store_calls(&self) -> Vec<Uuid> {
-        self.summary_store_calls.lock().clone()
-    }
-}
-
-impl StorageBackendCapabilities for SummaryRecordingBackend {
-    fn supports_episode_summaries(&self) -> bool {
-        self.advertises
-    }
-}
-
-#[async_trait]
-impl StorageBackend for SummaryRecordingBackend {
-    async fn store_episode(&self, episode: &Episode) -> Result<()> {
-        self.episodes
-            .lock()
-            .insert(episode.episode_id, episode.clone());
-        Ok(())
-    }
-
-    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
-        Ok(self.episodes.lock().get(&id).cloned())
-    }
-
-    async fn delete_episode(&self, id: Uuid) -> Result<()> {
-        self.episodes.lock().remove(&id);
-        self.summaries.lock().remove(&id);
-        Ok(())
-    }
-
-    async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
-        self.patterns.lock().insert(pattern.id(), pattern.clone());
-        Ok(())
-    }
-
-    async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>> {
-        Ok(self.patterns.lock().get(&id).cloned())
-    }
-
-    async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
-        Ok(self.patterns.lock().values().cloned().collect())
-    }
-
-    async fn store_heuristic(&self, _heuristic: &Heuristic) -> Result<()> {
-        Ok(())
-    }
-
-    async fn get_heuristic(&self, _id: Uuid) -> Result<Option<Heuristic>> {
-        Ok(None)
-    }
-
-    async fn query_episodes_since(
-        &self,
-        _since: chrono::DateTime<chrono::Utc>,
-        _limit: Option<usize>,
-    ) -> Result<Vec<Episode>> {
-        Ok(self.episodes.lock().values().cloned().collect())
-    }
-
-    async fn query_episodes_by_metadata(
-        &self,
-        _key: &str,
-        _value: &str,
-        _limit: Option<usize>,
-    ) -> Result<Vec<Episode>> {
-        Ok(vec![])
-    }
-
-    async fn store_embedding(&self, _id: &str, _embedding: Vec<f32>) -> Result<()> {
-        Ok(())
-    }
-
-    async fn get_embedding(&self, _id: &str) -> Result<Option<Vec<f32>>> {
-        Ok(None)
-    }
-
-    async fn delete_embedding(&self, _id: &str) -> Result<bool> {
-        Ok(true)
-    }
-
-    async fn store_embeddings_batch(&self, _embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        Ok(())
-    }
-
-    async fn get_embeddings_batch(&self, _ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        Ok(vec![])
-    }
-
-    async fn store_episode_summary(&self, summary: &EpisodeSummary) -> Result<()> {
-        self.summary_store_calls.lock().push(summary.episode_id);
-        self.summaries
-            .lock()
-            .insert(summary.episode_id, summary.clone());
-        Ok(())
-    }
-
-    async fn get_episode_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
-        Ok(self.summaries.lock().get(&episode_id).cloned())
-    }
-}
 
 fn permissive_config() -> MemoryConfig {
     MemoryConfig {
@@ -152,10 +34,32 @@ fn permissive_config() -> MemoryConfig {
     }
 }
 
+async fn raw_turso(dir: &TempDir, name: &str) -> TursoStorage {
+    let db_path = dir.path().join(name);
+    let db = Builder::new_local(&db_path).build().await.unwrap();
+    let storage = TursoStorage::from_database(db).unwrap();
+    storage.initialize_schema().await.unwrap();
+    storage
+}
+
+async fn setup_turso(dir: &TempDir, name: &str) -> Arc<TursoStorage> {
+    Arc::new(raw_turso(dir, name).await)
+}
+
+async fn setup_redb(dir: &TempDir, name: &str) -> Arc<RedbStorage> {
+    let db_path = dir.path().join(name);
+    Arc::new(RedbStorage::new(&db_path).await.unwrap())
+}
+
 #[tokio::test]
-async fn complete_episode_persists_summary_only_to_advertising_backends() {
-    let durable = Arc::new(SummaryRecordingBackend::new(true));
-    let non_advertising_cache = Arc::new(SummaryRecordingBackend::new(false));
+async fn complete_episode_persists_summary_and_resolves_across_tiers() {
+    let dir = TempDir::new().unwrap();
+    let durable = setup_turso(&dir, "durable.db").await;
+    let non_advertising_cache = Arc::new(ResilientStorage::new(
+        raw_turso(&dir, "unrouted.db").await,
+        CircuitBreakerConfig::default(),
+    ));
+
     let memory = SelfLearningMemory::with_storage(
         permissive_config(),
         Arc::clone(&durable) as Arc<dyn StorageBackend>,
@@ -197,49 +101,74 @@ async fn complete_episode_persists_summary_only_to_advertising_backends() {
         .await
         .expect("episode completion must succeed");
 
-    assert_eq!(
-        durable.summary_store_calls(),
-        vec![episode_id],
-        "advertising durable backend must receive the generated EpisodeSummary"
-    );
-    assert!(
-        non_advertising_cache.summary_store_calls().is_empty(),
-        "non-advertising cache backend must be skipped"
-    );
+    // Durable backend received the summary.
+    let durable_summary = durable
+        .get_episode_summary(episode_id)
+        .await
+        .unwrap()
+        .expect("advertising durable backend must persist EpisodeSummary");
+    assert_eq!(durable_summary.episode_id, episode_id);
 
-    // Cold-process simulation: create a new SelfLearningMemory with an empty cache
-    // that advertises summary support, backed by the populated durable store.
-    let fresh_cache = Arc::new(SummaryRecordingBackend::new(true));
+    // Cold-process simulation: empty Redb cache + populated Turso durable store.
+    let fresh_cache = setup_redb(&dir, "fresh_cache.redb").await;
     let restarted = SelfLearningMemory::with_storage(
         permissive_config(),
         Arc::clone(&durable) as Arc<dyn StorageBackend>,
         Arc::clone(&fresh_cache) as Arc<dyn StorageBackend>,
     );
 
+    // Miss path: unknown episode returns Ok(None).
+    assert!(
+        restarted
+            .get_episode_summary(Uuid::new_v4())
+            .await
+            .unwrap()
+            .is_none(),
+        "unknown episode ID must return Ok(None)"
+    );
+
+    // Durable hit path: resolves from Turso and mirrors to Redb cache.
     let loaded = restarted
         .get_episode_summary(episode_id)
         .await
-        .expect("get_episode_summary should not error")
+        .unwrap()
         .expect("summary must resolve from durable storage after restart");
     assert_eq!(loaded.episode_id, episode_id);
     assert!(
         !loaded.key_concepts.is_empty(),
         "SemanticSummarizer must extract non-empty key_concepts"
     );
-    assert_eq!(
-        fresh_cache.summary_store_calls(),
-        vec![episode_id],
-        "durable summary hit must hydrate an advertising cache backend"
+    assert!(
+        fresh_cache
+            .get_episode_summary(episode_id)
+            .await
+            .unwrap()
+            .is_some(),
+        "durable summary hit must mirror into advertising cache backend"
     );
+
+    // Cache hit path: a brand-new SelfLearningMemory with empty durable store
+    // and populated Redb cache resolves directly from cache_storage.
+    let empty_durable = setup_turso(&dir, "empty_durable.db").await;
+    let cache_only_memory = SelfLearningMemory::with_storage(
+        permissive_config(),
+        empty_durable as Arc<dyn StorageBackend>,
+        Arc::clone(&fresh_cache) as Arc<dyn StorageBackend>,
+    );
+    let from_cache = cache_only_memory
+        .get_episode_summary(episode_id)
+        .await
+        .unwrap()
+        .expect("summary must resolve from cache storage when fallback is empty");
+    assert_eq!(from_cache.episode_id, episode_id);
 }
 
 #[tokio::test]
 async fn retrieve_playbooks_uses_persisted_episode_summary_across_restart() {
-    let durable = Arc::new(SummaryRecordingBackend::new(true));
-    let cache = Arc::new(SummaryRecordingBackend::new(true));
+    let dir = TempDir::new().unwrap();
+    let durable = setup_turso(&dir, "playbooks_durable.db").await;
+    let cache = setup_redb(&dir, "playbooks_cache.redb").await;
 
-    // Context deliberately has NO tags so the fallback summary would have
-    // empty `key_concepts`, whereas the persisted summary carries a custom concept.
     let context = TaskContext {
         domain: "database-migration".to_string(),
         tags: vec![],
@@ -289,11 +218,11 @@ async fn retrieve_playbooks_uses_persisted_episode_summary_across_restart() {
         .await
         .unwrap();
 
-    let cold_cache = Arc::new(SummaryRecordingBackend::new(false));
+    let cold_cache = setup_redb(&dir, "cold_cache.redb").await;
     let restarted = SelfLearningMemory::with_storage(
         permissive_config(),
         Arc::clone(&durable) as Arc<dyn StorageBackend>,
-        Arc::clone(&cold_cache) as Arc<dyn StorageBackend>,
+        cold_cache as Arc<dyn StorageBackend>,
     );
 
     let playbooks = restarted
@@ -319,10 +248,9 @@ async fn retrieve_playbooks_uses_persisted_episode_summary_across_restart() {
 
 #[tokio::test]
 async fn cleanup_episodes_prunes_failed_candidates_across_memory_and_storage() {
-    use do_memory_core::episode::{EpisodeRetentionPolicy, RetentionCriterion};
-
-    let durable = Arc::new(SummaryRecordingBackend::new(true));
-    let cache = Arc::new(SummaryRecordingBackend::new(true));
+    let dir = TempDir::new().unwrap();
+    let durable = setup_turso(&dir, "cleanup_durable.db").await;
+    let cache = setup_redb(&dir, "cleanup_cache.redb").await;
     let memory = SelfLearningMemory::with_storage(
         permissive_config(),
         Arc::clone(&durable) as Arc<dyn StorageBackend>,

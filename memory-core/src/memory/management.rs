@@ -429,10 +429,7 @@ impl SelfLearningMemory {
         policy: &crate::episode::EpisodeRetentionPolicy,
     ) -> Result<usize> {
         let episodes = self.get_all_episodes().await?;
-        let (to_delete, _) = policy
-            .select_cleanup_candidates(&episodes, chrono::Utc::now(), false)
-            .map_err(|e| Error::InvalidInput(e.to_string()))?;
-        Ok(to_delete.len())
+        policy.count_candidates(&episodes, chrono::Utc::now())
     }
 
     /// Clean up episodes according to `policy` across durable storage, cache, and in-memory state (WG-075).
@@ -442,28 +439,10 @@ impl SelfLearningMemory {
     ) -> Result<crate::episode::CleanupResult> {
         let started = std::time::Instant::now();
         let episodes = self.get_all_episodes().await?;
-        let (to_delete, to_keep) = policy
-            .select_cleanup_candidates(&episodes, chrono::Utc::now(), true)
-            .map_err(|e| Error::InvalidInput(e.to_string()))?;
+        let (mut result, to_delete) = policy.plan_cleanup(&episodes, chrono::Utc::now())?;
 
-        let mut result = crate::episode::CleanupResult {
-            evaluated: episodes.len(),
-            trigger: Some(crate::episode::RetentionTrigger::Manual),
-            ..crate::episode::CleanupResult::default()
-        };
-
-        for id in to_keep {
-            result.add_kept(id);
-        }
-
-        if policy.dry_run {
-            for id in to_delete {
-                result.add_deleted(id);
-            }
-        } else {
-            for id in to_delete {
-                self.remove_cleaned_episode(id, &mut result).await;
-            }
+        for id in to_delete {
+            self.remove_cleaned_episode(id, &mut result).await;
         }
 
         result.duration_ms = started.elapsed().as_millis() as u64;

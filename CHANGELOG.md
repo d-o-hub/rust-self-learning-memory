@@ -59,9 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `complete_episode_checked` now persists generated semantic `EpisodeSummary` records to
-  advertising cache and durable storage backends instead of only the in-memory map, and
-  `try_retrieve_playbooks` resolves persisted summaries (including extracted `key_concepts`)
-  through `self.playbook_generator` rather than fabricating a tag-only summary on every call.
+  advertising cache and durable storage backends instead of only the in-memory map,
+  `TursoStorage::store_episode` and `store_episodes_batch` use `ON CONFLICT(episode_id) DO UPDATE`
+  instead of `INSERT OR REPLACE` so in-place episode updates do not cascade-delete child
+  `episode_summaries`, and `try_retrieve_playbooks` resolves persisted summaries (including
+  extracted `key_concepts`) through `self.playbook_generator` rather than fabricating a
+  tag-only summary on every call.
 - `memory-harness` record guidance no longer writes a header replay cannot read, and
   replay now fails loudly on create/step/complete errors instead of writing a green
   `.results.json`.

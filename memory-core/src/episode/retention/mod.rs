@@ -87,31 +87,20 @@ pub enum RetentionTrigger {
 pub struct EpisodeRetentionPolicy {
     /// Maximum age in days before episode is eligible for cleanup
     pub max_age_days: i64,
-
     /// Minimum reward score to keep (episodes below this are candidates)
     pub min_reward_threshold: f64,
-
     /// Maximum number of episodes to retain
     pub max_episodes: usize,
-
     /// Cleanup interval in seconds
     pub cleanup_interval_secs: u64,
-
     /// Batch size for cleanup operations (prevents long-running deletes)
     pub cleanup_batch_size: usize,
-
     /// Which criterion to use for cleanup decisions
     pub criterion: RetentionCriterion,
-
     /// Keep episodes that have derived patterns
     pub keep_pattern_sources: bool,
-
     /// Keep episodes that have derived heuristics
     pub keep_heuristic_sources: bool,
-
-    /// Keep successful episodes (reward >= 0.7)
-    /// keep_high_reward: bool, // Removed as unused
-
     /// Dry run mode (report what would be deleted without actually deleting)
     pub dry_run: bool,
 }
@@ -364,6 +353,57 @@ impl EpisodeRetentionPolicy {
 
         Ok((to_delete, to_keep))
     }
+
+    /// Count episodes that this policy would delete without applying batch limits.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::Error::InvalidInput`] if [`Self::validate`] fails.
+    pub fn count_candidates(
+        &self,
+        episodes: &[crate::Episode],
+        now: DateTime<Utc>,
+    ) -> crate::Result<usize> {
+        let (to_delete, _) = self
+            .select_cleanup_candidates(episodes, now, false)
+            .map_err(|e| crate::Error::InvalidInput(e.to_string()))?;
+        Ok(to_delete.len())
+    }
+
+    /// Plan a cleanup pass over `episodes`, returning `(result, ids_to_delete)`.
+    ///
+    /// Populates `result.evaluated` and `result.kept_ids`. When [`Self::dry_run`] is
+    /// `true`, records candidate IDs in `result.deleted_ids` and returns an empty
+    /// execution list so callers perform no storage mutations.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::Error::InvalidInput`] if [`Self::validate`] fails.
+    pub fn plan_cleanup(
+        &self,
+        episodes: &[crate::Episode],
+        now: DateTime<Utc>,
+    ) -> crate::Result<(CleanupResult, Vec<uuid::Uuid>)> {
+        let (to_delete, to_keep) = self
+            .select_cleanup_candidates(episodes, now, true)
+            .map_err(|e| crate::Error::InvalidInput(e.to_string()))?;
+        let mut result = CleanupResult {
+            evaluated: episodes.len(),
+            trigger: Some(RetentionTrigger::Manual),
+            ..CleanupResult::default()
+        };
+        for id in to_keep {
+            result.add_kept(id);
+        }
+        if self.dry_run {
+            for id in to_delete {
+                result.add_deleted(id);
+            }
+            Ok((result, Vec::new()))
+        } else {
+            Ok((result, to_delete))
+        }
+    }
 }
 
 /// Errors in retention policy configuration
@@ -396,25 +436,18 @@ impl std::error::Error for RetentionPolicyError {}
 pub struct CleanupResult {
     /// Number of episodes evaluated
     pub evaluated: usize,
-
     /// Number of episodes deleted
     pub deleted: usize,
-
     /// Number of episodes kept
     pub kept: usize,
-
     /// IDs of deleted episodes
     pub deleted_ids: Vec<uuid::Uuid>,
-
     /// IDs of kept episodes (when dry run)
     pub kept_ids: Vec<uuid::Uuid>,
-
     /// Trigger that caused cleanup
     pub trigger: Option<RetentionTrigger>,
-
     /// Duration of cleanup in milliseconds
     pub duration_ms: u64,
-
     /// Error messages (if any)
     pub errors: Vec<String>,
 }

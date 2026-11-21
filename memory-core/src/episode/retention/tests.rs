@@ -129,3 +129,37 @@ fn test_cleanup_result_with_errors() {
     assert!(result.has_errors());
     assert!(result.success_rate() < 1.0);
 }
+
+#[test]
+fn test_plan_cleanup_enforces_max_episodes_and_batch_size() {
+    let mut ep1 = create_test_episode();
+    ep1.patterns.push(uuid::Uuid::new_v4());
+    let mut ep2 = create_test_episode();
+    ep2.patterns.push(uuid::Uuid::new_v4());
+    let mut ep3 = create_test_episode();
+    ep3.patterns.push(uuid::Uuid::new_v4());
+
+    let episodes = vec![ep1, ep2, ep3];
+    let policy = EpisodeRetentionPolicy::default()
+        .with_criterion(RetentionCriterion::Unreferenced)
+        .with_max_episodes(1)
+        .with_cleanup_batch_size(1);
+
+    assert_eq!(policy.count_candidates(&episodes, Utc::now()).unwrap(), 2);
+
+    let (planned, to_delete) = policy.plan_cleanup(&episodes, Utc::now()).unwrap();
+    assert_eq!(planned.evaluated, 3);
+    assert_eq!(to_delete.len(), 1);
+    assert_eq!(planned.kept, 2);
+
+    let (dry, dry_to_delete) = policy
+        .with_dry_run(true)
+        .plan_cleanup(&episodes, Utc::now())
+        .unwrap();
+    assert!(
+        dry_to_delete.is_empty(),
+        "dry run must not return execution IDs"
+    );
+    assert_eq!(dry.deleted, 1);
+    assert_eq!(dry.kept, 2);
+}

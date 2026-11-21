@@ -3,7 +3,7 @@
 use crate::TursoStorage;
 use crate::storage::tag_operations::get_episode_tags;
 use chrono::Utc;
-use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, RetentionTrigger};
+use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy};
 use do_memory_core::{Episode, Error, Result};
 use std::time::Instant;
 
@@ -42,43 +42,22 @@ impl TursoStorage {
     /// Count episodes that `policy` would delete without mutating storage.
     pub async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
         let episodes = self.list_episodes_for_cleanup().await?;
-        let (to_delete, _) = policy
-            .select_cleanup_candidates(&episodes, Utc::now(), false)
-            .map_err(|e| Error::InvalidInput(e.to_string()))?;
-        Ok(to_delete.len())
+        policy.count_candidates(&episodes, Utc::now())
     }
 
     /// Clean up expired or low-value episodes according to `policy` (WG-075).
     pub async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
         let started = Instant::now();
         let episodes = self.list_episodes_for_cleanup().await?;
-        let (to_delete, to_keep) = policy
-            .select_cleanup_candidates(&episodes, Utc::now(), true)
-            .map_err(|e| Error::InvalidInput(e.to_string()))?;
+        let (mut result, to_delete) = policy.plan_cleanup(&episodes, Utc::now())?;
 
-        let mut result = CleanupResult {
-            evaluated: episodes.len(),
-            trigger: Some(RetentionTrigger::Manual),
-            ..CleanupResult::default()
-        };
-
-        for id in to_keep {
-            result.add_kept(id);
-        }
-
-        if policy.dry_run {
-            for id in to_delete {
-                result.add_deleted(id);
-            }
-        } else {
-            for id in to_delete {
-                match self.delete_episode(id).await {
-                    Ok(()) => {
-                        let _ = self.delete_embedding_backend(&id.to_string()).await;
-                        result.add_deleted(id);
-                    }
-                    Err(e) => result.add_error(format!("{id}: {e}")),
+        for id in to_delete {
+            match self.delete_episode(id).await {
+                Ok(()) => {
+                    let _ = self.delete_embedding_backend(&id.to_string()).await;
+                    result.add_deleted(id);
                 }
+                Err(e) => result.add_error(format!("{id}: {e}")),
             }
         }
 

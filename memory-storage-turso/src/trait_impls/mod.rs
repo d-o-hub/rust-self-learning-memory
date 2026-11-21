@@ -254,6 +254,34 @@ impl StorageBackend for super::TursoStorage {
     ) -> Result<Vec<do_memory_core::procedural::ProceduralMemory>> {
         super::TursoStorage::query_procedural_memories(self, limit).await
     }
+
+    async fn store_episode_summary(
+        &self,
+        summary: &do_memory_core::semantic::EpisodeSummary,
+    ) -> Result<()> {
+        super::TursoStorage::store_summary(self, summary.episode_id, summary).await
+    }
+
+    async fn get_episode_summary(
+        &self,
+        episode_id: uuid::Uuid,
+    ) -> Result<Option<do_memory_core::semantic::EpisodeSummary>> {
+        super::TursoStorage::get_summary(self, episode_id).await
+    }
+
+    async fn cleanup_episodes(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<do_memory_core::episode::CleanupResult> {
+        super::TursoStorage::cleanup_episodes(self, policy).await
+    }
+
+    async fn count_cleanup_candidates(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<usize> {
+        super::TursoStorage::count_cleanup_candidates(self, policy).await
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage

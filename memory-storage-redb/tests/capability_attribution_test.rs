@@ -116,8 +116,12 @@ async fn redb_storage_advertises_optional_persistence_capabilities() {
         "redb stores procedural memory in PROCEDURAL_TABLE"
     );
     assert!(
-        !storage.supports_episode_cleanup(),
-        "redb has no retention/GC implementation, so cleanup stays unavailable"
+        storage.supports_episode_summaries(),
+        "redb stores episode summaries in SUMMARIES_TABLE"
+    );
+    assert!(
+        storage.supports_episode_cleanup(),
+        "redb implements retention policy episode cleanup"
     );
 }
 
@@ -179,4 +183,37 @@ async fn redb_optional_operations_round_trip_through_trait_object() {
             .is_none(),
         "deleted procedural memory must be gone"
     );
+
+    let mut summary = do_memory_core::semantic::EpisodeSummary::new(from);
+    summary.summary_text = "Round-trip episode summary".to_string();
+    summary.key_concepts = vec!["redb".to_string(), "postcard".to_string()];
+    backend.store_episode_summary(&summary).await.unwrap();
+    let loaded_summary = backend
+        .get_episode_summary(from)
+        .await
+        .unwrap()
+        .expect("stored episode summary must be retrievable through trait object");
+    assert_eq!(loaded_summary.summary_text, "Round-trip episode summary");
+    assert_eq!(
+        loaded_summary.key_concepts,
+        vec!["redb".to_string(), "postcard".to_string()]
+    );
+
+    let mut ep = do_memory_core::Episode::new(
+        "Cleanup candidate".to_string(),
+        TaskContext::default(),
+        do_memory_core::TaskType::Testing,
+    );
+    ep.complete(TaskOutcome::Failure {
+        reason: "failed test".to_string(),
+        error_details: None,
+    });
+    backend.store_episode(&ep).await.unwrap();
+
+    let policy = do_memory_core::episode::EpisodeRetentionPolicy::default()
+        .with_criterion(do_memory_core::episode::RetentionCriterion::FailedOnly);
+    assert_eq!(backend.count_cleanup_candidates(&policy).await.unwrap(), 1);
+    let cleanup = backend.cleanup_episodes(&policy).await.unwrap();
+    assert_eq!(cleanup.deleted_ids, vec![ep.episode_id]);
+    assert!(backend.get_episode(ep.episode_id).await.unwrap().is_none());
 }

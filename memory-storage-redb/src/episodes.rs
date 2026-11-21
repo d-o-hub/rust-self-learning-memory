@@ -2,10 +2,14 @@
 
 use crate::{
     EPISODE_REVISIONS_TABLE, EPISODES_TABLE, METADATA_TABLE, REVISION_SEQ_KEY, RedbStorage,
+    SUMMARIES_TABLE,
 };
+use chrono::Utc;
+use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, RetentionTrigger};
 use do_memory_core::{Episode, Error, Result};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
+use std::time::Instant;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -303,6 +307,13 @@ impl RedbStorage {
                 })?;
             }
 
+            {
+                let mut summaries = write_txn.open_table(SUMMARIES_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open summaries table: {}", e))
+                })?;
+                let _ = summaries.remove(episode_id_str.as_str());
+            }
+
             write_txn
                 .commit()
                 .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
@@ -317,5 +328,52 @@ impl RedbStorage {
 
         info!("Deleted episode from cache: {}", episode_id);
         Ok(())
+    }
+
+    /// Count episodes that `policy` would delete without mutating storage.
+    pub async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
+        let episodes = self.get_all_episodes(&RedbQuery::default()).await?;
+        let (to_delete, _) = policy
+            .select_cleanup_candidates(&episodes, Utc::now(), false)
+            .map_err(|e| Error::InvalidInput(e.to_string()))?;
+        Ok(to_delete.len())
+    }
+
+    /// Clean up expired or low-value episodes according to `policy` (WG-075).
+    pub async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
+        let started = Instant::now();
+        let episodes = self.get_all_episodes(&RedbQuery::default()).await?;
+        let (to_delete, to_keep) = policy
+            .select_cleanup_candidates(&episodes, Utc::now(), true)
+            .map_err(|e| Error::InvalidInput(e.to_string()))?;
+
+        let mut result = CleanupResult {
+            evaluated: episodes.len(),
+            trigger: Some(RetentionTrigger::Manual),
+            ..CleanupResult::default()
+        };
+
+        for id in to_keep {
+            result.add_kept(id);
+        }
+
+        if policy.dry_run {
+            for id in to_delete {
+                result.add_deleted(id);
+            }
+        } else {
+            for id in to_delete {
+                match self.delete_episode(id).await {
+                    Ok(()) => {
+                        let _ = self.delete_embedding_impl(&id.to_string()).await;
+                        result.add_deleted(id);
+                    }
+                    Err(e) => result.add_error(format!("{id}: {e}")),
+                }
+            }
+        }
+
+        result.duration_ms = started.elapsed().as_millis() as u64;
+        Ok(result)
     }
 }

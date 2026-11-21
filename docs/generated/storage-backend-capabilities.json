@@ -7,14 +7,14 @@
     "memory-core/src/storage/backend/mod.rs"
   ],
   "summary": {
-    "methods_total": 47,
+    "methods_total": 50,
     "required": 14,
-    "defaulted": 33,
-    "capability_gated": 23,
+    "defaulted": 36,
+    "capability_gated": 25,
     "value_returning_with_typed_fallback": 1,
     "genuinely_safe_default": 2,
     "fail_closed": 2,
-    "capability_declaration": 5
+    "capability_declaration": 6
   },
   "methods": [
     {
@@ -135,6 +135,16 @@
       "gate_kind": "error",
       "default_body": "capability-unavailable",
       "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_episode_summary",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_episode_summaries",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_episode_summaries may query persisted summaries.",
       "pending": null
     },
     {
@@ -368,6 +378,16 @@
       "pending": null
     },
     {
+      "name": "store_episode_summary",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_episode_summaries",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_episode_summaries may persist summaries durably.",
+      "pending": null
+    },
+    {
       "name": "store_episodes_batch",
       "signature": "defaulted",
       "classification": "genuinely-safe-default",
@@ -439,6 +459,16 @@
     },
     {
       "name": "supports_episode_cleanup",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
+      "pending": null
+    },
+    {
+      "name": "supports_episode_summaries",
       "signature": "defaulted",
       "classification": "capability-declaration",
       "capability": null,

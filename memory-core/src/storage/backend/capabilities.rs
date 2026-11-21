@@ -79,4 +79,13 @@ pub trait StorageBackendCapabilities: Send + Sync {
     fn supports_procedural_memory(&self) -> bool {
         false
     }
+
+    /// Whether semantic episode summaries are durably persisted and queryable.
+    ///
+    /// When `false`, `store_episode_summary` and `get_episode_summary` return
+    /// [`Error::CapabilityUnavailable`](crate::Error::CapabilityUnavailable)
+    /// instead of a fabricated success.
+    fn supports_episode_summaries(&self) -> bool {
+        false
+    }
 }

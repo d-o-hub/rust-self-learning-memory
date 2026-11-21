@@ -37,6 +37,14 @@ impl StorageBackendCapabilities for TursoStorage {
     fn supports_procedural_memory(&self) -> bool {
         true
     }
+
+    fn supports_episode_summaries(&self) -> bool {
+        true
+    }
+
+    fn supports_episode_cleanup(&self) -> bool {
+        true
+    }
 }
 
 /// Circuit-breaker wrapper: advertises exactly what it routes.

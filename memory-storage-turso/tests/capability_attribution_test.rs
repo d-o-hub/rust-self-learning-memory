@@ -161,8 +161,12 @@ async fn relationship_and_procedural_capability_is_truthful_per_backend() {
         "TursoStorage persists procedural memory in SQL"
     );
     assert!(
-        !storage.supports_episode_cleanup(),
-        "TursoStorage has no retention/GC implementation, so cleanup stays unavailable"
+        storage.supports_episode_summaries(),
+        "TursoStorage persists episode summaries in SQL"
+    );
+    assert!(
+        storage.supports_episode_cleanup(),
+        "TursoStorage implements retention policy episode cleanup"
     );
 
     let (resilient_inner, _dir2) = local_turso().await;

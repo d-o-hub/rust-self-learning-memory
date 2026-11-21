@@ -282,8 +282,10 @@ impl SelfLearningMemory {
                     // Remove evicted episodes from in-memory storage
                     {
                         let mut episodes_map = self.episodes_fallback.write().await;
+                        let mut summaries_map = self.summaries_fallback.write().await;
                         for evicted_id in &evicted_ids {
                             episodes_map.remove(evicted_id);
+                            summaries_map.remove(evicted_id);
                         }
                     }
 
@@ -375,21 +377,8 @@ impl SelfLearningMemory {
             )));
         }
 
-        // Store episode summary if generated
-        // ADR-044 Feature 1: Persist semantic summary for playbook generation
-        if let Some(ref summary) = summary {
-            // Store in summaries cache for retrieval during playbook generation
-            {
-                let mut summaries = self.summaries_fallback.write().await;
-                summaries.insert(episode_id, summary.clone());
-            }
-            info!(
-                episode_id = %episode_id,
-                summary_words = summary.summary_text.split_whitespace().count(),
-                key_concepts = summary.key_concepts.len(),
-                "Stored semantic summary"
-            );
-        }
+        // ADR-044 Feature 1: Persist semantic summary across fallback, cache, and durable storage
+        self.persist_completion_summary(summary.as_ref()).await;
 
         // ============================================================================
         // Phase 3 (Spatiotemporal) - Update hierarchical index

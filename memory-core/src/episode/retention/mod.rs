@@ -318,6 +318,52 @@ impl EpisodeRetentionPolicy {
     pub fn cleanup_interval(&self) -> StdDuration {
         StdDuration::from_secs(self.cleanup_interval_secs)
     }
+
+    /// Partition `episodes` into `(to_delete, to_keep)` IDs according to this policy.
+    ///
+    /// Evaluates [`Self::should_retain`] in oldest-first order
+    /// `(start_time, episode_id)`, enforces [`Self::max_episodes`] on the
+    /// remaining episodes (unless [`RetentionCriterion::KeepAll`]), and caps the
+    /// deletion list to [`Self::cleanup_batch_size`] when `apply_batch_limit` is
+    /// `true`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetentionPolicyError`] if [`Self::validate`] fails.
+    pub fn select_cleanup_candidates(
+        &self,
+        episodes: &[crate::Episode],
+        now: DateTime<Utc>,
+        apply_batch_limit: bool,
+    ) -> Result<(Vec<uuid::Uuid>, Vec<uuid::Uuid>), RetentionPolicyError> {
+        self.validate()?;
+
+        let mut ordered: Vec<&crate::Episode> = episodes.iter().collect();
+        ordered.sort_by_key(|ep| (ep.start_time, ep.episode_id));
+
+        let mut to_delete = Vec::new();
+        let mut to_keep = Vec::new();
+
+        for ep in ordered {
+            if self.should_retain(ep, now) {
+                to_keep.push(ep.episode_id);
+            } else {
+                to_delete.push(ep.episode_id);
+            }
+        }
+
+        if self.criterion != RetentionCriterion::KeepAll && to_keep.len() > self.max_episodes {
+            let excess = to_keep.len() - self.max_episodes;
+            to_delete.extend(to_keep.drain(0..excess));
+        }
+
+        if apply_batch_limit && to_delete.len() > self.cleanup_batch_size {
+            let deferred = to_delete.split_off(self.cleanup_batch_size);
+            to_keep.extend(deferred);
+        }
+
+        Ok((to_delete, to_keep))
+    }
 }
 
 /// Errors in retention policy configuration

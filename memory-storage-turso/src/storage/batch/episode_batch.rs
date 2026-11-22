@@ -81,14 +81,31 @@ impl TursoStorage {
                 ))
             })?;
 
-            // SQL statement for episode insertion
+            // SQL statement for episode upsert (avoids REPLACE cascade-deleting child rows)
             let sql = r#"
-            INSERT OR REPLACE INTO episodes (
+            INSERT INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
                 reflection, patterns, heuristics, checkpoints, metadata, domain, language,
                 archived_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(episode_id) DO UPDATE SET
+                task_type = excluded.task_type,
+                task_description = excluded.task_description,
+                context = excluded.context,
+                start_time = excluded.start_time,
+                end_time = excluded.end_time,
+                steps = excluded.steps,
+                outcome = excluded.outcome,
+                reward = excluded.reward,
+                reflection = excluded.reflection,
+                patterns = excluded.patterns,
+                heuristics = excluded.heuristics,
+                checkpoints = excluded.checkpoints,
+                metadata = excluded.metadata,
+                domain = excluded.domain,
+                language = excluded.language,
+                archived_at = excluded.archived_at
         "#;
 
             // Prepare statement if supported by the connection

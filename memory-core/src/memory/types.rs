@@ -152,7 +152,6 @@ pub struct SelfLearningMemory {
 
     // ADR-044 Feature 1 - Playbook Generation
     /// Playbook generator for synthesizing actionable playbooks
-    #[allow(dead_code)] // ADR-044: playbook generation feature (Phase 3)
     pub(super) playbook_generator: PlaybookGenerator,
     /// Cache for episode summaries (ADR-044: persist semantic summary)
     pub(super) summaries_fallback: Arc<RwLock<HashMap<Uuid, EpisodeSummary>>>,

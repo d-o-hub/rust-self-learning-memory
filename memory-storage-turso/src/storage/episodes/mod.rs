@@ -2,6 +2,7 @@
 //!
 //! Episode CRUD operations and query functionality.
 
+pub mod cleanup;
 pub mod compression;
 pub mod crud;
 pub mod query;

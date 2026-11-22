@@ -161,8 +161,12 @@ async fn relationship_and_procedural_capability_is_truthful_per_backend() {
         "TursoStorage persists procedural memory in SQL"
     );
     assert!(
-        !storage.supports_episode_cleanup(),
-        "TursoStorage has no retention/GC implementation, so cleanup stays unavailable"
+        storage.supports_episode_summaries(),
+        "TursoStorage persists episode summaries in SQL"
+    );
+    assert!(
+        storage.supports_episode_cleanup(),
+        "TursoStorage implements retention policy episode cleanup"
     );
 
     let (resilient_inner, _dir2) = local_turso().await;
@@ -217,4 +221,76 @@ async fn relationship_and_procedural_capability_is_truthful_per_backend() {
             operation: "store_procedural"
         }
     ));
+}
+
+#[tokio::test]
+async fn turso_summary_and_cleanup_operations_round_trip() {
+    use do_memory_core::episode::{EpisodeRetentionPolicy, RetentionCriterion};
+    use do_memory_core::semantic::EpisodeSummary;
+    use do_memory_core::{Episode, TaskType};
+
+    let (storage, _dir) = local_turso().await;
+    let backend: &dyn StorageBackend = &storage;
+
+    let mut kept = Episode::new(
+        "Retained successful episode".to_string(),
+        TaskContext::default(),
+        TaskType::CodeGeneration,
+    );
+    kept.complete(TaskOutcome::Success {
+        verdict: "ok".to_string(),
+        artifacts: vec![],
+    });
+    backend.store_episode(&kept).await.unwrap();
+
+    let mut candidate = Episode::new(
+        "Expired failed candidate".to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+    candidate.complete(TaskOutcome::Failure {
+        reason: "error".to_string(),
+        error_details: None,
+    });
+    backend.store_episode(&candidate).await.unwrap();
+
+    let mut summary = EpisodeSummary::new(kept.episode_id);
+    summary.summary_text = "Turso durable summary text".to_string();
+    summary.key_concepts = vec!["turso-sql".to_string()];
+    backend.store_episode_summary(&summary).await.unwrap();
+
+    let fetched = backend
+        .get_episode_summary(kept.episode_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(fetched.key_concepts, vec!["turso-sql".to_string()]);
+
+    let policy = EpisodeRetentionPolicy::default().with_criterion(RetentionCriterion::FailedOnly);
+    assert_eq!(backend.count_cleanup_candidates(&policy).await.unwrap(), 1);
+
+    let dry = backend
+        .cleanup_episodes(&policy.clone().with_dry_run(true))
+        .await
+        .unwrap();
+    assert_eq!(dry.deleted, 1);
+    assert_eq!(dry.kept, 1);
+
+    let live = backend.cleanup_episodes(&policy).await.unwrap();
+    assert_eq!(live.deleted_ids, vec![candidate.episode_id]);
+    assert_eq!(live.kept_ids, vec![kept.episode_id]);
+    assert!(
+        backend
+            .get_episode(candidate.episode_id)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        backend
+            .get_episode(kept.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
 }

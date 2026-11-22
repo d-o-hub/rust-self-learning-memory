@@ -22,12 +22,28 @@ impl TursoStorage {
         debug!("Storing episode: {}", episode.episode_id);
         self.with_connection_with_id(async |conn, conn_id| {
             const SQL: &str = r#"
-            INSERT OR REPLACE INTO episodes (
+            INSERT INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
                 reflection, patterns, heuristics, checkpoints, metadata,
                 domain, language
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(episode_id) DO UPDATE SET
+                task_type = excluded.task_type,
+                task_description = excluded.task_description,
+                context = excluded.context,
+                start_time = excluded.start_time,
+                end_time = excluded.end_time,
+                steps = excluded.steps,
+                outcome = excluded.outcome,
+                reward = excluded.reward,
+                reflection = excluded.reflection,
+                patterns = excluded.patterns,
+                heuristics = excluded.heuristics,
+                checkpoints = excluded.checkpoints,
+                metadata = excluded.metadata,
+                domain = excluded.domain,
+                language = excluded.language
         "#;
 
             let context_json =

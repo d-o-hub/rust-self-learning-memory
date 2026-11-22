@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Durable `EpisodeSummary` persistence across `StorageBackend` (`store_episode_summary`,
+  `get_episode_summary`) gated by `StorageBackendCapabilities::supports_episode_summaries`,
+  implemented for both `TursoStorage` (`episode_summaries`) and `RedbStorage`
+  (`SUMMARIES_TABLE`), plus `SelfLearningMemory::get_episode_summary` with cache/fallback
+  hydration.
+- Policy-driven episode retention and garbage collection (`WG-075`): implemented
+  `EpisodeRetentionPolicy::select_cleanup_candidates`, `cleanup_episodes`, and
+  `count_cleanup_candidates` (`supports_episode_cleanup() == true`) on `TursoStorage`,
+  `RedbStorage`, and `SelfLearningMemory`.
 - `examples/adaptive_source_discovery.rs` — an external-consumer example for adaptive
   web/source discovery. It records each discovery attempt as an episode (plan, provider,
   redacted endpoint, outcome class, latency, cost), retrieves prior episodes by query
@@ -49,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `complete_episode_checked` now persists generated semantic `EpisodeSummary` records to
+  advertising cache and durable storage backends instead of only the in-memory map,
+  `TursoStorage::store_episode` and `store_episodes_batch` use `ON CONFLICT(episode_id) DO UPDATE`
+  instead of `INSERT OR REPLACE` so in-place episode updates do not cascade-delete child
+  `episode_summaries`, and `try_retrieve_playbooks` resolves persisted summaries (including
+  extracted `key_concepts`) through `self.playbook_generator` rather than fabricating a
+  tag-only summary on every call.
 - `memory-harness` record guidance no longer writes a header replay cannot read, and
   replay now fails loudly on create/step/complete errors instead of writing a green
   `.results.json`.

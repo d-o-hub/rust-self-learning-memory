@@ -79,6 +79,10 @@ impl SelfLearningMemory {
             let mut episodes = self.episodes_fallback.write().await;
             episodes.remove(&episode_id);
         }
+        {
+            let mut summaries = self.summaries_fallback.write().await;
+            summaries.remove(&episode_id);
+        }
 
         // Delete from step buffers if present
         {
@@ -417,5 +421,51 @@ impl SelfLearningMemory {
             10, // default limit
         )
         .await
+    }
+
+    /// Count episodes that `policy` would delete across configured storage and in-memory state.
+    pub async fn count_cleanup_candidates(
+        &self,
+        policy: &crate::episode::EpisodeRetentionPolicy,
+    ) -> Result<usize> {
+        let episodes = self.get_all_episodes().await?;
+        policy.count_candidates(&episodes, chrono::Utc::now())
+    }
+
+    /// Clean up episodes according to `policy` across durable storage, cache, and in-memory state (WG-075).
+    pub async fn cleanup_episodes(
+        &self,
+        policy: &crate::episode::EpisodeRetentionPolicy,
+    ) -> Result<crate::episode::CleanupResult> {
+        let started = std::time::Instant::now();
+        let episodes = self.get_all_episodes().await?;
+        let (mut result, to_delete) = policy.plan_cleanup(&episodes, chrono::Utc::now())?;
+
+        for id in to_delete {
+            self.remove_cleaned_episode(id, &mut result).await;
+        }
+
+        result.duration_ms = started.elapsed().as_millis() as u64;
+        Ok(result)
+    }
+
+    async fn remove_cleaned_episode(&self, id: Uuid, result: &mut crate::episode::CleanupResult) {
+        if let Err(e) = self.delete_episode(id).await {
+            result.add_error(format!("{id}: {e}"));
+            return;
+        }
+        let id_str = id.to_string();
+        if let Some(cache) = &self.cache_storage {
+            let _ = cache.delete_embedding(&id_str).await;
+        }
+        if let Some(turso) = &self.turso_storage {
+            let _ = turso.delete_embedding(&id_str).await;
+        }
+        if let Some(ref index) = self.spatiotemporal_index {
+            if let Ok(mut guard) = index.try_write() {
+                guard.remove(id);
+            }
+        }
+        result.add_deleted(id);
     }
 }

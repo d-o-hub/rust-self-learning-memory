@@ -1,11 +1,13 @@
 use async_trait::async_trait;
+use do_memory_core::episode::{CleanupResult, EpisodeRetentionPolicy, PatternId};
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use do_memory_core::procedural::ProceduralMemory;
+use do_memory_core::semantic::EpisodeSummary;
 use do_memory_core::{
     Episode, Error, Heuristic, Pattern, Result, StorageBackend, StorageBackendCapabilities,
-    SyncWatermarkBackend, episode::PatternId,
+    SyncWatermarkBackend,
 };
 use uuid::Uuid;
 
@@ -224,16 +226,32 @@ impl StorageBackend for RedbStorage {
     async fn query_procedural(&self, limit: Option<usize>) -> Result<Vec<ProceduralMemory>> {
         self.query_procedural(limit).await
     }
+
+    async fn store_episode_summary(&self, summary: &EpisodeSummary) -> Result<()> {
+        self.store_episode_summary(summary).await
+    }
+
+    async fn get_episode_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
+        self.get_episode_summary(episode_id).await
+    }
+
+    async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
+        self.cleanup_episodes(policy).await
+    }
+
+    async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
+        self.count_cleanup_candidates(policy).await
+    }
 }
 
 /// Capability matrix for the redb cache backend (ADR-081): the trait impl is
 /// split so one block states what this backend can actually honor.
 ///
 /// redb persists episode↔episode relationships, episode↔pattern relationships,
-/// and procedural memory in its own tables (`src/relationships.rs`,
-/// `src/procedural.rs`), and stores recommendation-attribution history
-/// (`src/recommendations.rs`). Episode cleanup stays unsupported — there is no
-/// retention/GC implementation for redb.
+/// procedural memory, episode summaries, and retention cleanup in its own tables
+/// (`src/relationships.rs`, `src/procedural.rs`, `src/episodes_summaries.rs`,
+/// `src/episodes.rs`), and stores recommendation-attribution history
+/// (`src/recommendations.rs`).
 impl StorageBackendCapabilities for RedbStorage {
     fn supports_recommendation_attribution(&self) -> bool {
         true
@@ -248,6 +266,14 @@ impl StorageBackendCapabilities for RedbStorage {
     }
 
     fn supports_procedural_memory(&self) -> bool {
+        true
+    }
+
+    fn supports_episode_summaries(&self) -> bool {
+        true
+    }
+
+    fn supports_episode_cleanup(&self) -> bool {
         true
     }
 }

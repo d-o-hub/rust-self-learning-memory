@@ -3,9 +3,7 @@
 //! Provides `retrieve_playbooks()` method for synthesizing actionable playbooks
 //! from patterns, reflections, and summaries.
 
-use crate::memory::playbook::{
-    PlaybookGenerator, PlaybookRequest, RecommendedPlaybook, ReflectionData,
-};
+use crate::memory::playbook::{PlaybookRequest, RecommendedPlaybook, ReflectionData};
 use crate::patterns::Pattern;
 use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
@@ -143,12 +141,14 @@ impl SelfLearningMemory {
             .retrieve_relevant_context(task_description.to_string(), context.clone(), 5)
             .await;
 
-        // Step 3: Extract summaries from episodes (if semantic summarizer available)
-        let summaries: Vec<EpisodeSummary> = episodes
-            .iter()
-            .map(|ep| {
-                // Create a basic summary from episode data
-                EpisodeSummary {
+        // Step 3: Load persisted/cached semantic summaries for retrieved episodes,
+        // falling back to a basic episode-derived summary when none is stored.
+        let mut summaries = Vec::with_capacity(episodes.len());
+        for ep in &episodes {
+            if let Ok(Some(persisted)) = self.get_episode_summary(ep.episode_id).await {
+                summaries.push(persisted);
+            } else {
+                summaries.push(EpisodeSummary {
                     episode_id: ep.episode_id,
                     summary_text: ep.task_description.clone(),
                     key_concepts: ep.context.tags.clone(),
@@ -160,9 +160,9 @@ impl SelfLearningMemory {
                         .collect(),
                     summary_embedding: None,
                     created_at: ep.start_time,
-                }
-            })
-            .collect();
+                });
+            }
+        }
 
         // Step 4: Extract reflection data from episodes
         let reflections: Vec<ReflectionData> = episodes
@@ -182,12 +182,7 @@ impl SelfLearningMemory {
             })
             .collect();
 
-        // Step 5: Create playbook generator
-        let generator = PlaybookGenerator::new()
-            .with_min_pattern_confidence(0.5)
-            .with_max_patterns(10);
-
-        // Step 6: Generate playbook request
+        // Step 5: Generate playbook request
         let request = PlaybookRequest {
             task_description: task_description.to_string(),
             domain: domain.to_string(),
@@ -206,8 +201,11 @@ impl SelfLearningMemory {
             ));
         }
 
-        // Step 7: Generate the playbook
-        match generator.generate(&request, &patterns, &summaries, &reflections) {
+        // Step 6: Generate the playbook using the configured generator
+        match self
+            .playbook_generator
+            .generate(&request, &patterns, &summaries, &reflections)
+        {
             Ok(playbook) => {
                 info!(
                     playbook_id = %playbook.playbook_id,

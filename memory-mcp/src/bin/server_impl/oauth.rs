@@ -183,7 +183,13 @@ pub fn validate_access_token(
 
     // Signature verification
     let decoding_key = if let Some(secret) = &config.token_secret {
-        DecodingKey::from_secret(secret.as_bytes())
+        match DecodingKey::from_secret(secret.as_bytes()) {
+            Ok(key) => key,
+            Err(e) => {
+                warn!("SECURITY ERROR: OAUTH_TOKEN_SECRET is unusable: {e}. Rejecting token.");
+                return Err("Server misconfiguration: OAUTH_TOKEN_SECRET is invalid".to_string());
+            }
+        }
     } else {
         warn!("SECURITY ERROR: No OAUTH_TOKEN_SECRET configured. Rejecting token.");
         return Err("Server misconfiguration: OAUTH_TOKEN_SECRET is missing".to_string());

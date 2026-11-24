@@ -17,7 +17,7 @@ use do_memory_core::{
     Episode, Error, Heuristic, OutcomeStats, Pattern, PatternEffectiveness, TaskContext, TaskType,
 };
 use do_memory_storage_redb::RedbStorage;
-use redb::{ReadableDatabase, TableDefinition};
+use redb::{ReadableDatabase, ReadableTable, TableDefinition};
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 use uuid::Uuid;

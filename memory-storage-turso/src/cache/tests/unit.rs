@@ -244,6 +244,34 @@ async fn test_cleanup_invalidates_cached_episode() {
 }
 
 #[tokio::test]
+async fn test_cleanup_with_episode_cache_disabled_still_deletes_episode() {
+    let (storage, _dir) = create_test_turso_storage().await;
+    let config = CacheConfig {
+        enable_episode_cache: false,
+        ..CacheConfig::default()
+    };
+    let cached = CachedTursoStorage::new(storage, config);
+    let episode_id = Uuid::new_v4();
+    let episode = create_test_episode(episode_id);
+    cached.store_episode_cached(&episode).await.unwrap();
+
+    let policy = do_memory_core::episode::EpisodeRetentionPolicy::default()
+        .with_criterion(do_memory_core::episode::RetentionCriterion::Unreferenced);
+    let result = do_memory_core::StorageBackend::cleanup_episodes(&cached, &policy)
+        .await
+        .unwrap();
+
+    assert_eq!(result.deleted_ids, vec![episode_id]);
+    assert!(
+        cached
+            .get_episode_cached(episode_id)
+            .await
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[tokio::test]
 async fn test_cleanup_errors_include_operation_context() {
     let (storage, _dir) = create_test_turso_storage().await;
     let cached = CachedTursoStorage::new(storage, CacheConfig::default());

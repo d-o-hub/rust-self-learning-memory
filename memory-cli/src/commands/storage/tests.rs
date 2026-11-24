@@ -7,6 +7,7 @@
 use super::provenance::{MetricProvenance, MetricValue};
 use super::types::{ConnectionInfo, ConnectionStatus, StorageStats, StorageStatsData};
 use crate::output::Output;
+use do_memory_core::StorageBackend;
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -389,12 +390,16 @@ async fn vacuum_storage_live_human_output_is_not_misleading() {
 async fn sync_storage_reconciles_episodes_between_backends() {
     // Arrange: dual-backend memory (file-backed redb stands in for Turso).
     let dir = tempfile::tempdir().expect("temp dir for storage backends");
-    let turso = do_memory_storage_redb::RedbStorage::new(&dir.path().join("turso.redb"))
-        .await
-        .expect("turso backend");
-    let cache = do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
-        .await
-        .expect("cache backend");
+    let turso: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(
+        do_memory_storage_redb::RedbStorage::new(&dir.path().join("turso.redb"))
+            .await
+            .expect("turso backend"),
+    );
+    let cache: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(
+        do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
+            .await
+            .expect("cache backend"),
+    );
     // Lower quality threshold so the fixture episode is accepted (same
     // convention as the e2e pattern workflow tests).
     let memory = do_memory_core::SelfLearningMemory::with_storage(
@@ -402,8 +407,8 @@ async fn sync_storage_reconciles_episodes_between_backends() {
             quality_threshold: 0.3,
             ..Default::default()
         },
-        std::sync::Arc::new(turso),
-        std::sync::Arc::new(cache),
+        std::sync::Arc::clone(&turso),
+        std::sync::Arc::clone(&cache),
     );
 
     // Create a completed episode with a logged step so the durable backend
@@ -439,6 +444,16 @@ async fn sync_storage_reconciles_episodes_between_backends() {
         )
         .await
         .expect("complete episode");
+
+    // Prove the CLI sync copies the latest durable summary, not just the
+    // episode data already written to both backends during completion.
+    let mut summary = do_memory_core::semantic::EpisodeSummary::new(episode_id);
+    summary.summary_text = "cli sync summary sentinel".to_string();
+    turso
+        .store_episode_summary(&summary)
+        .await
+        .expect("store durable summary");
+
     // Let async pattern extraction finish so `episode.patterns` is populated.
     tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     let patterns = memory.get_all_patterns().await.expect("patterns query");
@@ -461,6 +476,12 @@ async fn sync_storage_reconciles_episodes_between_backends() {
 
     // Assert
     assert!(result.is_ok(), "live sync must succeed with dual backends");
+    let cached_summary = cache
+        .get_episode_summary(episode_id)
+        .await
+        .expect("read cached summary")
+        .expect("summary mirrored to cache");
+    assert_eq!(cached_summary.summary_text, "cli sync summary sentinel");
 }
 
 // ---------------------------------------------------------------------------

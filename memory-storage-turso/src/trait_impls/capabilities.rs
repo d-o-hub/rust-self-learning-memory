@@ -17,10 +17,11 @@ use crate::{ResilientStorage, TursoStorage};
 
 /// Durable SQL-backed capabilities of [`TursoStorage`].
 ///
-/// Relationships, episode↔pattern relationships, procedural memory, and
-/// recommendation attribution are persisted by `src/relationships.rs`,
-/// `src/storage/procedural.rs`, and `src/recommendations.rs`. Episode cleanup
-/// has no Turso implementation, so it keeps the `false` default.
+/// Relationships, episode↔pattern relationships, procedural memory,
+/// recommendation attribution, semantic episode summaries, and retention
+/// cleanup are persisted by `src/relationships.rs`,
+/// `src/storage/procedural.rs`, `src/recommendations.rs`,
+/// `src/storage/summaries.rs`, and `src/storage/episodes/cleanup.rs`.
 impl StorageBackendCapabilities for TursoStorage {
     fn supports_recommendation_attribution(&self) -> bool {
         true
@@ -49,9 +50,9 @@ impl StorageBackendCapabilities for TursoStorage {
 
 /// Circuit-breaker wrapper: advertises exactly what it routes.
 ///
-/// [`ResilientStorage`] forwards the core, embedding, and
-/// recommendation-attribution operations to the wrapped [`TursoStorage`], so it
-/// delegates those predicates. It does not implement relationship or
+/// [`ResilientStorage`] forwards the core, embedding, recommendation-attribution,
+/// episode-summary, and episode-cleanup operations to the wrapped [`TursoStorage`],
+/// so it delegates those predicates. It does not implement relationship or
 /// procedural-memory methods.
 impl StorageBackendCapabilities for ResilientStorage {
     fn supports_recommendation_attribution(&self) -> bool {
@@ -61,13 +62,22 @@ impl StorageBackendCapabilities for ResilientStorage {
     fn supports_ranking_adaptation(&self) -> bool {
         self.storage.supports_ranking_adaptation()
     }
+
+    fn supports_episode_summaries(&self) -> bool {
+        self.storage.supports_episode_summaries()
+    }
+
+    fn supports_episode_cleanup(&self) -> bool {
+        self.storage.supports_episode_cleanup()
+    }
 }
 
 /// Adaptive-cache wrapper: advertises exactly what it routes.
 ///
 /// [`CachedTursoStorage`] forwards episodes, patterns, heuristics, embeddings,
-/// and recommendation attribution to the wrapped [`TursoStorage`]. It does not
-/// implement relationship or procedural-memory methods.
+/// recommendation attribution, episode summaries, and episode cleanup to the
+/// wrapped [`TursoStorage`]. It does not implement relationship or
+/// procedural-memory methods.
 impl StorageBackendCapabilities for CachedTursoStorage {
     fn supports_recommendation_attribution(&self) -> bool {
         self.storage.supports_recommendation_attribution()
@@ -75,5 +85,13 @@ impl StorageBackendCapabilities for CachedTursoStorage {
 
     fn supports_ranking_adaptation(&self) -> bool {
         self.storage.supports_ranking_adaptation()
+    }
+
+    fn supports_episode_summaries(&self) -> bool {
+        self.storage.supports_episode_summaries()
+    }
+
+    fn supports_episode_cleanup(&self) -> bool {
+        self.storage.supports_episode_cleanup()
     }
 }

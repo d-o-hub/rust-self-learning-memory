@@ -204,6 +204,53 @@ impl StorageBackend for CachedTursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("List recommendation feedback error: {}", e)))
     }
+
+    async fn store_episode_summary(
+        &self,
+        summary: &do_memory_core::semantic::EpisodeSummary,
+    ) -> Result<()> {
+        self.storage
+            .store_summary(summary.episode_id, summary)
+            .await
+            .map_err(|e| Error::Storage(format!("Store episode summary error: {}", e)))
+    }
+
+    async fn get_episode_summary(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<do_memory_core::semantic::EpisodeSummary>> {
+        self.storage
+            .get_summary(episode_id)
+            .await
+            .map_err(|e| Error::Storage(format!("Get episode summary error: {}", e)))
+    }
+
+    async fn cleanup_episodes(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<do_memory_core::episode::CleanupResult> {
+        let result = self
+            .storage
+            .cleanup_episodes(policy)
+            .await
+            .map_err(|e| Error::Storage(format!("Cleanup episodes error: {}", e)))?;
+        if !policy.dry_run {
+            for id in &result.deleted_ids {
+                self.invalidate_episode_cache(*id).await;
+            }
+        }
+        Ok(result)
+    }
+
+    async fn count_cleanup_candidates(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<usize> {
+        self.storage
+            .count_cleanup_candidates(policy)
+            .await
+            .map_err(|e| Error::Storage(format!("Count cleanup candidates error: {}", e)))
+    }
 }
 
 #[async_trait]

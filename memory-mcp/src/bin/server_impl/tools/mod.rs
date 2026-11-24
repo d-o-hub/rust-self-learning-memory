@@ -26,8 +26,9 @@ mod relationship_handlers;
 mod tag_handlers;
 
 pub use episode_handlers::{
-    handle_add_episode_step, handle_bulk_episodes, handle_complete_episode, handle_create_episode,
-    handle_delete_episode, handle_get_episode, handle_get_episode_timeline, handle_update_episode,
+    handle_add_episode_step, handle_bulk_episodes, handle_cleanup_episodes,
+    handle_complete_episode, handle_create_episode, handle_delete_episode, handle_get_episode,
+    handle_get_episode_timeline, handle_update_episode,
 };
 pub use external_signal_handlers::{
     handle_configure_agentfs, handle_external_signal_status, handle_test_agentfs_connection,

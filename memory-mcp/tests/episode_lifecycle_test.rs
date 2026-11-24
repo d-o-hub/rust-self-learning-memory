@@ -262,9 +262,114 @@ async fn test_get_episode_tool() {
 
     assert_eq!(result["success"], true);
     assert!(result["episode"].is_object());
+    assert!(
+        result["summary"].is_object(),
+        "completed episode must include semantic summary in get_episode response"
+    );
     let episode = &result["episode"];
     assert_eq!(episode["task_description"], "Test retrieval");
     assert!(episode["steps"].is_array());
+}
+
+#[tokio::test]
+async fn test_cleanup_episodes_tool() {
+    let server = create_test_server().await;
+
+    let ok_ep = server
+        .create_episode_tool(json!({
+            "task_description": "Retained episode",
+            "domain": "test",
+            "task_type": "testing"
+        }))
+        .await
+        .unwrap();
+    let ok_id = ok_ep["episode_id"].as_str().unwrap();
+    server
+        .complete_episode_tool(json!({
+            "episode_id": ok_id,
+            "outcome_type": "success",
+            "verdict": "ok"
+        }))
+        .await
+        .unwrap();
+
+    let fail_ep = server
+        .create_episode_tool(json!({
+            "task_description": "Failed cleanup candidate",
+            "domain": "test",
+            "task_type": "testing"
+        }))
+        .await
+        .unwrap();
+    let fail_id = fail_ep["episode_id"].as_str().unwrap();
+    server
+        .complete_episode_tool(json!({
+            "episode_id": fail_id,
+            "outcome_type": "failure",
+            "reason": "broken"
+        }))
+        .await
+        .unwrap();
+
+    // Count-only mode
+    let count_res = server
+        .cleanup_episodes_tool(json!({
+            "criterion": "failed_only",
+            "count_only": true
+        }))
+        .await
+        .unwrap();
+    assert_eq!(count_res["candidate_count"], 1);
+
+    // Default dry_run=true mode does not delete
+    let dry_res = server
+        .cleanup_episodes_tool(json!({
+            "criterion": "failed_only"
+        }))
+        .await
+        .unwrap();
+    assert_eq!(dry_res["dry_run"], true);
+    assert_eq!(dry_res["deleted"], 1);
+    assert!(
+        server
+            .get_episode_tool(json!({"episode_id": fail_id}))
+            .await
+            .is_ok()
+    );
+
+    // Live mode without confirm=true fails closed
+    let unconfirmed = server
+        .cleanup_episodes_tool(json!({
+            "criterion": "failed_only",
+            "dry_run": false,
+            "confirm": false
+        }))
+        .await;
+    assert!(unconfirmed.is_err());
+
+    // Live mode with confirm=true deletes only the candidate
+    let live_res = server
+        .cleanup_episodes_tool(json!({
+            "criterion": "failed_only",
+            "dry_run": false,
+            "confirm": true
+        }))
+        .await
+        .unwrap();
+    assert_eq!(live_res["dry_run"], false);
+    assert_eq!(live_res["deleted"], 1);
+    assert!(
+        server
+            .get_episode_tool(json!({"episode_id": fail_id}))
+            .await
+            .is_err()
+    );
+    assert!(
+        server
+            .get_episode_tool(json!({"episode_id": ok_id}))
+            .await
+            .is_ok()
+    );
 }
 
 #[tokio::test]

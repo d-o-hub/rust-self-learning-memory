@@ -1,10 +1,10 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-11-17
+**Last Updated**: 2026-11-24
 **Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z; all four
 registered crates verified at `0.1.50` on crates.io)
 **Workspace Version**: 0.1.51 (post-release development bump)
-**Branch**: post-release bump based on `main` @ `0fe1b89d`
+**Branch**: `main` @ `eb076391`
 **Open PRs / issues**: `gh pr list` / `gh issue list` are the live sources; Dependabot group
 PRs may be open
 
@@ -15,9 +15,10 @@ PRs may be open
 | P1 | Security | Track the four upstream-blocked advisory families; re-test only when a pinning chain moves | `cargo tree` on both graphs proves the chain moved; no no-op bump PR | ⏸ upstream (ACT-404) |
 | P2 | Governance | ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | maintainer flips `Proposed` → `Accepted` with recorded evidence | ✅ 2026-11-16 |
 | P2 | Harness | Keep the pin, prose, gate contract and skill-evals matrix on one measured version | both probes green against the published binary | ✅ `v0.4.6` |
-| P2 | Product | External-consumer example: episodic memory drives adaptive web/source discovery (#1281) | deterministic fixture run + restart fingerprint + self-checking expectations | ✅ 2026-11-17 |
+| P2 | Product | External-consumer example: episodic memory drives adaptive web/source discovery (#1281 + candidate window) | deterministic fixture run + restart fingerprint + self-checking expectations | ✅ 2026-11-24 |
+| P2 | Product | Durable `EpisodeSummary` & retention cleanup (`WG-075`) across core, Turso/redb/wrappers, sync, CLI, and MCP | summaries round-trip and sync; `episode cleanup` CLI and `cleanup_episodes` MCP tool verified | ✅ 2026-11-24 |
 | P3 | Release | `v0.1.50` shipped and dogfooded; bump the workspace to `0.1.51` in the post-release PR | release + publish chains green; four crates at `0.1.50`; dogfood recorded | ✅ 2026-11-16 |
-| P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-15 |
+| P3 | Plans | Keep this active set compact; archive completed waves | `validate-plans.sh --all` green; dated root files ≤5 | ✅ 2026-11-24 |
 
 ## Gated product backlog (R-F)
 
@@ -35,7 +36,7 @@ An item moves back into "active forward work" only on the same evidence.
 | R-F2 | OpenTelemetry / OTLP tracing | ✅ shipped | ADR-084; `otel` feature pinned to `opentelemetry` 0.33.x, inert unless configured |
 | R-F3 | Multi-tenancy (`tenant_id`, `CacheKey`) | ⏸ `NO-GO` | schema + cache-key ADR; four-PR estimate in the archived register |
 | R-F4 | Portable SIMD cosine | ⏸ `NO-GO` | `std::simd` is still nightly-only; keep the 8-way unrolled auto-vectorized loop |
-| R-F5 | Episode versioning / retention | ⏸ `NO-GO` | schema migration + `StorageBackend` extension + MCP/CLI surface |
+| R-F5 | Episode versioning / retention | ⏸ `NO-GO` (versioning) | retention cleanup (`WG-075`) shipped across storage/CLI/MCP; multi-version episode schema remains gated |
 | R-F6 | Mixture-of-Experts embedding routing | ⏸ `NO-GO` | ADR above ADR-077 exact-provider model; no silent substitution |
 | R-F7 | Federated HDC | ⏸ `NO-GO` | depends on R-F1 + R-F3; highest complexity |
 | R-F8 | CLI relationship panel | ✅ shipped | #893 |

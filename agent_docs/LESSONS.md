@@ -2180,3 +2180,20 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   `.agents/skills/memory-harness/replay-trace.sh`,
   `.agents/skills/do-memory-cli-ops/commands.md`,
   `scripts/dogfood-coding-workflow.sh`, LESSON-063.
+
+## LESSON-085: A global dry-run flag is not destructive-operation consent (2026-11-24)
+
+- Issue: top-level `do-memory-cli --dry-run` defaults to `false`. `episode cleanup`
+  forwarded that value directly, so a bare cleanup invocation could delete eligible
+  episodes.
+- Root cause: a global "preview when requested" switch was treated as affirmative
+  authorization for a destructive subcommand.
+- Why it matters: maintenance commands can mutate durable data unless their own
+  defaults fail closed, even when an adjacent API already requires confirmation.
+- Detection: trace the CLI flag from its clap declaration through dispatch to storage,
+  and test the default handler path against episode state.
+- Fix: make cleanup preview-only unless `episode cleanup --confirm` is explicit;
+  let global `--dry-run` win, and verify preview preserves the row before confirmation
+  deletes it.
+- References: `memory-cli/src/main.rs`, `memory-cli/src/commands/dispatch_episode.rs`,
+  `memory-cli/src/commands/episode/core/cleanup.rs`, MCP `cleanup_episodes` contract.

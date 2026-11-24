@@ -6,6 +6,7 @@
 //! All tests follow the Given-When-Then pattern for clarity.
 
 use do_memory_core::StorageBackend;
+use do_memory_core::semantic::EpisodeSummary;
 use do_memory_core::sync::{ConflictResolution, StorageSynchronizer, SyncConfig};
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_redb::RedbStorage;
@@ -46,22 +47,30 @@ async fn should_sync_single_episode_from_turso_to_redb_cache() {
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
     let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb));
 
-    // Given: An episode stored in Turso
+    // Given: An episode and semantic summary stored in Turso
     let context = TaskContext::default();
     let episode = Episode::new("Test task".to_string(), context, TaskType::Testing);
     let episode_id = episode.episode_id;
     sync.turso.store_episode(&episode).await.unwrap();
+    let mut summary = EpisodeSummary::new(episode_id);
+    summary.summary_text = "single sync summary sentinel".to_string();
+    sync.turso.store_episode_summary(&summary).await.unwrap();
 
     // When: Syncing the episode to cache
     let result = sync.sync_episode_to_cache(episode_id).await;
 
-    // Then: Sync should succeed
+    // Then: The episode and its summary should be available in the cache
     assert!(result.is_ok(), "Sync should succeed");
-
-    // Then: Episode should be available in redb cache
     let cached = sync.redb.get_episode(episode_id).await.unwrap();
     assert!(cached.is_some(), "Episode should be in cache");
     assert_eq!(cached.unwrap().episode_id, episode_id);
+    let cached_summary = sync
+        .redb
+        .get_episode_summary(episode_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(cached_summary.summary_text, "single sync summary sentinel");
 }
 
 #[tokio::test]
@@ -79,6 +88,11 @@ async fn should_sync_all_recent_episodes_in_batch() {
         let episode = Episode::new(format!("Test task {i}"), context.clone(), TaskType::Testing);
         episode_ids.push(episode.episode_id);
         sync.turso.store_episode(&episode).await.unwrap();
+        if i == 0 {
+            let mut summary = EpisodeSummary::new(episode.episode_id);
+            summary.summary_text = "batch sync summary sentinel".to_string();
+            sync.turso.store_episode_summary(&summary).await.unwrap();
+        }
     }
 
     // When: Syncing all recent episodes (since 1 hour ago)
@@ -88,6 +102,15 @@ async fn should_sync_all_recent_episodes_in_batch() {
     // Then: All episodes should be synced successfully
     assert_eq!(stats.episodes_synced, 5, "Should sync all 5 episodes");
     assert_eq!(stats.errors, 0, "Should have no errors");
+
+    // Then: The semantic summary should also be available in the cache
+    let cached_summary = sync
+        .redb
+        .get_episode_summary(episode_ids[0])
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(cached_summary.summary_text, "batch sync summary sentinel");
 
     // Then: All episodes should be available in cache
     for episode_id in episode_ids {

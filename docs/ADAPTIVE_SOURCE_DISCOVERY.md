@@ -63,6 +63,11 @@ same evidence, recovered from durable storage, must produce the same recommendat
 retrieves no prior episode — the signature of a seed phase that did not persist. Families
 with an empty history are expected to retrieve nothing, which is the cold-start case.
 
+`--limit` (default 16) is how many observations the planner uses per family. Retrieval asks
+for a wider window — four times the limit, with a floor of 64 — because the ranking is
+quality-weighted and a family's blocked attempts rank last; the family's observations are
+then truncated back to `--limit`.
+
 ## The dataset
 
 `dataset.json` is deterministic and versioned (`version: "1.0"`). Each query family carries
@@ -190,9 +195,14 @@ The runner also proves the fail-loud contract: it rewrites a trace's outcome to
    blocked or transport-error attempt scores far below it, and that is exactly the evidence
    that a plan has stopped working. The example sets `quality_threshold: 0.0` on purpose: an
    application that stores only its successes cannot learn to abandon a failing strategy.
-4. Keep the bounds. Loosening `MIN_ALTERNATIVE_OBSERVATIONS` or dropping the gain margin is
+4. Ask for a wider retrieval window than the number of observations you intend to use.
+   Retrieval ranks by a quality-weighted relevance score, so blocked attempts rank last; a
+   consumer that asks for exactly `N` candidates can be starved by other families in a busy
+   store and then wrongly conclude it has no evidence. The example requests four times the
+   window (with a floor of 64) and truncates the family's observations back to `--limit`.
+5. Keep the bounds. Loosening `MIN_ALTERNATIVE_OBSERVATIONS` or dropping the gain margin is
    how a memory system starts oscillating between plans.
-5. Treat the recommendation as one input to routing, never as a source of truth, and never
+6. Treat the recommendation as one input to routing, never as a source of truth, and never
    as a licence to skip verification.
 
 ## Not a persistence-API change

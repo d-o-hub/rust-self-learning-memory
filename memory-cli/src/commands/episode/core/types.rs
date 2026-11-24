@@ -1,6 +1,7 @@
 //! Episode command types and output structures
 
 use super::super::relationships::RelationshipCommands;
+use super::cleanup::{RetentionCriterionArg, RetentionPresetArg};
 use clap::Subcommand;
 
 #[derive(Subcommand)]
@@ -116,6 +117,40 @@ pub enum EpisodeCommands {
         /// Episode ID
         #[arg(value_name = "EPISODE_ID")]
         episode_id: String,
+    },
+
+    /// Clean up old, failed, or low-value episodes using a retention policy (WG-075)
+    Cleanup {
+        /// Retention policy preset (default, storage-limited, aggressive, archival)
+        #[arg(long, value_enum, default_value_t = RetentionPresetArg::Default)]
+        preset: RetentionPresetArg,
+
+        /// Override retention criterion (combined, age-based, reward-based, unreferenced, failed-only, keep-all)
+        #[arg(long, value_enum)]
+        criterion: Option<RetentionCriterionArg>,
+
+        /// Maximum episode age in days before eligible for cleanup
+        #[arg(long, value_name = "DAYS")]
+        max_age_days: Option<i64>,
+
+        /// Minimum reward threshold in [0.0, 1.0] to retain episodes
+        #[arg(long, value_name = "SCORE")]
+        min_reward: Option<f64>,
+
+        /// Maximum number of episodes to retain
+        #[arg(long, value_name = "COUNT")]
+        max_episodes: Option<usize>,
+
+        /// Maximum episodes to delete in a single cleanup pass
+        #[arg(long, value_name = "SIZE")]
+        batch_size: Option<usize>,
+
+        /// Only count matching cleanup candidates without deleting
+        #[arg(long)]
+        count_only: bool,
+        /// Allow live deletion; without this, cleanup is a dry run.
+        #[arg(long)]
+        confirm: bool,
     },
 
     /// Update an episode

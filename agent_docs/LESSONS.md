@@ -2197,3 +2197,22 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   deletes it.
 - References: `memory-cli/src/main.rs`, `memory-cli/src/commands/dispatch_episode.rs`,
   `memory-cli/src/commands/episode/core/cleanup.rs`, MCP `cleanup_episodes` contract.
+
+## LESSON-086: Rust test files can be unreachable from a successful test command (2026-11-24)
+
+- Issue: `memory-storage-turso/src/cache/tests/{unit,integration,concurrent}.rs`
+  contained tests, but `src/cache/mod.rs` did not declare the test module.
+  `cargo test -p do-memory-storage-turso cache::tests::unit` exited successfully
+  after running zero tests, so the new cleanup tests were never compiled.
+- Root cause: nested files are not part of a crate's unit-test module tree unless
+  a parent module declares them; a successful Cargo exit does not prove the filter
+  matched.
+- Why it matters: assertions and coverage can be dead code while format/check
+  gates stay green.
+- Detection: require a nonzero `running N tests` count and verify the module is
+  reachable through `#[cfg(test)] mod tests;`.
+- Fix: register the module, update stale fixture fields, and run
+  `cargo test -p do-memory-storage-turso cache::tests`; 49 tests passed, including
+  cache invalidation and storage error-context cases.
+- References: `memory-storage-turso/src/cache/mod.rs`,
+  `memory-storage-turso/src/cache/tests/unit.rs`.

@@ -533,3 +533,19 @@ fn test_load_oauth_config_and_transport_token_from_lookup() {
         Some("alias-token")
     );
 }
+
+#[test]
+fn test_validate_access_token_rejects_empty_token_secret() -> anyhow::Result<()> {
+    let token = valid_token("mcp:read")?;
+    let mut config = enforced_config();
+    config.token_secret = Some(String::new());
+
+    let err = super::validate_access_token(&token, &config)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("empty secret must be rejected"))?;
+    assert_eq!(
+        err,
+        "Server misconfiguration: OAUTH_TOKEN_SECRET is invalid"
+    );
+    Ok(())
+}

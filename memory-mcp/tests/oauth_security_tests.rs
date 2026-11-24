@@ -46,7 +46,7 @@ fn test_validate_bearer_token_security() {
     let valid_token = encode(
         &Header::new(Algorithm::HS256),
         &my_claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()).unwrap(),
     )
     .unwrap();
     let result = validate_bearer_token(&valid_token, &config);
@@ -59,7 +59,7 @@ fn test_validate_bearer_token_security() {
     let forged_token = encode(
         &Header::new(Algorithm::HS256),
         &my_claims,
-        &EncodingKey::from_secret("wrong-secret".as_bytes()),
+        &EncodingKey::from_secret("wrong-secret".as_bytes()).unwrap(),
     )
     .unwrap();
     let result = validate_bearer_token(&forged_token, &config);
@@ -76,7 +76,7 @@ fn test_validate_bearer_token_security() {
     let expired_token = encode(
         &Header::new(Algorithm::HS256),
         &expired_claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()).unwrap(),
     )
     .unwrap();
     let result = validate_bearer_token(&expired_token, &config);
@@ -93,7 +93,7 @@ fn test_validate_bearer_token_security() {
     let wrong_iss_token = encode(
         &Header::new(Algorithm::HS256),
         &wrong_iss_claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()).unwrap(),
     )
     .unwrap();
     let result = validate_bearer_token(&wrong_iss_token, &config);
@@ -110,7 +110,7 @@ fn test_validate_bearer_token_security() {
     let wrong_aud_token = encode(
         &Header::new(Algorithm::HS256),
         &wrong_aud_claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()).unwrap(),
     )
     .unwrap();
     let result = validate_bearer_token(&wrong_aud_token, &config);
@@ -142,7 +142,7 @@ fn test_validate_bearer_token_insecure_fallback() {
     let token = encode(
         &Header::new(Algorithm::HS256),
         &my_claims,
-        &EncodingKey::from_secret("anyone-can-sign".as_bytes()),
+        &EncodingKey::from_secret("anyone-can-sign".as_bytes()).unwrap(),
     )
     .unwrap();
 

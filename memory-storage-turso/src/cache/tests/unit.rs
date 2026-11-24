@@ -5,9 +5,8 @@
 
 use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
-use libsql::Builder;
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
-use std::sync::Arc;
+use libsql::Builder;
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -52,6 +51,8 @@ fn create_test_episode(id: Uuid) -> Episode {
         start_time: chrono::Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
+        tags: Vec::new(),
+        checkpoints: Vec::new(),
     }
 }
 
@@ -209,6 +210,98 @@ async fn test_episode_cache_invalidation_on_delete() {
     // Should no longer exist
     let result = cached.get_episode_cached(episode_id).await.unwrap();
     assert!(result.is_none());
+}
+#[tokio::test]
+async fn test_cleanup_invalidates_cached_episode() {
+    let (storage, _dir) = create_test_turso_storage().await;
+    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+    let episode_id = Uuid::new_v4();
+    let episode = create_test_episode(episode_id);
+
+    cached.store_episode_cached(&episode).await.unwrap();
+    assert!(
+        cached
+            .get_episode_cached(episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
+
+    let policy = do_memory_core::episode::EpisodeRetentionPolicy::default()
+        .with_criterion(do_memory_core::episode::RetentionCriterion::Unreferenced);
+    let result = do_memory_core::StorageBackend::cleanup_episodes(&cached, &policy)
+        .await
+        .unwrap();
+
+    assert_eq!(result.deleted_ids, vec![episode_id]);
+    assert!(
+        cached
+            .get_episode_cached(episode_id)
+            .await
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[tokio::test]
+async fn test_cleanup_errors_include_operation_context() {
+    let (storage, _dir) = create_test_turso_storage().await;
+    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+    let invalid_policy =
+        do_memory_core::episode::EpisodeRetentionPolicy::default().with_max_age_days(-1);
+
+    let cleanup_error = do_memory_core::StorageBackend::cleanup_episodes(&cached, &invalid_policy)
+        .await
+        .unwrap_err();
+    assert!(cleanup_error.to_string().contains("Cleanup episodes error"));
+
+    let count_error =
+        do_memory_core::StorageBackend::count_cleanup_candidates(&cached, &invalid_policy)
+            .await
+            .unwrap_err();
+    assert!(
+        count_error
+            .to_string()
+            .contains("Count cleanup candidates error")
+    );
+}
+
+#[tokio::test]
+async fn test_episode_summary_errors_include_operation_context() {
+    let dir = TempDir::new().unwrap();
+    let db_path = dir.path().join("test_cache.db");
+    let db = Builder::new_local(&db_path)
+        .build()
+        .await
+        .expect("Failed to create test database");
+    let connection = db.connect().expect("Failed to connect to test database");
+    let storage = TursoStorage::from_database(db).expect("Failed to create storage");
+    storage
+        .initialize_schema()
+        .await
+        .expect("Failed to init schema");
+    connection
+        .execute("DROP TABLE episode_summaries", ())
+        .await
+        .expect("Failed to remove summary table");
+
+    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
+    let summary = do_memory_core::semantic::EpisodeSummary::new(Uuid::new_v4());
+
+    let store_error = do_memory_core::StorageBackend::store_episode_summary(&cached, &summary)
+        .await
+        .unwrap_err();
+    assert!(
+        store_error
+            .to_string()
+            .contains("Store episode summary error")
+    );
+
+    let get_error =
+        do_memory_core::StorageBackend::get_episode_summary(&cached, summary.episode_id)
+            .await
+            .unwrap_err();
+    assert!(get_error.to_string().contains("Get episode summary error"));
 }
 
 #[tokio::test]

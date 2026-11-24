@@ -65,6 +65,7 @@ full = ["turso", "redb", "embeddings-full"]
 
 [dev-dependencies]
 # Testing framework
+async-trait.workspace = true
 predicates = "3.1"
 serial_test = "4.0"
 

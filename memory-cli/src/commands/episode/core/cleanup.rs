@@ -403,6 +403,39 @@ mod tests {
         assert!(rendered.contains("  ! storage unavailable"));
     }
 
+    #[test]
+    fn write_human_propagates_writer_errors() {
+        struct FailingWriter;
+        impl Write for FailingWriter {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::ErrorKind::BrokenPipe.into())
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+
+        let count_only = EpisodeCleanupOutput {
+            dry_run: false,
+            count_only: true,
+            criterion: "KeepAll".to_string(),
+            evaluated: 0,
+            deleted: 0,
+            kept: 0,
+            deleted_ids: Vec::new(),
+            duration_ms: 0,
+            errors: Vec::new(),
+        };
+        assert!(count_only.write_human(FailingWriter).is_err());
+
+        let normal = EpisodeCleanupOutput {
+            count_only: false,
+            ..count_only
+        };
+        assert!(normal.write_human(FailingWriter).is_err());
+    }
+
     #[tokio::test]
     async fn cleanup_command_counts_previews_and_deletes_failed_episodes() {
         let memory = SelfLearningMemory::with_config(MemoryConfig {

@@ -215,7 +215,7 @@ mod tests {
                 sub: subject.to_string(),
                 scope: scope.to_string(),
             },
-            &EncodingKey::from_secret(SECRET.as_bytes()),
+            &EncodingKey::from_secret(SECRET.as_bytes())?,
         )?)
     }
 

@@ -16,7 +16,10 @@ use super::super::{
 };
 use crate::RedbStorage;
 use do_memory_core::{Error, Result};
-use redb::{ReadableDatabase, ReadableTableMetadata, TableDefinition, TableError, TableHandle};
+use redb::{
+    ReadableDatabase, ReadableTable, ReadableTableMetadata, TableDefinition, TableError,
+    TableHandle,
+};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::{info, warn};

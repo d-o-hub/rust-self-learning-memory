@@ -243,3 +243,59 @@ pub async fn view_episode(
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
+
+    #[tokio::test]
+    async fn view_renders_completed_episode_summary_as_json_and_human() {
+        let memory = SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        });
+        let episode_id = memory
+            .start_episode(
+                "Summarize a completed episode".to_string(),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "completed".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .unwrap();
+        assert!(
+            memory
+                .get_episode_summary(episode_id)
+                .await
+                .unwrap()
+                .is_some()
+        );
+
+        view_episode(
+            episode_id.to_string(),
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+        )
+        .await
+        .unwrap();
+        view_episode(
+            episode_id.to_string(),
+            &memory,
+            &Config::default(),
+            OutputFormat::Human,
+        )
+        .await
+        .unwrap();
+    }
+}

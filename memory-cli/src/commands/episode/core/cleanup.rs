@@ -319,4 +319,149 @@ mod tests {
         assert!(rendered.contains("deleted: 1"));
         assert!(rendered.contains(&fail_id.to_string()));
     }
+
+    #[test]
+    fn build_policy_supports_every_preset_and_criterion() {
+        for preset in [
+            RetentionPresetArg::Default,
+            RetentionPresetArg::StorageLimited,
+            RetentionPresetArg::Aggressive,
+            RetentionPresetArg::Archival,
+        ] {
+            let policy = CleanupPolicyArgs {
+                preset,
+                ..Default::default()
+            }
+            .build_policy()
+            .unwrap();
+            assert!(policy.dry_run);
+        }
+
+        for (argument, expected) in [
+            (RetentionCriterionArg::KeepAll, RetentionCriterion::KeepAll),
+            (
+                RetentionCriterionArg::AgeBased,
+                RetentionCriterion::AgeBased,
+            ),
+            (
+                RetentionCriterionArg::RewardBased,
+                RetentionCriterion::RewardBased,
+            ),
+            (
+                RetentionCriterionArg::Unreferenced,
+                RetentionCriterion::Unreferenced,
+            ),
+            (
+                RetentionCriterionArg::FailedOnly,
+                RetentionCriterion::FailedOnly,
+            ),
+            (
+                RetentionCriterionArg::Combined,
+                RetentionCriterion::Combined,
+            ),
+        ] {
+            assert_eq!(RetentionCriterion::from(argument), expected);
+        }
+    }
+
+    #[test]
+    fn write_human_renders_count_only_and_error_lines() {
+        let count = EpisodeCleanupOutput {
+            dry_run: true,
+            count_only: true,
+            criterion: "KeepAll".to_string(),
+            evaluated: 0,
+            deleted: 3,
+            kept: 0,
+            deleted_ids: Vec::new(),
+            duration_ms: 0,
+            errors: Vec::new(),
+        };
+        let mut count_buf = Vec::new();
+        count.write_human(&mut count_buf).unwrap();
+        assert_eq!(
+            String::from_utf8(count_buf).unwrap(),
+            "Cleanup candidates (KeepAll): 3\n"
+        );
+
+        let output = EpisodeCleanupOutput {
+            dry_run: true,
+            count_only: false,
+            criterion: "FailedOnly".to_string(),
+            evaluated: 2,
+            deleted: 1,
+            kept: 1,
+            deleted_ids: vec!["episode-1".to_string()],
+            duration_ms: 5,
+            errors: vec!["storage unavailable".to_string()],
+        };
+        let mut output_buf = Vec::new();
+        output.write_human(&mut output_buf).unwrap();
+        let rendered = String::from_utf8(output_buf).unwrap();
+        assert!(rendered.contains("[DRY RUN] Episode Cleanup (FailedOnly)"));
+        assert!(rendered.contains("  - episode-1"));
+        assert!(rendered.contains("  ! storage unavailable"));
+    }
+
+    #[tokio::test]
+    async fn cleanup_command_counts_previews_and_deletes_failed_episodes() {
+        let memory = SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        });
+        let failed_id = memory
+            .start_episode(
+                "Failed episode for cleanup command".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+        memory
+            .complete_episode(
+                failed_id,
+                TaskOutcome::Failure {
+                    reason: "failed".to_string(),
+                    error_details: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        let args = CleanupPolicyArgs {
+            criterion: Some(RetentionCriterionArg::FailedOnly),
+            ..Default::default()
+        };
+        cleanup_episodes_command(
+            args.clone(),
+            true,
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+        )
+        .await
+        .unwrap();
+        assert!(memory.get_episode(failed_id).await.is_ok());
+
+        cleanup_episodes_command(args, false, &memory, &Config::default(), OutputFormat::Json)
+            .await
+            .unwrap();
+        assert!(memory.get_episode(failed_id).await.is_ok());
+
+        let live_args = CleanupPolicyArgs {
+            criterion: Some(RetentionCriterionArg::FailedOnly),
+            dry_run: false,
+            confirm: true,
+            ..Default::default()
+        };
+        cleanup_episodes_command(
+            live_args,
+            false,
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+        )
+        .await
+        .unwrap();
+        assert!(memory.get_episode(failed_id).await.is_err());
+    }
 }

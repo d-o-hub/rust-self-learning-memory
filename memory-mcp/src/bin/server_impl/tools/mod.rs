@@ -16,6 +16,8 @@ use super::types::Content;
 use do_memory_mcp::MemoryMCPServer;
 use serde_json::Value;
 
+#[cfg(test)]
+mod episode_cleanup_tests;
 mod episode_handlers;
 mod external_signal_handlers;
 mod feature_handlers;

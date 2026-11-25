@@ -291,9 +291,10 @@ TURSO_MAX_CONNECTION_LIFETIME=3600
 - `'text-embedding-3-small'` (OpenAI)
 - `'text-embedding-3-large'` (OpenAI)
 - `'text-embedding-ada-002'` (OpenAI)
-- `'embed-english-v3.0'` (Cohere)
-- `'nomic-embed-text-v1'` (Ollama)
+- `'mistral-embed'` (Mistral, 1024 dimensions)
 - Local models via ONNX Runtime
+- Cohere (`'embed-english-v3.0'`) and Ollama (`'nomic-embed-text-v1'`) ids have no
+  runtime adapter and are rejected at configure time (ADR-085 F-1)
 
 ## Synchronization Strategy
 

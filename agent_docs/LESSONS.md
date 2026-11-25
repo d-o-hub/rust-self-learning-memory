@@ -2216,3 +2216,27 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   cache invalidation and storage error-context cases.
 - References: `memory-storage-turso/src/cache/mod.rs`,
   `memory-storage-turso/src/cache/tests/unit.rs`.
+
+## LESSON-087: A PR whose `mergeable` stays UNKNOWN may already be MERGED (2026-11-25)
+
+- Issue: watching PR #1295 after its checks went green, `gh pr view
+  --json mergeable` kept returning `UNKNOWN` (REST `mergeable=null`) for over an
+  hour while pollers waited for it to resolve. Nothing would ever resolve: the
+  PR had been merged from the UI at 2026-11-25T14:46:06Z, and GitHub reports null
+  mergeability for a PR that has nothing left to merge.
+- Root cause: the merge-watch read `mergeable` without reading `state` first, so
+  an already-merged PR was diagnosed as platform lag. A poll-loop bug compounded
+  it: a `gh` call that failed with a connection error produced an empty string,
+  which missed the `unknown/` case pattern and exited 0 as `RESOLVED` — a
+  silence-is-green poll (same class as LESSON-026/059: nothing is not a verdict).
+- Why it matters: an agent can burn a session waiting for a state that never
+  arrives while the objective is already complete; human merges mid-watch are
+  routine in this repo.
+- Detection: read `state` and `mergedAt` in the same query as `mergeable` before
+  diagnosing `UNKNOWN`; treat any failed or empty `gh` query as a broken poll
+  and hard-fail — an exit path requires a non-empty, freshly-read value.
+- Fix: on `state=MERGED`, verify the merged content on `main`
+  (`git show origin/main:<path>`), fast-forward the checkout, and remove the
+  worktree/branch. PR #1295 content verified at `21d4a600`.
+- References: PR #1295 merge-watch; `.agents/skills/ci-poll/SKILL.md`,
+  `.agents/skills/pr-readiness/SKILL.md`.

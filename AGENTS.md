@@ -2,7 +2,7 @@
 
 Entrypoint for coding agents. **Complete workflow:** [`agent_docs/coding_workflow.md`](agent_docs/coding_workflow.md) — **Docs index:** [`agent_docs/README.md`](agent_docs/README.md) — **Skills:** `.agents/skills/` (routed by `.agents/skills/skill-rules.json`; full inventory `.agents/SKILLS.md`).
 
-Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`, `do-memory-test-utils`, `benches`. Storage: Turso + redb + embeddings (OpenAI/Cohere/Ollama/local).
+Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`, `do-memory-test-utils`, `benches`. Storage: Turso + redb + embeddings (OpenAI/Mistral/local adapters only; `azure`/`cohere`/`custom` have no runtime adapter — ADR-085 F-1).
 
 **Workspace version**: `v0.1.51` (development) · **Latest released tag**: `v0.1.50` (`0fe1b89d`, 2026-11-16). A workspace version ahead of the latest tag is a *development bump*, not a release — see **Workflow Traps** → "A version bump does not make the repo shippable" (LESSON-057).
 
@@ -119,6 +119,11 @@ head against its **merge base**, not the moving `main` tip
 treat any `Cargo.toml` / `Cargo.lock` hunk you did not author as a revert: a
 `Merge branch 'main'` resolution on a bot branch rolled back a dependency bump
 that CI then re-shipped (LESSON-064, LESSON-035, LESSON-074).
+
+A `mergeable`/`mergeStateStatus` that stays `UNKNOWN` may mean the PR is already
+`MERGED` (a human can merge mid-watch) — read `state` and `mergedAt` in the same
+query before diagnosing GitHub lag, and treat any failed or empty `gh` query as a
+broken poll, never a pass (LESSON-087).
 
 ## Release Process
 

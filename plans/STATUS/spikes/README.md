@@ -70,7 +70,8 @@ Recommended optional fields:
 | R-F9 | **GO** | HNSW persistence + capacity eviction — shipped (#893) |
 | R-F10 | **GO** | crates.io trusted publishing — shipped (ADR-078) |
 | R-F2 | **GO** | Opt-in OTLP tracing — `R-F2-otel-2026-11-17.json`, ADR-084, shipped |
-| R-F1, R-F3…R-F7 | **NO-GO** | Deferred by `R-F-product-backlog-2026-11-15.json`; the 2026-07-28 `forced_go` records are feasibility notes with empty `commands`, not approval |
+| R-F1, R-F3/R-F4/R-F6/R-F7 | **NO-GO** | Deferred by `R-F-product-backlog-2026-11-15.json`; the 2026-07-28 `forced_go` records are feasibility notes with empty `commands`, not approval |
+| R-F5 | **NO-GO** (versioning) | Retention cleanup shipped with `WG-075` (#1289, #1293); the multi-version episode schema stays gated; the register metric was always versioning-scoped |
 | R-F-product-backlog | **NO-GO** | Authoritative product gate; supersedes the 2026-07-20 DEFER record and R-F1…R-F7 |
 
 **Policy**: a `GO` artifact is approval to implement, not a claim that implementation

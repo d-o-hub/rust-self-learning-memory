@@ -45,7 +45,7 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 - `embeddings/` - Vector embeddings for semantic search (~3,600 LOC)
   - `openai/` - OpenAI provider (split: client.rs)
   - `circuit_breaker.rs` - Resilience for API calls
-  - Multi-provider support (OpenAI, Cohere, Ollama, local)
+  - Multi-provider support (local, OpenAI, Mistral); `azure`/`cohere`/`custom` are rejected by name at configure time until an adapter exists (ADR-085 F-1)
 - `spatiotemporal/` - Spatial-temporal indexing (~2,400 LOC)
   - `retriever/` - Temporal retrieval (split: mod.rs, types.rs, scoring.rs, tests.rs)
   - `diversity/` - Diversity ranking

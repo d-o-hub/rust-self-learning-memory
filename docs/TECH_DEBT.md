@@ -1,50 +1,55 @@
 # Technical Debt Registry
 
-**Last Updated**: 2026-07-20
+**Last Updated**: 2026-11-25 (rebaselined against the ADR-085 audit of `main`)
 This document tracks known technical debt. Prefer code-verified claims over historical estimates.
+The 2026-07-20 baseline was stale: DOC-02 was already resolved and the ignore-ratchet
+numbers predated the `WG-075` wave. Verification status per row is dated inline.
 
 ## Architecture
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
-| ARCH-01 | Dual-backend synchronization complexity | Medium | Maintenance | Turso↔redb sync paths are operator-facing via `storage sync`. |
-| ARCH-02 | MonitoringStorage wrapper unused | Low | Cleanup | SimpleMonitoringStorage used directly; wrapper reserved. |
+| ARCH-01 | Dual-backend synchronization complexity | Medium | Maintenance | Turso↔redb sync paths are operator-facing via `storage sync`; `WG-075` extended them to summaries/retention (verified 2026-11-25). |
+| ARCH-02 | MonitoringStorage wrapper unused | Low | Cleanup | Confirmed 2026-11-25: `SimpleMonitoringStorage` is the production path (init.rs); the wrapper is retained by design per its doc comment (cites ADR-040). Decide use-or-delete in a follow-up wave. |
 
 ## Storage
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
-| STOR-01 | Upstream libsql memory corruption in some tests | High | Stability | Many Turso integration tests remain `#[ignore]`; see ADR-027 and ignore ratchet. |
-| STOR-02 | Prepared statement cache size limits | Medium | Performance | Fixed size of 100 may be tight for complex workloads. |
+| STOR-01 | Upstream libsql memory corruption in some tests | High | Stability | Many Turso integration tests remain `#[ignore]` under the ADR-027 ratchet: 159 entries vs ceiling 200 (2026-11-25). |
+| STOR-02 | Prepared statement cache size limits | Medium | Performance | Default capacity `100` is hard-coded at `memory-storage-turso/src/prepared/cache.rs:456` (verified 2026-11-25); make it configurable (ADR-085 HY-04). |
 
 ## Testing
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
-| TEST-01 | Ignored tests under ceiling | Medium | Coverage | Ceiling enforced by `./scripts/check-ignored-tests.sh` (current ceiling 200; count moves with tree). |
-| TEST-02 | Non-deterministic pattern accuracy tests | Low | Flakiness | Floating-point variance; partially mitigated. |
+| TEST-01 | Ignored tests under ceiling | Medium | Coverage | 159 entries, ceiling 200 (2026-11-25); enforced by `./scripts/check-ignored-tests.sh`. |
+| TEST-02 | Non-deterministic pattern accuracy tests | Low | Flakiness | Floating-point variance; partially mitigated (not re-verified 2026-11-25). |
 
 ## MCP & Integration
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
 | MCP-01 | `execute_agent_code` unavailable | Medium | Feature | **Intentional fail-closed** (not a temporary bug). S1.1c Wasmtime/WASI spike = NO-GO. Do not advertise a working sandbox. |
-| MCP-02 | Batch tool handlers deferred | Low | Completeness | Batch tools intentionally absent/deferred; not a hidden partial impl. |
+| MCP-02 | Batch tool handlers deferred | Low | Completeness | Batch tools intentionally absent/deferred; not a hidden partial impl. Candidate ADR-085 F-3. |
 
 ## Skills & agent harness
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
-| SKL-01 | Medium-risk skill behavioral evals incomplete | Medium | Agent safety | High-risk set covered (K3.2); expand per R-E2. |
-| SKL-02 | Skill route collisions possible | Low | Routing | Full route set added 2026-07-20; watch negative-route fixtures. |
+| SKL-01 | Medium-risk skill behavioral evals incomplete | Medium | Agent safety | High-risk set covered (K3.2); expand per R-E2 (not re-verified 2026-11-25). |
+| SKL-02 | Skill route collisions possible | Low | Routing | Full route set added 2026-07-20; watch negative-route fixtures (not re-verified 2026-11-25). |
 
 ## Plans / docs
 
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
-| DOC-01 | ADR numbers 025 and 054 duplicated | Medium | Navigation | See `plans/adr/README.md` alias table; prefer full filenames. |
-| DOC-02 | Vision roadmap title still “v0.1.9+” | Low | Clarity | `plans/ROADMAPS/ROADMAP_V030_VISION.md`. |
+| DOC-01 | ADR numbers 025 and 054 duplicated | Medium | Navigation | Alias (historical) files live in `_aliases/`; prefer canonical filenames via `plans/adr/README.md` (still true 2026-11-25). |
+| DOC-02 | Vision roadmap title still "v0.1.9+" | ✅ Resolved | Clarity | Title is now "Long-Term Vision (0.2 → 1.0)"; row retained for history. |
 
 ## Tracking
 
-Open product recommendations: `plans/archive/2026-11-consolidation/GOAP_COMPREHENSIVE_RECOMMENDATIONS_2026-07-20.md` (completed register; R-F product work is gated by `plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json`).
+2026-11-25 audit, tracker-truth reconciliations and the candidate backlog
+(HY-01…HY-07 hygiene, F-1…F-6 gated features): see
+[`plans/adr/ADR-085-Comprehensive-Analysis-v0.1.51.md`](../plans/adr/ADR-085-Comprehensive-Analysis-v0.1.51.md).
+Product gate: `plans/STATUS/spikes/R-F-product-backlog-2026-11-15.json`.

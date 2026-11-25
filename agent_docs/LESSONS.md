@@ -2240,3 +2240,26 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   worktree/branch. PR #1295 content verified at `21d4a600`.
 - References: PR #1295 merge-watch; `.agents/skills/ci-poll/SKILL.md`,
   `.agents/skills/pr-readiness/SKILL.md`.
+
+## LESSON-088: Attribute interleaved command output to the command that printed it (2026-11-25)
+
+- Issue: ADR-085's HY-01 claimed a "tracked 21 MB `bin/act` ELF" from one combined run of
+  `git ls-files bin/` followed by `git check-ignore bin/act && echo IGNORED`. The output
+  showed `bin/act`, `IGNORED` — but `git ls-files bin/` had printed **nothing**: the
+  `bin/act` line was `git check-ignore`'s own pathname output. In isolation,
+  `git ls-files bin/` is empty and `git rev-list --all --objects` contains no `bin/act`
+  object: the file was never tracked; it is a local-only artifact ignored by `/bin/`
+  (`.gitignore:124`).
+- Root cause: two commands that both print pathnames shared one stdout, and the ignore
+  rule reporting a pathname reads exactly like a tracking listing. No single command had
+  been asked the actual question ("is this path tracked?").
+- Why it matters: a finding built on misattributed output survived into a merged ADR's
+  Phase-1 queue before the primary evidence was re-run in isolation.
+- Detection: when commands share one output stream, re-run the decisive one alone; probe
+  tracking with one unambiguous command (`git ls-files --error-unmatch <path>` exits 0
+  only if tracked; `git cat-file -e HEAD:<path>`; `git rev-list --all --objects` for
+  "was it ever in history").
+- Fix: HY-01 withdrawn in the ADR-085 erratum (2026-11-25); no untracking was ever
+  needed.
+- References: `plans/adr/ADR-085-Comprehensive-Analysis-v0.1.51.md` (HY-01),
+  `.gitignore:124`, `docs/YAML_VALIDATION.md` (fetching act).

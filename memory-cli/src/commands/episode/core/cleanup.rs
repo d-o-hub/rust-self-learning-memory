@@ -405,17 +405,6 @@ mod tests {
 
     #[test]
     fn write_human_propagates_writer_errors() {
-        struct FailingWriter;
-        impl Write for FailingWriter {
-            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
-                Err(std::io::ErrorKind::BrokenPipe.into())
-            }
-
-            fn flush(&mut self) -> std::io::Result<()> {
-                Ok(())
-            }
-        }
-
         let count_only = EpisodeCleanupOutput {
             dry_run: false,
             count_only: true,
@@ -427,13 +416,24 @@ mod tests {
             duration_ms: 0,
             errors: Vec::new(),
         };
-        assert!(count_only.write_human(FailingWriter).is_err());
+        let assert_write_zero = |output: &EpisodeCleanupOutput| {
+            let mut buffer = [0_u8; 0];
+            let error = output.write_human(&mut buffer[..]).unwrap_err();
+            assert_eq!(
+                error
+                    .downcast_ref::<std::io::Error>()
+                    .expect("writer error is preserved")
+                    .kind(),
+                std::io::ErrorKind::WriteZero
+            );
+        };
+        assert_write_zero(&count_only);
 
         let normal = EpisodeCleanupOutput {
             count_only: false,
             ..count_only
         };
-        assert!(normal.write_human(FailingWriter).is_err());
+        assert_write_zero(&normal);
     }
 
     #[tokio::test]

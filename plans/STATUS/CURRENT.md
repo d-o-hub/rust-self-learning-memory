@@ -1,13 +1,17 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-11-16
+**Last Updated**: 2026-11-24
 **Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z with 37
 assets; all four registered crates verified at `0.1.50` on crates.io)
 **Workspace Version**: 0.1.51 (post-release development bump)
 **Edition**: Rust 2024 (toolchain pinned `1.99.1`)
-**Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
-dogfood are green; the workspace is `0.1.51`. Remaining: upstream-blocked advisories and
-maintainer-external ADR lifecycle acceptance.
+**Active plan**: post-`v0.1.50` development (`0.1.51`). Durable `EpisodeSummary` persistence
+and policy-driven episode retention cleanup (`WG-075`) are implemented across `do-memory-core`,
+`TursoStorage` (plus `ResilientStorage` and `CachedTursoStorage`), `RedbStorage`,
+`StorageSynchronizer`, `do-memory-cli` (`episode view`, `episode cleanup`, `storage sync`),
+and `do-memory-mcp` (`get_episode`, `cleanup_episodes`), and the adaptive-discovery example
+uses a widened candidate retrieval window (`max(limit * 4, 64)`). Remaining:
+upstream-blocked advisories (ACT-404).
 
 ## Open tracker (live)
 
@@ -34,7 +38,10 @@ maintainer-external ADR lifecycle acceptance.
 
 | Window | Result |
 |--------|--------|
-| 2026-11-16 | `v0.1.50` release, publish chain green, released-CLI dogfood, `0.1.51` bump |
+| 2026-11-24 | CLI `episode cleanup` & `episode view` summary, MCP `cleanup_episodes` & `get_episode` summary, `ResilientStorage` / `CachedTursoStorage` summary+cleanup parity, `StorageSynchronizer` summary sync, adaptive-discovery candidate window |
+| 2026-11-22 | Durable `EpisodeSummary` persistence and `EpisodeRetentionPolicy` cleanup across `do-memory-core`, `TursoStorage`, and `RedbStorage` (#1289) |
+| 2026-11-17 | R-F2 opt-in OTLP tracing (#1284), `LearningOrchestrator` (#1283), adaptive source-discovery example (#1285/#1286) |
+| 2026-11-16 | `v0.1.50` release, publish chain green, released-CLI dogfood, `0.1.51` bump, ADR-080/081/082 lifecycle acceptance (#1282) |
 | 2026-11-15 | plans compaction (#1274), harness 0.4.6 pin (#1273), release-prep CHANGELOG/docs (#1275) |
 | 2026-11-13 | `0.1.50` bump (#1267), Dependabot libsql pin policy (#1268), harness inputs for all sensors (#1269), dependency/action group bumps (#1270…#1272) |
 | 2026-11-12 | `v0.1.49` release, publish chain green, released-CLI dogfood |
@@ -63,8 +70,8 @@ Full evidence for those windows: `plans/STATUS/archive/2026/` and
 | Priority | Item | ID | State |
 |----------|------|----|-------|
 | P1 | Upstream dependency advisories (named pinning chains, no no-op bump) | ACT-404 | ⏸ upstream |
-| P2 | ADR-080 / ADR-081 lifecycle acceptance | maintainer | ⏸ external |
-| P2 | Promote an R-F epic only after a measured spike passes its thresholds | R-F* | ⏸ `NO-GO` |
+| P2 | ADR-080 / ADR-081 / ADR-082 lifecycle acceptance | ACT-425 | ✅ accepted 2026-11-16 |
+| P2 | Promote an R-F epic only after a measured spike passes its thresholds | R-F* | ⏸ `NO-GO` (R-F2 shipped) |
 | P3 | Prepare the next release when cadence or a feature justifies it; use `release-guard` + `release-manager.sh ship --execute` | release | not scheduled |
 
 ## Canonical companions

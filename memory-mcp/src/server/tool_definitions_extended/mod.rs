@@ -212,6 +212,72 @@ pub fn create_extended_tools() -> Vec<Tool> {
         }),
     ));
 
+    // Episode lifecycle management tools - retention policy cleanup (WG-075)
+    tools.push(Tool::new(
+        "cleanup_episodes".to_string(),
+        "Evaluate or clean up expired, failed, or low-value episodes using a retention policy (defaults to dry_run=true; live cleanup requires confirm=true)".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "preset": {
+                    "type": "string",
+                    "enum": ["default", "storage_limited", "aggressive", "archival"],
+                    "default": "default",
+                    "description": "Retention policy preset"
+                },
+                "criterion": {
+                    "type": "string",
+                    "enum": ["combined", "age_based", "reward_based", "unreferenced", "failed_only", "keep_all"],
+                    "description": "Override retention criterion"
+                },
+                "max_age_days": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Maximum age in days before an episode is eligible for cleanup"
+                },
+                "min_reward_threshold": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Minimum reward score to keep an episode (0.0-1.0)"
+                },
+                "max_episodes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Maximum number of episodes to retain"
+                },
+                "cleanup_batch_size": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Maximum episodes to delete in one pass"
+                },
+                "keep_pattern_sources": {
+                    "type": "boolean",
+                    "description": "Keep episodes that produced extracted patterns"
+                },
+                "keep_heuristic_sources": {
+                    "type": "boolean",
+                    "description": "Keep episodes that produced extracted heuristics"
+                },
+                "count_only": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, only return the candidate count without deleting"
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "When true (default), report candidate IDs without mutating storage"
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Must be set to true when dry_run is false"
+                }
+            }
+        }),
+    ));
+
     // Episode lifecycle management tools - update
     tools.push(Tool::new(
         "update_episode".to_string(),

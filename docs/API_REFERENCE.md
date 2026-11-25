@@ -163,6 +163,9 @@ durable read, so behavior is identical to pre-ADR-082 when unconfigured
 - `delete_episode`
 - `update_episode`
 - `get_episode_timeline`
+- `cleanup_episodes` (dry-run by default; live cleanup requires `confirm: true`)
+
+`get_episode` may include a persisted semantic `summary` when available.
 
 ### Episode Tags
 

@@ -16,8 +16,8 @@ pub mod unit;
 // Re-export test helpers for use in submodules
 pub use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
-use libsql::Builder;
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
+use libsql::Builder;
 use tempfile::TempDir;
 use uuid::Uuid;
 
@@ -62,6 +62,8 @@ pub fn create_test_episode(id: Uuid) -> Episode {
         start_time: chrono::Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
+        tags: Vec::new(),
+        checkpoints: Vec::new(),
     }
 }
 

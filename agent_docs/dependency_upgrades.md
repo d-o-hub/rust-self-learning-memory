@@ -2,12 +2,21 @@
 
 **CRITICAL**: Always check docs.rs for breaking changes before upgrading.
 
-## redb 3.x
-- `begin_read()` moved to `ReadableDatabase` trait - must import:
+## redb 3.x / 5.x
+- `begin_read()` moved to `ReadableDatabase` trait (3.x) - must import:
   ```rust
   use redb::ReadableDatabase;
   ```
+- `ReadOnlyTable::get()` moved to `ReadableTable` trait (5.x) - must import:
+  ```rust
+  use redb::ReadableTable;
+  ```
 - `begin_write()` remains on `Database` struct
+
+## jsonwebtoken 12.x
+- `EncodingKey::from_secret(&[u8])` and `DecodingKey::from_secret(&[u8])` are now
+  fallible (`Result<Self, Error>`) and reject empty secrets (`ErrorKind::InvalidKeyFormat`).
+  Propagate or map the error explicitly instead of unwrapping.
 
 ## rand 0.10
 - `rand::thread_rng()` → `rand::rng()`

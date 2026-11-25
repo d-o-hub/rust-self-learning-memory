@@ -24,6 +24,7 @@ pub use core::TaskOutcome;
 
 pub use core::bulk_get_episodes;
 pub use core::checkpoint;
+pub use core::cleanup_episodes_command;
 pub use core::complete_episode;
 pub use core::create_episode;
 pub use core::delete;
@@ -39,6 +40,9 @@ pub use core::resume;
 pub use core::search_episodes;
 pub use core::update_episode;
 pub use core::view_episode;
+pub use core::{
+    CleanupPolicyArgs, EpisodeCleanupOutput, RetentionCriterionArg, RetentionPresetArg,
+};
 
 // Re-export relationship commands and types
 pub use relationships::AddRelationshipResult;

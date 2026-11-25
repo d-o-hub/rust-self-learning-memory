@@ -5,6 +5,7 @@
 
 pub mod bulk;
 pub mod checkpoint;
+pub mod cleanup;
 pub mod compact_handoff;
 pub mod complete;
 pub mod create;
@@ -21,6 +22,10 @@ pub mod view;
 pub use bulk::bulk_get_episodes;
 pub use checkpoint::{
     CheckpointResult, HandoffResult, ResumeResult, checkpoint, handoff, list_checkpoints, resume,
+};
+pub use cleanup::{
+    CleanupPolicyArgs, EpisodeCleanupOutput, RetentionCriterionArg, RetentionPresetArg,
+    cleanup_episodes_command,
 };
 pub use complete::{complete_episode, fail_episode};
 pub use create::create_episode;

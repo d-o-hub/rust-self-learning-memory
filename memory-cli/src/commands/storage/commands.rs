@@ -222,6 +222,16 @@ pub async fn sync_storage(
                 heuristics_synced += 1;
             }
         }
+        if turso.supports_episode_summaries() && redb.supports_episode_summaries() {
+            if let Ok(Some(summary)) = turso.get_episode_summary(episode.episode_id).await {
+                if let Err(e) = redb.store_episode_summary(&summary).await {
+                    eprintln!(
+                        "Warning: Failed to sync episode summary {}: {}",
+                        episode.episode_id, e
+                    );
+                }
+            }
+        }
     }
 
     // Store sync timestamp (we'll use a simple approach since we can't access backend-specific methods)

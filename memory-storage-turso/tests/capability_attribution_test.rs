@@ -186,6 +186,14 @@ async fn relationship_and_procedural_capability_is_truthful_per_backend() {
             !backend.supports_procedural_memory(),
             "an unrouted wrapper must not advertise procedural memory"
         );
+        assert!(
+            backend.supports_episode_summaries(),
+            "routed wrapper must delegate episode summary capability"
+        );
+        assert!(
+            backend.supports_episode_cleanup(),
+            "routed wrapper must delegate episode cleanup capability"
+        );
     }
 
     let relationship = EpisodeRelationship::new(
@@ -293,4 +301,96 @@ async fn turso_summary_and_cleanup_operations_round_trip() {
             .unwrap()
             .is_some()
     );
+}
+
+#[tokio::test]
+async fn turso_wrappers_route_summary_and_cleanup_and_evict_cache() {
+    use do_memory_core::episode::{EpisodeRetentionPolicy, RetentionCriterion};
+    use do_memory_core::semantic::EpisodeSummary;
+    use do_memory_core::{Episode, TaskType};
+
+    let (cached_inner, _dir1) = local_turso().await;
+    let cached = CachedTursoStorage::new(cached_inner, CacheConfig::default());
+    let cached_backend: &dyn StorageBackend = &cached;
+
+    let mut ep = Episode::new(
+        "Failed cached candidate".to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+    ep.complete(TaskOutcome::Failure {
+        reason: "boom".to_string(),
+        error_details: None,
+    });
+    cached_backend.store_episode(&ep).await.unwrap();
+    // Warm the adaptive episode cache
+    assert!(
+        cached_backend
+            .get_episode(ep.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
+
+    let mut summary = EpisodeSummary::new(ep.episode_id);
+    summary.summary_text = "Cached wrapper summary".to_string();
+    summary.key_concepts = vec!["wrapper-cache".to_string()];
+    cached_backend
+        .store_episode_summary(&summary)
+        .await
+        .unwrap();
+    assert_eq!(
+        cached_backend
+            .get_episode_summary(ep.episode_id)
+            .await
+            .unwrap()
+            .unwrap()
+            .summary_text,
+        "Cached wrapper summary"
+    );
+
+    let policy = EpisodeRetentionPolicy::default().with_criterion(RetentionCriterion::FailedOnly);
+    assert_eq!(
+        cached_backend
+            .count_cleanup_candidates(&policy)
+            .await
+            .unwrap(),
+        1
+    );
+    let cleaned = cached_backend.cleanup_episodes(&policy).await.unwrap();
+    assert_eq!(cleaned.deleted_ids, vec![ep.episode_id]);
+    assert!(
+        cached_backend
+            .get_episode(ep.episode_id)
+            .await
+            .unwrap()
+            .is_none(),
+        "CachedTursoStorage must evict cleaned episodes from its in-memory adaptive cache"
+    );
+
+    let (resilient_inner, _dir2) = local_turso().await;
+    let resilient = ResilientStorage::new(resilient_inner, CircuitBreakerConfig::default());
+    let resilient_backend: &dyn StorageBackend = &resilient;
+
+    resilient_backend.store_episode(&ep).await.unwrap();
+    resilient_backend
+        .store_episode_summary(&summary)
+        .await
+        .unwrap();
+    assert!(
+        resilient_backend
+            .get_episode_summary(ep.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert_eq!(
+        resilient_backend
+            .count_cleanup_candidates(&policy)
+            .await
+            .unwrap(),
+        1
+    );
+    let res_cleaned = resilient_backend.cleanup_episodes(&policy).await.unwrap();
+    assert_eq!(res_cleaned.deleted_ids, vec![ep.episode_id]);
 }

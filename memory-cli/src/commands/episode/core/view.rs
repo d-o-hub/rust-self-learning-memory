@@ -25,6 +25,12 @@ pub async fn view_episode(
         .await
         .map_err(|e| anyhow::anyhow!("Episode not found {}: {}", episode_id_str, e))?;
 
+    let summary = memory
+        .get_episode_summary(episode_uuid)
+        .await
+        .ok()
+        .flatten();
+
     let outcome = episode.outcome.as_ref().map(|outcome| {
         serde_json::json!({
             "type": match outcome {
@@ -78,6 +84,12 @@ pub async fn view_episode(
             "insights": r.insights,
             "generated_at": r.generated_at,
         })),
+        "summary": summary.as_ref().map(|s| serde_json::json!({
+            "summary_text": s.summary_text,
+            "key_concepts": s.key_concepts,
+            "key_steps": s.key_steps,
+            "created_at": s.created_at.to_rfc3339(),
+        })),
         "patterns_count": episode.patterns.len(),
         "heuristics_count": episode.heuristics.len(),
     });
@@ -100,6 +112,7 @@ pub async fn view_episode(
             outcome: Option<serde_json::Value>,
             reward: Option<serde_json::Value>,
             reflection: Option<serde_json::Value>,
+            summary: Option<serde_json::Value>,
             patterns_count: usize,
             heuristics_count: usize,
         }
@@ -156,6 +169,21 @@ pub async fn view_episode(
                     writeln!(writer, "{:#?}", reward)?;
                 }
 
+                // Show semantic summary if available
+                if let Some(ref summary) = self.summary {
+                    if let Some(text) = summary.get("summary_text").and_then(|v| v.as_str()) {
+                        writeln!(writer, "\nSummary:")?;
+                        writeln!(writer, "{}", text)?;
+                    }
+                    if let Some(concepts) = summary.get("key_concepts").and_then(|v| v.as_array()) {
+                        if !concepts.is_empty() {
+                            let joined: Vec<&str> =
+                                concepts.iter().filter_map(|c| c.as_str()).collect();
+                            writeln!(writer, "Key Concepts: {}", joined.join(", "))?;
+                        }
+                    }
+                }
+
                 Ok(())
             }
         }
@@ -203,9 +231,71 @@ pub async fn view_episode(
                 if !episode.heuristics.is_empty() {
                     println!("Heuristics: {}", episode.heuristics.len());
                 }
+                if let Some(ref s) = summary {
+                    println!("Summary: {}", s.summary_text);
+                    if !s.key_concepts.is_empty() {
+                        println!("Key Concepts: {}", s.key_concepts.join(", "));
+                    }
+                }
             }
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use do_memory_core::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
+
+    #[tokio::test]
+    async fn view_renders_completed_episode_summary_as_json_and_human() {
+        let memory = SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        });
+        let episode_id = memory
+            .start_episode(
+                "Summarize a completed episode".to_string(),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "completed".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .unwrap();
+        assert!(
+            memory
+                .get_episode_summary(episode_id)
+                .await
+                .unwrap()
+                .is_some()
+        );
+
+        view_episode(
+            episode_id.to_string(),
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+        )
+        .await
+        .unwrap();
+        view_episode(
+            episode_id.to_string(),
+            &memory,
+            &Config::default(),
+            OutputFormat::Human,
+        )
+        .await
+        .unwrap();
     }
 }

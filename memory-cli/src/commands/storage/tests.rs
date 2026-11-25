@@ -7,11 +7,141 @@
 use super::provenance::{MetricProvenance, MetricValue};
 use super::types::{ConnectionInfo, ConnectionStatus, StorageStats, StorageStatsData};
 use crate::output::Output;
+use async_trait::async_trait;
+use do_memory_core::StorageBackend;
+use do_memory_core::StorageBackendCapabilities;
 
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
 
+fn unsupported_backend_operation<T>() -> do_memory_core::Result<T> {
+    Err(do_memory_core::Error::capability_unavailable(
+        "unused test backend operation",
+    ))
+}
+
+struct SummaryFailureBackend {
+    episodes: Vec<do_memory_core::Episode>,
+    summary: Option<do_memory_core::semantic::EpisodeSummary>,
+    fail_summary_write: bool,
+    summary_write_attempted: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl StorageBackendCapabilities for SummaryFailureBackend {
+    fn supports_episode_summaries(&self) -> bool {
+        true
+    }
+}
+
+#[async_trait]
+impl StorageBackend for SummaryFailureBackend {
+    async fn store_episode(&self, _: &do_memory_core::Episode) -> do_memory_core::Result<()> {
+        Ok(())
+    }
+
+    async fn get_episode(
+        &self,
+        id: uuid::Uuid,
+    ) -> do_memory_core::Result<Option<do_memory_core::Episode>> {
+        Ok(self
+            .episodes
+            .iter()
+            .find(|episode| episode.episode_id == id)
+            .cloned())
+    }
+
+    async fn delete_episode(&self, _: uuid::Uuid) -> do_memory_core::Result<()> {
+        unsupported_backend_operation()
+    }
+
+    async fn store_pattern(&self, _: &do_memory_core::Pattern) -> do_memory_core::Result<()> {
+        unsupported_backend_operation()
+    }
+
+    async fn get_pattern(
+        &self,
+        _: do_memory_core::episode::PatternId,
+    ) -> do_memory_core::Result<Option<do_memory_core::Pattern>> {
+        unsupported_backend_operation()
+    }
+
+    async fn store_heuristic(&self, _: &do_memory_core::Heuristic) -> do_memory_core::Result<()> {
+        unsupported_backend_operation()
+    }
+
+    async fn get_heuristic(
+        &self,
+        _: uuid::Uuid,
+    ) -> do_memory_core::Result<Option<do_memory_core::Heuristic>> {
+        unsupported_backend_operation()
+    }
+
+    async fn query_episodes_since(
+        &self,
+        _: chrono::DateTime<chrono::Utc>,
+        _: Option<usize>,
+    ) -> do_memory_core::Result<Vec<do_memory_core::Episode>> {
+        Ok(self.episodes.clone())
+    }
+
+    async fn query_episodes_by_metadata(
+        &self,
+        _: &str,
+        _: &str,
+        _: Option<usize>,
+    ) -> do_memory_core::Result<Vec<do_memory_core::Episode>> {
+        unsupported_backend_operation()
+    }
+
+    async fn store_embedding(&self, _: &str, _: Vec<f32>) -> do_memory_core::Result<()> {
+        unsupported_backend_operation()
+    }
+
+    async fn get_embedding(&self, _: &str) -> do_memory_core::Result<Option<Vec<f32>>> {
+        unsupported_backend_operation()
+    }
+
+    async fn delete_embedding(&self, _: &str) -> do_memory_core::Result<bool> {
+        unsupported_backend_operation()
+    }
+
+    async fn store_embeddings_batch(
+        &self,
+        _: Vec<(String, Vec<f32>)>,
+    ) -> do_memory_core::Result<()> {
+        unsupported_backend_operation()
+    }
+
+    async fn get_embeddings_batch(
+        &self,
+        _: &[String],
+    ) -> do_memory_core::Result<Vec<Option<Vec<f32>>>> {
+        unsupported_backend_operation()
+    }
+
+    async fn store_episode_summary(
+        &self,
+        _: &do_memory_core::semantic::EpisodeSummary,
+    ) -> do_memory_core::Result<()> {
+        self.summary_write_attempted
+            .store(true, std::sync::atomic::Ordering::SeqCst);
+        if self.fail_summary_write {
+            Err(do_memory_core::Error::Storage(
+                "injected summary cache failure".to_string(),
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    async fn get_episode_summary(
+        &self,
+        _: uuid::Uuid,
+    ) -> do_memory_core::Result<Option<do_memory_core::semantic::EpisodeSummary>> {
+        Ok(self.summary.clone())
+    }
+}
 fn sample_stats() -> StorageStats {
     StorageStats {
         episodes: StorageStatsData {
@@ -389,12 +519,16 @@ async fn vacuum_storage_live_human_output_is_not_misleading() {
 async fn sync_storage_reconciles_episodes_between_backends() {
     // Arrange: dual-backend memory (file-backed redb stands in for Turso).
     let dir = tempfile::tempdir().expect("temp dir for storage backends");
-    let turso = do_memory_storage_redb::RedbStorage::new(&dir.path().join("turso.redb"))
-        .await
-        .expect("turso backend");
-    let cache = do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
-        .await
-        .expect("cache backend");
+    let turso: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(
+        do_memory_storage_redb::RedbStorage::new(&dir.path().join("turso.redb"))
+            .await
+            .expect("turso backend"),
+    );
+    let cache: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(
+        do_memory_storage_redb::RedbStorage::new(&dir.path().join("cache.redb"))
+            .await
+            .expect("cache backend"),
+    );
     // Lower quality threshold so the fixture episode is accepted (same
     // convention as the e2e pattern workflow tests).
     let memory = do_memory_core::SelfLearningMemory::with_storage(
@@ -402,8 +536,8 @@ async fn sync_storage_reconciles_episodes_between_backends() {
             quality_threshold: 0.3,
             ..Default::default()
         },
-        std::sync::Arc::new(turso),
-        std::sync::Arc::new(cache),
+        std::sync::Arc::clone(&turso),
+        std::sync::Arc::clone(&cache),
     );
 
     // Create a completed episode with a logged step so the durable backend
@@ -439,6 +573,16 @@ async fn sync_storage_reconciles_episodes_between_backends() {
         )
         .await
         .expect("complete episode");
+
+    // Prove the CLI sync copies the latest durable summary, not just the
+    // episode data already written to both backends during completion.
+    let mut summary = do_memory_core::semantic::EpisodeSummary::new(episode_id);
+    summary.summary_text = "cli sync summary sentinel".to_string();
+    turso
+        .store_episode_summary(&summary)
+        .await
+        .expect("store durable summary");
+
     // Let async pattern extraction finish so `episode.patterns` is populated.
     tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     let patterns = memory.get_all_patterns().await.expect("patterns query");
@@ -461,6 +605,55 @@ async fn sync_storage_reconciles_episodes_between_backends() {
 
     // Assert
     assert!(result.is_ok(), "live sync must succeed with dual backends");
+    let cached_summary = cache
+        .get_episode_summary(episode_id)
+        .await
+        .expect("read cached summary")
+        .expect("summary mirrored to cache");
+    assert_eq!(cached_summary.summary_text, "cli sync summary sentinel");
+}
+
+#[tokio::test]
+async fn sync_storage_continues_when_summary_cache_write_fails() {
+    let episode = do_memory_core::Episode::new(
+        "summary cache failure".to_string(),
+        do_memory_core::TaskContext::default(),
+        do_memory_core::TaskType::Testing,
+    );
+    let summary = do_memory_core::semantic::EpisodeSummary::new(episode.episode_id);
+    let summary_write_attempted = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let source: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(SummaryFailureBackend {
+        episodes: vec![episode],
+        summary: Some(summary),
+        fail_summary_write: false,
+        summary_write_attempted: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+    });
+    let cache: std::sync::Arc<dyn StorageBackend> = std::sync::Arc::new(SummaryFailureBackend {
+        episodes: Vec::new(),
+        summary: None,
+        fail_summary_write: true,
+        summary_write_attempted: std::sync::Arc::clone(&summary_write_attempted),
+    });
+    let memory = do_memory_core::SelfLearningMemory::with_storage(
+        do_memory_core::MemoryConfig::default(),
+        source,
+        cache,
+    );
+
+    let result = super::commands::sync_storage(
+        &memory,
+        &crate::config::Config::default(),
+        crate::output::OutputFormat::Json,
+        false,
+        false,
+    )
+    .await;
+
+    assert!(result.is_ok(), "summary mirroring is best effort");
+    assert!(
+        summary_write_attempted.load(std::sync::atomic::Ordering::SeqCst),
+        "the failing summary cache write must be attempted"
+    );
 }
 
 // ---------------------------------------------------------------------------

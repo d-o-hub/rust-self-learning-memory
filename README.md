@@ -22,7 +22,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **do-memory-benches**: Comprehensive benchmark suite
 - **do-memory-examples**: Usage examples and demonstrations
 
-**Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Mistral, local)  
+**Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Mistral, local)
 
 ## Features
 
@@ -78,13 +78,15 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **`recommend_patterns`** - Task-specific pattern recommendations
 - **`recommend_playbook`** - Actionable step-by-step guidance
 - **`checkpoint_episode`** - Mid-task progress snapshots
+- **`cleanup_episodes`** - Retention-policy cleanup (dry-run by default)
 - Embedding tools: configure, test, generate, search, provider-status
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
 
 ### 🛠️ Full-Featured CLI
 - Top-level command groups include: episode, pattern, storage, config, health, backup, monitor, logs, eval, embedding, completion, tag, relationship, playbook, feedback
-- Episode management (create, list, view, search, log-step, complete, **fail**, delete, update, bulk, filter)
+- Episode management (create, list, view, search, log-step, complete, **fail**, delete, cleanup, update, bulk, filter)
+- Persisted semantic episode summaries appear in CLI `episode view` and MCP `get_episode` when available
 - Pattern analysis and effectiveness tracking (list, view, search, analyze, decay, batch)
 - Discoverable config (`config init` / `config show-template`) and documented precedence (flags → env → config → defaults)
 - Tag management (add, remove, search, rename, stats)
@@ -119,7 +121,7 @@ use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel, TaskType}
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let memory = SelfLearningMemory::new();
-    
+
     // Search for patterns using natural language
     let context = TaskContext {
         domain: "web-api".to_string(),
@@ -128,26 +130,26 @@ async fn main() -> anyhow::Result<()> {
         complexity: ComplexityLevel::Moderate,
         tags: vec!["rest".to_string(), "async".to_string()],
     };
-    
+
     let results = memory.search_patterns_semantic(
         "How to handle API rate limiting with retries",
         context.clone(),
         5  // limit
     ).await?;
-    
+
     for result in results {
         println!("Pattern: {:?}", result.pattern);
         println!("Relevance: {:.2}", result.relevance_score);
         println!("Success Rate: {:.1}%", result.pattern.success_rate() * 100.0);
     }
-    
+
     // Get task-specific recommendations
     let recommendations = memory.recommend_patterns_for_task(
         "Build async HTTP client with connection pooling",
         context,
         3
     ).await?;
-    
+
     for rec in recommendations {
         println!("Recommended: {:?}", rec.pattern);
     }
@@ -168,7 +170,7 @@ async fn main() -> anyhow::Result<()> {
             println!("{}. {}", step.order, step.action);
         }
     }
-    
+
     Ok(())
 }
 ```
@@ -296,6 +298,12 @@ do-memory-cli episode complete <episode-id> success
 
 # Force-fail abandoned in_progress rows (operator path; ADR-075)
 do-memory-cli episode fail <episode-id>
+
+# Preview matching failed episodes without deleting
+do-memory-cli episode cleanup --criterion failed-only --count-only
+
+# Apply cleanup only after reviewing candidates; live deletion requires confirmation
+do-memory-cli episode cleanup --criterion failed-only --confirm
 
 # List / search episodes
 do-memory-cli episode list --limit 10

@@ -1,8 +1,8 @@
 # Gap Analysis — Live Register
 
-**Last Updated**: 2026-11-17
+**Last Updated**: 2026-11-24
 **Workspace Version**: `0.1.51` · **Released Tag**: `v0.1.50` (`0fe1b89d`)
-**Main baseline**: `f02d81f9` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
+**Main baseline**: `eb076391` · **Open PRs**: `gh pr list` is the live source · **Open issues**: 0
 **Historical register**: [`archive/2026/GAP_ANALYSIS_2026-11-01.md`](archive/2026/GAP_ANALYSIS_2026-11-01.md)
 (the 2026-10-04 audit snapshot and its 22 verdicts)
 
@@ -11,9 +11,19 @@
 - **No open code gap.** The audited #1063–#1092 set, the follow-ups (#1068/#1089/#1076),
   the release series (#1109/#1165), the drift issue (#1223/#1236) and the CLI contract
   follow-up (#1232/#1233) are closed.
+- **Episode summaries & retention cleanup parity closed 2026-11-24:** durable
+  `EpisodeSummary` persistence and `EpisodeRetentionPolicy` cleanup (`WG-075`, #1289) are
+  now also wired through `ResilientStorage` and `CachedTursoStorage` (with adaptive cache
+  eviction), mirrored during `StorageSynchronizer` and `do-memory-cli storage sync`, and
+  exposed via `do-memory-cli episode view`, `do-memory-cli episode cleanup`, and MCP
+  `get_episode` / `cleanup_episodes`.
+- **Adaptive discovery candidate window closed 2026-11-24:** `DiscoveryMemory::retrieve_family_observations`
+  requests a wider candidate window (`max(limit * 4, 64)`) before truncating per-family
+  observations to `limit`, preventing quality-weighted retrieval from starving a family's
+  blocked attempts.
 - **Tracker empty 2026-11-17:** #1281 (external-consumer adaptive-discovery example) merged
-  as #1285 and dogfooded from `main`; there are no open issues and no open pull requests.
-  The next release is unscheduled — cadence reports `within_cadence`.
+  as #1285 and dogfooded from `main`; there are no open issues. The next release is
+  unscheduled — cadence reports `within_cadence`.
 - The 2026-10-04 register claimed 22 open findings because the issues had never been
   entered into the trackers. Every one now has a merged PR or a recorded closure in the
   historical register; do not re-open them without regression evidence.

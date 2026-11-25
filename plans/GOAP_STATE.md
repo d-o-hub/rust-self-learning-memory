@@ -1,14 +1,18 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-11-17
+- **Last Updated**: 2026-11-24
 - **Version**: workspace `0.1.51` (post-release bump; latest published tag `v0.1.50`,
   `0fe1b89d`, GitHub Release published 2026-11-16T08:45:18Z)
-- **Branch**: post-release bump based on `main` @ `0fe1b89d`
+- **Branch**: `main` @ `eb076391` (post-release `0.1.51` development)
 - **Open PRs / issues**: live sources `gh pr list --state open` / `gh issue list --state open`;
   Dependabot group PRs may be open
-- **Active plan**: post-`v0.1.50` closeout. The last open product issue (#1281,
-  external-consumer example) landed and is measured; the only open item is the
-  upstream-blocked Dependabot advisory set (ACT-404).
+- **Active plan**: post-`v0.1.50` feature & parity closeout. Durable `EpisodeSummary`
+  persistence and policy-driven episode retention cleanup (`WG-075`) are wired across
+  `do-memory-core`, `TursoStorage` (plus `ResilientStorage` and `CachedTursoStorage`),
+  `RedbStorage`, `StorageSynchronizer`, `do-memory-cli` (`episode view`, `episode cleanup`,
+  `storage sync`), and `do-memory-mcp` (`get_episode`, `cleanup_episodes`), alongside the
+  adaptive-discovery candidate window expansion (`max(limit * 4, 64)`). The only open item is
+  the upstream-blocked Dependabot advisory set (ACT-404).
 - **Register**: [`STATUS/GAP_ANALYSIS_LATEST.md`](STATUS/GAP_ANALYSIS_LATEST.md)
 - **Release**: `v0.1.50` shipped and reached crates.io (core, redb, turso, mcp); the
   released CLI was dogfooded. Next release is not scheduled.
@@ -49,7 +53,9 @@ product_backlog_gated              = true   (R-F2 promoted by measured spike; R-
 otel_tracing_opt_in                = true   (R-F2; ADR-084; inert unless configured)
 adr_lifecycle_accepted             = true   (ADR-080/081/082 accepted 2026-11-16)
 learning_orchestrator              = true   (reward + reflection + pattern dispatch unified)
-external_consumer_example          = true   (#1281; bounded planner, endpoint redaction, cross-process fingerprint)
+external_consumer_example          = true   (#1281; bounded planner, endpoint redaction, candidate window, cross-process fingerprint)
+durable_episode_summaries          = true   (#1289 + CLI/MCP/sync/wrapper parity; Turso + redb + playbook resolution)
+episode_retention_cleanup          = true   (#1289 + CLI `episode cleanup` + MCP `cleanup_episodes` + wrapper cache eviction)
 ```
 
 ## Closed campaigns (pointer)

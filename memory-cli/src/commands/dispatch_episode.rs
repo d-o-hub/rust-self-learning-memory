@@ -1,6 +1,7 @@
 use crate::commands::episode::{
-    EpisodeCommands, bulk_get_episodes, checkpoint, complete_episode, create_episode,
-    delete_episode, fail_episode, handoff, log_step, resume, search_episodes, update_episode,
+    CleanupPolicyArgs, EpisodeCommands, bulk_get_episodes, checkpoint, cleanup_episodes_command,
+    complete_episode, create_episode, delete_episode, fail_episode, handoff, log_step, resume,
+    search_episodes, update_episode,
 };
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -169,6 +170,34 @@ pub async fn handle_episode_command(
         EpisodeCommands::Delete { episode_id } => {
             delete_episode(episode_id, memory, config, format, dry_run).await
         }
+        EpisodeCommands::Cleanup {
+            preset,
+            criterion,
+            max_age_days,
+            min_reward,
+            max_episodes,
+            batch_size,
+            count_only,
+            confirm,
+        } => {
+            cleanup_episodes_command(
+                CleanupPolicyArgs {
+                    preset,
+                    criterion,
+                    max_age_days,
+                    min_reward,
+                    max_episodes,
+                    batch_size,
+                    dry_run,
+                    confirm,
+                },
+                count_only,
+                memory,
+                config,
+                format,
+            )
+            .await
+        }
         EpisodeCommands::Checkpoint {
             episode_id,
             reason,
@@ -298,5 +327,70 @@ pub async fn handle_relationships_command(
         RelationshipCommands::TopologicalSort { episode_ids } => {
             topological_sort(episode_ids, memory, config, format, dry_run).await
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::episode::{RetentionCriterionArg, RetentionPresetArg};
+    use do_memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+
+    #[tokio::test]
+    async fn cleanup_is_preview_only_until_explicit_confirmation() {
+        let memory = SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            ..Default::default()
+        });
+        let episode_id = memory
+            .start_episode(
+                "Failed episode".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Failure {
+                    reason: "failed".to_string(),
+                    error_details: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        let cleanup = |confirm| EpisodeCommands::Cleanup {
+            preset: RetentionPresetArg::Default,
+            criterion: Some(RetentionCriterionArg::FailedOnly),
+            max_age_days: None,
+            min_reward: None,
+            max_episodes: None,
+            batch_size: None,
+            count_only: false,
+            confirm,
+        };
+
+        handle_episode_command(
+            cleanup(false),
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(memory.get_episode(episode_id).await.is_ok());
+
+        handle_episode_command(
+            cleanup(true),
+            &memory,
+            &Config::default(),
+            OutputFormat::Json,
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(memory.get_episode(episode_id).await.is_err());
     }
 }

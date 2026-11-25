@@ -29,6 +29,26 @@ const PROVIDER_TAG: &str = "provider_";
 /// Tag prefix that identifies how an episode ended.
 const OUTCOME_TAG: &str = "outcome_";
 
+/// How many retrieval candidates to request per observation the caller wants.
+///
+/// Retrieval ranks by a quality-weighted relevance score, so the episodes a
+/// planner needs most — blocked or failed attempts — are the ones that rank
+/// lowest. Asking for only as many candidates as you intend to use lets a
+/// busier store crowd them out entirely.
+const CANDIDATE_WINDOW_MULTIPLIER: usize = 4;
+
+/// Lower bound on the retrieval window, so a small `--limit` still sees enough
+/// of the store to find the family's history.
+const CANDIDATE_WINDOW_FLOOR: usize = 64;
+
+/// The retrieval window to ask for when `limit` observations are wanted.
+#[must_use]
+fn candidate_window(limit: usize) -> usize {
+    limit
+        .saturating_mul(CANDIDATE_WINDOW_MULTIPLIER)
+        .max(CANDIDATE_WINDOW_FLOOR)
+}
+
 // Episode tags are normalised and validated by the memory system: only
 // alphanumeric characters, hyphens, and underscores survive, so the prefix
 // separator is `_`, not `:`. An external consumer that tags with `family:nba`
@@ -130,8 +150,16 @@ impl DiscoveryMemory {
 
     /// Retrieve prior observations for a family from episodic memory.
     ///
-    /// Returns the observations plus the number of retrieved episodes that carried
-    /// no usable plan/outcome tags. Episodes from other families are skipped.
+    /// `limit` is how many observations the caller wants to *use*. The retrieval
+    /// window is wider than that (see [`candidate_window`]) because retrieval
+    /// ranks by quality-weighted relevance: a family's blocked attempts rank
+    /// last, and those are exactly the evidence that a plan has stopped working.
+    /// A wider window keeps a busy store from starving the family, and the
+    /// result is truncated back to `limit` afterwards.
+    ///
+    /// Returns the observations plus the number of retrieved episodes (in the
+    /// candidate window) that carried no usable plan/outcome tags. Episodes from
+    /// other families are skipped and are not counted as unattributed.
     ///
     /// # Errors
     ///
@@ -143,7 +171,11 @@ impl DiscoveryMemory {
     ) -> Result<(Vec<Observation>, usize)> {
         let episodes = self
             .memory
-            .retrieve_relevant_context(family.query.clone(), task_context(family), limit)
+            .retrieve_relevant_context(
+                family.query.clone(),
+                task_context(family),
+                candidate_window(limit),
+            )
             .await;
 
         let mut observations = Vec::new();
@@ -158,6 +190,7 @@ impl DiscoveryMemory {
                 None => ignored += 1,
             }
         }
+        observations.truncate(limit);
         Ok((observations, ignored))
     }
 
@@ -308,6 +341,15 @@ fn pattern_kind(pattern: &Pattern) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn candidate_window_is_wider_than_the_requested_limit() {
+        assert_eq!(candidate_window(1), CANDIDATE_WINDOW_FLOOR);
+        assert_eq!(candidate_window(16), CANDIDATE_WINDOW_FLOOR);
+        assert_eq!(candidate_window(17), 17 * CANDIDATE_WINDOW_MULTIPLIER);
+        assert_eq!(candidate_window(0), CANDIDATE_WINDOW_FLOOR);
+        assert!(candidate_window(usize::MAX) >= usize::MAX / 2);
+    }
 
     #[test]
     fn observations_parse_from_tags() {

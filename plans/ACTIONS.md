@@ -1,9 +1,12 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-11-17
-- **Active plan**: post-`v0.1.50` closeout. The release, publish chain and released-CLI
-  dogfood are green; the workspace is `0.1.51`. The last open product issue (#1281,
-  external-consumer example) is implemented and measured. **No code-side action is open.**
+- **Last Updated**: 2026-11-24
+- **Active plan**: post-`v0.1.50` development (`0.1.51`). The release, publish chain and
+  released-CLI dogfood are green; durable `EpisodeSummary` persistence and `WG-075` episode
+  retention cleanup are implemented end-to-end across core, storage backends and wrappers,
+  storage sync, CLI (`episode view`, `episode cleanup`, `storage sync`), and MCP
+  (`get_episode`, `cleanup_episodes`), and the adaptive-discovery candidate window is bounded.
+  **No code-side action is open.**
 - **Remaining**: upstream-blocked advisories (ACT-404).
 - **Archive**: `plans/archive/2026-11-consolidation/`
 - **Completed pointer**: `plans/STATUS/archive/2026/` and the archived registers above.
@@ -12,8 +15,15 @@
 
 | ID | Action | Owner | Status |
 |----|--------|-------|--------|
-| ACT-404 | Keep the four upstream-blocked advisory families classified with their pinning chains (`rustls`/`rustls-webpki` via libsql/hyper, `lru` via augurs/agentfs, `libsql-sqlite3-parser` with no patch). Re-test only when a chain moves; never open a no-op `libsql 0.10` bump. Revalidated 2026-11-16: `libsql 0.10.0` still resolves `hyper-rustls 0.25 → rustls 0.22.4`; `augurs-changepoint 0.10.3 → rv 0.16.5 → lru 0.9.0`; `agentfs-sdk 0.6.4 → lru 0.12.5` | Dependabot | ⏸ upstream |
+| ACT-404 | Keep the four upstream-blocked advisory families classified with their pinning chains (`rustls`/`rustls-webpki` via libsql/hyper, `lru` via augurs/agentfs, `libsql-sqlite3-parser` with no patch). Re-test only when a chain moves; never open a no-op `libsql 0.10` bump. Revalidated 2026-11-24: `libsql 0.10.0` still resolves `hyper-rustls 0.25 → rustls 0.22.4`; `augurs-changepoint 0.10.3 → rv 0.16.5 → lru 0.9.0`; `agentfs-sdk 0.6.4 → lru 0.12.5` | Dependabot | ⏸ upstream |
 | ACT-424 | Schedule the next release only when cadence or a feature justifies it; run `release-guard` + `release-manager.sh ship --execute` and dogfood the exact artifact | release | ✅ `v0.1.50` shipped 2026-11-16; next not scheduled |
+
+## Completed actions (2026-11-22..24 — durable episode summaries, retention CLI/MCP/wrapper parity, discovery window)
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-430 | Persist semantic `EpisodeSummary` records across `TursoStorage` and `RedbStorage`, resolve them in `try_retrieve_playbooks`, and implement `EpisodeRetentionPolicy` cleanup (`cleanup_episodes`, `count_cleanup_candidates`) across core and storage backends (#1289) | ✅ merged `846ccdd9`; integration tests in `memory-core`, `memory-storage-turso`, `memory-storage-redb` |
+| ACT-431 | Complete CLI, MCP, sync, and wrapper parity for episode summaries and retention cleanup: `ResilientStorage` + `CachedTursoStorage` delegation (with cache eviction), `StorageSynchronizer` + `storage sync` summary mirroring, CLI `episode view` summary + `episode cleanup` subcommand, MCP `get_episode` summary + `cleanup_episodes` tool, and adaptive-discovery candidate window (`max(limit * 4, 64)`) | ✅ implemented and verified across workspace tests |
 
 ## Completed actions (2026-11-16 — v0.1.50 release)
 

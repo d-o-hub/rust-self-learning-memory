@@ -63,7 +63,7 @@ Details, evidence requirements, blocked protocol, definition of done: [`agent_do
 ## Core Invariants (Never Break)
 
 - **Async**: Tokio everywhere. No blocking in async (use `spawn_blocking`).
-- **Storage**: parameterized SQL only; short transactions; no locks across `.await`.
+- **Storage / destructive CLI**: parameterized SQL; short transactions; no locks across `.await`; cleanup defaults to preview and requires explicit `--confirm`; global `--dry-run` is not consent (LESSON-085).
 - **Serialization**: Postcard required (not bincode). Any type that reaches postcard storage must stay **externally tagged**: postcard cannot deserialize `#[serde(tag = "...")]` internally-tagged enums, which made stored patterns unreadable (issue #831, LESSON-017). Internally tagged enums are fine for JSON-only wire types that never hit storage.
 - **Clippy**: zero warnings (`-D warnings`). Fix, don't suppress.
 - **Files**: ≤500 LOC per source file (enforced in CI).

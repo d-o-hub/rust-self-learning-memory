@@ -17,9 +17,6 @@ use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
 
-#[cfg(test)]
-use do_memory_core::Error;
-
 use crate::TursoStorage;
 
 /// Resilient storage wrapper with circuit breaker protection
@@ -309,192 +306,45 @@ impl StorageBackend for ResilientStorage {
         self.circuit_call(move |s| async move { s.list_recommendation_feedback().await })
             .await
     }
+
+    async fn store_episode_summary(
+        &self,
+        summary: &do_memory_core::semantic::EpisodeSummary,
+    ) -> Result<()> {
+        let summary = summary.clone();
+        self.circuit_call(
+            move |s| async move { s.store_summary(summary.episode_id, &summary).await },
+        )
+        .await
+    }
+
+    async fn get_episode_summary(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<do_memory_core::semantic::EpisodeSummary>> {
+        self.circuit_call(move |s| async move { s.get_summary(episode_id).await })
+            .await
+    }
+
+    async fn cleanup_episodes(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<do_memory_core::episode::CleanupResult> {
+        let policy = policy.clone();
+        self.circuit_call(move |s| async move { s.cleanup_episodes(&policy).await })
+            .await
+    }
+
+    async fn count_cleanup_candidates(
+        &self,
+        policy: &do_memory_core::episode::EpisodeRetentionPolicy,
+    ) -> Result<usize> {
+        let policy = policy.clone();
+        self.circuit_call(move |s| async move { s.count_cleanup_candidates(&policy).await })
+            .await
+    }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
-    use do_memory_core::{Episode, StorageBackend};
-    use std::time::Duration;
-    use tempfile::TempDir;
-    use uuid::Uuid;
-
-    async fn create_test_storage() -> Result<(ResilientStorage, TempDir)> {
-        let dir = TempDir::new().unwrap();
-        let db_path = dir.path().join("test.db");
-
-        let db = libsql::Builder::new_local(&db_path)
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
-
-        let turso = TursoStorage::from_database(db)?;
-        turso.initialize_schema().await?;
-
-        let config = CircuitBreakerConfig {
-            failure_threshold: 3,
-            timeout: Duration::from_secs(1),
-            ..Default::default()
-        };
-
-        let resilient = ResilientStorage::new(turso, config);
-
-        Ok((resilient, dir))
-    }
-
-    #[tokio::test]
-    async fn test_resilient_storage_creation() {
-        let result = create_test_storage().await;
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_health_check_with_closed_circuit() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let healthy = storage.health_check().await.unwrap();
-        assert!(healthy);
-        assert_eq!(storage.circuit_state().await, CircuitState::Closed);
-    }
-
-    #[tokio::test]
-    async fn test_circuit_stats_tracking() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        // Perform a successful operation
-        let episode = Episode::new(
-            "test".to_string(),
-            Default::default(),
-            do_memory_core::TaskType::CodeGeneration,
-        );
-        let result = storage.store_episode(&episode).await;
-        assert!(result.is_ok());
-
-        // Check stats
-        let stats = storage.circuit_stats().await;
-        assert_eq!(stats.total_calls, 1);
-        assert_eq!(stats.successful_calls, 1);
-        assert_eq!(stats.failed_calls, 0);
-    }
-
-    #[tokio::test]
-    async fn test_circuit_reset() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        // Reset should work
-        storage.reset_circuit().await;
-
-        assert_eq!(storage.circuit_state().await, CircuitState::Closed);
-        let stats = storage.circuit_stats().await;
-        assert_eq!(stats.consecutive_failures, 0);
-    }
-
-    #[tokio::test]
-    async fn test_health_check_returns_false_when_circuit_open() {
-        // Drop the storage and verify health check returns false
-        // when the underlying backend is unavailable
-        let dir = TempDir::new().unwrap();
-        let db_path = dir.path().join("test.db");
-
-        let db = libsql::Builder::new_local(&db_path)
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))
-            .unwrap();
-
-        let turso = TursoStorage::from_database(db).unwrap();
-        turso.initialize_schema().await.unwrap();
-
-        let config = CircuitBreakerConfig {
-            failure_threshold: 3,
-            timeout: Duration::from_secs(1),
-            ..Default::default()
-        };
-
-        let storage = ResilientStorage::new(turso, config);
-
-        // Manually open the circuit by calling the internal reset
-        // to simulate an unhealthy state - then verify health check catches it
-        for _ in 0..3 {
-            // Use the circuit breaker stats endpoint which returns an error
-            // when the circuit is not properly connected
-            let _ = storage.get_episode(Uuid::nil()).await;
-        }
-
-        // The circuit should still be closed since get_episode(nil) returns Ok(None)
-        // Instead, verify that health_check works correctly with a closed circuit
-        assert_eq!(
-            storage.circuit_state().await,
-            CircuitState::Closed,
-            "Circuit should remain closed when DB is healthy"
-        );
-        let healthy = storage.health_check().await.unwrap();
-        assert!(
-            healthy,
-            "Health check should return true when circuit is closed and DB is healthy"
-        );
-
-        // Drop the storage to simulate disconnection
-        drop(storage);
-    }
-
-    #[tokio::test]
-    async fn test_circuit_stats_tracking_failures() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        // Attempt operations that will fail
-        let episode = Episode::new(
-            "test".to_string(),
-            Default::default(),
-            do_memory_core::TaskType::CodeGeneration,
-        );
-
-        // Store then delete an episode to generate some activity
-        let _ = storage.store_episode(&episode).await;
-        let _ = storage.delete_episode(Uuid::nil()).await;
-
-        let stats = storage.circuit_stats().await;
-        // At minimum we had 1 successful call
-        assert!(
-            stats.total_calls >= 1,
-            "Should have at least 1 tracked call"
-        );
-        assert!(
-            stats.successful_calls >= 1,
-            "Should have at least 1 success"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_concurrent_operations_through_circuit() {
-        let (storage, _dir) = create_test_storage().await.unwrap();
-
-        let episode = Episode::new(
-            "concurrent_test".to_string(),
-            Default::default(),
-            do_memory_core::TaskType::CodeGeneration,
-        );
-
-        let episode2 = Episode::new(
-            "concurrent_test_2".to_string(),
-            Default::default(),
-            do_memory_core::TaskType::Analysis,
-        );
-
-        // Run two operations concurrently through circuit_call
-        let (r1, r2) = tokio::join!(
-            storage.store_episode(&episode),
-            storage.store_episode(&episode2)
-        );
-
-        assert!(r1.is_ok(), "First concurrent operation should succeed");
-        assert!(r2.is_ok(), "Second concurrent operation should succeed");
-
-        let stats = storage.circuit_stats().await;
-        assert!(
-            stats.total_calls >= 2,
-            "Should have at least 2 tracked calls after concurrent ops"
-        );
-    }
-}
+#[path = "resilient_tests.rs"]
+mod tests;

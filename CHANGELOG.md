@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CLI `do-memory-cli episode cleanup` subcommand (`memory-cli/src/commands/episode/core/cleanup.rs`)
+  and MCP `cleanup_episodes` tool (`memory-mcp/src/server/tools/episode_get.rs`), exposing
+  policy-based episode retention and garbage collection (`WG-075`) with presets (`default`,
+  `storage-limited`, `aggressive`, `archival`), criterion overrides, candidate counting
+  (`--count-only` / `count_only`), preview-only defaults, and explicit `--confirm` for
+  live CLI deletion (`confirm: true` in MCP).
+- Persisted semantic `EpisodeSummary` exposure in `do-memory-cli episode view <EPISODE_ID>`
+  and the MCP `get_episode` tool response (`summary` field), plus automatic summary mirroring
+  during `StorageSynchronizer` incremental/single-episode syncs and `do-memory-cli storage sync`.
+- `ResilientStorage` and `CachedTursoStorage` delegation for `supports_episode_summaries`,
+  `supports_episode_cleanup`, `store_episode_summary`, `get_episode_summary`,
+  `cleanup_episodes`, and `count_cleanup_candidates`, including adaptive episode-cache eviction
+  on `CachedTursoStorage::cleanup_episodes`.
+- Candidate retrieval window expansion (`candidate_window(limit) = max(limit * 4, 64)`) in
+  `examples/adaptive_discovery/memory_store.rs` and `docs/ADAPTIVE_SOURCE_DISCOVERY.md` so
+  quality-weighted retrieval does not starve a query family's lower-ranked blocked attempts.
 - Durable `EpisodeSummary` persistence across `StorageBackend` (`store_episode_summary`,
   `get_episode_summary`) gated by `StorageBackendCapabilities::supports_episode_summaries`,
   implemented for both `TursoStorage` (`episode_summaries`) and `RedbStorage`

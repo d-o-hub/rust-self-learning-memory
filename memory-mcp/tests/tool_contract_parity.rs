@@ -87,6 +87,7 @@ fn get_dispatchable_tool_names() -> Vec<&'static str> {
         "complete_episode",
         "get_episode",
         "delete_episode",
+        "cleanup_episodes",
         "update_episode",
         "get_episode_timeline",
         // Episode tags

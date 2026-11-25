@@ -150,6 +150,13 @@ impl CachedTursoStorage {
         }
     }
 
+    /// Drop an episode from the cache after its durable record was deleted.
+    pub(crate) async fn invalidate_episode_cache(&self, id: Uuid) {
+        if let Some(cache) = &self.episode_cache {
+            cache.remove(id).await;
+        }
+    }
+
     /// Get pattern with caching
     pub async fn get_pattern_cached(
         &self,

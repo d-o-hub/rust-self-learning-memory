@@ -67,7 +67,7 @@ fn token_expiring_at(scope: &str, subject: &str, exp: u64) -> anyhow::Result<Str
     Ok(encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(SECRET.as_bytes()),
+        &EncodingKey::from_secret(SECRET.as_bytes())?,
     )?)
 }
 

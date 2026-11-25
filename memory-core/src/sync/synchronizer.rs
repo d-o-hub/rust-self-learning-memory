@@ -217,8 +217,38 @@ where
             }
         }
 
+        self.sync_episode_summary_if_supported(episode_id, correlation_id)
+            .await;
+
         info!(correlation_id = %correlation_id, "Successfully synced episode {} to cache", episode_id);
         Ok(())
+    }
+
+    /// Best-effort mirror of an episode's semantic summary from durable storage to cache.
+    async fn sync_episode_summary_if_supported(&self, episode_id: Uuid, correlation_id: Uuid) {
+        if !(self.turso.supports_episode_summaries() && self.redb.supports_episode_summaries()) {
+            return;
+        }
+        let Ok(Ok(Some(summary))) = timeout(
+            SYNC_EPISODE_TIMEOUT,
+            self.turso.get_episode_summary(episode_id),
+        )
+        .await
+        else {
+            return;
+        };
+        if let Err(e) = timeout(
+            SYNC_EPISODE_TIMEOUT,
+            self.redb.store_episode_summary(&summary),
+        )
+        .await
+        {
+            debug!(
+                correlation_id = %correlation_id,
+                episode_id = %episode_id,
+                "Timed out syncing episode summary to cache: {e}"
+            );
+        }
     }
 
     /// Sync all episodes modified since the recorded watermark.
@@ -328,6 +358,10 @@ where
 
                 if needs_fallback {
                     self.sync_chunk_fallback(chunk, correlation_id, &mut stats, &mut page_errors)
+                        .await;
+                }
+                for (ep, _) in chunk {
+                    self.sync_episode_summary_if_supported(ep.episode_id, correlation_id)
                         .await;
                 }
             }

@@ -278,3 +278,29 @@ pub async fn handle_get_episode_timeline(
         text: serde_json::to_string_pretty(&result)?,
     }])
 }
+
+pub async fn handle_cleanup_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.unwrap_or_else(|| json!({}));
+    let client_id = get_client_id(&args);
+
+    let result = server.cleanup_episodes_tool(args).await;
+    let success = result.is_ok();
+    let error = result.as_ref().err().map(|e| e.to_string());
+    server
+        .audit_logger()
+        .log_episode_modification(
+            &client_id,
+            "retention_policy",
+            "cleanup_episodes",
+            success,
+            error.as_deref(),
+        )
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}

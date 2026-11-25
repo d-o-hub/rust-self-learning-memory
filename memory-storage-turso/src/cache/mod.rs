@@ -102,6 +102,8 @@ pub mod integration;
 pub mod invalidation;
 pub mod query_cache;
 mod stats;
+#[cfg(test)]
+mod tests;
 mod ttl_config;
 mod wrapper;
 mod wrapper_backend;

@@ -9,7 +9,7 @@
 
 use do_memory_core::{Episode, Error, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_redb::{RedbQuery, RedbStorage};
-use redb::ReadableDatabase;
+use redb::{ReadableDatabase, ReadableTable};
 use std::path::Path;
 use tempfile::TempDir;
 

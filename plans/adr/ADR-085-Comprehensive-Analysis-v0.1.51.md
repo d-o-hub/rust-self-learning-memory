@@ -67,7 +67,7 @@ substitution, fail-closed credentials).
 
 | ID | Candidate | Location / evidence | Note |
 |----|-----------|---------------------|------|
-| HY-01 | Tracked 21 MB compiled ELF (`bin/act`), referenced by no script/workflow/doc | `git ls-files bin/`; repo-wide grep for `bin/act` = 0 hits; `.git` is 102 MB | remove from tracking; use a fetch script if the runner is needed |
+| HY-01 | **Withdrawn 2026-11-25** — `bin/act` was never tracked | `git ls-files bin/` is empty; no `bin/act` object exists in `git rev-list --all --objects`; the file is local-only, ignored by `/bin/` (`.gitignore:124`) | The original "tracked" reading misattributed `git check-ignore`'s pathname output to `git ls-files` (LESSON-088); fetching act stays documented in `docs/YAML_VALIDATION.md` |
 | HY-02 | Dead `COHERE_ENABLED` constant behind a non-existent feature, with the discovering lint suppressed | `memory-core/src/constants.rs:136-142` | delete or wire to a real feature |
 | HY-03 | Only in-tree TODO: checkpoint listing loads the full episode | `memory-cli/src/commands/episode/core/checkpoint.rs:62` | dedicated storage query (perf); pre-req for reusing #1289 capability pattern |
 | HY-04 | Prepared-statement cache default hard-coded at 100 | `memory-storage-turso/src/prepared/cache.rs:456` (TECH_DEBT `STOR-02`) | make capacity configurable |
@@ -98,7 +98,9 @@ substitution, fail-closed credentials).
 - HY-02: remove the dead constant or wire the feature (`constants.rs`).
 - HY-03: dedicated checkpoint query (also removes the last TODO in prod src).
 - HY-04: configurable statement-cache capacity with default 100.
-- HY-01: untrack `bin/act` and provide a fetch/install script if the runner is still wanted.
+- HY-01: **withdrawn 2026-11-25** — `bin/act` was never tracked (local-only, ignored by
+  `/bin/`); no untracking or fetch script is needed. Fetching act remains documented in
+  `docs/YAML_VALIDATION.md`.
 - HY-05: add the missing benches first (measurement before claims), then reword the
   feature comments to cite the benchmark numbers.
 
@@ -136,8 +138,9 @@ R-F1/R-F3/R-F4/R-F6/R-F7 remain `NO-GO`; nothing in this analysis changes their 
 - Resolving F-1 by "fix the prose" loses a capability the architecture docs wanted since the
   project's start; resolving by implementation invites dimension-mismatch reindex churn
   (ADR-077 makes silent substitution impossible, which is the right constraint to pay for).
-- `bin/act` untracking changes any local workflow that assumed the runner was vendored; the
-  ADR assumes none exists (zero references found).
+- HY-01 was withdrawn on isolated re-verification (2026-11-25): `bin/act` was never
+  tracked, so no workflow changes; the durable takeaway is the output-attribution trap
+  itself (LESSON-088).
 
 **Follow-ups**
 - Re-run this audit class after the next release wave; the doc-truth findings (Phase 0) are
@@ -154,6 +157,7 @@ grep -rn "TODO\|FIXME\|unimplemented!\|todo!()" --include="*.rs" \
   memory-storage-turso/src memory-storage-redb/src examples/src tests/src   # 1 hit
 grep -rn "cohere\|ollama" --include="*.rs" memory-core/src        # constants.rs + provider docs only
 grep -n "Cohere\|Ollama" AGENTS.md agent_docs/service_architecture.md  # 1 + 1 stale claims
-git ls-files bin/                 # bin/act (21 MB ELF)
-git check-ignore bin/act          # also matched by an ignore rule
+git ls-files bin/                 # empty — nothing under bin/ is tracked
+git check-ignore -v bin/act       # .gitignore:124:'/bin/' — local file, ignored
+git rev-list --all --objects | grep -c 'bin/act'   # 0 — never in history (erratum 2026-11-25)
 ```

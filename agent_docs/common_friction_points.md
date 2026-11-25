@@ -326,6 +326,16 @@ pub use types::{
 };
 ```
 
+### 11. Misattributed interleaved command output (2026-11-25)
+
+**Problem**: Running two pathname-printing commands in one line (`git ls-files bin/; git check-ignore bin/act`) makes the ignore rule's pathname output look like a tracking listing. ADR-085's HY-01 ("tracked 21 MB bin/act ELF") was built on exactly that misreading; the file was never tracked.
+
+**Prevention**:
+- Re-run the decisive command alone before recording a tracker claim
+- Probe tracking with one unambiguous command: `git ls-files --error-unmatch <path>`, `git cat-file -e HEAD:<path>`, or `git rev-list --all --objects` for "was it ever in history"
+
+**Reference**: LESSON-088; ADR-085 HY-01 erratum.
+
 ## Cross-References
 
 - [AGENTS.md](../AGENTS.md) - Primary coding guidelines

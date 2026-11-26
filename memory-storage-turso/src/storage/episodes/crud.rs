@@ -131,37 +131,61 @@ impl TursoStorage {
         .await
     }
 
+    /// Run a primary-key SELECT that returns only the first matching row.
+    ///
+    /// Shared by `get_episode` and `get_episode_checkpoints` so the
+    /// prepare/query/first-row boilerplate exists once.
+    async fn query_first_row_by_id(
+        &self,
+        conn: &libsql::Connection,
+        conn_id: crate::pool::ConnectionId,
+        sql: &str,
+        id: Uuid,
+        what: &str,
+    ) -> Result<Option<libsql::Row>> {
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare_with_id(conn_id, conn, sql)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query {what}: {}", e)))?;
+
+        rows.next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch {what} row: {}", e)))
+    }
+
     /// Retrieve an episode by ID
     pub async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
         debug!("Retrieving episode: {}", id);
         self.with_connection_with_id(async |conn, conn_id| {
-            let select_cols = super::raw_query::EPISODE_SELECT_COLUMNS;
-            let sql = format!("SELECT {} FROM episodes WHERE episode_id = ?", select_cols);
+            let row = self
+                .query_first_row_by_id(
+                    conn,
+                    conn_id,
+                    &format!(
+                        "SELECT {} FROM episodes WHERE episode_id = ?",
+                        super::raw_query::EPISODE_SELECT_COLUMNS
+                    ),
+                    id,
+                    "episode",
+                )
+                .await?;
 
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare_with_id(conn_id, conn, &sql)
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            match row {
+                Some(row) => {
+                    let mut episode = super::row::row_to_episode(&row)?;
 
-            let mut rows = stmt
-                .query(libsql::params![id.to_string()])
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
+                    // Load tags
+                    episode.tags = get_episode_tags(conn, &id).await?;
 
-            if let Some(row) = rows
-                .next()
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
-            {
-                let mut episode = super::row::row_to_episode(&row)?;
-
-                // Load tags
-                episode.tags = get_episode_tags(conn, &id).await?;
-
-                Ok(Some(episode))
-            } else {
-                Ok(None)
+                    Ok(Some(episode))
+                }
+                None => Ok(None),
             }
         })
         .await
@@ -179,22 +203,11 @@ impl TursoStorage {
             const SQL: &str =
                 "SELECT COALESCE(checkpoints, '[]') FROM episodes WHERE episode_id = ?";
 
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare_with_id(conn_id, conn, SQL)
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let row = self
+                .query_first_row_by_id(conn, conn_id, SQL, id, "checkpoints")
+                .await?;
 
-            let mut rows = stmt
-                .query(libsql::params![id.to_string()])
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to query checkpoints: {}", e)))?;
-
-            match rows
-                .next()
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to fetch checkpoint row: {}", e)))?
-            {
+            match row {
                 Some(row) => {
                     let json: String = row.get(0).map_err(|e| {
                         Error::Storage(format!("Failed to read checkpoints: {}", e))
@@ -434,12 +447,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await?;
         let episode_id = Uuid::new_v4();
 
-        let mut episode = Episode::new(
-            "Test".to_string(),
-            TaskContext::default(),
-            TaskType::CodeGeneration,
-        );
-        episode.episode_id = episode_id;
+        let mut episode = episode_fixture(episode_id, TaskType::CodeGeneration);
         let meta = do_memory_core::memory::checkpoint::CheckpointMeta::new(
             episode_id,
             "pause".to_string(),
@@ -456,13 +464,9 @@ mod tests {
 
         // Projection answers empty for an episode without checkpoints
         let bare_id = Uuid::new_v4();
-        let mut bare = Episode::new(
-            "Bare".to_string(),
-            TaskContext::default(),
-            TaskType::Testing,
-        );
-        bare.episode_id = bare_id;
-        storage.store_episode(&bare).await?;
+        storage
+            .store_episode(&episode_fixture(bare_id, TaskType::Testing))
+            .await?;
         assert_eq!(
             storage.get_episode_checkpoints(bare_id).await?,
             Some(vec![])
@@ -472,5 +476,12 @@ mod tests {
         assert_eq!(storage.get_episode_checkpoints(Uuid::new_v4()).await?, None);
 
         Ok(())
+    }
+
+    /// Foreign-key-compatible `episodes` row for the projection test.
+    fn episode_fixture(id: Uuid, task_type: TaskType) -> Episode {
+        let mut episode = Episode::new("Test".to_string(), TaskContext::default(), task_type);
+        episode.episode_id = id;
+        episode
     }
 }

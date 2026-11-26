@@ -381,4 +381,4 @@ pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
 
 #[cfg(test)]
 #[path = "backend_default_tests.rs"]
-mod backend_default_tests;
+pub(crate) mod backend_default_tests;

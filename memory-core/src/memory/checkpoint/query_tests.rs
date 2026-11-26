@@ -5,22 +5,25 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use chrono::Utc;
 use uuid::Uuid;
 
 use super::CheckpointMeta;
+use crate::Episode;
 use crate::error::Error;
 use crate::memory::SelfLearningMemory;
+use crate::storage::TestStubBackend as StubBackend;
 use crate::storage::{StorageBackend, StorageBackendCapabilities};
 use crate::types::{MemoryConfig, TaskContext, TaskType};
-use crate::{Episode, Heuristic, Pattern, PatternId, Result};
 
-/// In-memory backend serving a preloaded checkpoint projection and/or whole
-/// episodes, with call counters so the tests can prove which tier answered.
+/// Focused backend for the projection: the crate-shared [`StubBackend`]
+/// satisfies the required no-op contract, and this wrapper adds only the
+/// behavior under test — the projection map, an episode map, and call
+/// counters.
 ///
 /// The `Mutex` guards are only held for short synchronous map reads; no lock is
 /// ever held across an `.await`.
 struct ProjectionBackend {
+    noop: StubBackend,
     supports_projection: bool,
     projection: Mutex<HashMap<Uuid, Vec<CheckpointMeta>>>,
     episodes: Mutex<HashMap<Uuid, Episode>>,
@@ -31,6 +34,7 @@ struct ProjectionBackend {
 impl ProjectionBackend {
     fn new(supports_projection: bool) -> Self {
         Self {
+            noop: StubBackend,
             supports_projection,
             projection: Mutex::new(HashMap::new()),
             episodes: Mutex::new(HashMap::new()),
@@ -57,59 +61,67 @@ impl StorageBackendCapabilities for ProjectionBackend {
 
 #[async_trait]
 impl StorageBackend for ProjectionBackend {
-    async fn store_episode(&self, _episode: &Episode) -> Result<()> {
-        Ok(())
+    async fn store_episode(&self, episode: &Episode) -> crate::Result<()> {
+        self.noop.store_episode(episode).await
     }
-    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
+    async fn get_episode(&self, id: Uuid) -> crate::Result<Option<Episode>> {
         self.episode_reads.fetch_add(1, Ordering::SeqCst);
         Ok(self.episodes.lock().unwrap().get(&id).cloned())
     }
-    async fn delete_episode(&self, _id: Uuid) -> Result<()> {
-        Ok(())
+    async fn delete_episode(&self, id: Uuid) -> crate::Result<()> {
+        self.noop.delete_episode(id).await
     }
-    async fn store_pattern(&self, _pattern: &Pattern) -> Result<()> {
-        Ok(())
+    async fn store_pattern(&self, pattern: &crate::Pattern) -> crate::Result<()> {
+        self.noop.store_pattern(pattern).await
     }
-    async fn get_pattern(&self, _id: PatternId) -> Result<Option<Pattern>> {
-        Ok(None)
+    async fn get_pattern(&self, id: crate::PatternId) -> crate::Result<Option<crate::Pattern>> {
+        self.noop.get_pattern(id).await
     }
-    async fn store_heuristic(&self, _heuristic: &Heuristic) -> Result<()> {
-        Ok(())
+    async fn store_heuristic(&self, heuristic: &crate::Heuristic) -> crate::Result<()> {
+        self.noop.store_heuristic(heuristic).await
     }
-    async fn get_heuristic(&self, _id: Uuid) -> Result<Option<Heuristic>> {
-        Ok(None)
+    async fn get_heuristic(&self, id: Uuid) -> crate::Result<Option<crate::Heuristic>> {
+        self.noop.get_heuristic(id).await
     }
     async fn query_episodes_since(
         &self,
-        _since: chrono::DateTime<Utc>,
-        _limit: Option<usize>,
-    ) -> Result<Vec<Episode>> {
-        Ok(vec![])
+        since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
+    ) -> crate::Result<Vec<Episode>> {
+        self.noop.query_episodes_since(since, limit).await
     }
     async fn query_episodes_by_metadata(
         &self,
-        _key: &str,
-        _value: &str,
-        _limit: Option<usize>,
-    ) -> Result<Vec<Episode>> {
-        Ok(vec![])
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> crate::Result<Vec<Episode>> {
+        self.noop
+            .query_episodes_by_metadata(key, value, limit)
+            .await
     }
-    async fn store_embedding(&self, _id: &str, _embedding: Vec<f32>) -> Result<()> {
-        Ok(())
+    async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> crate::Result<()> {
+        self.noop.store_embedding(id, embedding).await
     }
-    async fn get_embedding(&self, _id: &str) -> Result<Option<Vec<f32>>> {
-        Ok(None)
+    async fn get_embedding(&self, id: &str) -> crate::Result<Option<Vec<f32>>> {
+        self.noop.get_embedding(id).await
     }
-    async fn delete_embedding(&self, _id: &str) -> Result<bool> {
-        Ok(false)
+    async fn delete_embedding(&self, id: &str) -> crate::Result<bool> {
+        self.noop.delete_embedding(id).await
     }
-    async fn store_embeddings_batch(&self, _embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        Ok(())
+    async fn store_embeddings_batch(
+        &self,
+        embeddings: Vec<(String, Vec<f32>)>,
+    ) -> crate::Result<()> {
+        self.noop.store_embeddings_batch(embeddings).await
     }
-    async fn get_embeddings_batch(&self, _ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        Ok(vec![])
+    async fn get_embeddings_batch(&self, ids: &[String]) -> crate::Result<Vec<Option<Vec<f32>>>> {
+        self.noop.get_embeddings_batch(ids).await
     }
-    async fn get_checkpoints(&self, episode_id: Uuid) -> Result<Option<Vec<CheckpointMeta>>> {
+    async fn get_checkpoints(
+        &self,
+        episode_id: Uuid,
+    ) -> crate::Result<Option<Vec<CheckpointMeta>>> {
         self.projection_calls.fetch_add(1, Ordering::SeqCst);
         Ok(self.projection.lock().unwrap().get(&episode_id).cloned())
     }

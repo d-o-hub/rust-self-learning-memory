@@ -16,7 +16,11 @@ use chrono::Utc;
 use uuid::Uuid;
 
 /// Minimal backend: only required methods; defaults exercise trait default bodies.
-struct StubBackend;
+///
+/// `pub(crate)` (with the test module `pub(crate)` in `backend/mod.rs`) so other
+/// in-crate test modules can reuse it as the no-op delegate for focused mocks,
+/// instead of each duplicating the whole required-method contract.
+pub(crate) struct StubBackend;
 
 #[async_trait]
 impl StorageBackend for StubBackend {

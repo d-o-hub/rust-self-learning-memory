@@ -58,15 +58,15 @@ pub async fn list_checkpoints(
     let episode_uuid =
         Uuid::parse_str(&episode_id).map_err(|e| anyhow!("Invalid episode ID: {}", e))?;
 
-    // Get episode
-    // TODO: Consider a dedicated storage query for checkpoints to avoid loading the full episode
-    let episode = memory
-        .get_episode(episode_uuid)
+    // Get the checkpoint list via the projection query (HY-03): the full
+    // episode payload is never loaded.
+    let checkpoints = memory
+        .get_checkpoints(episode_uuid)
         .await
-        .map_err(|e| anyhow!("Failed to get episode: {}", e))?;
+        .map_err(|e| anyhow!("Failed to get checkpoints: {}", e))?;
 
     let mut results = Vec::new();
-    for checkpoint in &episode.checkpoints {
+    for checkpoint in &checkpoints {
         results.push(CheckpointResult {
             checkpoint_id: checkpoint.checkpoint_id.to_string(),
             episode_id: episode_id.clone(),

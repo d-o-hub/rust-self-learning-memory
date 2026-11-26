@@ -46,6 +46,10 @@ impl StorageBackendCapabilities for TursoStorage {
     fn supports_episode_cleanup(&self) -> bool {
         true
     }
+
+    fn supports_checkpoints_query(&self) -> bool {
+        true
+    }
 }
 
 /// Circuit-breaker wrapper: advertises exactly what it routes.
@@ -70,6 +74,10 @@ impl StorageBackendCapabilities for ResilientStorage {
     fn supports_episode_cleanup(&self) -> bool {
         self.storage.supports_episode_cleanup()
     }
+
+    fn supports_checkpoints_query(&self) -> bool {
+        self.storage.supports_checkpoints_query()
+    }
 }
 
 /// Adaptive-cache wrapper: advertises exactly what it routes.
@@ -93,5 +101,9 @@ impl StorageBackendCapabilities for CachedTursoStorage {
 
     fn supports_episode_cleanup(&self) -> bool {
         self.storage.supports_episode_cleanup()
+    }
+
+    fn supports_checkpoints_query(&self) -> bool {
+        self.storage.supports_checkpoints_query()
     }
 }

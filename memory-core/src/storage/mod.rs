@@ -7,8 +7,11 @@
 //! Responsibilities: backend trait definitions, repository interfaces,
 //! query construction, error types, and circuit breaker patterns.
 
-mod backend;
+pub(crate) mod backend;
 mod backend_watermark;
+
+#[cfg(test)]
+pub(crate) use backend::backend_default_tests::StubBackend as TestStubBackend;
 pub mod circuit_breaker;
 
 pub use backend::{StorageBackend, StorageBackendCapabilities};

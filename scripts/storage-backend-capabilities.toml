@@ -241,6 +241,13 @@ capability = "supports_episode_summaries"
 gate_kind = "error"
 justification = "The default body raises Error::CapabilityUnavailable; only backends advertising supports_episode_summaries may query persisted summaries."
 
+[[method]]
+name = "get_checkpoints"
+classification = "capability-gated"
+capability = "supports_checkpoints_query"
+gate_kind = "error"
+justification = "The default body raises Error::CapabilityUnavailable; the projection is optional and callers fall back to a full-episode read."
+
 # ---------------------------------------------------------------------------
 # Embedding enumeration (#1151 adds list_embedding_ids so the identity-scoped
 # adapter can brute-force similarity search without a concrete backend type)

@@ -88,4 +88,14 @@ pub trait StorageBackendCapabilities: Send + Sync {
     fn supports_episode_summaries(&self) -> bool {
         false
     }
+
+    /// Whether the backend can project an episode's checkpoint list without
+    /// loading the full episode.
+    ///
+    /// When `false`, `get_checkpoints` returns
+    /// [`Error::CapabilityUnavailable`](crate::Error::CapabilityUnavailable)
+    /// instead of a fabricated result; callers fall back to a full-episode read.
+    fn supports_checkpoints_query(&self) -> bool {
+        false
+    }
 }

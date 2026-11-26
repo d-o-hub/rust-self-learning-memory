@@ -71,6 +71,16 @@
   },
   {
     "crate": "do-memory-storage-turso",
+    "file": "memory-storage-turso/src/storage/episodes/crud.rs",
+    "line": 435,
+    "test": "test_get_episode_checkpoints_projection",
+    "reason": "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027",
+    "upstream_tracker": "https://github.com/tursodatabase/libsql/issues",
+    "owner": "WG-008",
+    "revalidation_date": "2026-12-31"
+  },
+  {
+    "crate": "do-memory-storage-turso",
     "file": "memory-storage-turso/tests/cache_integration_test.rs",
     "line": 24,
     "test": "test_cached_storage_episode_operations",

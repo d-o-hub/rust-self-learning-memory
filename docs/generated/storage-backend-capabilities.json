@@ -7,14 +7,14 @@
     "memory-core/src/storage/backend/mod.rs"
   ],
   "summary": {
-    "methods_total": 50,
+    "methods_total": 52,
     "required": 14,
-    "defaulted": 36,
-    "capability_gated": 25,
+    "defaulted": 38,
+    "capability_gated": 26,
     "value_returning_with_typed_fallback": 1,
     "genuinely_safe_default": 2,
     "fail_closed": 2,
-    "capability_declaration": 6
+    "capability_declaration": 7
   },
   "methods": [
     {
@@ -95,6 +95,16 @@
       "gate_kind": "error",
       "default_body": "capability-unavailable",
       "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "get_checkpoints",
+      "signature": "defaulted",
+      "classification": "capability-gated",
+      "capability": "supports_checkpoints_query",
+      "gate_kind": "error",
+      "default_body": "capability-unavailable",
+      "justification": "The default body raises Error::CapabilityUnavailable; the projection is optional and callers fall back to a full-episode read.",
       "pending": null
     },
     {
@@ -455,6 +465,16 @@
       "gate_kind": "error",
       "default_body": "capability-unavailable",
       "justification": "The default body raises Error::CapabilityUnavailable; only backends advertising supports_relationship_persistence may use it durably.",
+      "pending": null
+    },
+    {
+      "name": "supports_checkpoints_query",
+      "signature": "defaulted",
+      "classification": "capability-declaration",
+      "capability": null,
+      "gate_kind": null,
+      "default_body": "predicate-false",
+      "justification": null,
       "pending": null
     },
     {

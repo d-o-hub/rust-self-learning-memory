@@ -16,7 +16,11 @@ use chrono::Utc;
 use uuid::Uuid;
 
 /// Minimal backend: only required methods; defaults exercise trait default bodies.
-struct StubBackend;
+///
+/// `pub(crate)` (with the test module `pub(crate)` in `backend/mod.rs`) so other
+/// in-crate test modules can reuse it as the no-op delegate for focused mocks,
+/// instead of each duplicating the whole required-method contract.
+pub(crate) struct StubBackend;
 
 #[async_trait]
 impl StorageBackend for StubBackend {
@@ -182,6 +186,7 @@ async fn storage_backend_defaults_gate_optional_operations() {
     assert!(!backend.supports_relationship_persistence());
     assert!(!backend.supports_procedural_memory());
     assert!(!backend.supports_episode_summaries());
+    assert!(!backend.supports_checkpoints_query());
 
     // Intentional, documented fallbacks: pattern listing and the ADR-081
     // recommendation defaults (capability-gated by their callers).
@@ -281,6 +286,7 @@ async fn storage_backend_defaults_gate_optional_operations() {
         backend.store_episode_summary(&summary).await,
     );
     assert_capability_unavailable("get_episode_summary", backend.get_episode_summary(id).await);
+    assert_capability_unavailable("get_checkpoints", backend.get_checkpoints(id).await);
 
     // Keep Episode/TaskType referenced so stub stays honest for required path
     let _ep = Episode::new("stub".into(), TaskContext::default(), TaskType::Testing);

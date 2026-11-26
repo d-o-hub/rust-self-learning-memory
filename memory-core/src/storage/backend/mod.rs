@@ -18,6 +18,7 @@ use crate::episode::{
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
+use crate::memory::checkpoint::CheckpointMeta;
 use crate::procedural::ProceduralMemory;
 use crate::semantic::EpisodeSummary;
 use crate::{Episode, Error, Heuristic, Pattern, Result};
@@ -363,8 +364,21 @@ pub trait StorageBackend: StorageBackendCapabilities + Send + Sync {
         let _ = episode_id;
         Err(Error::capability_unavailable("get_episode_summary"))
     }
+
+    // ========== Checkpoint Methods ==========
+
+    /// Retrieve only the checkpoint list of an episode.
+    ///
+    /// A projection query: backends whose checkpoint payloads live in a
+    /// dedicated column answer without deserializing the full episode.
+    /// Optional: see [`StorageBackendCapabilities::supports_checkpoints_query`];
+    /// the default returns [`Error::CapabilityUnavailable`].
+    async fn get_checkpoints(&self, episode_id: Uuid) -> Result<Option<Vec<CheckpointMeta>>> {
+        let _ = episode_id;
+        Err(Error::capability_unavailable("get_checkpoints"))
+    }
 }
 
 #[cfg(test)]
 #[path = "backend_default_tests.rs"]
-mod backend_default_tests;
+pub(crate) mod backend_default_tests;

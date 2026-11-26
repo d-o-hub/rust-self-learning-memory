@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Dedicated checkpoint projection query (ADR-085 HY-03): `StorageBackend::get_checkpoints`
+  is capability-gated via `StorageBackendCapabilities::supports_checkpoints_query` and
+  implemented by `TursoStorage` (including the `ResilientStorage` and `CachedTursoStorage`
+  wrappers) as a direct `checkpoints`-column read, so listing checkpoints no longer
+  deserializes the full episode. `SelfLearningMemory::get_checkpoints` projects from the
+  in-memory tier, uses the durable projection when advertised, and falls back to the
+  previous full-episode read otherwise; `do-memory-cli episode checkpoint list` uses it and
+  the last TODO in production source is gone.
 - CLI `do-memory-cli episode cleanup` subcommand (`memory-cli/src/commands/episode/core/cleanup.rs`)
   and MCP `cleanup_episodes` tool (`memory-mcp/src/server/tools/episode_get.rs`), exposing
   policy-based episode retention and garbage collection (`WG-075`) with presets (`default`,

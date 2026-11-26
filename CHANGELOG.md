@@ -69,6 +69,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- The dead `do_memory_core::features::COHERE_ENABLED` constant: it was gated on a
+  `cohere-embeddings` feature that was never declared in `memory-core/Cargo.toml`, and the
+  accompanying `#[allow(unexpected_cfgs)]` suppressed exactly the diagnostic that would have
+  flagged it. The selectable embedding providers remain `local`, `openai`, and `mistral`
+  (Cohere has no runtime adapter — ADR-085 F-1).
 - The last stale `#[allow(deprecated)]` in `memory-mcp` (`server_impl/jsonrpc.rs`);
   `handle_shutdown` is no longer deprecated and the suppression is gone.
 

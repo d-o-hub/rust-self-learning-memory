@@ -3,9 +3,9 @@
 //! Serves checkpoint listings without loading the full episode: the in-memory
 //! tier projects the list straight from the fallback episode map, and a durable
 //! backend advertising
-//! [`StorageBackendCapabilities::supports_checkpoints_query`] answers through
-//! a dedicated projection query (Turso stores checkpoints in their own
-//! column). Backends without the projection fall back to the standard
+//! [`supports_checkpoints_query`](crate::storage::StorageBackendCapabilities::supports_checkpoints_query)
+//! answers through a dedicated projection query (Turso stores checkpoints in
+//! their own column). Backends without the projection fall back to the standard
 //! full-episode read.
 
 use crate::error::{Error, Result};

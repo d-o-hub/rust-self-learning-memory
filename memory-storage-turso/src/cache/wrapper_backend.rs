@@ -225,6 +225,16 @@ impl StorageBackend for CachedTursoStorage {
             .map_err(|e| Error::Storage(format!("Get episode summary error: {}", e)))
     }
 
+    async fn get_checkpoints(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<Vec<do_memory_core::memory::checkpoint::CheckpointMeta>>> {
+        self.storage
+            .get_episode_checkpoints(episode_id)
+            .await
+            .map_err(|e| Error::Storage(format!("Get episode checkpoints error: {}", e)))
+    }
+
     async fn cleanup_episodes(
         &self,
         policy: &do_memory_core::episode::EpisodeRetentionPolicy,

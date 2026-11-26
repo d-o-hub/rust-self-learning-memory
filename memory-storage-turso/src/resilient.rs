@@ -326,6 +326,14 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
+    async fn get_checkpoints(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<Vec<do_memory_core::memory::checkpoint::CheckpointMeta>>> {
+        self.circuit_call(move |s| async move { s.get_episode_checkpoints(episode_id).await })
+            .await
+    }
+
     async fn cleanup_episodes(
         &self,
         policy: &do_memory_core::episode::EpisodeRetentionPolicy,

@@ -2,6 +2,7 @@
 
 use crate::TursoStorage;
 use crate::storage::tag_operations::{get_episode_tags, save_episode_tags};
+use do_memory_core::memory::checkpoint::CheckpointMeta;
 use do_memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
 use tracing::{debug, error, info};
 use uuid::Uuid;
@@ -161,6 +162,49 @@ impl TursoStorage {
                 Ok(Some(episode))
             } else {
                 Ok(None)
+            }
+        })
+        .await
+    }
+
+    /// Retrieve only the checkpoint list of an episode (HY-03 projection).
+    ///
+    /// The `checkpoints` column is queried directly, so the episode's steps,
+    /// metrics, and context are never deserialized. Returns `Ok(None)` when
+    /// the episode row does not exist so callers can fall back to their other
+    /// tiers.
+    pub async fn get_episode_checkpoints(&self, id: Uuid) -> Result<Option<Vec<CheckpointMeta>>> {
+        debug!("Retrieving episode checkpoints: {}", id);
+        self.with_connection_with_id(async |conn, conn_id| {
+            const SQL: &str =
+                "SELECT COALESCE(checkpoints, '[]') FROM episodes WHERE episode_id = ?";
+
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare_with_id(conn_id, conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+            let mut rows = stmt
+                .query(libsql::params![id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query checkpoints: {}", e)))?;
+
+            match rows
+                .next()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to fetch checkpoint row: {}", e)))?
+            {
+                Some(row) => {
+                    let json: String = row.get(0).map_err(|e| {
+                        Error::Storage(format!("Failed to read checkpoints: {}", e))
+                    })?;
+                    let list = serde_json::from_str(&json).map_err(|e| {
+                        Error::Storage(format!("Failed to decode checkpoints: {}", e))
+                    })?;
+                    Ok(Some(list))
+                }
+                None => Ok(None),
             }
         })
         .await
@@ -380,6 +424,52 @@ mod tests {
         let emb = retrieved.summary_embedding.unwrap();
         assert_eq!(emb.len(), 3);
         assert!((emb[0] - 0.1).abs() < f32::EPSILON);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI - see ADR-027"]
+    async fn test_get_episode_checkpoints_projection() -> Result<()> {
+        let (storage, _dir) = create_test_storage().await?;
+        let episode_id = Uuid::new_v4();
+
+        let mut episode = Episode::new(
+            "Test".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+        episode.episode_id = episode_id;
+        let meta = do_memory_core::memory::checkpoint::CheckpointMeta::new(
+            episode_id,
+            "pause".to_string(),
+            2,
+            Some("note".to_string()),
+            None,
+        );
+        episode.checkpoints.push(meta.clone());
+        storage.store_episode(&episode).await?;
+
+        // Projection answers for an existing episode
+        let projected = storage.get_episode_checkpoints(episode_id).await?;
+        assert_eq!(projected, Some(vec![meta]));
+
+        // Projection answers empty for an episode without checkpoints
+        let bare_id = Uuid::new_v4();
+        let mut bare = Episode::new(
+            "Bare".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        );
+        bare.episode_id = bare_id;
+        storage.store_episode(&bare).await?;
+        assert_eq!(
+            storage.get_episode_checkpoints(bare_id).await?,
+            Some(vec![])
+        );
+
+        // Projection answers None for a missing episode
+        assert_eq!(storage.get_episode_checkpoints(Uuid::new_v4()).await?, None);
 
         Ok(())
     }

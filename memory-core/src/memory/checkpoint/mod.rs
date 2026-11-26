@@ -33,6 +33,7 @@
 
 mod compact;
 mod operations;
+mod query;
 mod types;
 
 pub use compact::{

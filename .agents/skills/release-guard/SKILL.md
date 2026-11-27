@@ -10,17 +10,18 @@ description: "Canonical release workflow for this repo. One path every time: mai
 ## Golden path (memorize this)
 
 ```text
-1. Version + CHANGELOG already on main (via PR)
-2. origin/main CI fully green
-3. ./scripts/release-manager.sh ship --execute
-4. release.yml builds artifacts + creates GitHub Release
-5. Optional: ./scripts/release-manager.sh wait-release
+1. ./scripts/release-manager.sh next            # derive the bump (docs/releasing.md)
+2. Version + CHANGELOG already on main (via PR) — ./scripts/release-manager.sh prepare <version> --execute
+3. origin/main CI fully green
+4. ./scripts/release-manager.sh ship --execute
+5. release.yml builds artifacts + creates GitHub Release
+6. Optional: ./scripts/release-manager.sh wait-release
 ```
 
 | Step | Who | Tool |
 |------|-----|------|
-| Bump `Cargo.toml` version + CHANGELOG | Human/agent via **PR** | PR to main |
-| Docs: `Released Version` = workspace version | Same PR | ROADMAP + STATUS |
+| Derive the bump | Agent | `./scripts/release-manager.sh next` |
+| Apply version + CHANGELOG + tracker docs | Agent via **PR** | `./scripts/release-manager.sh prepare <version> --execute` |
 | Wait for main CI | Agent | `gh run list --branch main --commit $(git rev-parse origin/main)` |
 | Tag + push **only** | Agent/human | `./scripts/release-manager.sh ship --execute` |
 | Build + GitHub Release | **GitHub Actions** | `.github/workflows/release.yml` (on tag push) |
@@ -127,7 +128,7 @@ parse-changelog CHANGELOG.md "$VERSION" >/dev/null
 1. `check-release-blockers.sh` — **no open PR and no open issue** (auto-maintained
    `release-drift` issue excluded so it cannot deadlock; runs in dry-run too)
 2. `verify-release-state.sh --check-unreleased`
-3. Local: fmt, clippy, build check, nextest, doctest, quality-gates  
+3. Local: fmt, clippy, build check, nextest, doctest, quality-gates
    (note: quality-gates defaults `QUALITY_GATE_SKIP_OPTIONAL=true` locally; optional tool gates like coverage/audit run when tools are installed or explicit `QUALITY_GATE_SKIP_OPTIONAL=false` is set. Skip local checks with `--skip-local-tests` only in documented emergencies)
 4. `ci-check` on `origin/main` HEAD (all runs completed success/skipped)
 5. `git tag -a vX.Y.Z -m "Release vX.Y.Z"` on that HEAD

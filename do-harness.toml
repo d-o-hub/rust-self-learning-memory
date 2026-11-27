@@ -229,6 +229,7 @@ inputs = [
   "scripts/release-manager.sh",
   "scripts/test-release-version.sh",
   "Cargo.toml",
+  ".cargo/config.toml",
 ]
 
 # The docs name a pinned harness version and the completion contract is written as
@@ -311,12 +312,16 @@ inputs = [
   "scripts/code-quality.sh",
   "scripts/do-harness-version.txt",
   "scripts/lesson-distillation-baseline.txt",
+  "scripts/lib/release-version.sh",
   "scripts/lint-suppressions-baseline.txt",
   "scripts/merge-pr.sh",
   "scripts/quality-gates.sh",
+  "scripts/release-manager.sh",
   "scripts/shell-counters-baseline.txt",
   "scripts/storage-backend-capabilities.toml",
+  "scripts/test-release-version.sh",
   "scripts/validate-gate-contract.sh",
+  "Cargo.toml",
   "do-harness.toml",
 ]
 

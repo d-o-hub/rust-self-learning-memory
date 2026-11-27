@@ -281,3 +281,7 @@ impl TursoStorage {
         })
     }
 }
+
+#[cfg(all(test, feature = "keepalive-pool"))]
+#[path = "constructors_pool_tests.rs"]
+mod tests;

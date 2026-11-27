@@ -67,6 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Prepared-statement cache capacity is configurable (ADR-085 HY-04, `STOR-02`):
+  `TursoConfig::prepared_cache_config` accepts a `PreparedCacheConfig` and every
+  `TursoStorage` constructor now passes it to the cache instead of a fixed default.
+  `PreparedStatementCache::default()` derives from `PreparedCacheConfig::default()`
+  rather than repeating the `100` literal, so the default capacity is unchanged
+  and gains a single source of truth.
 - ADR lifecycle closeout: ADR-080 / ADR-081 / ADR-082 are now `Accepted` with the
   attribution, receipt, restart, capability, and ranking tests as evidence. ADR-028 /
   ADR-042 / ADR-043 were rebaselined to the implemented code, and ADR-060 is `Accepted`

@@ -199,3 +199,23 @@ fn test_is_cached() {
     // Now it should be cached
     assert!(cache.is_cached(conn_id, sql));
 }
+
+#[test]
+fn test_default_capacity_comes_from_config() {
+    // ADR-085 HY-04: the default must derive from PreparedCacheConfig instead
+    // of duplicating its capacity literal.
+    assert_eq!(
+        PreparedStatementCache::default().max_size(),
+        PreparedCacheConfig::default().max_size
+    );
+}
+
+#[test]
+fn test_with_config_sets_capacity() {
+    let cache = PreparedStatementCache::with_config(PreparedCacheConfig {
+        max_size: 7,
+        ..Default::default()
+    });
+
+    assert_eq!(cache.max_size(), 7);
+}

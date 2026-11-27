@@ -9,8 +9,7 @@ use std::sync::Arc;
 use tracing::info;
 
 use super::super::{
-    AdaptiveConnectionPool, AdaptivePoolConfig, PreparedCacheConfig, PreparedStatementCache,
-    TursoConfig,
+    AdaptiveConnectionPool, AdaptivePoolConfig, PreparedStatementCache, TursoConfig,
 };
 use super::storage::TursoStorage;
 
@@ -124,7 +123,7 @@ impl TursoStorage {
             adaptive_pool: Some(Arc::new(adaptive_pool)),
             caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
-                PreparedCacheConfig::default(),
+                config.prepared_cache_config_or_default(),
             )),
             config,
             #[cfg(feature = "compression")]

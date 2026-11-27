@@ -2,6 +2,7 @@
 //!
 //! This module contains the TursoConfig struct and its implementation.
 
+use crate::prepared::PreparedCacheConfig;
 use std::path::PathBuf;
 
 /// Storage mode for Turso storage
@@ -89,6 +90,9 @@ pub struct TursoConfig {
     /// Cache configuration for performance optimization
     /// When None, caching is disabled (default: Some(CacheConfig::default()))
     pub cache_config: Option<crate::cache::CacheConfig>,
+    /// Prepared-statement cache configuration
+    /// When None, [`PreparedCacheConfig::default`] applies (capacity 100)
+    pub prepared_cache_config: Option<PreparedCacheConfig>,
 }
 
 impl Default for TursoConfig {
@@ -114,6 +118,73 @@ impl Default for TursoConfig {
             enable_transport_compression: true,
             // Cache configuration (enabled by default)
             cache_config: Some(crate::cache::CacheConfig::default()),
+            prepared_cache_config: Some(PreparedCacheConfig::default()),
         }
+    }
+}
+
+impl TursoConfig {
+    /// Prepared-statement cache configuration, falling back to
+    /// [`PreparedCacheConfig::default`] when the field is `None`.
+    pub fn prepared_cache_config_or_default(&self) -> PreparedCacheConfig {
+        self.prepared_cache_config.clone().unwrap_or_default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::TursoStorage;
+
+    fn in_memory_config(prepared_cache_config: Option<PreparedCacheConfig>) -> TursoConfig {
+        TursoConfig {
+            // A single direct connection keeps the test off the pool path.
+            enable_pooling: false,
+            prepared_cache_config,
+            ..TursoConfig::default()
+        }
+    }
+
+    #[test]
+    fn default_prepared_cache_capacity_is_100() {
+        assert_eq!(
+            TursoConfig::default()
+                .prepared_cache_config_or_default()
+                .max_size,
+            100
+        );
+    }
+
+    #[test]
+    fn absent_prepared_cache_config_falls_back_to_default() {
+        let config = in_memory_config(None);
+
+        assert_eq!(
+            config.prepared_cache_config_or_default().max_size,
+            PreparedCacheConfig::default().max_size
+        );
+    }
+
+    #[tokio::test]
+    async fn storage_honours_configured_prepared_cache_capacity() {
+        let config = in_memory_config(Some(PreparedCacheConfig {
+            max_size: 7,
+            ..Default::default()
+        }));
+
+        let storage = TursoStorage::with_config(":memory:", "", config)
+            .await
+            .expect("in-memory storage should build");
+
+        assert_eq!(storage.prepared_cache.max_size(), 7);
+    }
+
+    #[tokio::test]
+    async fn storage_defaults_prepared_cache_capacity_to_100() {
+        let storage = TursoStorage::with_config(":memory:", "", in_memory_config(None))
+            .await
+            .expect("in-memory storage should build");
+
+        assert_eq!(storage.prepared_cache.max_size(), 100);
     }
 }

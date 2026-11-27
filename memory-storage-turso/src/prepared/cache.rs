@@ -367,6 +367,11 @@ impl PreparedStatementCache {
         self.cache.read().values().map(|c| c.len()).sum()
     }
 
+    /// Get the configured maximum statements cached per connection
+    pub fn max_size(&self) -> usize {
+        self.config.max_size
+    }
+
     /// Get cache size for a specific connection
     pub fn connection_size(&self, conn_id: ConnectionId) -> usize {
         self.cache
@@ -453,7 +458,7 @@ impl PreparedStatementCache {
 
 impl Default for PreparedStatementCache {
     fn default() -> Self {
-        Self::new(100)
+        Self::with_config(PreparedCacheConfig::default())
     }
 }
 

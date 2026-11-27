@@ -17,7 +17,7 @@ numbers predated the `WG-075` wave. Verification status per row is dated inline.
 | ID | Issue | Priority | Impact | Notes |
 |----|-------|----------|--------|-------|
 | STOR-01 | Upstream libsql memory corruption in some tests | High | Stability | Many Turso integration tests remain `#[ignore]` under the ADR-027 ratchet: 159 entries vs ceiling 200 (2026-11-25). |
-| STOR-02 | Prepared statement cache size limits | Medium | Performance | Default capacity `100` is hard-coded at `memory-storage-turso/src/prepared/cache.rs:456` (verified 2026-11-25); make it configurable (ADR-085 HY-04). |
+| STOR-02 | Prepared statement cache size limits | **Resolved 2026-11-26** | Performance | Capacity is configurable via `TursoConfig::prepared_cache_config` (ADR-085 HY-04); `PreparedStatementCache::default()` now derives from `PreparedCacheConfig::default()` instead of a duplicated `100` literal. Default remains 100. |
 
 ## Testing
 

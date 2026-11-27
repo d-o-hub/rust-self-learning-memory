@@ -4,7 +4,7 @@ Entrypoint for coding agents. **Complete workflow:** [`agent_docs/coding_workflo
 
 Rust/Tokio episodic-memory workspace: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`, `do-memory-test-utils`, `benches`. Storage: Turso + redb + embeddings (OpenAI/Mistral/local adapters only; `azure`/`cohere`/`custom` have no runtime adapter — ADR-085 F-1).
 
-**Workspace version**: `v0.1.51` (development) · **Latest released tag**: `v0.1.50` (`0fe1b89d`, 2026-11-16). A workspace version ahead of the latest tag is a *development bump*, not a release — see **Workflow Traps** → "A version bump does not make the repo shippable" (LESSON-057).
+**Workspace version**: `v0.2.0` (development) · **Latest released tag**: `v0.1.50` (`0fe1b89d`, 2026-11-16). A workspace version ahead of the latest tag is a *development bump*, not a release — see **Workflow Traps** → "A version bump does not make the repo shippable" (LESSON-057).
 
 ## Quick Reference
 

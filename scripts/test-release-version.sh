@@ -23,25 +23,37 @@ trap 'rm -rf "$WORK"' EXIT
 repo="$WORK/repo"
 failures=0
 
-pass() { printf 'ok   %s\n' "$1"; }
+pass() {
+    local description="$1"
+    printf 'ok   %s\n' "$description"
+}
 fail() {
-    printf 'FAIL %s\n' "$1" >&2
+    local description="$1"
+    printf 'FAIL %s\n' "$description" >&2
     failures=$((failures + 1))
 }
 
-commit() { git -C "$repo" commit -q --allow-empty -m "$1"; }
-tag() { git -C "$repo" tag "v$1"; }
+commit() {
+    local message="$1"
+    git -C "$repo" commit -q --allow-empty -m "$message"
+}
+tag() {
+    local version="$1"
+    git -C "$repo" tag "v$version"
+}
 
 # release <version> — land the bump and tag it, so the next case measures a
 # fresh baseline instead of re-deriving from the same current version.
 release() {
-    set_workspace_version "$1"
-    git -C "$repo" commit -qam "chore(release): v$1"
-    tag "$1"
+    local version="$1"
+    set_workspace_version "$version"
+    git -C "$repo" commit -qam "chore(release): v$version"
+    tag "$version"
 }
 
 set_workspace_version() {
-    release_substitute "s/^version *= *\"[^\"]*\"/version = \"$1\"/" "$repo/Cargo.toml"
+    local version="$1"
+    release_substitute "s/^version *= *\"[^\"]*\"/version = \"$version\"/" "$repo/Cargo.toml"
 }
 
 # expect_derive <bump> <next> <description> [published] [published_known]
@@ -49,7 +61,7 @@ expect_derive() {
     local want_bump="$1" want_next="$2" description="$3"
     local published="${4:-}" known="${5:-false}"
     release_derive "$repo" HEAD "$published" "$known"
-    if [ "$BUMP" = "$want_bump" ] && [ "$NEXT" = "$want_next" ]; then
+    if [[ "$BUMP" = "$want_bump" ]] && [[ "$NEXT" = "$want_next" ]]; then
         pass "$description (bump=$BUMP next=$NEXT)"
     else
         fail "$description: expected bump=$want_bump next=$want_next, got bump=$BUMP next=$NEXT"
@@ -73,18 +85,20 @@ expect_die() {
 }
 
 wrote() { # wrote <file> <fixed string> <description>
-    if grep -qF -- "$2" "$repo/$1"; then
-        pass "$3"
+    local file="$1" needle="$2" description="$3"
+    if grep -qF -- "$needle" "$repo/$file"; then
+        pass "$description"
     else
-        fail "$3: '$2' not found in $1"
+        fail "$description: '$needle' not found in $file"
     fi
 }
 
 absent() { # absent <file> <fixed string> <description>
-    if grep -qF -- "$2" "$repo/$1"; then
-        fail "$3: '$2' still present in $1"
+    local file="$1" needle="$2" description="$3"
+    if grep -qF -- "$needle" "$repo/$file"; then
+        fail "$description: '$needle' still present in $file"
     else
-        pass "$3"
+        pass "$description"
     fi
 }
 
@@ -215,13 +229,13 @@ expect_derive pending 0.8.0 "untagged workspace version derives pending"
 # 0.0.x stays on patches, and is checked before breaking.
 set_workspace_version 0.0.4
 git -C "$repo" commit -qam "chore: reset to 0.0.4 for the rule check"
-if [ "$(release_decide_bump 0.0.4)" = "patch" ]; then
+if [[ "$(release_decide_bump 0.0.4)" = "patch" ]]; then
     pass "0.0.x stays on patch even with breaking set"
 else
     fail "0.0.x must stay on patch"
 fi
 BREAKING=true FEATURE=true
-if [ "$(release_decide_bump 0.0.4)" = "patch" ]; then
+if [[ "$(release_decide_bump 0.0.4)" = "patch" ]]; then
     pass "0.0.x patch rule wins over breaking (BREAKING/FEATURE set)"
 else
     fail "0.0.x patch rule must win over breaking"
@@ -271,7 +285,7 @@ wrote memory-mcp/Cargo.toml 'libsql = { package = "do-memory-libsql", version = 
 absent memory-mcp/Cargo.toml 'version = "0.1.40"' "the stale pin is gone"
 wrote AGENTS.md "**Workspace version**: \`v2.1.0\`" "prepare rewrites the AGENTS.md version"
 wrote CHANGELOG.md '## [2.1.0] - ' "prepare retitles Unreleased to the released version"
-if [ "$(grep -cE '^## \[Unreleased\]' "$repo/CHANGELOG.md")" = "1" ]; then
+if [[ "$(grep -cE '^## \[Unreleased\]' "$repo/CHANGELOG.md")" = "1" ]]; then
     pass "exactly one Unreleased heading survives"
 else
     fail "prepare must leave exactly one Unreleased heading"
@@ -303,7 +317,7 @@ expect_die "prepare needs a version" "prepare refuses an empty version" \
     release_prepare_version "$repo" "" false
 
 # The changelog gate the release relies on must accept what prepare wrote.
-if [ -x "$PROJECT_ROOT/scripts/check-changelog-headings.sh" ]; then
+if [[ -x "$PROJECT_ROOT/scripts/check-changelog-headings.sh" ]]; then
     if (cd "$repo" && "$PROJECT_ROOT/scripts/check-changelog-headings.sh" CHANGELOG.md) >/dev/null 2>&1; then
         pass "the rewritten CHANGELOG passes check-changelog-headings.sh"
     else
@@ -319,9 +333,9 @@ for key in current basis commits release_worthy breaking feature fix nonconventi
     [[ "$plain" == *"$key="* ]] || fail "plain output is missing '$key'"
     [[ "$json" == *"\"$key\":"* ]] || fail "json output is missing '$key'"
 done
-[ "$failures" -eq 0 ] && pass "plain and json expose the same keys"
+[[ "$failures" -eq 0 ]] && pass "plain and json expose the same keys"
 
-if [ "$failures" -ne 0 ]; then
+if [[ "$failures" -ne 0 ]]; then
     printf 'test-release-version: %s failure(s)\n' "$failures" >&2
     exit 1
 fi

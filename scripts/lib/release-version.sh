@@ -53,8 +53,8 @@ release_version_lt() {
     IFS=. read -r -a ap <<<"$a"
     IFS=. read -r -a bp <<<"$b"
     for i in 0 1 2; do
-        if [ "${ap[i]:-0}" -lt "${bp[i]:-0}" ]; then return 0; fi
-        if [ "${ap[i]:-0}" -gt "${bp[i]:-0}" ]; then return 1; fi
+        if [[ "${ap[i]:-0}" -lt "${bp[i]:-0}" ]]; then return 0; fi
+        if [[ "${ap[i]:-0}" -gt "${bp[i]:-0}" ]]; then return 1; fi
     done
     return 1
 }
@@ -100,7 +100,7 @@ release_classify() {
     NONCONVENTIONAL=false
 
     while IFS= read -r -d $'\x1e' record; do
-        [ -n "$record" ] || continue
+        [[ -n "$record" ]] || continue
         record="${record#$'\n'}"
         subject="${record%%$'\x1f'*}"
         body="${record#*$'\x1f'}"
@@ -125,6 +125,7 @@ release_classify() {
                     BREAKING=true
                     worthy=true
                     ;;
+                *) ;;
             esac
         done <<<"$body"
 
@@ -133,7 +134,7 @@ release_classify() {
             worthy=true
         fi
 
-        if [ "$worthy" = true ]; then
+        if [[ "$worthy" = true ]]; then
             RELEASE_WORTHY=$((RELEASE_WORTHY + 1))
         fi
     done <<<"$records"
@@ -148,19 +149,19 @@ release_decide_bump() {
     minor="${current#*.}"
     minor="${minor%%.*}"
 
-    if [ "$major" -eq 0 ] && [ "$minor" -eq 0 ]; then
+    if [[ "$major" -eq 0 ]] && [[ "$minor" -eq 0 ]]; then
         printf 'patch'
         return 0
     fi
-    if [ "$BREAKING" = true ]; then
-        if [ "$major" -ge 1 ]; then printf 'major'; else printf 'minor'; fi
+    if [[ "$BREAKING" = true ]]; then
+        if [[ "$major" -ge 1 ]]; then printf 'major'; else printf 'minor'; fi
         return 0
     fi
-    if [ "$FEATURE" = true ]; then
+    if [[ "$FEATURE" = true ]]; then
         printf 'minor'
         return 0
     fi
-    if [ "$FIX" = true ] || [ "$NONCONVENTIONAL" = true ]; then
+    if [[ "$FIX" = true ]] || [[ "$NONCONVENTIONAL" = true ]]; then
         printf 'patch'
         return 0
     fi
@@ -184,7 +185,7 @@ release_list_has() {
     local list="$1" item="$2" entry
     local IFS=,
     for entry in $list; do
-        [ "$entry" = "$item" ] && return 0
+        [[ "$entry" = "$item" ]] && return 0
     done
     return 1
 }
@@ -202,11 +203,11 @@ release_derive() {
     fi
 
     CURRENT="$(release_workspace_version "$root")"
-    [ -n "$CURRENT" ] || release_die "cannot read [workspace.package].version from $root/Cargo.toml"
+    [[ -n "$CURRENT" ]] || release_die "cannot read [workspace.package].version from $root/Cargo.toml"
     release_require_version "$CURRENT" "[workspace.package].version in $root/Cargo.toml"
 
     BASIS="$(release_latest_tag "$root" "$ref")"
-    if [ -n "$BASIS" ]; then
+    if [[ -n "$BASIS" ]]; then
         range="$BASIS..$ref"
     else
         range="$ref"
@@ -214,7 +215,7 @@ release_derive() {
 
     release_classify "$root" "$range"
 
-    if [ -n "$BASIS" ]; then
+    if [[ -n "$BASIS" ]]; then
         basis_version="${BASIS#v}"
         if release_version_lt "$CURRENT" "$basis_version"; then
             release_die "workspace version $CURRENT is behind the newest release tag $BASIS; apply the bump first"
@@ -230,13 +231,14 @@ release_derive() {
 
     # A basis tag with no published Release is intent, not a finished release:
     # refuse to derive a bump on top of it.
-    if [ -n "$BASIS" ] && [ "$published_known" = true ] \
+    if [[ -n "$BASIS" ]] && [[ "$published_known" = true ]] \
         && ! release_list_has "$published" "$BASIS"; then
         case "$BUMP" in
             major | minor | patch)
                 BUMP="pending-release"
                 NEXT="$CURRENT"
                 ;;
+            *) ;;
         esac
     fi
 
@@ -277,7 +279,7 @@ release_substitute() {
 # describes a publication, so it cannot be carried across a bump.
 release_rewrite_released_block() {
     local file="$1" version="$2" tmp mode
-    [ -f "$file" ] || return 0
+    [[ -f "$file" ]] || return 0
     if mode="$(stat -c '%a' "$file" 2>/dev/null)"; then
         :
     else
@@ -304,14 +306,14 @@ release_prepare_version() {
     local root="$1" version="$2" do_lock="${3:-true}"
     local current file pin_files=0 date
 
-    [ -n "$version" ] || release_die "prepare needs a version (try: release-manager.sh next)"
+    [[ -n "$version" ]] || release_die "prepare needs a version (try: release-manager.sh next)"
     release_require_version "$version" "the prepare argument"
 
     current="$(release_workspace_version "$root")"
-    [ -n "$current" ] || release_die "cannot read [workspace.package].version from $root/Cargo.toml"
+    [[ -n "$current" ]] || release_die "cannot read [workspace.package].version from $root/Cargo.toml"
     release_require_version "$current" "[workspace.package].version in $root/Cargo.toml"
 
-    if [ "$version" = "$current" ]; then
+    if [[ "$version" = "$current" ]]; then
         printf 'workspace is already at %s\n' "$version"
     else
         release_version_lt "$current" "$version" \
@@ -327,7 +329,7 @@ release_prepare_version() {
         # minor/major bump fails `cargo metadata --locked` without this. Only
         # `do-memory-*` keys are rewritten, never a renamed dependency.
         while IFS= read -r file; do
-            [ -n "$file" ] || continue
+            [[ -n "$file" ]] || continue
             release_substitute \
                 "s/^\(do-memory-[a-z0-9-]* *= *{[^}]*version *= *\)\"[^\"]*\"/\1\"$version\"/" \
                 "$file"
@@ -339,7 +341,7 @@ release_prepare_version() {
             "$root"/tests "$root"/examples 2>/dev/null || true)
 
         # AGENTS.md carries the workspace version next to the latest tag.
-        if [ -f "$root/AGENTS.md" ]; then
+        if [[ -f "$root/AGENTS.md" ]]; then
             release_substitute \
                 "s/^\*\*Workspace version\*\*: \`v[0-9.]*\`/**Workspace version**: \`v$version\`/" \
                 "$root/AGENTS.md"
@@ -349,7 +351,7 @@ release_prepare_version() {
         # and a fresh empty Unreleased sits above it. One heading per version,
         # exactly one Unreleased (scripts/check-changelog-headings.sh).
         date="$(date -u +%F)"
-        if [ -f "$root/CHANGELOG.md" ]; then
+        if [[ -f "$root/CHANGELOG.md" ]]; then
             release_substitute \
                 "s/^## \[Unreleased\]\$/## [Unreleased]\\n\\n## [$version] - $date/" \
                 "$root/CHANGELOG.md"
@@ -360,7 +362,7 @@ release_prepare_version() {
         release_rewrite_released_block "$root/plans/ROADMAPS/ROADMAP_ACTIVE.md" "$version"
         release_rewrite_released_block "$root/plans/STATUS/CURRENT.md" "$version"
         for tracker in "$root/plans/ROADMAPS/ROADMAP_ACTIVE.md" "$root/plans/STATUS/CURRENT.md"; do
-            [ -f "$tracker" ] || continue
+            [[ -f "$tracker" ]] || continue
             release_substitute \
                 "s/^\*\*Workspace Version\*\*:.*/**Workspace Version**: $version (release preparation)/" \
                 "$tracker"
@@ -370,13 +372,13 @@ release_prepare_version() {
             "$version" "$current" "$pin_files"
     fi
 
-    if [ "$do_lock" = true ]; then
+    if [[ "$do_lock" = true ]]; then
         # Regenerate rather than sed: the lock is cargo's artifact. fuzz/ is an
         # excluded workspace with its own lock, and the lockfile-sync sensor
         # fails the release when it is left behind.
         (cd "$root" && cargo metadata --format-version 1 >/dev/null) \
             || release_die "cargo metadata failed in $root"
-        if [ -f "$root/fuzz/Cargo.toml" ]; then
+        if [[ -f "$root/fuzz/Cargo.toml" ]]; then
             (cd "$root/fuzz" && cargo metadata --format-version 1 >/dev/null) \
                 || release_die "cargo metadata failed in $root/fuzz"
         fi

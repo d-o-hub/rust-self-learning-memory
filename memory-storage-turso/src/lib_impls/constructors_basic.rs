@@ -11,10 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 use tracing::info;
 
-use super::super::{
-    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, StorageMode,
-    TursoConfig,
-};
+use super::super::{ConnectionPool, PoolConfig, PreparedStatementCache, StorageMode, TursoConfig};
 #[cfg(feature = "keepalive-pool")]
 use super::super::{KeepAliveConfig, KeepAlivePool};
 use super::storage::TursoStorage;
@@ -139,7 +136,7 @@ impl TursoStorage {
             adaptive_pool: None,
             caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
-                PreparedCacheConfig::default(),
+                TursoConfig::default().prepared_cache_config_or_default(),
             )),
             config: TursoConfig::default(),
             #[cfg(feature = "compression")]
@@ -267,7 +264,7 @@ impl TursoStorage {
             adaptive_pool: None,
             caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
-                PreparedCacheConfig::default(),
+                config.prepared_cache_config_or_default(),
             )),
             config,
             #[cfg(feature = "compression")]

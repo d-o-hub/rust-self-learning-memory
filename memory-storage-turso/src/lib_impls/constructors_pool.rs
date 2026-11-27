@@ -17,8 +17,7 @@ use tracing::info;
 
 #[cfg(feature = "keepalive-pool")]
 use super::super::{
-    ConnectionPool, KeepAliveConfig, KeepAlivePool, PoolConfig, PreparedCacheConfig,
-    PreparedStatementCache, TursoConfig,
+    ConnectionPool, KeepAliveConfig, KeepAlivePool, PoolConfig, PreparedStatementCache, TursoConfig,
 };
 #[cfg(feature = "keepalive-pool")]
 use super::storage::TursoStorage;
@@ -152,7 +151,7 @@ impl TursoStorage {
             adaptive_pool: None,
             caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
-                PreparedCacheConfig::default(),
+                config.prepared_cache_config_or_default(),
             )),
             config,
             #[cfg(feature = "compression")]
@@ -270,7 +269,7 @@ impl TursoStorage {
             adaptive_pool: None,
             caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
-                PreparedCacheConfig::default(),
+                config.prepared_cache_config_or_default(),
             )),
             config,
             #[cfg(feature = "compression")]
@@ -282,3 +281,7 @@ impl TursoStorage {
         })
     }
 }
+
+#[cfg(all(test, feature = "keepalive-pool"))]
+#[path = "constructors_pool_tests.rs"]
+mod tests;

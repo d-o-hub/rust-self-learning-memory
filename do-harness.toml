@@ -54,6 +54,7 @@ verification = [
   "agents-md-ids",
   "merge-method",
   "release-blockers",
+  "release-version",
   "harness-compat",
   "harness-doctrine",
   "docs",
@@ -214,6 +215,21 @@ inputs = [
 name = "release-blockers"
 argv = ["bash", "scripts/check-release-blockers.sh", "--self-test"]
 inputs = ["scripts/check-release-blockers.sh", ".cargo/config.toml"]
+
+# The bump derivation decides which version a release ships, and it was the one
+# release rule with no fixture: a wrong table would surface as a mis-versioned
+# tag. The self-test pins the policy cases and the manifest rewrites in a
+# throwaway repo, and `prepare` is dry-run by default, so `shell-counters` and
+# this fixture are what keep the derivation honest between releases.
+[[sensors]]
+name = "release-version"
+argv = ["bash", "scripts/test-release-version.sh"]
+inputs = [
+  "scripts/lib/release-version.sh",
+  "scripts/release-manager.sh",
+  "scripts/test-release-version.sh",
+  "Cargo.toml",
+]
 
 # The docs name a pinned harness version and the completion contract is written as
 # `do-harness verify --set verification --strict --record`. Nothing checked that the

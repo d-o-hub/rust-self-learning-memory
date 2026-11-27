@@ -23,10 +23,19 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly PROJECT_ROOT
 
 ACTION="${1:-help}"
+# `--self-test` arrives in the action position, before the option parser runs.
+[[ "$ACTION" == "--self-test" ]] && ACTION="self-test"
+[[ "$ACTION" == "-h" || "$ACTION" == "--help" ]] && ACTION="help"
 DRY_RUN="true"
 TAG=""
 SKIP_LOCAL_TESTS="false"
 SKIP_CI_CHECK="false"
+REF="HEAD"
+FORMAT="plain"
+PUBLISHED=""
+PUBLISHED_KNOWN="false"
+DO_LOCK="true"
+VERSION_ARG=""
 
 usage() {
   cat <<EOF
@@ -37,22 +46,37 @@ Canonical ship path (use this every time):
 
 Actions:
   status                  Show version, latest tag, sync, and main CI summary
+  next                    Derive the next version from the conventional commits since
+                          the last release tag (read-only; see docs/releasing.md)
+  prepare <version>       Apply <version> to every managed manifest (dry-run unless
+                          --execute). Lands as a reviewed release-preparation PR.
+  tag                     validate + create annotated tag v\${version} (local)
   validate                Version/docs check + local quality gates
   ci-check                Fail if origin/main HEAD has incomplete/failed CI
-  prepare                 validate + create annotated tag v\${version} (local)
   publish                 Blocker gate + verify tag on HEAD, push tag only (triggers release.yml)
-  ship | full             blocker gate + validate + ci-check + prepare + publish
+  ship | full             blocker gate + validate + ci-check + tag + publish
   wait-release            Poll until Release workflow for the tag completes
   rollback                Delete local tag only (--tag required)
 
+Bump policy (docs/releasing.md): breaking → major at ≥1.0 / minor at 0.x,
+  feat → minor, fix|perf → patch, other conventional types → none, 0.0.x → patch.
+  A workspace version with no matching tag derives \`pending\` (already bumped, tag it).
+
 Pre-flight blocker gate (scripts/check-release-blockers.sh):
   ship and publish both refuse to run while any pull request is open, or while any
-  issue is open beyond the auto-maintained `release-drift` one. Implement/close that
+  issue is open beyond the auto-maintained \`release-drift\` one. Implement/close that
   work first; there is deliberately no bypass flag, because a switch meaning "ignore
   the tracker" is the one that gets reached for by habit.
 
 Options:
   --tag <tag>             Tag for rollback (e.g. v0.1.35)
+  --ref <rev>             Ref to derive \`next\` from (default: HEAD)
+  --format plain|json     Output shape for \`next\` (default: plain)
+  --published <tags>      Comma-separated tags that have a published Release; a basis
+                          tag outside that list derives \`pending-release\`. Omitting the
+                          flag means "not told"; an empty value means "nothing published".
+  --no-lock               Skip the Cargo.lock / fuzz/Cargo.lock regeneration in prepare
+  --self-test             Run the hermetic release-version self-test
   --execute               Perform real git tag/push (default is dry-run)
   --skip-local-tests      EMERGENCY only. Skips the local gates in validate and
                           prepare (nextest/clippy/quality-gates), so before
@@ -77,6 +101,23 @@ while [[ $# -gt 0 ]]; do
       TAG="${2:-}"
       shift 2
       ;;
+    --ref)
+      REF="${2:-}"
+      shift 2
+      ;;
+    --format)
+      FORMAT="${2:-}"
+      shift 2
+      ;;
+    --published)
+      PUBLISHED="${2:-}"
+      PUBLISHED_KNOWN="true"
+      shift 2
+      ;;
+    --no-lock)
+      DO_LOCK="false"
+      shift
+      ;;
     --execute)
       DRY_RUN="false"
       shift
@@ -93,6 +134,20 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
+    --self-test)
+      ACTION="self-test"
+      shift
+      ;;
+    [0-9]*)
+      if [[ "$ACTION" == "prepare" && -z "$VERSION_ARG" ]]; then
+        VERSION_ARG="$1"
+        shift
+      else
+        echo "Unexpected argument: $1" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
     *)
       echo "Unknown option: $1" >&2
       usage >&2
@@ -106,7 +161,15 @@ cd "$PROJECT_ROOT"
 # ADR-083: the run classification lives in a sourceable library so the
 # release gate and its test share one implementation (a copy test cannot fail).
 # shellcheck source=scripts/lib/release-gate-events.sh
+# shellcheck disable=SC1091  # dynamic path: shellcheck would need -x, and the hook does not pass it
 source "$PROJECT_ROOT/scripts/lib/release-gate-events.sh"
+
+# Derivation and manifest preparation live in a sourceable library so the
+# release gate and its self-test share one implementation
+# (scripts/test-release-version.sh).
+# shellcheck source=scripts/lib/release-version.sh
+# shellcheck disable=SC1091  # dynamic path: shellcheck would need -x, and the hook does not pass it
+source "$PROJECT_ROOT/scripts/lib/release-version.sh"
 
 # Query every event separately so runs of unrelated event types cannot consume
 # an event's result limit. The exact SHA is the scope: --branch main would hide
@@ -321,7 +384,7 @@ do_validate() {
   run_cmd "./scripts/quality-gates.sh"
 }
 
-do_prepare() {
+do_tag() {
   do_validate
   local version
   version=$(workspace_version)
@@ -406,7 +469,7 @@ do_ship() {
   ./scripts/check-release-blockers.sh
   do_validate
   do_ci_check
-  do_prepare
+  do_tag
   do_publish
 }
 
@@ -463,18 +526,72 @@ do_rollback() {
   echo "  git push origin :refs/tags/${TAG}"
 }
 
+# Derive the next version from the conventional commits since the last release
+# tag. Read-only: nothing here writes, tags, or pushes.
+do_next() {
+  if [[ "$FORMAT" != "plain" && "$FORMAT" != "json" ]]; then
+    echo "--format takes plain or json" >&2
+    exit 1
+  fi
+  release_derive "$PROJECT_ROOT" "$REF" "$PUBLISHED" "$PUBLISHED_KNOWN"
+  if [[ "$FORMAT" == "json" ]]; then
+    release_print_json
+  else
+    release_print_plain
+  fi
+}
+
+# Apply <version> to every managed manifest. Dry-run by default, like every
+# other destructive action here; nothing is tagged and nothing is pushed.
+do_prepare_version() {
+  local version="$1" current
+
+  if [[ -z "$version" ]]; then
+    echo "prepare needs a version (try: ./scripts/release-manager.sh next)" >&2
+    exit 1
+  fi
+  release_require_version "$version" "the prepare argument"
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    current=$(release_workspace_version "$PROJECT_ROOT")
+    release_version_lt "$current" "$version" \
+      || { echo "'$version' does not supersede the current $current" >&2; exit 1; }
+    echo "[dry-run] would bump $current → $version in:"
+    echo "  Cargo.toml [workspace.package].version, intra-workspace version pins,"
+    echo "  AGENTS.md workspace version, CHANGELOG [Unreleased] → [$version],"
+    echo "  plans/ROADMAPS/ROADMAP_ACTIVE.md and plans/STATUS/CURRENT.md release lines,"
+    echo "  Cargo.lock and fuzz/Cargo.lock"
+    echo "Apply with: ./scripts/release-manager.sh prepare $version --execute"
+    return 0
+  fi
+
+  release_prepare_version "$PROJECT_ROOT" "$version" "$DO_LOCK"
+  echo ""
+  echo "Next: review the diff, land it as a release-preparation PR, then run"
+  echo "  ./scripts/release-manager.sh ship --execute"
+}
+
 case "$ACTION" in
   status)
     do_status
+    ;;
+  next)
+    do_next
+    ;;
+  prepare)
+    do_prepare_version "$VERSION_ARG"
+    ;;
+  tag)
+    do_tag
+    ;;
+  self-test)
+    ./scripts/test-release-version.sh
     ;;
   validate)
     do_validate
     ;;
   ci-check)
     do_ci_check
-    ;;
-  prepare)
-    do_prepare
     ;;
   publish)
     do_publish

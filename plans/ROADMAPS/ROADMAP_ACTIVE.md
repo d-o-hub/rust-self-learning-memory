@@ -1,9 +1,8 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-11-24
-**Released Version**: v0.1.50 (`0fe1b89d`, GitHub Release 2026-11-16T08:45:18Z; all four
-registered crates verified at `0.1.50` on crates.io)
-**Workspace Version**: 0.1.51 (post-release development bump)
+**Released Version**: v0.2.0 (release preparation; tag and publication pending green main CI)
+**Workspace Version**: 0.2.0 (release preparation)
 **Branch**: `main` @ `eb076391`
 **Open PRs / issues**: `gh pr list` / `gh issue list` are the live sources; Dependabot group
 PRs may be open

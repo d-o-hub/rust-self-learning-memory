@@ -1752,7 +1752,7 @@ checksum = "2906d3628a885aa49a23b88e71f63e51ae8df41cd76652287f0a6179a11833a9"
 
 [[package]]
 name = "do-memory-benches"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1774,7 +1774,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-cli"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1810,7 +1810,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-core"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -1860,7 +1860,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-examples"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "do-memory-core",
@@ -1877,7 +1877,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-mcp"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "agentfs-sdk",
  "anyhow",
@@ -1909,7 +1909,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-redb"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1930,7 +1930,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-turso"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1958,7 +1958,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-test-utils"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1987,7 +1987,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "e2e-tests"
-version = "0.1.51"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "assert_cmd",

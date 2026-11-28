@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Adaptive source-discovery seeding is a replay instead of an append: each fixture history
+  row carries a stable attempt identity (an `attempt_` episode tag), so re-running
+  `--phase seed` against the same database resolves to the episode that already records the
+  attempt instead of adding a second observation the planner would count as independent
+  evidence. An interrupted import is retried onto one completed episode, duplicate episodes
+  for one identity are counted once, and a database seeded before identities existed is
+  refused with instructions to re-seed into a fresh `--db` (#1302).
+  `scripts/run-adaptive-discovery-example.sh` now replays the dataset between `recommend`
+  and `verify`, so the decision fingerprint and the completed evidence counts have to
+  survive a replay.
+
 ## [0.2.0] - 2026-11-27
 
 ### Added

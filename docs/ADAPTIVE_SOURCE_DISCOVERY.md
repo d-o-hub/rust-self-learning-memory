@@ -30,7 +30,7 @@ From a clean checkout:
 # Compile and run the example's unit tests
 cargo test -p do-memory-examples --example adaptive_source_discovery
 
-# Run seed -> recommend -> verify across three processes
+# Run seed -> recommend -> re-seed -> verify across four processes
 ./scripts/run-adaptive-discovery-example.sh
 ```
 
@@ -41,6 +41,7 @@ The runner writes everything under `target/adaptive-discovery-example/`:
 | `memory.db` (+ `.cache.redb`) | durable episodes shared by every phase |
 | `report/report-recommend.json` | scored comparison plus the decision fingerprint |
 | `report/report-verify.json` | the same comparison recomputed by a later process |
+| `reseed.log` | the replay's per-family created/replayed/retried counts |
 | `traces/*.json` | memory-harness compatible traces for replay |
 
 Manual equivalent, if you want to run the phases yourself:
@@ -50,6 +51,9 @@ cargo run -p do-memory-examples --example adaptive_source_discovery -- \
   --phase seed --db target/ad/memory.db --emit-traces target/ad/traces
 cargo run -p do-memory-examples --example adaptive_source_discovery -- \
   --phase recommend --db target/ad/memory.db --report-dir target/ad/report --require-evidence
+# Replay the same fixture rows onto the same database.
+cargo run -p do-memory-examples --example adaptive_source_discovery -- \
+  --phase seed --db target/ad/memory.db
 cargo run -p do-memory-examples --example adaptive_source_discovery -- \
   --phase verify --db target/ad/memory.db --report-dir target/ad/report \
   --expect target/ad/report/report-recommend.json
@@ -57,7 +61,9 @@ cargo run -p do-memory-examples --example adaptive_source_discovery -- \
 
 `--phase verify` recomputes the decision in a **new process** and refuses to pass when the
 fingerprint differs from the report an earlier process wrote. That is the restart check: the
-same evidence, recovered from durable storage, must produce the same recommendation.
+same evidence, recovered from durable storage, must produce the same recommendation. The
+runner places a second `--phase seed` before it, so the fingerprint also covers a replay of
+the whole fixture.
 
 `--require-evidence` fails the run when a family that *declares* history in the dataset
 retrieves no prior episode — the signature of a seed phase that did not persist. Families
@@ -85,6 +91,20 @@ three parts:
 }
 ```
 
+A `history` row carries an optional `id`, the attempt's stable identity in the source
+record:
+
+```jsonc
+{ "id": "run-2026-11-17-1", "plan": { … }, "outcome": "verified", … }
+```
+
+Seeding is a replay, so the identity decides which episode a row resolves to. Supply `id`
+when your source record has a durable identity of its own; without it the row's position is
+used (`<family>-h<index>`), which is stable for an unchanged dataset but shifts when a row is
+inserted above it. Identities must be unique and tag-safe (alphanumeric, `-`, `_`), and
+`dataset.validate()` rejects a duplicate or unusable one instead of silently collapsing two
+attempts into one episode.
+
 `expectations` makes the example self-checking: it names the plan and decision reason each
 family must produce and the minimum aggregate recall gain. A regression fails the run
 instead of printing a plausible report.
@@ -98,6 +118,32 @@ The fixture set covers the cases that matter:
 | `local-weather` | baseline transport-errors, alternative verified | switch |
 | `arxiv-papers` | baseline irrelevant, alternative verified | switch |
 | `kubernetes-release-notes` | no history at all | keep baseline (`no_evidence`) |
+
+## Seeding is a replay
+
+`seed` is not a one-shot import. Every attempt carries a stable identity, and the identity
+decides which episode it resolves to, so re-running the same dataset updates the episodes
+that already record those rows instead of adding a second observation per row. That matters
+because `MIN_ALTERNATIVE_OBSERVATIONS` counts observations: a replay that minted fresh
+episodes would manufacture exactly the "independent" evidence a bounded planner uses to
+switch plans (issue #1302).
+
+The identity is stored as an `attempt_` episode tag. For every row, `seed`:
+
+| Store state for the identity | What `seed` does | Reported as |
+|------------------------------|------------------|-------------|
+| A completed episode | Leaves it untouched, and re-emits its trace | `replayed` |
+| A partial episode (tagged, never completed) | Deletes it, then records the row again | `retried` |
+| Nothing | Records the row | `created` |
+
+An interrupted import therefore resolves to one completed episode rather than two, and the
+counts are printed per family. The runner treats a non-zero `created` count on the replay as
+a failure.
+
+A database seeded *before* attempts had identities cannot be replayed: there is nothing to
+resolve a fixture row against, so `seed` refuses with an error naming the number of untagged
+episodes it found for the family. Re-seed such a database into a fresh `--db`; replaying onto
+it would count those rows twice.
 
 ## Bounded recommendation rules
 
@@ -188,7 +234,8 @@ The runner also proves the fail-loud contract: it rewrites a trace's outcome to
 ## Adapting it to a real application
 
 1. Replace the fixture loader with your own attempt recorder; keep the tags
-   (`family_`, `strategy_`, `provider_`, `outcome_`) so retrieval stays explainable.
+   (`family_`, `strategy_`, `provider_`, `outcome_`, `attempt_`) so retrieval stays
+   explainable and a replay can resolve an attempt to the episode that already records it.
 2. Record only outcome classes your application can defend. "Verified" must mean the
    application verified the source itself, not that the provider claimed relevance.
 3. Do not let the default `quality_threshold` (`0.70`) discard your failure episodes. A
@@ -208,5 +255,6 @@ The runner also proves the fail-loud contract: it rewrites a trace's outcome to
 ## Not a persistence-API change
 
 The example uses only the existing public surface: `SelfLearningMemory::start_episode`,
-`log_step`, `add_episode_tags`, `complete_episode`, `retrieve_relevant_context`, and
-`recommend_patterns_for_task`. No production interface was added or changed for it.
+`log_step`, `add_episode_tags`, `complete_episode`, `list_episodes_by_tags`,
+`delete_episode`, `retrieve_relevant_context`, and `recommend_patterns_for_task`. No
+production interface was added or changed for it.

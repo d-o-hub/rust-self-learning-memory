@@ -158,6 +158,7 @@ mod tests {
 
     fn attempt(outcome: OutcomeClass) -> HistoryAttempt {
         HistoryAttempt {
+            id: None,
             plan: family().baseline,
             outcome,
             latency_ms: 42,

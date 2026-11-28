@@ -96,7 +96,7 @@ impl PlaybookGenerator {
         let task_match_score = templates::calculate_task_match(request, patterns);
 
         // Step 2: Generate ordered steps from patterns
-        let ordered_steps = templates::synthesize_steps(
+        let (ordered_steps, step_sources) = templates::synthesize_steps(
             patterns,
             &mut source,
             request.max_steps,
@@ -137,6 +137,7 @@ impl PlaybookGenerator {
             when_to_apply,
             when_not_to_apply,
             ordered_steps,
+            step_sources,
             pitfalls,
             expected_outcome,
             confidence,

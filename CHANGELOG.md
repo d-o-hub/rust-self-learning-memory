@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Playbook steps are attributed to the pattern that produced them:
+  `RecommendedPlaybook::step_sources` carries a `PlaybookStepSource { order, pattern_id,
+  episode_ids }` for every emitted step (plus `step_source(order)` for lookup), captured in
+  the same gate that accepts a step, so a step truncated by `max_steps` is never cited. The
+  field is additive and omitted when empty, so older records and existing clients are
+  unaffected; the same mapping appears in the MCP `recommend_playbook` response and in
+  `do-memory-cli playbook recommend` output, and a cited ID can be passed straight to
+  `record_recommendation_feedback`. `docs/PLAYBOOKS_AND_CHECKPOINTS.md` documents the
+  recommend → cite → feedback flow (#1303).
+
 ## [0.2.0] - 2026-11-27
 
 ### Added

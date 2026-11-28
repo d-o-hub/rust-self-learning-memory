@@ -1,6 +1,7 @@
 //! Playbook command types
 
 use clap::Subcommand;
+use do_memory_core::memory::playbook::PlaybookStepSource;
 use serde::Serialize;
 
 /// Playbook commands for generating and explaining actionable playbooks
@@ -71,6 +72,9 @@ pub struct PlaybookStepSummary {
     pub action: String,
     pub tool_hint: Option<String>,
     pub expected_result: Option<String>,
+    /// Source pattern of this step, when the playbook attributed it
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<PlaybookStepSource>,
 }
 
 /// Pattern explanation result

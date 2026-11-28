@@ -4,7 +4,7 @@
 
 use uuid::Uuid;
 
-use super::types::{PlaybookStep, PlaybookSynthesisSource};
+use super::types::{PlaybookStep, PlaybookStepSource, PlaybookSynthesisSource};
 use crate::patterns::Pattern;
 
 // Helper functions to reduce nesting in synthesize_steps
@@ -32,6 +32,7 @@ pub(super) fn create_context_step(order: usize, recommended_approach: &str) -> P
 /// Builder for creating playbook steps without excessive nesting.
 pub(super) struct StepsBuilder {
     steps: Vec<PlaybookStep>,
+    sources: Vec<PlaybookStepSource>,
     max_steps: usize,
     current_order: usize,
 }
@@ -40,6 +41,7 @@ impl StepsBuilder {
     pub(super) fn new(max_steps: usize) -> Self {
         Self {
             steps: Vec::new(),
+            sources: Vec::new(),
             max_steps,
             current_order: 1,
         }
@@ -49,10 +51,19 @@ impl StepsBuilder {
         self.current_order > self.max_steps
     }
 
-    fn add_step(&mut self, step: PlaybookStep) -> bool {
+    /// Accept one step and record the pattern that produced it.
+    ///
+    /// The citation is captured in the same gate that accepts the step, so a
+    /// step refused for exceeding `max_steps` leaves no source behind.
+    fn add_step(&mut self, step: PlaybookStep, pattern: &Pattern, episode_ids: &[Uuid]) -> bool {
         if self.current_order > self.max_steps {
             return false;
         }
+        self.sources.push(PlaybookStepSource {
+            order: step.order,
+            pattern_id: pattern.id(),
+            episode_ids: episode_ids.to_vec(),
+        });
         self.steps.push(step);
         self.current_order += 1;
         true
@@ -66,7 +77,7 @@ impl StepsBuilder {
         match pattern {
             Pattern::ToolSequence { tools, .. } => {
                 for tool in tools.iter().take(self.max_steps / 2) {
-                    if !self.add_step(create_tool_step(self.current_order, tool)) {
+                    if !self.add_step(create_tool_step(self.current_order, tool), pattern, &[]) {
                         break;
                     }
                 }
@@ -74,16 +85,28 @@ impl StepsBuilder {
             Pattern::DecisionPoint {
                 condition, action, ..
             } => {
-                self.add_step(create_decision_step(self.current_order, condition, action));
+                self.add_step(
+                    create_decision_step(self.current_order, condition, action),
+                    pattern,
+                    &[],
+                );
             }
             Pattern::ErrorRecovery {
                 error_type,
                 recovery_steps,
                 ..
             } => {
-                self.add_step(create_error_step(self.current_order, error_type));
+                self.add_step(
+                    create_error_step(self.current_order, error_type),
+                    pattern,
+                    &[],
+                );
                 for recovery in recovery_steps.iter().take(2) {
-                    if !self.add_step(PlaybookStep::new(self.current_order, recovery.clone())) {
+                    if !self.add_step(
+                        PlaybookStep::new(self.current_order, recovery.clone()),
+                        pattern,
+                        &[],
+                    ) {
                         break;
                     }
                 }
@@ -93,10 +116,11 @@ impl StepsBuilder {
                 evidence,
                 ..
             } => {
-                self.add_step(create_context_step(
-                    self.current_order,
-                    recommended_approach,
-                ));
+                self.add_step(
+                    create_context_step(self.current_order, recommended_approach),
+                    pattern,
+                    evidence,
+                );
                 for ep_id in evidence {
                     source.add_episode(*ep_id);
                 }
@@ -104,8 +128,8 @@ impl StepsBuilder {
         }
     }
 
-    pub(super) fn build(self) -> Vec<PlaybookStep> {
-        self.steps
+    pub(super) fn build(self) -> (Vec<PlaybookStep>, Vec<PlaybookStepSource>) {
+        (self.steps, self.sources)
     }
 }
 

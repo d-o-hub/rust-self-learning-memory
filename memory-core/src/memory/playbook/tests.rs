@@ -351,3 +351,139 @@ async fn test_generator_multiple_pattern_types() {
     assert_ne!(playbook.supporting_pattern_ids.len(), 0);
     assert!(playbook.quality_score() > 0.0);
 }
+
+fn decision_pattern(condition: &str) -> Pattern {
+    let mut pattern = create_decision_point_pattern();
+    let Pattern::DecisionPoint {
+        condition: current, ..
+    } = &mut pattern
+    else {
+        unreachable!("the helper builds a decision point")
+    };
+    *current = condition.to_string();
+    pattern
+}
+
+#[tokio::test]
+async fn only_the_emitted_step_cites_its_pattern() {
+    let generator = PlaybookGenerator::new();
+    let mut request = PlaybookRequest::new("Improve tests", "testing");
+    request.max_steps = 1;
+
+    let first = decision_pattern("test_coverage < 80%");
+    let second = decision_pattern("flaky_tests > 0");
+    let first_id = first.id();
+    let second_id = second.id();
+
+    let playbook = generator
+        .generate(&request, &[first, second], &[], &[])
+        .unwrap();
+
+    assert_eq!(playbook.ordered_steps.len(), 1);
+    assert_eq!(playbook.step_sources.len(), 1);
+    assert_eq!(playbook.step_sources[0].order, 1);
+    assert_eq!(playbook.step_sources[0].pattern_id, first_id);
+    // The aggregate list still names every pattern the generator considered.
+    assert_eq!(playbook.supporting_pattern_ids.len(), 2);
+    assert!(playbook.supporting_pattern_ids.contains(&second_id));
+}
+
+#[tokio::test]
+async fn every_step_of_a_multi_step_pattern_cites_it() {
+    let generator = PlaybookGenerator::new();
+    let request = PlaybookRequest::new("Handle errors", "networking");
+
+    let pattern = create_error_recovery_pattern();
+    let pattern_id = pattern.id();
+
+    let playbook = generator.generate(&request, &[pattern], &[], &[]).unwrap();
+
+    // One error step plus the two recovery steps the template allows.
+    assert_eq!(playbook.ordered_steps.len(), 3);
+    assert_eq!(playbook.step_sources.len(), playbook.ordered_steps.len());
+    assert!(
+        playbook
+            .step_sources
+            .iter()
+            .all(|source| source.pattern_id == pattern_id)
+    );
+}
+
+#[tokio::test]
+async fn a_truncated_step_leaves_no_citation() {
+    let generator = PlaybookGenerator::new();
+    let mut request = PlaybookRequest::new("Handle errors", "networking");
+    request.max_steps = 2;
+
+    let pattern = create_error_recovery_pattern();
+    let pattern_id = pattern.id();
+
+    let playbook = generator.generate(&request, &[pattern], &[], &[]).unwrap();
+
+    assert_eq!(playbook.ordered_steps.len(), 2);
+    assert_eq!(
+        playbook.step_sources,
+        vec![
+            PlaybookStepSource {
+                order: 1,
+                pattern_id,
+                episode_ids: Vec::new(),
+            },
+            PlaybookStepSource {
+                order: 2,
+                pattern_id,
+                episode_ids: Vec::new(),
+            },
+        ]
+    );
+}
+
+#[tokio::test]
+async fn a_step_budget_too_small_for_a_tool_sequence_cites_nothing() {
+    let generator = PlaybookGenerator::new();
+    let mut request = PlaybookRequest::new("Write code", "web-api");
+    request.max_steps = 1;
+
+    let pattern = create_tool_sequence_pattern();
+    let playbook = generator.generate(&request, &[pattern], &[], &[]).unwrap();
+
+    // `max_steps / 2` is zero, so the sequence emits nothing and cites nothing.
+    assert_eq!(playbook.ordered_steps.len(), 0);
+    assert_eq!(playbook.step_sources.len(), 0, "no step, no citation");
+    assert!(playbook.step_source(1).is_none());
+}
+
+#[tokio::test]
+async fn a_context_step_cites_its_episode_evidence() {
+    let generator = PlaybookGenerator::new();
+    let request = PlaybookRequest::new("Write async code", "concurrency");
+
+    let pattern = create_context_pattern();
+    let pattern_id = pattern.id();
+    let Pattern::ContextPattern { evidence, .. } = &pattern else {
+        unreachable!("the helper builds a context pattern")
+    };
+    let evidence = evidence.clone();
+
+    let playbook = generator.generate(&request, &[pattern], &[], &[]).unwrap();
+
+    let source = playbook
+        .step_source(1)
+        .expect("the emitted step should be attributed");
+    assert_eq!(source.pattern_id, pattern_id);
+    assert_eq!(source.episode_ids, evidence);
+}
+
+#[test]
+fn older_records_without_step_sources_still_deserialize() {
+    let playbook = RecommendedPlaybook::new(Uuid::new_v4(), 0.5);
+    let json = serde_json::to_value(&playbook).expect("the playbook should serialise");
+    // An empty attribution is omitted rather than written as an empty array, so a
+    // playbook without citations keeps the older wire shape.
+    assert!(json.get("step_sources").is_none());
+
+    let decoded: RecommendedPlaybook =
+        serde_json::from_value(json).expect("a record without step_sources should deserialise");
+    assert_eq!(decoded.step_sources.len(), 0);
+    assert!(decoded.step_source(1).is_none());
+}

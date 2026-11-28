@@ -68,6 +68,24 @@ impl PlaybookStep {
     }
 }
 
+/// Source pattern for one emitted playbook step.
+///
+/// The step itself stays a pure instruction; this record is what lets a consumer
+/// cite the evidence behind the step it followed. `episode_ids` is populated only
+/// where the source pattern links episode evidence directly, so a pattern-only
+/// reference is the normal case for tool sequences, decision points, and error
+/// recovery patterns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PlaybookStepSource {
+    /// Order of the step this source explains (1-indexed, matches `PlaybookStep::order`)
+    pub order: usize,
+    /// Pattern the step was synthesized from
+    pub pattern_id: PatternId,
+    /// Episode evidence the pattern itself cites
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub episode_ids: Vec<Uuid>,
+}
+
 /// A pitfall or warning to avoid during playbook execution.
 ///
 /// Pitfalls are synthesized from failed episodes and error recovery patterns.
@@ -188,6 +206,7 @@ impl PlaybookSynthesisSource {
 ///             .with_tool_hint("pattern_search"),
 ///         PlaybookStep::new(2, "Implement auth flow".to_string()),
 ///     ],
+///     step_sources: Vec::new(),
 ///     pitfalls: vec![
 ///         PlaybookPitfall::new(
 ///             "Don't store passwords in plain text",
@@ -217,6 +236,12 @@ pub struct RecommendedPlaybook {
     pub when_not_to_apply: Vec<String>,
     /// Ordered steps to execute
     pub ordered_steps: Vec<PlaybookStep>,
+    /// Source pattern of each emitted step, keyed by step order
+    ///
+    /// Truncated steps have no entry: a step that was never emitted has no
+    /// citation. Empty for playbooks deserialized from older records.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub step_sources: Vec<PlaybookStepSource>,
     /// Pitfalls and warnings to avoid
     pub pitfalls: Vec<PlaybookPitfall>,
     /// Expected outcome description
@@ -242,6 +267,7 @@ impl RecommendedPlaybook {
             when_to_apply: Vec::new(),
             when_not_to_apply: Vec::new(),
             ordered_steps: Vec::new(),
+            step_sources: Vec::new(),
             pitfalls: Vec::new(),
             expected_outcome: String::new(),
             confidence: 0.0,
@@ -261,6 +287,17 @@ impl RecommendedPlaybook {
     #[must_use]
     pub fn step_count(&self) -> usize {
         self.ordered_steps.len()
+    }
+
+    /// The source pattern of the step at `order`, if that step was attributed.
+    ///
+    /// Returns `None` for a step emitted without a resolvable source and for any
+    /// step of a playbook created before step sources existed.
+    #[must_use]
+    pub fn step_source(&self, order: usize) -> Option<&PlaybookStepSource> {
+        self.step_sources
+            .iter()
+            .find(|source| source.order == order)
     }
 
     /// Get the number of supporting sources.

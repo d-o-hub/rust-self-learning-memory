@@ -13,7 +13,9 @@
 //! Phases:
 //!
 //! - `seed` records the dataset's history as episodes (and optionally emits
-//!   memory-harness traces).
+//!   memory-harness traces). It is a replay: each attempt carries a stable
+//!   identity, so re-running it resolves to the episodes that already record
+//!   those attempts instead of adding a second observation for every row.
 //! - `recommend` opens the same database in a fresh process, retrieves evidence,
 //!   chooses a bounded plan per family, and scores both plans against the
 //!   deterministic ground truth.
@@ -30,7 +32,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use adaptive_discovery::dataset::Dataset;
-use adaptive_discovery::memory_store::DiscoveryMemory;
+use adaptive_discovery::memory_store::{DiscoveryMemory, RecordState};
 use adaptive_discovery::metrics::{self, Report};
 use adaptive_discovery::planner;
 use adaptive_discovery::trace::Trace;
@@ -164,18 +166,42 @@ async fn seed(args: &Args, dataset: &Dataset) -> Result<()> {
     let memory = DiscoveryMemory::open(&args.db).await?;
     let mut recorded = 0;
     for family in &dataset.families {
-        for attempt in &family.history {
-            let episode_id = memory.record(family, attempt).await?;
+        let legacy = memory.legacy_episodes(family, args.limit).await?;
+        if legacy > 0 {
+            bail!(
+                "{} episode(s) for `{}` carry no attempt identity, so this database cannot be \
+                 replayed; re-seed into a fresh --db ({}) instead of counting those rows twice",
+                legacy,
+                family.id,
+                args.db.display()
+            );
+        }
+
+        let mut created = 0;
+        let mut replayed = 0;
+        let mut retried = 0;
+        for (index, attempt) in family.history.iter().enumerate() {
+            let seeded = memory
+                .record(family, attempt, &attempt.identity(&family.id, index))
+                .await?;
             recorded += 1;
+            match seeded.state {
+                RecordState::Created => created += 1,
+                RecordState::Replayed => replayed += 1,
+                RecordState::Retried => retried += 1,
+            }
             if let Some(dir) = &args.emit_traces {
-                let trace = Trace::from_attempt(family, attempt, episode_id)?;
+                let trace = Trace::from_attempt(family, attempt, seeded.episode_id)?;
                 trace.write(dir)?;
             }
         }
         println!(
-            "seeded {}: {} prior attempts",
+            "seeded {}: {} prior attempts ({} created, {} replayed, {} retried)",
             family.id,
-            family.history.len()
+            family.history.len(),
+            created,
+            replayed,
+            retried
         );
     }
     println!("recorded {recorded} attempts into {}", args.db.display());

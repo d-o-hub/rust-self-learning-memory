@@ -72,6 +72,16 @@ impl fmt::Display for Plan {
 /// A past attempt, as observed by a previous session.
 #[derive(Debug, Clone, Deserialize)]
 pub struct HistoryAttempt {
+    /// Optional stable identity for this attempt in the source record.
+    ///
+    /// Seeding is a replay: the attempt's identity decides which episode it
+    /// resolves to, so recording the same dataset twice updates one episode
+    /// instead of adding a second observation. When the fixture omits an `id`,
+    /// [`HistoryAttempt::identity`] falls back to the row's position, which is
+    /// stable for an unchanged dataset but shifts when a row is inserted above
+    /// it. Supply `id` when the source record has a durable identity of its own.
+    #[serde(default)]
+    pub id: Option<String>,
     /// Plan that was attempted.
     pub plan: Plan,
     /// How the attempt ended.
@@ -82,6 +92,36 @@ pub struct HistoryAttempt {
     pub cost_usd: f64,
     /// A candidate endpoint the attempt touched. Persisted only in redacted form.
     pub endpoint: String,
+}
+
+impl HistoryAttempt {
+    /// Stable identity for this attempt within `family_id`.
+    ///
+    /// The identity is what a replay resolves against, so it must stay the same
+    /// for the same source record and differ between independently executed
+    /// attempts — including attempts that share a provider, an outcome, and an
+    /// endpoint. An explicit fixture `id` carries that guarantee; the positional
+    /// fallback only holds while the fixture rows keep their order.
+    #[must_use]
+    pub fn identity(&self, family_id: &str, index: usize) -> String {
+        match &self.id {
+            Some(id) => format!("{family_id}-{}", id.trim().to_lowercase()),
+            None => format!("{family_id}-h{index}"),
+        }
+    }
+}
+
+/// Whether `value` is a legal episode tag body.
+///
+/// The memory system lowercases tags and rejects anything outside alphanumeric
+/// characters, hyphens, and underscores, so an identity that fails this check
+/// would be silently unusable as the replay key.
+fn is_tag_safe(value: &str) -> bool {
+    value.len() >= 2
+        && value.len() <= 100
+        && value
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
 }
 
 /// A ground-truth attempt, used for scoring only.
@@ -310,6 +350,7 @@ impl Dataset {
         }
 
         let mut seen = BTreeSet::new();
+        let mut identities = BTreeSet::new();
         for family in &self.families {
             if !seen.insert(family.id.as_str()) {
                 bail!("duplicate query family id `{}`", family.id);
@@ -333,8 +374,20 @@ impl Dataset {
                     RedactedEndpoint::parse(&source.url)?;
                 }
             }
-            for attempt in &family.history {
+            for (index, attempt) in family.history.iter().enumerate() {
                 RedactedEndpoint::parse(&attempt.endpoint)?;
+                let identity = attempt.identity(&family.id, index);
+                if !is_tag_safe(&identity) {
+                    bail!(
+                        "history attempt identity `{identity}` in family `{}` is not a usable \
+                         episode tag; only alphanumeric characters, hyphens, and underscores are \
+                         allowed",
+                        family.id
+                    );
+                }
+                if !identities.insert(identity.clone()) {
+                    bail!("duplicate history attempt identity `{identity}`");
+                }
             }
         }
 
@@ -356,47 +409,5 @@ impl QueryFamily {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn redaction_drops_userinfo_query_and_fragment() {
-        let endpoint =
-            RedactedEndpoint::parse("https://reader:secret@news.example/nba/scores?utm=x#top")
-                .expect("endpoint should parse");
-        assert_eq!(endpoint.as_str(), "https://news.example/nba/scores");
-        assert_eq!(endpoint.host(), "news.example");
-    }
-
-    #[test]
-    fn redaction_strips_query_only_urls() {
-        let endpoint = RedactedEndpoint::parse("http://alpha.example/search?api_key=abc&q=rag")
-            .expect("endpoint should parse");
-        assert_eq!(endpoint.as_str(), "http://alpha.example/search");
-        assert!(!endpoint.as_str().contains("api_key"));
-    }
-
-    #[test]
-    fn redaction_rejects_relative_and_foreign_schemes() {
-        assert!(RedactedEndpoint::parse("news.example/nba").is_err());
-        assert!(RedactedEndpoint::parse("ftp://news.example/nba").is_err());
-        assert!(RedactedEndpoint::parse("https:///nba").is_err());
-    }
-
-    #[test]
-    fn outcome_classes_round_trip_through_their_tag_form() {
-        for outcome in [
-            OutcomeClass::Empty,
-            OutcomeClass::Blocked,
-            OutcomeClass::TransportError,
-            OutcomeClass::Irrelevant,
-            OutcomeClass::Useful,
-            OutcomeClass::Verified,
-        ] {
-            assert_eq!(OutcomeClass::from_tag(outcome.as_str()), Some(outcome));
-        }
-        assert!(OutcomeClass::Verified.is_useful_signal());
-        assert!(!OutcomeClass::Irrelevant.is_useful_signal());
-        assert!(OutcomeClass::Blocked.is_blocking());
-    }
-}
+#[path = "dataset_tests.rs"]
+mod tests;

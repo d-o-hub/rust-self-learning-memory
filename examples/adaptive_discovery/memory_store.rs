@@ -4,6 +4,11 @@
 //! by tags, the outcome class by a tag, and the candidate endpoint only in its
 //! redacted form. Retrieval reads the tags back, so the example exercises the
 //! same record-then-retrieve path an external application would.
+//!
+//! An attempt also carries a stable identity, and that identity decides which
+//! episode it resolves to. Seeding is therefore a *replay*: recording the same
+//! dataset twice leaves one episode per attempt instead of minting a second
+//! observation that the planner would count as independent evidence.
 
 use anyhow::{Context, Result};
 use do_memory_core::{
@@ -11,23 +16,16 @@ use do_memory_core::{
     TaskOutcome, TaskType,
 };
 use serde_json::json;
+use std::collections::BTreeSet;
 use std::path::Path;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::adaptive_discovery::dataset::{
-    HistoryAttempt, OutcomeClass, Plan, QueryFamily, RedactedEndpoint,
+    HistoryAttempt, OutcomeClass, QueryFamily, RedactedEndpoint,
 };
 use crate::adaptive_discovery::planner::Observation;
-
-/// Tag prefix that identifies the family an episode belongs to.
-const FAMILY_TAG: &str = "family_";
-/// Tag prefix that identifies the strategy an episode used.
-const STRATEGY_TAG: &str = "strategy_";
-/// Tag prefix that identifies the provider an episode used.
-const PROVIDER_TAG: &str = "provider_";
-/// Tag prefix that identifies how an episode ended.
-const OUTCOME_TAG: &str = "outcome_";
+use crate::adaptive_discovery::tags::{attempt_tag, family_tag, parse_observation, tags_for};
 
 /// How many retrieval candidates to request per observation the caller wants.
 ///
@@ -50,9 +48,38 @@ fn candidate_window(limit: usize) -> usize {
 }
 
 // Episode tags are normalised and validated by the memory system: only
-// alphanumeric characters, hyphens, and underscores survive, so the prefix
-// separator is `_`, not `:`. An external consumer that tags with `family:nba`
-// gets a validation error rather than a silently unusable tag.
+// alphanumeric characters, hyphens, and underscores survive. The tag vocabulary
+// lives in the `tags` module so recording and retrieval cannot drift apart.
+
+/// What recording an attempt did to the store.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecordState {
+    /// The attempt had no episode yet; a new one was recorded.
+    Created,
+    /// The attempt's completed episode already existed and was left untouched.
+    Replayed,
+    /// An interrupted attempt's partial episode was discarded and re-recorded.
+    Retried,
+}
+
+/// The episode an attempt resolved to, and how it got there.
+#[derive(Debug, Clone, Copy)]
+pub struct Recorded {
+    /// Episode that now records the attempt.
+    pub episode_id: Uuid,
+    /// Whether that episode was created, replayed, or retried.
+    pub state: RecordState,
+}
+
+/// How an attempt's identity resolved against the existing store.
+enum Replay {
+    /// Nothing recorded this attempt yet.
+    Absent,
+    /// A partial episode was removed so the attempt can be recorded again.
+    Retried,
+    /// A completed episode already records this attempt.
+    Completed(Uuid),
+}
 
 /// A durable memory handle backed by a local Turso file plus a redb cache.
 pub struct DiscoveryMemory {
@@ -100,14 +127,38 @@ impl DiscoveryMemory {
 
     /// Record one past attempt as a completed episode.
     ///
+    /// `attempt_id` is the attempt's stable identity (see
+    /// [`HistoryAttempt::identity`]). Recording an attempt whose identity already
+    /// resolves to a completed episode is a no-op that returns that episode, so a
+    /// replay cannot add a second observation. A partial episode — the residue of
+    /// an import that failed between tagging and completion — is discarded and
+    /// recorded again, which keeps one identity mapped to one completed episode.
+    ///
     /// # Errors
     ///
     /// Returns an error when the endpoint is not a valid absolute URL, a tag is
-    /// rejected, or the episode cannot be completed. A partially recorded
-    /// attempt is never silently accepted.
-    pub async fn record(&self, family: &QueryFamily, attempt: &HistoryAttempt) -> Result<Uuid> {
+    /// rejected, the store cannot be queried, or the episode cannot be completed.
+    /// A partially recorded attempt is never silently accepted.
+    pub async fn record(
+        &self,
+        family: &QueryFamily,
+        attempt: &HistoryAttempt,
+        attempt_id: &str,
+    ) -> Result<Recorded> {
         let plan = &attempt.plan;
         let endpoint = RedactedEndpoint::parse(&attempt.endpoint)?;
+        let identity_tag = attempt_tag(attempt_id);
+
+        let state = match self.resolve(&identity_tag).await? {
+            Replay::Completed(episode_id) => {
+                return Ok(Recorded {
+                    episode_id,
+                    state: RecordState::Replayed,
+                });
+            }
+            Replay::Retried => RecordState::Retried,
+            Replay::Absent => RecordState::Created,
+        };
 
         let episode_id = self
             .memory
@@ -119,7 +170,10 @@ impl DiscoveryMemory {
             .await;
 
         self.memory
-            .add_episode_tags(episode_id, tags_for(family, plan, attempt.outcome))
+            .add_episode_tags(
+                episode_id,
+                tags_for(family, plan, attempt.outcome, attempt_id),
+            )
             .await
             .context("cannot tag the discovery episode")?;
 
@@ -145,7 +199,42 @@ impl DiscoveryMemory {
             .await
             .with_context(|| format!("cannot complete episode {episode_id}"))?;
 
-        Ok(episode_id)
+        Ok(Recorded { episode_id, state })
+    }
+
+    /// Resolve an attempt identity against the episodes already stored.
+    ///
+    /// Completeness is what separates an observation from an interrupted write:
+    /// an episode whose outcome is still open carries no finished attempt, so it
+    /// is removed rather than counted or trusted.
+    ///
+    /// The lookup scans the store's episodes. That is fine for a fixture of a few
+    /// dozen rows; an importer with a large history should keep its own
+    /// attempt-to-episode index rather than reusing this shape.
+    async fn resolve(&self, attempt_tag: &str) -> Result<Replay> {
+        let existing = self
+            .memory
+            .list_episodes_by_tags(vec![attempt_tag.to_string()], true, Some(1))
+            .await
+            .context("cannot look up a previously recorded attempt")?;
+
+        let Some(episode) = existing.into_iter().next() else {
+            return Ok(Replay::Absent);
+        };
+        if episode.outcome.is_some() {
+            return Ok(Replay::Completed(episode.episode_id));
+        }
+
+        self.memory
+            .delete_episode(episode.episode_id)
+            .await
+            .with_context(|| {
+                format!(
+                    "cannot discard the interrupted episode {} of {attempt_tag}",
+                    episode.episode_id
+                )
+            })?;
+        Ok(Replay::Retried)
     }
 
     /// Retrieve prior observations for a family from episodic memory.
@@ -158,8 +247,13 @@ impl DiscoveryMemory {
     /// result is truncated back to `limit` afterwards.
     ///
     /// Returns the observations plus the number of retrieved episodes (in the
-    /// candidate window) that carried no usable plan/outcome tags. Episodes from
-    /// other families are skipped and are not counted as unattributed.
+    /// candidate window) that could not contribute evidence: one without usable
+    /// plan/outcome tags, or a second episode for an attempt identity that was
+    /// already counted. Episodes from other families are skipped and are not
+    /// counted as ignored.
+    ///
+    /// Retrieval itself only returns completed episodes, so an interrupted import
+    /// cannot become evidence even before it is retried.
     ///
     /// # Errors
     ///
@@ -180,18 +274,55 @@ impl DiscoveryMemory {
 
         let mut observations = Vec::new();
         let mut ignored = 0;
+        let mut counted: BTreeSet<String> = BTreeSet::new();
         for episode in episodes {
-            match parse_observation(&episode.tags) {
-                Some((episode_family, observation)) => {
-                    if episode_family == family.id {
-                        observations.push(observation);
-                    }
-                }
-                None => ignored += 1,
+            let Some(parsed) = parse_observation(&episode.tags) else {
+                ignored += 1;
+                continue;
+            };
+            if parsed.family != family.id {
+                continue;
             }
+            if let Some(attempt) = parsed.attempt {
+                if !counted.insert(attempt) {
+                    ignored += 1;
+                    continue;
+                }
+            }
+            observations.push(parsed.observation);
         }
         observations.truncate(limit);
         Ok((observations, ignored))
+    }
+
+    /// Count episodes for `family` that carry no attempt identity.
+    ///
+    /// A database seeded before attempts had identities cannot be replayed: there
+    /// is nothing to resolve a fixture row against, so a second seed would mint a
+    /// fresh observation for every row. Counting them lets the seed phase refuse
+    /// that instead of quietly doubling the evidence.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the durable store cannot be queried.
+    pub async fn legacy_episodes(&self, family: &QueryFamily, limit: usize) -> Result<usize> {
+        let episodes = self
+            .memory
+            .list_episodes_by_tags(
+                vec![family_tag(&family.id)],
+                true,
+                Some(candidate_window(limit)),
+            )
+            .await
+            .context("cannot inspect the family's recorded episodes")?;
+
+        Ok(episodes
+            .iter()
+            .filter(|episode| {
+                parse_observation(&episode.tags)
+                    .is_some_and(|parsed| parsed.family == family.id && parsed.attempt.is_none())
+            })
+            .count())
     }
 
     /// Ask the memory system for pattern-based advice, as an advisory signal.
@@ -248,43 +379,6 @@ fn task_context(family: &QueryFamily) -> TaskContext {
     }
 }
 
-fn tags_for(family: &QueryFamily, plan: &Plan, outcome: OutcomeClass) -> Vec<String> {
-    vec![
-        format!("{FAMILY_TAG}{}", family.id),
-        format!("{STRATEGY_TAG}{}", plan.strategy),
-        format!("{PROVIDER_TAG}{}", plan.provider),
-        format!("{OUTCOME_TAG}{outcome}"),
-    ]
-}
-
-fn parse_observation(tags: &[String]) -> Option<(String, Observation)> {
-    let mut family = None;
-    let mut strategy = None;
-    let mut provider = None;
-    let mut outcome = None;
-    for tag in tags {
-        if let Some(value) = tag.strip_prefix(FAMILY_TAG) {
-            family = Some(value.to_string());
-        } else if let Some(value) = tag.strip_prefix(STRATEGY_TAG) {
-            strategy = Some(value.to_string());
-        } else if let Some(value) = tag.strip_prefix(PROVIDER_TAG) {
-            provider = Some(value.to_string());
-        } else if let Some(value) = tag.strip_prefix(OUTCOME_TAG) {
-            outcome = OutcomeClass::from_tag(value);
-        }
-    }
-    Some((
-        family?,
-        Observation {
-            plan: Plan {
-                strategy: strategy?,
-                provider: provider?,
-            },
-            outcome: outcome?,
-        },
-    ))
-}
-
 fn step_result(outcome: OutcomeClass) -> ExecutionResult {
     if outcome.is_useful_signal() {
         ExecutionResult::Success {
@@ -339,51 +433,5 @@ fn pattern_kind(pattern: &Pattern) -> &'static str {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn candidate_window_is_wider_than_the_requested_limit() {
-        assert_eq!(candidate_window(1), CANDIDATE_WINDOW_FLOOR);
-        assert_eq!(candidate_window(16), CANDIDATE_WINDOW_FLOOR);
-        assert_eq!(candidate_window(17), 17 * CANDIDATE_WINDOW_MULTIPLIER);
-        assert_eq!(candidate_window(0), CANDIDATE_WINDOW_FLOOR);
-        assert!(candidate_window(usize::MAX) >= usize::MAX / 2);
-    }
-
-    #[test]
-    fn observations_parse_from_tags() {
-        let tags = vec![
-            "family_nba".to_string(),
-            "strategy_keyword".to_string(),
-            "provider_alpha".to_string(),
-            "outcome_blocked".to_string(),
-        ];
-        let (family, observation) = parse_observation(&tags).expect("tags should parse");
-        assert_eq!(family, "nba");
-        assert_eq!(observation.plan.strategy, "keyword");
-        assert_eq!(observation.plan.provider, "alpha");
-        assert_eq!(observation.outcome, OutcomeClass::Blocked);
-    }
-
-    #[test]
-    fn incomplete_tags_are_rejected_instead_of_guessed() {
-        let tags = vec![
-            "family_nba".to_string(),
-            "strategy_keyword".to_string(),
-            "outcome_blocked".to_string(),
-        ];
-        assert!(parse_observation(&tags).is_none());
-    }
-
-    #[test]
-    fn unknown_outcome_tags_are_rejected() {
-        let tags = vec![
-            "family_nba".to_string(),
-            "strategy_keyword".to_string(),
-            "provider_alpha".to_string(),
-            "outcome_maybe".to_string(),
-        ];
-        assert!(parse_observation(&tags).is_none());
-    }
-}
+#[path = "memory_store_tests.rs"]
+mod tests;

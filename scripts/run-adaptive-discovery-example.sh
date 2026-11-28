@@ -6,8 +6,12 @@
 #   1. seed      records the fixture history into a fresh database (process 1)
 #   2. recommend opens that database in a new process, chooses bounded plans, and
 #                writes report-recommend.json (process 2)
-#   3. verify    recomputes the recommendation and compares the fingerprint with
-#                report-recommend.json (process 3)
+#   3. seed      replays the same fixture rows onto the same database (process 3).
+#                It must resolve every row to the episode that already records it,
+#                so the completed evidence count does not grow.
+#   4. verify    recomputes the recommendation and compares the fingerprint with
+#                report-recommend.json (process 4). A replay that minted a second
+#                observation per row would change the evidence counts here.
 #
 # When a do-memory-cli binary is available the script also replays one emitted
 # memory-harness trace and proves that an incomplete trace fails loudly.
@@ -43,7 +47,23 @@ echo "== recommend (process 2) =="
 run_phase recommend --require-evidence
 
 echo
-echo "== verify (process 3, restart check) =="
+echo "== re-seed (process 3, replay) =="
+RESEED_LOG="$WORK/reseed.log"
+run_phase seed --emit-traces "$TRACE_DIR" | tee "$RESEED_LOG"
+# Every row must resolve to the episode recorded by process 1. A created row here
+# is the double-counting regression: it would add a second observation and move
+# the recommendation fingerprint.
+if grep -Eq '[[:space:]][1-9][0-9]* created' "$RESEED_LOG"; then
+  echo "ERROR: the replay created new episodes instead of resolving to the seeded ones" >&2
+  exit 1
+fi
+if ! grep -Eq '[[:space:]][1-9][0-9]* replayed' "$RESEED_LOG"; then
+  echo "ERROR: the replay reported no replayed attempts; nothing was resolved" >&2
+  exit 1
+fi
+
+echo
+echo "== verify (process 4, restart check after the replay) =="
 run_phase verify --expect "$REPORT_DIR/report-recommend.json"
 
 echo

@@ -29,6 +29,64 @@ Use the `recommend_playbook` tool to get guidance for a new task:
 do-memory-cli playbook recommend "Implement a JWT authentication flow" --domain security
 ```
 
+### Citing the evidence behind a step
+
+Every emitted step names the pattern it was synthesized from, in `step_sources`,
+keyed by step order:
+
+```json
+{
+  "ordered_steps": [
+    { "order": 1, "action": "Use read_file tool", "tool_hint": "read_file", "expected_result": "Execute read file operation" },
+    { "order": 2, "action": "Evaluate: test_coverage < 80%", "tool_hint": null, "expected_result": "Then: add_more_tests" }
+  ],
+  "step_sources": [
+    { "order": 1, "pattern_id": "0f1c8c1e-…", "episode_ids": [] },
+    { "order": 2, "pattern_id": "7a2b4d90-…", "episode_ids": [] }
+  ],
+  "supporting_pattern_ids": ["0f1c8c1e-…", "7a2b4d90-…"],
+  "supporting_episode_ids": ["…"]
+}
+```
+
+`supporting_pattern_ids` lists every pattern the generator considered; `step_sources`
+answers the narrower question *which pattern produced this step*. A step refused by
+`max_steps` during synthesis has no entry — a truncated step is never cited.
+`episode_ids` is filled only where the source pattern links episode evidence directly
+(context patterns); tool sequences, decision points, and error recovery patterns carry a
+pattern-only reference. Older records and older clients simply have no `step_sources`, and
+an empty attribution is omitted from JSON instead of being written as an empty array.
+
+Both surfaces expose the same mapping:
+
+- MCP `recommend_playbook` — the `step_sources` field of each returned playbook.
+- CLI `playbook recommend` — `source` on every entry of `steps` in JSON/YAML output, and a
+  `Source pattern:` line in the human-readable rendering.
+
+### End-to-end: recommend, cite a step, report feedback
+
+```bash
+EPISODE_ID=$(do-memory-cli episode start "Add retry to the HTTP client" --domain networking)
+
+# 1. Recommend with attribution, so the call records a session you can quote.
+do-memory-cli --format json playbook recommend "Add retry to the HTTP client" \
+  --domain networking --episode-id "$EPISODE_ID" > playbook.json
+
+SESSION=$(jq -r '.session.session_id' playbook.json)
+# 2. Read the pattern behind the step you actually followed.
+CITED=$(jq -r '.playbooks[0].step_sources[] | select(.order == 1) | .pattern_id' playbook.json)
+
+# 3. Report feedback for exactly that step's pattern.
+do-memory-cli feedback record-feedback --session "$SESSION" \
+  --applied "$CITED" --outcome success --message "Followed step 1"
+```
+
+`record-feedback` accepts a cited ID because the session records the playbook's
+`supporting_pattern_ids`, and a step's source pattern is always one of them. An ID that was
+never recommended for the session is still rejected. Via MCP the same flow is
+`recommend_playbook` with `episode_id`, then `record_recommendation_feedback` on the
+returned `session.session_id`.
+
 ---
 
 ## 2. Episode Checkpoints and Handoff

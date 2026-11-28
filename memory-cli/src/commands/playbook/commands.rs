@@ -4,6 +4,7 @@ use super::types::{PatternExplanation, PlaybookStepSummary, PlaybookSummary};
 use crate::config::Config;
 use crate::output::OutputFormat;
 use anyhow::Result;
+use do_memory_core::memory::playbook::RecommendedPlaybook;
 use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
 /// Generate a playbook recommendation for a task
@@ -81,31 +82,7 @@ pub async fn recommend_playbook(
                 } else {
                     let playbook = &attr_res.playbooks[0];
 
-                    let summary = PlaybookSummary {
-                        playbook_id: playbook.playbook_id.to_string(),
-                        task_match_score: playbook.task_match_score,
-                        confidence: playbook.confidence,
-                        why_relevant: playbook.why_relevant.clone(),
-                        step_count: playbook.ordered_steps.len(),
-                        steps: playbook
-                            .ordered_steps
-                            .iter()
-                            .map(|s| PlaybookStepSummary {
-                                order: s.order,
-                                action: s.action.clone(),
-                                tool_hint: s.tool_hint.clone(),
-                                expected_result: s.expected_result.clone(),
-                            })
-                            .collect(),
-                        pitfalls: playbook
-                            .pitfalls
-                            .iter()
-                            .map(|p| p.warning.clone())
-                            .collect(),
-                        when_to_apply: playbook.when_to_apply.clone(),
-                        when_not_to_apply: playbook.when_not_to_apply.clone(),
-                        expected_outcome: playbook.expected_outcome.clone(),
-                    };
+                    let summary = summarize_playbook(playbook);
 
                     print_playbook_human(&summary);
                 }
@@ -129,31 +106,7 @@ pub async fn recommend_playbook(
 
         let playbook = &playbooks[0];
 
-        let summary = PlaybookSummary {
-            playbook_id: playbook.playbook_id.to_string(),
-            task_match_score: playbook.task_match_score,
-            confidence: playbook.confidence,
-            why_relevant: playbook.why_relevant.clone(),
-            step_count: playbook.ordered_steps.len(),
-            steps: playbook
-                .ordered_steps
-                .iter()
-                .map(|s| PlaybookStepSummary {
-                    order: s.order,
-                    action: s.action.clone(),
-                    tool_hint: s.tool_hint.clone(),
-                    expected_result: s.expected_result.clone(),
-                })
-                .collect(),
-            pitfalls: playbook
-                .pitfalls
-                .iter()
-                .map(|p| p.warning.clone())
-                .collect(),
-            when_to_apply: playbook.when_to_apply.clone(),
-            when_not_to_apply: playbook.when_not_to_apply.clone(),
-            expected_outcome: playbook.expected_outcome.clone(),
-        };
+        let summary = summarize_playbook(playbook);
 
         match format {
             OutputFormat::Json => {
@@ -202,6 +155,40 @@ pub async fn explain_pattern(
     Ok(())
 }
 
+/// Project a generated playbook onto the CLI's summary shape.
+///
+/// The attributed and legacy paths share this projection so their step sources
+/// cannot drift apart, and so a step's citation names the same pattern the MCP
+/// tool returns for the same playbook.
+fn summarize_playbook(playbook: &RecommendedPlaybook) -> PlaybookSummary {
+    PlaybookSummary {
+        playbook_id: playbook.playbook_id.to_string(),
+        task_match_score: playbook.task_match_score,
+        confidence: playbook.confidence,
+        why_relevant: playbook.why_relevant.clone(),
+        step_count: playbook.ordered_steps.len(),
+        steps: playbook
+            .ordered_steps
+            .iter()
+            .map(|step| PlaybookStepSummary {
+                order: step.order,
+                action: step.action.clone(),
+                tool_hint: step.tool_hint.clone(),
+                expected_result: step.expected_result.clone(),
+                source: playbook.step_source(step.order).cloned(),
+            })
+            .collect(),
+        pitfalls: playbook
+            .pitfalls
+            .iter()
+            .map(|pitfall| pitfall.warning.clone())
+            .collect(),
+        when_to_apply: playbook.when_to_apply.clone(),
+        when_not_to_apply: playbook.when_not_to_apply.clone(),
+        expected_outcome: playbook.expected_outcome.clone(),
+    }
+}
+
 fn print_playbook_human(summary: &PlaybookSummary) {
     println!("PLAYBOOK RECOMMENDATION");
     println!("{}", "=".repeat(60));
@@ -225,6 +212,9 @@ fn print_playbook_human(summary: &PlaybookSummary) {
             }
             if let Some(ref result) = step.expected_result {
                 println!("     Expected: {}", result);
+            }
+            if let Some(ref source) = step.source {
+                println!("     Source pattern: {}", source.pattern_id);
             }
         }
         println!();

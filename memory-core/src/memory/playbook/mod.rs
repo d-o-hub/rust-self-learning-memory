@@ -52,7 +52,8 @@ mod types;
 pub use builder::ReflectionData;
 pub use generator::PlaybookGenerator;
 pub use types::{
-    PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource, RecommendedPlaybook,
+    PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookStepSource, PlaybookSynthesisSource,
+    RecommendedPlaybook,
 };
 
 #[cfg(test)]

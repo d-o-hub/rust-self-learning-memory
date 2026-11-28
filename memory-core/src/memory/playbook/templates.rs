@@ -3,7 +3,9 @@
 //! Extracted from `generator.rs` to maintain the ≤500 LOC invariant.
 
 use super::builder::{ReflectionData, StepsBuilder};
-use super::types::{PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource};
+use super::types::{
+    PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookStepSource, PlaybookSynthesisSource,
+};
 use crate::patterns::Pattern;
 use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
@@ -38,13 +40,13 @@ pub(super) fn calculate_task_match(request: &PlaybookRequest, patterns: &[Patter
     avg_success_rate * 0.6 + context_match_ratio * 0.4
 }
 
-/// Synthesize ordered steps from patterns.
+/// Synthesize ordered steps from patterns, with the source pattern of each step.
 pub(super) fn synthesize_steps(
     patterns: &[Pattern],
     source: &mut PlaybookSynthesisSource,
     max_steps: usize,
     max_patterns: usize,
-) -> Vec<PlaybookStep> {
+) -> (Vec<PlaybookStep>, Vec<PlaybookStepSource>) {
     let mut builder = StepsBuilder::new(max_steps);
 
     for pattern in patterns.iter().take(max_patterns) {
